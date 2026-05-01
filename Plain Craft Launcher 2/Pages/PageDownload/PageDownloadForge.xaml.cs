@@ -34,15 +34,17 @@ public partial class PageDownloadForge
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Version in ModDownload.DlForgeListLoader.Output.Value.Sort(ModMinecraft.CompareVersionGe))
+            ModDownload.DlForgeListLoader.Output.Value.Sort((ModMinecraft.CompareVersion));
+            foreach (var Version in ModDownload.DlForgeListLoader.Output.Value)
             {
                 // 增加卡片
                 var NewCard = new MyCard
-                    { Title = Version.Replace("_p", " P"), Margin = new Thickness(0d, 0d, 0d, 15d) };
+                { Title = Version.Replace("_p", " P"), Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Version
                 };
                 NewCard.Children.Add(NewStack);
@@ -99,7 +101,17 @@ public partial class PageDownloadForge
         ((StackPanel)Card.SwapControl).Tag = Loader.Output;
         Card.InstallMethod = Stack =>
         {
-            Stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.Version > b.Version);
+            var temp = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag);
+            temp.Sort((a, b) =>
+            {
+                if (a.Version == b.Version)
+                {
+                    return 0;
+                }
+
+                return a.Version > b.Version ? 1 : -1;
+            });
+            Stack.Tag = temp;
             ModDownloadLib.ForgeDownloadListItemPreload(Stack, (List<ModDownload.DlForgeVersionEntry>)Stack.Tag,
                 ModDownloadLib.ForgeSave_Click, true);
             foreach (var item in (IEnumerable)Stack.Tag)

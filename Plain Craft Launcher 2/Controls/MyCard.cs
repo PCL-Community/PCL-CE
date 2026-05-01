@@ -1,3 +1,5 @@
+using PCL.Core.UI;
+using PCL.Core.UI.Controls;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -5,7 +7,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -31,8 +32,10 @@ public class MyCard : AnimatedBackgroundGrid
     {
         MainChrome = new MyDropShadow
         {
-            Margin = new Thickness(-3, -3, -3, -3 - ModBase.GetWPFSize(1d)), ShadowRadius = 3d,
-            Opacity = DropShadowIdleOpacity, CornerRadius = new CornerRadius(5d)
+            Margin = new Thickness(-3, -3, -3, -3 - ModBase.GetWPFSize(1d)),
+            ShadowRadius = 3d,
+            Opacity = DropShadowIdleOpacity,
+            CornerRadius = new CornerRadius(5d)
         };
         MainChrome.SetResourceReference(MyDropShadow.ColorProperty, "ColorObject1");
         Children.Insert(0, MainChrome);
@@ -123,8 +126,11 @@ public class MyCard : AnimatedBackgroundGrid
         {
             MainTextBlock = new TextBlock
             {
-                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(15d, 12d, 0d, 0d), FontWeight = FontWeights.Bold, FontSize = 13d,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(15d, 12d, 0d, 0d),
+                FontWeight = FontWeights.Bold,
+                FontSize = 13d,
                 IsHitTestVisible = false
             };
             MainTextBlock.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
@@ -139,11 +145,16 @@ public class MyCard : AnimatedBackgroundGrid
                 SwapControl = Children[3];
             MainSwap = new Path
             {
-                HorizontalAlignment = HorizontalAlignment.Right, Stretch = Stretch.Uniform, Height = 6d, Width = 10d,
-                VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0d, 17d, 16d, 0d),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Stretch = Stretch.Uniform,
+                Height = 6d,
+                Width = 10d,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0d, 17d, 16d, 0d),
                 Data =
                     (Geometry)new GeometryConverter().ConvertFromString("M2,4 l-2,2 10,10 10,-10 -2,-2 -8,8 -8,-8 z"),
-                RenderTransform = new RotateTransform(180d), RenderTransformOrigin = new Point(0.5d, 0.5d)
+                RenderTransform = new RotateTransform(180d),
+                RenderTransformOrigin = new Point(0.5d, 0.5d)
             };
             MainSwap.SetResourceReference(Shape.FillProperty, "ColorBrush1");
             MainGrid.Children.Add(MainSwap);
@@ -234,7 +245,7 @@ public class MyCard : AnimatedBackgroundGrid
     #region 高度改变动画
 
     /// <summary>
-    ///     是否启用高度改变动画。
+    /// 是否启用高度改变动画。
     /// </summary>
     public bool UseAnimation { get; set; } = true;
 
@@ -253,8 +264,8 @@ public class MyCard : AnimatedBackgroundGrid
     }
 
     /// <summary>
-    ///     启动卡片高度变化的动画效果
-    ///     根据变化距离的大小采用不同的动画策略：短距离使用简单缓动，长距离使用分段动画
+    /// 启动卡片高度变化的动画效果
+    /// 根据变化距离的大小采用不同的动画策略：短距离使用简单缓动，长距离使用分段动画
     /// </summary>
     /// <param name="Delta">高度变化量</param>
     /// <param name="PreviousHeight">之前的高度</param>
@@ -323,7 +334,7 @@ public class MyCard : AnimatedBackgroundGrid
     }
 
     /// <summary>
-    ///     通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。
+    /// 通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。
     /// </summary>
     public void TriggerForceResize()
     {
@@ -342,13 +353,13 @@ public class MyCard : AnimatedBackgroundGrid
     public bool CanSwap { get; set; } = false;
 
     /// <summary>
-    ///     数据转为列表项的转换方法
+    /// 数据转为列表项的转换方法
     /// </summary>
     /// <returns></returns>
     public Action<StackPanel> InstallMethod { get; set; }
 
     /// <summary>
-    ///     是否已被折叠。
+    /// 是否已被折叠。
     /// </summary>
     public bool IsSwapped
     {
@@ -391,7 +402,7 @@ public class MyCard : AnimatedBackgroundGrid
     private bool _IsSwapped;
 
     /// <summary>
-    ///     是否已被折叠。(已过时，请使用 IsSwapped)
+    /// 是否已被折叠。(已过时，请使用 IsSwapped)
     /// </summary>
     [Obsolete("请使用 IsSwapped 属性，IsSwaped 存在拼写错误")]
     public bool IsSwaped
@@ -405,11 +416,11 @@ public class MyCard : AnimatedBackgroundGrid
     private bool IsCustomMouseDown = false; //用于触发自定义事件的 MouseDown
     public event PreviewSwapEventHandler? PreviewSwap;
 
-    public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewSwapEventHandler(object sender, RouteEventArgs e);
 
     public event SwapEventHandler? Swap;
 
-    public delegate void SwapEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void SwapEventHandler(object sender, RouteEventArgs e);
 
     public const int SwapedHeight = 40;
 
@@ -437,7 +448,7 @@ public class MyCard : AnimatedBackgroundGrid
         if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return; // 检测点击位置；或已经不在可视树上的误判
 
-        var e2 = new ModBase.RouteEventArgs(true);
+        var e2 = new RouteEventArgs(true);
         PreviewSwap?.Invoke(this, e2);
         if (e2.Handled)
         {
@@ -446,7 +457,7 @@ public class MyCard : AnimatedBackgroundGrid
         }
 
         IsSwapped = !IsSwapped;
-        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title == null ? "" : "：" + Title));
+        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + ("：" + Title));
         Swap?.Invoke(this, e2);
     }
 

@@ -88,7 +88,7 @@ public partial class PageSetupLauncherMisc
             ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();

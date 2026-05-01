@@ -18,10 +18,10 @@
             <KernelType x:Key="BlurType">Gaussian</KernelType>
 
             <!-- Converter -->
-            <converters:AdditionConverter x:Key="AdditionConverter" />
-            <local:MultiplicationConverter x:Key="MultiplicationConverter" />
-            <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
-            <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <cvt:AdditionConverter x:Key="AdditionConverter" />
+            <cvt:MultiplicationConverter x:Key="MultiplicationConverter" />
+            <cvt:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            <cvt:InverseBooleanConverter x:Key="InverseBooleanConverter" />
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 

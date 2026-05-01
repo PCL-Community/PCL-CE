@@ -154,7 +154,7 @@ public partial class PageInstanceServer : MyPageRight
     }
 
     /// <summary>
-    ///     刷新服务器列表
+    /// 刷新服务器列表
     /// </summary>
     public async void RefreshServers()
     {
@@ -262,7 +262,7 @@ public partial class PageInstanceServer : MyPageRight
     }
 
     /// <summary>
-    ///     从servers.dat文件读取服务器信息
+    /// 从servers.dat文件读取服务器信息
     /// </summary>
     private async Task LoadServersFromFile()
     {
@@ -285,7 +285,7 @@ public partial class PageInstanceServer : MyPageRight
     }
 
     /// <summary>
-    ///     解析NBT格式的服务器数据
+    /// 解析NBT格式的服务器数据
     /// </summary>
     private void ParseServersFromNBT(NbtList serversList)
     {
@@ -326,7 +326,7 @@ public partial class PageInstanceServer : MyPageRight
     }
 
     /// <summary>
-    ///     更新服务器UI显示
+    /// 更新服务器UI显示
     /// </summary>
     private void UpdateServerUi()
     {
@@ -412,7 +412,7 @@ public partial class PageInstanceServer : MyPageRight
     }
 
     /// <summary>
-    ///     ping单个服务器
+    /// ping单个服务器
     /// </summary>
     public static async Task<MinecraftServerInfo> PingServer(MinecraftServerInfo server, CancellationToken token)
     {
@@ -457,7 +457,7 @@ public partial class PageInstanceServer : MyPageRight
 }
 
 /// <summary>
-///     Minecraft服务器信息类
+/// Minecraft服务器信息类
 /// </summary>
 public class MinecraftServerInfo
 {
@@ -474,7 +474,7 @@ public class MinecraftServerInfo
 }
 
 /// <summary>
-///     服务器状态枚举
+/// 服务器状态枚举
 /// </summary>
 public enum ServerStatus
 {

@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.UI;
 using PCL.Core.UI.Icons;
 using System.Windows;
 using System.Windows.Controls;
@@ -224,7 +225,7 @@ public partial class PageLogLeft
     }
 
     // 点击选项
-    public void Version_Change(object sender, ModBase.RouteEventArgs e)
+    public void Version_Change(object sender, RouteEventArgs e)
     {
         SelectionChange((int)((MyListItem)sender).Tag);
     }

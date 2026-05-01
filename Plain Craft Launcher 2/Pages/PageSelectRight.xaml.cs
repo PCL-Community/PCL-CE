@@ -25,7 +25,7 @@ public partial class PageSelectRight
 
     // 窗口属性
     /// <summary>
-    ///     是否显示隐藏的 Minecraft 实例。
+    /// 是否显示隐藏的 Minecraft 实例。
     /// </summary>
     public bool ShowHidden = false;
 
@@ -77,7 +77,7 @@ public partial class PageSelectRight
         var elapsed = (DateTime.Now - LastInputTime).TotalMilliseconds;
         var currentDelay = ReloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Finished &&
+        if (elapsed >= currentDelay && ModMinecraft.McInstanceListLoader.State == Enums.LoadState.Finished &&
             !IsRefreshing)
         {
             IsRefreshing = true;
@@ -112,7 +112,7 @@ public partial class PageSelectRight
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Failed)
+        if (ModMinecraft.McInstanceListLoader.State == Enums.LoadState.Failed)
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }

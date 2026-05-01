@@ -1,3 +1,13 @@
+using PCL.Core.App;
+using PCL.Core.App.IoC;
+using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Validate;
+using PCL.Network;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
@@ -7,16 +17,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
-using PCL.Core.App;
-using PCL.Core.App.IoC;
-using PCL.Core.Logging;
-using PCL.Core.UI;
-using PCL.Core.UI.Theme;
-using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Validate;
-using PCL.Network;
 
 namespace PCL;
 
@@ -372,7 +372,7 @@ public partial class FormMain
             var UnlockedTheme = new List<string> { "2" };
             UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV1.ToString().Split("|")));
             UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|")));
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Distinct().ToList().Join("|");
+            States.UI.ThemeHiddenV2 = string.Join('|', UnlockedTheme.Distinct());
         }
 
         // 重置欧皇彩
@@ -380,7 +380,7 @@ public partial class FormMain
         {
             var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
             UnlockedTheme.Remove("13");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
+            States.UI.ThemeHiddenV2 = string.Join('|', UnlockedTheme);
             ModMain.MyMsgBox("由于新版 PCL 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
         }
 
@@ -389,7 +389,7 @@ public partial class FormMain
         {
             var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
             UnlockedTheme.Remove("12");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
+            States.UI.ThemeHiddenV2 = string.Join('|', UnlockedTheme);
             ModMain.MyMsgBox("由于新版 PCL 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
         }
 
@@ -616,7 +616,7 @@ public partial class FormMain
                 TransformScale.CenterX = Width / 2d;
                 TransformScale.CenterY = Height / 2d;
                 RenderTransform = new TransformGroup
-                    { Children = new TransformCollection([TransformRotate, TransformPos, TransformScale]) };
+                { Children = new TransformCollection([TransformRotate, TransformPos, TransformScale]) };
                 ModAnimation.Start(new[]
                 {
                     ModAnimation.AaOpacity(this, -Opacity, 140, 40,
@@ -652,7 +652,7 @@ public partial class FormMain
 
     private static bool IsLogShown;
 
-    public static void EndProgramForce(ModBase.ProcessReturnValues ReturnCode = ModBase.ProcessReturnValues.Success,
+    public static void EndProgramForce(Enums.ProcessReturnValues ReturnCode = Enums.ProcessReturnValues.Success,
         bool force = true, bool isUpdating = false)
     {
         // On Error Resume Next
@@ -662,7 +662,7 @@ public partial class FormMain
         ModAnimation.AniControlEnabled += 1;
         if (ModSecret.IsUpdateWaitingRestart && !isUpdating)
             ModSecret.UpdateRestart(false, false);
-        if (ReturnCode == ModBase.ProcessReturnValues.Exception)
+        if (ReturnCode == Enums.ProcessReturnValues.Exception)
         {
             if (!IsLogShown)
             {
@@ -675,7 +675,7 @@ public partial class FormMain
             Thread.Sleep(500); // 防止 PCL 在记事本打开前就被掐掉
         }
 
-        ModBase.Log("[System] 程序已退出，返回值：" + ModBase.GetStringFromEnum(ReturnCode));
+        ModBase.Log("[System] 程序已退出，返回值：" + EnumUtils.GetEnumName(ReturnCode));
         // If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         // Process.GetCurrentProcess.Kill()
         Lifecycle.Shutdown((int)ReturnCode, force);
@@ -746,7 +746,7 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
+
     //“帮助”
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
@@ -965,7 +965,7 @@ public partial class FormMain
 
             _HandleDrag_PrevData = e.Data;
             _HandleDrag_PrevEffects = e.Effects;
-            ModBase.Log("[System] 设置拖放类型：" + ModBase.GetStringFromEnum(e.Effects));
+            ModBase.Log("[System] 设置拖放类型：" + EnumUtils.GetEnumName(e.Effects));
         }
         catch (Exception ex)
         {
@@ -1127,54 +1127,54 @@ public partial class FormMain
                 switch (PageCurrentSub)
                 {
                     case PageSubType.VersionWorld:
-                    {
-                        var DestFolder = PageInstanceLeft.Instance.PathIndie + @"saves\" +
-                                         ModBase.GetFileNameWithoutExtentionFromPath(FilePath);
-                        if (Directory.Exists(DestFolder))
                         {
-                            ModMain.Hint("发现同名文件夹，无法粘贴：" + DestFolder, ModMain.HintType.Critical);
+                            var DestFolder = PageInstanceLeft.Instance.PathIndie + @"saves\" +
+                                             ModBase.GetFileNameWithoutExtentionFromPath(FilePath);
+                            if (Directory.Exists(DestFolder))
+                            {
+                                ModMain.Hint("发现同名文件夹，无法粘贴：" + DestFolder, ModMain.HintType.Critical);
+                                return;
+                            }
+
+                            ModBase.ExtractFile(FilePath, DestFolder);
+                            ModMain.Hint($"已导入 {ModBase.GetFileNameWithoutExtentionFromPath(FilePath)}",
+                                ModMain.HintType.Finish);
+                            if (ModMain.FrmInstanceSaves is not null)
+                                ModBase.RunInUi(() => ModMain.FrmInstanceSaves.Reload());
                             return;
                         }
-
-                        ModBase.ExtractFile(FilePath, DestFolder);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameWithoutExtentionFromPath(FilePath)}",
-                            ModMain.HintType.Finish);
-                        if (ModMain.FrmInstanceSaves is not null)
-                            ModBase.RunInUi(() => ModMain.FrmInstanceSaves.Reload());
-                        return;
-                    }
                     case PageSubType.VersionResourcePack:
-                    {
-                        var DestFile = PageInstanceLeft.Instance.PathIndie + @"resourcepacks\" +
-                                       ModBase.GetFileNameFromPath(FilePath);
-                        if (File.Exists(DestFile))
                         {
-                            ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                            var DestFile = PageInstanceLeft.Instance.PathIndie + @"resourcepacks\" +
+                                           PathUtils.GetFileNameFromPath(FilePath);
+                            if (File.Exists(DestFile))
+                            {
+                                ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                                return;
+                            }
+
+                            ModBase.CopyFile(FilePath, DestFile);
+                            ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                            if (ModMain.FrmInstanceResourcePack is not null)
+                                ModBase.RunInUi(() => ModMain.FrmInstanceResourcePack.ReloadCompFileList());
                             return;
                         }
-
-                        ModBase.CopyFile(FilePath, DestFile);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
-                        if (ModMain.FrmInstanceResourcePack is not null)
-                            ModBase.RunInUi(() => ModMain.FrmInstanceResourcePack.ReloadCompFileList());
-                        return;
-                    }
                     case PageSubType.VersionShader:
-                    {
-                        var DestFile = PageInstanceLeft.Instance.PathIndie + @"shaderpacks\" +
-                                       ModBase.GetFileNameFromPath(FilePath);
-                        if (File.Exists(DestFile))
                         {
-                            ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                            var DestFile = PageInstanceLeft.Instance.PathIndie + @"shaderpacks\" +
+                                           PathUtils.GetFileNameFromPath(FilePath);
+                            if (File.Exists(DestFile))
+                            {
+                                ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                                return;
+                            }
+
+                            ModBase.CopyFile(FilePath, DestFile);
+                            ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                            if (ModMain.FrmInstanceShader is not null)
+                                ModBase.RunInUi(() => ModMain.FrmInstanceShader.ReloadCompFileList());
                             return;
                         }
-
-                        ModBase.CopyFile(FilePath, DestFile);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
-                        if (ModMain.FrmInstanceShader is not null)
-                            ModBase.RunInUi(() => ModMain.FrmInstanceShader.ReloadCompFileList());
-                        return;
-                    }
                 }
 
             // 处理投影文件
@@ -1183,7 +1183,7 @@ public partial class FormMain
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
                 var DestFile = PageInstanceLeft.Instance.PathIndie + @"schematics\" +
-                               ModBase.GetFileNameFromPath(FilePath);
+                               PathUtils.GetFileNameFromPath(FilePath);
                 if (File.Exists(DestFile))
                 {
                     ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
@@ -1192,7 +1192,7 @@ public partial class FormMain
 
                 Directory.CreateDirectory(PageInstanceLeft.Instance.PathIndie + @"schematics\");
                 ModBase.CopyFile(FilePath, DestFile);
-                ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
                 if (ModMain.FrmInstanceSchematic is not null)
                     ModBase.RunInUi(() => ModMain.FrmInstanceSchematic.ReloadCompFileList());
                 return;
@@ -1375,17 +1375,17 @@ public partial class FormMain
         switch (WindowState)
         {
             case WindowState.Minimized:
-            {
-                ModVideoBack.IsMinimized = true;
-                ModVideoBack.VideoPause();
-                break;
-            }
+                {
+                    ModVideoBack.IsMinimized = true;
+                    ModVideoBack.VideoPause();
+                    break;
+                }
             case WindowState.Normal:
-            {
-                ModVideoBack.IsMinimized = false;
-                ModVideoBack.VideoPlay();
-                break;
-            }
+                {
+                    ModVideoBack.IsMinimized = false;
+                    ModVideoBack.VideoPlay();
+                    break;
+                }
         }
     }
 
@@ -1527,42 +1527,42 @@ public partial class FormMain
         switch (Stack.Page)
         {
             case PageType.InstanceSelect:
-            {
-                return "实例选择";
-            }
+                {
+                    return "实例选择";
+                }
             case PageType.TaskManager:
-            {
-                return "任务管理";
-            }
+                {
+                    return "任务管理";
+                }
             case PageType.GameLog:
-            {
-                return "实时日志";
-            }
+                {
+                    return "实时日志";
+                }
             case PageType.InstanceSetup:
-            {
-                return $"实例设置 - {(PageInstanceLeft.Instance is null ? "未知实例" : PageInstanceLeft.Instance.Name)}";
-            }
+                {
+                    return $"实例设置 - {(PageInstanceLeft.Instance is null ? "未知实例" : PageInstanceLeft.Instance.Name)}";
+                }
             case PageType.CompDetail:
-            {
-                return $"资源下载 - {Stack.Additional.Value.CompProject.TranslatedName}";
-            }
+                {
+                    return $"资源下载 - {Stack.Additional.Value.CompProject.TranslatedName}";
+                }
             case PageType.HelpDetail:
-            {
-                return Stack.Additional.Value.HelpEntry.Title;
-            }
+                {
+                    return Stack.Additional.Value.HelpEntry.Title;
+                }
             case PageType.VersionSaves:
-            {
-                return $"存档管理 - {ModBase.GetFolderNameFromPath(Stack.Additional.Value.SavePath)}";
-            }
+                {
+                    return $"存档管理 - {PathUtils.GetFolderNameFromPath(Stack.Additional.Value.SavePath)}";
+                }
             case PageType.HomePageMarket:
-            {
-                return "主页市场";
-            }
+                {
+                    return "主页市场";
+                }
 
             default:
-            {
-                return "";
-            }
+                {
+                    return "";
+                }
         }
     }
 
@@ -1603,30 +1603,30 @@ public partial class FormMain
             switch (PageCurrent.Page)
             {
                 case PageType.Download:
-                {
-                    if (ModMain.FrmDownloadLeft is null)
-                        ModMain.FrmDownloadLeft = new PageDownloadLeft();
-                    return ModMain.FrmDownloadLeft.PageID;
-                }
+                    {
+                        if (ModMain.FrmDownloadLeft is null)
+                            ModMain.FrmDownloadLeft = new PageDownloadLeft();
+                        return ModMain.FrmDownloadLeft.PageID;
+                    }
 
                 case PageType.Setup:
-                {
-                    if (ModMain.FrmSetupLeft is null)
-                        ModMain.FrmSetupLeft = new PageSetupLeft();
-                    return ModMain.FrmSetupLeft.PageID;
-                }
+                    {
+                        if (ModMain.FrmSetupLeft is null)
+                            ModMain.FrmSetupLeft = new PageSetupLeft();
+                        return ModMain.FrmSetupLeft.PageID;
+                    }
 
                 case PageType.InstanceSetup:
-                {
-                    if (ModMain.FrmInstanceLeft is null)
-                        ModMain.FrmInstanceLeft = new PageInstanceLeft();
-                    return ModMain.FrmInstanceLeft.PageID;
-                }
+                    {
+                        if (ModMain.FrmInstanceLeft is null)
+                            ModMain.FrmInstanceLeft = new PageInstanceLeft();
+                        return ModMain.FrmInstanceLeft.PageID;
+                    }
 
                 default:
-                {
-                    return 0; // 没有子页面
-                }
+                    {
+                        return 0; // 没有子页面
+                    }
             }
         }
     }
@@ -1725,28 +1725,28 @@ public partial class FormMain
             switch (Stack.Page)
             {
                 case PageType.Download:
-                {
-                    if (ModMain.FrmDownloadLeft is null)
-                        ModMain.FrmDownloadLeft = new PageDownloadLeft();
-                    foreach (var item in ModMain.FrmDownloadLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
-                        {
-                            listItem.SetChecked(true, true, Stack == PageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.FrmDownloadLeft is null)
+                            ModMain.FrmDownloadLeft = new PageDownloadLeft();
+                        foreach (var item in ModMain.FrmDownloadLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                StringExtension.Val(listItem.tag) == (double)SubType)
+                            {
+                                listItem.SetChecked(true, true, Stack == PageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
                 case PageType.Setup:
-                {
-                    if (ModMain.FrmSetupLeft is null)
-                        ModMain.FrmSetupLeft = new PageSetupLeft();
-                    if (ModMain.FrmSetupLeft.PanItem.Children[(int)SubType] is MyListItem)
-                        ((MyListItem)ModMain.FrmSetupLeft.PanItem.Children[(int)SubType]).SetChecked(true, true,
-                            Stack == PageCurrent);
-                    break;
-                }
+                    {
+                        if (ModMain.FrmSetupLeft is null)
+                            ModMain.FrmSetupLeft = new PageSetupLeft();
+                        if (ModMain.FrmSetupLeft.PanItem.Children[(int)SubType] is MyListItem)
+                            ((MyListItem)ModMain.FrmSetupLeft.PanItem.Children[(int)SubType]).SetChecked(true, true,
+                                Stack == PageCurrent);
+                        break;
+                    }
             }
 
             PageChangeActual(Stack, SubType);
@@ -1757,33 +1757,33 @@ public partial class FormMain
             switch (Stack.Page)
             {
                 case PageType.InstanceSetup:
-                {
-                    if (ModMain.FrmInstanceLeft is null)
-                        ModMain.FrmInstanceLeft = new PageInstanceLeft();
-                    foreach (var item in ModMain.FrmInstanceLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
-                        {
-                            listItem.SetChecked(true, true, Stack == PageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.FrmInstanceLeft is null)
+                            ModMain.FrmInstanceLeft = new PageInstanceLeft();
+                        foreach (var item in ModMain.FrmInstanceLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                StringExtension.Val(listItem.tag) == (double)SubType)
+                            {
+                                listItem.SetChecked(true, true, Stack == PageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
                 case PageType.VersionSaves:
-                {
-                    if (ModMain.FrmInstanceSavesLeft is null)
-                        ModMain.FrmInstanceSavesLeft = new PageInstanceSavesLeft();
-                    foreach (var item in ModMain.FrmInstanceSavesLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
-                        {
-                            listItem.SetChecked(true, true, Stack == PageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.FrmInstanceSavesLeft is null)
+                            ModMain.FrmInstanceSavesLeft = new PageInstanceSavesLeft();
+                        foreach (var item in ModMain.FrmInstanceSavesLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                StringExtension.Val(listItem.tag) == (double)SubType)
+                            {
+                                listItem.SetChecked(true, true, Stack == PageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             PageChangeActual(Stack, SubType);
@@ -1799,7 +1799,7 @@ public partial class FormMain
             return;
         var pageType = (PageType)int.Parse(sender.Tag.ToString());
         PageChangeActual(pageType, PageSubType.Default);
-        }
+    }
 
     private void BtnTitleInner_Click(object sender, EventArgs e)
     {
@@ -1983,7 +1983,7 @@ public partial class FormMain
 
             #endregion
 
-            ModBase.Log("[Control] 切换主要页面：" + ModBase.GetStringFromEnum(Stack) + ", " + (int)SubType);
+            ModBase.Log("[Control] 切换主要页面：" + EnumUtils.GetEnumName(Stack.Page) + ", " + (int)SubType);
         }
         catch (Exception ex)
         {
@@ -2141,7 +2141,7 @@ public partial class FormMain
     {
         if (ModMain.DragControl is null)
             return;
-        if (Mouse.LeftButton == MouseButtonState.Pressed) 
+        if (Mouse.LeftButton == MouseButtonState.Pressed)
         {
             ModMain.DragControl.DragDoing();
         }

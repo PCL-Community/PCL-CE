@@ -1,5 +1,7 @@
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
+using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
 using System.Windows;
@@ -89,7 +91,7 @@ public partial class PageDownloadCompFavorites
             ModBase.Log(ex, "[Favorites] 加载收藏夹列表时出错");
         }
 
-        return (List<string>)TargetList.Clone(); // 复制而不是直接引用！
+        return new List<string>(TargetList ?? []); // 复制而不是直接引用！
     }
 
     private void CompFavoritesGet(ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> Task)
@@ -112,7 +114,7 @@ public partial class PageDownloadCompFavorites
     private readonly List<CompListItemContainer> ItemList = new();
 
     /// <summary>
-    ///     刷新收藏夹列表
+    /// 刷新收藏夹列表
     /// </summary>
     private void RefreshFavTargets()
     {
@@ -131,7 +133,7 @@ public partial class PageDownloadCompFavorites
     }
 
     /// <summary>
-    ///     返回适合当前工程项目的卡片记录
+    /// 返回适合当前工程项目的卡片记录
     /// </summary>
     /// <param name="Type">工程项目类型</param>
     /// <returns></returns>
@@ -441,7 +443,7 @@ public partial class PageDownloadCompFavorites
     #region 事件
 
     // 选中状态改变
-    private void ItemCheckStatusChanged(object sender, ModBase.RouteEventArgs e)
+    private void ItemCheckStatusChanged(object sender, RouteEventArgs e)
     {
         var SenderItem = (MyListItem)sender;
         if (SelectedItemList.Contains(SenderItem))
@@ -456,7 +458,7 @@ public partial class PageDownloadCompFavorites
     {
         switch (Loader.State)
         {
-            case ModBase.LoadState.Failed:
+            case Enums.LoadState.Failed:
                 {
                     var ErrorMessage = "";
                     if (Loader.Error is not null)
@@ -472,9 +474,9 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void Btn_FavoritesCancel_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesCancel_Clicked(object sender, RouteEventArgs e)
     {
-        foreach (var Items in SelectedItemList.Clone())
+        foreach (var Items in new List<MyListItem>(SelectedItemList))
             Items_CancelFavorites(Items);
         if (CompItemList.Any())
         {
@@ -489,12 +491,12 @@ public partial class PageDownloadCompFavorites
         RefreshBar();
     }
 
-    private void Btn_SelectCancel_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_SelectCancel_Clicked(object sender, RouteEventArgs e)
     {
         Items_SetSelectAll(false);
     }
 
-    private void Btn_FavoritesShare_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesShare_Clicked(object sender, RouteEventArgs e)
     {
         try
         {
@@ -509,7 +511,7 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void Btn_FavoritesDownload_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesDownload_Clicked(object sender, RouteEventArgs e)
     {
         try
         {
@@ -646,7 +648,7 @@ public partial class PageDownloadCompFavorites
                 {
                     // 按照发布日期排序
                     var FinalChoices = Target.Where(i => i.GameVersions.Contains(SelectedVersionStr)).ToList();
-                    FinalChoices.Sort((a, b) => a.ReleaseDate > b.ReleaseDate);
+                    FinalChoices.Sort((a, b) => b.ReleaseDate.CompareTo(a.ReleaseDate));
                     // 获取文件名
                     var TargetProject = ModComp.CompProjectCache[FinalChoices.First().ProjectId];
                     var FileName = ModComp.CompFileNameGet(TargetProject, FinalChoices.First());
@@ -864,7 +866,7 @@ public partial class PageDownloadCompFavorites
         foreach (var Id in FailIds)
             Content += $" - {Id}" + "\r\n";
         ModMain.MyMsgBox(Content, "部分收藏项目获取失败", Button2: "复制这些 ID", Button3: "移除这些收藏",
-            Button2Action: () => ModBase.ClipboardSet(FailIds.Join("\r\n")), Button3Action: () =>
+            Button2Action: () => ModBase.ClipboardSet(string.Join("\r\n", FailIds)), Button3Action: () =>
             {
                 foreach (var Id in FailIds)
                     CurrentFavTarget.Favs.Remove(Id);
@@ -889,24 +891,24 @@ public partial class PageDownloadCompFavorites
         if (IsSearching)
         {
             // 构造请求
-            var QueryList = new List<ModBase.SearchEntry<MyListItem>>();
+            var QueryList = new List<SearchEntry<MyListItem>>();
             foreach (var Item in CompItemList)
             {
                 if (!(Item.Tag is ModComp.CompProject))
                     continue;
                 var Entry = (ModComp.CompProject)Item.Tag;
-                var SearchSource = new List<ModBase.SearchSource>();
-                SearchSource.Add(new ModBase.SearchSource(Entry.RawName, 1d));
+                var SearchSource = new List<KeyValuePair<string, double>>();
+                SearchSource.Add(new KeyValuePair<string, double>(Entry.RawName, 1d));
                 if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
+                    SearchSource.Add(new KeyValuePair<string, double>(Entry.Description, 0.4d));
                 if ((Entry.TranslatedName ?? "") != (Entry.RawName ?? ""))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.TranslatedName, 1d));
-                SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Tags), 0.2d));
-                QueryList.Add(new ModBase.SearchEntry<MyListItem> { Item = Item, SearchSource = SearchSource });
+                    SearchSource.Add(new KeyValuePair<string, double>(Entry.TranslatedName, 1d));
+                SearchSource.Add(new KeyValuePair<string, double>(string.Join("", Entry.Tags), 0.2d));
+                QueryList.Add(new SearchEntry<MyListItem>(Item, SearchSource));
             }
 
             // 进行搜索
-            SearchResult = ModBase.Search(QueryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+            SearchResult = SimilaritySearch.Search(QueryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
         }
 
         RefreshContent();

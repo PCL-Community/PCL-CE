@@ -1,16 +1,16 @@
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Text;
 
 namespace PCL;
 
@@ -19,8 +19,8 @@ public static class ModDownload
     #region DlClient* | Minecraft 客户端
 
     /// <summary>
-    ///     返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
-    ///     失败则抛出异常，不需要下载则返回 Nothing。
+    /// 返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
+    /// 失败则抛出异常，不需要下载则返回 Nothing。
     /// </summary>
     public static DownloadFile DlClientJarGet(ModMinecraft.McInstance Version, bool ReturnNothingOnFileUseable)
     {
@@ -51,8 +51,8 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
-    ///     若未找到，则会返回 Legacy 资源文件或 Nothing。
+    /// 返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
+    /// 若未找到，则会返回 Legacy 资源文件或 Nothing。
     /// </summary>
     public static DownloadFile DlClientAssetIndexGet(ModMinecraft.McInstance Version)
     {
@@ -71,7 +71,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。
+    /// 构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。
     /// </summary>
     public static List<ModLoader.LoaderBase> DlClientFix(ModMinecraft.McInstance Version, bool CheckAssetsHash,
         AssetsIndexExistsBehaviour AssetsIndexBehaviour)
@@ -94,7 +94,7 @@ public static class ModDownload
             };
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载支持库文件（主加载器）", LoadersLib)
-                { Block = false, Show = false, ProgressWeight = 16d });
+            { Block = false, Show = false, ProgressWeight = 16d });
         }
 
         #endregion
@@ -125,10 +125,11 @@ public static class ModDownload
                 {
                     throw new Exception("分析资源文件索引地址失败", ex);
                 }
-            }) { ProgressWeight = 0.5d, Show = false });
+            })
+            { ProgressWeight = 0.5d, Show = false });
             // 下载资源文件索引
             LoadersAssets.Add(new LoaderDownload("下载资源文件索引", new List<DownloadFile>())
-                { ProgressWeight = 2d });
+            { ProgressWeight = 2d });
             // 要求独立更新索引
             if (AssetsIndexBehaviour == AssetsIndexExistsBehaviour.DownloadInBackground)
             {
@@ -175,7 +176,7 @@ public static class ModDownload
             LoadersAssets.Add(new LoaderDownload("下载资源文件", new List<DownloadFile>()) { ProgressWeight = 25d });
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载资源文件（主加载器）", LoadersAssets)
-                { Block = false, Show = false, ProgressWeight = 30.5d });
+            { Block = false, Show = false, ProgressWeight = 30.5d });
         }
 
         #endregion
@@ -186,17 +187,17 @@ public static class ModDownload
     public enum AssetsIndexExistsBehaviour
     {
         /// <summary>
-        ///     如果文件存在，则不进行下载。
+        /// 如果文件存在，则不进行下载。
         /// </summary>
         DontDownload,
 
         /// <summary>
-        ///     如果文件存在，则启动新的下载加载器进行独立的更新。
+        /// 如果文件存在，则启动新的下载加载器进行独立的更新。
         /// </summary>
         DownloadInBackground,
 
         /// <summary>
-        ///     如果文件存在，也同样进行下载。
+        /// 如果文件存在，也同样进行下载。
         /// </summary>
         AlwaysDownload
     }
@@ -206,8 +207,8 @@ public static class ModDownload
     #region DlClientList | Minecraft 客户端 版本列表
 
     /// <summary>
-    ///     所有正式版的 Minecraft Drop 序数。
-    ///     若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。
+    /// 所有正式版的 Minecraft Drop 序数。
+    /// 若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。
     /// </summary>
     public static List<int> AllDrops
     {
@@ -222,7 +223,7 @@ public static class ModDownload
                         _allDrops = new List<int>();
                     else
                         _allDrops = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(d => (int)Math.Round(ModBase.Val(d))).ToList();
+                            .Select(d => (int)Math.Round(StringExtension.Val(d))).ToList();
                 }
 
                 return _allDrops.Count != 0 ? _allDrops : null;
@@ -233,7 +234,7 @@ public static class ModDownload
             lock (_allDropsLock)
             {
                 _allDrops = value;
-                States.Game.Drops = value.Join(",");
+                States.Game.Drops = string.Join(',', value);
             }
         }
     }
@@ -245,17 +246,17 @@ public static class ModDownload
     public struct DlClientListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Mojang”，“BMCLAPI”。
+        /// 数据来源名称，如“Mojang”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的 Json 数据。
+        /// 获取到的 Json 数据。
         /// </summary>
         public JObject Value;
         // ''' <summary>
@@ -265,8 +266,8 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Minecraft 客户端 版本列表，主加载器。
-    ///     若要求镜像源必须包含某个版本，则将该版本 ID 作为输入（#5195）。
+    /// Minecraft 客户端 版本列表，主加载器。
+    /// 若要求镜像源必须包含某个版本，则将该版本 ID 作为输入（#5195）。
     /// </summary>
     public static ModLoader.LoaderTask<string, DlClientListResult> DlClientListLoader =
         new("DlClientList Main", DlClientListMain);
@@ -276,30 +277,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListBmclapiLoader, 30), new(DlClientListMojangLoader, 30 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListBmclapiLoader, 30), new(DlClientListMojangLoader, 30 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListMojangLoader, 5), new(DlClientListBmclapiLoader, 5 + 30) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListMojangLoader, 5), new(DlClientListBmclapiLoader, 5 + 30) },
+                        loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListMojangLoader, 60), new(DlClientListBmclapiLoader, 60 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListMojangLoader, 60), new(DlClientListBmclapiLoader, 60 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
         }
 
         // 提取所有 Drop 序数
@@ -311,7 +312,7 @@ public static class ModDownload
 
     // 各个下载源的分加载器
     /// <summary>
-    ///     Minecraft 客户端 版本列表，Mojang 官方源加载器。
+    /// Minecraft 客户端 版本列表，Mojang 官方源加载器。
     /// </summary>
     public static ModLoader.LoaderTask<string, DlClientListResult> DlClientListMojangLoader =
         new("DlClientList Mojang", DlClientListMojangMain);
@@ -404,7 +405,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Minecraft 客户端 版本列表，BMCLAPI 源加载器。
+    /// Minecraft 客户端 版本列表，BMCLAPI 源加载器。
     /// </summary>
     public static ModLoader.LoaderTask<string, DlClientListResult> DlClientListBmclapiLoader =
         new("DlClientList Bmclapi", DlClientListBmclapiMain);
@@ -461,7 +462,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     获取某个版本的 Json 下载地址，若失败则返回 Nothing。必须在工作线程执行。
+    /// 获取某个版本的 Json 下载地址，若失败则返回 Nothing。必须在工作线程执行。
     /// </summary>
     public static object DlClientListGet(string Id)
     {
@@ -474,28 +475,28 @@ public static class ModDownload
             // 获取 Minecraft 版本列表
             switch (DlClientListLoader.State)
             {
-                case ModBase.LoadState.Finished:
-                {
-                    // 从当前的结果获取目标版本…
-                    foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
-                        if ((string)Version["id"] == Id)
-                            return Version["url"].ToString();
-                    // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
-                    DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
-                    break;
-                }
-                case ModBase.LoadState.Loading:
-                {
-                    DlClientListLoader.WaitForExit(Id);
-                    break;
-                }
-                case ModBase.LoadState.Failed:
-                case ModBase.LoadState.Aborted:
-                case ModBase.LoadState.Waiting:
-                {
-                    DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
-                    break;
-                }
+                case Enums.LoadState.Finished:
+                    {
+                        // 从当前的结果获取目标版本…
+                        foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+                            if ((string)Version["id"] == Id)
+                                return Version["url"].ToString();
+                        // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
+                        DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
+                        break;
+                    }
+                case Enums.LoadState.Loading:
+                    {
+                        DlClientListLoader.WaitForExit(Id);
+                        break;
+                    }
+                case Enums.LoadState.Failed:
+                case Enums.LoadState.Aborted:
+                case Enums.LoadState.Waiting:
+                    {
+                        DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
+                        break;
+                    }
             }
 
             // 重新查找版本
@@ -520,17 +521,17 @@ public static class ModDownload
     public struct DlOptiFineListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public List<DlOptiFineListEntry> Value;
     }
@@ -540,37 +541,37 @@ public static class ModDownload
         private string _inherit;
 
         /// <summary>
-        ///     显示名称，已去除 HD_U 字样，如“1.12.2 C8”。
+        /// 显示名称，已去除 HD_U 字样，如“1.12.2 C8”。
         /// </summary>
         public string DisplayName;
 
         /// <summary>
-        ///     是否为测试版。
+        /// 是否为测试版。
         /// </summary>
         public bool IsPreview;
 
         /// <summary>
-        ///     原始文件名称，如“preview_OptiFine_1.11_HD_U_E1_pre.jar”。
+        /// 原始文件名称，如“preview_OptiFine_1.11_HD_U_E1_pre.jar”。
         /// </summary>
         public string NameFile;
 
         /// <summary>
-        ///     对应的版本名称，如“1.13.2-OptiFine_HD_U_E6”。
+        /// 对应的版本名称，如“1.13.2-OptiFine_HD_U_E6”。
         /// </summary>
         public string NameVersion;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/mm/dd”。OptiFine 源无此数据。
+        /// 发布时间，格式为“yyyy/mm/dd”。OptiFine 源无此数据。
         /// </summary>
         public string ReleaseTime;
 
         /// <summary>
-        ///     需要的最低 Forge 版本。空字符串为无限制，Nothing 为不兼容，“28.1.56” 表示版本号，“1161” 表示版本号的最后一位。
+        /// 需要的最低 Forge 版本。空字符串为无限制，Nothing 为不兼容，“28.1.56” 表示版本号，“1161” 表示版本号的最后一位。
         /// </summary>
         public string RequiredForgeVersion;
 
         /// <summary>
-        ///     对应的 Minecraft 版本，如“1.12.2”。
+        /// 对应的 Minecraft 版本，如“1.12.2”。
         /// </summary>
         public string Inherit
         {
@@ -585,7 +586,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     OptiFine 版本列表，主加载器。
+    /// OptiFine 版本列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlOptiFineListResult> DlOptiFineListLoader =
         new("DlOptiFineList Main", DlOptiFineListMain);
@@ -595,35 +596,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListBmclapiLoader, 30), new(DlOptiFineListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListBmclapiLoader, 30), new(DlOptiFineListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListOfficialLoader, 5), new(DlOptiFineListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListOfficialLoader, 5), new(DlOptiFineListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListOfficialLoader, 60), new(DlOptiFineListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListOfficialLoader, 60), new(DlOptiFineListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     OptiFine 版本列表，官方源。
+    /// OptiFine 版本列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlOptiFineListResult> DlOptiFineListOfficialLoader =
         new("DlOptiFineList Official", DlOptiFineListOfficialMain);
@@ -646,9 +647,9 @@ public static class ModDownload
         try
         {
             // 获取所有版本信息
-            var Forge = Result.RegexSearch("(?<=colForge'>)[^<]*");
-            var ReleaseTime = Result.RegexSearch("(?<=colDate'>)[^<]+");
-            var Name = Result.RegexSearch("(?<=OptiFine_)[0-9A-Za-z_.]+(?=.jar\")");
+            var Forge = Result.RegexSearch(new("(?<=colForge'>)[^<]*"));
+            var ReleaseTime = Result.RegexSearch(new("(?<=colDate'>)[^<]+"));
+            var Name = Result.RegexSearch(new("(?<=OptiFine_)[0-9A-Za-z_.]+(?=.jar\")"));
             if (!(ReleaseTime.Count == Name.Count))
                 throw new Exception("版本与发布时间数据无法对应");
             if (!(Forge.Count == Name.Count))
@@ -663,9 +664,7 @@ public static class ModDownload
                 var Entry = new DlOptiFineListEntry
                 {
                     DisplayName = Name[i].Replace("HD U ", "").Replace(".0 ", " "),
-                    ReleaseTime = new[]
-                            { ReleaseTime[i].Split(".")[2], ReleaseTime[i].Split(".")[1], ReleaseTime[i].Split(".")[0] }
-                        .Join("/"),
+                    ReleaseTime = string.Join('/', ReleaseTime[i].Split(".")[2], ReleaseTime[i].Split(".")[1], ReleaseTime[i].Split(".")[0]),
                     IsPreview = Name[i].ContainsF("pre", true),
                     Inherit = Name[i].Split(" ")[0],
                     NameFile = (Name[i].ContainsF("pre", true) ? "preview_" : "") + "OptiFine_" +
@@ -680,7 +679,7 @@ public static class ModDownload
             }
 
             Loader.Output = new DlOptiFineListResult
-                { IsOfficial = true, SourceName = "OptiFine 官方源", Value = Versions };
+            { IsOfficial = true, SourceName = "OptiFine 官方源", Value = Versions };
         }
         catch (Exception ex)
         {
@@ -689,7 +688,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     OptiFine 版本列表，BMCLAPI。
+    /// OptiFine 版本列表，BMCLAPI。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlOptiFineListResult> DlOptiFineListBmclapiLoader =
         new("DlOptiFineList Bmclapi", DlOptiFineListBmclapiMain);
@@ -735,23 +734,23 @@ public static class ModDownload
     public struct DlForgeListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public List<string> Value;
     }
 
     /// <summary>
-    ///     Forge 版本列表，主加载器。
+    /// Forge 版本列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlForgeListResult> DlForgeListLoader =
         new("DlForgeList Main", DlForgeListMain);
@@ -761,35 +760,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListBmclapiLoader, 30), new(DlForgeListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListBmclapiLoader, 30), new(DlForgeListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListOfficialLoader, 5), new(DlForgeListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListOfficialLoader, 5), new(DlForgeListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListOfficialLoader, 60), new(DlForgeListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListOfficialLoader, 60), new(DlForgeListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     Forge 版本列表，官方源。
+    /// Forge 版本列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlForgeListResult> DlForgeListOfficialLoader =
         new("DlForgeList Official", DlForgeListOfficialMain);
@@ -805,7 +804,7 @@ public static class ModDownload
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
-        var Names = Result.RegexSearch("(?<=a href=\"index_)[0-9.]+(_pre[0-9]?)?(?=.html)");
+        var Names = Result.RegexSearch(new("(?<=a href=\"index_)[0-9.]+(_pre[0-9]?)?(?=.html)"));
         Names.Add("1.2.4"); // 1.2.4 不会被匹配上
         if (Names.Count < 10)
             throw new Exception("获取到的版本数量不足（" + Result + "）");
@@ -813,7 +812,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Forge 版本列表，BMCLAPI。
+    /// Forge 版本列表，BMCLAPI。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlForgeListResult> DlForgeListBmclapiLoader =
         new("DlForgeList Bmclapi", DlForgeListBmclapiMain);
@@ -829,7 +828,7 @@ public static class ModDownload
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
-        var Names = Result.RegexSearch("[0-9.]+(_pre[0-9]?)?");
+        var Names = Result.RegexSearch(new("[0-9.]+(_pre[0-9]?)?"));
         if (Names.Count < 10)
             throw new Exception("获取到的版本数量不足（" + Result + "）");
         Loader.Output = new DlForgeListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Names };
@@ -849,39 +848,39 @@ public static class ModDownload
         }
 
         /// <summary>
-        ///     Forgelike 种类。Forge、NeoForge、Cleanroom。
+        /// Forgelike 种类。Forge、NeoForge、Cleanroom。
         /// </summary>
         public ForgelikeType ForgeType;
 
         /// <summary>
-        ///     对应的 Minecraft 版本，如“1.12.2”。
+        /// 对应的 Minecraft 版本，如“1.12.2”。
         /// </summary>
         public string Inherit;
 
         /// <summary>
-        ///     标准化后的版本号，仅可用于比较与排序。
-        ///     格式：Major.Minor.Build.Revision
-        ///     Forge：如 “50.1.9.0”（最后一位固定为 0）、“14.22.1.2478”（Legacy）。
-        ///     NeoForge：如 “20.4.30.0”（最后一位固定为 0）、“19.47.1.99”（Legacy：第一位固定为 19）。
-        ///     Cleanroom：如 “0.2.4.1”（Alpha：最后一位固定为 1）。
+        /// 标准化后的版本号，仅可用于比较与排序。
+        /// 格式：Major.Minor.Build.Revision
+        /// Forge：如 “50.1.9.0”（最后一位固定为 0）、“14.22.1.2478”（Legacy）。
+        /// NeoForge：如 “20.4.30.0”（最后一位固定为 0）、“19.47.1.99”（Legacy：第一位固定为 19）。
+        /// Cleanroom：如 “0.2.4.1”（Alpha：最后一位固定为 1）。
         /// </summary>
         public Version Version;
 
         /// <summary>
-        ///     可对玩家显示的非格式化版本名。
-        ///     Forge：如 “50.1.9”、“14.22.1.2478”（Legacy）。
-        ///     NeoForge：如 “20.4.30-beta”、“47.1.99”（Legacy）。
-        ///     Cleanroom：如 “0.2.4-alpha”。
+        /// 可对玩家显示的非格式化版本名。
+        /// Forge：如 “50.1.9”、“14.22.1.2478”（Legacy）。
+        /// NeoForge：如 “20.4.30-beta”、“47.1.99”（Legacy）。
+        /// Cleanroom：如 “0.2.4-alpha”。
         /// </summary>
         public string VersionName;
 
         /// <summary>
-        ///     加载器名称。Forge 或 NeoForge。
+        /// 加载器名称。Forge 或 NeoForge。
         /// </summary>
         public string LoaderName => (int)ForgeType == 1 ? "NeoForge" : "Forge";
 
         /// <summary>
-        ///     文件扩展名。不以小数点开头。
+        /// 文件扩展名。不以小数点开头。
         /// </summary>
         public string FileExtension
         {
@@ -894,9 +893,9 @@ public static class ModDownload
         }
 
         /// <summary>
-        ///     Forge：MC 版本是否小于 1.13。
-        ///     NeoForge：MC 版本是否为 1.20.1。
-        ///     Cleanroom：固定为 False。
+        /// Forge：MC 版本是否小于 1.13。
+        /// NeoForge：MC 版本是否为 1.20.1。
+        /// Cleanroom：固定为 False。
         /// </summary>
         public bool IsLegacy
         {
@@ -923,27 +922,27 @@ public static class ModDownload
     public class DlForgeVersionEntry : DlForgelikeEntry
     {
         /// <summary>
-        ///     安装类型。有 installer、client、universal 三种。
+        /// 安装类型。有 installer、client、universal 三种。
         /// </summary>
         public string Category;
 
         /// <summary>
-        ///     用于下载的文件版本名。可能在 Version 的基础上添加了分支。
+        /// 用于下载的文件版本名。可能在 Version 的基础上添加了分支。
         /// </summary>
         public string FileVersion;
 
         /// <summary>
-        ///     文件的 MD5 或 SHA1（BMCLAPI 的老版本是 MD5，新版本是 SHA1；官方源总是 MD5）。
+        /// 文件的 MD5 或 SHA1（BMCLAPI 的老版本是 MD5，新版本是 SHA1；官方源总是 MD5）。
         /// </summary>
         public string Hash;
 
         /// <summary>
-        ///     是否为推荐版本。
+        /// 是否为推荐版本。
         /// </summary>
         public bool IsRecommended;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/MM/dd HH:mm”。
+        /// 发布时间，格式为“yyyy/MM/dd HH:mm”。
         /// </summary>
         public string ReleaseTime;
 
@@ -964,7 +963,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Forge 版本列表，主加载器。
+    /// Forge 版本列表，主加载器。
     /// </summary>
     public static void DlForgeVersionMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
@@ -977,35 +976,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionBmclapiLoader, 30), new(DlForgeVersionOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionBmclapiLoader, 30), new(DlForgeVersionOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionOfficialLoader, 5), new(DlForgeVersionBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionOfficialLoader, 5), new(DlForgeVersionBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionOfficialLoader, 60), new(DlForgeVersionBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionOfficialLoader, 60), new(DlForgeVersionBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     Forge 版本列表，官方源。
+    /// Forge 版本列表，官方源。
     /// </summary>
     public static void DlForgeVersionOfficialMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
@@ -1091,7 +1090,8 @@ public static class ModDownload
                     // 添加进列表
                     Versions.Add(new DlForgeVersionEntry(Name, Branch, Inherit)
                     {
-                        Category = Category, IsRecommended = IsRecommended,
+                        Category = Category,
+                        IsRecommended = IsRecommended,
                         Hash = MD5.Trim(Conversions.ToChar("\r"), Conversions.ToChar("\n")),
                         ReleaseTime = ReleaseTime
                     });
@@ -1113,7 +1113,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Forge 版本列表，BMCLAPI。
+    /// Forge 版本列表，BMCLAPI。
     /// </summary>
     public static void DlForgeVersionBmclapiMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
@@ -1134,41 +1134,41 @@ public static class ModDownload
                     switch (File["category"].ToString() ?? "")
                     {
                         case "installer":
-                        {
-                            if (File["format"].ToString() == "jar")
                             {
-                                // 类型为 installer.jar，支持范围 ~753 (~ 1.6.1 部分), 738~684 (1.5.2 全部)
-                                Hash = (string)File["hash"];
-                                Category = "installer";
-                                Proi = 2;
-                            }
+                                if (File["format"].ToString() == "jar")
+                                {
+                                    // 类型为 installer.jar，支持范围 ~753 (~ 1.6.1 部分), 738~684 (1.5.2 全部)
+                                    Hash = (string)File["hash"];
+                                    Category = "installer";
+                                    Proi = 2;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         case "universal":
-                        {
-                            if (Proi <= 1 && File["format"].ToString() == "zip")
                             {
-                                // 类型为 universal.zip，支持范围 751~449 (1.6.1 部分), 682~183 (1.5.1 ~ 1.3.2 部分)
-                                Hash = (string)File["hash"];
-                                Category = "universal";
-                                Proi = 1;
-                            }
+                                if (Proi <= 1 && File["format"].ToString() == "zip")
+                                {
+                                    // 类型为 universal.zip，支持范围 751~449 (1.6.1 部分), 682~183 (1.5.1 ~ 1.3.2 部分)
+                                    Hash = (string)File["hash"];
+                                    Category = "universal";
+                                    Proi = 1;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         case "client":
-                        {
-                            if (Proi <= 0 && File["format"].ToString() == "zip")
                             {
-                                // 类型为 client.zip，支持范围 182~ (1.3.2 部分 ~)
-                                Hash = (string)File["hash"];
-                                Category = "client";
-                                Proi = 0;
-                            }
+                                if (Proi <= 0 && File["format"].ToString() == "zip")
+                                {
+                                    // 类型为 client.zip，支持范围 182~ (1.3.2 部分 ~)
+                                    Hash = (string)File["hash"];
+                                    Category = "client";
+                                    Proi = 0;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                     }
 
                 // 获取 Entry
@@ -1176,7 +1176,7 @@ public static class ModDownload
                 var Name = (string)Token["version"];
                 // 基础信息获取
                 var Entry = new DlForgeVersionEntry(Name, Branch, Loader.Input)
-                    { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
+                { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
                 var TimeSplit = Token["modified"].ToString().Split('-', 'T', ':', '.', ' ', '/');
                 Entry.ReleaseTime = Token["modified"].ToObject<DateTime>().ToLocalTime()
                     .ToString("yyyy'/'MM'/'dd HH':'mm");
@@ -1201,17 +1201,17 @@ public static class ModDownload
     public struct DlNeoForgeListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     所有版本的列表。已经按从新到老排序。
+        /// 所有版本的列表。已经按从新到老排序。
         /// </summary>
         public List<DlNeoForgeListEntry> Value;
     }
@@ -1219,12 +1219,12 @@ public static class ModDownload
     public class DlNeoForgeListEntry : DlForgelikeEntry
     {
         /// <summary>
-        ///     API 使用的原始版本字符串，如 “20.4.30-beta”、“1.20.1-47.1.99”（Legacy）。
+        /// API 使用的原始版本字符串，如 “20.4.30-beta”、“1.20.1-47.1.99”（Legacy）。
         /// </summary>
         public string ApiName;
 
         /// <summary>
-        ///     是否是 Beta 版。
+        /// 是否是 Beta 版。
         /// </summary>
         public bool IsBeta;
 
@@ -1260,7 +1260,7 @@ public static class ModDownload
         }
 
         /// <summary>
-        ///     文件在官网的基础地址，不包含后缀。
+        /// 文件在官网的基础地址，不包含后缀。
         /// </summary>
         public string UrlBase
         {
@@ -1274,7 +1274,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     NeoForge 版本列表，主加载器。
+    /// NeoForge 版本列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlNeoForgeListResult> DlNeoForgeListLoader =
         new("DlNeoForgeList Main", DlNeoForgeListMain);
@@ -1284,35 +1284,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListBmclapiLoader, 30), new(DlNeoForgeListOfficialLoader, 30 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListBmclapiLoader, 30), new(DlNeoForgeListOfficialLoader, 30 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListOfficialLoader, 5), new(DlNeoForgeListBmclapiLoader, 5 + 30) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListOfficialLoader, 5), new(DlNeoForgeListBmclapiLoader, 5 + 30) },
+                        loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListOfficialLoader, 60), new(DlNeoForgeListBmclapiLoader, 60 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListOfficialLoader, 60), new(DlNeoForgeListBmclapiLoader, 60 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     NeoForge 版本列表，官方源。
+    /// NeoForge 版本列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlNeoForgeListResult> DlNeoForgeListOfficialLoader =
         new("DlNeoForgeList Official", DlNeoForgeListOfficialMain);
@@ -1352,7 +1352,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     NeoForge 版本列表，BMCLAPI。
+    /// NeoForge 版本列表，BMCLAPI。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlNeoForgeListResult> DlNeoForgeListBmclapiLoader =
         new("DlNeoForgeList Bmclapi", DlNeoForgeListBmclapiMain);
@@ -1394,7 +1394,7 @@ public static class ModDownload
 
     private static List<DlNeoForgeListEntry> GetNeoForgeEntries(string latestJson, string latestLegacyJson)
     {
-        var versionNames = ModBase.RegexSearch(latestLegacyJson + latestJson, RegexPatterns.DlNeoForgeVersion);
+        var versionNames = (latestLegacyJson + latestJson).RegexSearch(RegexPatterns.DlNeoForgeVersion);
         var versions = versionNames.Where(name => name != "47.1.82").Select(name => new DlNeoForgeListEntry(name))
             .OrderByDescending(a => a).ToList(); // 这个版本虽然在版本列表中，但不能下载
         if (!versions.Any())
@@ -1409,17 +1409,17 @@ public static class ModDownload
     public struct DlCleanroomListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     所有版本的列表。已经按从新到老排序。
+        /// 所有版本的列表。已经按从新到老排序。
         /// </summary>
         public List<DlCleanroomListEntry> Value;
     }
@@ -1427,12 +1427,12 @@ public static class ModDownload
     public class DlCleanroomListEntry : DlForgelikeEntry
     {
         /// <summary>
-        ///     API 使用的原始版本字符串，如 “0.2.4-alpha”。
+        /// API 使用的原始版本字符串，如 “0.2.4-alpha”。
         /// </summary>
         public string ApiName;
 
         /// <summary>
-        ///     是否是 Beta 版。
+        /// 是否是 Beta 版。
         /// </summary>
         public bool IsBeta;
 
@@ -1447,14 +1447,14 @@ public static class ModDownload
         }
 
         /// <summary>
-        ///     文件在官网的基础地址，不包含后缀。
+        /// 文件在官网的基础地址，不包含后缀。
         /// </summary>
         public string UrlBase =>
             $"https://github.com/CleanroomMC/Cleanroom/releases/download/{ApiName}/cleanroom-{ApiName}";
     }
 
     /// <summary>
-    ///     Cleanroom 版本列表，主加载器。
+    /// Cleanroom 版本列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlCleanroomListResult> DlCleanroomListLoader =
         new("DlCleanroomList Main", DlCleanroomListMain);
@@ -1464,32 +1464,32 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 5) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 5) }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 60) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 60) }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     Cleanroom 版本列表，官方源。
+    /// Cleanroom 版本列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlCleanroomListResult> DlCleanroomListOfficialLoader =
         new("DlCleanroomList Official", DlCleanroomListOfficialMain);
@@ -1526,7 +1526,7 @@ public static class ModDownload
         var Json = JArray.Parse(LatestJson);
         foreach (JObject Token in Json)
             Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
-                { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
+            { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
         if (!Versions.Any())
             throw new Exception("没有可用版本");
         Versions = Versions.OrderByDescending(a => a.Version).ToList();
@@ -1540,22 +1540,22 @@ public static class ModDownload
     public struct DlLiteLoaderListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public List<DlLiteLoaderListEntry> Value;
 
         /// <summary>
-        ///     官方源的失败原因。若没有则为 Nothing。
+        /// 官方源的失败原因。若没有则为 Nothing。
         /// </summary>
         public Exception OfficialError;
     }
@@ -1563,43 +1563,43 @@ public static class ModDownload
     public class DlLiteLoaderListEntry
     {
         /// <summary>
-        ///     实际的文件名，如“liteloader-installer-1.12-00-SNAPSHOT.jar”。
+        /// 实际的文件名，如“liteloader-installer-1.12-00-SNAPSHOT.jar”。
         /// </summary>
         public string FileName;
 
         /// <summary>
-        ///     对应的 Minecraft 版本，如“1.12.2”。
+        /// 对应的 Minecraft 版本，如“1.12.2”。
         /// </summary>
         public string Inherit;
 
         /// <summary>
-        ///     是否为 1.7 及更早的远古版。
+        /// 是否为 1.7 及更早的远古版。
         /// </summary>
         public bool IsLegacy;
 
         /// <summary>
-        ///     是否为测试版。
+        /// 是否为测试版。
         /// </summary>
         public bool IsPreview;
 
         /// <summary>
-        ///     对应的 Json 项。
+        /// 对应的 Json 项。
         /// </summary>
         public JToken JsonToken;
 
         /// <summary>
-        ///     文件的 MD5。
+        /// 文件的 MD5。
         /// </summary>
         public string MD5;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/mm/dd HH:mm”。
+        /// 发布时间，格式为“yyyy/mm/dd HH:mm”。
         /// </summary>
         public string ReleaseTime;
     }
 
     /// <summary>
-    ///     LiteLoader 版本列表，主加载器。
+    /// LiteLoader 版本列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLiteLoaderListResult> DlLiteLoaderListLoader =
         new("DlLiteLoaderList Main", DlLiteLoaderListMain);
@@ -1609,38 +1609,38 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListBmclapiLoader, 30), new(DlLiteLoaderListOfficialLoader, 30 + 60)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListOfficialLoader, 5), new(DlLiteLoaderListBmclapiLoader, 5 + 30)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListOfficialLoader, 60), new(DlLiteLoaderListBmclapiLoader, 60 + 60)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     LiteLoader 版本列表，官方源。
+    /// LiteLoader 版本列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLiteLoaderListResult> DlLiteLoaderListOfficialLoader =
         new("DlLiteLoaderList Official", DlLiteLoaderListOfficialMain);
@@ -1673,7 +1673,7 @@ public static class ModDownload
             }
 
             Loader.Output = new DlLiteLoaderListResult
-                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
+            { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
         }
         catch (Exception ex)
         {
@@ -1682,7 +1682,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     LiteLoader 版本列表，BMCLAPI。
+    /// LiteLoader 版本列表，BMCLAPI。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLiteLoaderListResult> DlLiteLoaderListBmclapiLoader =
         new("DlLiteLoaderList Bmclapi", DlLiteLoaderListBmclapiMain);
@@ -1730,23 +1730,23 @@ public static class ModDownload
     public struct DlFabricListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public JObject Value;
     }
 
     /// <summary>
-    ///     Fabric 列表，主加载器。
+    /// Fabric 列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlFabricListResult> DlFabricListLoader =
         new("DlFabricList Main", DlFabricListMain);
@@ -1756,35 +1756,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListBmclapiLoader, 30), new(DlFabricListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListBmclapiLoader, 30), new(DlFabricListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListOfficialLoader, 5), new(DlFabricListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListOfficialLoader, 5), new(DlFabricListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListOfficialLoader, 60), new(DlFabricListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListOfficialLoader, 60), new(DlFabricListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     Fabric 列表，官方源。
+    /// Fabric 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlFabricListResult> DlFabricListOfficialLoader =
         new("DlFabricList Official", DlFabricListOfficialMain);
@@ -1806,7 +1806,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Fabric 列表，BMCLAPI。
+    /// Fabric 列表，BMCLAPI。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlFabricListResult> DlFabricListBmclapiLoader =
         new("DlFabricList Bmclapi", DlFabricListBmclapiMain);
@@ -1828,13 +1828,13 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Fabric API 列表，官方源。
+    /// Fabric API 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlFabricApiLoader = new("Fabric API List Loader",
         Task => Task.Output = ModComp.CompFilesGet("fabric-api", false));
 
     /// <summary>
-    ///     OptiFabric 列表，官方源。
+    /// OptiFabric 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlOptiFabricLoader =
         new("OptiFabric List Loader", Task => Task.Output = ModComp.CompFilesGet("322385", true));
@@ -1846,23 +1846,23 @@ public static class ModDownload
     public struct DlQuiltListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public JObject Value;
     }
 
     /// <summary>
-    ///     Quilt 列表，主加载器。
+    /// Quilt 列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlQuiltListResult> DlQuiltListLoader =
         new("DlQuiltList Main", DlQuiltListMain);
@@ -1872,35 +1872,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 30), new(DlQuiltListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 30), new(DlQuiltListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 5), new(DlQuiltListOfficialLoader, 35) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 5), new(DlQuiltListOfficialLoader, 35) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 60), new(DlQuiltListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 60), new(DlQuiltListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     Quilt 列表，官方源。
+    /// Quilt 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlQuiltListResult> DlQuiltListOfficialLoader =
         new("DlQuiltList Official", DlQuiltListOfficialMain);
@@ -1937,7 +1937,7 @@ public static class ModDownload
     // End Sub
 
     /// <summary>
-    ///     QSL 列表，官方源。
+    /// QSL 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlQSLLoader = new("QSL List Loader",
         Task => Task.Output = ModComp.CompFilesGet("qsl", false));
@@ -1949,13 +1949,13 @@ public static class ModDownload
     public struct DlLabyModListResult
     {
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public JObject Value;
     }
 
     /// <summary>
-    ///     LabyMod 列表，主加载器。
+    /// LabyMod 列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLabyModListResult> DlLabyModListLoader =
         new("DlLabyModList Main", DlLabyModListMain);
@@ -1965,35 +1965,35 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 30), new(DlLabyModListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 30), new(DlLabyModListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 5), new(DlLabyModListOfficialLoader, 35) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 5), new(DlLabyModListOfficialLoader, 35) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 60), new(DlLabyModListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 60), new(DlLabyModListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     LabyMod 列表，官方源。
+    /// LabyMod 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLabyModListResult> DlLabyModListOfficialLoader =
         new("DlLabyModList Official", DlLabyModListOfficialMain);
@@ -2045,8 +2045,8 @@ public static class ModDownload
     #region DlMod | Mod 镜像源请求
 
     /// <summary>
-    ///     对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JObject。
-    ///     调用 NetGetCodeByRequest，会进行重试。
+    /// 对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JObject。
+    /// 调用 NetGetCodeByRequest，会进行重试。
     /// </summary>
     public static object DlModRequest(string Url, bool IsJson = false)
     {
@@ -2056,28 +2056,28 @@ public static class ModDownload
             switch (Config.Download.Comp.CompSourceSolution)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        break;
+                    }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
 
                 default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
             }
 
         var Exs = "";
@@ -2106,8 +2106,8 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     对可能涉及 Mod 镜像源的请求进行处理。
-    ///     调用 NetRequest，会进行重试。
+    /// 对可能涉及 Mod 镜像源的请求进行处理。
+    /// 调用 NetRequest，会进行重试。
     /// </summary>
     public static string DlModRequest(string Url, string Method, string Data, string ContentType,
         bool allowMirror = false)
@@ -2118,28 +2118,28 @@ public static class ModDownload
             switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        break;
+                    }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
 
                 default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
             }
 
         var Exs = "";
@@ -2149,7 +2149,7 @@ public static class ModDownload
                 return Requester.Fetch(Source.Key, new FetchParam
                 {
                     Method = Method,
-                    Content = Data, 
+                    Content = Data,
                     ContentType = ContentType,
                     Timeout = Source.Value * 1000
                 });
@@ -2169,14 +2169,14 @@ public static class ModDownload
     private static bool DlPreferMojang;
 
     /// <summary>
-    ///     下载文件（而非获取版本列表）的时候，是否优先使用官方源。
+    /// 下载文件（而非获取版本列表）的时候，是否优先使用官方源。
     /// </summary>
     public static bool DlSourcePreferMojang => Conversions.ToBoolean(
         Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 2, false) ||
         (Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 1, false) && DlPreferMojang));
 
     /// <summary>
-    ///     下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
+    /// 下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
     /// </summary>
     public static IEnumerable<string> DlSourceOrder(IEnumerable<string> OfficialUrls, IEnumerable<string> MirrorUrls)
     {
@@ -2184,7 +2184,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     获取版本列表（而非下载文件）的时候，是否优先使用官方源。
+    /// 获取版本列表（而非下载文件）的时候，是否优先使用官方源。
     /// </summary>
     public static bool DlVersionListPreferMojang => Conversions.ToBoolean(
         Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 2, false) ||
@@ -2192,7 +2192,7 @@ public static class ModDownload
          DlPreferMojang));
 
     /// <summary>
-    ///     获取版本列表（而非下载文件）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
+    /// 获取版本列表（而非下载文件）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
     /// </summary>
     public static IEnumerable<string> DlVersionListOrder(IEnumerable<string> OfficialUrls,
         IEnumerable<string> MirrorUrls)
@@ -2202,7 +2202,7 @@ public static class ModDownload
 
 
     /// <summary>
-    ///     下载 Assets 文件。
+    /// 下载 Assets 文件。
     /// </summary>
     public static IEnumerable<string> DlSourceAssetsGet(string Original)
     {
@@ -2218,7 +2218,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     下载 Libraries 文件。
+    /// 下载 Libraries 文件。
     /// </summary>
     public static IEnumerable<string> DlSourceLibraryGet(string Original)
     {
@@ -2255,8 +2255,8 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     下载 Launcher 或 Meta 文件。
-    ///     不应使用它来获取版本列表（因为它只使用文件下载源设置来决定源顺序）。
+    /// 下载 Launcher 或 Meta 文件。
+    /// 不应使用它来获取版本列表（因为它只使用文件下载源设置来决定源顺序）。
     /// </summary>
     public static IEnumerable<string> DlSourceLauncherOrMetaGet(string Original)
     {
@@ -2276,7 +2276,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Mod Api 镜像源
+    /// Mod Api 镜像源
     /// </summary>
     /// <param name="Original"></param>
     /// <returns></returns>
@@ -2287,7 +2287,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Mod 下载镜像源
+    /// Mod 下载镜像源
     /// </summary>
     /// <param name="original"></param>
     /// <returns></returns>
@@ -2301,30 +2301,30 @@ public static class ModDownload
         switch (Config.Download.Comp.CompSourceSolution)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 镜像源
-            {
-                res.Add(mirrorDl);
-                res.Add(mirrorDl);
-                break;
-            }
+                {
+                    res.Add(mirrorDl);
+                    res.Add(mirrorDl);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 平衡
-            {
-                res.Add(original);
-                res.Add(mirrorDl);
-                break;
-            }
+                {
+                    res.Add(original);
+                    res.Add(mirrorDl);
+                    break;
+                }
             case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 官方源
-            {
-                res.Add(original);
-                res.Add(original); // 错误
-                break;
-            }
+                {
+                    res.Add(original);
+                    res.Add(original); // 错误
+                    break;
+                }
 
             default:
-            {
-                ModBase.Setup.Reset("ToolDownloadMod");
-                res.Add(original);
-                break;
-            }
+                {
+                    ModBase.Setup.Reset("ToolDownloadMod");
+                    res.Add(original);
+                    break;
+                }
         }
 
         res.Add(original);
@@ -2351,9 +2351,9 @@ public static class ModDownload
                         continue; // 父子加载器的输入不一样，也不行
                 }
 
-                if (SubLoader.Key.State != ModBase.LoadState.Failed)
+                if (SubLoader.Key.State != Enums.LoadState.Failed)
                     BeforeLoadersAllFailed = false;
-                if (SubLoader.Key.State == ModBase.LoadState.Finished)
+                if (SubLoader.Key.State == Enums.LoadState.Finished)
                 {
                     // 检查加载器成功
                     MainLoader.Output = SubLoader.Key.Output;
@@ -2372,7 +2372,7 @@ public static class ModDownload
             {
                 LoaderList.First().Key.Start(MainLoader.Input, IsForceRestart);
                 foreach (var Loader in LoaderList.Skip(1))
-                    Loader.Key.State = ModBase.LoadState.Waiting; // 将其他源标记为未启动，以确保可以切换下载源（#184）
+                    Loader.Key.State = Enums.LoadState.Waiting; // 将其他源标记为未启动，以确保可以切换下载源（#184）
             }
 
             // 检查加载器失败或超时
@@ -2380,7 +2380,7 @@ public static class ModDownload
             {
                 if (WaitCycle != LoaderList[i].Value * 100)
                     continue;
-                if (i < LoaderList.Count - 1 && !LoaderList.All(l => l.Key.State == ModBase.LoadState.Failed))
+                if (i < LoaderList.Count - 1 && !LoaderList.All(l => l.Key.State == Enums.LoadState.Failed))
                 {
                     // 若还有下一个源，则启动下一个源
                     LoaderList[i + 1].Key.Start(MainLoader.Input, IsForceRestart);
@@ -2422,7 +2422,7 @@ public static class ModDownload
         List<KeyValuePair<ModLoader.LoaderTask<InputType, OutputType>, int>> LoaderList)
     {
         foreach (var Loader in LoaderList)
-            if (Loader.Key.State == ModBase.LoadState.Loading)
+            if (Loader.Key.State == Enums.LoadState.Loading)
                 Loader.Key.Abort();
     }
 
@@ -2433,23 +2433,23 @@ public static class ModDownload
     public struct DlLegacyFabricListResult
     {
         /// <summary>
-        ///     数据来源名称，如“Official”，“BMCLAPI”。
+        /// 数据来源名称，如“Official”，“BMCLAPI”。
         /// </summary>
         public string SourceName;
 
         /// <summary>
-        ///     是否为官方的实时数据。
+        /// 是否为官方的实时数据。
         /// </summary>
         public bool IsOfficial;
 
         /// <summary>
-        ///     获取到的数据。
+        /// 获取到的数据。
         /// </summary>
         public JObject Value;
     }
 
     /// <summary>
-    ///     LegacyFabric 列表，主加载器。
+    /// LegacyFabric 列表，主加载器。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLegacyFabricListResult> DlLegacyFabricListLoader =
         new("DlLegacyFabricList Main", DlLegacyFabricListMain);
@@ -2459,32 +2459,32 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 5) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 5) }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 60) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 60) }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     LegacyFabric 列表，官方源。
+    /// LegacyFabric 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, DlLegacyFabricListResult> DlLegacyFabricListOfficialLoader =
         new("DlLegacyFabricList Official", DlLegacyFabricListOfficialMain);
@@ -2496,7 +2496,7 @@ public static class ModDownload
         try
         {
             var Output = new DlLegacyFabricListResult
-                { IsOfficial = true, SourceName = "LegacyFabric 官方源", Value = Result };
+            { IsOfficial = true, SourceName = "LegacyFabric 官方源", Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
                 throw new Exception("获取到的列表缺乏必要项");
             Loader.Output = Output;
@@ -2508,7 +2508,7 @@ public static class ModDownload
     }
 
     /// <summary>
-    ///     Legacy Fabric API 列表，官方源。
+    /// Legacy Fabric API 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlLegacyFabricApiLoader =
         new("Legacy Fabric API List Loader", Task => Task.Output = ModComp.CompFilesGet("legacy-fabric-api", false));

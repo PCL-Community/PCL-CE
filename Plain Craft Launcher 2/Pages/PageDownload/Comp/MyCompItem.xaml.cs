@@ -10,7 +10,7 @@ public partial class MyCompItem
     private string StateLast;
 
     /// <summary>
-    ///     是否允许交互。目前仅用于 PageDownloadCompDetail 的顶部栏展示：若关闭碰撞检测，则无法展开 Tooltip。
+    /// 是否允许交互。目前仅用于 PageDownloadCompDetail 的顶部栏展示：若关闭碰撞检测，则无法展开 Tooltip。
     /// </summary>
     public bool CanInteraction { get; set; } = true;
 
@@ -224,7 +224,7 @@ public partial class MyCompItem
     }
 
     /// <summary>
-    ///     刷新收藏状态
+    /// 刷新收藏状态
     /// </summary>
     public void RefreshFavoriteStatus()
     {

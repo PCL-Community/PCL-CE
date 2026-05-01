@@ -1,5 +1,8 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -21,7 +24,7 @@ public partial class MySkin
 
     // 点击
     private bool IsSkinMouseDown;
-    public ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Loader;
+    public ModLoader.LoaderTask<EqualableList<string>, string> Loader;
 
     public MySkin()
     {
@@ -104,20 +107,20 @@ public partial class MySkin
         Save(Loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Loader)
+    public static void Save(ModLoader.LoaderTask<EqualableList<string>, string> Loader)
     {
         var Address = Loader.Output;
-        if (!(Loader.State == ModBase.LoadState.Finished))
+        if (!(Loader.State == Enums.LoadState.Finished))
         {
             ModMain.Hint("皮肤正在获取中，请稍候！", ModMain.HintType.Critical);
-            if (!(Loader.State == ModBase.LoadState.Loading))
+            if (!(Loader.State == Enums.LoadState.Loading))
                 Loader.Start();
             return;
         }
 
         try
         {
-            var FileAddress = SystemDialogs.SelectSaveFile("选取保存皮肤的位置", ModBase.GetFileNameFromPath(Address),
+            var FileAddress = SystemDialogs.SelectSaveFile("选取保存皮肤的位置", PathUtils.GetFileNameFromPath(Address),
                 "皮肤图片文件(*.png)|*.png");
             if (FileAddress.Contains(@"\"))
             {
@@ -147,7 +150,7 @@ public partial class MySkin
     }
 
     /// <summary>
-    ///     载入皮肤。
+    /// 载入皮肤。
     /// </summary>
     public void Load()
     {
@@ -259,7 +262,7 @@ public partial class MySkin
     }
 
     /// <summary>
-    ///     清空皮肤。
+    /// 清空皮肤。
     /// </summary>
     public void Clear()
     {
@@ -275,13 +278,13 @@ public partial class MySkin
     }
 
     /// <summary>
-    ///     刷新皮肤缓存。
+    /// 刷新皮肤缓存。
     /// </summary>
-    public static void RefreshCache(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> sender = null)
+    public static void RefreshCache(ModLoader.LoaderTask<EqualableList<string>, string> sender = null)
     {
         var HasLoaderRunning = false;
         foreach (var SkinLoader in PageLaunchLeft.SkinLoaders)
-            if (SkinLoader.State == ModBase.LoadState.Loading)
+            if (SkinLoader.State == Enums.LoadState.Loading)
             {
                 HasLoaderRunning = true;
                 break;
@@ -320,7 +323,7 @@ public partial class MySkin
     }
 
     /// <summary>
-    ///     在更换正版皮肤后，刷新正版皮肤。
+    /// 在更换正版皮肤后，刷新正版皮肤。
     /// </summary>
     /// <param name="SkinAddress">新的正版皮肤完整地址。</param>
     public static void ReloadCache(string SkinAddress)
@@ -355,7 +358,7 @@ public partial class MySkin
             return;
         }
 
-        if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Failed)
+        if (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Failed)
         {
             ModMain.Hint("登录失败，无法更改披风！", ModMain.HintType.Critical);
             return;
@@ -369,9 +372,9 @@ public partial class MySkin
             try
             {
                 // 获取登录信息
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginMsLoader.State != Enums.LoadState.Finished)
                     ModLaunch.McLoginMsLoader.WaitForExit(ModProfile.GetLoginData());
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginMsLoader.State != Enums.LoadState.Finished)
                 {
                     ModMain.Hint("登录失败，无法更改披风！", ModMain.HintType.Critical);
                     return;

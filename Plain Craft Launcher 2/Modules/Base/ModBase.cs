@@ -3,23 +3,22 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using PCL.Core.App;
-using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -60,91 +59,91 @@ namespace PCL
     public const string VersionBranchCode = "0";
 #endif
         /// <summary>
-        ///     主窗口句柄。
+        /// 主窗口句柄。
         /// </summary>
         public static nint FrmHandle;
 
         // 龙猫味石山小记: 用最不靠谱的实现写出能跑的代码 (AppDomain.CurrentDomain.SetupInformation.ApplicationBase 获取到的是当前工作目录而不是可执行文件所在目录)
         /// <summary>
-        ///     程序可执行文件所在目录，以“\”结尾。
+        /// 程序可执行文件所在目录，以“\”结尾。
         /// </summary>
         public static readonly string ExePath = Conversions.ToString(Basics.ExecutableDirectory.EndsWith(@"\")
             ? Basics.ExecutableDirectory
             : Basics.ExecutableDirectory + @"\");
 
         /// <summary>
-        ///     程序可执行文件完整路径。
+        /// 程序可执行文件完整路径。
         /// </summary>
         public static readonly string ExePathWithName = Basics.ExecutablePath;
 
         /// <summary>
-        ///     程序内嵌图片文件夹路径，以“/”结尾。
+        /// 程序内嵌图片文件夹路径，以“/”结尾。
         /// </summary>
         public static readonly string PathImage = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
 
         /// <summary>
-        ///     当前程序的语言。
+        /// 当前程序的语言。
         /// </summary>
         public static string Lang = "zh_CN";
 
         /// <summary>
-        ///     设置对象。
+        /// 设置对象。
         /// </summary>
         public static ModSetup Setup = new();
 
         /// <summary>
-        ///     程序的打开计时。
+        /// 程序的打开计时。
         /// </summary>
         public static long ApplicationStartTick = TimeUtils.GetTimeTick();
 
         /// <summary>
-        ///     程序打开时的时间。
+        /// 程序打开时的时间。
         /// </summary>
         public static DateTime ApplicationOpenTime = DateTime.Now;
 
         /// <summary>
-        ///     识别码。
+        /// 识别码。
         /// </summary>
         public static string UniqueAddress = ModSecret.SecretGetUniqueAddress();
 
         /// <summary>
-        ///     程序是否已结束。
+        /// 程序是否已结束。
         /// </summary>
         public static bool IsProgramEnded = false;
 
         /// <summary>
-        ///     是否为 32 位系统。
+        /// 是否为 32 位系统。
         /// </summary>
         public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
 
         /// <summary>
-        ///     是否为 ARM64 架构。
+        /// 是否为 ARM64 架构。
         /// </summary>
         public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
 
         /// <summary>
-        ///     是否使用 GBK 编码。
+        /// 是否使用 GBK 编码。
         /// </summary>
         public static bool IsGBKEncoding = Encoding.Default.CodePage == 936;
 
         /// <summary>
-        ///     系统盘盘符，以 \ 结尾。例如 “C:\”。
+        /// 系统盘盘符，以 \ 结尾。例如 “C:\”。
         /// </summary>
         public static string OsDrive =
             Environment.GetLogicalDrives().Where(p => Directory.Exists(p)).First().ToUpper().First() + @":\"; // #3799
 
         /// <summary>
-        ///     程序的缓存文件夹路径，以 \ 结尾。
+        /// 程序的缓存文件夹路径，以 \ 结尾。
         /// </summary>
         public static string PathTemp = Paths.Temp + @"\";
 
         /// <summary>
-        ///     AppData 中的 PCL 文件夹路径，以 \ 结尾。
+        /// AppData 中的 PCL 文件夹路径，以 \ 结尾。
         /// </summary>
         public static string PathAppdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\PCL\";
 
         /// <summary>
-        ///     AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
+        /// AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
         /// </summary>
         public static string PathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                                  (VersionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
@@ -153,62 +152,6 @@ namespace PCL
 
         #endregion
 
-        #region 自定义类
-
-        /// <summary>
-        ///     模块加载状态枚举。
-        /// </summary>
-        public enum LoadState
-        {
-            Waiting,
-            Loading,
-            Finished,
-            Failed,
-            Aborted
-        }
-
-        /// <summary>
-        ///     执行返回值。
-        /// </summary>
-        public enum ProcessReturnValues
-        {
-            /// <summary>
-            ///     执行成功，或进程被中断。
-            /// </summary>
-            Aborted = -1,
-
-            /// <summary>
-            ///     执行成功。
-            /// </summary>
-            Success = 0,
-
-            /// <summary>
-            ///     执行失败。
-            /// </summary>
-            Fail = 1,
-
-            /// <summary>
-            ///     执行时出现未经处理的异常。
-            /// </summary>
-            Exception = 2,
-
-            /// <summary>
-            ///     执行超时。
-            /// </summary>
-            Timeout = 3,
-
-            /// <summary>
-            ///     取消执行。可能是由于不满足执行的前置条件。
-            /// </summary>
-            Cancel = 4,
-
-            /// <summary>
-            ///     任务成功完成。
-            /// </summary>
-            TaskDone = 5
-        }
-
-        #endregion
 
 
         #region 文件
@@ -218,7 +161,7 @@ namespace PCL
         // =============================
 
         /// <summary>
-        ///     重命名一个注册表子键。不可用于包含子键的子键。
+        /// 重命名一个注册表子键。不可用于包含子键的子键。
         /// </summary>
         public static void RenameReg(RegistryKey parentKey, string subKeyName, string newSubKeyName)
         {
@@ -241,7 +184,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     读取注册表，默认为程序所属。
+        /// 读取注册表，默认为程序所属。
         /// </summary>
         public static string ReadReg(string Key, string DefaultValue = "", string Path = "")
         {
@@ -275,7 +218,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     写入注册表，默认为程序所属。
+        /// 写入注册表，默认为程序所属。
         /// </summary>
         public static void WriteReg(string Key, string Value, bool ShowException = false, string Path = "",
             bool ThrowException = false)
@@ -303,7 +246,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     是否存在某个注册表键。
+        /// 是否存在某个注册表键。
         /// </summary>
         public static bool HasReg(string Key)
         {
@@ -311,7 +254,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     删除注册表键。
+        /// 删除注册表键。
         /// </summary>
         public static void DeleteReg(string Key, bool ThrowException = false)
         {
@@ -335,7 +278,7 @@ namespace PCL
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> IniCache = new();
 
         /// <summary>
-        ///     清除某 ini 文件的运行时缓存。
+        /// 清除某 ini 文件的运行时缓存。
         /// </summary>
         /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
         public static void IniClearCache(string FileName)
@@ -347,8 +290,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取 ini 文件缓存。如果没有，则新读取 ini 文件内容。
-        ///     在文件不存在或读取失败时返回 Nothing。
+        /// 获取 ini 文件缓存。如果没有，则新读取 ini 文件内容。
+        /// 在文件不存在或读取失败时返回 Nothing。
         /// </summary>
         /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
         private static ConcurrentDictionary<string, string> IniGetContent(string FileName)
@@ -368,7 +311,7 @@ namespace PCL
                 foreach (var Line in ReadFile(FileName)
                              .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
                 {
-                    var Index = Line.IndexOfF(":");
+                    var Index = Line.IndexOf(':');
                     if (Index > 0)
                         Ini[Line.Substring(0, Index)] = Line.Substring(Index + 1); // 可能会有重复键，见 #3616
                 }
@@ -384,7 +327,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     读取 ini 文件。这可能会使用到缓存。
+        /// 读取 ini 文件。这可能会使用到缓存。
         /// </summary>
         /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
         /// <param name="Key">键。</param>
@@ -398,7 +341,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     判断 ini 文件中是否包含某个键。这可能会使用到缓存。
+        /// 判断 ini 文件中是否包含某个键。这可能会使用到缓存。
         /// </summary>
         public static bool HasIniKey(string FileName, string Key)
         {
@@ -407,7 +350,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     从 ini 文件中移除某个键。这会更新缓存。
+        /// 从 ini 文件中移除某个键。这会更新缓存。
         /// </summary>
         public static void DeleteIniKey(string FileName, string Key)
         {
@@ -415,8 +358,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     写入 ini 文件，这会更新缓存。
-        ///     若 Value 为 Nothing，则删除该键。
+        /// 写入 ini 文件，这会更新缓存。
+        /// 若 Value 为 Nothing，则删除该键。
         /// </summary>
         /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
         /// <param name="Key">键。</param>
@@ -476,7 +419,7 @@ namespace PCL
         private static readonly object WriteIniLock = new();
 
         /// <summary>
-        ///     从文件路径或者 Url 获取不包含路径与扩展名的文件名。不包含文件名将会抛出异常。
+        /// 从文件路径或者 Url 获取不包含路径与扩展名的文件名。不包含文件名将会抛出异常。
         /// </summary>
         public static string GetFileNameWithoutExtentionFromPath(string FilePath)
         {
@@ -485,7 +428,7 @@ namespace PCL
 
         // 读取、写入、复制文件
         /// <summary>
-        ///     复制文件。会自动创建文件夹、会覆盖已有的文件。
+        /// 复制文件。会自动创建文件夹、会覆盖已有的文件。
         /// </summary>
         public static void CopyFile(string FromPath, string ToPath)
         {
@@ -511,7 +454,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     读取文件，如果失败则返回空数组。
+        /// 读取文件，如果失败则返回空数组。
         /// </summary>
         public static byte[] ReadFileBytes(string FilePath, Encoding Encoding = null)
         {
@@ -542,7 +485,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     读取文件，如果失败则返回空字符串。
+        /// 读取文件，如果失败则返回空字符串。
         /// </summary>
         /// <param name="FilePath">文件完整或相对路径。</param>
         public static string ReadFile(string FilePath, Encoding Encoding = null)
@@ -554,7 +497,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     读取流中的所有文本。
+        /// 读取流中的所有文本。
         /// </summary>
         public static string ReadFile(Stream Stream, Encoding Encoding = null)
         {
@@ -573,7 +516,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     写入文件。
+        /// 写入文件。
         /// </summary>
         /// <param name="FilePath">文件完整或相对路径。</param>
         /// <param name="Text">文件内容。</param>
@@ -600,8 +543,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     写入文件。
-        ///     如果 CanThrow 设置为 False，返回是否写入成功。
+        /// 写入文件。
+        /// 如果 CanThrow 设置为 False，返回是否写入成功。
         /// </summary>
         /// <param name="FilePath">文件完整或相对路径。</param>
         /// <param name="Content">文件内容。</param>
@@ -618,7 +561,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将流写入文件。
+        /// 将流写入文件。
         /// </summary>
         /// <param name="FilePath">文件完整或相对路径。</param>
         public static bool WriteFile(string FilePath, Stream Stream)
@@ -647,7 +590,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     解码 Bytes。
+        /// 解码 Bytes。
         /// </summary>
         public static string DecodeBytes(byte[] Bytes)
         {
@@ -678,7 +621,7 @@ namespace PCL
 
         // 文件校验
         /// <summary>
-        ///     获取文件 MD5，若失败则返回空字符串。
+        /// 获取文件 MD5，若失败则返回空字符串。
         /// </summary>
         public static string GetFileMD5(string FilePath)
         {
@@ -690,7 +633,7 @@ namespace PCL
                 // 获取 MD5
                 using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    return Conversions.ToString(TextUtils.GetHexString(MD5Provider.Instance.ComputeHash(fs)));
+                    return MD5Provider.Instance.ComputeHash(fs).ToHexString();
                 }
             }
             catch (Exception ex)
@@ -709,7 +652,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取文件 SHA512，若失败则返回空字符串。
+        /// 获取文件 SHA512，若失败则返回空字符串。
         /// </summary>
         public static string GetFileSHA512(string FilePath)
         {
@@ -723,7 +666,7 @@ namespace PCL
                 // 获取 SHA512
                 using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    return Conversions.ToString(TextUtils.GetHexString(SHA512Provider.Instance.ComputeHash(fs)));
+                    return SHA512Provider.Instance.ComputeHash(fs).ToHexString();
                 }
             }
             catch (Exception ex)
@@ -742,7 +685,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取文件 SHA256，若失败则返回空字符串。
+        /// 获取文件 SHA256，若失败则返回空字符串。
         /// </summary>
         public static string GetFileSHA256(string FilePath)
         {
@@ -756,7 +699,7 @@ namespace PCL
                 // 获取 SHA256
                 using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    return Conversions.ToString(TextUtils.GetHexString(SHA256Provider.Instance.ComputeHash(fs)));
+                    return SHA256Provider.Instance.ComputeHash(fs).ToHexString();
                 }
             }
             catch (Exception ex)
@@ -775,7 +718,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取文件 SHA1，若失败则返回空字符串。
+        /// 获取文件 SHA1，若失败则返回空字符串。
         /// </summary>
         public static string GetFileSHA1(string FilePath)
         {
@@ -787,7 +730,7 @@ namespace PCL
                 // 获取 SHA1
                 using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    return Conversions.ToString(TextUtils.GetHexString(SHA1Provider.Instance.ComputeHash(fs)));
+                    return SHA1Provider.Instance.ComputeHash(fs).ToHexString();
                 }
             }
             catch (Exception ex)
@@ -806,13 +749,13 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取流的 SHA1，若失败则返回空字符串。
+        /// 获取流的 SHA1，若失败则返回空字符串。
         /// </summary>
         public static string GetAuthSHA1(Stream inputStream)
         {
             try
             {
-                return Conversions.ToString(TextUtils.GetHexString(SHA1Provider.Instance.ComputeHash(inputStream)));
+                return MD5Provider.Instance.ComputeHash(inputStream).ToHexString();
             }
             catch (Exception ex)
             {
@@ -822,36 +765,36 @@ namespace PCL
         }
 
         /// <summary>
-        ///     文件的校验规则。
+        /// 文件的校验规则。
         /// </summary>
         public class FileChecker
         {
             /// <summary>
-            ///     文件的准确大小。
-            ///     不检查则为 -1。
+            /// 文件的准确大小。
+            /// 不检查则为 -1。
             /// </summary>
             public long ActualSize = -1;
 
             /// <summary>
-            ///     是否可以使用已经存在的文件。
+            /// 是否可以使用已经存在的文件。
             /// </summary>
             public bool CanUseExistsFile = true;
 
             /// <summary>
-            ///     文件的 MD5、SHA1 或 SHA256。会根据输入字符串的长度自动判断种类。
-            ///     不检查则为 Nothing。
+            /// 文件的 MD5、SHA1 或 SHA256。会根据输入字符串的长度自动判断种类。
+            /// 不检查则为 Nothing。
             /// </summary>
             public string Hash;
 
             /// <summary>
-            ///     是否要求为 JSON 文件。
-            ///     即，开头结尾必须为 {} 或 []。
+            /// 是否要求为 JSON 文件。
+            /// 即，开头结尾必须为 {} 或 []。
             /// </summary>
             public bool IsJson;
 
             /// <summary>
-            ///     文件的最小大小。
-            ///     不检查则为 -1。
+            /// 文件的最小大小。
+            /// 不检查则为 -1。
             /// </summary>
             public long MinSize = -1;
 
@@ -866,7 +809,7 @@ namespace PCL
             }
 
             /// <summary>
-            ///     检查文件。若成功则返回 Nothing，失败则返回错误的描述文本，描述文本不以句号结尾。不会抛出错误。
+            /// 检查文件。若成功则返回 Nothing，失败则返回错误的描述文本，描述文本不以句号结尾。不会抛出错误。
             /// </summary>
             public string Check(string LocalPath)
             {
@@ -929,7 +872,7 @@ namespace PCL
                     if (ErrorMessage.Count != 0)
                     {
                         ErrorMessage.Insert(0, $"实际校验地址：{LocalPath}");
-                        return ErrorMessage.Join(";");
+                        return string.Join(';', ErrorMessage);
                     }
 
                     return null;
@@ -943,8 +886,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 Jar 以 zip 方式解压。
-        ///     会尝试创建，但不会清空目标文件夹。
+        /// 尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 Jar 以 zip 方式解压。
+        /// 会尝试创建，但不会清空目标文件夹。
         /// </summary>
         public static void ExtractFile(string CompressFilePath, string DestDirectory, Encoding Encode = null,
             Action<double> ProgressIncrementHandler = null)
@@ -996,7 +939,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     删除文件夹，返回删除的文件个数。通过参数选择是否抛出异常。
+        /// 删除文件夹，返回删除的文件个数。通过参数选择是否抛出异常。
         /// </summary>
         public static int DeleteDirectory(string Path, bool IgnoreIssue = false)
         {
@@ -1071,7 +1014,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     复制文件夹，失败会抛出异常。
+        /// 复制文件夹，失败会抛出异常。
         /// </summary>
         public static void CopyDirectory(string FromPath, string ToPath, Action<double> ProgressIncrementHandler = null)
         {
@@ -1092,7 +1035,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     遍历文件夹中的所有文件。
+        /// 遍历文件夹中的所有文件。
         /// </summary>
         public static IEnumerable<FileInfo> EnumerateFiles(string Directory)
         {
@@ -1103,7 +1046,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     若路径长度大于指定值，则将长路径转换为短路径。
+        /// 若路径长度大于指定值，则将长路径转换为短路径。
         /// </summary>
         public static string ShortenPath(string LongPath, int ShortenThreshold = 247)
         {
@@ -1159,16 +1102,7 @@ namespace PCL
         public static char vbRQ = Convert.ToChar(8221);
 
         /// <summary>
-        ///     将文件大小转化为适合的文本形式，如“1.28 M”。
-        /// </summary>
-        /// <param name="FileSize">以字节为单位的大小表示。</param>
-        public static string GetString(long FileSize)
-        {
-            return ByteStream.GetReadableLength(FileSize);
-        }
-
-        /// <summary>
-        ///     获取 JSON 对象。
+        /// 获取 JSON 对象。
         /// </summary>
         public static object GetJson(string Data)
         {
@@ -1186,566 +1120,6 @@ namespace PCL
             }
         }
 
-        /// <summary>
-        ///     将第一个字符转换为大写，其余字符转换为小写。
-        /// </summary>
-        public static string Capitalize(this string word)
-        {
-            if (string.IsNullOrEmpty(word))
-                return word;
-            return word.Substring(0, 1).ToUpperInvariant() + word.Substring(1).ToLowerInvariant();
-        }
-
-        /// <summary>
-        ///     将字符串统一至某个长度，过短则以 Code 将其右侧填充，过长则截取靠左的指定长度。
-        /// </summary>
-        public static string StrFill(string Str, string Code, byte Length)
-        {
-            if (Str.Length > Length)
-                return Strings.Mid(Str, 1, Length);
-            return Strings.Mid(Str.PadRight(Length, Conversions.ToChar(Code)), Str.Length + 1) + Str;
-        }
-
-        /// <summary>
-        ///     将一个小数显示为固定的小数点后位数形式，将向零取整。
-        ///     如 12 保留 2 位则输出 12.00，而 95.678 保留 2 位则输出 95.67。
-        /// </summary>
-        public static string StrFillNum(double Num, int Length)
-        {
-            string StrFillNumRet = default;
-            Num = Math.Round(Num, Length, MidpointRounding.AwayFromZero);
-            StrFillNumRet = Num.ToString();
-            if (!StrFillNumRet.Contains("."))
-                return (StrFillNumRet + ".").PadRight(StrFillNumRet.Length + 1 + Length, '0');
-            return StrFillNumRet.PadRight(StrFillNumRet.Split(".")[0].Length + 1 + Length, '0');
-        }
-
-        /// <summary>
-        ///     移除字符串首尾的标点符号、回车，以及括号中、冒号后的补充说明内容。
-        /// </summary>
-        public static object StrTrim(string Str, bool RemoveQuote = true)
-        {
-            if (RemoveQuote)
-                Str = Str.Split("（")[0].Split("：")[0].Split("(")[0].Split(":")[0];
-            return Str.Trim('.', '。', '！', ' ', '!', '?', '？', Conversions.ToChar("\r"),
-                Conversions.ToChar("\n"));
-        }
-
-        /// <summary>
-        ///     连接字符串。
-        /// </summary>
-        public static string Join(this IEnumerable List, string Split)
-        {
-            var Builder = new StringBuilder();
-            var IsFirst = true;
-            foreach (var Element in List)
-            {
-                if (IsFirst)
-                    IsFirst = false;
-                else
-                    Builder.Append(Split);
-                if (Element is not null)
-                    Builder.Append(Element);
-            }
-
-            return Builder.ToString();
-        }
-
-        /// <summary>
-        ///     分割字符串。
-        /// </summary>
-        public static string[] Split(this string FullStr, string SplitStr)
-        {
-            if (SplitStr.Length == 1) return FullStr.Split(SplitStr[0]);
-
-            return FullStr.Split(new[] { SplitStr }, StringSplitOptions.None);
-        }
-
-
-
-        /// <summary>
-        ///     检查字符串中的字符是否均为 ASCII 字符。
-        /// </summary>
-        public static bool IsASCII(this string Input)
-        {
-            return Input.All(c => Strings.AscW(c) < 128);
-        }
-
-        /// <summary>
-        ///     获取在子字符串第一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024。
-        ///     如果未找到子字符串则不裁切。
-        /// </summary>
-        public static string BeforeFirst(this string Str, string Text, bool IgnoreCase = false)
-        {
-            var Pos = string.IsNullOrEmpty(Text) ? -1 : Str.IndexOfF(Text, IgnoreCase);
-            if (Pos >= 0) return Str.Substring(0, Pos);
-
-            return Str;
-        }
-
-        /// <summary>
-        ///     获取在子字符串最后一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024/11。
-        ///     如果未找到子字符串则不裁切。
-        /// </summary>
-        public static string BeforeLast(this string Str, string Text, bool IgnoreCase = false)
-        {
-            var Pos = string.IsNullOrEmpty(Text) ? -1 : Str.LastIndexOfF(Text, IgnoreCase);
-            if (Pos >= 0) return Str.Substring(0, Pos);
-
-            return Str;
-        }
-
-        /// <summary>
-        ///     获取在子字符串第一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 11/08。
-        ///     如果未找到子字符串则不裁切。
-        /// </summary>
-        public static string AfterFirst(this string Str, string Text, bool IgnoreCase = false)
-        {
-            var Pos = string.IsNullOrEmpty(Text) ? -1 : Str.IndexOfF(Text, IgnoreCase);
-            if (Pos >= 0) return Str.Substring(Pos + Text.Length);
-
-            return Str;
-        }
-
-        /// <summary>
-        ///     获取在子字符串最后一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 08。
-        ///     如果未找到子字符串则不裁切。
-        /// </summary>
-        public static string AfterLast(this string Str, string Text, bool IgnoreCase = false)
-        {
-            var Pos = string.IsNullOrEmpty(Text) ? -1 : Str.LastIndexOfF(Text, IgnoreCase);
-            if (Pos >= 0) return Str.Substring(Pos + Text.Length);
-
-            return Str;
-        }
-
-        /// <summary>
-        ///     获取处于两个子字符串之间的部分，裁切尽可能多的内容。
-        ///     等效于 AfterLast 后接 BeforeFirst。
-        ///     如果未找到子字符串则不裁切。
-        /// </summary>
-        public static string Between(this string Str, string After, string Before, bool IgnoreCase = false)
-        {
-            var StartPos = string.IsNullOrEmpty(After) ? -1 : Str.LastIndexOfF(After, IgnoreCase);
-            if (StartPos >= 0)
-                StartPos += After.Length;
-            else
-                StartPos = 0;
-            var EndPos = string.IsNullOrEmpty(Before) ? -1 : Str.IndexOfF(Before, StartPos, IgnoreCase);
-            if (EndPos >= 0) return Str.Substring(StartPos, EndPos - StartPos);
-
-            if (StartPos > 0) return Str.Substring(StartPos);
-
-            return Str;
-        }
-
-        /// <summary>
-        ///     高速的 StartsWith。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool StartsWithF(this string Str, string Prefix, bool IgnoreCase = false)
-        {
-            return Str.StartsWith(Prefix, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     高速的 EndsWith。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool EndsWithF(this string Str, string Suffix, bool IgnoreCase = false)
-        {
-            return Str.EndsWith(Suffix, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     支持可变大小写判断的 Contains。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ContainsF(this string Str, string SubStr, bool IgnoreCase = false)
-        {
-            return Str.IndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) >= 0;
-        }
-
-        /// <summary>
-        ///     高速的 IndexOf。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOfF(this string Str, string SubStr, bool IgnoreCase = false)
-        {
-            return Str.IndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     高速的 IndexOf。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOfF(this string Str, string SubStr, int StartIndex, bool IgnoreCase = false)
-        {
-            return Str.IndexOf(SubStr, StartIndex,
-                IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     高速的 LastIndexOf。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int LastIndexOfF(this string Str, string SubStr, bool IgnoreCase = false)
-        {
-            return Str.LastIndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     高速的 LastIndexOf。
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int LastIndexOfF(this string Str, string SubStr, int StartIndex, bool IgnoreCase = false)
-        {
-            return Str.LastIndexOf(SubStr, StartIndex,
-                IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        ///     不会报错的 Val。
-        ///     如果输入有误，返回 0。
-        /// </summary>
-        public static double Val(object Str)
-        {
-            try
-            {
-                return Str is "&" ? 0d : Conversion.Val(Str);
-            }
-            catch
-            {
-                return 0d;
-            }
-        }
-
-
-
-
-        // 正则
-        /// <summary>
-        ///     搜索字符串中的所有正则匹配项。
-        /// </summary>
-        public static List<string> RegexSearch(this string str, string regex, RegexOptions options = RegexOptions.None)
-        {
-            List<string> RegexSearchRet = default;
-            try
-            {
-                RegexSearchRet = new List<string>();
-                var RegexSearchRes = new Regex(regex, options).Matches(str);
-                if (RegexSearchRes is null)
-                    return RegexSearchRet;
-                foreach (Match item in RegexSearchRes)
-                    RegexSearchRet.Add(item.Value);
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "正则匹配全部项出错");
-                return new List<string>();
-            }
-
-            return RegexSearchRet;
-        }
-
-        /// <summary>
-        /// 搜索字符串中的所有正则匹配项。
-        /// </summary>
-        /// <param name="str">要搜索的字符串</param>
-        /// <param name="regex">正则表达式对象</param>
-        /// <returns>所有匹配项的列表</returns>
-        public static List<string> RegexSearch(this string str, Regex regex)
-        {
-            try
-            {
-                var result = new List<string>();
-                foreach (Match item in regex.Matches(str))
-                {
-                    result.Add(item.Value);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "正则匹配全部项出错");
-                return new List<string>();
-            }
-        }
-
-        /// <summary>
-        ///     获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
-        /// </summary>
-        public static string RegexSeek(this string str, string regex, RegexOptions options = RegexOptions.None)
-        {
-            try
-            {
-                var Result = Regex.Match(str, regex, options).Value;
-                return string.IsNullOrEmpty(Result) ? null : Result;
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "正则匹配第一项出错");
-                return null;
-            }
-        }
-
-        /// <summary>
-        ///     获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
-        /// </summary>
-        public static string RegexSeek(this string str, Regex regex, RegexOptions options = RegexOptions.None)
-        {
-            try
-            {
-                var Result = regex.Match(str, (int)options).Value;
-                return string.IsNullOrEmpty(Result) ? null : Result;
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "正则匹配第一项出错");
-                return null;
-            }
-        }
-
-        /// <summary>
-        ///     检查字符串是否匹配某正则模式。
-        /// </summary>
-        public static bool RegexCheck(this string str, string regex, RegexOptions options = RegexOptions.None)
-        {
-            try
-            {
-                return Regex.IsMatch(str, regex, options);
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "正则检查出错");
-                return false;
-            }
-        }
-
-        /// <summary>
-        ///     进行正则替换，会抛出错误。
-        /// </summary>
-        public static string RegexReplace(this string AllContents, string SearchRegex, string ReplaceTo,
-            RegexOptions options = RegexOptions.None)
-        {
-            return Regex.Replace(AllContents, SearchRegex, ReplaceTo, options);
-        }
-
-        /// <summary>
-        ///     对每个正则匹配分别进行替换，会抛出错误。
-        /// </summary>
-        public static string RegexReplaceEach(this string AllContents, string SearchRegex, MatchEvaluator ReplaceTo,
-            RegexOptions options = RegexOptions.None)
-        {
-            return Regex.Replace(AllContents, SearchRegex, ReplaceTo, options);
-        }
-
-        #endregion
-
-        #region 搜索
-
-        /// <summary>
-        ///     获取搜索文本的相似度。
-        /// </summary>
-        /// <param name="Source">被搜索的长内容。</param>
-        /// <param name="Query">用户输入的搜索文本。</param>
-        private static double SearchSimilarity(string Source, string Query)
-        {
-            var qp = 0;
-            var lenSum = 0d;
-            Source = Source.ToLower().Replace(" ", "");
-            Query = Query.ToLower().Replace(" ", "");
-            var sourceLength = Source.Length;
-            var queryLength = Query.Length; // 用于计算最后因数的长度缓存
-            while (qp < queryLength)
-            {
-                // 对 qp 作为开始位置计算
-                var sp = 0;
-                var lenMax = 0;
-                var spMax = 0;
-                // 查找以 qp 为头的最大子串
-                while (sp < Source.Length)
-                {
-                    // 对每个 sp 作为开始位置计算最大子串
-                    var len = 0;
-                    while (qp + len < queryLength && sp + len < Source.Length && Source[sp + len] == Query[qp + len])
-                        len += 1;
-                    // 存储 len
-                    if (len > lenMax)
-                    {
-                        lenMax = len;
-                        spMax = sp;
-                    }
-
-                    // 根据结果增加 sp
-                    sp += Math.Max(1, len);
-                }
-
-                if (lenMax > 0)
-                {
-                    Source = Source.Substring(0, spMax) +
-                             (Source.Count() > spMax + lenMax
-                                 ? Source.Substring(spMax + lenMax)
-                                 : string.Empty); // 将源中的对应字段替换空
-                    // 存储 lenSum
-                    var IncWeight = Math.Pow(1.4d, 3 + lenMax) - 3.6d; // 根据长度加成
-                    IncWeight *= 1d + 0.3d * Math.Max(0, 3 - Math.Abs(qp - spMax)); // 根据位置加成
-                    lenSum += IncWeight;
-                }
-
-                // 根据结果增加 qp
-                qp += Math.Max(1, lenMax);
-            }
-
-            // 计算结果：重复字段量 × 源长度影响比例
-            return lenSum / queryLength * (3d / Math.Pow(sourceLength + 15, 0.5d)) *
-                   (queryLength <= 2 ? 3 - queryLength : 1);
-        }
-
-        /// <summary>
-        ///     获取多段文本加权后的相似度。
-        /// </summary>
-        private static double SearchSimilarityWeighted(List<SearchSource> source, string query)
-        {
-            var totalWeight = 0d;
-            var sum = 0d;
-            foreach (var Pair in source)
-            {
-                if (Pair.Aliases.Any())
-                    sum += Pair.Aliases.Max(a => SearchSimilarity(a, query)) * Pair.Weight;
-                totalWeight += Pair.Weight;
-            }
-
-            return sum / totalWeight;
-        }
-
-        /// <summary>
-        ///     用于搜索的项目。
-        /// </summary>
-        public class SearchEntry<T>
-        {
-            /// <summary>
-            ///     是否完全匹配。
-            /// </summary>
-            public bool AbsoluteRight;
-
-            /// <summary>
-            ///     该项目对应的源数据。
-            /// </summary>
-            public T Item;
-
-            /// <summary>
-            ///     该项目用于搜索的文本源。
-            ///     在搜索时，会对每个文本源单独加权，但单个文本源内的多个别名只取最高的一个的相似度。
-            /// </summary>
-            public List<SearchSource> SearchSource;
-
-            /// <summary>
-            ///     相似度。
-            /// </summary>
-            public double Similarity;
-        }
-
-        /// <summary>
-        ///     单个用于搜索的文本源。
-        /// </summary>
-        public class SearchSource
-        {
-            public string[] Aliases;
-            public double Weight;
-
-            public SearchSource(string[] aliases, double weight = 1)
-            {
-                Aliases = aliases;
-                Weight = weight;
-            }
-
-            public SearchSource(string text, double weight = 1)
-            {
-                Aliases = new[] { text };
-                Weight = weight;
-            }
-        }
-
-        /// <summary>
-        ///     进行多段文本加权搜索，获取相似度较高的数项结果。
-        /// </summary>
-        /// <param name="MaxBlurCount">返回的最大模糊结果数。</param>
-        /// <param name="MinBlurSimilarity">返回结果要求的最低相似度。</param>
-        public static List<SearchEntry<T>> Search<T>(List<SearchEntry<T>> Entries, string Query, int MaxBlurCount = 5,
-            double MinBlurSimilarity = 0.1d)
-        {
-            var ResultList = new List<SearchEntry<T>>();
-
-            if (Entries is null || !Entries.Any()) return ResultList;
-
-            // Preprocess query into parts
-            var queryParts = Query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (queryParts.Length == 0)
-            {
-                ResultList.AddRange(Entries);
-                return ResultList;
-            }
-
-            // Precompute query parts in lowercase for case-insensitive comparison
-            var queryPartsLower = queryParts.Select(q => q.ToLower()).ToArray();
-
-            // Process each entry to compute similarity and absolute match status
-            foreach (var Entry in Entries)
-            {
-                Entry.Similarity = SearchSimilarityWeighted(Entry.SearchSource, Query);
-
-                // Preprocess search source keys: remove spaces and convert to lowercase
-                var processedSources = Entry.SearchSource.Select(s =>
-                {
-                    for (var i = 0; i < s.Aliases.Length; i++)
-                        s.Aliases[i] = s.Aliases[i].Replace(" ", "").ToLower();
-                    return s.Aliases;
-                }).ToList();
-
-                // Check if all query parts are matched exactly by at least one source
-                var isAbsoluteRight = true;
-                foreach (var qp in queryPartsLower)
-                {
-                    var found = false;
-                    foreach (var ps in processedSources)
-                        if (ps.Any(p => p.Contains(qp)))
-                        {
-                            found = true;
-                            break;
-                        }
-
-                    if (!found)
-                    {
-                        isAbsoluteRight = false;
-                        break;
-                    }
-                }
-
-                Entry.AbsoluteRight = isAbsoluteRight;
-            }
-
-            // Sort by absolute match (descending), then by similarity (descending)
-            var sortedEntries = Entries.OrderByDescending(e => e.AbsoluteRight).ThenByDescending(e => e.Similarity)
-                .ToList();
-
-            // Build the final result list
-            var blurCount = 0;
-            foreach (var Entry in sortedEntries)
-                if (Entry.AbsoluteRight)
-                {
-                    ResultList.Add(Entry);
-                }
-                else
-                {
-                    if (Entry.Similarity < MinBlurSimilarity || blurCount >= MaxBlurCount) break;
-                    ResultList.Add(Entry);
-                    blurCount += 1;
-                }
-
-            return ResultList;
-        }
 
         #endregion
 
@@ -1757,8 +1131,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     线程安全的 List。
-        ///     通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
+        /// 线程安全的 List。
+        /// 通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
         /// </summary>
         public class SafeList<T> : IEnumerable<T>, IDisposable, ICollection<T>
         {
@@ -1891,7 +1265,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     可用于临时存放文件的，不含任何特殊字符的文件夹路径，以“\”结尾。
+        /// 可用于临时存放文件的，不含任何特殊字符的文件夹路径，以“\”结尾。
         /// </summary>
         public static string PathPure = GetPureASCIIDir();
 
@@ -1907,21 +1281,21 @@ namespace PCL
         }
 
         /// <summary>
-        ///     指示接取到这个异常的函数进行重试。
+        /// 指示接取到这个异常的函数进行重试。
         /// </summary>
         public class RestartException : Exception
         {
         }
 
         /// <summary>
-        ///     指示用户手动取消了操作，或用户已知晓操作被取消的原因。
+        /// 指示用户手动取消了操作，或用户已知晓操作被取消的原因。
         /// </summary>
         public class CancelledException : Exception
         {
         }
 
         /// <summary>
-        ///     判断对象是否为某个泛型类型的实例。
+        /// 判断对象是否为某个泛型类型的实例。
         /// </summary>
         public static bool IsInstanceOfGenericType(this Type genericType, object obj)
         {
@@ -1942,7 +1316,7 @@ namespace PCL
         private static object UuidLock;
 
         /// <summary>
-        ///     获取一个全程序内不会重复的数字（伪 Uuid）。
+        /// 获取一个全程序内不会重复的数字（伪 Uuid）。
         /// </summary>
         public static int GetUuid()
         {
@@ -1956,8 +1330,9 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将元素与 List 的混合体拆分为元素组。
+        /// 将元素与 List 的混合体拆分为元素组。
         /// </summary>
+        [Obsolete("由于非泛型导致的这个方法的存在，计划在未来的版本中移除")]
         public static List<T> GetFullList<T>(IList data)
         {
             List<T> GetFullListRet = default;
@@ -1971,36 +1346,9 @@ namespace PCL
             return GetFullListRet;
         }
 
-        /// <summary>
-        ///     数组去重。
-        /// </summary>
-        public static List<T> Distinct<T>(this ICollection<T> Arr, ComparisonBoolean<T> IsEqual)
-        {
-            var ResultArray = new List<T>();
-            for (int i = 0, loopTo = Arr.Count - 1; i <= loopTo; i++)
-            {
-                for (int ii = i + 1, loopTo1 = Arr.Count - 1; ii <= loopTo1; ii++)
-                    if (IsEqual(Arr.ElementAtOrDefault(i), Arr.ElementAtOrDefault(ii)))
-                        goto NextElement;
-                ResultArray.Add(Arr.ElementAtOrDefault(i));
-            NextElement:;
-            }
-
-            return ResultArray;
-        }
 
         /// <summary>
-        ///     对集合的每个元素执行指定操作。
-        /// </summary>
-        public static IEnumerable<T> ForEach<T>(this IEnumerable<T> Collection, Action<T> Action)
-        {
-            foreach (var Item in Collection)
-                Action(Item);
-            return Collection;
-        }
-
-        /// <summary>
-        ///     前台运行文件。
+        /// 前台运行文件。
         /// </summary>
         /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
         /// <param name="Arguments">运行参数。</param>
@@ -2025,12 +1373,12 @@ namespace PCL
         }
 
         /// <summary>
-        ///     前台运行文件并返回返回值。
+        /// 前台运行文件并返回返回值。
         /// </summary>
         /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
         /// <param name="Arguments">运行参数。</param>
         /// <param name="Timeout">等待该程序结束的最长时间（毫秒）。超时会返回 Result.Timeout。</param>
-        public static ProcessReturnValues ShellAndGetExitCode(string FileName, string Arguments = "", int Timeout = 1000000)
+        public static Enums.ProcessReturnValues ShellAndGetExitCode(string FileName, string Arguments = "", int Timeout = 1000000)
         {
             try
             {
@@ -2040,20 +1388,20 @@ namespace PCL
                     Program.StartInfo.FileName = FileName;
                     Log("[System] 执行外部命令并等待返回码：" + FileName + " " + Arguments);
                     Program.Start();
-                    if (Program.WaitForExit(Timeout)) return (ProcessReturnValues)Program.ExitCode;
+                    if (Program.WaitForExit(Timeout)) return (Enums.ProcessReturnValues)Program.ExitCode;
 
-                    return ProcessReturnValues.Timeout;
+                    return Enums.ProcessReturnValues.Timeout;
                 }
             }
             catch (Exception ex)
             {
                 Log(ex, "执行命令失败：" + FileName, LogLevel.Msgbox);
-                return ProcessReturnValues.Fail;
+                return Enums.ProcessReturnValues.Fail;
             }
         }
 
         /// <summary>
-        ///     静默运行文件并返回输出流字符串。执行失败会抛出异常。
+        /// 静默运行文件并返回输出流字符串。执行失败会抛出异常。
         /// </summary>
         /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
         /// <param name="Arguments">运行参数。</param>
@@ -2104,7 +1452,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     在新的工作线程中执行代码。
+        /// 在新的工作线程中执行代码。
         /// </summary>
         public static Thread RunInNewThread(Action Action, string Name = null,
             ThreadPriority Priority = ThreadPriority.Normal)
@@ -2130,9 +1478,9 @@ namespace PCL
         }
 
         /// <summary>
-        ///     确保在 UI 线程中执行代码。
-        ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
-        ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
+        /// 确保在 UI 线程中执行代码。
+        /// 如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
+        /// 为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
         /// </summary>
         public static Output RunInUiWait<Output>(Func<Output> Action)
         {
@@ -2142,9 +1490,9 @@ namespace PCL
         }
 
         /// <summary>
-        ///     确保在 UI 线程中执行代码。
-        ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
-        ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
+        /// 确保在 UI 线程中执行代码。
+        /// 如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
+        /// 为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
         /// </summary>
         public static void RunInUiWait(Action Action)
         {
@@ -2157,8 +1505,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     确保在 UI 线程中执行代码，代码按触发顺序执行。
-        ///     如果当前并非 UI 线程，也不阻断当前线程的执行。
+        /// 确保在 UI 线程中执行代码，代码按触发顺序执行。
+        /// 如果当前并非 UI 线程，也不阻断当前线程的执行。
         /// </summary>
         public static void RunInUi(Action Action, bool ForceWaitUntilLoaded = false)
         {
@@ -2172,7 +1520,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     确保在工作线程中执行代码。
+        /// 确保在工作线程中执行代码。
         /// </summary>
         public static void RunInThread(Action Action)
         {
@@ -2183,114 +1531,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     使用优化的归并排序算法进行稳定排序。
-        /// </summary>
-        /// <param name="SortRule">传入两个对象，若第一个对象应该排在前面，则返回 True。</param>
-        public static List<T> Sort<T>(this IList<T> List, ComparisonBoolean<T> SortRule)
-        {
-            // 创建原列表的副本以避免修改原始列表
-            var tempList = new List<T>(List);
-            if (tempList.Count <= 1)
-                return tempList;
-
-            // 使用归并排序核心算法
-            MergeSort_Sort(ref tempList, 0, tempList.Count - 1, SortRule);
-            return tempList;
-        }
-
-        private static void MergeSort_Sort<T>(ref List<T> array, int left, int right, ComparisonBoolean<T> comparator)
-        {
-            if (left >= right)
-                return;
-
-            var mid = (left + right) / 2;
-            MergeSort_Sort(ref array, left, mid, comparator);
-            MergeSort_Sort(ref array, mid + 1, right, comparator);
-            MergeSort_Merge(ref array, left, mid, right, comparator);
-        }
-
-        private static void MergeSort_Merge<T>(ref List<T> array, int left, int mid, int right,
-            ComparisonBoolean<T> comparator)
-        {
-            var leftArray = new List<T>();
-            var rightArray = new List<T>();
-
-            for (int i = left, loopTo = mid; i <= loopTo; i++)
-                leftArray.Add(array[i]);
-
-            for (int j = mid + 1, loopTo1 = right; j <= loopTo1; j++)
-                rightArray.Add(array[j]);
-
-            var leftPtr = 0;
-            var rightPtr = 0;
-            var current = left;
-
-            while (leftPtr < leftArray.Count && rightPtr < rightArray.Count)
-            {
-                // 保持稳定性的关键比较逻辑：当相等时优先取左数组元素
-                if (comparator(leftArray[leftPtr], rightArray[rightPtr]))
-                {
-                    array[current] = leftArray[leftPtr];
-                    leftPtr += 1;
-                }
-                else
-                {
-                    array[current] = rightArray[rightPtr];
-                    rightPtr += 1;
-                }
-
-                current += 1;
-            }
-
-            while (leftPtr < leftArray.Count)
-            {
-                array[current] = leftArray[leftPtr];
-                leftPtr += 1;
-                current += 1;
-            }
-
-            while (rightPtr < rightArray.Count)
-            {
-                array[current] = rightArray[rightPtr];
-                rightPtr += 1;
-                current += 1;
-            }
-        }
-
-        public delegate bool ComparisonBoolean<T>(T Left, T Right);
-
-        /// <summary>
-        ///     返回列表的浅表副本。
-        /// </summary>
-        public static IList<T> Clone<T>(this IList<T> list)
-        {
-            return new List<T>(list);
-        }
-
-        /// <summary>
-        ///     尝试从字典中获取某项，如果该项不存在，则返回默认值。
-        /// </summary>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> Dict, TKey Key,
-            TValue DefaultValue = default)
-        {
-            if (Dict.ContainsKey(Key)) return Dict[Key];
-
-            return DefaultValue;
-        }
-
-        /// <summary>
-        ///     将某项添加到以列表作为值的字典中。
-        /// </summary>
-        public static void AddToList<TKey, TValue>(this Dictionary<TKey, List<TValue>> Dict, TKey Key, TValue Value)
-        {
-            if (Dict.ContainsKey(Key))
-                Dict[Key].Add(Value);
-            else
-                Dict.Add(Key, new List<TValue> { Value });
-        }
-
-        /// <summary>
-        ///     获取程序启动参数。
+        /// 获取程序启动参数。
         /// </summary>
         /// <param name="Name">参数名。</param>
         /// <param name="DefaultValue">默认值。</param>
@@ -2309,7 +1550,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     打开网页。
+        /// 打开网页。
         /// </summary>
         public static void OpenWebsite(string Url)
         {
@@ -2335,8 +1576,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     打开 explorer。
-        ///     若不以 \ 结尾，则将视作文件路径，打开并选中此文件。
+        /// 打开 explorer。
+        /// 若不以 \ 结尾，则将视作文件路径，打开并选中此文件。
         /// </summary>
         public static void OpenExplorer(string Location)
         {
@@ -2356,7 +1597,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     设置剪贴板。将在另一线程运行，且不会抛出异常。
+        /// 设置剪贴板。将在另一线程运行，且不会抛出异常。
         /// </summary>
         public static void ClipboardSet(string Text, bool ShowSuccessHint = true)
         {
@@ -2385,7 +1626,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     从剪切板粘贴文件或文件夹
+        /// 从剪切板粘贴文件或文件夹
         /// </summary>
         /// <param name="dest">目标文件夹</param>
         /// <param name="copyFile">是否粘贴文件</param>
@@ -2458,8 +1699,8 @@ namespace PCL
         }
 
         /// <summary>
-        ///     获取程序打包资源的输入流。该资源必须声明为 <c>Resource</c> 类型，否则将会报错，<c>Images</c>
-        ///     和 <c>Resources</c> 目录已默认声明该类型。
+        /// 获取程序打包资源的输入流。该资源必须声明为 <c>Resource</c> 类型，否则将会报错，<c>Images</c>
+        /// 和 <c>Resources</c> 目录已默认声明该类型。
         /// </summary>
         public static Stream GetResourceStream(string path)
         {
@@ -2471,7 +1712,7 @@ namespace PCL
         #endregion
 
         /// <summary>
-        ///     检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
+        /// 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
         /// </summary>
         public static bool CheckPermission(string Path)
         {
@@ -2500,7 +1741,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     检查是否拥有某一文件夹的 I/O 权限。如果出错，则抛出异常。
+        /// 检查是否拥有某一文件夹的 I/O 权限。如果出错，则抛出异常。
         /// </summary>
         public static void CheckPermissionWithException(string Path)
         {
@@ -2538,7 +1779,7 @@ namespace PCL
 
         // 边距改变
         /// <summary>
-        ///     相对增减控件的左边距。
+        /// 相对增减控件的左边距。
         /// </summary>
         public static void DeltaLeft(FrameworkElement control, double newValue)
         {
@@ -2577,7 +1818,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     设置控件的左边距。（仅针对置左控件）
+        /// 设置控件的左边距。（仅针对置左控件）
         /// </summary>
         public static void SetLeft(FrameworkElement control, double newValue)
         {
@@ -2586,7 +1827,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     相对增减控件的上边距。
+        /// 相对增减控件的上边距。
         /// </summary>
         public static void DeltaTop(FrameworkElement control, double newValue)
         {
@@ -2633,7 +1874,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     设置控件的顶边距。（仅针对置上控件）
+        /// 设置控件的顶边距。（仅针对置上控件）
         /// </summary>
         public static void SetTop(FrameworkElement control, double newValue)
         {
@@ -2645,7 +1886,7 @@ namespace PCL
         public static readonly int DPI = (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
 
         /// <summary>
-        ///     将经过 DPI 缩放的 WPF 尺寸转化为实际的像素尺寸。
+        /// 将经过 DPI 缩放的 WPF 尺寸转化为实际的像素尺寸。
         /// </summary>
         public static double GetPixelSize(double WPFSize)
         {
@@ -2653,7 +1894,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将实际的像素尺寸转化为经过 DPI 缩放的 WPF 尺寸。
+        /// 将实际的像素尺寸转化为经过 DPI 缩放的 WPF 尺寸。
         /// </summary>
         public static double GetWPFSize(double PixelSize)
         {
@@ -2662,7 +1903,7 @@ namespace PCL
 
         // UI 截图
         /// <summary>
-        ///     将某个控件的呈现转换为图片。
+        /// 将某个控件的呈现转换为图片。
         /// </summary>
         public static ImageBrush ControlBrush(FrameworkElement UI)
         {
@@ -2677,7 +1918,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将某个控件的模拟呈现转换为图片。
+        /// 将某个控件的模拟呈现转换为图片。
         /// </summary>
         public static ImageBrush ControlBrush(FrameworkElement UI, double Width, double Height, double Left = 0d,
             double Top = 0d)
@@ -2693,7 +1934,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将 UI 内容固定为图片并进行 Clear。
+        /// 将 UI 内容固定为图片并进行 Clear。
         /// </summary>
         public static void ControlFreeze(Panel UI)
         {
@@ -2702,7 +1943,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将 UI 内容固定为图片并进行 Clear。
+        /// 将 UI 内容固定为图片并进行 Clear。
         /// </summary>
         public static void ControlFreeze(Border UI)
         {
@@ -2711,7 +1952,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将 XML 转换为对应 UI 对象。
+        /// 将 XML 转换为对应 UI 对象。
         /// </summary>
         public static object GetObjectFromXML(XElement Str)
         {
@@ -2719,7 +1960,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     将 XML 转换为对应 UI 对象。
+        /// 将 XML 转换为对应 UI 对象。
         /// </summary>
         public static object GetObjectFromXML(string Str)
         {
@@ -2769,7 +2010,7 @@ namespace PCL
         private static readonly int UiThreadId = Thread.CurrentThread.ManagedThreadId;
 
         /// <summary>
-        ///     当前线程是否为主线程。
+        /// 当前线程是否为主线程。
         /// </summary>
         public static bool RunInUi()
         {
@@ -2786,38 +2027,38 @@ namespace PCL
         public enum LogLevel
         {
             /// <summary>
-            ///     不提示，只记录日志。
+            /// 不提示，只记录日志。
             /// </summary>
             Normal = 0,
 
             /// <summary>
-            ///     只提示开发者。
+            /// 只提示开发者。
             /// </summary>
             Developer = 1,
 
             /// <summary>
-            ///     只提示开发者与调试模式用户。
+            /// 只提示开发者与调试模式用户。
             /// </summary>
             Debug = 2,
 
             /// <summary>
-            ///     弹出提示所有用户。
+            /// 弹出提示所有用户。
             /// </summary>
             Hint = 3,
 
             /// <summary>
-            ///     弹窗，不要求反馈。
+            /// 弹窗，不要求反馈。
             /// </summary>
             Msgbox = 4,
 
             /// <summary>
-            ///     弹窗，要求反馈。
+            /// 弹窗，要求反馈。
             /// </summary>
             Feedback = 5,
 
             /// <summary>
-            ///     弹出 Windows 原生弹窗，要求反馈。在无法保证 WPF 窗口能正常运行时使用此级别。
-            ///     在第二次触发后会直接结束程序。
+            /// 弹出 Windows 原生弹窗，要求反馈。在无法保证 WPF 窗口能正常运行时使用此级别。
+            /// 在第二次触发后会直接结束程序。
             /// </summary>
             Critical = 6
         }
@@ -2825,7 +2066,7 @@ namespace PCL
         private static bool IsCriticalErrorTriggered;
 
         /// <summary>
-        ///     输出 Log。
+        /// 输出 Log。
         /// </summary>
         /// <param name="Title">如果要求弹窗，指定弹窗的标题。</param>
         public static void Log(string Text, LogLevel Level = LogLevel.Normal, string Title = "出现错误")
@@ -2900,7 +2141,7 @@ namespace PCL
                     {
                         if (IsCriticalErrorTriggered)
                         {
-                            FormMain.EndProgramForce(ProcessReturnValues.Exception);
+                            FormMain.EndProgramForce(Enums.ProcessReturnValues.Exception);
                             return;
                         }
 
@@ -2924,7 +2165,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     输出错误信息。
+        /// 输出错误信息。
         /// </summary>
         /// <param name="Desc">错误描述。会在处理时在末尾加入冒号。</param>
         public static void Log(Exception Ex, string Desc, LogLevel Level = LogLevel.Debug, string Title = "出现错误")
@@ -3008,7 +2249,7 @@ namespace PCL
                     {
                         if (IsCriticalErrorTriggered)
                         {
-                            FormMain.EndProgramForce(ProcessReturnValues.Exception);
+                            FormMain.EndProgramForce(Enums.ProcessReturnValues.Exception);
                             return;
                         }
 
@@ -3030,25 +2271,6 @@ namespace PCL
                         break;
                     }
             }
-        }
-
-        public static string Base64Decode(string Text)
-        {
-            if (string.IsNullOrWhiteSpace(Text))
-                return "";
-            var decodedBytes = Convert.FromBase64String(Text);
-            return Encoding.UTF8.GetString(decodedBytes);
-        }
-
-        public static string Base64Encode(string Text)
-        {
-            var bytes = Encoding.UTF8.GetBytes(Text);
-            return Convert.ToBase64String(bytes);
-        }
-
-        public static string Base64Encode(byte[] bytes)
-        {
-            return Convert.ToBase64String(bytes);
         }
 
         // 反馈
@@ -3087,7 +2309,7 @@ namespace PCL
         }
 
         /// <summary>
-        ///     在日志中输出系统诊断信息。
+        /// 在日志中输出系统诊断信息。
         /// </summary>
         public static void FeedbackInfo()
         {
@@ -3128,11 +2350,18 @@ namespace PCL
         // 获取当前的堆栈信息
         public static string GetStackTrace()
         {
-            var Stack = new StackTrace();
-            return Stack.GetFrames().Skip(1).Select(f => f.GetMethod())
-                .Select(f => f.Name + "(" + f.GetParameters().Select(p => p.ToString()).ToList().Join(", ") + ") - " +
-                             f.Module).ToList().Join("\r\n")
-                .Replace("\r\n" + "\r\n", "\r\n");
+            var stack = new StackTrace();
+            var formated = stack.GetFrames()
+                .Skip(1)
+                .Select(f => f.GetMethod())
+                .Select(methodBase => methodBase.Name +
+                             "(" +
+                             string.Join(", ", methodBase.GetParameters().Select(p => p.ToString())) +
+                             ") - " +
+                             methodBase.Module)
+                .ToImmutableArray();
+            var res = string.Join("\r\n", formated);
+            return res.Replace("\r\n" + "\r\n", "\r\n");
         }
 
         #endregion

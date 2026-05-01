@@ -1,7 +1,9 @@
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.UI;
 using PCL.Core.UI.Icons;
+using PCL.Core.Utils.Exts;
 using System.Collections;
 using System.IO;
 using System.Windows;
@@ -359,7 +361,7 @@ public partial class PageInstanceInstall
         EnterSelectPage();
     }
 
-    private void CardMinecraft_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardMinecraft_PreviewSwap(object sender, RouteEventArgs e)
     {
         ExitSelectPage();
         e.Handled = true;
@@ -379,12 +381,12 @@ public partial class PageInstanceInstall
     private ModDownload.DlOptiFineListEntry? SelectedOptiFine;
 
     /// <summary>
-    ///     选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod
+    /// 选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod
     /// </summary>
     private string? SelectedLoaderName;
 
     /// <summary>
-    ///     选定的 Mod Loader API 名称，内容应为 Fabric API 或 QFAPI / QSL
+    /// 选定的 Mod Loader API 名称，内容应为 Fabric API 或 QFAPI / QSL
     /// </summary>
     private string? SelectedAPIName;
 
@@ -431,7 +433,7 @@ public partial class PageInstanceInstall
     private bool _ReloadSelected_Ongoing; // #3742 中，LoadOptiFineGetError 会初始化 LoadOptiFine，触发事件 LoadOptiFine.StateChanged，导致再次调用 SelectReload
 
     /// <summary>
-    ///     重载已选择的项目的显示。
+    /// 重载已选择的项目的显示。
     /// </summary>
     private void ReloadSelected()
     {
@@ -899,7 +901,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     清空已选择的项目。
+    /// 清空已选择的项目。
     /// </summary>
     private void ClearSelected()
     {
@@ -951,7 +953,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     获取实例图标。
+    /// 获取实例图标。
     /// </summary>
     private string GetSelectLogo()
     {
@@ -977,7 +979,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     获取实例描述信息。
+    /// 获取实例描述信息。
     /// </summary>
     private string? GetSelectInfo()
     {
@@ -1378,7 +1380,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     当 MC 版本列表加载完时，立即自动选择的版本。用于外部调用。
+    /// 当 MC 版本列表加载完时，立即自动选择的版本。用于外部调用。
     /// </summary>
     public static string McVersionWaitingForSelect = null;
 
@@ -1387,7 +1389,7 @@ public partial class PageInstanceInstall
     #region OptiFine 列表
 
     /// <summary>
-    ///     获取 OptiFine 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 OptiFine 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadOptiFineGetError()
     {
@@ -1451,20 +1453,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardOptiFine_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardOptiFine_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadOptiFineGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 OptiFine 版本列表。
+    /// 尝试重新可视化 OptiFine 版本列表。
     /// </summary>
     private void OptiFine_Loaded()
     {
         try
         {
-            if (ModDownload.DlOptiFineListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlOptiFineListLoader.State != Enums.LoadState.Finished)
                 return;
 
             // 获取版本列表
@@ -1533,7 +1535,7 @@ public partial class PageInstanceInstall
     #region LiteLoader 列表
 
     /// <summary>
-    ///     获取 LiteLoader 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 LiteLoader 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadLiteLoaderGetError()
     {
@@ -1547,20 +1549,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardLiteLoader_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardLiteLoader_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadLiteLoaderGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 LiteLoader 版本列表。
+    /// 尝试重新可视化 LiteLoader 版本列表。
     /// </summary>
     private void LiteLoader_Loaded()
     {
         try
         {
-            if (ModDownload.DlLiteLoaderListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlLiteLoaderListLoader.State != Enums.LoadState.Finished)
                 return;
             // 获取版本列表
             var Versions = new List<ModDownload.DlLiteLoaderListEntry>();
@@ -1602,7 +1604,7 @@ public partial class PageInstanceInstall
     #region Forge 列表
 
     /// <summary>
-    ///     获取 Forge 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 Forge 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadForgeGetError()
     {
@@ -1640,14 +1642,14 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardForge_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardForge_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadForgeGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 Forge 版本列表。
+    /// 尝试重新可视化 Forge 版本列表。
     /// </summary>
     private void Forge_Loaded()
     {
@@ -1658,7 +1660,7 @@ public partial class PageInstanceInstall
             var loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)LoadForge.State;
             if ((_vanillaName ?? "") != (loader.Input ?? ""))
                 return;
-            if (loader.State != ModBase.LoadState.Finished)
+            if (loader.State != Enums.LoadState.Finished)
                 return;
             // 获取要显示的版本
             var versions = loader.Output.ToList(); // 复制数组，以免 Output 在实例化后变空
@@ -1714,7 +1716,7 @@ public partial class PageInstanceInstall
     #region NeoForge 列表
 
     /// <summary>
-    ///     获取 NeoForge 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 NeoForge 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadNeoForgeGetError()
     {
@@ -1732,21 +1734,21 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardNeoForge_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardNeoForge_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadNeoForgeGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 NeoForge 版本列表。
+    /// 尝试重新可视化 NeoForge 版本列表。
     /// </summary>
     private void NeoForge_Loaded()
     {
         try
         {
             // 获取版本列表
-            if (ModDownload.DlNeoForgeListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlNeoForgeListLoader.State != Enums.LoadState.Finished)
                 return;
             var Versions = ModDownload.DlNeoForgeListLoader.Output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
@@ -1793,7 +1795,7 @@ public partial class PageInstanceInstall
     #region Cleanroom 列表
 
     /// <summary>
-    ///     获取 Cleanroom 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 Cleanroom 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadCleanroomGetError()
     {
@@ -1813,21 +1815,21 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardCleanroom_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardCleanroom_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadCleanroomGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 Cleanroom 版本列表。
+    /// 尝试重新可视化 Cleanroom 版本列表。
     /// </summary>
     private void Cleanroom_Loaded()
     {
         try
         {
             // 获取版本列表
-            if (ModDownload.DlCleanroomListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlCleanroomListLoader.State != Enums.LoadState.Finished)
                 return;
             var Versions = ModDownload.DlCleanroomListLoader.Output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
@@ -1873,7 +1875,7 @@ public partial class PageInstanceInstall
     #region Fabric 列表
 
     /// <summary>
-    ///     获取 Fabric 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 Fabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadFabricGetError()
     {
@@ -1897,20 +1899,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardFabric_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardFabric_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadFabricGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 Fabric 版本列表。
+    /// 尝试重新可视化 Fabric 版本列表。
     /// </summary>
     private void Fabric_Loaded()
     {
         try
         {
-            if (ModDownload.DlFabricListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlFabricListLoader.State != Enums.LoadState.Finished)
                 return;
             // 获取版本列表
             var versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
@@ -1964,7 +1966,7 @@ public partial class PageInstanceInstall
     #region Fabric API 列表
 
     /// <summary>
-    ///     判断某 Fabric API 是否适配当前选择的原版版本。
+    /// 判断某 Fabric API 是否适配当前选择的原版版本。
     /// </summary>
     public bool IsFabricApiCompatible(ModComp.CompFile fabricApi)
     {
@@ -1984,8 +1986,8 @@ public partial class PageInstanceInstall
                 if ((part ?? "") == (_vanillaName ?? ""))
                     return true;
             // 将版本名分割语素（例如 1.16.4/5）
-            var lefts = fabricApiName.BeforeFirst("]").RegexSearch("[a-z/]+|[0-9/]+");
-            var rights = _vanillaName.BeforeFirst("]").RegexSearch("[a-z/]+|[0-9/]+");
+            var lefts = fabricApiName.BeforeFirst("]").RegexSearch(new("[a-z/]+|[0-9/]+"));
+            var rights = _vanillaName.BeforeFirst("]").RegexSearch(new("[a-z/]+|[0-9/]+"));
             // 对每段进行判断
             var i = 0;
             while (true)
@@ -2020,7 +2022,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     获取 FabricApi 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 FabricApi 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadFabricApiGetError()
     {
@@ -2037,7 +2039,7 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardFabricApi_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardFabricApi_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadFabricApiGetError() is not null)
             e.Handled = true;
@@ -2046,13 +2048,13 @@ public partial class PageInstanceInstall
     private bool AutoSelectedFabricApi;
 
     /// <summary>
-    ///     尝试重新可视化 FabricApi 版本列表。
+    /// 尝试重新可视化 FabricApi 版本列表。
     /// </summary>
     private void FabricApi_Loaded()
     {
         try
         {
-            if (ModDownload.DlFabricApiLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlFabricApiLoader.State != Enums.LoadState.Finished)
                 return;
             if (_vanillaName is null || (SelectedFabric is null && SelectedQuilt is null))
                 return;
@@ -2122,7 +2124,7 @@ public partial class PageInstanceInstall
     #region LegacyFabric 列表
 
     /// <summary>
-    ///     获取 LegacyFabric 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 LegacyFabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadLegacyFabricGetError()
     {
@@ -2145,20 +2147,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardLegacyFabric_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardLegacyFabric_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadLegacyFabricGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 LegacyFabric 版本列表。
+    /// 尝试重新可视化 LegacyFabric 版本列表。
     /// </summary>
     private void LegacyFabric_Loaded()
     {
         try
         {
-            if (ModDownload.DlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlLegacyFabricListLoader.State != Enums.LoadState.Finished)
                 return;
             // 获取版本列表
             var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
@@ -2208,7 +2210,7 @@ public partial class PageInstanceInstall
     #region Legacy Fabric API 列表
 
     /// <summary>
-    ///     从显示名判断该 API 是否与某版本适配。
+    /// 从显示名判断该 API 是否与某版本适配。
     /// </summary>
     public static bool IsSuitableLegacyFabricApi(List<string> SupportVersions, string MinecraftVersion)
     {
@@ -2226,7 +2228,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     获取 LegacyFabricApi 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 LegacyFabricApi 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadLegacyFabricApiGetError()
     {
@@ -2257,7 +2259,7 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardLegacyFabricApi_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardLegacyFabricApi_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadLegacyFabricApiGetError() is not null)
             e.Handled = true;
@@ -2266,13 +2268,13 @@ public partial class PageInstanceInstall
     private bool AutoSelectedLegacyFabricApi;
 
     /// <summary>
-    ///     尝试重新可视化 LegacyFabricApi 版本列表。
+    /// 尝试重新可视化 LegacyFabricApi 版本列表。
     /// </summary>
     private void LegacyFabricApi_Loaded()
     {
         try
         {
-            if (ModDownload.DlLegacyFabricApiLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlLegacyFabricApiLoader.State != Enums.LoadState.Finished)
                 return;
             if (_vanillaName is null || (SelectedLegacyFabric is null && SelectedQuilt is null))
                 return;
@@ -2334,7 +2336,7 @@ public partial class PageInstanceInstall
     #region Quilt 列表
 
     /// <summary>
-    ///     获取 Quilt 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 Quilt 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadQuiltGetError()
     {
@@ -2359,20 +2361,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardQuilt_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardQuilt_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadQuiltGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 Quilt 版本列表。
+    /// 尝试重新可视化 Quilt 版本列表。
     /// </summary>
     private void Quilt_Loaded()
     {
         try
         {
-            if (ModDownload.DlQuiltListLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlQuiltListLoader.State != Enums.LoadState.Finished)
                 return;
             // 获取版本列表
             var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
@@ -2424,7 +2426,7 @@ public partial class PageInstanceInstall
     #region QSL 列表
 
     /// <summary>
-    ///     从显示名判断该 API 是否与某版本适配。
+    /// 从显示名判断该 API 是否与某版本适配。
     /// </summary>
     public static bool IsSuitableQSL(List<string> SupportVersions, string MinecraftVersion)
     {
@@ -2442,7 +2444,7 @@ public partial class PageInstanceInstall
     }
 
     /// <summary>
-    ///     获取 QSL 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 QSL 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadQSLGetError()
     {
@@ -2473,7 +2475,7 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardQSL_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardQSL_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadQSLGetError() is not null)
             e.Handled = true;
@@ -2482,13 +2484,13 @@ public partial class PageInstanceInstall
     private bool AutoSelectedQSL;
 
     /// <summary>
-    ///     尝试重新可视化 QSL 版本列表。
+    /// 尝试重新可视化 QSL 版本列表。
     /// </summary>
     private void QSL_Loaded()
     {
         try
         {
-            if (ModDownload.DlQSLLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlQSLLoader.State != Enums.LoadState.Finished)
                 return;
             if (_vanillaName is null || SelectedQuilt is null)
                 return;
@@ -2556,7 +2558,7 @@ public partial class PageInstanceInstall
     #region OptiFabric 列表
 
     /// <summary>
-    ///     判断某 OptiFabric 是否适配当前选择的原版版本。
+    /// 判断某 OptiFabric 是否适配当前选择的原版版本。
     /// </summary>
     private bool IsOptiFabricCompatible(ModComp.CompFile modFile)
     {
@@ -2576,7 +2578,7 @@ public partial class PageInstanceInstall
     private bool AutoSelectedOptiFabric;
 
     /// <summary>
-    ///     获取 OptiFabric 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 OptiFabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadOptiFabricGetError()
     {
@@ -2614,20 +2616,20 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardOptiFabric_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardOptiFabric_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadOptiFabricGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 OptiFabric 版本列表。
+    /// 尝试重新可视化 OptiFabric 版本列表。
     /// </summary>
     private void OptiFabric_Loaded()
     {
         try
         {
-            if (ModDownload.DlOptiFabricLoader.State != ModBase.LoadState.Finished)
+            if (ModDownload.DlOptiFabricLoader.State != Enums.LoadState.Finished)
                 return;
             if (_vanillaName is null || SelectedFabric is null || SelectedOptiFine is null)
                 return;
@@ -2685,7 +2687,7 @@ public partial class PageInstanceInstall
     #region LabyMod 列表
 
     /// <summary>
-    ///     获取 LabyMod 的加载异常信息。若正常则返回 Nothing。
+    /// 获取 LabyMod 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
     private string LoadLabyModGetError()
     {
@@ -2711,14 +2713,14 @@ public partial class PageInstanceInstall
     }
 
     // 限制展开
-    private void CardLabyMod_PreviewSwap(object sender, ModBase.RouteEventArgs e)
+    private void CardLabyMod_PreviewSwap(object sender, RouteEventArgs e)
     {
         if (LoadLabyModGetError() is not null)
             e.Handled = true;
     }
 
     /// <summary>
-    ///     尝试重新可视化 LabyMod 版本列表。
+    /// 尝试重新可视化 LabyMod 版本列表。
     /// </summary>
     private void LabyMod_Loaded()
     {

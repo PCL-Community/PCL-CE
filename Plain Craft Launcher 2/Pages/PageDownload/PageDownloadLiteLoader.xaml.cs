@@ -53,20 +53,22 @@ public partial class PageDownloadLiteLoader
                     continue;
                 // 增加卡片
                 var NewCard = new MyCard
-                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 NewCard.Children.Add(NewStack);
                 NewCard.SwapControl = NewStack;
                 NewCard.IsSwapped = true;
+
                 NewCard.InstallMethod = Stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                    ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit));
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));

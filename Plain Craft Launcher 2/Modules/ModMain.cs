@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -98,7 +99,7 @@ public static class ModMain
     private static int Timer150Count;
 
     /// <summary>
-    ///     等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
+    /// 等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
     /// </summary>
     private static ModBase.SafeList<HintMessage> HintWaiting
     {
@@ -107,7 +108,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     等待显示的弹窗。
+    /// 等待显示的弹窗。
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
 
@@ -227,24 +228,24 @@ public static class ModMain
     #region 弹出提示
 
     /// <summary>
-    ///     提示信息的种类。
+    /// 提示信息的种类。
     /// </summary>
     public enum HintType
     {
         /// <summary>
-        ///     信息，通常是蓝色的“i”。
+        /// 信息，通常是蓝色的“i”。
         /// </summary>
         /// <remarks></remarks>
         Info,
 
         /// <summary>
-        ///     已完成，通常是绿色的“√”。
+        /// 已完成，通常是绿色的“√”。
         /// </summary>
         /// <remarks></remarks>
         Finish,
 
         /// <summary>
-        ///     错误，通常是红色的“×”。
+        /// 错误，通常是红色的“×”。
         /// </summary>
         /// <remarks></remarks>
         Critical
@@ -259,7 +260,7 @@ public static class ModMain
 
 
     /// <summary>
-    ///     在窗口左下角弹出提示文本。
+    /// 在窗口左下角弹出提示文本。
     /// </summary>
     public static void Hint(string? Text, HintType Type = HintType.Info, bool Log = true)
     {
@@ -478,7 +479,7 @@ public static class ModMain
     #region 弹窗
 
     /// <summary>
-    ///     存储弹窗信息的转换器。
+    /// 存储弹窗信息的转换器。
     /// </summary>
     public class MyMsgBoxConverter
     {
@@ -487,54 +488,54 @@ public static class ModMain
         public string Button1 = "确定";
 
         /// <summary>
-        ///     点击第一个按钮将执行该方法，不关闭弹窗。
+        /// 点击第一个按钮将执行该方法，不关闭弹窗。
         /// </summary>
         public Action Button1Action;
 
         public string Button2 = "";
 
         /// <summary>
-        ///     点击第二个按钮将执行该方法，不关闭弹窗。
+        /// 点击第二个按钮将执行该方法，不关闭弹窗。
         /// </summary>
         public Action Button2Action;
 
         public string Button3 = "";
 
         /// <summary>
-        ///     点击第三个按钮将执行该方法，不关闭弹窗。
+        /// 点击第三个按钮将执行该方法，不关闭弹窗。
         /// </summary>
         public Action Button3Action;
 
         /// <summary>
-        ///     输入模式：文本框的文本。
-        ///     选择模式：需要放进去的 List(Of MyListItem)。
-        ///     登录模式：登录步骤 1 中返回的 JSON。
+        /// 输入模式：文本框的文本。
+        /// 选择模式：需要放进去的 List(Of MyListItem)。
+        /// 登录模式：登录步骤 1 中返回的 JSON。
         /// </summary>
         public object Content;
 
         public bool ForceWait;
 
         /// <summary>
-        ///     有多个按钮时，是否给第一个按钮加高亮。
+        /// 有多个按钮时，是否给第一个按钮加高亮。
         /// </summary>
         public bool HighLight;
 
         /// <summary>
-        ///     输入模式：提示文本。
+        /// 输入模式：提示文本。
         /// </summary>
         public string HintText = "";
 
         /// <summary>
-        ///     弹窗是否已经关闭。
+        /// 弹窗是否已经关闭。
         /// </summary>
         public bool IsExited = false;
 
         public bool IsWarn;
 
         /// <summary>
-        ///     输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
-        ///     选择模式：点击的按钮编号，从 1 开始。
-        ///     登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
+        /// 输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
+        /// 选择模式：点击的按钮编号，从 1 开始。
+        /// 登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
         /// </summary>
         public object Result;
 
@@ -543,7 +544,7 @@ public static class ModMain
         public MyMsgBoxType Type;
 
         /// <summary>
-        ///     输入模式：输入验证规则。
+        /// 输入模式：输入验证规则。
         /// </summary>
         public Collection<IValidator<string>> ValidateRules;
 
@@ -560,7 +561,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
+    /// 显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
     /// <param name="Title">弹窗的标题。</param>
     /// <param name="Caption">弹窗的内容。</param>
@@ -660,7 +661,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
+    /// 显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
     /// <param name="Title">弹窗的标题。</param>
     /// <param name="Caption">弹窗的内容。</param>
@@ -760,7 +761,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     显示输入框并返回输入的文本。若点击第二个按钮，则返回 Nothing。
+    /// 显示输入框并返回输入的文本。若点击第二个按钮，则返回 Nothing。
     /// </summary>
     /// <param name="Title">弹窗的标题。</param>
     /// <param name="ValidateRules">文本框的输入检测。</param>
@@ -805,7 +806,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
+    /// 显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
     /// </summary>
     /// <param name="Title">弹窗的标题。</param>
     /// <param name="Button1">显示的第一个按钮，默认为 “确定”。</param>
@@ -956,7 +957,7 @@ public static class ModMain
     public class HelpEntry
     {
         /// <summary>
-        ///     显示描述。
+        /// 显示描述。
         /// </summary>
         public string Desc;
 
@@ -966,63 +967,63 @@ public static class ModMain
         // 动作
 
         /// <summary>
-        ///     是否为 “执行事件”。
+        /// 是否为 “执行事件”。
         /// </summary>
         public bool IsEvent;
 
         // 显示（可选）
 
         /// <summary>
-        ///     帮助项的自定义图标。可能为 Nothing。
+        /// 帮助项的自定义图标。可能为 Nothing。
         /// </summary>
         public string Logo;
 
         /// <summary>
-        ///     原始信息路径。用于刷新。
+        /// 原始信息路径。用于刷新。
         /// </summary>
         public string RawPath;
 
         /// <summary>
-        ///     检索关键字。
+        /// 检索关键字。
         /// </summary>
         public string Search;
 
         /// <summary>
-        ///     是否在公开版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
+        /// 是否在公开版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
         /// </summary>
         public bool ShowInPublic = true;
 
         /// <summary>
-        ///     是否显示在搜索结果。默认为 True。
+        /// 是否显示在搜索结果。默认为 True。
         /// </summary>
         public bool ShowInSearch = true;
 
         /// <summary>
-        ///     是否在快照版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
+        /// 是否在快照版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
         /// </summary>
         public bool ShowInSnapshot = true;
 
         // 基础
 
         /// <summary>
-        ///     显示标题。
+        /// 显示标题。
         /// </summary>
         public string Title;
 
         /// <summary>
-        ///     用于分类的标签列表。
+        /// 用于分类的标签列表。
         /// </summary>
         public List<string> Types;
 
         /// <summary>
-        ///     若非执行事件，其对应的 .xaml 本地文件内容。
+        /// 若非执行事件，其对应的 .xaml 本地文件内容。
         /// </summary>
         public string XamlContent;
 
         // 转换
 
         /// <summary>
-        ///     从文件初始化 HelpEntry 对象，失败会抛出异常。
+        /// 从文件初始化 HelpEntry 对象，失败会抛出异常。
         /// </summary>
         public HelpEntry(string FilePath)
         {
@@ -1067,7 +1068,7 @@ public static class ModMain
         }
 
         /// <summary>
-        ///     获取该 HelpEntry 对应的 MyListItem。
+        /// 获取该 HelpEntry 对应的 MyListItem。
         /// </summary>
         public MyListItem ToListItem()
         {
@@ -1075,7 +1076,7 @@ public static class ModMain
         }
 
         /// <summary>
-        ///     将属性设置入一个现有的 ListItem。
+        /// 将属性设置入一个现有的 ListItem。
         /// </summary>
         public MyListItem SetToListItem(MyListItem Item)
         {
@@ -1112,7 +1113,7 @@ public static class ModMain
     private static readonly object HelpLoadLock = new();
 
     /// <summary>
-    ///     初始化帮助列表对象。
+    /// 初始化帮助列表对象。
     /// </summary>
     private static void HelpLoad(ModLoader.LoaderTask<int, List<HelpEntry>> Loader)
     {
@@ -1221,7 +1222,7 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     解压内置帮助文件。
+    /// 解压内置帮助文件。
     /// </summary>
     public static void HelpExtract()
     {
@@ -1234,13 +1235,13 @@ public static class ModMain
     }
 
     /// <summary>
-    ///     对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
+    /// 对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
     /// </summary>
     public static string HelpArgumentReplace(string Xaml)
     {
-        var Result = Xaml.Replace("{path}", ModBase.EscapeXML(ModBase.ExePath));
-        Result = Result.RegexReplaceEach(@"\{hint\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomHint()));
-        Result = Result.RegexReplaceEach(@"\{cave\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomCave()));
+        var Result = Xaml.Replace("{path}", TextUtils.EscapeXml(ModBase.ExePath));
+        Result = Result.RegexReplaceEach(@"\{hint\}", _ => TextUtils.EscapeXml(PageToolsTest.GetRandomHint()));
+        Result = Result.RegexReplaceEach(@"\{cave\}", _ => TextUtils.EscapeXml(PageToolsTest.GetRandomCave()));
         return Result;
     }
 
@@ -1402,7 +1403,7 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
     #region 系统
 
     /// <summary>
-    ///     把某个 PCL 窗口拖到最前面。
+    /// 把某个 PCL 窗口拖到最前面。
     /// </summary>
     public static void ShowWindowToTop(nint Handle)
     {
@@ -1427,8 +1428,8 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
     private static extern bool PostMessage(nint hWnd, uint msg, long wParam, long lParam);
 
     /// <summary>
-    ///     将特定程序设置为使用高性能显卡启动。
-    ///     如果失败，则抛出异常。
+    /// 将特定程序设置为使用高性能显卡启动。
+    /// 如果失败，则抛出异常。
     /// </summary>
     public static void SetGPUPreference(string Executeable, bool WantHighPerformance = true)
     {
@@ -1531,7 +1532,7 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         }
 
         // 验证信息
-        if (ModLaunch.McLoginLoader.State == ModBase.LoadState.Finished)
+        if (ModLaunch.McLoginLoader.State == Enums.LoadState.Finished)
         {
             text = text.Replace("{user}", replacer(ModLaunch.McLoginLoader.Output.Name));
             text = text.Replace("{uuid}", replacer(ModLaunch.McLoginLoader.Output.Uuid.ToLower()));
@@ -1557,11 +1558,11 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         }
 
         // 高级
-        text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
-        text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-        text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
-        text = ModBase.RegexReplaceEach(text, @"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
-        text = ModBase.RegexReplaceEach(text, @"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+        text = text.RegexReplaceEach(@"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+        text = text.RegexReplaceEach(@"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+        text = text.RegexReplaceEach(@"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
+        text = text.RegexReplaceEach(@"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+        text = text.RegexReplaceEach(@"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
 
         return text;
     }
@@ -1573,8 +1574,8 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
     private static bool IsTaskTempClearing;
 
     /// <summary>
-    ///     尝试清理任务缓存文件夹。
-    ///     在整次运行中只会实际清理一次。
+    /// 尝试清理任务缓存文件夹。
+    /// 在整次运行中只会实际清理一次。
     /// </summary>
     public static void TryClearTaskTemp()
     {
@@ -1607,8 +1608,8 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
     }
 
     /// <summary>
-    ///     申请一个可用于任务缓存的临时文件夹，以 \ 结尾。这些文件夹无需进行后续清理。
-    ///     若所有缓存位置均没有权限，会抛出异常。
+    /// 申请一个可用于任务缓存的临时文件夹，以 \ 结尾。这些文件夹无需进行后续清理。
+    /// 若所有缓存位置均没有权限，会抛出异常。
     /// </summary>
     /// <param name="RequireNonSpace">是否要求路径不包含空格。</param>
     public static string RequestTaskTempFolder(bool RequireNonSpace = false)

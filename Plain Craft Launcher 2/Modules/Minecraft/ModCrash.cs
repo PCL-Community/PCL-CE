@@ -1,13 +1,13 @@
-using System.IO;
-using System.IO.Compression;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PCL;
 
@@ -47,7 +47,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     将可用于分析的日志存储到 AnalyzeRawFiles。
+    /// 将可用于分析的日志存储到 AnalyzeRawFiles。
     /// </summary>
     /// <param name="LatestLog">从 PCL 捕获到的最后 200 行程序输出。</param>
     public void Collect(string VersionPathIndie, IList<string> LatestLog = null)
@@ -139,7 +139,7 @@ public class CrashAnalyzer
 
         if (LatestLog is not null && LatestLog.Any())
         {
-            var RawOutput = LatestLog.Join("\r\n");
+            var RawOutput = string.Join("\r\n", LatestLog);
             ModBase.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + RawOutput);
             ModBase.WriteFile(TempFolder + "RawOutput.log", RawOutput);
             AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(TempFolder + "RawOutput.log", LatestLog.ToArray()));
@@ -150,7 +150,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     从文件路径直接导入日志文件或崩溃报告压缩包。
+    /// 从文件路径直接导入日志文件或崩溃报告压缩包。
     /// </summary>
     public void Import(string FilePath)
     {
@@ -172,9 +172,9 @@ public class CrashAnalyzer
         }
 
         // 并非压缩包
-        ModBase.CopyFile(FilePath, TempFolder + @"Temp\" + ModBase.GetFileNameFromPath(FilePath));
+        ModBase.CopyFile(FilePath, TempFolder + @"Temp\" + PathUtils.GetFileNameFromPath(FilePath));
         ModBase.Log("[Crash] 已复制导入的日志文件：" + FilePath);
-        Extracted: ;
+    Extracted:;
 
 
         // 导入其中的日志文件
@@ -199,8 +199,8 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     从 AnalyzeRawFiles 中提取实际有用的文本片段存储到 AnalyzeFiles，并整理可用于生成报告的文件。
-    ///     返回是否有足够信息可用于分析。
+    /// 从 AnalyzeRawFiles 中提取实际有用的文本片段存储到 AnalyzeFiles，并整理可用于生成报告的文件。
+    /// 返回是否有足够信息可用于分析。
     /// </summary>
     public bool Prepare()
     {
@@ -212,7 +212,7 @@ public class CrashAnalyzer
         var AllFiles = new List<KeyValuePair<AnalyzeFileType, KeyValuePair<string, string[]>>>();
         foreach (var LogFile in AnalyzeRawFiles)
         {
-            var MatchName = ModBase.GetFileNameFromPath(LogFile.Key).ToLower();
+            var MatchName = PathUtils.GetFileNameFromPath(LogFile.Key).ToLower();
             AnalyzeFileType TargetType;
             if (MatchName.StartsWithF("hs_err"))
             {
@@ -262,7 +262,7 @@ public class CrashAnalyzer
             if (LogFile.Value.Any())
             {
                 AllFiles.Add(new KeyValuePair<AnalyzeFileType, KeyValuePair<string, string[]>>(TargetType, LogFile));
-                ModBase.Log("[Crash] " + MatchName + " 分类为 " + ModBase.GetStringFromEnum(TargetType));
+                ModBase.Log("[Crash] " + MatchName + " 分类为 " + EnumUtils.GetEnumName(TargetType));
             }
             else
             {
@@ -300,140 +300,140 @@ public class CrashAnalyzer
                 {
                     case AnalyzeFileType.HsErr:
                     case AnalyzeFileType.CrashReport:
-                    {
-                        // 获取文件的修改日期
-                        var DatedFiles = new SortedList<DateTime, KeyValuePair<string, string[]>>();
-                        foreach (var File in SelectedFiles)
-                            try
-                            {
-                                DatedFiles.Add(new FileInfo(File.Key).LastWriteTime, File);
-                            }
-                            catch (Exception ex)
-                            {
-                                ModBase.Log(ex, "获取日志文件修改时间失败");
-                                DatedFiles.Add(new DateTime(1900, 1, 1), File);
-                            }
-
-                        // 输出最新的文件
-                        var NewestFile = DatedFiles.Last().Value;
-                        OutputFiles.Add(NewestFile.Key);
-                        if (SelectType == AnalyzeFileType.HsErr)
                         {
-                            LogHs = GetHeadTailLines(NewestFile.Value, 200, 100);
-                            ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为虚拟机错误信息");
-                            ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为虚拟机错误信息");
-                        }
-                        else
-                        {
-                            LogCrash = GetHeadTailLines(NewestFile.Value, 300, 700);
-                            ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
-                            ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
-                        }
-
-                        break;
-                    }
-                    case AnalyzeFileType.MinecraftLog:
-                    {
-                        LogMc = "";
-                        LogMcDebug = "";
-                        // 创建文件名词典
-                        var FileNameDict = new Dictionary<string, KeyValuePair<string, string[]>>();
-                        foreach (var SelectedFile in SelectedFiles)
-                        {
-                            FileNameDict[ModBase.GetFileNameFromPath(SelectedFile.Key).ToLower()] = SelectedFile;
-                            OutputFiles.Add(SelectedFile.Key);
-                            ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，作为 Minecraft 或启动器日志");
-                        }
-
-                        // 选择一份最佳的来自启动器的游戏日志
-                        foreach (var FileName in new[]
-                                 {
-                                     "rawoutput.log", "启动器日志.txt", "log1.txt", "log-ce1.log", "游戏崩溃前的输出.txt",
-                                     "PCL2 启动器日志.txt", "PCL 启动器日志.txt"
-                                 })
-                        {
-                            if (!FileNameDict.ContainsKey(FileName))
-                                continue;
-                            var CurrentLog = FileNameDict[FileName];
-                            // 截取 “以下为游戏输出的最后一段内容” 后的内容
-                            var HasLauncherMark = false;
-                            foreach (var Line in CurrentLog.Value)
-                                if (HasLauncherMark)
+                            // 获取文件的修改日期
+                            var DatedFiles = new SortedList<DateTime, KeyValuePair<string, string[]>>();
+                            foreach (var File in SelectedFiles)
+                                try
                                 {
-                                    LogMc += Line + "\n";
+                                    DatedFiles.Add(new FileInfo(File.Key).LastWriteTime, File);
                                 }
-                                else if (Line.Contains("以下为游戏输出的最后一段内容"))
+                                catch (Exception ex)
                                 {
-                                    HasLauncherMark = true;
-                                    ModBase.Log("[Crash] 找到 PCL 输出的游戏实时日志头");
+                                    ModBase.Log(ex, "获取日志文件修改时间失败");
+                                    DatedFiles.Add(new DateTime(1900, 1, 1), File);
                                 }
 
-                            // 导入后 500 行
-                            if (!HasLauncherMark)
-                                LogMc += GetHeadTailLines(CurrentLog.Value, 0, 500);
-                            LogMc = LogMc.TrimEnd("\r\n".ToCharArray());
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为启动器日志");
-                            break;
-                        }
-
-                        // 选择一份最佳的 Minecraft Log
-                        foreach (var FileName in new[] { "latest.log", "latest log.txt", "debug.log", "debug log.txt" })
-                        {
-                            if (!FileNameDict.ContainsKey(FileName))
-                                continue;
-                            var CurrentLog = FileNameDict[FileName];
-                            LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft 日志");
-                            break;
-                        }
-
-                        // 查找 Debug Log
-                        foreach (var FileName in new[] { "debug.log", "debug log.txt" })
-                        {
-                            if (!FileNameDict.ContainsKey(FileName))
-                                continue;
-                            var CurrentLog = FileNameDict[FileName];
-                            LogMcDebug += GetHeadTailLines(CurrentLog.Value, 1000, 0);
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft Debug 日志");
-                            break;
-                        }
-
-                        // 兜底
-                        if (string.IsNullOrEmpty(LogMc))
-                        {
-                            if (!string.IsNullOrEmpty(LogMcDebug)) // 如果没有找到 Minecraft 日志，则使用 Debug 日志作为兜底
+                            // 输出最新的文件
+                            var NewestFile = DatedFiles.Last().Value;
+                            OutputFiles.Add(NewestFile.Key);
+                            if (SelectType == AnalyzeFileType.HsErr)
                             {
-                                LogMc = LogMcDebug;
-                            }
-                            else if (FileNameDict.Any()) // 如果都没有找到，则使用第一个文件
-                            {
-                                var CurrentLog = FileNameDict.First().Value;
-                                LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
-                                ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为兜底日志");
+                                LogHs = GetHeadTailLines(NewestFile.Value, 200, 100);
+                                ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为虚拟机错误信息");
+                                ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为虚拟机错误信息");
                             }
                             else
                             {
-                                LogMc = null;
-                                throw new Exception("无法找到匹配的 Minecraft Log");
+                                LogCrash = GetHeadTailLines(NewestFile.Value, 300, 700);
+                                ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
+                                ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
                             }
-                        }
 
-                        if (string.IsNullOrEmpty(LogMcDebug))
-                            LogMcDebug = null;
-                        break;
-                    }
+                            break;
+                        }
+                    case AnalyzeFileType.MinecraftLog:
+                        {
+                            LogMc = "";
+                            LogMcDebug = "";
+                            // 创建文件名词典
+                            var FileNameDict = new Dictionary<string, KeyValuePair<string, string[]>>();
+                            foreach (var SelectedFile in SelectedFiles)
+                            {
+                                FileNameDict[PathUtils.GetFileNameFromPath(SelectedFile.Key).ToLower()] = SelectedFile;
+                                OutputFiles.Add(SelectedFile.Key);
+                                ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，作为 Minecraft 或启动器日志");
+                            }
+
+                            // 选择一份最佳的来自启动器的游戏日志
+                            foreach (var FileName in new[]
+                                     {
+                                     "rawoutput.log", "启动器日志.txt", "log1.txt", "log-ce1.log", "游戏崩溃前的输出.txt",
+                                     "PCL2 启动器日志.txt", "PCL 启动器日志.txt"
+                                 })
+                            {
+                                if (!FileNameDict.ContainsKey(FileName))
+                                    continue;
+                                var CurrentLog = FileNameDict[FileName];
+                                // 截取 “以下为游戏输出的最后一段内容” 后的内容
+                                var HasLauncherMark = false;
+                                foreach (var Line in CurrentLog.Value)
+                                    if (HasLauncherMark)
+                                    {
+                                        LogMc += Line + "\n";
+                                    }
+                                    else if (Line.Contains("以下为游戏输出的最后一段内容"))
+                                    {
+                                        HasLauncherMark = true;
+                                        ModBase.Log("[Crash] 找到 PCL 输出的游戏实时日志头");
+                                    }
+
+                                // 导入后 500 行
+                                if (!HasLauncherMark)
+                                    LogMc += GetHeadTailLines(CurrentLog.Value, 0, 500);
+                                LogMc = LogMc.TrimEnd("\r\n".ToCharArray());
+                                ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为启动器日志");
+                                break;
+                            }
+
+                            // 选择一份最佳的 Minecraft Log
+                            foreach (var FileName in new[] { "latest.log", "latest log.txt", "debug.log", "debug log.txt" })
+                            {
+                                if (!FileNameDict.ContainsKey(FileName))
+                                    continue;
+                                var CurrentLog = FileNameDict[FileName];
+                                LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
+                                ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft 日志");
+                                break;
+                            }
+
+                            // 查找 Debug Log
+                            foreach (var FileName in new[] { "debug.log", "debug log.txt" })
+                            {
+                                if (!FileNameDict.ContainsKey(FileName))
+                                    continue;
+                                var CurrentLog = FileNameDict[FileName];
+                                LogMcDebug += GetHeadTailLines(CurrentLog.Value, 1000, 0);
+                                ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft Debug 日志");
+                                break;
+                            }
+
+                            // 兜底
+                            if (string.IsNullOrEmpty(LogMc))
+                            {
+                                if (!string.IsNullOrEmpty(LogMcDebug)) // 如果没有找到 Minecraft 日志，则使用 Debug 日志作为兜底
+                                {
+                                    LogMc = LogMcDebug;
+                                }
+                                else if (FileNameDict.Any()) // 如果都没有找到，则使用第一个文件
+                                {
+                                    var CurrentLog = FileNameDict.First().Value;
+                                    LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
+                                    ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为兜底日志");
+                                }
+                                else
+                                {
+                                    LogMc = null;
+                                    throw new Exception("无法找到匹配的 Minecraft Log");
+                                }
+                            }
+
+                            if (string.IsNullOrEmpty(LogMcDebug))
+                                LogMcDebug = null;
+                            break;
+                        }
                     case AnalyzeFileType.ExtraLogFile:
                     case AnalyzeFileType.ExtraReportFile:
-                    {
-                        // 全部丢过去
-                        foreach (var SelectedFile in SelectedFiles)
                         {
-                            OutputFiles.Add(SelectedFile.Key);
-                            ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，不用作分析");
-                        }
+                            // 全部丢过去
+                            foreach (var SelectedFile in SelectedFiles)
+                            {
+                                OutputFiles.Add(SelectedFile.Key);
+                                ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，不用作分析");
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -455,12 +455,12 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     输出字符串的前后某些行，并统一行尾为 vbLf (正则 \n)、删除空行和重复行。
+    /// 输出字符串的前后某些行，并统一行尾为 vbLf (正则 \n)、删除空行和重复行。
     /// </summary>
     private string GetHeadTailLines(string[] Raw, int HeadLines, int TailLines)
     {
         if (Raw.Length <= HeadLines + TailLines)
-            return Raw.Distinct().Join("\n");
+            return string.Join('\n', Raw.Distinct());
         var Lines = new List<string>();
         var RealHeadLines = 0;
         int ViewedLines;
@@ -499,7 +499,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
+    /// 根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
     /// </summary>
     public void Analyze(ModMinecraft.McInstance version = null)
     {
@@ -539,7 +539,7 @@ public class CrashAnalyzer
             // Minecraft 日志
             if (LogMc is not null)
             {
-                var Fatals = LogMc.RegexSearch(@"/FATAL] .+?(?=[\n]+\[)");
+                var Fatals = LogMc.RegexSearch(new Regex(@"/FATAL] .+?(?=[\n]+\[)"));
                 if (LogMc.Contains("Unreported exception thrown!"))
                     Fatals.Add(LogMc.Between("Unreported exception thrown!", "at oolloo.jlw.Wrapper"));
                 ModBase.Log("[Crash] 开始进行 Minecraft 日志堆栈分析，发现 " + Fatals.Count + " 个报错项");
@@ -575,7 +575,7 @@ public class CrashAnalyzer
         AnalyzeCrit3();
 
         // 输出到日志
-        Done: ;
+    Done:;
 
         if (!CrashReasons.Any())
         {
@@ -585,13 +585,13 @@ public class CrashAnalyzer
         {
             ModBase.Log("[Crash] 步骤 3：分析崩溃原因完成，找到 " + CrashReasons.Count + " 条可能的原因");
             foreach (var Reason in CrashReasons)
-                ModBase.Log("[Crash]  - " + ModBase.GetStringFromEnum(Reason.Key) +
-                            (Reason.Value.Any() ? "（" + Reason.Value.Join("；") + "）" : ""));
+                ModBase.Log("[Crash]  - " + EnumUtils.GetEnumName(Reason.Key) +
+                            (Reason.Value.Any() ? "（" + string.Join("；", Reason.Value) + "）" : ""));
         }
     }
 
     /// <summary>
-    ///     增加一个可能的崩溃原因。
+    /// 增加一个可能的崩溃原因。
     /// </summary>
     private void AppendReason(CrashReason Reason, ICollection<string> Additional = null)
     {
@@ -608,8 +608,8 @@ public class CrashAnalyzer
             CrashReasons.Add(Reason, new List<string>(Additional ?? Array.Empty<string>()));
         }
 
-        ModBase.Log("[Crash] 可能的崩溃原因：" + ModBase.GetStringFromEnum(Reason) +
-                    (Additional is not null && Additional.Any() ? "（" + Additional.Join("；") + "）" : ""));
+        ModBase.Log("[Crash] 可能的崩溃原因：" + EnumUtils.GetEnumName(Reason) +
+                    (Additional is not null && Additional.Any() ? "（" + string.Join("；", Additional) + "）" : ""));
     }
 
     private void AppendReason(CrashReason Reason, string Additional)
@@ -619,7 +619,7 @@ public class CrashAnalyzer
 
     // 具体的分析代码
     /// <summary>
-    ///     进行精准日志匹配。匹配优先级高于堆栈分析的崩溃。
+    /// 进行精准日志匹配。匹配优先级高于堆栈分析的崩溃。
     /// </summary>
     private void AnalyzeCrit1()
     {
@@ -743,25 +743,25 @@ public class CrashAnalyzer
             // Mod 重复 / 前置问题
             if (LogMc.Contains("DuplicateModsFoundException"))
                 AppendReason(CrashReason.Mod重复安装,
-                    LogMc.RegexSearch(@"(?<=\n\t[\w]+ : [A-Z]:[^\n]+(/|\\))[^/\\\n]+?.jar", RegexOptions.IgnoreCase));
+                    LogMc.RegexSearch(new Regex(@"(?<=\n\t[\w]+ : [A-Z]:[^\n]+(/|\\))[^/\\\n]+?.jar", RegexOptions.IgnoreCase)));
             if (LogMc.Contains("Found a duplicate mod"))
                 AppendReason(CrashReason.Mod重复安装,
-                    (LogMc.RegexSeek(@"Found a duplicate mod[^\n]+") ?? "").RegexSearch(@"[^\\/]+.jar",
-                        RegexOptions.IgnoreCase));
+                    (LogMc.RegexSeek(@"Found a duplicate mod[^\n]+") ?? "").RegexSearch(new Regex(@"[^\\/]+.jar",
+                        RegexOptions.IgnoreCase)));
             if (LogMc.Contains("Found duplicate mods"))
                 AppendReason(CrashReason.Mod重复安装,
-                    LogMc.RegexSearch(@"(?<=Mod ID: ')\w+?(?=' from mod files:)").Distinct().ToList());
+                    LogMc.RegexSearch(new Regex(@"(?<=Mod ID: ')\w+?(?=' from mod files:)", RegexOptions.IgnoreCase)).Distinct().ToList());
             if (LogMc.Contains("ModResolutionException: Duplicate"))
                 AppendReason(CrashReason.Mod重复安装,
-                    (LogMc.RegexSeek(@"ModResolutionException: Duplicate[^\n]+") ?? "").RegexSearch(@"[^\\/]+.jar",
-                        RegexOptions.IgnoreCase));
+                    (LogMc.RegexSeek(@"ModResolutionException: Duplicate[^\n]+") ?? "").RegexSearch(new Regex(@"[^\\/]+.jar",
+                        RegexOptions.IgnoreCase)));
             if (LogMc.Contains("Incompatible mods found!")) // #5006
                 AppendReason(CrashReason.Mod互不兼容,
                     LogMc.RegexSeek(@"(?<=Incompatible mods found![\s\S]+: )[\s\S]+?(?=\tat )") ?? "");
             if (LogMc.Contains("Missing or unsupported mandatory dependencies:"))
                 AppendReason(CrashReason.Mod缺少前置或MC版本错误,
-                    LogMc.RegexSearch(@"(?<=Missing or unsupported mandatory dependencies:)([\n\r]+\t(.*))+",
-                            RegexOptions.IgnoreCase)
+                    LogMc.RegexSearch(new Regex(@"(?<=Missing or unsupported mandatory dependencies:)([\n\r]+\t(.*))+",
+                            RegexOptions.IgnoreCase))
                         .Select(s => s.Trim(("\r\n" + Constants.vbTab + " ").ToCharArray())).Distinct()
                         .ToList());
         }
@@ -834,8 +834,8 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     进行精准日志匹配。匹配优先级高于堆栈分析的崩溃，但低于上面的。
-    ///     如果第一步已经找到了原因则不执行该检测。
+    /// 进行精准日志匹配。匹配优先级高于堆栈分析的崩溃，但低于上面的。
+    /// 如果第一步已经找到了原因则不执行该检测。
     /// </summary>
     private void AnalyzeCrit2()
     {
@@ -846,11 +846,17 @@ public class CrashAnalyzer
                           LogText.Contains("MixinApplyError") || LogText.Contains("MixinTransformerError") ||
                           LogText.Contains("mixin.injection.throwables.") || LogText.Contains(".json] FAILED during )");
             if (!IsMixin)
+            {
                 return false;
+            }
+
             // Mod 名称匹配
-            var ModName = LogText.RegexSeek(@"(?<=from mod )[^.\/ ]+(?=\] from)");
+            var ModName = LogText.RegexSeek(new Regex(@"(?<=from mod )[^.\/ ]+(?=\] from)"));
             if (ModName is null)
-                ModName = LogText.RegexSeek(@"(?<=for mod )[^.\/ ]+(?= failed)");
+            {
+                ModName = LogText.RegexSeek(new Regex(@"(?<=for mod )[^.\/ ]+(?= failed)"));
+            }
+
             if (ModName is not null)
             {
                 AppendReason(CrashReason.ModMixin失败,
@@ -859,8 +865,8 @@ public class CrashAnalyzer
             }
 
             // JSON 名称匹配
-            foreach (var JsonName in LogText.RegexSearch(@"(?<=^[^\t]+[ \[{(]{1})[^ \[{(]+\.[^ ]+(?=\.json)",
-                         RegexOptions.Multiline))
+            foreach (var JsonName in LogText.RegexSearch(new Regex(@"(?<=^[^\t]+[ \[{(]{1})[^ \[{(]+\.[^ ]+(?=\.json)",
+                         RegexOptions.Multiline)))
             {
                 AppendReason(CrashReason.ModMixin失败,
                     TryAnalyzeModName(JsonName.Replace("mixins", "mixin").Replace(".mixin", "").Replace("mixin.", "")));
@@ -881,28 +887,44 @@ public class CrashAnalyzer
             var IsMixin = MixinAnalyze(LogMc);
             // 常规信息
             if (LogMc.Contains("An exception was thrown, the game will display an error screen and halt."))
+            {
                 AppendReason(CrashReason.Forge报错,
                     (LogMc.RegexSeek(@"(?<=the game will display an error screen and halt.[\n\r]+[^\n]+?Exception: )[\s\S]+?(?=\n\tat)")?.Trim('\r', '\n')) ?? "");
+            }
+
             if (LogMc.Contains("A potential solution has been determined:"))
-                AppendReason(CrashReason.Fabric报错并给出解决方案,
-                    (LogMc.RegexSeek(@"(?<=A potential solution has been determined:\n)(\s+ - [^\n]+\n)+") ?? "")
-                    .RegexSearch(@"(?<=\s+)[^\n]+").Join("\n"));
+
+            {
+                var res = (LogMc.RegexSeek(@"(?<=A potential solution has been determined:\n)(\s+ - [^\n]+\n)+") ?? "")
+                    .RegexSearch(new Regex(@"(?<=\s+)[^\n]+"));
+                AppendReason(CrashReason.Fabric报错并给出解决方案, string.Join('\n', res));
+            }
+
+            ;
             if (LogMc.Contains("A potential solution has been determined, this may resolve your problem:"))
-                AppendReason(CrashReason.Fabric报错并给出解决方案,
-                    (LogMc.RegexSeek(
-                         @"(?<=A potential solution has been determined, this may resolve your problem:\n)(\s+ - [^\n]+\n)+") ??
-                     "").RegexSearch(@"(?<=\s+)[^\n]+").Join("\n"));
+            {
+                var res = (LogMc.RegexSeek(
+                               @"(?<=A potential solution has been determined, this may resolve your problem:\n)(\s+ - [^\n]+\n)+") ??
+                           "").RegexSearch(new Regex(@"(?<=\s+)[^\n]+"));
+                AppendReason(CrashReason.Fabric报错并给出解决方案, string.Join('\n', res));
+            }
+
             if (LogMc.Contains("确定了一种可能的解决方法，这样做可能会解决你的问题："))
-                AppendReason(CrashReason.Fabric报错并给出解决方案,
-                    (LogMc.RegexSeek(@"(?<=确定了一种可能的解决方法，这样做可能会解决你的问题：\n)(\s+ - [^\n]+\n)+") ?? "")
-                    .RegexSearch(@"(?<=\s+)[^\n]+").Join("\n"));
+            {
+                var res = (LogMc.RegexSeek(@"(?<=确定了一种可能的解决方法，这样做可能会解决你的问题：\n)(\s+ - [^\n]+\n)+") ?? "")
+                    .RegexSearch(new Regex(@"(?<=\s+)[^\n]+"));
+                AppendReason(CrashReason.Fabric报错并给出解决方案, string.Join('\n', res));
+            }
+
             if (!IsMixin &&
                 LogMc.Contains(
                     "due to errors, provided by ")) // 在 #3104 的情况下，这一句导致 OptiFabric 的 Mixin 失败错判为 Fabric Loader 加载失败
+            {
                 AppendReason(CrashReason.确定Mod导致游戏崩溃,
                     TryAnalyzeModName(
                         (LogMc.RegexSeek("(?<=due to errors, provided by ')[^']+") ?? "").TrimEnd(
                             ("\r\n" + " ").ToCharArray())));
+            }
         }
 
         // 崩溃报告分析
@@ -916,16 +938,18 @@ public class CrashAnalyzer
                 var SuspectsRaw = LogCrash.Between("Suspected Mod", "Stacktrace");
                 if (!SuspectsRaw.StartsWithF("s: None")) // Suspected Mods: None
                 {
-                    var Suspects = SuspectsRaw.RegexSearch(@"(?<=\n\t[^(\t]+\()[^)\n]+");
+                    var Suspects = SuspectsRaw.RegexSearch(new Regex(@"(?<=\n\t[^(\t]+\()[^)\n]+"));
                     if (Suspects.Any())
+                    {
                         AppendReason(CrashReason.怀疑Mod导致游戏崩溃, TryAnalyzeModName(Suspects));
+                    }
                 }
             }
         }
     }
 
     /// <summary>
-    ///     进行精准日志匹配。匹配优先级低于堆栈分析的崩溃。
+    /// 进行精准日志匹配。匹配优先级低于堆栈分析的崩溃。
     /// </summary>
     private void AnalyzeCrit3()
     {
@@ -964,7 +988,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     从堆栈中提取 Mod ID 关键字。若失败则返回空列表。
+    /// 从堆栈中提取 Mod ID 关键字。若失败则返回空列表。
     /// </summary>
     private List<string> AnalyzeStackKeyword(string ErrorStack)
     {
@@ -973,8 +997,8 @@ public class CrashAnalyzer
         // 进行正则匹配
         var StackSearchResults = new List<string>();
         StackSearchResults.AddRange(
-            ErrorStack.RegexSearch(@"(?<=\n[^{]+)[a-zA-Z_]+\w+\.[a-zA-Z_]+[\w\.]+(?=\.[\w\.$]+\.)"));
-        StackSearchResults.AddRange(ErrorStack.RegexSearch(@"(?<=at [^(]+?\.\w+\$\w+\$)[\w\$]+?(?=\$\w+\()")
+            ErrorStack.RegexSearch(new(@"(?<=\n[^{]+)[a-zA-Z_]+\w+\.[a-zA-Z_]+[\w\.]+(?=\.[\w\.$]+\.)")));
+        StackSearchResults.AddRange(ErrorStack.RegexSearch(new(@"(?<=at [^(]+?\.\w+\$\w+\$)[\w\$]+?(?=\$\w+\()"))
             .Select(s => s.Replace("$", "."))); // Mixin 堆栈：xxx.xxx.xxxx$xxxx$xxx
         StackSearchResults = StackSearchResults.Distinct().ToList();
 
@@ -993,7 +1017,7 @@ public class CrashAnalyzer
                 if (Stack.StartsWithF(IgnoreStack))
                     goto NextStack;
             PossibleStacks.Add(Stack.Trim());
-            NextStack: ;
+        NextStack:;
         }
 
         PossibleStacks = PossibleStacks.Distinct().ToList();
@@ -1036,7 +1060,7 @@ public class CrashAnalyzer
         PossibleWords = PossibleWords.Distinct().ToList();
         ModBase.Log("[Crash] 从堆栈信息中找到 " + PossibleWords.Count + " 个可能的 Mod ID 关键词");
         if (PossibleWords.Any())
-            ModBase.Log("[Crash]  - " + PossibleWords.Join(", "));
+            ModBase.Log("[Crash]  - " + string.Join(", ", PossibleWords));
         if (PossibleWords.Count > 10)
         {
             ModBase.Log("[Crash] 关键词过多，考虑匹配出错，不纳入考虑");
@@ -1047,8 +1071,8 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     根据 Mod 关键词尝试获取实际的 Mod 名称。
-    ///     若失败则返回 Nothing。
+    /// 根据 Mod 关键词尝试获取实际的 Mod 名称。
+    /// 若失败则返回 Nothing。
     /// </summary>
     private List<string> AnalyzeModName(List<string> Keywords)
     {
@@ -1057,8 +1081,8 @@ public class CrashAnalyzer
         // 预处理关键词（分割括号）
         var RealKeywords = new List<string>();
         foreach (var Keyword in Keywords)
-        foreach (var SubKeyword in Keyword.Split("("))
-            RealKeywords.Add(SubKeyword.Trim(" )".ToCharArray()));
+            foreach (var SubKeyword in Keyword.Split("("))
+                RealKeywords.Add(SubKeyword.Trim(" )".ToCharArray()));
         Keywords = RealKeywords;
 
         // 从崩溃报告获取 Mod 信息
@@ -1094,17 +1118,17 @@ public class CrashAnalyzer
             // 获取 Mod ID 与关键词的匹配行
             var HintLines = new List<string>();
             foreach (var KeyWord in Keywords)
-            foreach (var ModString in ModNameLines)
-            {
-                var RealModString = ModString.ToLower().Replace("_", "");
-                if (!RealModString.Contains(KeyWord.ToLower().Replace("_", "")))
-                    continue;
-                if (RealModString.Contains("minecraft.jar") || RealModString.Contains(" forge-") ||
-                    RealModString.Contains(" mixin-"))
-                    continue;
-                HintLines.Add(ModString.Trim("\r\n".ToCharArray()));
-                break;
-            }
+                foreach (var ModString in ModNameLines)
+                {
+                    var RealModString = ModString.ToLower().Replace("_", "");
+                    if (!RealModString.Contains(KeyWord.ToLower().Replace("_", "")))
+                        continue;
+                    if (RealModString.Contains("minecraft.jar") || RealModString.Contains(" forge-") ||
+                        RealModString.Contains(" mixin-"))
+                        continue;
+                    HintLines.Add(ModString.Trim("\r\n".ToCharArray()));
+                    break;
+                }
 
             HintLines = HintLines.Distinct().ToList();
             ModBase.Log("[Crash] 崩溃报告中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
@@ -1129,15 +1153,15 @@ public class CrashAnalyzer
         if (LogMcDebug is not null)
         {
             // Forge: Found valid mod file YungsBetterStrongholds-1.20-Forge-4.0.1.jar with {betterstrongholds} mods - versions {1.20-Forge-4.0.1}
-            var ModNameLines = LogMcDebug.RegexSearch("(?<=valid mod file ).*", RegexOptions.Multiline);
+            var ModNameLines = LogMcDebug.RegexSearch(new("(?<=valid mod file ).*", RegexOptions.Multiline));
             ModBase.Log("[Crash] Debug 信息中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
 
             // 获取 Mod ID 与关键词的匹配行
             var HintLines = new List<string>();
             foreach (var KeyWord in Keywords)
-            foreach (var ModString in ModNameLines)
-                if (ModString.Contains($"{{{KeyWord}}}"))
-                    HintLines.Add(ModString);
+                foreach (var ModString in ModNameLines)
+                    if (ModString.Contains($"{{{KeyWord}}}"))
+                        HintLines.Add(ModString);
 
             HintLines = HintLines.Distinct().ToList();
             ModBase.Log("[Crash] Debug 信息中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
@@ -1165,7 +1189,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     尝试从关键字获取 Mod 名称，若失败则返回原关键字。
+    /// 尝试从关键字获取 Mod 名称，若失败则返回原关键字。
     /// </summary>
     private List<string> TryAnalyzeModName(string Keyword)
     {
@@ -1176,7 +1200,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     尝试从关键字获取 Mod 名称，若失败则返回原关键字。
+    /// 尝试从关键字获取 Mod 名称，若失败则返回原关键字。
     /// </summary>
     private List<string> TryAnalyzeModName(List<string> Keywords)
     {
@@ -1186,7 +1210,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     弹出崩溃弹窗，并指导导出崩溃报告。
+    /// 弹出崩溃弹窗，并指导导出崩溃报告。
     /// </summary>
     public void Output(bool IsHandAnalyze, List<string> ExtraFiles = null)
     {
@@ -1210,128 +1234,128 @@ public class CrashAnalyzer
                             else
                             {
                                 var FilePath = ModBase.PathTemp + "Crash.txt";
-                                ModBase.WriteFile(FilePath, DirectFile.Value.Value.Join("\r\n"));
+                                ModBase.WriteFile(FilePath, string.Join("\r\n", DirectFile.Value.Value));
                                 ModBase.ShellOnly(FilePath);
                             }
                         })))
         {
             case 2:
-            {
-                // 弹窗选择：前往修改
-                PageInstanceLeft.Instance = _version;
-                ModBase.RunInUi(() =>
-                    ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall));
-                break;
-            }
+                {
+                    // 弹窗选择：前往修改
+                    PageInstanceLeft.Instance = _version;
+                    ModBase.RunInUi(() =>
+                        ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall));
+                    break;
+                }
             case 3:
-            {
-                // 弹窗选择：导出错误报告
-                string FileAddress = null;
-                try
                 {
-                    // 获取文件路径
-                    ModBase.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
-                        "错误报告-" + DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
-                        ".zip", "Minecraft 错误报告(*.zip)|*.zip"));
-                    if (string.IsNullOrEmpty(FileAddress))
-                        return;
-                    Directory.CreateDirectory(ModBase.GetPathFromFullPath(FileAddress));
-                    if (File.Exists(FileAddress))
-                        File.Delete(FileAddress);
-                    // 输出诊断信息
-                    ModBase.FeedbackInfo();
-                    // 复制文件
-                    if (ExtraFiles is not null)
-                        OutputFiles.AddRange(ExtraFiles);
-                    foreach (var OutputFile in OutputFiles)
+                    // 弹窗选择：导出错误报告
+                    string FileAddress = null;
+                    try
                     {
-                        var FileName = ModBase.GetFileNameFromPath(OutputFile);
-                        Encoding FileEncoding = null;
-                        switch (FileName ?? "")
+                        // 获取文件路径
+                        ModBase.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
+                            "错误报告-" + DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
+                            ".zip", "Minecraft 错误报告(*.zip)|*.zip"));
+                        if (string.IsNullOrEmpty(FileAddress))
+                            return;
+                        Directory.CreateDirectory(PathUtils.GetPathFromFullPath(FileAddress));
+                        if (File.Exists(FileAddress))
+                            File.Delete(FileAddress);
+                        // 输出诊断信息
+                        ModBase.FeedbackInfo();
+                        // 复制文件
+                        if (ExtraFiles is not null)
+                            OutputFiles.AddRange(ExtraFiles);
+                        foreach (var OutputFile in OutputFiles)
                         {
-                            case "LatestLaunch.bat":
+                            var FileName = PathUtils.GetFileNameFromPath(OutputFile);
+                            Encoding FileEncoding = null;
+                            switch (FileName ?? "")
                             {
-                                FileName = "启动脚本.bat";
-                                break;
+                                case "LatestLaunch.bat":
+                                    {
+                                        FileName = "启动脚本.bat";
+                                        break;
+                                    }
+                                case "RawOutput.log":
+                                    {
+                                        FileName = "游戏崩溃前的输出.txt";
+                                        FileEncoding = Encoding.UTF8;
+                                        break;
+                                    }
                             }
-                            case "RawOutput.log":
+
+                            if (LogWrapper.CurrentLogger.CurrentLogFiles.Last().AfterLast(@"\") == FileName)
                             {
-                                FileName = "游戏崩溃前的输出.txt";
+                                FileName = "PCL 启动器日志.txt";
                                 FileEncoding = Encoding.UTF8;
-                                break;
+                            }
+
+                            if (File.Exists(OutputFile))
+                            {
+                                if (FileEncoding is null)
+                                    FileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
+                                var FileContent = ModBase.ReadFile(OutputFile, FileEncoding);
+                                FileContent = ModMinecraft.FilterAccessToken(FileContent,
+                                    FileName == "启动脚本.bat" ? 'F' : '*');
+                                FileContent = ModMinecraft.FilterUserName(FileContent, '*');
+                                ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
+                                ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
                             }
                         }
 
-                        if (LogWrapper.CurrentLogger.CurrentLogFiles.Last().AfterLast(@"\") == FileName)
-                        {
-                            FileName = "PCL 启动器日志.txt";
-                            FileEncoding = Encoding.UTF8;
-                        }
-
-                        if (File.Exists(OutputFile))
-                        {
-                            if (FileEncoding is null)
-                                FileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
-                            var FileContent = ModBase.ReadFile(OutputFile, FileEncoding);
-                            FileContent = ModMinecraft.FilterAccessToken(FileContent,
-                                FileName == "启动脚本.bat" ? 'F' : '*');
-                            FileContent = ModMinecraft.FilterUserName(FileContent, '*');
-                            ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
-                            ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
-                        }
-                    }
-
-                    // 输出环境与启动信息
-                    string EnvInfo = null;
-                    string McLauncherLog = null;
-                    McLauncherLog = ModBase.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
-                        .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
-                    var LaunchScript = ModBase.ReadFile(TempFolder + @"Report\启动脚本.bat");
-                    EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                    EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 实例信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo +=
-                        $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}{"\r\n"}";
-                    EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"操作系统：{ModSecret.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
-                    EnvInfo += $"CPU：{ModSecret.CPUName}{"\r\n"}";
-                    EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(ModSecret.SystemMemorySize / 1024d, 2)} GB ({ModSecret.SystemMemorySize} MB){"\r\n"}";
-                    foreach (var GPU in ModSecret.GPUs)
-                    {
+                        // 输出环境与启动信息
+                        string EnvInfo = null;
+                        string McLauncherLog = null;
+                        McLauncherLog = ModBase.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
+                            .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
+                        var LaunchScript = ModBase.ReadFile(TempFolder + @"Report\启动脚本.bat");
+                        EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
+                        EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
+                        EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
                         EnvInfo +=
-                            $"显卡 {ModSecret.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
-                        EnvInfo += "\r\n";
+                            $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
+                        EnvInfo += $"{"\r\n"}- 实例信息 -{"\r\n"}";
+                        EnvInfo +=
+                            $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}{"\r\n"}";
+                        EnvInfo +=
+                            $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}{"\r\n"}";
+                        EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
+                        EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
+                        EnvInfo +=
+                            $"操作系统：{ModSecret.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
+                        EnvInfo += $"CPU：{ModSecret.CPUName}{"\r\n"}";
+                        EnvInfo +=
+                            $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(ModSecret.SystemMemorySize / 1024d, 2)} GB ({ModSecret.SystemMemorySize} MB){"\r\n"}";
+                        foreach (var GPU in ModSecret.GPUs)
+                        {
+                            EnvInfo +=
+                                $"显卡 {ModSecret.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
+                            EnvInfo += "\r\n";
+                        }
+
+                        File.CreateText(TempFolder + @"Report\环境与启动信息.txt").Close();
+                        ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
+                        // 导出报告
+                        ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
+                        ModBase.DeleteDirectory(TempFolder + @"Report\");
+                        ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModBase.Log(ex, "导出错误报告失败", ModBase.LogLevel.Feedback);
+                        return;
                     }
 
-                    File.CreateText(TempFolder + @"Report\环境与启动信息.txt").Close();
-                    ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
-                    // 导出报告
-                    ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
-                    ModBase.DeleteDirectory(TempFolder + @"Report\");
-                    ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
+                    ModBase.OpenExplorer(FileAddress);
+                    break;
                 }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "导出错误报告失败", ModBase.LogLevel.Feedback);
-                    return;
-                }
-
-                ModBase.OpenExplorer(FileAddress);
-                break;
-            }
         }
     }
 
     /// <summary>
-    ///     获取崩溃分析的结果描述。
+    /// 获取崩溃分析的结果描述。
     /// </summary>
     private string GetAnalyzeResult(bool IsHandAnalyze)
     {
@@ -1352,337 +1376,337 @@ public class CrashAnalyzer
             switch (Reason.Key)
             {
                 case CrashReason.Mod文件被解压:
-                {
-                    Results.Add(
-                        @"由于 Mod 文件被解压了，导致游戏无法继续运行。\n直接把整个 Mod 文件放进 Mod 文件夹中即可，若解压就会导致游戏出错。\n\n请删除 Mod 文件夹中已被解压的 Mod，然后再启动游戏。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"由于 Mod 文件被解压了，导致游戏无法继续运行。\n直接把整个 Mod 文件放进 Mod 文件夹中即可，若解压就会导致游戏出错。\n\n请删除 Mod 文件夹中已被解压的 Mod，然后再启动游戏。");
+                        break;
+                    }
                 case CrashReason.内存不足:
-                {
-                    Results.Add(
-                        @"Minecraft 内存不足，导致其无法继续运行。\n这很可能是因为电脑内存不足、游戏分配的内存不足，或是配置要求过高。\n\n你可以尝试在 更多 → 百宝箱 中选择 内存优化，然后再启动游戏。\n如果还是不行，请在启动设置中增加为游戏分配的内存，并删除配置要求较高的材质、Mod、光影。\n如果依然不奏效，请在开始游戏前尽量关闭其他软件，或者……换台电脑？\h");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"Minecraft 内存不足，导致其无法继续运行。\n这很可能是因为电脑内存不足、游戏分配的内存不足，或是配置要求过高。\n\n你可以尝试在 更多 → 百宝箱 中选择 内存优化，然后再启动游戏。\n如果还是不行，请在启动设置中增加为游戏分配的内存，并删除配置要求较高的材质、Mod、光影。\n如果依然不奏效，请在开始游戏前尽量关闭其他软件，或者……换台电脑？\h");
+                        break;
+                    }
                 case CrashReason.使用OpenJ9:
-                {
-                    Results.Add(@"游戏因为使用 OpenJ9 而崩溃了。\n请在启动设置的 Java 选择一项中改用非 OpenJ9 的 Java，然后再启动游戏。");
-                    break;
-                }
+                    {
+                        Results.Add(@"游戏因为使用 OpenJ9 而崩溃了。\n请在启动设置的 Java 选择一项中改用非 OpenJ9 的 Java，然后再启动游戏。");
+                        break;
+                    }
                 case CrashReason.使用JDK:
-                {
-                    Results.Add(
-                        @"游戏似乎因为使用 JDK，或 Java 版本过高而崩溃了。\n请在启动设置的 Java 选择一项中改用 JRE 8（Java 8），然后再启动游戏。\n如果你没有安装 JRE 8，你可以从网络中下载、安装一个。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"游戏似乎因为使用 JDK，或 Java 版本过高而崩溃了。\n请在启动设置的 Java 选择一项中改用 JRE 8（Java 8），然后再启动游戏。\n如果你没有安装 JRE 8，你可以从网络中下载、安装一个。");
+                        break;
+                    }
                 case CrashReason.Java版本过高:
-                {
-                    Results.Add(
-                        @"游戏似乎因为你所使用的 Java 版本过高而崩溃了。\n请在启动设置的 Java 选择一项中改用较低版本的 Java，然后再启动游戏。\n如果没有，可以从网络中下载、安装一个。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"游戏似乎因为你所使用的 Java 版本过高而崩溃了。\n请在启动设置的 Java 选择一项中改用较低版本的 Java，然后再启动游戏。\n如果没有，可以从网络中下载、安装一个。");
+                        break;
+                    }
                 case CrashReason.Java版本不兼容:
-                {
-                    Results.Add(@"游戏不兼容你当前使用的 Java。\n如果没有合适的 Java，可以从网络中下载、安装一个。");
-                    break;
-                }
+                    {
+                        Results.Add(@"游戏不兼容你当前使用的 Java。\n如果没有合适的 Java，可以从网络中下载、安装一个。");
+                        break;
+                    }
                 case CrashReason.Mod名称包含特殊字符:
-                {
-                    Results.Add(@"由于有 Mod 的名称包含特殊字符，导致游戏崩溃。\n请尝试修改 Mod 文件名，让它只包含英文字母、数字、减号（-）、下划线（_）和小数点，然后再启动游戏。");
-                    break;
-                }
+                    {
+                        Results.Add(@"由于有 Mod 的名称包含特殊字符，导致游戏崩溃。\n请尝试修改 Mod 文件名，让它只包含英文字母、数字、减号（-）、下划线（_）和小数点，然后再启动游戏。");
+                        break;
+                    }
                 case CrashReason.MixinBootstrap缺失:
-                {
-                    Results.Add(@"由于缺失 MixinBootstrap，导致游戏崩溃。\n请尝试安装 MixinBootstrap。若安装后依然崩溃，可以尝试在文件名前添加英文感叹号。");
-                    break;
-                }
+                    {
+                        Results.Add(@"由于缺失 MixinBootstrap，导致游戏崩溃。\n请尝试安装 MixinBootstrap。若安装后依然崩溃，可以尝试在文件名前添加英文感叹号。");
+                        break;
+                    }
                 case CrashReason.使用32位Java导致JVM无法分配足够多的内存:
-                {
-                    if (Environment.Is64BitOperatingSystem)
-                        Results.Add(
-                            @"你似乎正在使用 32 位 Java，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。\n\n请在启动设置的 Java 选择一项中改用 64 位的 Java 再启动游戏，然后再启动游戏。\n如果你没有安装 64 位的 Java，你可以从网络中下载、安装一个。");
-                    else
-                        Results.Add(
-                            @"你正在使用 32 位的操作系统，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。\n\n你或许只能重装 64 位的操作系统来解决此问题。\n如果你的电脑内存在 2GB 以内，那或许只能换台电脑了……\h");
-
-                    break;
-                }
-                case CrashReason.Mod缺少前置或MC版本错误:
-                {
-                    if (Additional.Any())
                     {
-                        var info = Additional.Join(@"\n - ");
-                        if (info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint))
-                            Results.Add(LoaderIncompatibleResultText + info);
+                        if (Environment.Is64BitOperatingSystem)
+                            Results.Add(
+                                @"你似乎正在使用 32 位 Java，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。\n\n请在启动设置的 Java 选择一项中改用 64 位的 Java 再启动游戏，然后再启动游戏。\n如果你没有安装 64 位的 Java，你可以从网络中下载、安装一个。");
                         else
-                            Results.Add(@"由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " + info +
-                                        @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                            Results.Add(
+                                @"你正在使用 32 位的操作系统，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。\n\n你或许只能重装 64 位的操作系统来解决此问题。\n如果你的电脑内存在 2GB 以内，那或许只能换台电脑了……\h");
+
+                        break;
                     }
-                    else
+                case CrashReason.Mod缺少前置或MC版本错误:
                     {
-                        Results.Add(@"由于未安装正确的前置 Mod，导致游戏退出。\n请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                        if (Additional.Any())
+                        {
+                            var info = string.Join(@"\n - ", Additional);
+                            if (info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint))
+                                Results.Add(LoaderIncompatibleResultText + info);
+                            else
+                                Results.Add(@"由于未安装正确的前置 Mod，导致游戏退出。\n缺失的依赖项：\n - " + info +
+                                            @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        }
+                        else
+                        {
+                            Results.Add(@"由于未安装正确的前置 Mod，导致游戏退出。\n请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                        }
+
+                        break;
                     }
-
-                    break;
-                }
                 case CrashReason.堆栈分析发现关键字:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("你的游戏遇到了一些问题，PCL 为此找到了一个可疑的关键词：" + Additional.First() +
-                                    @"。\n\n如果你知道某个关键词对应的 Mod，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。\h");
-                    else
-                        Results.Add(@"你的游戏遇到了一些问题，PCL 为此找到了以下可疑的关键词：\n - " + Additional.Join(", ") +
-                                    @"\n\n如果你知道某个关键词对应的 Mod，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("你的游戏遇到了一些问题，PCL 为此找到了一个可疑的关键词：" + Additional.First() +
+                                        @"。\n\n如果你知道某个关键词对应的 Mod，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。\h");
+                        else
+                            Results.Add(@"你的游戏遇到了一些问题，PCL 为此找到了以下可疑的关键词：\n - " + string.Join(", ", Additional) +
+                                        @"\n\n如果你知道某个关键词对应的 Mod，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.堆栈分析发现Mod名称:
                 case CrashReason.怀疑Mod导致游戏崩溃:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("PCL 怀疑名为 " + Additional.First() +
-                                    @" 的 Mod 导致了游戏出错，但不能完全确定。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
-                    else
-                        Results.Add(@"PCL 怀疑以下 Mod 导致了游戏出错，但不能完全确定：\n - " + Additional.Join(@"\n - ") +
-                                    @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("PCL 怀疑名为 " + Additional.First() +
+                                        @" 的 Mod 导致了游戏出错，但不能完全确定。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                        else
+                            Results.Add(@"PCL 怀疑以下 Mod 导致了游戏出错，但不能完全确定：\n - " + string.Join(@"\n - ", Additional) +
+                                        @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.确定Mod导致游戏崩溃:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
-                    else
-                        Results.Add(@"以下 Mod 导致了游戏出错：\n - " + Additional.Join(@"\n - ") +
-                                    @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                        else
+                            Results.Add(@"以下 Mod 导致了游戏出错：\n - " + string.Join(@"\n - ", Additional) +
+                                        @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.ModMixin失败:
-                {
-                    if (Additional.Count == 0)
-                        Results.Add(
-                            @"部分 Mod 注入失败，导致游戏出错。\n这一般代表着部分 Mod 与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试逐步禁用 Mod，然后观察游戏是否还会崩溃，以此定位导致崩溃的 Mod。\n\e\h");
-                    else if (Additional.Count == 1)
-                        Results.Add("名为 " + Additional.First() +
-                                    @" 的 Mod 注入失败，导致游戏出错。\n这一般代表着它与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
-                    else
-                        Results.Add(@"以下 Mod 导致了游戏出错：\n - " + Additional.Join(@"\n - ") +
-                                    @"\n这一般代表着它们与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                    {
+                        if (Additional.Count == 0)
+                            Results.Add(
+                                @"部分 Mod 注入失败，导致游戏出错。\n这一般代表着部分 Mod 与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试逐步禁用 Mod，然后观察游戏是否还会崩溃，以此定位导致崩溃的 Mod。\n\e\h");
+                        else if (Additional.Count == 1)
+                            Results.Add("名为 " + Additional.First() +
+                                        @" 的 Mod 注入失败，导致游戏出错。\n这一般代表着它与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                        else
+                            Results.Add(@"以下 Mod 导致了游戏出错：\n - " + string.Join(@"\n - ", Additional) +
+                                        @"\n这一般代表着它们与其他 Mod 或当前环境不兼容，或是它存在 Bug。\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.Mod配置文件导致游戏崩溃:
-                {
-                    if (Additional[1] is null)
-                        Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错。\n\e\h");
-                    else
-                        Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错：\n其配置文件 " + Additional[1] +
-                                    " 存在异常，无法读取。");
+                    {
+                        if (Additional[1] is null)
+                            Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错。\n\e\h");
+                        else
+                            Results.Add("名为 " + Additional.First() + @" 的 Mod 导致了游戏出错：\n其配置文件 " + Additional[1] +
+                                        " 存在异常，无法读取。");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.Mod初始化失败:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("名为 " + Additional.First() +
-                                    @" 的 Mod 初始化失败，导致游戏无法继续加载。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
-                    else
-                        Results.Add(@"以下 Mod 初始化失败，导致游戏出错：\n - " + Additional.Join(@"\n - ") +
-                                    @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("名为 " + Additional.First() +
+                                        @" 的 Mod 初始化失败，导致游戏无法继续加载。\n你可以尝试禁用此 Mod，然后观察游戏是否还会崩溃。\n\e\h");
+                        else
+                            Results.Add(@"以下 Mod 初始化失败，导致游戏出错：\n - " + string.Join(@"\n - ", Additional) +
+                                        @"\n\n你可以尝试依次禁用上述 Mod，然后观察游戏是否还会崩溃。\n\e\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.特定方块导致崩溃:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("游戏似乎因为方块 " + Additional.First() +
-                                    @" 出现了问题。\n\n你可以创建一个新世界，并观察游戏的运行情况：\n - 若正常运行，则是该方块导致出错，你或许需要使用一些方式删除此方块。\n - 若仍然出错，问题就可能来自其他原因……\h");
-                    else
-                        Results.Add(
-                            @"游戏似乎因为世界中的某些方块出现了问题。\n\n你可以创建一个新世界，并观察游戏的运行情况：\n - 若正常运行，则是某些方块导致出错，你或许需要删除该世界。\n - 若仍然出错，问题就可能来自其他原因……\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("游戏似乎因为方块 " + Additional.First() +
+                                        @" 出现了问题。\n\n你可以创建一个新世界，并观察游戏的运行情况：\n - 若正常运行，则是该方块导致出错，你或许需要使用一些方式删除此方块。\n - 若仍然出错，问题就可能来自其他原因……\h");
+                        else
+                            Results.Add(
+                                @"游戏似乎因为世界中的某些方块出现了问题。\n\n你可以创建一个新世界，并观察游戏的运行情况：\n - 若正常运行，则是某些方块导致出错，你或许需要删除该世界。\n - 若仍然出错，问题就可能来自其他原因……\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.Mod重复安装:
-                {
-                    if (Additional.Count >= 2)
-                        Results.Add(@"你重复安装了多个相同的 Mod：\n - " + Additional.Join(@"\n - ") +
-                                    @"\n\n每个 Mod 只能出现一次，请删除重复的 Mod，然后再启动游戏。");
-                    else
-                        Results.Add(@"你可能重复安装了多个相同的 Mod，导致游戏出错。\n\n每个 Mod 只能出现一次，请删除重复的 Mod，然后再启动游戏。\e\h");
+                    {
+                        if (Additional.Count >= 2)
+                            Results.Add(@"你重复安装了多个相同的 Mod：\n - " + string.Join(@"\n - ", Additional) +
+                                        @"\n\n每个 Mod 只能出现一次，请删除重复的 Mod，然后再启动游戏。");
+                        else
+                            Results.Add(@"你可能重复安装了多个相同的 Mod，导致游戏出错。\n\n每个 Mod 只能出现一次，请删除重复的 Mod，然后再启动游戏。\e\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.特定实体导致崩溃:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add("游戏似乎因为实体 " + Additional.First() +
-                                    @" 出现了问题。\n\n你可以创建一个新世界，并生成一个该实体，然后观察游戏的运行情况：\n - 若正常运行，则是该实体导致出错，你或许需要使用一些方式删除此实体。\n - 若仍然出错，问题就可能来自其他原因……\h");
-                    else
-                        Results.Add(
-                            @"游戏似乎因为世界中的某些实体出现了问题。\n\n你可以创建一个新世界，并生成各种实体，观察游戏的运行情况：\n - 若正常运行，则是某些实体导致出错，你或许需要删除该世界。\n - 若仍然出错，问题就可能来自其他原因……\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add("游戏似乎因为实体 " + Additional.First() +
+                                        @" 出现了问题。\n\n你可以创建一个新世界，并生成一个该实体，然后观察游戏的运行情况：\n - 若正常运行，则是该实体导致出错，你或许需要使用一些方式删除此实体。\n - 若仍然出错，问题就可能来自其他原因……\h");
+                        else
+                            Results.Add(
+                                @"游戏似乎因为世界中的某些实体出现了问题。\n\n你可以创建一个新世界，并生成各种实体，观察游戏的运行情况：\n - 若正常运行，则是某些实体导致出错，你或许需要删除该世界。\n - 若仍然出错，问题就可能来自其他原因……\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.OptiFine与Forge不兼容:
-                {
-                    Results.Add(
-                        @"由于 OptiFine 与当前版本的 Forge 不兼容，导致了游戏崩溃。\n\n请前往 OptiFine 官网（https://optifine.net/downloads）查看 OptiFine 所兼容的 Forge 版本，并严格按照对应版本重新安装游戏。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"由于 OptiFine 与当前版本的 Forge 不兼容，导致了游戏崩溃。\n\n请前往 OptiFine 官网（https://optifine.net/downloads）查看 OptiFine 所兼容的 Forge 版本，并严格按照对应版本重新安装游戏。");
+                        break;
+                    }
                 case CrashReason.ShadersMod与OptiFine同时安装:
-                {
-                    Results.Add(
-                        @"无需同时安装 OptiFine 和 Shaders Mod，OptiFine 已经集成了 Shaders Mod 的功能。\n在删除 Shaders Mod 后，游戏即可正常运行。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"无需同时安装 OptiFine 和 Shaders Mod，OptiFine 已经集成了 Shaders Mod 的功能。\n在删除 Shaders Mod 后，游戏即可正常运行。");
+                        break;
+                    }
                 case CrashReason.低版本Forge与高版本Java不兼容:
-                {
-                    Results.Add(
-                        @"由于低版本 Forge 与当前 Java 不兼容，导致了游戏崩溃。\n\n请尝试以下解决方案：\n - 更新 Forge 到 36.2.26 或更高版本\n - 换用版本低于 1.8.0.320 的 Java");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"由于低版本 Forge 与当前 Java 不兼容，导致了游戏崩溃。\n\n请尝试以下解决方案：\n - 更新 Forge 到 36.2.26 或更高版本\n - 换用版本低于 1.8.0.320 的 Java");
+                        break;
+                    }
                 case CrashReason.实例Json中存在多个Forge:
-                {
-                    Results.Add(@"可能由于其他启动器修改了 Forge 版本，当前实例的文件存在异常，导致了游戏崩溃。\n请尝试重新全新安装 Forge，而非使用其他启动器修改 Forge 版本。");
-                    break;
-                }
+                    {
+                        Results.Add(@"可能由于其他启动器修改了 Forge 版本，当前实例的文件存在异常，导致了游戏崩溃。\n请尝试重新全新安装 Forge，而非使用其他启动器修改 Forge 版本。");
+                        break;
+                    }
                 case CrashReason.玩家手动触发调试崩溃:
-                {
-                    Results.Add(@"* 事实上，你的游戏没有任何问题，这是你自己触发的崩溃。\n* 你难道没有更重要的事要做吗？");
-                    break;
-                }
+                    {
+                        Results.Add(@"* 事实上，你的游戏没有任何问题，这是你自己触发的崩溃。\n* 你难道没有更重要的事要做吗？");
+                        break;
+                    }
                 case CrashReason.Mod需要Java11:
-                {
-                    Results.Add(
-                        @"你所安装的部分 Mod 似乎需要使用 Java 11 启动。\n请在启动设置的 Java 选择一项中改用 Java 11，然后再启动游戏。\n如果你没有安装 Java 11，你可以从网络中下载、安装一个。");
-                    break;
-                }
+                    {
+                        Results.Add(
+                            @"你所安装的部分 Mod 似乎需要使用 Java 11 启动。\n请在启动设置的 Java 选择一项中改用 Java 11，然后再启动游戏。\n如果你没有安装 Java 11，你可以从网络中下载、安装一个。");
+                        break;
+                    }
                 case CrashReason.极短的程序输出:
-                {
-                    Results.Add($@"程序返回了以下信息：\n{Additional.First()}\n\h");
-                    break;
-                }
+                    {
+                        Results.Add($@"程序返回了以下信息：\n{Additional.First()}\n\h");
+                        break;
+                    }
                 case CrashReason.OptiFine导致无法加载世界
                     : // https://www.minecraftforum.net/forums/support/java-edition-support/3051132-exception-ticking-world
-                {
-                    Results.Add(@"你所使用的 OptiFine 可能导致了你的游戏出现问题。\n\n该问题只在特定 OptiFine 版本中出现，你可以尝试更换 OptiFine 的版本。\h");
-                    break;
-                }
+                    {
+                        Results.Add(@"你所使用的 OptiFine 可能导致了你的游戏出现问题。\n\n该问题只在特定 OptiFine 版本中出现，你可以尝试更换 OptiFine 的版本。\h");
+                        break;
+                    }
                 case CrashReason.显卡驱动不支持导致无法设置像素格式:
                 case CrashReason.Intel驱动不兼容导致EXCEPTION_ACCESS_VIOLATION:
                 case CrashReason.AMD驱动不兼容导致EXCEPTION_ACCESS_VIOLATION:
                 case CrashReason.Nvidia驱动不兼容导致EXCEPTION_ACCESS_VIOLATION:
                 case CrashReason.显卡不支持OpenGL:
-                {
-                    if (LogAll.Contains("hd graphics "))
-                        Results.Add(
-                            @"你的显卡驱动存在问题，或未使用独立显卡，导致游戏无法正常运行。\n\n如果你的电脑存在独立显卡，请使用独立显卡而非 Intel 核显启动 PCL 与 Minecraft。\n如果问题依然存在，请尝试升级你的显卡驱动到最新版本，或回退到出厂版本。\n如果还是不行，还可以尝试使用 8.0.51 或更低版本的 Java。\h");
-                    else
-                        Results.Add(
-                            @"你的显卡驱动存在问题，导致游戏无法正常运行。\n\n请尝试升级你的显卡驱动到最新版本，或回退到出厂版本，然后再启动游戏。\n如果还是不行，可以尝试使用 8.0.51 或更低版本的 Java。\n如果问题依然存在，那么你可能需要换个更好的显卡……\h");
-
-                    break;
-                }
-                case CrashReason.材质过大或显卡配置不足:
-                {
-                    Results.Add(
-                        @"你所使用的材质分辨率过高，或显卡配置不足，导致游戏无法继续运行。\n\n如果你正在使用高清材质，请将它移除。\n如果你没有使用材质，那么你可能需要更新显卡驱动，或者换个更好的显卡……\h");
-                    break;
-                }
-                case CrashReason.NightConfig的Bug:
-                {
-                    Results.Add(@"由于 Night Config 存在问题，导致了游戏崩溃。\n你可以尝试安装 Night Config Fixes 模组，这或许能解决此问题。\h");
-                    break;
-                }
-                case CrashReason.光影或资源包导致OpenGL1282错误:
-                {
-                    Results.Add(@"你所使用的光影或材质导致游戏出现了一些问题……\n\n请尝试删除你所添加的这些额外资源。\h");
-                    break;
-                }
-                case CrashReason.Mod过多导致超出ID限制:
-                {
-                    Results.Add(@"你所安装的 Mod 过多，超出了游戏的 ID 限制，导致了游戏崩溃。\n请尝试安装 JEID 等修复 Mod，或删除部分大型 Mod。");
-                    break;
-                }
-                case CrashReason.文件或内容校验失败:
-                {
-                    Results.Add(@"部分文件或内容校验失败，导致游戏出现了问题。\n\n请尝试删除游戏（包括 Mod）并重新下载，或尝试在重新下载时使用 VPN。\h");
-                    break;
-                }
-                case CrashReason.Forge安装不完整:
-                {
-                    Results.Add(
-                        @"由于安装的 Forge 文件丢失，导致游戏无法正常运行。\n请前往实例设置重置该实例，然后再启动游戏。\n在打包游戏时删除 libraries 文件夹可能导致此错误。\h");
-                    break;
-                }
-                case CrashReason.Fabric报错:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add(@"Fabric 提供了以下错误信息：\n" + Additional.First() +
-                                    @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
-                    else
-                        Results.Add(@"Fabric 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
-
-                    break;
-                }
-                case CrashReason.Mod互不兼容:
-                {
-                    if (Additional.Count == 1)
                     {
-                        var info = Additional.First();
-                        if (info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint))
-                            Results.Add(LoaderIncompatibleResultText + info);
+                        if (LogAll.Contains("hd graphics "))
+                            Results.Add(
+                                @"你的显卡驱动存在问题，或未使用独立显卡，导致游戏无法正常运行。\n\n如果你的电脑存在独立显卡，请使用独立显卡而非 Intel 核显启动 PCL 与 Minecraft。\n如果问题依然存在，请尝试升级你的显卡驱动到最新版本，或回退到出厂版本。\n如果还是不行，还可以尝试使用 8.0.51 或更低版本的 Java。\h");
                         else
-                            Results.Add(@"你所安装的 Mod 不兼容：\n" + info + @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                            Results.Add(
+                                @"你的显卡驱动存在问题，导致游戏无法正常运行。\n\n请尝试升级你的显卡驱动到最新版本，或回退到出厂版本，然后再启动游戏。\n如果还是不行，可以尝试使用 8.0.51 或更低版本的 Java。\n如果问题依然存在，那么你可能需要换个更好的显卡……\h");
+
+                        break;
                     }
-                    else
+                case CrashReason.材质过大或显卡配置不足:
                     {
-                        Results.Add(@"你所安装的 Mod 不兼容，Mod 加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                        Results.Add(
+                            @"你所使用的材质分辨率过高，或显卡配置不足，导致游戏无法继续运行。\n\n如果你正在使用高清材质，请将它移除。\n如果你没有使用材质，那么你可能需要更新显卡驱动，或者换个更好的显卡……\h");
+                        break;
                     }
+                case CrashReason.NightConfig的Bug:
+                    {
+                        Results.Add(@"由于 Night Config 存在问题，导致了游戏崩溃。\n你可以尝试安装 Night Config Fixes 模组，这或许能解决此问题。\h");
+                        break;
+                    }
+                case CrashReason.光影或资源包导致OpenGL1282错误:
+                    {
+                        Results.Add(@"你所使用的光影或材质导致游戏出现了一些问题……\n\n请尝试删除你所添加的这些额外资源。\h");
+                        break;
+                    }
+                case CrashReason.Mod过多导致超出ID限制:
+                    {
+                        Results.Add(@"你所安装的 Mod 过多，超出了游戏的 ID 限制，导致了游戏崩溃。\n请尝试安装 JEID 等修复 Mod，或删除部分大型 Mod。");
+                        break;
+                    }
+                case CrashReason.文件或内容校验失败:
+                    {
+                        Results.Add(@"部分文件或内容校验失败，导致游戏出现了问题。\n\n请尝试删除游戏（包括 Mod）并重新下载，或尝试在重新下载时使用 VPN。\h");
+                        break;
+                    }
+                case CrashReason.Forge安装不完整:
+                    {
+                        Results.Add(
+                            @"由于安装的 Forge 文件丢失，导致游戏无法正常运行。\n请前往实例设置重置该实例，然后再启动游戏。\n在打包游戏时删除 libraries 文件夹可能导致此错误。\h");
+                        break;
+                    }
+                case CrashReason.Fabric报错:
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add(@"Fabric 提供了以下错误信息：\n" + Additional.First() +
+                                        @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        else
+                            Results.Add(@"Fabric 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
 
-                    break;
-                }
+                        break;
+                    }
+                case CrashReason.Mod互不兼容:
+                    {
+                        if (Additional.Count == 1)
+                        {
+                            var info = Additional.First();
+                            if (info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint))
+                                Results.Add(LoaderIncompatibleResultText + info);
+                            else
+                                Results.Add(@"你所安装的 Mod 不兼容：\n" + info + @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        }
+                        else
+                        {
+                            Results.Add(@"你所安装的 Mod 不兼容，Mod 加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                        }
+
+                        break;
+                    }
                 case CrashReason.Mod加载器报错:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add(@"Mod 加载器提供了以下错误信息：\n" + Additional.First() +
-                                    @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
-                    else
-                        Results.Add(@"Mod 加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add(@"Mod 加载器提供了以下错误信息：\n" + Additional.First() +
+                                        @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        else
+                            Results.Add(@"Mod 加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.Fabric报错并给出解决方案:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add(@"Fabric 提供了以下解决方案：\n" + Additional.First() +
-                                    @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
-                    else
-                        Results.Add(@"Fabric 可能已经提供了解决方案，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add(@"Fabric 提供了以下解决方案：\n" + Additional.First() +
+                                        @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        else
+                            Results.Add(@"Fabric 可能已经提供了解决方案，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.Forge报错:
-                {
-                    if (Additional.Count == 1)
-                        Results.Add(@"Forge 提供了以下错误信息：\n" + Additional.First() + @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
-                    else
-                        Results.Add(@"Forge 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
+                    {
+                        if (Additional.Count == 1)
+                            Results.Add(@"Forge 提供了以下错误信息：\n" + Additional.First() + @"\n\n请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。");
+                        else
+                            Results.Add(@"Forge 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。\h");
 
-                    break;
-                }
+                        break;
+                    }
                 case CrashReason.没有可用的分析文件:
-                {
-                    Results.Add(@"你的游戏出现了一些问题，但 PCL 未能找到相关记录文件，因此无法进行分析。\h");
-                    break;
-                }
+                    {
+                        Results.Add(@"你的游戏出现了一些问题，但 PCL 未能找到相关记录文件，因此无法进行分析。\h");
+                        break;
+                    }
 
                 default:
-                {
-                    Results.Add("PCL 获取到了没有详细信息的错误原因（" + (int)CrashReasons.First().Key + @"），请向 PCL 作者提交反馈以获取详情。\h");
-                    break;
-                }
+                    {
+                        Results.Add("PCL 获取到了没有详细信息的错误原因（" + (int)CrashReasons.First().Key + @"），请向 PCL 作者提交反馈以获取详情。\h");
+                        break;
+                    }
             }
         }
 
@@ -1696,7 +1720,7 @@ public class CrashAnalyzer
             ModBase.Log(ex, "确认启动器更新失败", ModBase.LogLevel.Feedback);
         }
 
-        return Results.Join(@"\n\n此外，").Replace(@"\n", "\r\n").Replace(@"\h", "")
+        return string.Join(@"\n\n此外，", Results).Replace(@"\n", "\r\n").Replace(@"\h", "")
                    .Replace(@"\e", IsHandAnalyze ? "" : "\r\n" + "你可以查看错误报告了解错误具体是如何发生的。")
                    .Replace("\r\n", "\r").Replace("\n", "\r")
                    .Replace("\r", "\r\n").Trim("\r\n".ToCharArray()) +
@@ -1719,7 +1743,7 @@ public class CrashAnalyzer
     }
 
     /// <summary>
-    ///     导致崩溃的原因枚举。
+    /// 导致崩溃的原因枚举。
     /// </summary>
     private enum CrashReason
     {

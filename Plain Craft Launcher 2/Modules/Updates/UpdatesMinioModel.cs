@@ -178,7 +178,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     }
 
     /// <summary>
-    ///     缓存是否有效
+    /// 缓存是否有效
     /// </summary>
     /// <param name="path"></param>
     /// <param name="hash"></param>

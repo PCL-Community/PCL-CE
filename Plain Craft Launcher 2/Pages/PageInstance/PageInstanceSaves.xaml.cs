@@ -1,3 +1,6 @@
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.UI.Icons;
+using PCL.Core.Utils;
 using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
@@ -5,8 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.UI.Icons;
 
 namespace PCL;
 
@@ -132,7 +133,7 @@ public partial class PageInstanceSaves : IRefreshable
     }
 
     /// <summary>
-    ///     确保当前页面上的信息已正确显示。
+    /// 确保当前页面上的信息已正确显示。
     /// </summary>
     public void Reload()
     {
@@ -189,7 +190,7 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{TextUtils.GetStringMD5(saveLogo)}.png";
                         ModBase.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
@@ -203,11 +204,11 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = saveLogo,
                         Title = GetFolderNameFromPath(curFolder),
                         Info =
-                            $"创建时间：{Directory.GetCreationTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}",
+                            $"创建时间：{Directory.GetCreationTime(curFolder):yyyy\"/\"MM\"/\"dd}，最后修改时间：{Directory.GetLastWriteTime(curFolder):yyyy\"/\"MM\"/\"dd}",
                         Type = MyListItem.CheckType.Clickable
                     };
                     worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                    { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
                     var BtnOpen = new MyIconButton
                     {
@@ -271,7 +272,7 @@ public partial class PageInstanceSaves : IRefreshable
                         ToolTip = "详情"
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                    { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
                     var BtnLaunch = new MyIconButton
                     {
@@ -401,7 +402,7 @@ public partial class PageInstanceSaves : IRefreshable
             ModBase.RunInUi(() => Reload());
         }));
         var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.Instance.Name} - 复制存档", loaders)
-            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+        { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -427,22 +428,22 @@ public partial class PageInstanceSaves : IRefreshable
         switch (method)
         {
             case SortMethod.FileName:
-            {
-                return "文件名";
-            }
+                {
+                    return "文件名";
+                }
             case SortMethod.CreateTime:
-            {
-                return "创建时间";
-            }
+                {
+                    return "创建时间";
+                }
             case SortMethod.ModifyTime:
-            {
-                return "修改时间";
-            }
+                {
+                    return "修改时间";
+                }
 
             default:
-            {
-                return "文件名";
-            }
+                {
+                    return "文件名";
+                }
         }
     }
 
@@ -487,16 +488,16 @@ public partial class PageInstanceSaves : IRefreshable
         {
             if (IsSearching)
             {
-                var queryList = new List<ModBase.SearchEntry<string>>();
+                var queryList = new List<SearchEntry<string>>();
                 foreach (var saveFolder in saveFolders)
                 {
                     var folderName = GetFolderNameFromPath(saveFolder);
-                    var searchSource = new List<ModBase.SearchSource>();
-                    searchSource.Add(new ModBase.SearchSource(folderName, 1d));
-                    queryList.Add(new ModBase.SearchEntry<string> { Item = saveFolder, SearchSource = searchSource });
+                    var searchSource = new List<KeyValuePair<string, double>>();
+                    searchSource.Add(new(folderName, 1d));
+                    queryList.Add(new SearchEntry<string>(saveFolder, searchSource));
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+                _searchResult = SimilaritySearch.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
             }
             else
             {
@@ -516,24 +517,24 @@ public partial class PageInstanceSaves : IRefreshable
         switch (method)
         {
             case SortMethod.FileName:
-            {
-                return (a, b) => string.Compare(GetFolderNameFromPath(a), GetFolderNameFromPath(b),
-                    StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(GetFolderNameFromPath(a), GetFolderNameFromPath(b),
+                        StringComparison.OrdinalIgnoreCase);
+                }
             case SortMethod.CreateTime:
-            {
-                return (a, b) => Directory.GetCreationTime(b).CompareTo(Directory.GetCreationTime(a));
-            }
+                {
+                    return (a, b) => Directory.GetCreationTime(b).CompareTo(Directory.GetCreationTime(a));
+                }
             case SortMethod.ModifyTime:
-            {
-                return (a, b) => Directory.GetLastWriteTime(b).CompareTo(Directory.GetLastWriteTime(a));
-            }
+                {
+                    return (a, b) => Directory.GetLastWriteTime(b).CompareTo(Directory.GetLastWriteTime(a));
+                }
 
             default:
-            {
-                return (a, b) => string.Compare(GetFolderNameFromPath(a), GetFolderNameFromPath(b),
-                    StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(GetFolderNameFromPath(a), GetFolderNameFromPath(b),
+                        StringComparison.OrdinalIgnoreCase);
+                }
         }
     }
 

@@ -1,7 +1,8 @@
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -18,7 +19,7 @@ public partial class PageSetupLeft
 
         if (ItemLaunch.Checked && hide.SetupLaunch) IsHiddenPage = true;
         if (ItemJava.Checked && hide.SetupJava) IsHiddenPage = true;
-        if (ItemGameManage.Checked && hide.SetupGameManage)  IsHiddenPage = true;
+        if (ItemGameManage.Checked && hide.SetupGameManage) IsHiddenPage = true;
         if (ItemGameLink.Checked && hide.SetupGameLink) IsHiddenPage = true;
         if (ItemUI.Checked && hide.SetupUi) IsHiddenPage = true;
         if (ItemLauncherMisc.Checked && hide.SetupLauncherMisc) IsHiddenPage = true;
@@ -38,27 +39,27 @@ public partial class PageSetupLeft
         if (IsPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch) 
+        if (!hideCfg.SetupLaunch)
             ItemLaunch.SetChecked(true, false, false);
-        else if (!hideCfg.SetupJava) 
-            ItemJava.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupGameManage) 
+        else if (!hideCfg.SetupJava)
+            ItemJava.SetChecked(true, false, false);
+        else if (!hideCfg.SetupGameManage)
             ItemGameManage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupGameLink) 
-            ItemGameLink.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupUi) 
+        else if (!hideCfg.SetupGameLink)
+            ItemGameLink.SetChecked(true, false, false);
+        else if (!hideCfg.SetupUi)
             ItemUI.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLauncherMisc) 
+        else if (!hideCfg.SetupLauncherMisc)
             ItemLauncherMisc.SetChecked(true, false, false);
-        else if (!hideCfg.SetupAbout) 
-            ItemAbout.SetChecked(true, false, false);   
-        else if (!hideCfg.SetupUpdate) 
+        else if (!hideCfg.SetupAbout)
+            ItemAbout.SetChecked(true, false, false);
+        else if (!hideCfg.SetupUpdate)
             ItemUpdate.SetChecked(true, false, false);
-        else if (!hideCfg.SetupFeedback) 
+        else if (!hideCfg.SetupFeedback)
             ItemFeedback.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLog) 
+        else if (!hideCfg.SetupLog)
             ItemLog.SetChecked(true, false, false);
-        else 
+        else
             ItemLaunch.SetChecked(true, false, false);
     }
 
@@ -69,72 +70,72 @@ public partial class PageSetupLeft
 
     public void Reset(object sender, EventArgs e)
     {
-        switch (ModBase.Val(((MyIconButton)sender).Tag))
+        switch (StringExtension.Val(((MyIconButton)sender).Tag))
         {
             case (double)FormMain.PageSubType.SetupLaunch:
-            {
-                if (ModMain.MyMsgBox("是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
                 {
-                    if (ModMain.FrmSetupLaunch is null)
-                        ModMain.FrmSetupLaunch = new PageSetupLaunch();
-                    ModMain.FrmSetupLaunch.Reset();
-                    ItemLaunch.Checked = true;
-                }
+                    if (ModMain.MyMsgBox("是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                    {
+                        if (ModMain.FrmSetupLaunch is null)
+                            ModMain.FrmSetupLaunch = new PageSetupLaunch();
+                        ModMain.FrmSetupLaunch.Reset();
+                        ItemLaunch.Checked = true;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case (double)FormMain.PageSubType.SetupUI:
-            {
-                if (ModMain.MyMsgBox("""
+                {
+                    if (ModMain.MyMsgBox("""
                                      是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。
                                      （背景图片与音乐、主页等外部文件不会被删除）
                                      """,
-                        "初始化确认", Button2: "取消", IsWarn: true) == 1)
-                {
-                    if (ModMain.FrmSetupUI is null)
-                        ModMain.FrmSetupUI = new PageSetupUI();
-                    ModMain.FrmSetupUI.Reset();
-                    ItemUI.Checked = true;
-                }
+                            "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                    {
+                        if (ModMain.FrmSetupUI is null)
+                            ModMain.FrmSetupUI = new PageSetupUI();
+                        ModMain.FrmSetupUI.Reset();
+                        ItemUI.Checked = true;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case (double)FormMain.PageSubType.SetupGameManage:
-            {
-                if (ModMain.MyMsgBox("是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
                 {
-                    if (ModMain.FrmSetupGameManage is null)
-                        ModMain.FrmSetupGameManage = new PageSetupGameManage();
-                    ModMain.FrmSetupGameManage.Reset();
-                    ItemGameManage.Checked = true;
-                }
+                    if (ModMain.MyMsgBox("是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                    {
+                        if (ModMain.FrmSetupGameManage is null)
+                            ModMain.FrmSetupGameManage = new PageSetupGameManage();
+                        ModMain.FrmSetupGameManage.Reset();
+                        ItemGameManage.Checked = true;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case (double)FormMain.PageSubType.SetupGameLink:
-            {
-                if (ModMain.MyMsgBox("是否要初始化 工具-联机 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
                 {
-                    if (ModMain.FrmSetupGameLink is null)
-                        ModMain.FrmSetupGameLink = new PageSetupGameLink();
-                    ModMain.FrmSetupGameLink.Reset();
-                    ItemGameLink.Checked = true;
-                }
+                    if (ModMain.MyMsgBox("是否要初始化 工具-联机 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                    {
+                        if (ModMain.FrmSetupGameLink is null)
+                            ModMain.FrmSetupGameLink = new PageSetupGameLink();
+                        ModMain.FrmSetupGameLink.Reset();
+                        ItemGameLink.Checked = true;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case (double)FormMain.PageSubType.SetupLauncherMisc:
-            {
-                if (ModMain.MyMsgBox("是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
                 {
-                    if (ModMain.FrmSetupLauncherMisc is null)
-                        ModMain.FrmSetupLauncherMisc = new PageSetupLauncherMisc();
-                    ModMain.FrmSetupLauncherMisc.Reset();
-                    ItemLauncherMisc.Checked = true;
-                }
+                    if (ModMain.MyMsgBox("是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                    {
+                        if (ModMain.FrmSetupLauncherMisc is null)
+                            ModMain.FrmSetupLauncherMisc = new PageSetupLauncherMisc();
+                        ModMain.FrmSetupLauncherMisc.Reset();
+                        ItemLauncherMisc.Checked = true;
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -151,35 +152,35 @@ public partial class PageSetupLeft
                         "提交新反馈", "查看反馈列表", "取消"))
             {
                 case 1:
-                {
-                    ModBase.Feedback();
-                    break;
-                }
+                    {
+                        ModBase.Feedback();
+                        break;
+                    }
                 case 2:
-                {
-                    ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
-                    break;
-                }
+                    {
+                        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+                        break;
+                    }
             }
         });
     }
 
     public void Refresh(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        switch (ModBase.Val(((MyIconButton)sender).Tag))
+        switch (StringExtension.Val(((MyIconButton)sender).Tag))
         {
             case (double)FormMain.PageSubType.SetupFeedback:
-            {
-                if (ModMain.FrmSetupFeedback is not null) ModMain.FrmSetupFeedback.Loader.Start(IsForceRestart: true);
-                ItemFeedback.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmSetupFeedback is not null) ModMain.FrmSetupFeedback.Loader.Start(IsForceRestart: true);
+                    ItemFeedback.Checked = true;
+                    break;
+                }
             case (double)FormMain.PageSubType.SetupJava:
-            {
-                if (ModMain.FrmSetupJava is not null) ModMain.FrmSetupJava.Loader.Start(IsForceRestart: true);
-                ItemJava.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmSetupJava is not null) ModMain.FrmSetupJava.Loader.Start(IsForceRestart: true);
+                    ItemJava.Checked = true;
+                    break;
+                }
         }
 
         ModMain.Hint("正在刷新……", Log: false);
@@ -188,7 +189,7 @@ public partial class PageSetupLeft
     #region 页面切换
 
     /// <summary>
-    ///     当前页面的编号。从左往右从 0 开始计算。
+    /// 当前页面的编号。从左往右从 0 开始计算。
     /// </summary>
     public FormMain.PageSubType PageID;
 
@@ -204,13 +205,13 @@ public partial class PageSetupLeft
         else if (!hideCfg.SetupGameManage)
             PageID = FormMain.PageSubType.SetupGameManage;
         else if (!hideCfg.SetupGameLink)
-            PageID = FormMain.PageSubType.SetupGameLink;    
+            PageID = FormMain.PageSubType.SetupGameLink;
         else if (!hideCfg.SetupUi)
             PageID = FormMain.PageSubType.SetupUI;
         else if (!hideCfg.SetupLauncherMisc)
             PageID = FormMain.PageSubType.SetupLauncherMisc;
         else if (!hideCfg.SetupAbout)
-            PageID = FormMain.PageSubType.SetupAbout;        
+            PageID = FormMain.PageSubType.SetupAbout;
         else if (!hideCfg.SetupUpdate)
             PageID = FormMain.PageSubType.SetupUpdate;
         else if (!hideCfg.SetupFeedback)
@@ -225,19 +226,19 @@ public partial class PageSetupLeft
     }
 
     /// <summary>
-    ///     勾选事件改变页面。
+    /// 勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyListItem)senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)StringExtension.Val(sender.Tag));
     }
 
     /// <summary>
-    ///     获取当前导航指定的右页面。
+    /// 获取当前导航指定的右页面。
     /// </summary>
     public object PageGet(FormMain.PageSubType? ID = null)
     {
@@ -245,75 +246,75 @@ public partial class PageSetupLeft
         switch (ID)
         {
             case FormMain.PageSubType.SetupLaunch:
-            {
-                if (ModMain.FrmSetupLaunch is null)
-                    ModMain.FrmSetupLaunch = new PageSetupLaunch();
-                return ModMain.FrmSetupLaunch;
-            }
+                {
+                    if (ModMain.FrmSetupLaunch is null)
+                        ModMain.FrmSetupLaunch = new PageSetupLaunch();
+                    return ModMain.FrmSetupLaunch;
+                }
             case FormMain.PageSubType.SetupUI:
-            {
-                if (ModMain.FrmSetupUI is null)
-                    ModMain.FrmSetupUI = new PageSetupUI();
-                return ModMain.FrmSetupUI;
-            }
+                {
+                    if (ModMain.FrmSetupUI is null)
+                        ModMain.FrmSetupUI = new PageSetupUI();
+                    return ModMain.FrmSetupUI;
+                }
             case FormMain.PageSubType.SetupGameManage:
-            {
-                if (ModMain.FrmSetupGameManage is null)
-                    ModMain.FrmSetupGameManage = new PageSetupGameManage();
-                return ModMain.FrmSetupGameManage;
-            }
+                {
+                    if (ModMain.FrmSetupGameManage is null)
+                        ModMain.FrmSetupGameManage = new PageSetupGameManage();
+                    return ModMain.FrmSetupGameManage;
+                }
             case FormMain.PageSubType.SetupUpdate:
-            {
-                if (ModMain.FrmSetupUpdate is null)
-                    ModMain.FrmSetupUpdate = new PageSetupUpdate();
-                return ModMain.FrmSetupUpdate;
-            }
+                {
+                    if (ModMain.FrmSetupUpdate is null)
+                        ModMain.FrmSetupUpdate = new PageSetupUpdate();
+                    return ModMain.FrmSetupUpdate;
+                }
             case FormMain.PageSubType.SetupAbout:
-            {
-                if (ModMain.FrmSetupAbout is null)
-                    ModMain.FrmSetupAbout = new PageSetupAbout();
-                return ModMain.FrmSetupAbout;
-            }
+                {
+                    if (ModMain.FrmSetupAbout is null)
+                        ModMain.FrmSetupAbout = new PageSetupAbout();
+                    return ModMain.FrmSetupAbout;
+                }
             case FormMain.PageSubType.SetupLog:
-            {
-                if (ModMain.FrmSetupLog is null)
-                    ModMain.FrmSetupLog = new PageSetupLog();
-                return ModMain.FrmSetupLog;
-            }
+                {
+                    if (ModMain.FrmSetupLog is null)
+                        ModMain.FrmSetupLog = new PageSetupLog();
+                    return ModMain.FrmSetupLog;
+                }
             case FormMain.PageSubType.SetupFeedback:
-            {
-                if (ModMain.FrmSetupFeedback is null)
-                    ModMain.FrmSetupFeedback = new PageSetupFeedback();
-                return ModMain.FrmSetupFeedback;
-            }
+                {
+                    if (ModMain.FrmSetupFeedback is null)
+                        ModMain.FrmSetupFeedback = new PageSetupFeedback();
+                    return ModMain.FrmSetupFeedback;
+                }
             case FormMain.PageSubType.SetupGameLink:
-            {
-                if (ModMain.FrmSetupGameLink is null)
-                    ModMain.FrmSetupGameLink = new PageSetupGameLink();
-                return ModMain.FrmSetupGameLink;
-            }
+                {
+                    if (ModMain.FrmSetupGameLink is null)
+                        ModMain.FrmSetupGameLink = new PageSetupGameLink();
+                    return ModMain.FrmSetupGameLink;
+                }
             case FormMain.PageSubType.SetupLauncherMisc:
-            {
-                if (ModMain.FrmSetupLauncherMisc is null)
-                    ModMain.FrmSetupLauncherMisc = new PageSetupLauncherMisc();
-                return ModMain.FrmSetupLauncherMisc;
-            }
+                {
+                    if (ModMain.FrmSetupLauncherMisc is null)
+                        ModMain.FrmSetupLauncherMisc = new PageSetupLauncherMisc();
+                    return ModMain.FrmSetupLauncherMisc;
+                }
             case FormMain.PageSubType.SetupJava:
-            {
-                if (ModMain.FrmSetupJava is null)
-                    ModMain.FrmSetupJava = new PageSetupJava();
-                return ModMain.FrmSetupJava;
-            }
+                {
+                    if (ModMain.FrmSetupJava is null)
+                        ModMain.FrmSetupJava = new PageSetupJava();
+                    return ModMain.FrmSetupJava;
+                }
 
             default:
-            {
-                throw new Exception("未知的设置子页面种类：" + (int)ID);
-            }
+                {
+                    throw new Exception("未知的设置子页面种类：" + (int)ID);
+                }
         }
     }
 
     /// <summary>
-    ///     切换现有页面。
+    /// 切换现有页面。
     /// </summary>
     public void PageChange(FormMain.PageSubType ID)
     {

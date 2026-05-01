@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using PCL.Network.Loaders;
 
@@ -15,19 +16,19 @@ public static class ModJava
     public static int JavaListCacheVersion = 7;
 
     /// <summary>
-    ///     防止多个需要 Java 的部分同时要求下载 Java（#3797）。
+    /// 防止多个需要 Java 的部分同时要求下载 Java（#3797）。
     /// </summary>
     public static object JavaLock = new();
 
     /// <summary>
-    ///     目前所有可用的 Java。
+    /// 目前所有可用的 Java。
     /// </summary>
     public static JavaManager Javas => JavaService.JavaManager;
 
     /// <summary>
-    ///     根据要求返回最适合的 Java，若找不到则返回 Nothing。
-    ///     最小与最大版本在与输入相同时也会通过。
-    ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
+    /// 根据要求返回最适合的 Java，若找不到则返回 Nothing。
+    /// 最小与最大版本在与输入相同时也会通过。
+    /// 必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
     public static JavaEntry JavaSelect(string CancelException, Version MinVersion = null, Version MaxVersion = null,
         ModMinecraft.McInstance RelatedInstance = null)
@@ -230,7 +231,7 @@ public static class ModJava
     }
 
     /// <summary>
-    ///     是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
+    /// 是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
     /// </summary>
     public static bool IsGameSet64BitJava(ModMinecraft.McInstance RelatedVersion = null)
     {
@@ -299,7 +300,7 @@ public static class ModJava
     #region 下载
 
     /// <summary>
-    ///     提示 Java 缺失，并弹窗确认是否自动下载。返回玩家选择是否下载。
+    /// 提示 Java 缺失，并弹窗确认是否自动下载。返回玩家选择是否下载。
     /// </summary>
     public static bool JavaDownloadConfirm(string VersionDescription, bool ForcedManualDownload = false)
     {
@@ -317,7 +318,7 @@ public static class ModJava
     }
 
     /// <summary>
-    ///     获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
+    /// 获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
@@ -332,13 +333,13 @@ public static class ModJava
             });
         JavaDownloadLoader.OnStateChangedThread += (Raw, NewState, OldState) =>
         {
-            if ((NewState == ModBase.LoadState.Failed || NewState == ModBase.LoadState.Aborted) &&
+            if ((NewState == Enums.LoadState.Failed || NewState == Enums.LoadState.Aborted) &&
                 LastJavaBaseDir is not null)
             {
                 ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", ModBase.LogLevel.Debug);
                 ModBase.DeleteDirectory(LastJavaBaseDir);
             }
-            else if (NewState == ModBase.LoadState.Finished)
+            else if (NewState == Enums.LoadState.Finished)
             {
                 Javas.ScanJavaAsync().GetAwaiter().GetResult();
                 LastJavaBaseDir = null;

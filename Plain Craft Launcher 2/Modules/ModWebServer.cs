@@ -12,7 +12,7 @@ public static class ModWebServer
     private static readonly Dictionary<string, HttpServer> _webServers = new();
 
     /// <summary>
-    ///     在新的 <see cref="Task" /> 中开始 HTTP 服务端响应。
+    /// 在新的 <see cref="Task" /> 中开始 HTTP 服务端响应。
     /// </summary>
     /// <param name="name">服务端名称</param>
     /// <param name="server">服务端实例</param>
@@ -71,7 +71,7 @@ public static class ModWebServer
     }
 
     /// <summary>
-    ///     检查指定名称的 HTTP 服务端是否正在运行
+    /// 检查指定名称的 HTTP 服务端是否正在运行
     /// </summary>
     /// <param name="name">服务端名称</param>
     /// <returns>是否正在运行</returns>
@@ -82,7 +82,7 @@ public static class ModWebServer
     }
 
     /// <summary>
-    ///     销毁 HTTP 服务端。若服务端正在运行，可能会引发异常。
+    /// 销毁 HTTP 服务端。若服务端正在运行，可能会引发异常。
     /// </summary>
     /// <param name="name">服务端名称</param>
     /// <returns>是否成功销毁，若名称不存在或已经销毁则返回 <c>false</c></returns>

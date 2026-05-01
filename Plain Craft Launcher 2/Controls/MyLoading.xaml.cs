@@ -91,7 +91,7 @@ public partial class MyLoading
     }
 
     /// <summary>
-    ///     是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。
+    /// 是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。
     /// </summary>
     public bool TextErrorInherit { get; set; } = true;
 
@@ -111,7 +111,7 @@ public partial class MyLoading
                     else
                     {
                         while (Ex.InnerException is not null) Ex = Ex.InnerException;
-                        LabText.Text = ModBase.StrTrim(Ex.Message).ToString();
+                        LabText.Text = Ex.Message.Trim();
                         if (new[]
                             {
                             "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
@@ -250,12 +250,12 @@ public partial class MyLoading
     #region 动画
 
     /// <summary>
-    ///     是否需要动画。
+    /// 是否需要动画。
     /// </summary>
     public bool HasAnimation { get; set; } = true;
 
     /// <summary>
-    ///     主动画循环是否正在运行中。
+    /// 主动画循环是否正在运行中。
     /// </summary>
     private bool IsLooping;
 
@@ -301,7 +301,7 @@ public partial class MyLoading
     }
 
     /// <summary>
-    ///     镐子是否还没挥下去，要求错误动画等待。
+    /// 镐子是否还没挥下去，要求错误动画等待。
     /// </summary>
     private bool ErrorAnimationWaiting;
 

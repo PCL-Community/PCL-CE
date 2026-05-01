@@ -1,12 +1,14 @@
-using System.IO;
-using System.IO.Compression;
-using System.Text;
-using System.Text.RegularExpressions;
 using fNbt;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
+using System.Text.RegularExpressions;
 using static PCL.ModComp;
 using static PCL.ModLoader;
 
@@ -19,7 +21,7 @@ public static class ModLocalComp
     public class LocalCompFile
     {
         /// <summary>
-        ///     是否可能为前置 Mod。
+        /// 是否可能为前置 Mod。
         /// </summary>
         public bool IsPresetMod()
         {
@@ -28,7 +30,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     根据完整文件路径的文件扩展名判断是否为 Mod 文件。
+        /// 根据完整文件路径的文件扩展名判断是否为 Mod 文件。
         /// </summary>
         public static bool IsModFile(string Path)
         {
@@ -44,7 +46,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     检查是否为指定类型的组件文件。
+        /// 检查是否为指定类型的组件文件。
         /// </summary>
         public static bool IsCompFile(string Path, CompType CompType)
         {
@@ -54,33 +56,33 @@ public static class ModLocalComp
             switch (CompType)
             {
                 case CompType.Mod:
-                {
-                    return IsModFile(Path);
-                }
+                    {
+                        return IsModFile(Path);
+                    }
                 case CompType.ResourcePack:
                 case CompType.Shader:
-                {
-                    return Path.EndsWithF(".zip", true);
-                }
+                    {
+                        return Path.EndsWithF(".zip", true);
+                    }
                 case CompType.DataPack:
-                {
-                    return Path.EndsWithF(".zip", true) || Path.EndsWithF(".zip.disabled", true);
-                }
+                    {
+                        return Path.EndsWithF(".zip", true) || Path.EndsWithF(".zip.disabled", true);
+                    }
                 case CompType.Schematic:
-                {
-                    return Path.EndsWithF(".litematic", true) || Path.EndsWithF(".nbt", true) ||
-                           Path.EndsWithF(".schematic", true) || Path.EndsWithF(".schem", true);
-                }
+                    {
+                        return Path.EndsWithF(".litematic", true) || Path.EndsWithF(".nbt", true) ||
+                               Path.EndsWithF(".schematic", true) || Path.EndsWithF(".schem", true);
+                    }
 
                 default:
-                {
-                    return false;
-                }
+                    {
+                        return false;
+                    }
             }
         }
 
         /// <summary>
-        ///     获取图标路径。
+        /// 获取图标路径。
         /// </summary>
         public string GetLogo()
         {
@@ -98,7 +100,7 @@ public static class ModLocalComp
         #region Litematic 文件处理
 
         /// <summary>
-        ///     读取 Litematic 文件的 NBT 数据。
+        /// 读取 Litematic 文件的 NBT 数据。
         /// </summary>
         private void LoadLitematicNbtData()
         {
@@ -183,7 +185,7 @@ public static class ModLocalComp
         #region Schem 文件处理
 
         /// <summary>
-        ///     读取 .schem 文件的 NBT 数据（Sponge Schematic 格式）。
+        /// 读取 .schem 文件的 NBT 数据（Sponge Schematic 格式）。
         /// </summary>
         private void LoadSchemNbtData()
         {
@@ -256,7 +258,7 @@ public static class ModLocalComp
         #region Schematic 文件处理
 
         /// <summary>
-        ///     读取 .schematic 文件的 NBT 数据（MCEdit/WorldEdit 格式）。
+        /// 读取 .schematic 文件的 NBT 数据（MCEdit/WorldEdit 格式）。
         /// </summary>
         private void LoadSchematicNbtData()
         {
@@ -296,7 +298,7 @@ public static class ModLocalComp
         #region NBT 结构文件处理
 
         /// <summary>
-        ///     读取 .nbt 文件的 NBT 数据（Minecraft 结构文件格式）。
+        /// 读取 .nbt 文件的 NBT 数据（Minecraft 结构文件格式）。
         /// </summary>
         private void LoadStructureNbtData()
         {
@@ -350,17 +352,17 @@ public static class ModLocalComp
         #region 基础
 
         /// <summary>
-        ///     资源的文件的地址。
+        /// 资源的文件的地址。
         /// </summary>
         public readonly string Path;
 
         /// <summary>
-        ///     是否为文件夹项。
+        /// 是否为文件夹项。
         /// </summary>
         public bool IsFolder => Path.EndsWithF(@"\__FOLDER__", true);
 
         /// <summary>
-        ///     获取实际的文件夹路径（去除 __FOLDER__ 标记）。
+        /// 获取实际的文件夹路径（去除 __FOLDER__ 标记）。
         /// </summary>
         public string ActualPath
         {
@@ -378,17 +380,17 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     NBT数据是否已加载（用于延迟加载优化）。
+        /// NBT数据是否已加载（用于延迟加载优化）。
         /// </summary>
         private bool _nbtDataLoaded;
 
         /// <summary>
-        ///     Mod 资源的完整路径，去除最后的 .disabled 和 .old。
+        /// Mod 资源的完整路径，去除最后的 .disabled 和 .old。
         /// </summary>
-        public string RawPath => ModBase.GetPathFromFullPath(Path) + RawFileName;
+        public string RawPath => PathUtils.GetPathFromFullPath(Path) + RawFileName;
 
         /// <summary>
-        ///     资源的完整文件名。
+        /// 资源的完整文件名。
         /// </summary>
         public string FileName
         {
@@ -396,17 +398,17 @@ public static class ModLocalComp
             {
                 if (IsFolder && !string.IsNullOrEmpty(Name)) return Name;
 
-                return ModBase.GetFileNameFromPath(Path);
+                return PathUtils.GetFileNameFromPath(Path);
             }
         }
 
         /// <summary>
-        ///     Mod 资源的完整文件名，去除最后的 .disabled 和 .old。
+        /// Mod 资源的完整文件名，去除最后的 .disabled 和 .old。
         /// </summary>
         public string RawFileName => FileName.Replace(".disabled", "").Replace(".old", "");
 
         /// <summary>
-        ///     资源的状态。对于 Mod 有 Disabled
+        /// 资源的状态。对于 Mod 有 Disabled
         /// </summary>
         public LocalFileStatus State
         {
@@ -433,7 +435,7 @@ public static class ModLocalComp
         #region 信息项
 
         /// <summary>
-        ///     Mod 的名称。若不可用则为 ModID 或无扩展的文件名。
+        /// Mod 的名称。若不可用则为 ModID 或无扩展的文件名。
         /// </summary>
         public string Name
         {
@@ -446,7 +448,7 @@ public static class ModLocalComp
                 if (_Name is null)
                 {
                     if (IsFolder)
-                        _Name = ModBase.GetFolderNameFromPath(ActualPath);
+                        _Name = PathUtils.GetFolderNameFromPath(ActualPath);
                     else
                         _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
                 }
@@ -456,14 +458,14 @@ public static class ModLocalComp
             set
             {
                 if (_Name is null && value is not null && !value.Contains("modname") && value.ToLower() != "name" &&
-                    value.Count() > 1 && (ModBase.Val(value).ToString() ?? "") != (value ?? "")) _Name = value;
+                    value.Count() > 1 && (StringExtension.Val(value).ToString() ?? "") != (value ?? "")) _Name = value;
             }
         }
 
         private string _Name;
 
         /// <summary>
-        ///     Mod 的描述信息。
+        /// Mod 的描述信息。
         /// </summary>
         public string Description
         {
@@ -492,7 +494,7 @@ public static class ModLocalComp
         private string _Description;
 
         /// <summary>
-        ///     文件类型标签。
+        /// 文件类型标签。
         /// </summary>
         public List<string> Tags
         {
@@ -511,21 +513,21 @@ public static class ModLocalComp
                         switch (extension ?? "")
                         {
                             case ".litematic":
-                            {
-                                _tags.Add("原理图");
-                                break;
-                            }
+                                {
+                                    _tags.Add("原理图");
+                                    break;
+                                }
                             case ".schem":
                             case ".schematic":
-                            {
-                                _tags.Add("Schematic结构");
-                                break;
-                            }
+                                {
+                                    _tags.Add("Schematic结构");
+                                    break;
+                                }
                             case ".nbt":
-                            {
-                                _tags.Add("原版结构");
-                                break;
-                            }
+                                {
+                                    _tags.Add("原版结构");
+                                    break;
+                                }
                         }
                     }
                 }
@@ -537,7 +539,7 @@ public static class ModLocalComp
         private List<string> _tags;
 
         /// <summary>
-        ///     Mod 的版本，不保证符合版本格式规范。
+        /// Mod 的版本，不保证符合版本格式规范。
         /// </summary>
         public string Version
         {
@@ -560,7 +562,7 @@ public static class ModLocalComp
         public string _Version;
 
         /// <summary>
-        ///     用于依赖检查的 ModID。
+        /// 用于依赖检查的 ModID。
         /// </summary>
         public string ModId
         {
@@ -575,7 +577,7 @@ public static class ModLocalComp
                 if (value is null)
                     return;
                 value = value.RegexSeek(RegexPatterns.ModIdMatch);
-                if (value is null || value.Count() <= 1 || (ModBase.Val(value).ToString() ?? "") == (value ?? ""))
+                if (value is null || value.Count() <= 1 || (StringExtension.Val(value).ToString(CultureInfo.InvariantCulture) ?? "") == (value ?? ""))
                     return;
                 if (value.ContainsF("name", true) || value.ContainsF("modid", true))
                     return;
@@ -589,12 +591,12 @@ public static class ModLocalComp
         private string _ModId;
 
         /// <summary>
-        ///     其他可能的 ModID。
+        /// 其他可能的 ModID。
         /// </summary>
         public List<string> PossibleModId = new();
 
         /// <summary>
-        ///     Mod 的主页。
+        /// Mod 的主页。
         /// </summary>
         public string Url
         {
@@ -613,7 +615,7 @@ public static class ModLocalComp
         private string _Url;
 
         /// <summary>
-        ///     Mod 的作者列表。
+        /// Mod 的作者列表。
         /// </summary>
         public string Authors
         {
@@ -632,7 +634,7 @@ public static class ModLocalComp
         private string _Authors;
 
         /// <summary>
-        ///     Litematic 文件的创建时间戳。
+        /// Litematic 文件的创建时间戳。
         /// </summary>
         public long? LitematicTimeCreated
         {
@@ -646,7 +648,7 @@ public static class ModLocalComp
         private long? _litematicTimeCreated;
 
         /// <summary>
-        ///     Litematic 文件的修改时间戳。
+        /// Litematic 文件的修改时间戳。
         /// </summary>
         public long? LitematicTimeModified
         {
@@ -660,7 +662,7 @@ public static class ModLocalComp
         private long? _litematicTimeModified;
 
         /// <summary>
-        ///     Schem 读取到的原始名称。
+        /// Schem 读取到的原始名称。
         /// </summary>
         public string SchemOriginalName
         {
@@ -674,7 +676,7 @@ public static class ModLocalComp
         private string _schemOriginalName;
 
         /// <summary>
-        ///     Litematic 读取到的原始名称。
+        /// Litematic 读取到的原始名称。
         /// </summary>
         public string LitematicOriginalName
         {
@@ -688,7 +690,7 @@ public static class ModLocalComp
         private string _litematicOriginalName;
 
         /// <summary>
-        ///     Litematic 文件的版本。
+        /// Litematic 文件的版本。
         /// </summary>
         public int? LitematicVersion
         {
@@ -702,7 +704,7 @@ public static class ModLocalComp
         private int? _litematicVersion;
 
         /// <summary>
-        ///     Litematic 文件的包围盒大小。
+        /// Litematic 文件的包围盒大小。
         /// </summary>
         public string LitematicEnclosingSize
         {
@@ -716,7 +718,7 @@ public static class ModLocalComp
         private string _litematicEnclosingSize;
 
         /// <summary>
-        ///     Litematic 文件的区域数量。
+        /// Litematic 文件的区域数量。
         /// </summary>
         public int? LitematicRegionCount
         {
@@ -730,7 +732,7 @@ public static class ModLocalComp
         private int? _litematicRegionCount;
 
         /// <summary>
-        ///     Litematic 文件的总方块数。
+        /// Litematic 文件的总方块数。
         /// </summary>
         public int? LitematicTotalBlocks
         {
@@ -744,7 +746,7 @@ public static class ModLocalComp
         private int? _litematicTotalBlocks;
 
         /// <summary>
-        ///     Litematic 文件的总体积。
+        /// Litematic 文件的总体积。
         /// </summary>
         public int? LitematicTotalVolume
         {
@@ -758,7 +760,7 @@ public static class ModLocalComp
         private int? _litematicTotalVolume;
 
         /// <summary>
-        ///     原版结构文件的游戏版本。
+        /// 原版结构文件的游戏版本。
         /// </summary>
         public string StructureGameVersion
         {
@@ -772,7 +774,7 @@ public static class ModLocalComp
         private string _structureGameVersion;
 
         /// <summary>
-        ///     原版结构文件的数据版本。
+        /// 原版结构文件的数据版本。
         /// </summary>
         public int? StructureDataVersion
         {
@@ -786,7 +788,7 @@ public static class ModLocalComp
         private int? _structureDataVersion;
 
         /// <summary>
-        ///     原版结构文件的作者。
+        /// 原版结构文件的作者。
         /// </summary>
         public string StructureAuthor
         {
@@ -800,7 +802,7 @@ public static class ModLocalComp
         private string _structureAuthor;
 
         /// <summary>
-        ///     Sponge Schematic 文件的版本。
+        /// Sponge Schematic 文件的版本。
         /// </summary>
         public int? SpongeVersion
         {
@@ -814,12 +816,12 @@ public static class ModLocalComp
         private int? _spongeVersion;
 
         /// <summary>
-        ///     Mod 图标路径。
+        /// Mod 图标路径。
         /// </summary>
         public string Logo { get; set; }
 
         /// <summary>
-        ///     依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
+        /// 依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
         /// </summary>
         public Dictionary<string, string> Dependencies
         {
@@ -838,7 +840,7 @@ public static class ModLocalComp
             if (ModID is null || ModID.Count() < 2)
                 return;
             ModID = ModID.ToLower();
-            if (ModID == "name" || (ModBase.Val(ModID).ToString() ?? "") == (ModID ?? ""))
+            if (ModID == "name" || (StringExtension.Val(ModID).ToString(CultureInfo.InvariantCulture) ?? "") == (ModID ?? ""))
                 return; // 跳过 name 与纯数字 id
             if (VersionRequirement is null ||
                 (!VersionRequirement.Contains(".") && !VersionRequirement.Contains("-")) ||
@@ -867,12 +869,12 @@ public static class ModLocalComp
         // 成功：继续第二步。
         // 失败：标记 FileUnavailableReason， 并停止后续加载。
         /// <summary>
-        ///     是否已进行 Mod 文件的基础加载。（这包括第一步和第二步）
+        /// 是否已进行 Mod 文件的基础加载。（这包括第一步和第二步）
         /// </summary>
         private bool IsLoaded;
 
         /// <summary>
-        ///     Mod 文件是否可被正常读取。
+        /// Mod 文件是否可被正常读取。
         /// </summary>
         public bool IsFileAvailable
         {
@@ -884,7 +886,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     Mod 文件出错的原因。若无错误，则为 Nothing。
+        /// Mod 文件出错的原因。若无错误，则为 Nothing。
         /// </summary>
         public Exception FileUnavailableReason
         {
@@ -901,7 +903,7 @@ public static class ModLocalComp
         // 成功：标记 IsInfoWithoutClassAvailable。
         // 失败：什么也不干。如果需要补充信息的话，检测到 IsInfoWithoutClassAvailable 为 False，会自动继续加载。
         /// <summary>
-        ///     是否已在不获取 .class 文件的前提下完成了所需信息的加载。
+        /// 是否已在不获取 .class 文件的前提下完成了所需信息的加载。
         /// </summary>
         private bool IsInfoWithoutClassAvailable = false;
 
@@ -909,12 +911,12 @@ public static class ModLocalComp
         // 成功：标记 IsInfoWithClassAvailable。
         // 失败：什么也不干。
         /// <summary>
-        ///     是否已进行 .class 文件的信息获取。
+        /// 是否已进行 .class 文件的信息获取。
         /// </summary>
         private bool IsInfoWithClassLoaded;
 
         /// <summary>
-        ///     是否已在 .class 文件中完成了所需信息的加载。
+        /// 是否已在 .class 文件中完成了所需信息的加载。
         /// </summary>
         private bool IsInfoWithClassAvailable;
 
@@ -923,7 +925,7 @@ public static class ModLocalComp
         #region 加载
 
         /// <summary>
-        ///     初始化所有数据。
+        /// 初始化所有数据。
         /// </summary>
         private void Init()
         {
@@ -940,7 +942,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     加载基本信息（不解析NBT数据）。
+        /// 加载基本信息（不解析NBT数据）。
         /// </summary>
         public void LoadBasicInfo()
         {
@@ -980,7 +982,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     延迟加载NBT数据。
+        /// 延迟加载NBT数据。
         /// </summary>
         public void LoadNbtDataIfNeeded()
         {
@@ -1008,7 +1010,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     进行文件可用性检查与 .class 以外的信息获取。
+        /// 进行文件可用性检查与 .class 以外的信息获取。
         /// </summary>
         public void Load(bool ForceReload = false)
         {
@@ -1112,7 +1114,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     从 Jar 文件中获取 Mod 信息。
+        /// 从 Jar 文件中获取 Mod 信息。
         /// </summary>
         private void LookupMetadata(ZipArchive Jar)
         {
@@ -1154,7 +1156,7 @@ public static class ModLocalComp
                         foreach (var Token in AuthorJson)
                             Author.Add(Token.ToString());
                         if (Author.Any())
-                            Authors = Author.Join(", ");
+                            Authors = string.Join(", ", Author);
                     }
 
                     var LogoFile = (string)InfoObject["logoFile"];
@@ -1163,7 +1165,7 @@ public static class ModLocalComp
                         var LogoItem = Jar.GetEntry(LogoFile);
                         if (LogoItem is not null)
                         {
-                            var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
+                            var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
                             Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
                             {
@@ -1256,7 +1258,7 @@ public static class ModLocalComp
                         var LogoItem = Jar.GetEntry(LogoFile);
                         if (LogoItem != null)
                         {
-                            var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
+                            var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
                             Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
                             {
@@ -1321,7 +1323,7 @@ public static class ModLocalComp
                             var LogoItem = Jar.GetEntry(LogoFile);
                             if (LogoItem is not null)
                             {
-                                var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
+                                var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
                                 Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                                 using (var EntryStream = LogoItem.Open())
                                 {
@@ -1539,7 +1541,7 @@ public static class ModLocalComp
                     }
 
                     break;
-                    Got: ;
+                Got:;
 
                     // 从文件中获取 Mod 信息项
                     if (FmlObject.ContainsKey("useMetadata") &&
@@ -1551,7 +1553,7 @@ public static class ModLocalComp
                             break;
                         value = value.ToLower().RegexSeek(RegexPatterns.ModIdMatch);
                         if (value is not null && value.ToLower() != "name" && value.Count() > 1 &&
-                            (ModBase.Val(value).ToString() ?? "") != (value ?? ""))
+                            (StringExtension.Val(value).ToString(CultureInfo.InvariantCulture) ?? "") != (value ?? ""))
                             if (!PossibleModId.Contains(value))
                                 PossibleModId.Add(value);
                         break;
@@ -1614,7 +1616,7 @@ public static class ModLocalComp
                 if (packPngEntry is not null)
                     try
                     {
-                        var md5 = ModBase.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path);
+                        var md5 = TextUtils.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path);
                         Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {
@@ -1635,7 +1637,7 @@ public static class ModLocalComp
 
             #endregion
 
-            Finished: ;
+        Finished:;
 
             #region 将 Version 代号转换为 META-INF 中的版本
 
@@ -1673,14 +1675,14 @@ public static class ModLocalComp
         #region 网络信息
 
         /// <summary>
-        ///     当任何网络信息更新时触发。
+        /// 当任何网络信息更新时触发。
         /// </summary>
         public event OnCompUpdateEventHandler? OnCompUpdate;
 
         public delegate void OnCompUpdateEventHandler(LocalCompFile sender);
 
         /// <summary>
-        ///     该 Mod 关联的网络项目。
+        /// 该 Mod 关联的网络项目。
         /// </summary>
         public CompProject Comp
         {
@@ -1695,12 +1697,12 @@ public static class ModLocalComp
         private CompProject _Comp;
 
         /// <summary>
-        ///     本地文件对应的联网文件信息。
+        /// 本地文件对应的联网文件信息。
         /// </summary>
         public CompFile CompFile;
 
         /// <summary>
-        ///     该 Mod 对应的联网最新版本。
+        /// 该 Mod 对应的联网最新版本。
         /// </summary>
         public CompFile UpdateFile
         {
@@ -1715,17 +1717,17 @@ public static class ModLocalComp
         private CompFile _UpdateFile;
 
         /// <summary>
-        ///     该 Mod 的更新日志网址。
+        /// 该 Mod 的更新日志网址。
         /// </summary>
         public List<string> ChangelogUrls = new();
 
         /// <summary>
-        ///     所有网络信息是否已成功加载。
+        /// 所有网络信息是否已成功加载。
         /// </summary>
         public bool CompLoaded;
 
         /// <summary>
-        ///     将网络信息保存为 Json。
+        /// 将网络信息保存为 Json。
         /// </summary>
         public JObject ToJson()
         {
@@ -1742,7 +1744,7 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     从 Json 中读取网络信息。
+        /// 从 Json 中读取网络信息。
         /// </summary>
         public void FromJson(JObject Json)
         {
@@ -1758,12 +1760,12 @@ public static class ModLocalComp
         }
 
         /// <summary>
-        ///     该文件是否可以更新。
+        /// 该文件是否可以更新。
         /// </summary>
         public bool CanUpdate => !Config.Preference.Hide.FunctionModUpdate && ChangelogUrls.Any();
 
         /// <summary>
-        ///     获取用于 CurseForge 信息获取的 Hash 值（MurmurHash2）。
+        /// 获取用于 CurseForge 信息获取的 Hash 值（MurmurHash2）。
         /// </summary>
         public uint CurseForgeHash
         {
@@ -1773,7 +1775,7 @@ public static class ModLocalComp
                 {
                     // 读取缓存
                     var Info = new FileInfo(Path);
-                    var CacheKey = ModBase.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-C")
+                    var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-C")
                         .ToString();
                     var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
                     if (!string.IsNullOrEmpty(Cached) && Cached.RegexCheck(@"^\d+$")) // #5062
@@ -1810,24 +1812,24 @@ public static class ModLocalComp
                     switch (length - i)
                     {
                         case 3:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = h ^ ((uint)data[i + 2] << 16);
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
+                            {
+                                h = h ^ (data[i] | ((uint)data[i + 1] << 8));
+                                h = h ^ ((uint)data[i + 2] << 16);
+                                h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
+                                break;
+                            }
                         case 2:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
+                            {
+                                h = h ^ (data[i] | ((uint)data[i + 1] << 8));
+                                h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
+                                break;
+                            }
                         case 1:
-                        {
-                            h = h ^ data[i];
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
+                            {
+                                h = h ^ data[i];
+                                h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
+                                break;
+                            }
                     }
 
                     h = h ^ (h >> 13);
@@ -1845,7 +1847,7 @@ public static class ModLocalComp
         private uint? _CurseForgeHash;
 
         /// <summary>
-        ///     获取用于 Modrinth 信息获取的 Hash 值（SHA1）。
+        /// 获取用于 Modrinth 信息获取的 Hash 值（SHA1）。
         /// </summary>
         public string ModrinthHash
         {
@@ -1855,7 +1857,7 @@ public static class ModLocalComp
                 {
                     // 读取缓存
                     var Info = new FileInfo(Path);
-                    var CacheKey = ModBase.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-M")
+                    var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-M")
                         .ToString();
                     var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
                     if (!string.IsNullOrEmpty(Cached))
@@ -1895,7 +1897,7 @@ public static class ModLocalComp
     }
 
     /// <summary>
-    ///     获取文件夹描述信息。
+    /// 获取文件夹描述信息。
     /// </summary>
     private static string GetFolderDescription(string FolderPath)
     {
@@ -2093,7 +2095,7 @@ public static class ModLocalComp
                 if (ModEntry.State == LocalCompFile.LocalFileStatus.Unavailable)
                     continue;
                 var CacheKey = ModEntry.ModrinthHash + Loader.Input.GameVersion.Info.VanillaName +
-                               Loader.Input.Loaders.Join("");
+                               string.Join(string.Empty, Loader.Input.Loaders);
                 if (Cache.ContainsKey(CacheKey))
                 {
                     ModEntry.FromJson((JObject)Cache[CacheKey]);
@@ -2353,25 +2355,25 @@ public static class ModLocalComp
         switch (TheType)
         {
             case CompType.Mod:
-            {
-                return "mods";
-            }
+                {
+                    return "mods";
+                }
             case CompType.ResourcePack:
-            {
-                return "resourcepacks";
-            }
+                {
+                    return "resourcepacks";
+                }
             case CompType.Shader:
-            {
-                return "shaderpacks";
-            }
+                {
+                    return "shaderpacks";
+                }
             case CompType.Schematic:
-            {
-                return "schematics";
-            }
+                {
+                    return "schematics";
+                }
             case CompType.World:
-            {
-                return "saves";
-            }
+                {
+                    return "saves";
+                }
         }
 
         return "Nothing";
@@ -2380,13 +2382,13 @@ public static class ModLocalComp
     private static readonly Regex RegexIsJarFile = new(@"\.jar(\.disabled)?$");
 
     /// <summary>
-    ///     通过文件名关键字和 Mod ID 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 Mod 的
-    ///     <see cref="LocalCompFile" /> 对象
-    ///     <br />
-    ///     <b>为了不浪费性能，关键字统一用小写</b>
+    /// 通过文件名关键字和 Mod ID 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 Mod 的
+    /// <see cref="LocalCompFile" /> 对象
+    /// <br />
+    /// <b>为了不浪费性能，关键字统一用小写</b>
     /// </summary>
     /// <returns>
-    ///     如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
+    /// 如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
     /// </returns>
     public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.McInstance instance, string modId,
         string mainKeyword, params string[] keywords)

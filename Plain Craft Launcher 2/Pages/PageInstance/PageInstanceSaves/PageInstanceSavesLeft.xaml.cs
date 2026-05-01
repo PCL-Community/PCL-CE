@@ -1,3 +1,5 @@
+using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,7 +29,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     #region 龙猫牌 页面管理
 
     /// <summary>
-    ///     当前页面的编号。从 0 开始计算。
+    /// 当前页面的编号。从 0 开始计算。
     /// </summary>
     public FormMain.PageSubType PageID = FormMain.PageSubType.Default;
 
@@ -42,12 +44,12 @@ public partial class PageInstanceSavesLeft : IRefreshable
     }
 
     /// <summary>
-    ///     勾选事件改变页面。
+    /// 勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
+            PageChange((FormMain.PageSubType)StringExtension.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType ID = FormMain.PageSubType.Default)
@@ -57,33 +59,33 @@ public partial class PageInstanceSavesLeft : IRefreshable
         switch (ID)
         {
             case FormMain.PageSubType.VersionSavesInfo:
-            {
-                if (ModMain.FrmInstanceSavesInfo is null)
-                    ModMain.FrmInstanceSavesInfo = new PageInstanceSavesInfo();
-                return ModMain.FrmInstanceSavesInfo;
-            }
+                {
+                    if (ModMain.FrmInstanceSavesInfo is null)
+                        ModMain.FrmInstanceSavesInfo = new PageInstanceSavesInfo();
+                    return ModMain.FrmInstanceSavesInfo;
+                }
             case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                return ModMain.FrmInstanceSavesBackup;
-            }
+                {
+                    if (ModMain.FrmInstanceSavesBackup is null)
+                        ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
+                    return ModMain.FrmInstanceSavesBackup;
+                }
             case FormMain.PageSubType.VersionSavesDatapack:
-            {
-                if (ModMain.FrmInstanceSavesDatapack is null)
-                    ModMain.FrmInstanceSavesDatapack = new PageInstanceSavesDatapack();
-                return ModMain.FrmInstanceSavesDatapack;
-            }
+                {
+                    if (ModMain.FrmInstanceSavesDatapack is null)
+                        ModMain.FrmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                    return ModMain.FrmInstanceSavesDatapack;
+                }
 
             default:
-            {
-                throw new Exception("未知的实例设置子页面种类：" + (int)ID);
-            }
+                {
+                    throw new Exception("未知的实例设置子页面种类：" + (int)ID);
+                }
         }
     }
 
     /// <summary>
-    ///     切换现有页面。
+    /// 切换现有页面。
     /// </summary>
     public void PageChange(FormMain.PageSubType ID)
     {
@@ -131,7 +133,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)StringExtension.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()
@@ -144,27 +146,27 @@ public partial class PageInstanceSavesLeft : IRefreshable
         switch (SubType)
         {
             case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                if (ItemBackup.Checked)
-                    ModMain.FrmInstanceSavesBackup.Refresh();
-                else
-                    ItemBackup.Checked = true;
+                {
+                    if (ModMain.FrmInstanceSavesBackup is null)
+                        ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
+                    if (ItemBackup.Checked)
+                        ModMain.FrmInstanceSavesBackup.Refresh();
+                    else
+                        ItemBackup.Checked = true;
 
-                break;
-            }
+                    break;
+                }
             case FormMain.PageSubType.VersionSavesDatapack:
-            {
-                if (ModMain.FrmInstanceSavesDatapack is null)
-                    ModMain.FrmInstanceSavesDatapack = new PageInstanceSavesDatapack();
-                if (ItemDatapack.Checked)
-                    ModMain.FrmInstanceSavesDatapack.Refresh();
-                else
-                    ItemDatapack.Checked = true;
+                {
+                    if (ModMain.FrmInstanceSavesDatapack is null)
+                        ModMain.FrmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                    if (ItemDatapack.Checked)
+                        ModMain.FrmInstanceSavesDatapack.Refresh();
+                    else
+                        ItemDatapack.Checked = true;
 
-                break;
-            }
+                    break;
+                }
         }
 
         ModMain.Hint("刷新中……");

@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -21,7 +22,7 @@ public class MyImage : Image
     }
 
     /// <summary>
-    ///     实际被呈现的图片地址。
+    /// 实际被呈现的图片地址。
     /// </summary>
     public string ActualSource
     {
@@ -130,7 +131,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string Url)
     {
-        return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
+        return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{TextUtils.GetStringMD5(Url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
@@ -142,7 +143,7 @@ public class MyImage : Image
 
         try
         {
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            Directory.CreateDirectory(PathUtils.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
@@ -186,9 +187,9 @@ public class MyImage : Image
         DependencyProperty.Register("EnableCache", typeof(bool), typeof(MyImage), new PropertyMetadata(true));
 
     /// <summary>
-    ///     与 Image 的 Source 类似。
-    ///     若输入以 http 开头的字符串，则会尝试下载图片然后显示，图片会保存为本地缓存。
-    ///     支持 WebP 格式的图片。
+    /// 与 Image 的 Source 类似。
+    /// 若输入以 http 开头的字符串，则会尝试下载图片然后显示，图片会保存为本地缓存。
+    /// 支持 WebP 格式的图片。
     /// </summary>
     public new string Source // 覆写 Image 的 Source 属性
     {
@@ -215,12 +216,12 @@ public class MyImage : Image
         }));
 
     /// <summary>
-    ///     当 Source 首次下载失败时，会从该备用地址加载图片。
+    /// 当 Source 首次下载失败时，会从该备用地址加载图片。
     /// </summary>
     public string FallbackSource { get; set; }
 
     /// <summary>
-    ///     正在下载网络图片时显示的本地图片。
+    /// 正在下载网络图片时显示的本地图片。
     /// </summary>
     public string LoadingSource { get; set; } = "pack://application:,,,/images/Icons/NoIcon.png";
     public CornerRadius CornerRadius

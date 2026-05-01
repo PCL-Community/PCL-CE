@@ -81,15 +81,15 @@ public partial class PageLoginAuth
             {
                 ModProfile.IsCreatingProfile = true;
                 ModLaunch.McLoginAuthLoader.Start(LoginData, true);
-                while (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.McLoginAuthLoader.State == Enums.LoadState.Loading)
                 {
                     BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginAuthLoader.Progress * 100d)}%";
                     await Task.Delay(50);
                 }
 
-                if (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginAuthLoader.State == Enums.LoadState.Finished)
                     ModMain.FrmLaunchLeft.RefreshPage(true);
-                else if (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Aborted)
+                else if (ModLaunch.McLoginAuthLoader.State == Enums.LoadState.Aborted)
                     ModMain.Hint("已取消登录！");
                 else if (ModLaunch.McLoginAuthLoader.Error is null)
                     throw new Exception("未知错误！");

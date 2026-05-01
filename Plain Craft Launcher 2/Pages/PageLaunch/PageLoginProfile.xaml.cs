@@ -20,7 +20,7 @@ public partial class PageLoginProfile
     public ObservableCollection<ProfileItem> ProfileCollection { get; set; } = new();
 
     /// <summary>
-    ///     刷新页面显示的所有信息。
+    /// 刷新页面显示的所有信息。
     /// </summary>
     public void Reload()
     {
@@ -33,7 +33,7 @@ public partial class PageLoginProfile
     }
 
     /// <summary>
-    ///     刷新档案列表
+    /// 刷新档案列表
     /// </summary>
     public void RefreshProfileList()
     {
@@ -93,9 +93,9 @@ public partial class PageLoginProfile
         ModProfile.SaveProfile(); // 保存档案配置，确保切换后的档案被正确保存
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.McLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.McLoginMsLoader.State = Enums.LoadState.Waiting;
+        ModLaunch.McLoginAuthLoader.State = Enums.LoadState.Waiting;
+        ModLaunch.McLoginLegacyLoader.State = Enums.LoadState.Waiting;
 
         ModBase.RunInUi(() =>
         {

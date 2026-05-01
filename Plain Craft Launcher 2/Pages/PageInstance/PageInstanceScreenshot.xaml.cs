@@ -64,7 +64,7 @@ public partial class PageInstanceScreenshot : IRefreshable
     }
 
     /// <summary>
-    ///     确保当前页面上的信息已正确显示。
+    /// 确保当前页面上的信息已正确显示。
     /// </summary>
     public async Task Reload()
     {

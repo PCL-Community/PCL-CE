@@ -1,16 +1,16 @@
+using FluentValidation;
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Validate;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Collections;
-using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using FluentValidation;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.Utils.Validate;
-using PCL.Network;
-using PCL.Network.Loaders;
+using PCL.Core.Utils;
 using Control = System.Windows.Forms.Control;
 
 namespace PCL;
@@ -76,11 +76,12 @@ public partial class PageDownloadCompDetail
                 $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             Loaders.Add(new LoaderDownload("下载整合包文件", new List<DownloadFile> { File.ToNetFile(Target) })
-                { ProgressWeight = 10d, Block = true });
+            { ProgressWeight = 10d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("准备安装整合包",
                 _ => ModModpack.ModpackInstall(Target, InstanceName,
                     System.IO.File.Exists(LogoFileAddress) ? LogoFileAddress : null, File.ProjectId,
-                    true)) { ProgressWeight = 0.1d });
+                    true))
+            { ProgressWeight = 0.1d });
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<string>(LoaderName, Loaders)
@@ -89,20 +90,20 @@ public partial class PageDownloadCompDetail
                 {
                     switch (MyLoader.State)
                     {
-                        case ModBase.LoadState.Failed:
-                        {
-                            ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
-                            break;
-                        }
-                        case ModBase.LoadState.Aborted:
-                        {
-                            ModMain.Hint(MyLoader.Name + "已取消！");
-                            break;
-                        }
-                        case ModBase.LoadState.Loading:
-                        {
-                            return; // 不重新加载版本列表
-                        }
+                        case Enums.LoadState.Failed:
+                            {
+                                ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
+                                break;
+                            }
+                        case Enums.LoadState.Aborted:
+                            {
+                                ModMain.Hint(MyLoader.Name + "已取消！");
+                                break;
+                            }
+                        case Enums.LoadState.Loading:
+                            {
+                                return; // 不重新加载版本列表
+                            }
                     }
 
                     ModDownloadLib.McInstallFailedClearFolder(MyLoader);
@@ -138,7 +139,7 @@ public partial class PageDownloadCompDetail
             if (File.ModLoaders.Any())
                 AllowedLoaders = File.ModLoaders;
             else if (_project.ModLoaders.Any()) AllowedLoaders = _project.ModLoaders;
-            ModBase.Log("[Comp] 世界要求的加载器种类：" + (AllowedLoaders.Any() ? AllowedLoaders.Join(" / ") : "无要求"));
+            ModBase.Log("[Comp] 世界要求的加载器种类：" + (AllowedLoaders.Any() ? string.Join(" / ", AllowedLoaders) : "无要求"));
             // 判断某个版本是否符合资源要求
             IsVersionSuitable = Version =>
             {
@@ -157,8 +158,8 @@ public partial class PageDownloadCompDetail
             // 获取常规资源默认下载位置
             if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
             {
-                DefaultFolder = CachedFolder.GetOrDefault(File.Type,
-                    ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
+                _ = CachedFolder.TryGetValue(File.Type, out var value);
+                DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath;
                 ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
             }
             else if (ModMinecraft.McInstanceSelected is not null && IsVersionSuitable(ModMinecraft.McInstanceSelected))
@@ -170,7 +171,7 @@ public partial class PageDownloadCompDetail
             else
             {
                 // 查找所有可能的实例
-                var NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
+                var NeedLoad = ModMinecraft.McInstanceListLoader.State != Enums.LoadState.Finished;
                 if (NeedLoad)
                 {
                     ModMain.Hint("正在查找适合的游戏实例……");
@@ -210,15 +211,15 @@ public partial class PageDownloadCompDetail
             var TargetPath = Target.BeforeLast(@"\");
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             Loaders.Add(new LoaderDownload("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
-                { ProgressWeight = 10d, Block = true });
+            { ProgressWeight = 10d, Block = true });
             Loaders.Add(
                 new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
-                    { ProgressWeight = 0.1d, Block = true });
+                { ProgressWeight = 0.1d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", _ => System.IO.File.Delete(Target)));
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<int>(LoaderName, Loaders)
-                { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             Loader.Start();
             ModLoader.LoaderTaskbarAdd(Loader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -314,8 +315,9 @@ public partial class PageDownloadCompDetail
                     // 获取常规资源默认下载位置逻辑
                     if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
                     {
-                        DefaultFolder = CachedFolder.GetOrDefault(File.Type,
-                            ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
+
+                        _ = CachedFolder.TryGetValue(File.Type, out var value);
+                        DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath;
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
                     else if (ModMinecraft.McInstanceSelected != null &&
@@ -328,7 +330,7 @@ public partial class PageDownloadCompDetail
                     else
                     {
                         // 查找所有可能的实例
-                        var NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
+                        var NeedLoad = ModMinecraft.McInstanceListLoader.State != Enums.LoadState.Finished;
                         if (NeedLoad)
                         {
                             ModMain.Hint("正在查找适合的游戏实例……");
@@ -378,7 +380,7 @@ public partial class PageDownloadCompDetail
                     if (!Target.Contains("\\")) return;
 
                     // 记录缓存路径
-                    var targetDir = ModBase.GetPathFromFullPath(Target);
+                    var targetDir = PathUtils.GetPathFromFullPath(Target);
                     if (Target != DefaultFolder)
                     {
                         if (CachedFolder.ContainsKey(File.Type))
@@ -452,7 +454,7 @@ public partial class PageDownloadCompDetail
     }
 
     /// <summary>
-    ///     刷新收藏按钮的显示状态
+    /// 刷新收藏按钮的显示状态
     /// </summary>
     public void RefreshFavoriteButton()
     {
@@ -517,7 +519,7 @@ public partial class PageDownloadCompDetail
     private ModComp.CompLoaderType _targetLoader;
 
     /// <summary>
-    ///     当前页面应展示的内容类别。可能为 Any。
+    /// 当前页面应展示的内容类别。可能为 Any。
     /// </summary>
     private ModComp.CompType _pageType;
 
@@ -526,19 +528,19 @@ public partial class PageDownloadCompDetail
     {
         switch (_compFileLoader.State)
         {
-            case ModBase.LoadState.Failed:
-            {
-                var errorMessage = "";
-                if (_compFileLoader.Error is not null)
-                    errorMessage = _compFileLoader.Error.Message;
-                if (errorMessage.Contains("不是有效的 Json 文件"))
+            case Enums.LoadState.Failed:
                 {
-                    ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    if (_compFileLoader.Error is not null)
+                        errorMessage = _compFileLoader.Error.Message;
+                    if (errorMessage.Contains("不是有效的 Json 文件"))
+                    {
+                        ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -645,7 +647,7 @@ public partial class PageDownloadCompDetail
         GroupedDrop = true;
         GroupedOld = true;
         updateFilters();
-        GroupDone: ;
+    GroupDone:;
 
 
         // UI 化筛选器
@@ -696,7 +698,8 @@ public partial class PageDownloadCompDetail
             {
                 var newButton = new MyRadioButton
                 {
-                    Text = version, Margin = new Thickness(2d, 0d, 2d, 0d),
+                    Text = version,
+                    Margin = new Thickness(2d, 0d, 2d, 0d),
                     ColorType = MyRadioButton.ColorState.Highlight
                 };
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
@@ -916,31 +919,31 @@ public partial class PageDownloadCompDetail
                     switch (_project.Type)
                     {
                         case ModComp.CompType.ModPack:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) => ModMain.FrmDownloadCompDetail.Install_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
+                            {
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(
+                                        (sender, e) => ModMain.FrmDownloadCompDetail.Install_Click((MyListItem)sender, e),
+                                        ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
+                                break;
+                            }
                         case ModComp.CompType.World:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) =>
-                                        ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
+                            {
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(
+                                        (sender, e) =>
+                                            ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
+                                        ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
+                                break;
+                            }
 
                         default:
-                        {
-                            ModComp.CompFilesCardPreload(stack, list);
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(ModMain.FrmDownloadCompDetail.Save_Click,
-                                    badDisplayName: badDisplayName));
-                            break;
-                        }
+                            {
+                                ModComp.CompFilesCardPreload(stack, list);
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(ModMain.FrmDownloadCompDetail.Save_Click,
+                                        badDisplayName: badDisplayName));
+                                break;
+                            }
                     }
                 };
 
@@ -973,7 +976,7 @@ public partial class PageDownloadCompDetail
     }
 
     /// <summary>
-    ///     辅助方法：向字典添加数据并处理去重
+    /// 辅助方法：向字典添加数据并处理去重
     /// </summary>
     private void AddVersionToDict(SortedDictionary<string, List<ModComp.CompFile>> dict,
         Dictionary<string, HashSet<ModComp.CompFile>> checker, string key, ModComp.CompFile version)

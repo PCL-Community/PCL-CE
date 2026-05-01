@@ -161,7 +161,7 @@ internal static class ModStyle
         }
 
         /// <summary>
-        ///     Minecraft 文本格式化代码，用于显示不同颜色的文本
+        /// Minecraft 文本格式化代码，用于显示不同颜色的文本
         /// </summary>
         /// <param name="text">要格式化的文本</param>
         /// <param name="lab">控件</param>

@@ -1,5 +1,5 @@
+using PCL.Core.App;
 using System.IO;
-using System.Threading;
 
 namespace PCL.Network.Loaders;
 
@@ -26,9 +26,9 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
 
         lock (LockState)
         {
-            if (State == ModBase.LoadState.Loading)
+            if (State == Enums.LoadState.Loading)
                 return;
-            State = ModBase.LoadState.Loading;
+            State = Enums.LoadState.Loading;
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
@@ -42,7 +42,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
             cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(Path.GetDirectoryName(SavePath) ?? throw new IOException("下载路径无效"));
             ModBase.CopyFile(Unc, SavePath);
-            State = ModBase.LoadState.Finished;
+            State = Enums.LoadState.Finished;
         }
         catch (OperationCanceledException)
         {
@@ -51,15 +51,15 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         catch (Exception ex)
         {
             Error = ex;
-            State = ModBase.LoadState.Failed;
+            State = Enums.LoadState.Failed;
         }
     }
 
     public override void Abort()
     {
-        if (State >= ModBase.LoadState.Finished)
+        if (State >= Enums.LoadState.Finished)
             return;
-        State = ModBase.LoadState.Aborted;
+        State = Enums.LoadState.Aborted;
         _cancellationTokenSource?.Cancel();
     }
 }

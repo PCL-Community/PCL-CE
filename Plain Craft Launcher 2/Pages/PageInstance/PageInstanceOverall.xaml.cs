@@ -63,7 +63,7 @@ public partial class PageInstanceOverall
     }
 
     /// <summary>
-    ///     确保当前页面上的信息已正确显示。
+    /// 确保当前页面上的信息已正确显示。
     /// </summary>
     private void Reload()
     {
@@ -515,7 +515,7 @@ public partial class PageInstanceOverall
             if (string.IsNullOrEmpty(SavePath))
                 return;
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
+            if (ModLaunch.McLaunchLoader.State == Enums.LoadState.Loading)
             {
                 ModMain.Hint("请在当前启动任务结束后再试！", ModMain.HintType.Critical);
                 return;
@@ -566,17 +566,17 @@ public partial class PageInstanceOverall
             {
                 switch (Loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case Enums.LoadState.Finished:
                     {
                         ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
                         break;
                     }
-                    case ModBase.LoadState.Failed:
+                    case Enums.LoadState.Failed:
                     {
                         ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
                         break;
                     }
-                    case ModBase.LoadState.Aborted:
+                    case Enums.LoadState.Aborted:
                     {
                         ModMain.Hint(Loader.Name + "已取消！");
                         break;

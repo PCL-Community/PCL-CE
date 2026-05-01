@@ -276,7 +276,7 @@ public partial class MyExtraButton
     }
 
     /// <summary>
-    ///     发出一圈波浪效果提示。
+    /// 发出一圈波浪效果提示。
     /// </summary>
     public void Ribble()
     {

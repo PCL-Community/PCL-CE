@@ -1,5 +1,7 @@
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
 using System;
+using System.Globalization;
 using System.Text;
 
 namespace PCL.Core.Utils;
@@ -69,16 +71,26 @@ public static class TextUtils
     /// </summary>
     public static string GetStringMD5(string str)
     {
-        return GetHexString(MD5Provider.Instance.ComputeHash(str));
+        return MD5Provider.Instance.ComputeHash(str).ToHexString();
     }
 
 
-    public static string GetHexString(Memory<byte> bytes)
+    /// <summary>
+    /// 将一个小数显示为固定的小数点后位数形式，将向零取整。
+    /// </summary>
+    /// <example>
+    /// 如 12 保留 2 位则输出 12.00，而 95.678 保留 2 位则输出 95.67。
+    /// </example>
+    public static string LimitNum(double num, int length)
     {
-        var sb = new StringBuilder(bytes.Length * 2);
-        foreach (var c in bytes.Span)
-            sb.Append(c.ToString("x2"));
+        num = Math.Round(num, length, MidpointRounding.AwayFromZero);
+        var strFillNumRet = num.ToString(CultureInfo.InvariantCulture);
 
-        return sb.ToString();
+        if (!strFillNumRet.Contains('.'))
+        {
+            return (strFillNumRet + '.').PadRight(strFillNumRet.Length + 1 + length, '0');
+        }
+
+        return strFillNumRet.PadRight(strFillNumRet.Split('.')[0].Length + 1 + length, '0');
     }
 }

@@ -1,3 +1,4 @@
+using PCL.Core.UI;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -9,9 +10,9 @@ namespace PCL;
 [ContentProperty("Inlines")]
 public partial class MyRadioBox : IMyRadio
 {
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
-    public delegate void PreviewCheckEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewCheckEventHandler(object sender, RouteEventArgs e);
 
     // 指向动画
 
@@ -76,7 +77,7 @@ public partial class MyRadioBox : IMyRadio
     public event PreviewChangeEventHandler? PreviewChange;
 
     /// <summary>
-    ///     手动设置 Checked 属性。
+    /// 手动设置 Checked 属性。
     /// </summary>
     /// <param name="value">新的 Checked 属性。</param>
     /// <param name="user">是否由用户引发。</param>
@@ -87,7 +88,7 @@ public partial class MyRadioBox : IMyRadio
             // Preview 事件
             if (value && user)
             {
-                var e = new ModBase.RouteEventArgs(user);
+                var e = new RouteEventArgs(user);
                 PreviewCheck?.Invoke(this, e);
                 if (e.Handled)
                 {
@@ -99,7 +100,7 @@ public partial class MyRadioBox : IMyRadio
             // 自定义属性基础
             var IsChanged = false;
             if (IsLoaded && !(value == Checked))
-                PreviewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
+                PreviewChange?.Invoke(this, new RouteEventArgs(user));
             if (!(value == Checked))
             {
                 SetValue(CheckedProperty, value);
@@ -159,8 +160,8 @@ public partial class MyRadioBox : IMyRadio
             if (IsChanged)
             {
                 if (Checked)
-                    Check?.Invoke(this, new ModBase.RouteEventArgs(user));
-                Changed?.Invoke(this, new ModBase.RouteEventArgs(user));
+                    Check?.Invoke(this, new RouteEventArgs(user));
+                Changed?.Invoke(this, new RouteEventArgs(user));
                 ModMain.RaiseCustomEvent(this);
             }
 

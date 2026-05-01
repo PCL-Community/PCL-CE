@@ -1,8 +1,9 @@
+using PCL.Core.App;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.App;
-using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -65,79 +66,79 @@ public partial class PageSetupUpdate
         switch (await IsLatestAsync())
         {
             case UpdateStatus.Available:
-            {
-                Exception checkUpdateEx = null;
-                try
                 {
-                    UpdateInfo = ModSecret.RemoteServer.GetLatestVersion(
-                        ModSecret.IsCurrentVersionBeta
-                            ? UpdateChannel.beta
-                            : UpdateChannel.stable, ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
-                    var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
-                    if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
-                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？";
+                    Exception checkUpdateEx = null;
+                    try
+                    {
+                        UpdateInfo = ModSecret.RemoteServer.GetLatestVersion(
+                            ModSecret.IsCurrentVersionBeta
+                                ? UpdateChannel.beta
+                                : UpdateChannel.stable, ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                        TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
+                        var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
+                        if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
+                            TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？";
+                        else
+                            TextChangelog.Text = summary;
+                    }
+                    catch (Exception ex)
+                    {
+                        checkUpdateEx = ex;
+                    }
+
+                    BtnCheckAgain.IsEnabled = true;
+                    if (UpdateInfo is null)
+                    {
+                        TextCurrentDesc.Text = "检查更新时出错";
+                        if (checkUpdateEx is not null)
+                            ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        else
+                            ModBase.Log("[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        return;
+                    }
+
+                    if (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == Enums.LoadState.Loading)
+                    {
+                        BtnUpdate_Timer();
+                        BtnUpdate.IsEnabled = false;
+                    }
+                    else if (ModSecret.IsUpdateWaitingRestart)
+                    {
+                        BtnUpdate.Text = "重启安装";
+                        BtnUpdate.IsEnabled = true;
+                    }
                     else
-                        TextChangelog.Text = summary;
-                }
-                catch (Exception ex)
-                {
-                    checkUpdateEx = ex;
-                }
+                    {
+                        BtnUpdate.Text = "下载并安装";
+                        BtnUpdate.IsEnabled = true;
+                    }
 
-                BtnCheckAgain.IsEnabled = true;
-                if (UpdateInfo is null)
-                {
-                    TextCurrentDesc.Text = "检查更新时出错";
-                    if (checkUpdateEx is not null)
-                        ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
-                    else
-                        ModBase.Log("[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
-                    return;
+                    CardUpdate.Visibility = Visibility.Visible;
+                    CardCheck.Visibility = Visibility.Collapsed;
+                    break;
                 }
-
-                if (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == ModBase.LoadState.Loading)
-                {
-                    BtnUpdate_Timer();
-                    BtnUpdate.IsEnabled = false;
-                }
-                else if (ModSecret.IsUpdateWaitingRestart)
-                {
-                    BtnUpdate.Text = "重启安装";
-                    BtnUpdate.IsEnabled = true;
-                }
-                else
-                {
-                    BtnUpdate.Text = "下载并安装";
-                    BtnUpdate.IsEnabled = true;
-                }
-
-                CardUpdate.Visibility = Visibility.Visible;
-                CardCheck.Visibility = Visibility.Collapsed;
-                break;
-            }
             case UpdateStatus.Latest:
-            {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = "已是最新版本";
-                break;
-            }
+                {
+                    CardUpdate.Visibility = Visibility.Collapsed;
+                    CardCheck.Visibility = Visibility.Visible;
+                    BtnCheckAgain.IsEnabled = true;
+                    TextCurrentDesc.Text = "已是最新版本";
+                    break;
+                }
             case UpdateStatus.Error:
-            {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = "检查更新时出错";
-                break;
-            }
+                {
+                    CardUpdate.Visibility = Visibility.Collapsed;
+                    CardCheck.Visibility = Visibility.Visible;
+                    BtnCheckAgain.IsEnabled = true;
+                    TextCurrentDesc.Text = "检查更新时出错";
+                    break;
+                }
         }
     }
 
     public void BtnUpdate_Timer()
     {
-        while (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == ModBase.LoadState.Loading)
+        while (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == Enums.LoadState.Loading)
         {
             ModBase.RunInUi(() => BtnUpdate.Text = $"{Math.Round(ModSecret.UpdateLoader.Progress, 2)}%");
             Thread.Sleep(200);
@@ -186,12 +187,12 @@ public partial class PageSetupUpdate
         switch (ComboSystemUpdateChannel.SelectedIndex)
         {
             case 0:
-            {
-                break;
-            }
+                {
+                    break;
+                }
             case 1:
-            {
-                const string warningMsg = """
+                {
+                    const string warningMsg = """
                                           你正在切换启动器更新通道到测试版。
                                           测试版可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。
 
@@ -199,15 +200,15 @@ public partial class PageSetupUpdate
                                           该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！
                                           """;
 
-                if (ModMain.MyMsgBox(warningMsg, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
-                    IsCancelled = true;
-                else
-                    CheckUpdate();
-                break;
-            }
+                    if (ModMain.MyMsgBox(warningMsg, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
+                        IsCancelled = true;
+                    else
+                        CheckUpdate();
+                    break;
+                }
             case 2:
-            {
-                const string devWarning = """
+                {
+                    const string devWarning = """
                                           你正在切换启动器更新通道到开发版。
                                           该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。
 
@@ -215,14 +216,14 @@ public partial class PageSetupUpdate
                                           该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！
                                           """;
 
-                if (ModMain.MyMsgBox(devWarning, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
-                {
-                    IsCancelled = true;
-                    break;
-                }
+                    if (ModMain.MyMsgBox(devWarning, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
+                    {
+                        IsCancelled = true;
+                        break;
+                    }
 
-                const string confirmText = "我确认切换到此分支并已知晓风险";
-                const string finalConfirmPrompt = $"""
+                    const string confirmText = "我确认切换到此分支并已知晓风险";
+                    const string finalConfirmPrompt = $"""
                                                    你确定要切换到开发版通道吗？
                                                    开发版可能存在严重问题，甚至无法启动！
 
@@ -232,19 +233,19 @@ public partial class PageSetupUpdate
                                                    请输入 '{confirmText}' 以确认。
                                                    """;
 
-                var ret = ModMain.MyMsgBoxInput("最终确认", finalConfirmPrompt, Button1: "提交", Button2: "取消", IsWarn: true);
-    
-                if (ret == confirmText)
-                {
-                    CheckUpdate();
+                    var ret = ModMain.MyMsgBoxInput("最终确认", finalConfirmPrompt, Button1: "提交", Button2: "取消", IsWarn: true);
+
+                    if (ret == confirmText)
+                    {
+                        CheckUpdate();
+                    }
+                    else
+                    {
+                        ModMain.Hint("你输入了错误的内容...");
+                        IsCancelled = true;
+                    }
+                    break;
                 }
-                else
-                {
-                    ModMain.Hint("你输入了错误的内容...");
-                    IsCancelled = true;
-                }
-                break;
-            }
         }
 
         if (IsCancelled)

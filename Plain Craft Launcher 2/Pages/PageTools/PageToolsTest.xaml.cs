@@ -1,3 +1,14 @@
+using PCL.Core.App;
+using PCL.Core.App.Tools;
+using PCL.Core.IO;
+using PCL.Core.IO.Net;
+using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
+using PCL.Core.Utils.Validate;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -9,16 +20,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using PCL.Core.App;
-using PCL.Core.App.Tools;
-using PCL.Core.IO;
-using PCL.Core.IO.Net;
-using PCL.Core.UI;
-using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
-using PCL.Core.Utils.Validate;
-using PCL.Network;
-using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -87,23 +88,23 @@ public partial class PageToolsTest
         {
             switch (Loader.State)
             {
-                case ModBase.LoadState.Finished:
-                {
-                    ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
-                    Console.Beep();
-                    break;
-                }
-                case ModBase.LoadState.Failed:
-                {
-                    ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
-                    Console.Beep();
-                    break;
-                }
-                case ModBase.LoadState.Aborted:
-                {
-                    ModMain.Hint($"{Loader.Name}已取消！");
-                    break;
-                }
+                case Enums.LoadState.Finished:
+                    {
+                        ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
+                        Console.Beep();
+                        break;
+                    }
+                case Enums.LoadState.Failed:
+                    {
+                        ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
+                        Console.Beep();
+                        break;
+                    }
+                case Enums.LoadState.Aborted:
+                    {
+                        ModMain.Hint($"{Loader.Name}已取消！");
+                        break;
+                    }
             }
         }
         catch (Exception ex)
@@ -145,7 +146,7 @@ public partial class PageToolsTest
                 loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{FileName} ",
                     new Tuple<string, string>(Url, Folder + FileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>($"自定义下载 ({uuid}) ", new[] { loaderdownload })
-                { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
+            { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
             loaderCombo.Start();
             ModLoader.LoaderTaskbarAdd(loaderCombo);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -198,7 +199,7 @@ public partial class PageToolsTest
         {
             try
             {
-                if (!ModWatcher.HasRunningMinecraft && ModLaunch.McLaunchLoader.State != ModBase.LoadState.Loading)
+                if (!ModWatcher.HasRunningMinecraft && ModLaunch.McLaunchLoader.State != Enums.LoadState.Loading)
                 {
                     if (ModNet.HasDownloadingTask())
                     {
@@ -348,7 +349,7 @@ public partial class PageToolsTest
         try
         {
             if (!string.IsNullOrEmpty(TextDownloadName.Text) || string.IsNullOrEmpty(TextDownloadUrl.Text)) return;
-            TextDownloadName.Text = ModBase.GetFileNameFromPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
+            TextDownloadName.Text = PathUtils.GetFileNameFromPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
         }
         catch
         {
@@ -580,7 +581,7 @@ public partial class PageToolsTest
 
     private async Task DownloadImageToLocalAsync(string imageUrl)
     {
-        var savePath = ModBase.PathTemp + @"Download\" + ModBase.GetHash(imageUrl) + ".png";
+        var savePath = ModBase.PathTemp + @"Download\" + TextUtils.GetHash(imageUrl) + ".png";
         var client = NetworkService.GetClient();
         try
         {
@@ -744,11 +745,11 @@ public partial class PageToolsTest
         }
 
         for (int x = 0, loopTo = HeadSize - 1; x <= loopTo; x++)
-        for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
-        {
-            var pixel = hairScaled.GetPixel(x, y);
-            if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
-        }
+            for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
+            {
+                var pixel = hairScaled.GetPixel(x, y);
+                if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
+            }
     }
 
     private void BtnSaveHead_Click(object sender, MouseButtonEventArgs e)

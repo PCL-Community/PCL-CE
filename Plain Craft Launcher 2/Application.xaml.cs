@@ -1,3 +1,9 @@
+using PCL.Core.App;
+using PCL.Core.App.IoC;
+using PCL.Core.Logging;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -6,11 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.App.IoC;
-using PCL.Core.Logging;
-using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -45,26 +46,26 @@ public partial class Application
                     try
                     {
                         ModMain.SetGPUPreference(args[1].Trim('"'));
-                        Environment.Exit((int)ModBase.ProcessReturnValues.TaskDone);
+                        Environment.Exit((int)Enums.ProcessReturnValues.TaskDone);
                     }
                     catch (Exception ex)
                     {
-                        Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
+                        Environment.Exit((int)Enums.ProcessReturnValues.Fail);
                     }
                 }
-                    /* TODO ERROR: Skipped IfDirectiveTrivia
-                    #If DEBUGRESERVED Then
-                    */ /* TODO ERROR: Skipped DisabledTextTrivia
-                                        '制作更新包
-                                    ElseIf args(0) = "--edit1" Then
-                                        ExeEdit(args(1), True)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                                    ElseIf args(0) = "--edit2" Then
-                                        ExeEdit(args(1), False)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                    #End If
-                    */
+                /* TODO ERROR: Skipped IfDirectiveTrivia
+                #If DEBUGRESERVED Then
+                */ /* TODO ERROR: Skipped DisabledTextTrivia
+                                    '制作更新包
+                                ElseIf args(0) = "--edit1" Then
+                                    ExeEdit(args(1), True)
+                                    Environment.Exit(ProcessReturnValues.TaskDone)
+                                ElseIf args(0) = "--edit2" Then
+                                    ExeEdit(args(1), False)
+                                    Environment.Exit(ProcessReturnValues.TaskDone)
+                */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
+                #End If
+                */
             }
 
             // 初始化文件结构
@@ -130,7 +131,7 @@ public partial class Application
                 problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失");
             if (problemList.Count != 0)
                 ModMain.MyMsgBox(
-                    "PCL CE 在启动时检测到环境问题：" + "\r\n" + "\r\n" + problemList.Join("\r\n") +
+                    "PCL CE 在启动时检测到环境问题：" + "\r\n" + "\r\n" + string.Join("\r\n", problemList) +
                     "\r\n" + "\r\n" + "不解决这些问题可能会导致部分功能无法正常工作……", "环境警告", "我知道了", IsWarn: true);
             // 设置初始化
             ModBase.Setup.Load("SystemDebugMode");
@@ -172,7 +173,7 @@ public partial class Application
             var FilePath = ModBase.ExePathWithName;
             MessageBox.Show(ex + "\r\n" + "PCL 所在路径：" + (string.IsNullOrEmpty(FilePath) ? "获取失败" : FilePath),
                 "PCL 初始化错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
+            FormMain.EndProgramForce(Enums.ProcessReturnValues.Exception);
         }
     }
 
@@ -182,7 +183,7 @@ public partial class Application
         ModMain.FrmMain.EndProgram(false);
     }
 
-// Error handling for unhandled exceptions
+    // Error handling for unhandled exceptions
     private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         try

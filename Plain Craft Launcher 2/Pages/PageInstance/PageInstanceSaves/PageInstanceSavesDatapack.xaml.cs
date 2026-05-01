@@ -1,8 +1,11 @@
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
 using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using PCL.Network.Loaders;
 using System.IO;
@@ -126,7 +129,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     刷新数据包列表。
+    /// 刷新数据包列表。
     /// </summary>
     public void ReloadDatapackFileList(bool ForceReload = false)
     {
@@ -171,7 +174,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLocalComp.CompResourceListLoader.State == ModBase.LoadState.Failed)
+        if (ModLocalComp.CompResourceListLoader.State == Enums.LoadState.Failed)
             LoaderRun(ModLoader.LoaderFolderRunType.ForceRun);
     }
 
@@ -187,12 +190,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region UI 化
 
     /// <summary>
-    ///     已加载的数据包 UI 缓存。Key 为数据包的 RawPath。
+    /// 已加载的数据包 UI 缓存。Key 为数据包的 RawPath。
     /// </summary>
     public Dictionary<string, MyLocalCompItem> DatapackItems = new();
 
     /// <summary>
-    ///     将加载器结果的数据包列表加载为 UI。
+    /// 将加载器结果的数据包列表加载为 UI。
     /// </summary>
     private void LoadUIFromLoaderOutput()
     {
@@ -326,7 +329,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     刷新整个 UI。
+    /// 刷新整个 UI。
     /// </summary>
     public void RefreshUI()
     {
@@ -378,7 +381,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     刷新顶栏和底栏显示。
+    /// 刷新顶栏和底栏显示。
     /// </summary>
     public void RefreshBars()
     {
@@ -539,7 +542,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region 管理
 
     /// <summary>
-    ///     打开 datapacks 文件夹。
+    /// 打开 datapacks 文件夹。
     /// </summary>
     private void BtnManageOpen_Click(object sender, EventArgs e)
     {
@@ -556,7 +559,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     全选。
+    /// 全选。
     /// </summary>
     private void BtnManageSelectAll_Click(object sender, MouseButtonEventArgs e)
     {
@@ -564,7 +567,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     安装数据包。
+    /// 安装数据包。
     /// </summary>
     private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
     {
@@ -576,7 +579,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     安装数据包文件。
+    /// 安装数据包文件。
     /// </summary>
     public static void InstallDatapackFiles(IEnumerable<string> FilePathList)
     {
@@ -616,7 +619,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             foreach (var FilePath in FilePathList)
             {
-                var NewFileName = ModBase.GetFileNameFromPath(FilePath);
+                var NewFileName = PathUtils.GetFileNameFromPath(FilePath);
                 var DestFile = DatapackFolder + NewFileName;
 
                 if (File.Exists(DestFile))
@@ -627,7 +630,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (FilePathList.Count() == 1)
-                ModMain.Hint($"已安装 {ModBase.GetFileNameFromPath(FilePathList.First())}！", ModMain.HintType.Finish);
+                ModMain.Hint($"已安装 {PathUtils.GetFileNameFromPath(FilePathList.First())}！", ModMain.HintType.Finish);
             else
                 ModMain.Hint($"已安装 {FilePathList.Count()} 个数据包！", ModMain.HintType.Finish);
 
@@ -645,7 +648,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     下载数据包。
+    /// 下载数据包。
     /// </summary>
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
@@ -654,7 +657,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     导出信息。
+    /// 导出信息。
     /// </summary>
     private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
     {
@@ -686,8 +689,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     var ExportContent = new List<string>();
                     foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
                         ExportContent.Add(DatapackEntity.FileName);
-                    ExportText(ExportContent.Join("\r\n"),
-                        ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.txt");
+                    ExportText(string.Join("\r\n", ExportContent),
+                        PathUtils.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.txt");
                     break;
                 }
 
@@ -698,8 +701,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     foreach (var DatapackEntity in ModLocalComp.CompResourceListLoader.Output)
                         ExportContent.Add(
                             $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.CompFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.Path).Length},{DatapackEntity.Path}");
-                    ExportText(ExportContent.Join("\r\n"),
-                        ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.csv");
+                    ExportText(string.Join("\r\n", ExportContent),
+                        PathUtils.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave) + "的数据包信息.csv");
                     break;
                 }
         }
@@ -710,12 +713,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region 选择
 
     /// <summary>
-    ///     选择的数据包的路径。
+    /// 选择的数据包的路径。
     /// </summary>
     public HashSet<string> SelectedDatapacks = new();
 
     // 单项切换选择状态
-    public void CheckChanged(MyLocalCompItem sender, ModBase.RouteEventArgs e)
+    public void CheckChanged(MyLocalCompItem sender, RouteEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
@@ -828,7 +831,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     检查该数据包项是否符合当前筛选的类别。
+    /// 检查该数据包项是否符合当前筛选的类别。
     /// </summary>
     private bool CanPassFilter(ModLocalComp.LocalCompFile CheckingDatapack)
     {
@@ -921,7 +924,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         return "";
     }
 
-    private void BtnSortClick(object sender, ModBase.RouteEventArgs e)
+    private void BtnSortClick(object sender, RouteEventArgs e)
     {
         var Body = new ContextMenu();
         foreach (SortMethod i in Enum.GetValues(typeof(SortMethod)))
@@ -1027,7 +1030,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region 下边栏
 
     // 启用
-    private void BtnSelectEnable_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectEnable_Click(object sender, RouteEventArgs e)
     {
         ToggleDatapacks(
             ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)).ToList(),
@@ -1036,7 +1039,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 禁用
-    private void BtnSelectDisable_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectDisable_Click(object sender, RouteEventArgs e)
     {
         ToggleDatapacks(
             ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)).ToList(),
@@ -1045,7 +1048,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     启用/禁用数据包（通过重命名文件夹为 .disabled）
+    /// 启用/禁用数据包（通过重命名文件夹为 .disabled）
     /// </summary>
     private void ToggleDatapacks(IEnumerable<ModLocalComp.LocalCompFile> DatapackList, bool IsEnable)
     {
@@ -1069,7 +1072,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             {
                 if (File.Exists(NewPath))
                 {
-                    ModMain.MyMsgBox($"已存在同名文件：{ModBase.GetFileNameFromPath(NewPath)}，请先处理该文件再重试。");
+                    ModMain.MyMsgBox($"已存在同名文件：{PathUtils.GetFileNameFromPath(NewPath)}，请先处理该文件再重试。");
                     continue;
                 }
 
@@ -1138,7 +1141,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 更新
-    private void BtnSelectUpdate_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectUpdate_Click(object sender, RouteEventArgs e)
     {
         var UpdateList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
@@ -1149,7 +1152,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    ///     记录正在进行数据包更新的 datapacks 文件夹路径。
+    /// 记录正在进行数据包更新的 datapacks 文件夹路径。
     /// </summary>
     public static List<string> UpdatingVersions = new();
 
@@ -1210,10 +1213,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                             ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
                         }
 
-                        if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                        if (Directory.Exists(PathUtils.GetPathFromFullPath(Entry.Value)))
                         {
                             File.Move(Entry.Key, Entry.Value);
-                            FinishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
+                            FinishedFileNames.Add(PathUtils.GetFileNameFromPath(Entry.Value));
                         }
                         else
                         {
@@ -1229,14 +1232,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             // 结束处理
             var Loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
-                $"数据包更新：{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)}", InstallLoaders);
+                $"数据包更新：{PathUtils.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)}", InstallLoaders);
             var PathDatapacks = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
 
             Loader.OnStateChanged = _ =>
             {
                 switch (Loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case Enums.LoadState.Finished:
                         {
                             switch (FinishedFileNames.Count)
                             {
@@ -1260,12 +1263,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
                             break;
                         }
-                    case ModBase.LoadState.Failed:
+                    case Enums.LoadState.Failed:
                         {
                             ModMain.Hint("数据包更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
                             break;
                         }
-                    case ModBase.LoadState.Aborted:
+                    case Enums.LoadState.Aborted:
                         {
                             ModMain.Hint("数据包更新已中止！");
                             break;
@@ -1312,7 +1315,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 删除
-    private void BtnSelectDelete_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectDelete_Click(object sender, RouteEventArgs e)
     {
         DeleteDatapacks(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedDatapacks.Contains(m.RawPath)));
         ChangeAllSelected(false);
@@ -1417,13 +1420,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 取消选择
-    private void BtnSelectCancel_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectCancel_Click(object sender, RouteEventArgs e)
     {
         ChangeAllSelected(false);
     }
 
     // 收藏
-    private void BtnSelectFavorites_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectFavorites_Click(object sender, RouteEventArgs e)
     {
         var Selected = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
@@ -1431,7 +1434,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 分享
-    private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectShare_Click(object sender, RouteEventArgs e)
     {
         var ShareList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
@@ -1479,7 +1482,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 if (DatapackEntry.Authors is not null)
                     ContentLines.Add("作者：" + DatapackEntry.Authors);
                 ContentLines.Add("文件：" + DatapackEntry.FileName + "（" +
-                                 ModBase.GetString(GetDatapackFileInfo(DatapackEntry.Path).Length) + "）");
+                                 ByteStream.GetReadableLength(GetDatapackFileInfo(DatapackEntry.Path).Length) + "）");
                 if (DatapackEntry.Version is not null)
                     ContentLines.Add("版本：" + DatapackEntry.Version);
 
@@ -1493,8 +1496,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
                 // 显示详情信息
                 if (DatapackEntry.Url is null)
-                    ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, "返回");
-                else if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, "打开官网", "返回") == 1)
+                    ModMain.MyMsgBox(string.Join("\r\n", ContentLines), DatapackEntry.Name, "返回");
+                else if (ModMain.MyMsgBox(string.Join("\r\n", ContentLines), DatapackEntry.Name, "打开官网", "返回") == 1)
                     ModBase.OpenWebsite(DatapackEntry.Url);
             }
         }
@@ -1553,33 +1556,32 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (IsSearching)
             {
                 // 构造请求
-                var QueryList = new List<ModBase.SearchEntry<ModLocalComp.LocalCompFile>>();
+                var QueryList = new List<SearchEntry<ModLocalComp.LocalCompFile>>();
                 foreach (var Entry in ModLocalComp.CompResourceListLoader.Output)
                 {
-                    var SearchSource = new List<ModBase.SearchSource>();
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Name, 1d));
-                    SearchSource.Add(new ModBase.SearchSource(Entry.FileName, 1d));
+                    var SearchSource = new List<KeyValuePair<string, double>>();
+                    SearchSource.Add(new(Entry.Name, 1d));
+                    SearchSource.Add(new(Entry.FileName, 1d));
                     if (Entry.Version is not null)
-                        SearchSource.Add(new ModBase.SearchSource(Entry.Version, 0.2d));
+                        SearchSource.Add(new(Entry.Version, 0.2d));
                     if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
+                        SearchSource.Add(new(Entry.Description, 0.4d));
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName, 1d));
+                            SearchSource.Add(new(Entry.Comp.RawName, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName, 1d));
+                            SearchSource.Add(new(Entry.Comp.TranslatedName, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.Description, 0.4d));
-                        SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
+                            SearchSource.Add(new(Entry.Comp.Description, 0.4d));
+                        SearchSource.Add(new(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 
-                    QueryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>
-                    { Item = Entry, SearchSource = SearchSource });
+                    QueryList.Add(new SearchEntry<ModLocalComp.LocalCompFile>(Entry, SearchSource));
                 }
 
                 // 进行搜索
-                SearchResult = ModBase.Search(QueryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+                SearchResult = SimilaritySearch.Search(QueryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
             }
 
             RefreshUI();

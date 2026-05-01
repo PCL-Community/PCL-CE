@@ -1,18 +1,17 @@
-using System.Collections.ObjectModel;
+using Microsoft.VisualBasic.CompilerServices;
+using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Validate;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
-using FluentValidation;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.Utils.Validate;
-using PCL.Network;
-using PCL.Network.Loaders;
 using static PCL.ModLoader;
 
 namespace PCL;
@@ -21,7 +20,7 @@ public static class ModModpack
 {
     // 触发整合包安装的外部接口
     /// <summary>
-    ///     弹窗要求选择一个整合包文件并进行安装。
+    /// 弹窗要求选择一个整合包文件并进行安装。
     /// </summary>
     public static void ModpackInstall()
     {
@@ -45,8 +44,8 @@ public static class ModModpack
     }
 
     /// <summary>
-    ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
-    ///     必须在工作线程执行。
+    /// 构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
+    /// 必须在工作线程执行。
     /// </summary>
     /// <exception cref="ModBase.CancelledException" />
     public static LoaderCombo<string> ModpackInstall(string File, string InstanceName = null, string Logo = null,
@@ -200,43 +199,43 @@ public static class ModModpack
             switch (PackType)
             {
                 case 0:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：CurseForge");
-                    return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
-                        isOnlineInstall);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：CurseForge");
+                        return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
+                            isOnlineInstall);
+                    }
                 case 1:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：HMCL");
-                    return InstallPackHMCL(File, Archive, ArchiveBaseFolder);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：HMCL");
+                        return InstallPackHMCL(File, Archive, ArchiveBaseFolder);
+                    }
                 case 2:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：MMC");
-                    return InstallPackMMC(File, Archive, ArchiveBaseFolder);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：MMC");
+                        return InstallPackMMC(File, Archive, ArchiveBaseFolder);
+                    }
                 case 3:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：MCBBS");
-                    return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：MCBBS");
+                        return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName);
+                    }
                 case 4:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：Modrinth");
-                    return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
-                        isOnlineInstall);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：Modrinth");
+                        return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
+                            isOnlineInstall);
+                    }
                 case 9:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：带启动器的压缩包");
-                    return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：带启动器的压缩包");
+                        return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder);
+                    }
 
                 default:
-                {
-                    ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
-                    return InstallPackCompress(File, Archive);
-                }
+                    {
+                        ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
+                        return InstallPackCompress(File, Archive);
+                    }
             }
         }
         finally
@@ -296,8 +295,8 @@ public static class ModModpack
     }
 
     /// <summary>
-    ///     从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。
-    ///     对路径末尾是否为 \ 没有要求。
+    /// 从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。
+    /// 对路径末尾是否为 \ 没有要求。
     /// </summary>
     private static void CopyOverrideDirectory(string OverridesFolder, string VersionFolder, LoaderBase Loader,
         double ProgressIncrement)
@@ -469,7 +468,7 @@ public static class ModModpack
                     tryCount += 1;
                     ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
-                        "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json",
+                        "POST", "{\"fileIds\": [" + string.Join(',', ModList) + "]}", "application/json",
                         allowMirror)))["data"];
                     if (ModList.Count <= ret.Count)
                     {
@@ -554,10 +553,10 @@ public static class ModModpack
             }); // 每 200 Mod 需要 1s
             // 下载 Mod 文件
             ModDownloadLoaders.Add(new LoaderDownload("下载 Mod", new List<DownloadFile>())
-                { ProgressWeight = ModList.Count * 1.5d }); // 每个 Mod 需要 1.5s
+            { ProgressWeight = ModList.Count * 1.5d }); // 每个 Mod 需要 1.5s
             // 构造加载器
             InstallLoaders.Add(new LoaderCombo<int>("下载 Mod（主加载器）", ModDownloadLoaders)
-                { Show = false, ProgressWeight = ModDownloadLoaders.Sum(l => l.ProgressWeight) });
+            { Show = false, ProgressWeight = ModDownloadLoaders.Sum(l => l.ProgressWeight) });
         }
 
         // 构造加载器
@@ -575,9 +574,9 @@ public static class ModModpack
         // 构造总加载器
         var Loaders = new List<LoaderBase>();
         Loaders.Add(new LoaderCombo<string>("整合包安装", InstallLoaders)
-            { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
         Loaders.Add(new LoaderCombo<string>("游戏安装", MergeLoaders)
-            { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
         Loaders.Add(new LoaderTask<string, string>("最终整理文件", Task =>
         {
             // 设置图标
@@ -678,42 +677,42 @@ public static class ModModpack
             switch (Entry.Name.ToLower() ?? "")
             {
                 case "minecraft":
-                {
-                    MinecraftVersion = Entry.Value.ToString();
-                    break;
-                }
+                    {
+                        MinecraftVersion = Entry.Value.ToString();
+                        break;
+                    }
                 case "forge": // eg. 14.23.5.2859 / 1.19-41.1.0
-                {
-                    ForgeVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Forge 版本：" + ForgeVersion);
-                    break;
-                }
+                    {
+                        ForgeVersion = Entry.Value.ToString();
+                        ModBase.Log("[ModPack] 整合包 Forge 版本：" + ForgeVersion);
+                        break;
+                    }
                 case "neoforge":
                 case "neo-forge": // eg. 20.6.98-beta
-                {
-                    NeoForgeVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + NeoForgeVersion);
-                    break;
-                }
+                    {
+                        NeoForgeVersion = Entry.Value.ToString();
+                        ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + NeoForgeVersion);
+                        break;
+                    }
                 case "fabric-loader": // eg. 0.14.14
-                {
-                    FabricVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Fabric 版本：" + FabricVersion);
-                    break;
-                }
+                    {
+                        FabricVersion = Entry.Value.ToString();
+                        ModBase.Log("[ModPack] 整合包 Fabric 版本：" + FabricVersion);
+                        break;
+                    }
                 case "quilt-loader": // eg. 0.26.0
-                {
-                    QuiltVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Quilt 版本：" + QuiltVersion);
-                    break;
-                }
+                    {
+                        QuiltVersion = Entry.Value.ToString();
+                        ModBase.Log("[ModPack] 整合包 Quilt 版本：" + QuiltVersion);
+                        break;
+                    }
 
                 default:
-                {
-                    ModMain.Hint($"无法安装整合包，其中出现了未知的 Mod 加载器 {Entry.Name}（版本为 {Entry.Value}）！",
-                        ModMain.HintType.Critical);
-                    break;
-                }
+                    {
+                        ModMain.Hint($"无法安装整合包，其中出现了未知的 Mod 加载器 {Entry.Name}（版本为 {Entry.Value}）！",
+                            ModMain.HintType.Critical);
+                        break;
+                    }
             }
 
         // 获取实例名
@@ -753,16 +752,16 @@ public static class ModModpack
                 switch (File["env"]["client"].ToString() ?? "")
                 {
                     case "optional":
-                    {
-                        if (ModMain.MyMsgBox("是否要下载可选文件 " + ModBase.GetFileNameFromPath(File["path"].ToString()) + "？",
-                                "下载可选文件", "是", "否") == 2) continue;
+                        {
+                            if (ModMain.MyMsgBox("是否要下载可选文件 " + PathUtils.GetFileNameFromPath(File["path"].ToString()) + "？",
+                                    "下载可选文件", "是", "否") == 2) continue;
 
-                        break;
-                    }
+                            break;
+                        }
                     case "unsupported":
-                    {
-                        continue;
-                    }
+                        {
+                            continue;
+                        }
                 }
 
             // 添加下载文件
@@ -788,7 +787,7 @@ public static class ModModpack
 
         if (FileList.Any())
             InstallLoaders.Add(new LoaderDownload("下载额外文件", FileList)
-                { ProgressWeight = FileList.Count * 1.5d }); // 每个 Mod 需要 1.5s
+            { ProgressWeight = FileList.Count * 1.5d }); // 每个 Mod 需要 1.5s
 
         // 构造加载器
         var Request = new ModDownloadLib.McInstallRequest
@@ -805,9 +804,9 @@ public static class ModModpack
         // 构造总加载器
         var Loaders = new List<LoaderBase>();
         Loaders.Add(new LoaderCombo<string>("整合包安装", InstallLoaders)
-            { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
         Loaders.Add(new LoaderCombo<string>("游戏安装", MergeLoaders)
-            { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
         Loaders.Add(new LoaderTask<string, string>("最终整理文件", Task =>
         {
             // 设置图标
@@ -1151,7 +1150,7 @@ public static class ModModpack
 
                 ModBase.OpenExplorer(TargetFolder);
                 // 加入文件夹列表
-                var InstanceName = ModBase.GetFolderNameFromPath(TargetFolder);
+                var InstanceName = PathUtils.GetFolderNameFromPath(TargetFolder);
                 Directory.CreateDirectory(TargetFolder + @".minecraft\");
                 PageSelectLeft.AddFolder(
                     TargetFolder + @".minecraft\" + ArchiveBaseFolder.Replace("/", @"\").TrimStart('\\'), InstanceName,
@@ -1217,7 +1216,7 @@ public static class ModModpack
             {
                 ExtractModpackFiles(TargetFolder, FileAddress, Task, 0.95d);
                 // 加入文件夹列表
-                PageSelectLeft.AddFolder(TargetFolder + ArchiveBaseFolder, ModBase.GetFolderNameFromPath(TargetFolder),
+                PageSelectLeft.AddFolder(TargetFolder + ArchiveBaseFolder, PathUtils.GetFolderNameFromPath(TargetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
                 ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect));
@@ -1425,25 +1424,25 @@ public static class ModModpack
                             var JavaMajors = (JArray)PatchJson["compatibleJavaMajors"];
                             foreach (var Java in JavaMajors)
                             {
-                                if (JavaVersion > ModBase.Val(Java))
+                                if (JavaVersion > StringExtension.Val(Java))
                                     continue;
                                 // 优先选择主要的版本
-                                if (ModBase.Val(Java) == 21d)
+                                if (StringExtension.Val(Java) == 21d)
                                 {
                                     JavaVersion = 21;
                                     JavaComponent = "java-runtime-delta";
                                 }
-                                else if (ModBase.Val(Java) == 17d)
+                                else if (StringExtension.Val(Java) == 17d)
                                 {
                                     JavaVersion = 17;
                                     JavaComponent = "java-runtime-gamma";
                                 }
-                                else if (ModBase.Val(Java) == 11d)
+                                else if (StringExtension.Val(Java) == 11d)
                                 {
                                     JavaVersion = 11;
                                     JavaComponent = null;
                                 }
-                                else if (ModBase.Val(Java) == 8d)
+                                else if (StringExtension.Val(Java) == 8d)
                                 {
                                     JavaVersion = 8;
                                     JavaComponent = "jre-legacy";
@@ -1536,7 +1535,7 @@ public static class ModModpack
                 if (File.Exists(MMCSetupFile))
                 {
                     List<string> Lines = [];
-                    foreach (var Line in ModBase.ReadFile(MMCSetupFile).Split(new[] { "\r", "\n" },
+                    foreach (var Line in ModBase.ReadFile(MMCSetupFile).Split(['\r', '\n'],
                                  StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (!Line.Contains("="))
@@ -1544,7 +1543,7 @@ public static class ModModpack
                         Lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                     }
 
-                    ModBase.WriteFile(MMCSetupFile, Lines.Join("\r\n"));
+                    ModBase.WriteFile(MMCSetupFile, string.Join("\r\n", Lines));
                     // 读取文件
                     if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideCommands",
                             Conversions.ToString(false))))
@@ -1632,39 +1631,39 @@ public static class ModModpack
             switch ((Component["uid"] ?? "").ToString() ?? "")
             {
                 case "org.lwjgl":
-                {
-                    ModBase.Log("[ModPack] 已跳过 LWJGL 项");
-                    break;
-                }
+                    {
+                        ModBase.Log("[ModPack] 已跳过 LWJGL 项");
+                        break;
+                    }
                 case "net.minecraft":
-                {
-                    Request.MinecraftName = (string)Component["version"];
-                    break;
-                }
+                    {
+                        Request.MinecraftName = (string)Component["version"];
+                        break;
+                    }
                 case "net.minecraftforge":
-                {
-                    if (Component["version"].ToString().StartsWithF("0."))
-                        Request.CleanroomVersion = (string)Component["version"];
-                    else
-                        Request.ForgeVersion = (string)Component["version"];
+                    {
+                        if (Component["version"].ToString().StartsWithF("0."))
+                            Request.CleanroomVersion = (string)Component["version"];
+                        else
+                            Request.ForgeVersion = (string)Component["version"];
 
-                    break;
-                }
+                        break;
+                    }
                 case "net.neoforged":
-                {
-                    Request.NeoForgeVersion = (string)Component["version"];
-                    break;
-                }
+                    {
+                        Request.NeoForgeVersion = (string)Component["version"];
+                        break;
+                    }
                 case "net.fabricmc.fabric-loader":
-                {
-                    Request.FabricVersion = (string)Component["version"];
-                    break;
-                }
+                    {
+                        Request.FabricVersion = (string)Component["version"];
+                        break;
+                    }
                 case "org.quiltmc.quilt-loader":
-                {
-                    Request.QuiltVersion = (string)Component["version"];
-                    break;
-                }
+                    {
+                        Request.QuiltVersion = (string)Component["version"];
+                        break;
+                    }
             }
 
         if (PackInfo is not null)
@@ -1674,9 +1673,9 @@ public static class ModModpack
         // 构造总加载器
         var Loaders = new List<LoaderBase>();
         Loaders.Add(new LoaderCombo<string>("整合包安装", InstallLoaders)
-            { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, Block = false, ProgressWeight = InstallLoaders.Sum(l => l.ProgressWeight) });
         Loaders.Add(new LoaderCombo<string>("游戏安装", MergeLoaders)
-            { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
+        { Show = false, ProgressWeight = MergeLoaders.Sum(l => l.ProgressWeight) });
 
         // 重复任务检查
         var LoaderName = "MMC 整合包安装：" + InstanceName + " ";

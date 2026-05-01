@@ -3,6 +3,7 @@ using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using System.Collections.ObjectModel;
@@ -322,7 +323,7 @@ public partial class PageSelectLeft : IRefreshable
         var folders = new List<string>();
         foreach (var folder in ModMinecraft.McFolderList)
             folders.Add($"{folder.Name}>{folder.Location}");
-        States.Game.Folders = folders.ToArray().Join("|");
+        States.Game.Folders = string.Join('|', folders);
         McFolderListUI();
     }
 
@@ -384,7 +385,7 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     /// <summary>
-    ///     将指定文件夹添加到 Minecraft 文件夹列表，并选中它。
+    /// 将指定文件夹添加到 Minecraft 文件夹列表，并选中它。
     /// </summary>
     public static void AddFolder(string FolderPath, string DisplayName, bool ShowHint)
     {
@@ -449,7 +450,7 @@ public partial class PageSelectLeft : IRefreshable
                 }
 
                 if (!IsAdded) Folders.Add($"{DisplayName}>{FolderPath}");
-                States.Game.Folders = Folders.ToArray().Join("|");
+                States.Game.Folders = string.Join('|', Folders);
                 States.Game.SelectedFolder = FolderPath.Replace(ModBase.ExePath, "$");
                 ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
                 if (IsReplace) return;
@@ -556,7 +557,7 @@ public partial class PageSelectLeft : IRefreshable
             }
 
             // 保存
-            States.Game.Folders = !Folders.Any() ? "" : Folders.ToArray().Join("|");
+            States.Game.Folders = !Folders.Any() ? "" : string.Join('|', Folders);
             ModMain.Hint(Folder.Type == ModMinecraft.McFolder.Types.Custom ? $"文件夹 {Name} 已从列表中移除！" : "文件夹名称已复原！",
                 ModMain.HintType.Finish);
             ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
@@ -606,7 +607,7 @@ public partial class PageSelectLeft : IRefreshable
                 break;
             }
 
-        States.Game.Folders = !Folders.Any() ? "" : Folders.ToArray().Join("|");
+        States.Game.Folders = !Folders.Any() ? "" : string.Join('|', Folders);
         // 删除文件夹
         // 刷新列表
         ModBase.RunInNewThread(() =>
@@ -695,7 +696,7 @@ public partial class PageSelectLeft : IRefreshable
                 Folders.Add($"{NewName}>{Folder.Location}");
             ModMain.Hint($"文件夹名称已更新为 {NewName} ！", ModMain.HintType.Finish);
             // 保存
-            States.Game.Folders = Folders.ToArray().Join("|");
+            States.Game.Folders = string.Join('|', Folders);
             ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
         }
         catch (Exception ex)
@@ -705,7 +706,7 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     // 点击选项
-    public void Folder_Change(MyListItem sender, ModBase.RouteEventArgs e)
+    public void Folder_Change(MyListItem sender, RouteEventArgs e)
     {
         if (!e.RaiseByMouse || !sender.Checked)
             return;

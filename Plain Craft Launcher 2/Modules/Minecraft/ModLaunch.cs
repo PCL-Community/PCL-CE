@@ -1,11 +1,3 @@
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
@@ -14,9 +6,17 @@ using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Windows;
 
 namespace PCL;
 
@@ -184,15 +184,15 @@ public static class ModLaunch
                                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
                 {
                     case 2:
-                    {
-                        ModMain.Hint("游戏将以试玩模式启动！", ModMain.HintType.Critical);
-                        CurrentLaunchOptions.ExtraArgs.Add("--demo");
-                        break;
-                    }
+                        {
+                            ModMain.Hint("游戏将以试玩模式启动！", ModMain.HintType.Critical);
+                            CurrentLaunchOptions.ExtraArgs.Add("--demo");
+                            break;
+                        }
                     case 3:
-                    {
-                        throw new Exception("$$");
-                    }
+                        {
+                            throw new Exception("$$");
+                        }
                 }
             }
         }
@@ -208,44 +208,44 @@ public static class ModLaunch
     public class McLaunchOptions
     {
         /// <summary>
-        ///     额外的启动参数。
+        /// 额外的启动参数。
         /// </summary>
         public List<string> ExtraArgs = new();
 
         /// <summary>
-        ///     强行指定启动的 MC 实例。
-        ///     默认值：Nothing。使用 McInstanceCurrent。
+        /// 强行指定启动的 MC 实例。
+        /// 默认值：Nothing。使用 McInstanceCurrent。
         /// </summary>
         public ModMinecraft.McInstance Instance = null;
 
         /// <summary>
-        ///     是否为 “测试游戏” 按钮启动的游戏。
-        ///     如果是，则显示游戏实时日志。
+        /// 是否为 “测试游戏” 按钮启动的游戏。
+        /// 如果是，则显示游戏实时日志。
         /// </summary>
         public bool IsTest = false;
 
         /// <summary>
-        ///     将启动脚本保存到该地址，然后取消启动。这同时会改变启动时的提示等。
-        ///     默认值：Nothing。不保存。
+        /// 将启动脚本保存到该地址，然后取消启动。这同时会改变启动时的提示等。
+        /// 默认值：Nothing。不保存。
         /// </summary>
         public string SaveBatch = null;
 
         /// <summary>
-        ///     强制指定在启动后进入的服务器 IP。
-        ///     默认值：Nothing。使用实例设置的值。
+        /// 强制指定在启动后进入的服务器 IP。
+        /// 默认值：Nothing。使用实例设置的值。
         /// </summary>
         public string ServerIp = null;
 
         /// <summary>
-        ///     指定在启动之后进入的存档名称。
-        ///     默认值：Nothing。使用实例设置的值。
+        /// 指定在启动之后进入的存档名称。
+        /// 默认值：Nothing。使用实例设置的值。
         /// </summary>
         public string WorldName = null;
     }
 
     /// <summary>
-    ///     尝试启动 Minecraft。必须在 UI 线程调用。
-    ///     返回是否实际开始了启动（如果没有，则一定弹出了错误提示）。
+    /// 尝试启动 Minecraft。必须在 UI 线程调用。
+    /// 返回是否实际开始了启动（如果没有，则一定弹出了错误提示）。
     /// </summary>
     public static bool McLaunchStart(McLaunchOptions Options = null)
     {
@@ -254,7 +254,7 @@ public static class ModLaunch
         // 预检查
         if (!ModBase.RunInUi())
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
-        if (McLaunchLoader.State == ModBase.LoadState.Loading)
+        if (McLaunchLoader.State == Enums.LoadState.Loading)
         {
             ModMain.Hint("已有游戏正在启动中！", ModMain.HintType.Critical);
             IsLaunching = false;
@@ -292,7 +292,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     记录启动日志。
+    /// 记录启动日志。
     /// </summary>
     public static void McLaunchLog(string Text)
     {
@@ -304,7 +304,7 @@ public static class ModLaunch
 
     // 启动状态切换
     public static ModLoader.LoaderTask<McLaunchOptions, object> McLaunchLoader = new("Loader Launch", McLaunchStart)
-        { OnStateChanged = a => McLaunchState((dynamic)a) };
+    { OnStateChanged = a => McLaunchState((dynamic)a) };
 
     public static ModLoader.LoaderCombo<object> McLaunchLoaderReal;
     public static Process McLaunchProcess;
@@ -314,25 +314,25 @@ public static class ModLaunch
     {
         switch (McLaunchLoader.State)
         {
-            case ModBase.LoadState.Finished:
-            case ModBase.LoadState.Failed:
-            case ModBase.LoadState.Waiting:
-            case ModBase.LoadState.Aborted:
-            {
-                ModMain.FrmLaunchLeft.PageChangeToLogin();
-                break;
-            }
-            case ModBase.LoadState.Loading:
-            {
-                // 在预检测结束后再触发动画
-                ModMain.FrmLaunchRight.LabLog.Text = "";
-                break;
-            }
+            case Enums.LoadState.Finished:
+            case Enums.LoadState.Failed:
+            case Enums.LoadState.Waiting:
+            case Enums.LoadState.Aborted:
+                {
+                    ModMain.FrmLaunchLeft.PageChangeToLogin();
+                    break;
+                }
+            case Enums.LoadState.Loading:
+                {
+                    // 在预检测结束后再触发动画
+                    ModMain.FrmLaunchRight.LabLog.Text = "";
+                    break;
+                }
         }
     }
 
     /// <summary>
-    ///     指定启动中断时的提示文本。若不为 Nothing 则会显示为绿色。
+    /// 指定启动中断时的提示文本。若不为 Nothing 则会显示为绿色。
     /// </summary>
     private static string AbortHint;
 
@@ -380,40 +380,40 @@ public static class ModLaunch
             switch (ModBase.Setup.Get("VersionRamOptimize", ModMinecraft.McInstanceSelected))
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全局
-                {
-                    if (Conversions.ToBoolean(Config.Launch.OptimizeMemory)) // 使用全局设置
+                    {
+                        if (Conversions.ToBoolean(Config.Launch.OptimizeMemory)) // 使用全局设置
+                        {
+                            ((ModLoader.LoaderCombo<string>)Loaders[2]).Block = false;
+                            Loaders.Insert(3,
+                                new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize)
+                                { ProgressWeight = 30d });
+                        }
+
+                        break;
+                    }
+                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 开启
                     {
                         ((ModLoader.LoaderCombo<string>)Loaders[2]).Block = false;
                         Loaders.Insert(3,
-                            new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize)
-                                { ProgressWeight = 30d });
+                            new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize) { ProgressWeight = 30d });
+                        break;
                     }
-
-                    break;
-                }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 开启
-                {
-                    ((ModLoader.LoaderCombo<string>)Loaders[2]).Block = false;
-                    Loaders.Insert(3,
-                        new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize) { ProgressWeight = 30d });
-                    break;
-                }
                 case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 关闭
-                {
-                    break;
-                }
+                    {
+                        break;
+                    }
             }
 
             var LaunchLoader = new ModLoader.LoaderCombo<object>("Minecraft 启动", Loaders) { Show = false };
-            if (McLoginLoader.State == ModBase.LoadState.Finished)
-                McLoginLoader.State = ModBase.LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
+            if (McLoginLoader.State == Enums.LoadState.Finished)
+                McLoginLoader.State = Enums.LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
             // 等待加载器执行并更新 UI
             McLaunchLoaderReal = LaunchLoader;
             AbortHint = null;
             LaunchLoader.Start();
             // 任务栏进度条
             ModLoader.LoaderTaskbarAdd(LaunchLoader);
-            while (LaunchLoader.State == ModBase.LoadState.Loading)
+            while (LaunchLoader.State == Enums.LoadState.Loading)
             {
                 ModMain.FrmLaunchLeft.Dispatcher.Invoke(ModMain.FrmLaunchLeft.LaunchingRefresh);
                 Thread.Sleep(100);
@@ -423,29 +423,29 @@ public static class ModLaunch
             // 成功与失败处理
             switch (LaunchLoader.State)
             {
-                case ModBase.LoadState.Finished:
-                {
-                    ModMain.Hint(ModMinecraft.McInstanceSelected.Name + " 启动成功！", ModMain.HintType.Finish);
-                    break;
-                }
-                case ModBase.LoadState.Aborted:
-                {
-                    if (AbortHint is null)
-                        ModMain.Hint(CurrentLaunchOptions?.SaveBatch is null ? "已取消启动！" : "已取消导出启动脚本！");
-                    else
-                        ModMain.Hint(AbortHint, ModMain.HintType.Finish);
+                case Enums.LoadState.Finished:
+                    {
+                        ModMain.Hint(ModMinecraft.McInstanceSelected.Name + " 启动成功！", ModMain.HintType.Finish);
+                        break;
+                    }
+                case Enums.LoadState.Aborted:
+                    {
+                        if (AbortHint is null)
+                            ModMain.Hint(CurrentLaunchOptions?.SaveBatch is null ? "已取消启动！" : "已取消导出启动脚本！");
+                        else
+                            ModMain.Hint(AbortHint, ModMain.HintType.Finish);
 
-                    break;
-                }
-                case ModBase.LoadState.Failed:
-                {
-                    throw LaunchLoader.Error;
-                }
+                        break;
+                    }
+                case Enums.LoadState.Failed:
+                    {
+                        throw LaunchLoader.Error;
+                    }
 
                 default:
-                {
-                    throw new Exception("错误的状态改变：" + ModBase.GetStringFromEnum(LaunchLoader.State));
-                }
+                    {
+                        throw new Exception("错误的状态改变：" + EnumUtils.GetEnumName(LaunchLoader.State));
+                    }
             }
 
             IsLaunching = false;
@@ -453,13 +453,13 @@ public static class ModLaunch
         catch (Exception ex)
         {
             var CurrentEx = ex;
-            NextInner: ;
+        NextInner:;
 
-            if (CurrentEx.Message.StartsWithF("$"))
+            if (CurrentEx.Message.StartsWith('$'))
             {
                 // 若有以 $ 开头的错误信息，则以此为准显示提示
                 // 若错误信息为 $$，则不提示
-                if (!(CurrentEx.Message == "$$"))
+                if (CurrentEx.Message != "$$")
                     ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
                         CurrentLaunchOptions?.SaveBatch is null ? "启动失败" : "导出启动脚本失败");
                 throw;
@@ -498,7 +498,7 @@ public static class ModLaunch
     public abstract class McLoginData
     {
         /// <summary>
-        ///     登录方式。
+        /// 登录方式。
         /// </summary>
         public McLoginType Type;
 
@@ -513,32 +513,32 @@ public static class ModLaunch
     public class McLoginServer : McLoginData
     {
         /// <summary>
-        ///     登录服务器基础地址。
+        /// 登录服务器基础地址。
         /// </summary>
         public string BaseUrl;
 
         /// <summary>
-        ///     登录方式的描述字符串，如 “正版”、“统一通行证”。
+        /// 登录方式的描述字符串，如 “正版”、“统一通行证”。
         /// </summary>
         public string Description;
 
         /// <summary>
-        ///     是否在本次登录中强制要求玩家重新选择角色，目前仅对 Authlib-Injector 生效。
+        /// 是否在本次登录中强制要求玩家重新选择角色，目前仅对 Authlib-Injector 生效。
         /// </summary>
         public bool ForceReselectProfile = false;
 
         /// <summary>
-        ///     是否已经存在该验证信息，用于判断是否为新增档案。
+        /// 是否已经存在该验证信息，用于判断是否为新增档案。
         /// </summary>
         public bool IsExist = false;
 
         /// <summary>
-        ///     登录密码。
+        /// 登录密码。
         /// </summary>
         public string Password;
 
         /// <summary>
-        ///     登录用户名。
+        /// 登录用户名。
         /// </summary>
         public string UserName;
 
@@ -549,7 +549,7 @@ public static class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(UserName + Password + BaseUrl + (int)Type) %
+            return (int)Math.Round(TextUtils.GetHash(UserName + Password + BaseUrl + (int)Type) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -563,7 +563,7 @@ public static class ModLaunch
         public string AccessToken = "";
 
         /// <summary>
-        ///     缓存的 OAuth RefreshToken。若没有则为空字符串。
+        /// 缓存的 OAuth RefreshToken。若没有则为空字符串。
         /// </summary>
         public string OAuthRefreshToken = "";
 
@@ -578,7 +578,7 @@ public static class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
+            return (int)Math.Round(TextUtils.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -590,22 +590,22 @@ public static class ModLaunch
     public class McLoginLegacy : McLoginData
     {
         /// <summary>
-        ///     若采用正版皮肤，则为该皮肤名。
+        /// 若采用正版皮肤，则为该皮肤名。
         /// </summary>
         public string SkinName;
 
         /// <summary>
-        ///     皮肤种类。
+        /// 皮肤种类。
         /// </summary>
         public int SkinType;
 
         /// <summary>
-        ///     登录用户名。
+        /// 登录用户名。
         /// </summary>
         public string UserName;
 
         /// <summary>
-        ///     UUID。
+        /// UUID。
         /// </summary>
         public string Uuid;
 
@@ -617,7 +617,7 @@ public static class ModLaunch
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                ModBase.GetHash(UserName + SkinType + SkinName + (int)Type) % (decimal)int.MaxValue);
+                TextUtils.GetHash(UserName + SkinType + SkinName + (int)Type) % (decimal)int.MaxValue);
         }
     }
 
@@ -633,7 +633,7 @@ public static class ModLaunch
         public string ClientToken;
 
         /// <summary>
-        ///     进行微软登录时返回的 profile 信息。
+        /// 进行微软登录时返回的 profile 信息。
         /// </summary>
         public string ProfileJson;
     }
@@ -641,7 +641,7 @@ public static class ModLaunch
     // 登录主模块加载器
     public static ModLoader.LoaderTask<McLoginData, McLoginResult> McLoginLoader =
         new("登录", McLoginStart, McLoginInput, ThreadPriority.BelowNormal)
-            { ReloadTimeout = 1, ProgressWeight = 15d, Block = false };
+        { ReloadTimeout = 1, ProgressWeight = 15d, Block = false };
 
     public static McLoginData McLoginInput()
     {
@@ -670,20 +670,20 @@ public static class ModLaunch
         switch (Data.Input.Type)
         {
             case McLoginType.Ms:
-            {
-                Loader = McLoginMsLoader;
-                break;
-            }
+                {
+                    Loader = McLoginMsLoader;
+                    break;
+                }
             case McLoginType.Legacy:
-            {
-                Loader = McLoginLegacyLoader;
-                break;
-            }
+                {
+                    Loader = McLoginLegacyLoader;
+                    break;
+                }
             case McLoginType.Auth:
-            {
-                Loader = McLoginAuthLoader;
-                break;
-            }
+                {
+                    Loader = McLoginAuthLoader;
+                    break;
+                }
         }
 
         // 尝试加载
@@ -855,13 +855,13 @@ public static class ModLaunch
             ProfileJson = result[2]
         };
 
-        SkipLogin:
+    SkipLogin:
         McLoginMsRefreshTime = TimeUtils.GetTimeTick();
         ModProfile.ProfileLog("正版验证完成");
     }
 
     /// <summary>
-    ///     获取 OAuth Tokens，处理刷新和重新登录逻辑
+    /// 获取 OAuth Tokens，处理刷新和重新登录逻辑
     /// </summary>
     private static string[] GetOAuthTokens(ModLoader.LoaderTask<McLoginMs, McLoginResult> data, McLoginMs input,
         out bool skipAuth)
@@ -893,7 +893,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     检查是否被中断
+    /// 检查是否被中断
     /// </summary>
     private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
@@ -902,7 +902,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 1：通过设备代码流获取账号信息
+    /// 正版验证步骤 1：通过设备代码流获取账号信息
     /// </summary>
     /// <returns>OAuth 验证完成的返回结果</returns>
     private static string[] MsLoginStep1New(ModLoader.LoaderTask<McLoginMs, McLoginResult> Data)
@@ -910,7 +910,7 @@ public static class ModLaunch
         // 参考：https://learn.microsoft.com/zh-cn/entra/identity-platform/v2-oauth2-device-code
 
         // 初始请求
-        Retry: ;
+    Retry:;
 
         McLaunchLog("开始正版验证 Step 1/6（原始登录）");
         JObject PrepareJson;
@@ -936,7 +936,7 @@ public static class ModLaunch
 
         // 弹窗
         var Converter = new ModMain.MyMsgBoxConverter
-            { Content = PrepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
+        { Content = PrepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
         ModMain.WaitingMyMsgBox.Add(Converter);
         while (Converter.Result is null)
             Thread.Sleep(100);
@@ -957,7 +957,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth accessToken, OAuth RefreshToken}
+    /// 正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth accessToken, OAuth RefreshToken}
     /// </summary>
     /// <param name="Code"></param>
     /// <returns></returns>
@@ -1034,7 +1034,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 2：从 OAuth accessToken 获取 XBLToken
+    /// 正版验证步骤 2：从 OAuth accessToken 获取 XBLToken
     /// </summary>
     /// <param name="accessToken">OAuth accessToken</param>
     /// <returns>XBLToken</returns>
@@ -1104,7 +1104,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 3：从 XBLToken 获取 {XSTSToken, UHS}
+    /// 正版验证步骤 3：从 XBLToken 获取 {XSTSToken, UHS}
     /// </summary>
     /// <returns>包含 XSTSToken 与 UHS 的字符串组</returns>
     private static string[] MsLoginStep3(string XBLToken)
@@ -1204,7 +1204,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 4：从 {XSTSToken, UHS} 获取 Minecraft accessToken
+    /// 正版验证步骤 4：从 {XSTSToken, UHS} 获取 Minecraft accessToken
     /// </summary>
     /// <param name="Tokens">包含 XSTSToken 与 UHS 的字符串组</param>
     /// <returns>Minecraft accessToken</returns>
@@ -1271,7 +1271,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 5：验证微软账号是否持有 MC，这也会刷新 XGP
+    /// 正版验证步骤 5：验证微软账号是否持有 MC，这也会刷新 XGP
     /// </summary>
     /// <param name="accessToken">Minecraft accessToken</param>
     private static void MsLoginStep5(string accessToken)
@@ -1301,11 +1301,11 @@ public static class ModLaunch
                             "登录失败", "购买 Minecraft", "取消"))
                 {
                     case 1:
-                    {
-                        ModBase.OpenWebsite(
-                            "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
-                        break;
-                    }
+                        {
+                            ModBase.OpenWebsite(
+                                "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
+                            break;
+                        }
                 }
 
                 throw new Exception("$$");
@@ -1319,7 +1319,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 6：从 Minecraft accessToken 获取 {UUID, UserName, ProfileJson}
+    /// 正版验证步骤 6：从 Minecraft accessToken 获取 {UUID, UserName, ProfileJson}
     /// </summary>
     /// <param name="AccessToken">Minecraft accessToken</param>
     /// <returns>包含 UUID, UserName 和 ProfileJson 的字符串组</returns>
@@ -1359,10 +1359,10 @@ public static class ModLaunch
                     switch (ModMain.MyMsgBox("请先创建 Minecraft 玩家档案，然后再重新登录。", "登录失败", "创建档案", "取消"))
                     {
                         case 1:
-                        {
-                            ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
-                            break;
-                        }
+                            {
+                                ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
+                                break;
+                            }
                     }
                 }, "Login Failed: Create Profile");
                 throw new Exception("$$");
@@ -1488,7 +1488,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     检查任务是否被中断
+    /// 检查任务是否被中断
     /// </summary>
     private static void ThrowIfAborted(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
@@ -1497,7 +1497,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     统一处理 HttpWebException
+    /// 统一处理 HttpWebException
     /// </summary>
     private static void HandleHttpWebException(WebException ex, string logPrefix)
     {
@@ -1520,7 +1520,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     统一处理普通异常
+    /// 统一处理普通异常
     /// </summary>
     private static void HandleException(Exception ex, string logPrefix)
     {
@@ -1530,7 +1530,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     处理普通登录 HttpWebException
+    /// 处理普通登录 HttpWebException
     /// </summary>
     private static void HandleLoginHttpException(WebException ex)
     {
@@ -1965,7 +1965,7 @@ public static class ModLaunch
         // JSON 中要求的版本
         if (ModMinecraft.McInstanceSelected.JsonObject["javaVersion"] is not null)
         {
-            var majorVersion = ModBase.Val(ModMinecraft.McInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
+            var majorVersion = StringExtension.Val(ModMinecraft.McInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
             if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] JSON 中参数要求至少 Java " + majorVersion);
             if (majorVersion <= 8d)
@@ -2041,7 +2041,7 @@ public static class ModLaunch
             try
             {
                 javaLoader.Start(recommendedComponent ?? javaCode, true); // 在 Java 22+ 时优先使用 Mojang 提供的 Component 字段
-                while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
+                while (javaLoader.State == Enums.LoadState.Loading && !task.IsAborted)
                 {
                     task.Progress = javaLoader.Progress;
                     Thread.Sleep(10);
@@ -2098,7 +2098,7 @@ public static class ModLaunch
     private static string McLaunchArgument;
 
     /// <summary>
-    ///     释放 Java Wrapper 并返回完整文件路径。
+    /// 释放 Java Wrapper 并返回完整文件路径。
     /// </summary>
     public static string ExtractJavaWrapper()
     {
@@ -2153,7 +2153,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     释放 linkd 并返回完整文件路径。
+    /// 释放 linkd 并返回完整文件路径。
     /// </summary>
     public static string ExtractLinkD()
     {
@@ -2197,8 +2197,8 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     判断是否使用 RetroWrapper。
-    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
+    /// 判断是否使用 RetroWrapper。
+    /// TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
     /// </summary>
     private static bool McLaunchNeedsRetroWrapper(ModMinecraft.McInstance Mc)
     {
@@ -2481,7 +2481,7 @@ public static class ModLaunch
 
         DataList.Add((string)instance.JsonObject["mainClass"]);
 
-        return DataList.Join(" ");
+        return string.Join(' ', DataList);
     }
 
     private static string McLaunchArgumentsJvmNew(ModMinecraft.McInstance instance)
@@ -2490,7 +2490,7 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
+    NextInstance:;
 
         if (currentInstance.JsonObject["arguments"] is not null &&
             currentInstance.JsonObject["arguments"]["jvm"] is not null)
@@ -2621,7 +2621,7 @@ public static class ModLaunch
         DeDuplicateDataList.Remove("-XX:MaxDirectMemorySize=256M");
 
         // 去重
-        var Result = DeDuplicateDataList.Distinct().ToList().Join(" ");
+        var Result = string.Join(' ', DeDuplicateDataList.Distinct());
 
         // 添加 MainClass
         if (instance.JsonObject["mainClass"] is null) throw new Exception("实例 JSON 中没有 mainClass 项！");
@@ -2645,7 +2645,7 @@ public static class ModLaunch
             BasicString += " --height ${resolution_height} --width ${resolution_width}";
         DataList.Add(BasicString);
 
-        var Result = DataList.Join(" ");
+        var Result = string.Join(' ', DataList);
 
         // 特别改变 OptiFineTweaker
         if ((Version.Info.HasForge || Version.Info.HasLiteLoader) && Version.Info.HasOptiFine)
@@ -2688,7 +2688,7 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
+    NextInstance:;
 
         if (currentInstance.JsonObject["arguments"] is not null &&
             currentInstance.JsonObject["arguments"]["game"] is not null)
@@ -2734,7 +2734,7 @@ public static class ModLaunch
         }
 
         // 去重
-        McLaunchArgumentsGameNewRet = DeDuplicateDataList.Distinct().ToList().Join(" ");
+        McLaunchArgumentsGameNewRet = string.Join(' ', DeDuplicateDataList.Distinct());
 
         // 特别改变 OptiFineTweaker
         if ((instance.Info.HasForge || instance.Info.HasLiteLoader) && instance.Info.HasOptiFine)
@@ -2809,26 +2809,26 @@ public static class ModLaunch
         switch (Config.Launch.GameWindowMode)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 2, false): // 与启动器尺寸一致
-            {
-                Size Result;
-                ModBase.RunInUiWait(() => Result = new Size(ModBase.GetPixelSize(ModMain.FrmMain.PanForm.ActualWidth),
-                    ModBase.GetPixelSize(ModMain.FrmMain.PanForm.ActualHeight)));
-                GameSize = Result;
-                GameSize.Height -= 29.5d * ModBase.DPI / 96d; // 标题栏高度
-                break;
-            }
+                {
+                    Size Result;
+                    ModBase.RunInUiWait(() => Result = new Size(ModBase.GetPixelSize(ModMain.FrmMain.PanForm.ActualWidth),
+                        ModBase.GetPixelSize(ModMain.FrmMain.PanForm.ActualHeight)));
+                    GameSize = Result;
+                    GameSize.Height -= 29.5d * ModBase.DPI / 96d; // 标题栏高度
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 3, false): // 自定义
-            {
-                GameSize = new Size(Math.Max(100, (double)Config.Launch.GameWindowWidth),
-                    Math.Max(100, (double)Config.Launch.GameWindowHeight));
-                break;
-            }
+                {
+                    GameSize = new Size(Math.Max(100, (double)Config.Launch.GameWindowWidth),
+                        Math.Max(100, (double)Config.Launch.GameWindowHeight));
+                    break;
+                }
 
             default:
-            {
-                GameSize = new Size(854d, 480d);
-                break;
-            }
+                {
+                    GameSize = new Size(854d, 480d);
+                    break;
+                }
         }
 
         if (ModMinecraft.McInstanceSelected.Info.Drop <= 120 && McLaunchJavaSelected.Installation.MajorVersion <= 8 &&
@@ -2909,7 +2909,7 @@ public static class ModLaunch
 
         if (OptiFineCp is not null)
             CpStrings.Insert(CpStrings.Count - 2, OptiFineCp); // OptiFine 的总是需要放到倒数第二位
-        GameArguments.Add("${classpath}", CpStrings.Select(c => ModBase.ShortenPath(c)).Join(";"));
+        GameArguments.Add("${classpath}", string.Join(' ', CpStrings.Select(c => ModBase.ShortenPath(c))));
 
         return GameArguments;
     }
@@ -3004,7 +3004,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     获取 Natives 文件夹路径，不以 \ 结尾。
+    /// 获取 Natives 文件夹路径，不以 \ 结尾。
     /// </summary>
     private static string GetNativesFolder()
     {
@@ -3042,7 +3042,7 @@ public static class ModLaunch
                 try
                 {
                     if (ProcessInterop.StartAsAdmin($"--gpu \"{javaExePath}\"").ExitCode ==
-                        (int)ModBase.ProcessReturnValues.TaskDone)
+                        (int)Enums.ProcessReturnValues.TaskDone)
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
                     else
                         throw new Exception("调整过程中出现异常");
@@ -3228,21 +3228,21 @@ public static class ModLaunch
         switch (Config.Launch.GameWindowMode)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全屏
-            {
-                ModBase.WriteIni(SetupFileAddress, "fullscreen", "true");
-                break;
-            }
+                {
+                    ModBase.WriteIni(SetupFileAddress, "fullscreen", "true");
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 默认
-                // 其他
-            {
-                break;
-            }
+                                                                                          // 其他
+                {
+                    break;
+                }
 
             default:
-            {
-                ModBase.WriteIni(SetupFileAddress, "fullscreen", "false");
-                break;
-            }
+                {
+                    ModBase.WriteIni(SetupFileAddress, "fullscreen", "false");
+                    break;
+                }
         }
     }
 
@@ -3363,7 +3363,7 @@ public static class ModLaunch
         // 设置环境变量
         var Paths = new List<string>(StartInfo.EnvironmentVariables["Path"].Split(";"));
         Paths.Add(ModBase.ShortenPath(McLaunchJavaSelected.Installation.JavaFolder));
-        StartInfo.EnvironmentVariables["Path"] = Paths.Distinct().ToList().Join(";");
+        StartInfo.EnvironmentVariables["Path"] = string.Join(' ', Paths.Distinct());
         StartInfo.EnvironmentVariables["appdata"] = ModBase.ShortenPath(ModMinecraft.McFolderSelected);
 
         // 设置其他参数
@@ -3394,15 +3394,15 @@ public static class ModLaunch
             switch (Config.Launch.ProcessPriority)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 高
-                {
-                    GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
-                    break;
-                }
+                    {
+                        GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
+                        break;
+                    }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false): // 低
-                {
-                    GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal; // 中
-                    break;
-                }
+                    {
+                        GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal; // 中
+                        break;
+                    }
             }
         }
         catch (Exception ex)
@@ -3506,32 +3506,32 @@ public static class ModLaunch
         switch (Config.Launch.LauncherVisibility)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                // 直接关闭
-                McLaunchLog("已根据设置，在启动后关闭启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.EndProgram(false));
-                break;
-            }
+                {
+                    // 直接关闭
+                    McLaunchLog("已根据设置，在启动后关闭启动器");
+                    ModBase.RunInUi(() => ModMain.FrmMain.EndProgram(false));
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
             case var case2 when Operators.ConditionalCompareObjectEqual(case2, 3, false):
-            {
-                // 隐藏
-                McLaunchLog("已根据设置，在启动后隐藏启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.Hidden = true);
-                break;
-            }
+                {
+                    // 隐藏
+                    McLaunchLog("已根据设置，在启动后隐藏启动器");
+                    ModBase.RunInUi(() => ModMain.FrmMain.Hidden = true);
+                    break;
+                }
             case var case3 when Operators.ConditionalCompareObjectEqual(case3, 4, false):
-            {
-                // 最小化
-                McLaunchLog("已根据设置，在启动后最小化启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.WindowState = WindowState.Minimized);
-                break;
-            }
+                {
+                    // 最小化
+                    McLaunchLog("已根据设置，在启动后最小化启动器");
+                    ModBase.RunInUi(() => ModMain.FrmMain.WindowState = WindowState.Minimized);
+                    break;
+                }
             case var case4 when Operators.ConditionalCompareObjectEqual(case4, 5, false):
-            {
-                break;
-            }
-            // 啥都不干
+                {
+                    break;
+                }
+                // 啥都不干
         }
 
         // 启动计数
@@ -3543,7 +3543,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
+    /// 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
     /// </summary>
     private static string ArgumentReplace(string text, bool replaceTime, Func<string, string> escapeHandler = null)
     {
@@ -3605,27 +3605,27 @@ public static class ModLaunch
         }
 
         // 登录信息
-        if (McLoginLoader.State == ModBase.LoadState.Finished)
+        if (McLoginLoader.State == Enums.LoadState.Finished)
         {
             text = text.Replace("{user}", replacer(McLoginLoader.Output.Name));
             text = text.Replace("{uuid}", replacer(McLoginLoader.Output.Uuid?.ToLower()));
             switch (McLoginLoader.Input.Type)
             {
                 case McLoginType.Legacy:
-                {
-                    text = text.Replace("{login}", replacer("离线"));
-                    break;
-                }
+                    {
+                        text = text.Replace("{login}", replacer("离线"));
+                        break;
+                    }
                 case McLoginType.Ms:
-                {
-                    text = text.Replace("{login}", replacer("正版"));
-                    break;
-                }
+                    {
+                        text = text.Replace("{login}", replacer("正版"));
+                        break;
+                    }
                 case McLoginType.Auth:
-                {
-                    text = text.Replace("{login}", replacer("Authlib-Injector"));
-                    break;
-                }
+                    {
+                        text = text.Replace("{login}", replacer("Authlib-Injector"));
+                        break;
+                    }
             }
         }
         else

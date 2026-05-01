@@ -8,6 +8,8 @@ using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
+using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using System.Collections.ObjectModel;
@@ -865,7 +867,7 @@ public partial class PageToolsGameLink
     #region PanLoad | 加载中页面
 
     // 承接状态切换的 UI 改变
-    private void OnLoadStateChanged(ModLoader.LoaderBase loader, ModBase.LoadState newState, ModBase.LoadState oldState)
+    private void OnLoadStateChanged(ModLoader.LoaderBase loader, Enums.LoadState newState, Enums.LoadState oldState)
     {
     }
 
@@ -887,7 +889,7 @@ public partial class PageToolsGameLink
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!(InitLoader.State == ModBase.LoadState.Failed))
+        if (!(InitLoader.State == Enums.LoadState.Failed))
             return;
         InitLoader.Start(IsForceRestart: true);
     }
@@ -895,14 +897,14 @@ public partial class PageToolsGameLink
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (InitLoader.State == ModBase.LoadState.Loading)
+        if (InitLoader.State == Enums.LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
             InitLoader.Abort();
         }
         else
         {
-            InitLoader.State = ModBase.LoadState.Waiting;
+            InitLoader.State = Enums.LoadState.Waiting;
         }
     }
 
@@ -944,7 +946,7 @@ public partial class PageToolsGameLink
     #region PanFinish | 加载完成页面
 
     // 退出
-    private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private async void BtnFinishExit_Click(object sender, RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
         if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
@@ -956,13 +958,13 @@ public partial class PageToolsGameLink
     }
 
     // 复制大厅编号
-    private void BtnFinishCopy_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private void BtnFinishCopy_Click(object sender, RouteEventArgs routeEventArgs)
     {
         ModBase.ClipboardSet(LabFinishId.Text);
     }
 
     // 复制 IP
-    private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private void BtnFinishCopyIp_Click(object sender, RouteEventArgs routeEventArgs)
     {
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
@@ -991,7 +993,7 @@ public partial class PageToolsGameLink
             if (_CurrentSubpage == value)
                 return;
             _CurrentSubpage = value;
-            ModBase.Log("[Link] 子页面更改为 " + ModBase.GetStringFromEnum(value));
+            ModBase.Log("[Link] 子页面更改为 " + EnumUtils.GetEnumName(value));
             PageOnContentExit();
         }
     }

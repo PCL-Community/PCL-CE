@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using System.IO;
 using System.Windows.Shell;
@@ -40,8 +41,8 @@ public static class ModLoader
             var NewProgress = LoaderTaskbarProgressGet();
             // 若单个任务已中止，或全部任务已完成，则刷新并移除
             foreach (var Task in LoaderTaskbar)
-                if (LoaderTaskbar.All(l => l.State != ModBase.LoadState.Loading) ||
-                    Task.State == ModBase.LoadState.Waiting || Task.State == ModBase.LoadState.Aborted)
+                if (LoaderTaskbar.All(l => l.State != Enums.LoadState.Loading) ||
+                    Task.State == Enums.LoadState.Waiting || Task.State == Enums.LoadState.Aborted)
                 {
                     ModMain.FrmSpeedLeft?.TaskRefresh(Task);
                     LoaderTaskbar.Remove(Task);
@@ -103,8 +104,8 @@ public static class ModLoader
     }
 
     /// <summary>
-    ///     执行以文件夹检测作为输入的加载器。加载器需以文件夹路径为输入值。
-    ///     返回是否执行了加载器。
+    /// 执行以文件夹检测作为输入的加载器。加载器需以文件夹路径为输入值。
+    /// 返回是否执行了加载器。
     /// </summary>
     /// <param name="ExtraPath">用于检查文件夹修改的额外路径。该路径不会传入加载器。</param>
     /// <param name="LoaderInput">如果不想要文件夹路径为输入值，则传入期望数据</param>
@@ -166,15 +167,15 @@ public static class ModLoader
 
     // 各类加载器
     /// <summary>
-    ///     加载器的统一基类。
+    /// 加载器的统一基类。
     /// </summary>
     public abstract class LoaderBase : ILoadingTrigger
     {
-        public delegate void OnStateChangedThreadEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedThreadEventHandler(LoaderBase Loader, Enums.LoadState NewState,
+            Enums.LoadState OldState);
 
-        public delegate void OnStateChangedUiEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedUiEventHandler(LoaderBase Loader, Enums.LoadState NewState,
+            Enums.LoadState OldState);
 
         public delegate void PreviewFinishEventHandler(LoaderBase Loader);
 
@@ -182,45 +183,45 @@ public static class ModLoader
         public const string WaitForExitTimeoutMessage = "等待加载器执行超时。";
 
         /// <summary>
-        ///     用于状态改变检测的同步锁。
+        /// 用于状态改变检测的同步锁。
         /// </summary>
         public readonly object LockState = new();
 
         private MyLoading.MyLoadingState _LoadingState = MyLoading.MyLoadingState.Stop;
         private double _Progress = -1;
-        private ModBase.LoadState _State = ModBase.LoadState.Waiting;
+        private Enums.LoadState _State = Enums.LoadState.Waiting;
 
         /// <summary>
-        ///     使用 LoaderCombo 加载时，该任务是否会阻碍后续任务的进行。
+        /// 使用 LoaderCombo 加载时，该任务是否会阻碍后续任务的进行。
         /// </summary>
         public bool Block = true;
 
         public bool HasOnStateChangedThread;
 
         /// <summary>
-        ///     当前加载器是否由 IsForceRestart 强制调起。
-        ///     这个属性自身不会干任何事，而是提供给加载器执行的函数，使得加载器调用另一个加载器时，可以继承强制重启属性。
+        /// 当前加载器是否由 IsForceRestart 强制调起。
+        /// 这个属性自身不会干任何事，而是提供给加载器执行的函数，使得加载器调用另一个加载器时，可以继承强制重启属性。
         /// </summary>
         public bool IsForceRestarting;
 
         /// <summary>
-        ///     加载器的名称。
+        /// 加载器的名称。
         /// </summary>
         public string Name;
 
         /// <summary>
-        ///     父加载器。
+        /// 父加载器。
         /// </summary>
         public LoaderBase Parent;
 
         /// <summary>
-        ///     该加载器是否显示在列表中。
+        /// 该加载器是否显示在列表中。
         /// </summary>
         public bool Show = true;
 
         // 基础属性
         /// <summary>
-        ///     加载器的标识编号。
+        /// 加载器的标识编号。
         /// </summary>
         public int Uuid = ModBase.GetUuid();
 
@@ -230,7 +231,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     最上级的加载器。
+        /// 最上级的加载器。
         /// </summary>
         public LoaderBase RealParent
         {
@@ -254,7 +255,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     简易的在 UI 线程添加触发事件的方式。主要用于在新建 Loader 时直接使用 With 绑定事件，以及进行老代码兼容。
+        /// 简易的在 UI 线程添加触发事件的方式。主要用于在新建 Loader 时直接使用 With 绑定事件，以及进行老代码兼容。
         /// </summary>
         public Action<LoaderBase> OnStateChanged
         {
@@ -263,9 +264,9 @@ public static class ModLoader
 
         // 状态监控
         /// <summary>
-        ///     加载器的状态。
+        /// 加载器的状态。
         /// </summary>
-        public ModBase.LoadState State
+        public Enums.LoadState State
         {
             get => _State;
             set
@@ -273,21 +274,21 @@ public static class ModLoader
                 if (_State == value)
                     return;
                 var OldState = _State;
-                if (value == ModBase.LoadState.Finished && Config.Debug.AddRandomDelay)
+                if (value == Enums.LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 _State = value;
-                ModBase.Log("[Loader] 加载器 " + Name + " 状态改变：" + ModBase.GetStringFromEnum(value));
+                ModBase.Log("[Loader] 加载器 " + Name + " 状态改变：" + EnumUtils.GetEnumName(value));
                 // 实现 ILoadingTrigger 接口与 OnStateChanged 回调
                 ModBase.RunInUi(() =>
                 {
                     switch (value)
                     {
-                        case ModBase.LoadState.Loading:
+                        case Enums.LoadState.Loading:
                             {
                                 LoadingState = MyLoading.MyLoadingState.Run;
                                 break;
                             }
-                        case ModBase.LoadState.Failed:
+                        case Enums.LoadState.Failed:
                             {
                                 LoadingState = MyLoading.MyLoadingState.Error;
                                 break;
@@ -308,13 +309,13 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     若加载器出错，可提供给外部参考的异常。
+        /// 若加载器出错，可提供给外部参考的异常。
         /// </summary>
         public Exception Error { get; set; }
 
         // 进度监控
         /// <summary>
-        ///     加载器的执行进度，为 0 至 1 的小数。
+        /// 加载器的执行进度，为 0 至 1 的小数。
         /// </summary>
         public virtual double Progress
         {
@@ -322,11 +323,11 @@ public static class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case Enums.LoadState.Waiting:
                         {
                             return 0d;
                         }
-                    case ModBase.LoadState.Loading:
+                    case Enums.LoadState.Loading:
                         {
                             return _Progress == -1 ? 0.02d : _Progress;
                         }
@@ -348,7 +349,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     计算总进度时的权重。它应该为预计时间（秒）。
+        /// 计算总进度时的权重。它应该为预计时间（秒）。
         /// </summary>
         public double ProgressWeight { get; set; } = 1d;
 
@@ -378,17 +379,17 @@ public static class ModLoader
         // 事件
 
         /// <summary>
-        ///     当状态改变时，在工作线程触发代码。在添加事件后，必须将 HasOnStateChangedThread 设为 True。
+        /// 当状态改变时，在工作线程触发代码。在添加事件后，必须将 HasOnStateChangedThread 设为 True。
         /// </summary>
         public event OnStateChangedThreadEventHandler? OnStateChangedThread;
 
         /// <summary>
-        ///     当状态改变时，在 UI 线程触发代码。
+        /// 当状态改变时，在 UI 线程触发代码。
         /// </summary>
         public event OnStateChangedUiEventHandler? OnStateChangedUi;
 
         /// <summary>
-        ///     在加载器目标事件执行完成，加载器状态即将变为 Finish 时调用。可以视为扩展加载器目标事件。
+        /// 在加载器目标事件执行完成，加载器状态即将变为 Finish 时调用。可以视为扩展加载器目标事件。
         /// </summary>
         public event PreviewFinishEventHandler? PreviewFinish;
 
@@ -402,23 +403,23 @@ public static class ModLoader
         public abstract void Abort();
 
         /// <summary>
-        ///     无限期地等待加载器完成，直到结束或抛出异常。若加载器尚未开始，则会开始执行。
+        /// 无限期地等待加载器完成，直到结束或抛出异常。若加载器尚未开始，则会开始执行。
         /// </summary>
         public void WaitForExit(object Input = null, LoaderBase LoaderToSyncProgress = null,
             bool IsForceRestart = false)
         {
             Start(Input, IsForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == Enums.LoadState.Loading)
             {
                 if (LoaderToSyncProgress is not null)
                     LoaderToSyncProgress.Progress = Progress;
                 Thread.Sleep(10);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == Enums.LoadState.Finished)
             {
             }
-            else if (State == ModBase.LoadState.Aborted)
+            else if (State == Enums.LoadState.Aborted)
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
@@ -433,7 +434,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     等待加载器完成，直到结束、抛出异常或超时。若加载器尚未开始，则会开始执行。
+        /// 等待加载器完成，直到结束、抛出异常或超时。若加载器尚未开始，则会开始执行。
         /// </summary>
         /// <param name="Timeout">等待的超时时间，以毫秒为单位。</param>
         /// <param name="TimeoutMessage">若执行超时，将会抛出的异常信息。</param>
@@ -441,7 +442,7 @@ public static class ModLoader
             object LoaderToSyncProgress = null, bool IsForceRestart = false)
         {
             Start(Input, IsForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == Enums.LoadState.Loading)
             {
                 if (LoaderToSyncProgress is not null)
                     ((dynamic)LoaderToSyncProgress).Progress = Progress;
@@ -451,10 +452,10 @@ public static class ModLoader
                     throw new TimeoutException(TimeoutMessage);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == Enums.LoadState.Finished)
             {
             }
-            else if (State == ModBase.LoadState.Aborted)
+            else if (State == Enums.LoadState.Aborted)
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
@@ -480,33 +481,33 @@ public static class ModLoader
     public abstract class LoaderTask : LoaderBase
     {
         /// <summary>
-        ///     上次完成加载时的时间。
+        /// 上次完成加载时的时间。
         /// </summary>
         public long LastFinishedTime;
 
         /// <summary>
-        ///     最后一次运行加载器的线程。可能为 Nothing，或线程已结束。
+        /// 最后一次运行加载器的线程。可能为 Nothing，或线程已结束。
         /// </summary>
         public Task? LastRunningTask;
 
         /// <summary>
-        ///     在输入相同时使用原有结果的超时，单位为毫秒。
+        /// 在输入相同时使用原有结果的超时，单位为毫秒。
         /// </summary>
         public int ReloadTimeout = -1;
 
         // 状态指示
         /// <summary>
-        ///     当前执行线程是否应当中断。只应用在加载器的工作线程中判断，不可跨线程调用。
+        /// 当前执行线程是否应当中断。只应用在加载器的工作线程中判断，不可跨线程调用。
         /// </summary>
         public bool IsAborted => IsAbortedWithThread(Task.CurrentId ?? -1);
 
         /// <summary>
-        ///     当前执行线程是否应当中断。需要手动提供加载器线程，用于需要跨线程检查的情况。
+        /// 当前执行线程是否应当中断。需要手动提供加载器线程，用于需要跨线程检查的情况。
         /// </summary>
         public bool IsAbortedWithThread(int compareTaskId)
         {
             return LastRunningTask is null || compareTaskId != LastRunningTask.Id ||
-                   State == ModBase.LoadState.Aborted;
+                   State == Enums.LoadState.Aborted;
         }
 
         public abstract bool ShouldStart(ref object? input, bool isForceRestart = false, bool ignoreReloadTimeout = false);
@@ -517,7 +518,7 @@ public static class ModLoader
     }
 
     /// <summary>
-    ///     用于异步执行并监控单一函数的加载器。
+    /// 用于异步执行并监控单一函数的加载器。
     /// </summary>
     public class LoaderTask<InputType, OutputType> : LoaderTask
     {
@@ -572,7 +573,7 @@ public static class ModLoader
                 Error = ex;
                 lock (LockState)
                 {
-                    State = ModBase.LoadState.Failed;
+                    State = Enums.LoadState.Failed;
                 }
             }
 
@@ -581,7 +582,7 @@ public static class ModLoader
                 return true; // 强制要求重启
             if (Input is null != this.Input is null || (Input is not null && !Input.Equals(this.Input)))
                 return true; // 输入不同
-            if ((State == ModBase.LoadState.Loading || State == ModBase.LoadState.Finished) && (IgnoreReloadTimeout ||
+            if ((State == Enums.LoadState.Loading || State == Enums.LoadState.Finished) && (IgnoreReloadTimeout ||
                     ReloadTimeout == -1 || LastFinishedTime == 0L ||
                     TimeUtils.GetTimeTick() - LastFinishedTime < ReloadTimeout)) // 正在加载或已结束
                 // 没有超时
@@ -597,12 +598,12 @@ public static class ModLoader
             if (ShouldStart(ref Input, IsForceRestart))
             {
                 // 输入不同或失败，开始加载
-                if (State == ModBase.LoadState.Loading)
+                if (State == Enums.LoadState.Loading)
                     TriggerThreadAbort();
                 this.Input = Conversions.ToGenericParameter<InputType>(Input);
                 lock (LockState)
                 {
-                    State = ModBase.LoadState.Loading;
+                    State = Enums.LoadState.Loading;
                     Progress = -1;
                 }
             }
@@ -630,7 +631,7 @@ public static class ModLoader
                     if (ModBase.ModeDebug)
                         ModBase.Log($"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已完成");
                     RaisePreviewFinish();
-                    State = ModBase.LoadState.Finished;
+                    State = Enums.LoadState.Finished;
                     LastFinishedTime = TimeUtils.GetTimeTick();
                 }
                 catch (ModBase.CancelledException ex)
@@ -638,14 +639,14 @@ public static class ModLoader
                     if (ModBase.ModeDebug)
                         ModBase.Log(ex,
                             $"加载线程 {Name} ({Task.CurrentId}) 已触发取消中断，已完成 {Math.Round(Progress * 100d)}%");
-                    if (!IsAborted) State = ModBase.LoadState.Aborted;
+                    if (!IsAborted) State = Enums.LoadState.Aborted;
                 }
                 catch (ThreadInterruptedException ex)
                 {
                     if (ModBase.ModeDebug)
                         ModBase.Log(ex,
                             $"加载线程 {Name} ({Task.CurrentId}) 已触发线程中断，已完成 {Math.Round(Progress * 100d)}%");
-                    if (!IsAborted) State = ModBase.LoadState.Aborted;
+                    if (!IsAborted) State = Enums.LoadState.Aborted;
                 }
                 catch (Exception ex)
                 {
@@ -654,7 +655,7 @@ public static class ModLoader
                         $"加载线程 {Name} ({Task.CurrentId}) 出错，已完成 {Math.Round(Progress * 100d)}%",
                         ModBase.LogLevel.Developer);
                     Error = ex;
-                    State = ModBase.LoadState.Failed;
+                    State = Enums.LoadState.Failed;
                 }
             }, (CancelToken ??= new CancellationTokenSource()).Token); // 未中断，本次输出有效
             // LastRunningTask.Start(); // 不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
@@ -662,11 +663,11 @@ public static class ModLoader
 
         public override void Abort()
         {
-            if (State != ModBase.LoadState.Loading)
+            if (State != Enums.LoadState.Loading)
                 return;
             lock (LockState)
             {
-                State = ModBase.LoadState.Aborted;
+                State = Enums.LoadState.Aborted;
             }
 
             TriggerThreadAbort();
@@ -683,7 +684,7 @@ public static class ModLoader
     }
 
     /// <summary>
-    ///     支持多个加载器连续运作的复合加载器。
+    /// 支持多个加载器连续运作的复合加载器。
     /// </summary>
     public class LoaderCombo : LoaderBase
     {
@@ -712,11 +713,11 @@ public static class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case Enums.LoadState.Waiting:
                         {
                             return 0d;
                         }
-                    case ModBase.LoadState.Loading:
+                    case Enums.LoadState.Loading:
                         {
                             var Total = 0d;
                             var Finished = 0d;
@@ -752,16 +753,16 @@ public static class ModLoader
             IsForceRestarting = IsForceRestart;
             lock (LockState)
             {
-                if (State == ModBase.LoadState.Loading) return;
+                if (State == Enums.LoadState.Loading) return;
 
-                State = ModBase.LoadState.Loading;
+                State = Enums.LoadState.Loading;
             }
 
             // 启动加载
             this.Input = Input;
             if (IsForceRestart)
                 foreach (var Loader in Loaders)
-                    Loader.State = ModBase.LoadState.Waiting;
+                    Loader.State = Enums.LoadState.Waiting;
             ModBase.RunInThread(Update);
         }
 
@@ -769,8 +770,8 @@ public static class ModLoader
         {
             lock (LockState)
             {
-                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
-                    State = ModBase.LoadState.Aborted;
+                if (State == Enums.LoadState.Loading || State == Enums.LoadState.Waiting)
+                    State = Enums.LoadState.Aborted;
                 else
                     return;
             }
@@ -782,30 +783,30 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     子任务状态变更。
+        /// 子任务状态变更。
         /// </summary>
-        private void SubTaskStateChanged(LoaderBase Loader, ModBase.LoadState NewState, ModBase.LoadState OldState)
+        private void SubTaskStateChanged(LoaderBase Loader, Enums.LoadState NewState, Enums.LoadState OldState)
         {
             switch (NewState)
             {
-                case ModBase.LoadState.Loading:
+                case Enums.LoadState.Loading:
                     {
                         break;
                     }
                 // 开始，啥都不干
-                case ModBase.LoadState.Waiting:
+                case Enums.LoadState.Waiting:
                     {
                         break;
                     }
                 // 子加载器可能由于外部输入改变而暂时变为 Waiting，之后会立即重新启动
                 // 所以啥都不干就行
-                case ModBase.LoadState.Finished:
+                case Enums.LoadState.Finished:
                     {
                         // 正常结束，触发刷新
                         Update();
                         break;
                     }
-                case ModBase.LoadState.Aborted:
+                case Enums.LoadState.Aborted:
                     {
                         // 被中断，这个任务也中断
                         Abort();
@@ -817,7 +818,7 @@ public static class ModLoader
                         // 完蛋，出错了
                         lock (LockState)
                         {
-                            if (State >= ModBase.LoadState.Finished)
+                            if (State >= Enums.LoadState.Finished)
                                 return;
                             Error = new Exception(Loader.Name + "失败", Loader.Error);
                             State = Loader.State;
@@ -836,13 +837,13 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     触发一次更新，以启动新加载器或完成。
+        /// 触发一次更新，以启动新加载器或完成。
         /// </summary>
         private void Update()
         {
-            if (State == ModBase.LoadState.Finished
-                || State == ModBase.LoadState.Failed
-                || State == ModBase.LoadState.Aborted)
+            if (State == Enums.LoadState.Finished
+                || State == Enums.LoadState.Failed
+                || State == Enums.LoadState.Aborted)
                 return;
 
             var isFinished = true;
@@ -852,7 +853,7 @@ public static class ModLoader
             foreach (var loader in Loaders)
                 switch (loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case Enums.LoadState.Finished:
                         {
                             if (loader.GetType().Name.StartsWithF("LoaderTask"))
                             {
@@ -876,7 +877,7 @@ public static class ModLoader
                             break;
                         }
 
-                    case ModBase.LoadState.Loading:
+                    case Enums.LoadState.Loading:
                         {
                             if (loader.GetType().Name.StartsWithF("LoaderTask"))
                             {
@@ -946,13 +947,13 @@ public static class ModLoader
             if (isFinished)
             {
                 RaisePreviewFinish();
-                State = ModBase.LoadState.Finished;
+                State = Enums.LoadState.Finished;
                 ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             }
         }
 
         /// <summary>
-        ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。
+        /// 获得最底层的，应被显示给用户的加载器列表，并追加于 List。
         /// </summary>
         public static void GetLoaderList(LoaderCombo Loader, ref List<LoaderBase> List, bool RequireShow = true)
         {
@@ -966,7 +967,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。
+        /// 获得最底层的，应被显示给用户的加载器列表，并追加于 List。
         /// </summary>
         public void GetLoaderList(ref List<LoaderBase> List, bool RequireShow = true)
         {
@@ -974,7 +975,7 @@ public static class ModLoader
         }
 
         /// <summary>
-        ///     获得最底层的，应被显示给用户的加载器列表。
+        /// 获得最底层的，应被显示给用户的加载器列表。
         /// </summary>
         public List<LoaderBase> GetLoaderList(bool RequireShow = true)
         {
@@ -985,7 +986,7 @@ public static class ModLoader
     }
 
     /// <summary>
-    ///     支持多个加载器连续运作的复合加载器（泛型版本）。
+    /// 支持多个加载器连续运作的复合加载器（泛型版本）。
     /// </summary>
     public class LoaderCombo<InputType> : LoaderCombo
     {

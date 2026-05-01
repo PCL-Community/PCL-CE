@@ -1,9 +1,10 @@
-using System.IO;
-using System.Windows;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
+using System.IO;
+using System.Windows;
 
 namespace PCL;
 
@@ -13,7 +14,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         InitializeComponent();
         OnlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
-            { ReloadTimeout = 10 * 60 * 1000 };
+        { ReloadTimeout = 10 * 60 * 1000 };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
     }
@@ -53,7 +54,7 @@ public partial class PageLaunchRight : IRefreshable
     #region 主页
 
     /// <summary>
-    ///     刷新主页。
+    /// 刷新主页。
     /// </summary>
     private void Refresh()
     {
@@ -197,7 +198,7 @@ public partial class PageLaunchRight : IRefreshable
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
                     {
-                        if (ModMain.FrmHomepageNews == null) 
+                        if (ModMain.FrmHomepageNews == null)
                             ModMain.FrmHomepageNews = new PageHomepageNewsView();
                         PanCustom.Children.Clear();
                         PanCustom.Children.Add(ModMain.FrmHomepageNews);
@@ -210,7 +211,7 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     /// <summary>
-    ///     根据 URL 加载网络内容，优先使用缓存
+    /// 根据 URL 加载网络内容，优先使用缓存
     /// </summary>
     private string LoadFromNetwork(string url)
     {
@@ -353,8 +354,8 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     /// <summary>
-    ///     立即强制刷新主页。
-    ///     必须在 UI 线程调用。
+    /// 立即强制刷新主页。
+    /// 必须在 UI 线程调用。
     /// </summary>
     public void ForceRefresh()
     {
@@ -378,7 +379,7 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     /// <summary>
-    ///     清空主页缓存信息。
+    /// 清空主页缓存信息。
     /// </summary>
     private void ClearCache()
     {
@@ -390,8 +391,8 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     /// <summary>
-    ///     从文本内容中加载主页。
-    ///     必须在 UI 线程调用。
+    /// 从文本内容中加载主页。
+    /// 必须在 UI 线程调用。
     /// </summary>
     private void LoadContent(string Content)
     {
@@ -448,7 +449,7 @@ public partial class PageLaunchRight : IRefreshable
         }
 
         return;
-        Refresh: ;
+    Refresh:;
 
         ForceRefresh();
     }

@@ -58,11 +58,12 @@ public partial class PageDownloadOptiFine
                     continue;
                 // 增加卡片
                 var NewCard = new MyCard
-                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 NewCard.Children.Add(NewStack);
@@ -70,8 +71,8 @@ public partial class PageDownloadOptiFine
                 NewCard.IsSwapped = true;
                 NewCard.InstallMethod = Stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName) == 1);
+                    ((List<ModDownload.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName));
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
                             (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));

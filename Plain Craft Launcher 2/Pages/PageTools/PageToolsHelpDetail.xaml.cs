@@ -1,3 +1,4 @@
+using PCL.Core.Utils.Exts;
 using System.Windows;
 
 namespace PCL;
@@ -23,7 +24,7 @@ public partial class PageOtherHelpDetail : IRefreshable
     }
 
     /// <summary>
-    ///     根据特定帮助项初始化页面 UI，返回是否成功加载。
+    /// 根据特定帮助项初始化页面 UI，返回是否成功加载。
     /// </summary>
     public bool Init(ModMain.HelpEntry Entry)
     {

@@ -1,5 +1,6 @@
-using System.Windows;
+using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
+using System.Windows;
 
 namespace PCL;
 
@@ -21,7 +22,7 @@ public partial class PageLoginOffline
         ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
+    private void RadioUuid_Checked(object sender, RouteEventArgs e)
     {
         if (RadioUuidCustom.Checked)
         {

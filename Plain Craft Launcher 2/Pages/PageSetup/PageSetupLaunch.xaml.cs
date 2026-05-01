@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
@@ -117,7 +118,7 @@ public partial class PageSetupLaunch
     }
 
     // 将控件改变路由到设置改变
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
@@ -196,7 +197,7 @@ public partial class PageSetupLaunch
     }
 
     /// <summary>
-    ///     刷新 UI 上的 RAM 显示。
+    /// 刷新 UI 上的 RAM 显示。
     /// </summary>
     public void RefreshRam(bool showAnim)
     {
@@ -261,7 +262,7 @@ public partial class PageSetupLaunch
     private int RamTextRight = 1;
 
     /// <summary>
-    ///     刷新 UI 上的文本位置。
+    /// 刷新 UI 上的文本位置。
     /// </summary>
     private void RefreshRamText()
     {
@@ -381,7 +382,7 @@ public partial class PageSetupLaunch
     }
 
     /// <summary>
-    ///     获取当前设置的 RAM 值。单位为 GB。
+    /// 获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
     public static double GetRam(ModMinecraft.McInstance Version, bool UseVersionJavaSetup, bool? Is32BitJava = default)
     {

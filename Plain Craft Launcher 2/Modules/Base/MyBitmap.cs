@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PCL.Core.UI.Media;
+using PCL.Core.Utils.Exts;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 // 一个万能的自动图片类型转换工具类
@@ -18,7 +19,7 @@ public class MyBitmap
     private readonly ConcurrentDictionary<string, MyBitmap> _Cache = new();
 
     /// <summary>
-    ///     存储的图片
+    /// 存储的图片
     /// </summary>
     public Bitmap Pic;
 
@@ -191,7 +192,7 @@ public class MyBitmap
     }
 
     /// <summary>
-    ///     获取裁切的图片，这个方法不会导致原对象改变且会返回一个新的对象。
+    /// 获取裁切的图片，这个方法不会导致原对象改变且会返回一个新的对象。
     /// </summary>
     public MyBitmap Clip(int X, int Y, int Width, int Height)
     {
@@ -208,7 +209,7 @@ public class MyBitmap
     }
 
     /// <summary>
-    ///     获取旋转或翻转后的图片，这个方法不会导致原对象改变且会返回一个新的对象。
+    /// 获取旋转或翻转后的图片，这个方法不会导致原对象改变且会返回一个新的对象。
     /// </summary>
     public MyBitmap RotateFlip(RotateFlipType Type)
     {
@@ -219,7 +220,7 @@ public class MyBitmap
     }
 
     /// <summary>
-    ///     将图像保存到文件。
+    /// 将图像保存到文件。
     /// </summary>
     public void Save(string FilePath)
     {

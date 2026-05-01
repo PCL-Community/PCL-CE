@@ -41,7 +41,7 @@ public class MyTextBox : TextBox
     // 提示文本
 
     /// <summary>
-    ///     是否已经由用户输入过文本，若尚未输入过，则不显示输入检查的失败。
+    /// 是否已经由用户输入过文本，若尚未输入过，则不显示输入检查的失败。
     /// </summary>
     private bool IsTextChanged;
 
@@ -101,7 +101,7 @@ public class MyTextBox : TextBox
     // 输入验证
 
     /// <summary>
-    ///     输入验证结果。若为空字符串则无错误，否则为第一个错误原因。
+    /// 输入验证结果。若为空字符串则无错误，否则为第一个错误原因。
     /// </summary>
     public string ValidateResult
     {
@@ -110,12 +110,12 @@ public class MyTextBox : TextBox
     }
 
     /// <summary>
-    ///     是否通过了输入验证。
+    /// 是否通过了输入验证。
     /// </summary>
     public bool IsValidated => (bool)GetValue(IsValidatedProperty);
 
     /// <summary>
-    ///     输入验证的规则。
+    /// 输入验证的规则。
     /// </summary>
     public Collection<IValidator<string>> ValidateRules
     {
@@ -157,7 +157,7 @@ public class MyTextBox : TextBox
     }
 
     /// <summary>
-    ///     进行输入验证。
+    /// 进行输入验证。
     /// </summary>
     public void Validate()
     {
@@ -212,7 +212,7 @@ public class MyTextBox : TextBox
     }
 
     /// <summary>
-    ///     强制显示结果为正常，类似尚未输入过文本的状态。不影响实际的检查结果。
+    /// 强制显示结果为正常，类似尚未输入过文本的状态。不影响实际的检查结果。
     /// </summary>
     public void ForceShowAsSuccess()
     {

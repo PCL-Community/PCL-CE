@@ -10,6 +10,7 @@ using PCL.Core.Link.McPing.Model;
 using PCL.Core.Link.Natayark;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -98,14 +99,14 @@ public static class ModLink
 
         if (DlEasyTierLoader is not null)
         {
-            if (DlEasyTierLoader.State == ModBase.LoadState.Loading)
+            if (DlEasyTierLoader.State == Enums.LoadState.Loading)
             {
                 ModMain.Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！");
                 return false;
             }
 
-            if (DlEasyTierLoader.State == ModBase.LoadState.Failed ||
-                DlEasyTierLoader.State == ModBase.LoadState.Aborted)
+            if (DlEasyTierLoader.State == Enums.LoadState.Failed ||
+                DlEasyTierLoader.State == Enums.LoadState.Aborted)
             {
                 ModMain.Hint("正在下载 EasyTier，请稍后...");
                 DownloadEasyTier();

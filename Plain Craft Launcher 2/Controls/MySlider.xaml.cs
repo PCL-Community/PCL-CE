@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -9,7 +10,7 @@ public partial class MySlider
 {
     public delegate void ChangeEventHandler(object sender, bool user);
 
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
     // 自定义属性
 
@@ -65,7 +66,7 @@ public partial class MySlider
                 _Value = value;
                 if (ModAnimation.AniControlEnabled == 0)
                 {
-                    var e = new ModBase.RouteEventArgs();
+                    var e = new RouteEventArgs();
                     PreviewChange?.Invoke(this, e);
                     if (e.Handled)
                     {

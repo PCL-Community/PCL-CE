@@ -1,6 +1,7 @@
+using PCL.Core.App;
+using PCL.Core.UI;
 using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -116,7 +117,7 @@ public partial class PageSetupGameManage
         });
     }
 
-    private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
+    private void SliderDownloadThread_PreviewChange(object sender, RouteEventArgs e)
     {
         if (SliderDownloadThread.Value < 100)
             return;

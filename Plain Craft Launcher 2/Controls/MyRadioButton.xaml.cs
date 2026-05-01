@@ -15,7 +15,7 @@ public partial class MyRadioButton
 
     public delegate void CheckEventHandler(MyRadioButton sender, bool raiseByMouse);
 
-    public delegate void PreviewClickEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewClickEventHandler(object sender, RouteEventArgs e);
 
     public enum ColorState
     {
@@ -112,7 +112,7 @@ public partial class MyRadioButton
     public event CheckEventHandler? Check;
 
     /// <summary>
-    ///     手动设置 Checked 属性。
+    /// 手动设置 Checked 属性。
     /// </summary>
     /// <param name="value">新的 Checked 属性。</param>
     /// <param name="raiseByMouse">是否由用户引发。</param>
@@ -211,7 +211,7 @@ public partial class MyRadioButton
             return;
         ModBase.Log("[Control] 按下单选按钮：" + Text);
         IsMouseDown = false;
-        var e = new ModBase.RouteEventArgs(true);
+        var e = new RouteEventArgs(true);
         PreviewClick?.Invoke(this, e);
         if (e.Handled)
             return;

@@ -1,9 +1,9 @@
-using System.Windows;
-using Microsoft.VisualBasic;
 using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
+using PCL.Core.Utils;
 using PCL.Core.Utils.VersionControl;
+using System.Windows;
 
 namespace PCL;
 
@@ -96,7 +96,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                             load.Progress = 1d;
                         }));
                         var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - 备份应用", loaders)
-                            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+                        { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
                         loader.Start(1);
                         ModLoader.LoaderTaskbarAdd(loader);
                         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -131,7 +131,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                             load.Progress = 1d;
                         }));
                         var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - 导出备份", loaders)
-                            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+                        { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
                         loader.Start(1);
                         ModLoader.LoaderTaskbarAdd(loader);
                         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -230,7 +230,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                 ModBase.RunInUi(() => RefreshList());
             }));
             var loader = new ModLoader.LoaderCombo<int>($"{input} - 制作备份", loaders)
-                { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             loader.Start(1);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -257,8 +257,9 @@ public partial class PageInstanceSavesBackup : IRefreshable
             })
         };
         var loader =
-            new ModLoader.LoaderCombo<int>($"{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - 备份清理",
-                loaders) { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+            new ModLoader.LoaderCombo<int>($"{PathUtils.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - 备份清理",
+                loaders)
+            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();

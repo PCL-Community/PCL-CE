@@ -44,7 +44,7 @@ public class DownloadFile
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;
-        LocalName = ModBase.GetFileNameFromPath(localPath);
+        LocalName = PathUtils.GetFileNameFromPath(localPath);
         Check = checker;
         UseBrowserUserAgent = useBrowserUserAgent;
         CustomUserAgent = customUserAgent;

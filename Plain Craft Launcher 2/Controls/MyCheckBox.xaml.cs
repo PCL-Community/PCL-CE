@@ -1,3 +1,4 @@
+using PCL.Core.UI;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -11,7 +12,7 @@ public partial class MyCheckBox
 {
     public delegate void ChangeEventHandler(object sender, bool user);
 
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
     private const int AnimationTimeOfCheck = 150; // 勾选状态变更动画长度
 
@@ -30,7 +31,7 @@ public partial class MyCheckBox
         }));
 
     /// <summary>
-    ///     是否为三态复选框。
+    /// 是否为三态复选框。
     /// </summary>
     public static readonly DependencyProperty IsThreeStateProperty =
         DependencyProperty.Register("IsThreeState", typeof(bool), typeof(MyCheckBox), new PropertyMetadata(false));
@@ -86,7 +87,7 @@ public partial class MyCheckBox
     } // 内容
 
     /// <summary>
-    ///     复选框勾选状态改变。
+    /// 复选框勾选状态改变。
     /// </summary>
     /// <param name="user">是否为用户手动改变的勾选状态。</param>
     public event ChangeEventHandler? Change;
@@ -94,7 +95,7 @@ public partial class MyCheckBox
     public event PreviewChangeEventHandler? PreviewChange;
 
     /// <summary>
-    ///     手动设置 Checked 属性。
+    /// 手动设置 Checked 属性。
     /// </summary>
     /// <param name="value">新的 Checked 属性。</param>
     /// <param name="user">是否由用户引发。</param>
@@ -108,7 +109,7 @@ public partial class MyCheckBox
             // Preview 事件
             if ((!value.HasValue || value.Value) && user && value.HasValue)
             {
-                var e = new ModBase.RouteEventArgs(user);
+                var e = new RouteEventArgs(user);
                 PreviewChange?.Invoke(this, e);
                 if (e.Handled)
                 {

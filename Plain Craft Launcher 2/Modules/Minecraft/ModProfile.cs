@@ -1,10 +1,3 @@
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
@@ -13,9 +6,15 @@ using PCL.Core.App;
 using PCL.Core.IO.Net;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using System.IO;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -23,24 +22,24 @@ namespace PCL;
 public static class ModProfile
 {
     /// <summary>
-    ///     当前选定的档案
+    /// 当前选定的档案
     /// </summary>
     public static McProfile SelectedProfile;
 
     /// <summary>
-    ///     上次选定的档案编号
+    /// 上次选定的档案编号
     /// </summary>
     public static int LastUsedProfile;
 
     /// <summary>
-    ///     档案列表
+    /// 档案列表
     /// </summary>
     public static List<McProfile> ProfileList = new();
 
     public static bool IsCreatingProfile;
 
     /// <summary>
-    ///     档案操作日志
+    /// 档案操作日志
     /// </summary>
     public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
     {
@@ -51,7 +50,7 @@ public static class ModProfile
     #region 旧版迁移
 
     /// <summary>
-    ///     从旧版配置文件迁移档案，不能在 UI 线程调用
+    /// 从旧版配置文件迁移档案，不能在 UI 线程调用
     /// </summary>
     public static void MigrateOldProfile()
     {
@@ -67,7 +66,8 @@ public static class ModProfile
             {
                 var newProfile = new McProfile
                 {
-                    Username = Profile.Key, Uuid = Conversions.ToString(McLoginMojangUuid(Profile.Key, false)),
+                    Username = Profile.Key,
+                    Uuid = Conversions.ToString(McLoginMojangUuid(Profile.Key, false)),
                     Type = ModLaunch.McLoginType.Ms
                 };
                 ProfileList.Add(newProfile);
@@ -92,7 +92,8 @@ public static class ModProfile
             {
                 var newProfile = new McProfile
                 {
-                    Username = OfflineId, Uuid = GetOfflineUuid(OfflineId, isLegacy: true),
+                    Username = OfflineId,
+                    Uuid = GetOfflineUuid(OfflineId, isLegacy: true),
                     Type = ModLaunch.McLoginType.Legacy
                 }; // 迁移的档案默认使用旧版 UUID 生成方式以避免存档丢失
                 ProfileList.Add(newProfile);
@@ -151,13 +152,14 @@ public static class ModProfile
     #region 获取正版档案 UUID
 
     /// <summary>
-    ///     根据用户名返回对应 UUID，需要多线程
+    /// 根据用户名返回对应 UUID，需要多线程
     /// </summary>
     /// <param name="name">玩家 ID</param>
     public static object McLoginMojangUuid(string name, bool throwOnNotFound)
     {
         if (name.Trim().Length == 0)
-            return ModBase.StrFill("", "0", 32);
+            //return string.Empty.Truncate("0", 32);
+            return string.Empty;
         // 从缓存获取
         var uuid = ModBase.ReadIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name);
         if (Strings.Len(uuid) == 32)
@@ -214,60 +216,60 @@ public static class ModProfile
         public string ClientToken;
 
         /// <summary>
-        ///     档案描述，暂时没做功能
+        /// 档案描述，暂时没做功能
         /// </summary>
         public string Desc;
 
         /// <summary>
-        ///     联网验证档案的验证有效期
+        /// 联网验证档案的验证有效期
         /// </summary>
         public long Expires;
 
         /// <summary>
-        ///     用于识别正版档案的 ID 标识符
+        /// 用于识别正版档案的 ID 标识符
         /// </summary>
         [Obsolete("暂时弃用，应当使用 AccessToken 与 RefreshToken")]
         public string IdentityId;
 
         /// <summary>
-        ///     登录用户名，用于第三方验证
+        /// 登录用户名，用于第三方验证
         /// </summary>
         public string Name;
 
         /// <summary>
-        ///     登录密码，用于第三方验证
+        /// 登录密码，用于第三方验证
         /// </summary>
         public string Password;
 
         /// <summary>
-        ///     原始 JSON 数据，用于正版验证部分功能
+        /// 原始 JSON 数据，用于正版验证部分功能
         /// </summary>
         public string RawJson;
 
         public string RefreshToken;
 
         /// <summary>
-        ///     验证服务器地址，用于第三方验证
+        /// 验证服务器地址，用于第三方验证
         /// </summary>
         public string Server;
 
         /// <summary>
-        ///     验证服务器名称，来自第三方验证服务器返回的 Metadata
+        /// 验证服务器名称，来自第三方验证服务器返回的 Metadata
         /// </summary>
         public string ServerName;
 
         /// <summary>
-        ///     用于档案列表头像显示的皮肤 ID
+        /// 用于档案列表头像显示的皮肤 ID
         /// </summary>
         public string SkinHeadId;
 
         /// <summary>
-        ///     档案类型
+        /// 档案类型
         /// </summary>
         public ModLaunch.McLoginType Type;
 
         /// <summary>
-        ///     玩家 ID
+        /// 玩家 ID
         /// </summary>
         public string Username;
 
@@ -279,7 +281,7 @@ public static class ModProfile
     #region 读写档案
 
     /// <summary>
-    ///     重新获取已有档案列表
+    /// 重新获取已有档案列表
     /// </summary>
     public static void GetProfile()
     {
@@ -363,7 +365,7 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     以当前的档案列表写入配置文件
+    /// 以当前的档案列表写入配置文件
     /// </summary>
     public static void SaveProfile(JArray listJson = null)
     {
@@ -436,7 +438,7 @@ public static class ModProfile
     #region 新建与编辑
 
     /// <summary>
-    ///     新建档案
+    /// 新建档案
     /// </summary>
     public static void CreateProfile()
     {
@@ -495,7 +497,7 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     编辑当前档案的 ID
+    /// 编辑当前档案的 ID
     /// </summary>
     public static void EditProfileId()
     {
@@ -523,7 +525,7 @@ public static class ModProfile
                 try
                 {
                     var checkResult = (JObject)ModBase.GetJson(Requester.Fetch(
-                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", 
+                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available",
                         new FetchParam
                         {
                             Headers = new Dictionary<string, string>
@@ -591,7 +593,7 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     编辑离线档案的 UUID
+    /// 编辑离线档案的 UUID
     /// </summary>
     /// <param name="profile">目标档案</param>
     public static void EditOfflineUuid(McProfile profile, string uuid = null)
@@ -630,7 +632,7 @@ public static class ModProfile
                 Button1: "继续", Button2: "取消");
         if (string.IsNullOrEmpty(newUuid))
             return;
-        Write: ;
+    Write:;
 
         ProfileList[profileIndex].Uuid = newUuid;
         SelectedProfile = ProfileList[profileIndex];
@@ -639,7 +641,7 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     编辑指定档案的验证服务器显示名称
+    /// 编辑指定档案的验证服务器显示名称
     /// </summary>
     public static void EditAuthServerName(McProfile profile, string serverName)
     {
@@ -650,7 +652,7 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     删除特定档案
+    /// 删除特定档案
     /// </summary>
     /// <param name="profile">目标档案</param>
     public static void RemoveProfile(McProfile profile)
@@ -828,27 +830,27 @@ public static class ModProfile
             switch (typeStr ?? "")
             {
                 case "microsoft":
-                {
-                    profile.Type = ModLaunch.McLoginType.Ms;
-                    profile.Username = el.GetProperty("displayName").GetString();
-                    break;
-                }
+                    {
+                        profile.Type = ModLaunch.McLoginType.Ms;
+                        profile.Username = el.GetProperty("displayName").GetString();
+                        break;
+                    }
                 case "authlibInjector":
-                {
-                    profile.Type = ModLaunch.McLoginType.Auth;
-                    profile.Username = el.GetProperty("displayName").GetString();
-                    profile.Server = el.GetProperty("serverBaseURL").GetString();
-                    profile.Name = el.GetProperty("username").GetString();
-                    profile.ClientToken = el.GetProperty("clientToken").GetString();
-                    break;
-                }
+                    {
+                        profile.Type = ModLaunch.McLoginType.Auth;
+                        profile.Username = el.GetProperty("displayName").GetString();
+                        profile.Server = el.GetProperty("serverBaseURL").GetString();
+                        profile.Name = el.GetProperty("username").GetString();
+                        profile.ClientToken = el.GetProperty("clientToken").GetString();
+                        break;
+                    }
 
                 default:
-                {
-                    profile.Type = ModLaunch.McLoginType.Legacy;
-                    profile.Username = el.GetProperty("username").GetString();
-                    break;
-                }
+                    {
+                        profile.Type = ModLaunch.McLoginType.Legacy;
+                        profile.Username = el.GetProperty("username").GetString();
+                        break;
+                    }
             }
 
             return profile;
@@ -867,30 +869,30 @@ public static class ModProfile
         switch (profile.Type)
         {
             case ModLaunch.McLoginType.Ms:
-            {
-                dict["displayName"] = profile.Username;
-                dict["type"] = "microsoft";
-                dict["tokenType"] = "Bearer";
-                dict["accessToken"] = "";
-                dict["notAfter"] = 1743779140286L;
-                break;
-            }
+                {
+                    dict["displayName"] = profile.Username;
+                    dict["type"] = "microsoft";
+                    dict["tokenType"] = "Bearer";
+                    dict["accessToken"] = "";
+                    dict["notAfter"] = 1743779140286L;
+                    break;
+                }
             case ModLaunch.McLoginType.Auth:
-            {
-                dict["serverBaseURL"] = profile.Server;
-                dict["displayName"] = profile.Username;
-                dict["username"] = profile.Name;
-                dict["type"] = "authlibInjector";
-                dict["clientToken"] = profile.ClientToken;
-                break;
-            }
+                {
+                    dict["serverBaseURL"] = profile.Server;
+                    dict["displayName"] = profile.Username;
+                    dict["username"] = profile.Name;
+                    dict["type"] = "authlibInjector";
+                    dict["clientToken"] = profile.ClientToken;
+                    break;
+                }
 
             default:
-            {
-                dict["username"] = profile.Username;
-                dict["type"] = "offline";
-                break;
-            }
+                {
+                    dict["username"] = profile.Username;
+                    dict["type"] = "offline";
+                    break;
+                }
         }
 
         return dict;
@@ -901,7 +903,7 @@ public static class ModProfile
     #region 离线 UUID 获取
 
     /// <summary>
-    ///     获取离线 UUID
+    /// 获取离线 UUID
     /// </summary>
     /// <param name="userName">玩家 ID</param>
     /// <param name="isSplited">返回的 UUID 是否有连字符分割</param>
@@ -910,8 +912,8 @@ public static class ModProfile
     {
         if (isLegacy)
         {
-            var fullUuid = ModBase.StrFill(userName.Length.ToString("X"), "0", 16) +
-                           ModBase.StrFill(ModBase.GetHash(userName).ToString("X"), "0", 16);
+            var fullUuid = userName.Length.ToString("X").Truncate("0", 16) +
+                           TextUtils.GetHash(userName).ToString("X").Truncate("0", 16);
             return fullUuid.Substring(0, 12) + "3" + fullUuid.Substring(13, 3) + "9" + fullUuid.Substring(17, 15);
         }
 
@@ -958,7 +960,7 @@ public static class ModProfile
     #region 档案信息获取
 
     /// <summary>
-    ///     获取档案详情信息用于显示
+    /// 获取档案详情信息用于显示
     /// </summary>
     /// <param name="profile">目标档案</param>
     /// <returns>显示的详情信息</returns>
@@ -986,8 +988,8 @@ public static class ModProfile
     }
 
     /// <summary>
-    ///     获取当前档案的验证信息。
-    ///     <param name="targetAuthType">验证类型，若为新档案需填</param>
+    /// 获取当前档案的验证信息。
+    /// <param name="targetAuthType">验证类型，若为新档案需填</param>
     /// </summary>
     public static ModLaunch.McLoginData GetLoginData(ModLaunch.McLoginType targetAuthType = default)
     {
@@ -1026,7 +1028,7 @@ public static class ModProfile
 
         if (authType == ModLaunch.McLoginType.Ms)
         {
-            if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Finished)
+            if (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Finished)
                 return new ModLaunch.McLoginMs
                 {
                     OAuthRefreshToken = SelectedProfile.RefreshToken,
@@ -1037,14 +1039,14 @@ public static class ModProfile
                 };
 
             return new ModLaunch.McLoginMs
-                { OAuthRefreshToken = SelectedProfile.RefreshToken, UserName = SelectedProfile.Name };
+            { OAuthRefreshToken = SelectedProfile.RefreshToken, UserName = SelectedProfile.Name };
         }
 
         return new ModLaunch.McLoginLegacy { UserName = SelectedProfile.Username, Uuid = SelectedProfile.Uuid };
     }
 
     /// <summary>
-    ///     检查当前档案是否有效
+    /// 检查当前档案是否有效
     /// </summary>
     /// <returns>若档案验证有效，则返回空字符串，否则返回错误原因</returns>
     public static object IsProfileValid()
@@ -1052,23 +1054,23 @@ public static class ModProfile
         switch (SelectedProfile.Type)
         {
             case ModLaunch.McLoginType.Legacy:
-            {
-                if (string.IsNullOrEmpty(SelectedProfile.Username.Trim()))
-                    return "玩家名不能为空！";
-                if (SelectedProfile.Username.Contains("\""))
-                    return "玩家名不能包含英文引号！";
-                if (ModMinecraft.McInstanceSelected is not null && ModMinecraft.McInstanceSelected.Info.Drop >= 203 &&
-                    SelectedProfile.Username.Trim().Length > 16) return "自 1.20.3 起，玩家名至多只能包含 16 个字符！";
-                return "";
-            }
+                {
+                    if (string.IsNullOrEmpty(SelectedProfile.Username.Trim()))
+                        return "玩家名不能为空！";
+                    if (SelectedProfile.Username.Contains("\""))
+                        return "玩家名不能包含英文引号！";
+                    if (ModMinecraft.McInstanceSelected is not null && ModMinecraft.McInstanceSelected.Info.Drop >= 203 &&
+                        SelectedProfile.Username.Trim().Length > 16) return "自 1.20.3 起，玩家名至多只能包含 16 个字符！";
+                    return "";
+                }
             case ModLaunch.McLoginType.Ms:
-            {
-                return "";
-            }
+                {
+                    return "";
+                }
             case ModLaunch.McLoginType.Auth:
-            {
-                return "";
-            }
+                {
+                    return "";
+                }
         }
 
         return "未知的验证方式";
@@ -1089,7 +1091,7 @@ public static class ModProfile
             return;
         }
 
-        if (ModLaunch.McLoginLoader.State == ModBase.LoadState.Failed)
+        if (ModLaunch.McLoginLoader.State == Enums.LoadState.Failed)
         {
             ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
             return;
@@ -1109,12 +1111,12 @@ public static class ModProfile
         {
             try
             {
-                Retry: ;
-                if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
+            Retry:;
+                if (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Loading)
                     ModLaunch.McLoginMsLoader.WaitForExit();
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginMsLoader.State != Enums.LoadState.Finished)
                     ModLaunch.McLoginMsLoader.WaitForExit(GetLoginData());
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginMsLoader.State != Enums.LoadState.Finished)
                 {
                     ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
                     return;
@@ -1130,10 +1132,10 @@ public static class ModProfile
                     { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
                     {
                         new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file",
-                        ModBase.GetFileNameFromPath(skinInfo.LocalFile)
+                        PathUtils.GetFileNameFromPath(skinInfo.LocalFile)
                     }
                 };
-                var res = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", 
+                var res = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins",
                     new FetchParam
                     {
                         Method = "POST",

@@ -26,7 +26,7 @@ public class MyDropShadow : Decorator
     private Brush[] _brushes;
 
     /// <summary>
-    ///     阴影颜色。
+    /// 阴影颜色。
     /// </summary>
     public Color Color
     {
@@ -35,7 +35,7 @@ public class MyDropShadow : Decorator
     }
 
     /// <summary>
-    ///     阴影模糊半径。
+    /// 阴影模糊半径。
     /// </summary>
     public double ShadowRadius
     {
@@ -44,7 +44,7 @@ public class MyDropShadow : Decorator
     }
 
     /// <summary>
-    ///     圆角大小。
+    /// 圆角大小。
     /// </summary>
     public CornerRadius CornerRadius
     {

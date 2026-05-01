@@ -297,7 +297,7 @@ namespace PCL
                             switch (args.Length)
                             {
                                 case 1:
-                                    PageToolsTest.StartCustomDownload(args[0], ModBase.GetFileNameFromPath(args[0]));
+                                    PageToolsTest.StartCustomDownload(args[0], PathUtils.GetFileNameFromPath(args[0]));
                                     break;
                                 case 2:
                                     PageToolsTest.StartCustomDownload(args[0], args[1]);
@@ -357,7 +357,7 @@ namespace PCL
                 string rawFileName;
                 try
                 {
-                    rawFileName = ModBase.GetFileNameFromPath(relativeUrl);
+                    rawFileName = PathUtils.GetFileNameFromPath(relativeUrl);
                     if (!rawFileName.EndsWithF(".json", true))
                         throw new Exception("未指向 .json 后缀的文件");
                 }

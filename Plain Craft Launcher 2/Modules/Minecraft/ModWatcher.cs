@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -181,7 +182,7 @@ public static class ModWatcher
         private readonly int PID;
 
         /// <summary>
-        ///     是否处理实时日志。
+        /// 是否处理实时日志。
         /// </summary>
         private readonly bool RealTime;
 
@@ -194,7 +195,7 @@ public static class ModWatcher
         public uint CountWarn;
 
         /// <summary>
-        ///     游戏的所有日志输出，只有处理实时日志的情况下才会记录。
+        /// 游戏的所有日志输出，只有处理实时日志的情况下才会记录。
         /// </summary>
         public List<string> FullLog = new();
 
@@ -205,14 +206,14 @@ public static class ModWatcher
         private bool IsWindowAppeared;
 
         /// <summary>
-        ///     窗口检查是否已经完成。这不一定代表着找到了窗口（如果没有找到，IsWindowAppeared 仍为 False）。
+        /// 窗口检查是否已经完成。这不一定代表着找到了窗口（如果没有找到，IsWindowAppeared 仍为 False）。
         /// </summary>
         private bool IsWindowFinished;
 
         public string JStackPath;
 
         /// <summary>
-        ///     上一行日志级别。
+        /// 上一行日志级别。
         /// </summary>
         private GameLogLevel LastLevel = GameLogLevel.Info;
 
@@ -271,7 +272,7 @@ public static class ModWatcher
                 try
                 {
                     while (State != MinecraftState.Ended && State != MinecraftState.Crashed &&
-                           State != MinecraftState.Canceled && Loader.State != ModBase.LoadState.Aborted)
+                           State != MinecraftState.Canceled && Loader.State != Enums.LoadState.Aborted)
                     {
                         TimerWindow();
                         TimerLog();
@@ -314,13 +315,13 @@ public static class ModWatcher
         }
 
         /// <summary>
-        ///     是否处理实时日志。
+        /// 是否处理实时日志。
         /// </summary>
         public bool RealTimeLog => RealTime;
 
         // 状态
         /// <summary>
-        ///     游戏退出时触发。
+        /// 游戏退出时触发。
         /// </summary>
         public event GameExitEventHandler? GameExit;
 
@@ -340,7 +341,7 @@ public static class ModWatcher
         }
 
         /// <summary>
-        ///     触发日志改变事件，并统计日志行数。
+        /// 触发日志改变事件，并统计日志行数。
         /// </summary>
         private void LogRealTime(string line, ref GameLogLevel level)
         {
@@ -385,7 +386,7 @@ public static class ModWatcher
         }
 
         /// <summary>
-        ///     有新的日志输出，日志计数器发生改变时触发。
+        /// 有新的日志输出，日志计数器发生改变时触发。
         /// </summary>
         public event LogOutputEventHandler? LogOutput;
 
@@ -618,8 +619,8 @@ public static class ModWatcher
         }
 
         /// <summary>
-        ///     获取可能是当前进程对应的 Minecraft 窗口的句柄和标题。
-        ///     Nothing 代表未找到。
+        /// 获取可能是当前进程对应的 Minecraft 窗口的句柄和标题。
+        /// Nothing 代表未找到。
         /// </summary>
         private KeyValuePair<nint, string>? TryGetMinecraftWindow()
         {

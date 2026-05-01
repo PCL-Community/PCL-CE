@@ -1,15 +1,17 @@
-using System.IO;
-using System.IO.Compression;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using System.IO;
+using System.IO.Compression;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -20,8 +22,8 @@ public class ExportOption
     public string Rules { get; set; }
 
     /// <summary>
-    ///     如果 Rules 为空，则根据 ShowRules 的内容判断是否应该显示这个复选框。
-    ///     如果 ShowRules 也为空，则始终显示。
+    /// 如果 Rules 为空，则根据 ShowRules 的内容判断是否应该显示这个复选框。
+    /// 如果 ShowRules 也为空，则始终显示。
     /// </summary>
     public string ShowRules { get; set; }
 
@@ -112,7 +114,7 @@ public partial class PageInstanceExport : IRefreshable
     private readonly string[] SubOptionBlackList = new[] { "Quark Programmer Art.zip", "+ EuphoriaPatches_" };
 
     /// <summary>
-    ///     动态生成子文件夹下的选项，例如资源包、存档等。
+    /// 动态生成子文件夹下的选项，例如资源包、存档等。
     /// </summary>
     private void ReloadAllSubOptions()
     {
@@ -140,8 +142,9 @@ public partial class PageInstanceExport : IRefreshable
                     {
                         Tag = new ExportOption
                         {
-                            Title = File.Name, DefaultChecked = true,
-                            Rules = ModBase.EscapeLikePattern($"{Folder}/{File.Name}")
+                            Title = File.Name,
+                            DefaultChecked = true,
+                            Rules = TextUtils.EscapeLikePattern($"{Folder}/{File.Name}")
                         }
                     });
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
@@ -153,8 +156,9 @@ public partial class PageInstanceExport : IRefreshable
                             {
                                 Tag = new ExportOption
                                 {
-                                    Title = $"{shaderConfig.Name} (光影配置文件)", DefaultChecked = true,
-                                    Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                    Title = $"{shaderConfig.Name} (光影配置文件)",
+                                    DefaultChecked = true,
+                                    Rules = TextUtils.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
                     }
@@ -171,8 +175,9 @@ public partial class PageInstanceExport : IRefreshable
                     {
                         Tag = new ExportOption
                         {
-                            Title = SubFolder.Name, DefaultChecked = true,
-                            Rules = ModBase.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
+                            Title = SubFolder.Name,
+                            DefaultChecked = true,
+                            Rules = TextUtils.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
                         }
                     };
                     if (ReferenceEquals(Panel, PanOptionsSaves))
@@ -188,7 +193,7 @@ public partial class PageInstanceExport : IRefreshable
     #region 选项
 
     /// <summary>
-    ///     重新确认是否应该显示每个选项，并将 ExportOption 同步到 UI。
+    /// 重新确认是否应该显示每个选项，并将 ExportOption 同步到 UI。
     /// </summary>
     private void RefreshAllOptionsUI()
     {
@@ -291,7 +296,7 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     /// <summary>
-    ///     对文本行进行标准化处理，以便使用 Like 进行匹配。
+    /// 对文本行进行标准化处理，以便使用 Like 进行匹配。
     /// </summary>
     private IEnumerable<string> StandardizeLines(IEnumerable<string> Raw, bool AddSuffixStarToFolderPath)
     {
@@ -307,14 +312,14 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     /// <summary>
-    ///     获取所有可作为选项的 CheckBox。
+    /// 获取所有可作为选项的 CheckBox。
     /// </summary>
     private IEnumerable<MyCheckBox> GetAllOptions(bool IncludeHidden)
     {
         foreach (var Element in PanOptions.Children)
         {
-            if (!IncludeHidden && 
-                Conversions.ToBoolean(Operators.ConditionalCompareObjectNotEqual(((UIElement)Element).Visibility, 
+            if (!IncludeHidden &&
+                Conversions.ToBoolean(Operators.ConditionalCompareObjectNotEqual(((UIElement)Element).Visibility,
                 Visibility.Visible, false)))
                 continue;
             if (Element is MyCheckBox)
@@ -323,7 +328,7 @@ public partial class PageInstanceExport : IRefreshable
                 foreach (var SubElement in ((StackPanel)Element).Children)
                 {
                     if (!IncludeHidden && Conversions.ToBoolean(
-                        Operators.ConditionalCompareObjectNotEqual(((UIElement)SubElement).Visibility, 
+                        Operators.ConditionalCompareObjectNotEqual(((UIElement)SubElement).Visibility,
                         Visibility.Visible, false)))
                         continue;
                     if (SubElement is MyCheckBox)
@@ -333,7 +338,7 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     /// <summary>
-    ///     获取该 CheckBox 对应的 ExportOption。
+    /// 获取该 CheckBox 对应的 ExportOption。
     /// </summary>
     private ExportOption GetExportOption(MyCheckBox CheckBox)
     {
@@ -349,8 +354,8 @@ public partial class PageInstanceExport : IRefreshable
     // ================ 导出内容段 ================
 
     /// <summary>
-    ///     从配置文件中读取的规则。
-    ///     如果不为 Nothing，则会覆写当前勾选的规则并禁用对应 UI。
+    /// 从配置文件中读取的规则。
+    /// 如果不为 Nothing，则会覆写当前勾选的规则并禁用对应 UI。
     /// </summary>
     private List<string> RulesOverrides
     {
@@ -379,7 +384,7 @@ public partial class PageInstanceExport : IRefreshable
     private List<string> _RulesOverrides;
 
     /// <summary>
-    ///     获取当前实际生效的所有规则。
+    /// 获取当前实际生效的所有规则。
     /// </summary>
     private IEnumerable<string> GetAllRules()
     {
@@ -424,7 +429,7 @@ public partial class PageInstanceExport : IRefreshable
     private List<string> ExtraFiles;
 
     /// <summary>
-    ///     获取当前实际生效的追加内容。
+    /// 获取当前实际生效的追加内容。
     /// </summary>
     private IEnumerable<string> GetExtraFileLines()
     {
@@ -447,7 +452,7 @@ public partial class PageInstanceExport : IRefreshable
     // ================ 重置 ================
 
     /// <summary>
-    ///     重置配置文件所带来的影响。
+    /// 重置配置文件所带来的影响。
     /// </summary>
     private void ResetConfigOverrides()
     {
@@ -509,7 +514,7 @@ public partial class PageInstanceExport : IRefreshable
             ConfigLines.Add(Sperator);
             ConfigLines.AddRange(GetExtraFileLines());
             // 结束
-            ModBase.WriteFile(ConfigPath, ConfigLines.Join("\r\n"));
+            ModBase.WriteFile(ConfigPath, string.Join("\r\n", ConfigLines));
             ModMain.Hint("已保存配置文件：" + ConfigPath, ModMain.HintType.Finish);
             ModBase.OpenExplorer(ConfigPath);
         }
@@ -522,7 +527,7 @@ public partial class PageInstanceExport : IRefreshable
     #region 配置文件核心读取逻辑
 
     /// <summary>
-    ///     从指定路径读取配置文件（供按钮和拖放调用）
+    /// 从指定路径读取配置文件（供按钮和拖放调用）
     /// </summary>
     /// <param name="configPath">配置文件路径</param>
     private void ReadConfigFile(string configPath)
@@ -554,17 +559,17 @@ public partial class PageInstanceExport : IRefreshable
             }
 
             // 赋值到界面控件
-            TextExportName.Text = Ini.GetOrDefault("Name", "");
-            TextExportVersion.Text = Ini.GetOrDefault("Version", "");
+            TextExportName.Text = Ini.GetValueOrDefault("Name", "");
+            TextExportVersion.Text = Ini.GetValueOrDefault("Version", "");
             CheckOptionsPcl.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncher", Conversions.ToString(true)));
+                Convert.ToBoolean(Ini.GetValueOrDefault("IncludeLauncher", Conversions.ToString(true)));
             CheckOptionsPclCustom.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncherCustom", Conversions.ToString(true)));
+                Convert.ToBoolean(Ini.GetValueOrDefault("IncludeLauncherCustom", Conversions.ToString(true)));
             CheckAdvancedModrinth.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("ModrinthUploadMode", Conversions.ToString(false)));
+                Convert.ToBoolean(Ini.GetValueOrDefault("ModrinthUploadMode", Conversions.ToString(false)));
             CheckAdvancedInclude.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("DontCheckHostedAssets", Conversions.ToString(false)));
-            ConfigPackPath = Ini.GetOrDefault("PackPath");
+                Convert.ToBoolean(Ini.GetValueOrDefault("DontCheckHostedAssets", Conversions.ToString(false)));
+            ConfigPackPath = Ini.GetValueOrDefault("PackPath");
 
             // === 解析导出内容段 ===
             RulesOverrides = Segments[1].Replace("\r", "\n")
@@ -612,7 +617,7 @@ public partial class PageInstanceExport : IRefreshable
     #region 拖放事件处理
 
     /// <summary>
-    ///     文件拖入界面时触发：验证文件类型
+    /// 文件拖入界面时触发：验证文件类型
     /// </summary>
     private void PanAllBack_DragEnter(object sender, DragEventArgs e)
     {
@@ -638,7 +643,7 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     /// <summary>
-    ///     文件放下时触发：读取配置文件
+    /// 文件放下时触发：读取配置文件
     /// </summary>
     private void PanAllBack_Drop(object sender, DragEventArgs e)
     {
@@ -662,12 +667,12 @@ public partial class PageInstanceExport : IRefreshable
     #region 导出
 
     /// <summary>
-    ///     配置文件中指定的导出位置。
+    /// 配置文件中指定的导出位置。
     /// </summary>
     private string ConfigPackPath;
 
     /// <summary>
-    ///     开始导出。
+    /// 开始导出。
     /// </summary>
     private void StartExport(object sender, MouseButtonEventArgs e)
     {
@@ -690,7 +695,7 @@ public partial class PageInstanceExport : IRefreshable
             !ConfigPackPath.EndsWithF("/"))
             try
             {
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(ConfigPackPath));
+                Directory.CreateDirectory(PathUtils.GetPathFromFullPath(ConfigPackPath));
                 PackPath = ConfigPackPath;
                 ModBase.Log($"[Export] 使用配置文件中指定的导出路径：{ConfigPackPath}");
             }
@@ -711,7 +716,7 @@ public partial class PageInstanceExport : IRefreshable
                 Extensions.Add("Modrinth 整合包文件(*.mrpack)|*.mrpack");
             PackPath = SystemDialogs.SelectSaveFile("选择导出位置",
                 PackName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
-                Extensions.Join("|"));
+                string.Join('|', Extensions));
             ModBase.Log($"[Export] 手动指定的导出路径：{PackPath}");
         }
 
@@ -824,13 +829,13 @@ public partial class PageInstanceExport : IRefreshable
                 if (Line.EndsWithF(@"\") || Line.EndsWithF("/"))
                 {
                     if (Directory.Exists(Line))
-                        ModBase.CopyDirectory(Line, BaseFolder + ModBase.GetFolderNameFromPath(Line) + @"\");
+                        ModBase.CopyDirectory(Line, BaseFolder + PathUtils.GetFolderNameFromPath(Line) + @"\");
                     else
                         ModMain.Hint($"未找到配置文件中指定的文件夹：{Line}", ModMain.HintType.Critical);
                 }
                 else if (File.Exists(Line))
                 {
-                    ModBase.CopyFile(Line, BaseFolder + ModBase.GetFileNameFromPath(Line));
+                    ModBase.CopyFile(Line, BaseFolder + PathUtils.GetFileNameFromPath(Line));
                 }
                 else
                 {
@@ -905,15 +910,14 @@ public partial class PageInstanceExport : IRefreshable
                         var ModrinthHashes = Loader.Input.Select(m => m.ModrinthHash);
                         var ModrinthRaw = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
                             "https://api.modrinth.com/v2/version_files", "POST",
-                            $"{{\"hashes\": [\"{ModrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
+                            $"{{\"hashes\": [\"{string.Join("\",\"", ModrinthHashes)}\"], \"algorithm\": \"sha1\"}}",
                             "application/json"));
                         foreach (var ModFile in Loader.Input)
                         {
                             if (!ModrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
                             if ((string)ModrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
                                 ModFile.ModrinthHash) continue;
-                            Loader.Output.AddToList(ModFile,
-                                (string)ModrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
+                            Loader.Output.Add(ModFile, [(string)ModrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]]); // TODO: unknow is this right, need test
                         }
 
                         ModBase.Log($"[Export] 从 Modrinth 获取到 {ModrinthRaw.Count} 个本地资源项的对应信息");
@@ -941,7 +945,7 @@ public partial class PageInstanceExport : IRefreshable
                         var CurseForgeHashes = Loader.Input.Select(m => m.CurseForgeHash);
                         var CurseForgeRaw = (JContainer)((JObject)ModBase.GetJson(
                             ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
-                                $"{{\"fingerprints\": [{CurseForgeHashes.Join(",")}]}}", "application/json")))["data"][
+                                $"{{\"fingerprints\": [{string.Join(",", CurseForgeHashes)}]}}", "application/json")))["data"][
                             "exactMatches"];
                         foreach (JObject ResultJson in CurseForgeRaw)
                         {
@@ -951,8 +955,7 @@ public partial class PageInstanceExport : IRefreshable
                             var ModFile = Loader.Input.FirstOrDefault(m =>
                                 m.CurseForgeHash == File["fileFingerprint"].ToObject<uint>());
                             if (ModFile is null) continue;
-                            Loader.Output.AddToList(ModFile,
-                                ModComp.CompFile.HandleCurseForgeDownloadUrls(File["downloadUrl"].ToString()));
+                            Loader.Output.Add(ModFile, [ModComp.CompFile.HandleCurseForgeDownloadUrls(File["downloadUrl"].ToString())]); // TODO: unknow is this right. need test
                         }
 
                         ModBase.Log($"[Export] 从 CurseForge 获取到 {CurseForgeRaw.Count} 个本地资源项的对应信息");
@@ -1043,7 +1046,7 @@ public partial class PageInstanceExport : IRefreshable
                 File.WriteAllText(CacheFolder + @"modpack\modrinth.index.json",
                     ResultJson.ToString(Formatting.Indented));
                 // 打包
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(PackPath));
+                Directory.CreateDirectory(PathUtils.GetPathFromFullPath(PackPath));
                 if (File.Exists(PackPath))
                     File.Delete(PackPath);
                 if (IncludePCL)
@@ -1075,7 +1078,7 @@ public partial class PageInstanceExport : IRefreshable
 
         // 启动
         var MainLoader = new ModLoader.LoaderCombo<string>(LoaderName, Loaders)
-            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+        { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         MainLoader.Start();
         ModLoader.LoaderTaskbarAdd(MainLoader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();

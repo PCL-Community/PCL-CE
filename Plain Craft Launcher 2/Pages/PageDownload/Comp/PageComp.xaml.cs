@@ -1,3 +1,5 @@
+using PCL.Core.App;
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,7 +11,7 @@ namespace PCL;
 public partial class PageComp
 {
     /// <summary>
-    ///     每页展示的结果数量。
+    /// 每页展示的结果数量。
     /// </summary>
     public const int PageSize = 40;
 
@@ -72,19 +74,18 @@ public partial class PageComp
     {
         switch (Loader.State)
         {
-            case ModBase.LoadState.Failed:
-            {
-                var ErrorMessage = "";
-                if (Loader.Error is not null)
-                    ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
+            case Enums.LoadState.Failed:
                 {
-                    ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
-                    ((MyPageRight)Parent).PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    errorMessage = Loader.Error.Message;
+                    if (errorMessage.Contains("不是有效的 json 文件"))
+                    {
+                        ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                        ((MyPageRight)Parent).PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -125,7 +126,7 @@ public partial class PageComp
     }
 
     /// <summary>
-    ///     刷新所有已显示项目的收藏状态
+    /// 刷新所有已显示项目的收藏状态
     /// </summary>
     public void RefreshAllFavoriteStatus()
     {
@@ -144,7 +145,7 @@ public partial class PageComp
     #region 属性
 
     /// <summary>
-    ///     用于 XAML 快速设置的 Tag 下拉框列表。
+    /// 用于 XAML 快速设置的 Tag 下拉框列表。
     /// </summary>
     public ItemCollection SearchTags => ComboSearchTag.Items;
 
@@ -167,7 +168,7 @@ public partial class PageComp
     }
 
     /// <summary>
-    ///     英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
+    /// 英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
     /// </summary>
     public string TypeName
     {
@@ -184,7 +185,7 @@ public partial class PageComp
     private string _TypeName = "";
 
     /// <summary>
-    ///     英文前后含一个空格的可读资源类型名，例如 " Mod "、"整合包"。
+    /// 英文前后含一个空格的可读资源类型名，例如 " Mod "、"整合包"。
     /// </summary>
     public string TypeNameSpaced
     {
@@ -202,7 +203,7 @@ public partial class PageComp
     private string _TypeNameSpaced = "";
 
     /// <summary>
-    ///     该页面对应的资源类型。
+    /// 该页面对应的资源类型。
     /// </summary>
     public ModComp.CompType PageType
     {
@@ -224,7 +225,7 @@ public partial class PageComp
     #region 加载
 
     /// <summary>
-    ///     在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
+    /// 在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     /// </summary>
     public static ModMinecraft.McInstance TargetVersion;
 
@@ -236,7 +237,8 @@ public partial class PageComp
     public PageComp()
     {
         Loader = new ModLoader.LoaderTask<ModComp.CompProjectRequest, int>("社区资源获取：XXX", ModComp.CompProjectsGet,
-            LoaderInput) { ReloadTimeout = 60 * 1000 };
+            LoaderInput)
+        { ReloadTimeout = 60 * 1000 };
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
@@ -334,8 +336,8 @@ public partial class PageComp
         var ModLoader = ModComp.CompLoaderType.Any;
         if (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack) // 只有 Mod 考虑加载器
         {
-            ModLoader = (ModComp.CompLoaderType)ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
-            if (GameVersion is not null && GameVersion.Contains(".") && ModBase.Val(GameVersion.Split(".")[1]) < 14d &&
+            ModLoader = (ModComp.CompLoaderType)StringExtension.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
+            if (GameVersion is not null && GameVersion.Contains(".") && StringExtension.Val(GameVersion.Split(".")[1]) < 14d &&
                 ModLoader == ModComp.CompLoaderType.Forge) // 1.14-
                                                            // 选择了 Forge
                 ModLoader = ModComp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
@@ -353,10 +355,10 @@ public partial class PageComp
             : selectedTag;
         Request.ModLoader =
             (ModComp.CompLoaderType)(PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack
-                ? ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
+                ? StringExtension.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
                 : (double)ModComp.CompLoaderType.Any);
-        Request.Source = (ModComp.CompSourceType)ModBase.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
-        Request.Sort = (ModComp.CompSortType)ModBase.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
+        Request.Source = (ModComp.CompSourceType)StringExtension.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
+        Request.Sort = (ModComp.CompSortType)StringExtension.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
         return Request;
     }
 

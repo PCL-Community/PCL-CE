@@ -1,3 +1,4 @@
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Input;
 
@@ -18,7 +19,7 @@ public partial class PageLoginProfileSkin
     }
 
     /// <summary>
-    ///     刷新页面显示的所有信息。
+    /// 刷新页面显示的所有信息。
     /// </summary>
     public void Reload()
     {

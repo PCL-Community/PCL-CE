@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -8,12 +9,11 @@ namespace PCL.Core.UI.Converters;
 /// </summary>
 public class AdditionConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is null)
             return 0;
-        double before;
-        if (!double.TryParse(value.ToString(), out before))
+        if (!double.TryParse(value.ToString(), out var before))
             return 0;
         var scale = 1d;
         if (parameter is not null)
@@ -21,12 +21,11 @@ public class AdditionConverter : IValueConverter
         return before + scale;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is null)
             return Binding.DoNothing;
-        double before;
-        if (!double.TryParse(value.ToString(), out before))
+        if (!double.TryParse(value.ToString(), out var before))
             return Binding.DoNothing;
         var scale = 1d;
         if (parameter is not null)

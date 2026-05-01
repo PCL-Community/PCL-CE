@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace PCL.Core.Utils.Exts;
 
@@ -46,10 +47,41 @@ public static class ListUtils
             }
             return minItem;
         }
+
+        /// <summary>
+        /// 数组去重。保留靠后出现的元素（即重复时保留索引较大的元素）。
+        /// 使用自定义比较委托判断两个元素是否相等。
+        /// </summary>
+        /// <param name="isEqual">比较委托。若两个元素相等则返回 <see langword="true"/>。</param>
+        /// <returns>去重后的新列表。</returns>
+        public IEnumerable<T> Distinct(Func<T, T, bool> isEqual)
+        {
+            var items = source.ToImmutableList();
+            var result = new List<T>(items.Count);
+            for (var i = 0; i < items.Count; i++)
+            {
+                var current = items[i];
+                var isDuplicate = false;
+                for (var j = i + 1; j < items.Count; j++)
+                {
+                    if (isEqual(current, items[j]))
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate)
+                    result.Add(current);
+            }
+
+            return result;
+        }
     }
 }
 
-public static class SortUtils {
+public static class SortUtils
+{
     /// <summary>
     /// 对列表进行稳定排序，返回新列表。
     /// </summary>
@@ -57,17 +89,20 @@ public static class SortUtils {
     /// <param name="list">要排序的列表。</param>
     /// <param name="comparison">比较器，接收两个对象，若第一个对象应排在前面，则返回 true。</param>
     /// <returns>排序后的新列表。</returns>
-    public static List<T> Sort<T>(this IList<T> list, Func<T, T, bool> comparison) {
+    public static List<T> Sort<T>(this IList<T> list, Func<T, T, bool> comparison)
+    {
         // 创建新列表以避免修改原始列表
         var result = new List<T>(list);
         result.Sort(new StableComparer<T>(comparison));
         return result;
     }
 
-    private class StableComparer<T>(Func<T, T, bool> comparison) : IComparer<T> {
+    private class StableComparer<T>(Func<T, T, bool> comparison) : IComparer<T>
+    {
         private readonly Func<T, T, bool> _comparison = comparison ?? throw new ArgumentNullException(nameof(comparison));
 
-        public int Compare(T? x, T? y) {
+        public int Compare(T? x, T? y)
+        {
             if (x is null && y is null) return 0;
             if (x is null) return -1;
             if (y is null) return 1;

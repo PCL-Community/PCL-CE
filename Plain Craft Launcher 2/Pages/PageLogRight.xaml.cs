@@ -135,12 +135,12 @@ public partial class PageLogRight
 
     #region 卡片按钮
 
-    private void BtnOperationClear_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationClear_Click(object sender, RouteEventArgs e)
     {
         ModMain.FrmLogLeft.FlowDocuments[ModMain.FrmLogLeft.CurrentUuid].Blocks.Clear();
     }
 
-    private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExport_Click(object sender, RouteEventArgs e)
     {
         // TODO(i18n): 文本 @ 文件选择弹窗 - 窗口标题 & 类型选择器选项
         var SavePath = SystemDialogs.SelectSaveFile("选择导出位置",
@@ -153,7 +153,7 @@ public partial class PageLogRight
         ModBase.OpenExplorer(SavePath);
     }
 
-    private void BtnOperationKill_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationKill_Click(object sender, RouteEventArgs e)
     {
         if (ModMain.FrmLogLeft.CurrentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
         {
@@ -163,7 +163,7 @@ public partial class PageLogRight
         }
     }
 
-    private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExportStackDump_Click(object sender, RouteEventArgs e)
     {
         var SavePath = SystemDialogs.SelectSaveFile("选择导出位置",
             $"游戏运行栈 - {DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log",

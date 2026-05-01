@@ -1,6 +1,7 @@
+using PCL.Core.App;
+using PCL.Core.Utils.Exts;
 using System.Security.Authentication;
 using System.Windows;
-using Microsoft.VisualBasic;
 
 namespace PCL;
 
@@ -30,15 +31,15 @@ public partial class PageLoginMs
             {
                 ModProfile.SelectedProfile = null;
                 ModLaunch.McLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Loading)
                 {
                     ModBase.RunInUi(() => BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginMsLoader.Progress * 100d)}%");
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Finished)
                     ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
-                else if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Aborted)
+                else if (ModLaunch.McLoginMsLoader.State == Enums.LoadState.Aborted)
                     throw new ThreadInterruptedException();
                 else if (ModLaunch.McLoginMsLoader.Error is null)
                     throw new Exception("未知错误！");

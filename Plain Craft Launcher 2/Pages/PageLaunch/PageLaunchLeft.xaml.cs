@@ -1,5 +1,7 @@
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
 using System.IO;
 using System.Windows;
@@ -87,7 +89,7 @@ public partial class PageLaunchLeft
                 }
 
                 PageSelectLeft.AddFolder(ModBase.ExePath + @".minecraft\",
-                    ModBase.GetFolderNameFromPath(ModBase.ExePath), false);
+                    PathUtils.GetFolderNameFromPath(ModBase.ExePath), false);
                 ModMinecraft.McFolderListLoader.WaitForExit();
             }
 
@@ -116,7 +118,7 @@ public partial class PageLaunchLeft
                     var InstallLoader = ModModpack.ModpackInstall(PackInstallPath);
                     ModBase.Log("[Launch] 自动安装整合包已开始：" + PackInstallPath);
                     InstallLoader.WaitForExit();
-                    if (InstallLoader.State == ModBase.LoadState.Finished)
+                    if (InstallLoader.State == Enums.LoadState.Finished)
                     {
                         ModBase.Log("[Launch] 自动安装整合包成功，清理安装包：" + PackInstallPath);
                         if (File.Exists(PackInstallPath))
@@ -141,7 +143,7 @@ public partial class PageLaunchLeft
                 // 无效的实例
                 ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (Instance is null ? "null" : Instance.PathInstance),
                     Instance == null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
-                if (ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished)
+                if (ModMinecraft.McInstanceListLoader.State != Enums.LoadState.Finished)
                     ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (ModMinecraft.McInstanceList.Count == 0 ||
@@ -178,7 +180,7 @@ public partial class PageLaunchLeft
     // 实例选择按钮
     private void BtnInstance_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
+        if (ModLaunch.McLaunchLoader.State == Enums.LoadState.Loading)
             return;
         ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
@@ -186,7 +188,7 @@ public partial class PageLaunchLeft
     // 启动按钮
     public void LaunchButtonClick()
     {
-        if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading || !BtnLaunch.IsEnabled ||
+        if (ModLaunch.McLaunchLoader.State == Enums.LoadState.Loading || !BtnLaunch.IsEnabled ||
             (ModMain.FrmMain.PageRight is not null &&
              ModMain.FrmMain.PageRight.PageState != MyPageRight.PageStates.ContentStay &&
              ModMain.FrmMain.PageRight.PageState != MyPageRight.PageStates.ContentEnter))
@@ -226,8 +228,8 @@ public partial class PageLaunchLeft
             return;
         // 获取当前状态
         int CurrentState;
-        if (!IsLoadFinished || ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Loading ||
-            ModMinecraft.McFolderListLoader.State == ModBase.LoadState.Loading)
+        if (!IsLoadFinished || ModMinecraft.McInstanceListLoader.State == Enums.LoadState.Loading ||
+            ModMinecraft.McFolderListLoader.State == Enums.LoadState.Loading)
         {
             CurrentState = 0;
         }
@@ -332,7 +334,7 @@ public partial class PageLaunchLeft
     // 实例设置按钮
     private void BtnMore_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
+        if (ModLaunch.McLaunchLoader.State == Enums.LoadState.Loading)
             return;
         ModMinecraft.McInstanceSelected.Load();
         PageInstanceLeft.Instance = ModMinecraft.McInstanceSelected;
@@ -346,13 +348,13 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    ///     每 0.2s 执行一次，刷新启动的数据 UI 显示。
+    /// 每 0.2s 执行一次，刷新启动的数据 UI 显示。
     /// </summary>
     public void LaunchingRefresh()
     {
         try
         {
-            if (ModLaunch.McLaunchLoaderReal.State == ModBase.LoadState.Aborted)
+            if (ModLaunch.McLaunchLoaderReal.State == Enums.LoadState.Aborted)
                 return;
             // 阶段状态获取
             var IsLaunched = false; // 是否已经启动游戏，只是在等待窗口
@@ -362,7 +364,7 @@ public partial class PageLaunchLeft
                 {
                     var exitTry = false;
                     foreach (var Loader in ModLaunch.McLaunchLoaderReal.GetLoaderList(false))
-                        if (Loader.State == ModBase.LoadState.Loading || Loader.State == ModBase.LoadState.Waiting)
+                        if (Loader.State == Enums.LoadState.Loading || Loader.State == Enums.LoadState.Waiting)
                         {
                             LabLaunchingStage.Text = Loader.Name;
                             IsLaunched = Loader.Name == "等待游戏窗口出现" || Loader.Name == "结束处理";
@@ -393,13 +395,13 @@ public partial class PageLaunchLeft
             // 文本
             LabLaunchingTitle.Text = IsLaunched ? "已启动游戏" :
                 ModLaunch.CurrentLaunchOptions.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
-            LabLaunchingProgress.Text = ModBase.StrFillNum(ShowProgress * 100d, 2) + " %";
+            LabLaunchingProgress.Text = TextUtils.LimitNum(ShowProgress * 100d, 2) + " %";
             var HasLaunchDownloader = false;
             try
             {
                 foreach (var Loader in ModNet.NetManager.Tasks)
                     if (Loader.RealParent is not null && Loader.RealParent.Name == "Minecraft 启动" &&
-                        Loader.State == ModBase.LoadState.Loading)
+                        Loader.State == Enums.LoadState.Loading)
                         HasLaunchDownloader = true;
             }
             catch (Exception ex)
@@ -408,7 +410,7 @@ public partial class PageLaunchLeft
                 HasLaunchDownloader = false;
             }
 
-            LabLaunchingDownload.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
+            LabLaunchingDownload.Text = ByteStream.GetReadableLength(ModNet.NetManager.Speed) + "/s";
             var ShouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var AnimList = new List<ModAnimation.AniData>
@@ -426,8 +428,7 @@ public partial class PageLaunchLeft
             {
                 LabLaunchingDownload.Visibility = Visibility.Visible;
                 LabLaunchingDownloadLeft.Visibility = Visibility.Visible;
-                AnimList.AddRange(new[]
-                {
+                AnimList.AddRange([
                     ModAnimation.AaOpacity(LabLaunchingDownload,
                         (HasLaunchDownloader ? 1 : 0) - LabLaunchingDownload.Opacity, 100),
                     ModAnimation.AaOpacity(LabLaunchingDownloadLeft,
@@ -440,7 +441,7 @@ public partial class PageLaunchLeft
                             LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed;
                         }
                     }, 110)
-                });
+                ]);
             }
 
             var IsProgressStateChanged = !IsLaunched == (LabLaunchingProgress.Visibility == Visibility.Collapsed);
@@ -517,7 +518,7 @@ public partial class PageLaunchLeft
     #region 切换大页面
 
     /// <summary>
-    ///     切换至启动中页面。
+    /// 切换至启动中页面。
     /// </summary>
     public void PageChangeToLaunching()
     {
@@ -591,7 +592,7 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    ///     切换至登录页面。
+    /// 切换至登录页面。
     /// </summary>
     public void PageChangeToLogin()
     {
@@ -629,7 +630,7 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    ///     当前页面的种类。
+    /// 当前页面的种类。
     /// </summary>
     private PageType PageCurrent = PageType.None;
 
@@ -676,7 +677,7 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    ///     切换现有登录页面种类，返回新页面的实例。
+    /// 切换现有登录页面种类，返回新页面的实例。
     /// </summary>
     /// <param name="Type">新页面的种类。</param>
     /// <param name="Anim">是否显示动画。</param>
@@ -734,13 +735,13 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换登录分页失败（" + ModBase.GetStringFromEnum(Type) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换登录分页失败（" + EnumUtils.GetEnumName(Type) + "）", ModBase.LogLevel.Feedback);
             return PageNew;
         }
     }
 
     /// <summary>
-    ///     确认当前显示的子页面正确，并刷新该页面。
+    /// 确认当前显示的子页面正确，并刷新该页面。
     /// </summary>
     /// <param name="Anim">是否显示动画</param>
     /// <param name="TargetLoginType">目标验证方式，若正在创建档案需填</param>
@@ -779,17 +780,17 @@ public partial class PageLaunchLeft
     #region 皮肤
 
     // 正版皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> SkinMs = new("Loader Skin Ms", SkinMsLoad,
+    public static ModLoader.LoaderTask<EqualableList<string>, string> SkinMs = new("Loader Skin Ms", SkinMsLoad,
         SkinMsInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinMsInput()
+    private static EqualableList<string> SkinMsInput()
     {
         // 获取名称
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.SelectedProfile.Username, ModProfile.SelectedProfile.Uuid };
     }
 
-    private static void SkinMsLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinMsLoad(ModLoader.LoaderTask<EqualableList<string>, string> Data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -864,16 +865,16 @@ public partial class PageLaunchLeft
     }
 
     // 离线皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> SkinLegacy = new("Loader Skin Legacy",
+    public static ModLoader.LoaderTask<EqualableList<string>, string> SkinLegacy = new("Loader Skin Legacy",
         SkinLegacyLoad, SkinLegacyInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinLegacyInput()
+    private static EqualableList<string> SkinLegacyInput()
     {
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.SelectedProfile.Username, ModProfile.SelectedProfile.Uuid };
     }
 
-    private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinLegacyLoad(ModLoader.LoaderTask<EqualableList<string>, string> Data)
     {
         // 清空已有皮肤
         ModBase.RunInUi(() =>
@@ -890,17 +891,17 @@ public partial class PageLaunchLeft
     }
 
     // Authlib-Injector 皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> SkinAuth = new("Loader Skin Auth",
+    public static ModLoader.LoaderTask<EqualableList<string>, string> SkinAuth = new("Loader Skin Auth",
         SkinAuthLoad, SkinAuthInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinAuthInput()
+    private static EqualableList<string> SkinAuthInput()
     {
         // 获取名称
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.SelectedProfile.Username, ModProfile.SelectedProfile.Uuid };
     }
 
-    private static void SkinAuthLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinAuthLoad(ModLoader.LoaderTask<EqualableList<string>, string> Data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -966,7 +967,7 @@ public partial class PageLaunchLeft
 
     // 全部皮肤加载器
     // 需要放在其中元素的后面，否则会因为它提前被加载而莫名其妙变成 Nothing
-    public static List<ModLoader.LoaderTask<ModBase.EqualableList<string>, string>> SkinLoaders = new()
+    public static List<ModLoader.LoaderTask<EqualableList<string>, string>> SkinLoaders = new()
         { SkinMs, SkinLegacy, SkinAuth };
 
     #endregion

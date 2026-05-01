@@ -1,3 +1,6 @@
+using Humanizer;
+using Microsoft.VisualBasic;
+using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -61,7 +64,7 @@ public static class StringExtension
 {
     public static string? ConvertToString(object? obj)
     {
-        if (obj == null) return null;
+        if (obj is null) return null;
         if (obj is string s) return s;
 
         var converter = TypeDescriptor.GetConverter(obj.GetType());
@@ -168,37 +171,6 @@ public static class StringExtension
         public byte[] FromB64UrlSafeToBytes() => input.FromB64UrlSafeToB64().FromB64ToBytes();
     }
 
-    extension(string input)
-    {
-
-        public T ParseToEnum<T>() where T : struct, Enum
-        {
-            if (String.IsNullOrWhiteSpace(input))
-            {
-                return (T)(object)0;
-            }
-            else if (int.TryParse(input, out int numericValue))
-            {
-                return (T)(object)numericValue;
-            }
-            else
-            {
-                return Enum.Parse<T>(input, true);
-            }
-        }
-
-        public string GetEnumName<T>(T content) where T : struct, Enum
-        {
-            return Enum.GetName(content.GetType(), content)!;
-        }
-
-        public bool TryGetEnumName<T>(T content, [NotNullWhen(true)] out string? result) where T : struct, Enum
-        {
-            var str = Enum.GetName(content.GetType(), content);
-            result = str;
-            return str is not null;
-        }
-    }
 
     extension([NotNullWhen(false)] string? value)
     {
@@ -250,19 +222,97 @@ public static class StringExtension
             => input != null && regex.IsMatch(input);
     }
 
-    extension(string str)
+    extension(string input)
     {
+
         /// <summary>
         /// 查找并返回指定文本中所有与正则表达式匹配的部分。
         /// </summary>
+        /// <remarks>
+        /// 并不推荐。如果可用，建议使用 <see cref="GeneratedRegexAttribute"/> 来生成静态正则表达式实例以获得更好的性能。
+        /// </remarks>
         public List<string> RegexSearch(Regex regex)
         {
             var result = new List<string>();
-            var regexSearchRes = regex.Matches(str);
+            var regexSearchRes = regex.Matches(input);
+
             if (regexSearchRes.Count == 0) return result;
+
             result.AddRange(from Match item in regexSearchRes select item.Value);
+
             return result;
         }
+
+
+        /// <summary>
+        /// 获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
+        /// </summary>
+        public string? RegexSeek(string regex, RegexOptions options = RegexOptions.None)
+        {
+            try
+            {
+                var result = Regex.Match(input, regex, options).Value;
+                return string.IsNullOrEmpty(result) ? null : result;
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "正则匹配第一项出错");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
+        /// </summary>
+        public string? RegexSeek(Regex regex, RegexOptions options = RegexOptions.None)
+        {
+            try
+            {
+                var result = regex.Match(input, (int)options).Value;
+                return string.IsNullOrEmpty(result) ? null : result;
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "正则匹配第一项出错");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 检查字符串是否匹配某正则模式。
+        /// </summary>
+        public bool RegexCheck(string regex, RegexOptions options = RegexOptions.None)
+        {
+            try
+            {
+                return Regex.IsMatch(input, regex, options);
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "正则检查出错");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 进行正则替换，会抛出错误。
+        /// </summary>
+        public string RegexReplace(string searchRegex,
+            string replaceTo,
+            RegexOptions options = RegexOptions.None) =>
+            Regex.Replace(input, searchRegex, replaceTo, options);
+
+        /// <summary>
+        /// 对每个正则匹配分别进行替换，会抛出错误。
+        /// </summary>
+        public string RegexReplaceEach(string searchRegex,
+            MatchEvaluator replaceTo,
+            RegexOptions options = RegexOptions.None) =>
+            Regex.Replace(input, searchRegex, replaceTo, options);
+    }
+
+    extension(string str)
+    {
 
         /// <summary>
         /// 判断指定文本是否在 ASCII 范围内。
@@ -293,5 +343,149 @@ public static class StringExtension
 
         public int LastIndexOfF(string subStr, int startIndex, bool ignoreCase = false)
             => str.LastIndexOf(subStr, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
     }
+
+
+
+    extension(string str)
+    {
+
+
+        /// <summary>
+        /// 获取在子字符串第一次出现之前的部分<br/>
+        /// 如果未找到子字符串则不裁切。
+        /// </summary>
+        /// <example>
+        /// 例如对 "2024/11/08" 拆切 '/' 会得到 "2024"
+        /// </example>
+        public string BeforeFirst(string text, bool ignoreCase = false)
+        {
+            var pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+            if (pos >= 0) return str[..pos];
+
+            return str;
+        }
+
+        /// <summary>
+        /// 获取在子字符串最后一次出现之前的部分<br/>
+        /// 如果未找到子字符串则不裁切。
+        /// </summary>
+        /// <example>
+        /// 例如对 "2024/11/08" 拆切 '/' 会得到 "2024/11"。
+        /// </example>
+        public string BeforeLast(string text, bool ignoreCase = false)
+        {
+            var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+            if (pos >= 0) return str[..pos];
+
+            return str;
+        }
+
+        /// <summary>
+        /// 获取在子字符串第一次出现之后的部分<br/>
+        /// 如果未找到子字符串则不裁切。
+        /// </summary>
+        /// <example>
+        /// 例如对 "2024/11/08" 拆切 '/' 会得到 "11/08"。
+        /// </example>
+        public string AfterFirst(string text, bool ignoreCase = false)
+        {
+            var pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+            if (pos >= 0) return str[(pos + text.Length)..];
+
+            return str;
+        }
+
+        /// <summary>
+        /// 获取在子字符串最后一次出现之后的部分<br/>
+        /// 如果未找到子字符串则不裁切。
+        /// </summary>
+        /// <example>
+        /// 例如对 "2024/11/08" 拆切 '/' 会得到 "08"。
+        /// </example>
+        public string AfterLast(string text, bool ignoreCase = false)
+        {
+            var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+            if (pos >= 0) return str[(pos + text.Length)..];
+
+            return str;
+        }
+
+
+        /// <summary>
+        /// 获取处于两个子字符串之间的部分，裁切尽可能多的内容。
+        /// 等效于 <see cref="AfterLast"/> 后接 <seealso cref="BeforeFirst"/>。
+        /// 如果未找到子字符串则不裁切。
+        /// </summary>
+        public string Between(string after, string before, bool ignoreCase = false)
+        {
+            var startPos = string.IsNullOrEmpty(after) ? -1 : str.LastIndexOfF(after, ignoreCase);
+            if (startPos >= 0)
+            {
+                startPos += after.Length;
+            }
+            else
+            {
+                startPos = 0;
+            }
+
+            var endPos = string.IsNullOrEmpty(before) ? -1 : str.IndexOfF(before, startPos, ignoreCase);
+            if (endPos >= 0)
+            {
+                return str.Substring(startPos, endPos - startPos);
+            }
+
+            if (startPos > 0)
+            {
+                return str[startPos..];
+            }
+
+            return str;
+        }
+    }
+
+    /// <summary>
+    /// Humanize the string by capitalizing the first letter and lowercasing the rest.
+    /// </summary>
+    extension(string input)
+    {
+
+        /// <summary>
+        /// 将第一个字符转换为大写，其余字符转换为小写。
+        /// </summary>
+        public string Capitalize()
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            return input.Humanize(LetterCasing.Sentence);
+        }
+
+        /// <summary>
+        /// 将字符串统一至某个长度，过短则以 Code 将其右侧填充，过长则截取靠左的指定长度。
+        /// </summary>
+        public string Truncate(string code, byte length) => input.Truncate(length, code);
+    }
+
+
+
+    /// <summary>
+    /// 不会报错的 Val。
+    /// 如果输入有误，返回 0。
+    /// </summary>
+    public static double Val(object str)
+    {
+        try
+        {
+            return str is "&" ? 0d : Conversion.Val(str);
+        }
+        catch
+        {
+            return 0d;
+        }
+    }
+
 }

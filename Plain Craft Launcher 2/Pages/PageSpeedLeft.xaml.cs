@@ -1,4 +1,9 @@
+using PCL.Core.App;
+using PCL.Core.IO;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Network;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -74,11 +79,11 @@ public partial class PageSpeedLeft
                         0, 1)
                     : 1d;
                 var PredictText = Math.Floor(RawPercent * 100d) + "." +
-                                  ModBase.StrFill(
-                                      Math.Floor((RawPercent * 100d - Math.Floor(RawPercent * 100d)) * 100d).ToString(),
-                                      "0", 2) + " %";
+                                      Math.Floor((RawPercent * 100d - Math.Floor(RawPercent * 100d)) * 100d)
+                                          .ToString(CultureInfo.InvariantCulture)
+                                          .Truncate("0", 2) + " %";
                 LabProgress.Text = RawPercent > 0.999999d ? "100 %" : PredictText;
-                LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
+                LabSpeed.Text = ByteStream.GetReadableLength(ModNet.NetManager.Speed) + "/s";
                 LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : ModNet.NetManager.FileRemain.ToString();
                 LabThread.Text = ModNet.NetManager.ThreadCount + " / " + ModNet.NetTaskThreadLimit;
             }
@@ -117,7 +122,7 @@ public partial class PageSpeedLeft
                 // 已有此卡片
                 Grid Card = RightCards[Loader.Name];
                 var NewValue = Loader.Progress + (double)Loader.State;
-                if (ModBase.Val(Card.Tag) == NewValue)
+                if (StringExtension.Val(Card.Tag) == NewValue)
                     return;
                 Card.Tag = NewValue;
                 if (Card.Children.Count <= 3)
@@ -131,7 +136,7 @@ public partial class PageSpeedLeft
                 {
                     switch (Loader.State)
                     {
-                        case ModBase.LoadState.Failed:
+                        case Enums.LoadState.Failed:
                             {
                                 #region 失败，更新卡片
 
@@ -153,7 +158,7 @@ public partial class PageSpeedLeft
 
                         #endregion
 
-                        case ModBase.LoadState.Finished:
+                        case Enums.LoadState.Finished:
                             {
                                 #region 完成，销毁卡片并返回
 
@@ -163,8 +168,8 @@ public partial class PageSpeedLeft
 
                         #endregion
 
-                        case ModBase.LoadState.Loading:
-                        case ModBase.LoadState.Waiting:
+                        case Enums.LoadState.Loading:
+                        case Enums.LoadState.Waiting:
                             {
                                 #region 进度不同，更新卡片
 
@@ -185,7 +190,7 @@ public partial class PageSpeedLeft
                                         {
                                             switch (SubTask.State)
                                             {
-                                                case ModBase.LoadState.Waiting:
+                                                case Enums.LoadState.Waiting:
                                                     {
                                                         if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Waiting")
                                                         {
@@ -199,7 +204,7 @@ public partial class PageSpeedLeft
 
                                                         break;
                                                     }
-                                                case ModBase.LoadState.Loading:
+                                                case Enums.LoadState.Loading:
                                                     {
                                                         if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Loading")
                                                         {
@@ -216,7 +221,7 @@ public partial class PageSpeedLeft
 
                                                         break;
                                                     }
-                                                case ModBase.LoadState.Finished:
+                                                case Enums.LoadState.Finished:
                                                     {
                                                         if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Finished")
                                                         {
@@ -250,7 +255,7 @@ public partial class PageSpeedLeft
                     ModBase.Log(ex, $"更新任务管理显示失败（{Loader.State}）", ModBase.LogLevel.Feedback);
                 }
             }
-            else if (!(Loader.State == ModBase.LoadState.Aborted || Loader.State == ModBase.LoadState.Finished))
+            else if (!(Loader.State == Enums.LoadState.Aborted || Loader.State == Enums.LoadState.Finished))
             {
                 try
                 {
@@ -258,7 +263,7 @@ public partial class PageSpeedLeft
 
                     var CardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
-                            Tag=""{Loader.Progress + (double)Loader.State}"" Title=""{ModBase.EscapeXML(Loader.Name)}"" Margin=""0,0,0,15"">
+                            Tag=""{Loader.Progress + (double)Loader.State}"" Title=""{TextUtils.EscapeXml(Loader.Name)}"" Margin=""0,0,0,15"">
                             <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
@@ -273,18 +278,18 @@ public partial class PageSpeedLeft
                     {
                         switch (SubTask.State)
                         {
-                            case ModBase.LoadState.Waiting:
+                            case Enums.LoadState.Waiting:
                                 {
                                     CardXAML +=
                                         $"<Path Stretch=\"Uniform\" Tag=\"Waiting\" Data=\"F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z\" Width=\"18\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,7,0,0\" VerticalAlignment=\"Top\" Height=\"6\"/>";
                                     break;
                                 }
-                            case ModBase.LoadState.Loading:
+                            case Enums.LoadState.Loading:
                                 {
                                     CardXAML += $"<TextBlock Text=\"{Math.Floor(SubTask.Progress * 100d)}%\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
                                     break;
                                 }
-                            case ModBase.LoadState.Finished:
+                            case Enums.LoadState.Finished:
                                 {
                                     CardXAML +=
                                         $"<Path Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>";
@@ -299,7 +304,7 @@ public partial class PageSpeedLeft
                                 }
                         }
 
-                        CardXAML += $"<TextBlock Text=\"{ModBase.EscapeXML(SubTask.Name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{Row}\"/>";
+                        CardXAML += $"<TextBlock Text=\"{TextUtils.EscapeXml(SubTask.Name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{Row}\"/>";
                         Row += 1;
                     }
 
@@ -347,7 +352,7 @@ public partial class PageSpeedLeft
                         ModBase.RunInThread(() => Loader.Abort());
                     };
                     // 如果已经失败，再刷新一次，修改成失败的控件
-                    if (Loader.State == ModBase.LoadState.Failed)
+                    if (Loader.State == Enums.LoadState.Failed)
                     {
                         Card.Tag = null; // 避免重复导致刷新无效
                         TaskRefresh(Loader);
@@ -382,7 +387,7 @@ public partial class PageSpeedLeft
     }
 
     /// <summary>
-    ///     若没有任务，尝试返回主页。
+    /// 若没有任务，尝试返回主页。
     /// </summary>
     private void TryReturnToHome()
     {

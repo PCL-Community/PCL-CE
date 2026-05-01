@@ -1,5 +1,6 @@
 using Microsoft.VisualBasic;
 using PCL.Core.App;
+using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using System.Windows;
@@ -30,13 +31,13 @@ public partial class MyLocalCompItem
 
         if (Shortened && CurrentSegs.Any() && NewestSegs.Any())
         {
-            CurrentName = CurrentSegs.Join("-");
-            NewestName = NewestSegs.Join("-");
+            CurrentName = string.Join('-', CurrentSegs);
+            NewestName = string.Join('-', NewestSegs);
             Entry._Version = CurrentName; // 使用网络信息作为显示的版本号
         }
 
         return
-            $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - DateTime.Now, false)}）{"\r\n"}最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - DateTime.Now, false)}）";
+            $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - DateTime.Now, false)}）\r\n最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - DateTime.Now, false)}）";
     }
 
     public void Refresh()
@@ -47,7 +48,7 @@ public partial class MyLocalCompItem
             if (Entry.CanUpdate)
             {
                 BtnUpdate.Visibility = Visibility.Visible;
-                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}{"\r\n"}点击以更新，右键查看更新日志。";
+                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}\r\n点击以更新，右键查看更新日志。";
             }
             else
             {
@@ -77,7 +78,7 @@ public partial class MyLocalCompItem
 
                     default:
                         {
-                            DescFileName = ModBase.GetFileNameFromPath(Entry.Path);
+                            DescFileName = PathUtils.GetFileNameFromPath(Entry.Path);
                             break;
                         }
                 }
@@ -660,11 +661,11 @@ public partial class MyLocalCompItem
     // 勾选状态
     public event CheckEventHandler? Check;
 
-    public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void CheckEventHandler(object sender, RouteEventArgs e);
 
     public event ChangedEventHandler? Changed;
 
-    public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void ChangedEventHandler(object sender, RouteEventArgs e);
 
     private bool _Checked;
 
@@ -680,7 +681,7 @@ public partial class MyLocalCompItem
                 if (value == _Checked)
                     return;
                 _Checked = value;
-                var ChangedEventArgs = new ModBase.RouteEventArgs();
+                var ChangedEventArgs = new RouteEventArgs();
                 if (IsInitialized)
                 {
                     Changed?.Invoke(this, ChangedEventArgs);
@@ -693,7 +694,7 @@ public partial class MyLocalCompItem
 
                 if (value)
                 {
-                    var CheckEventArgs = new ModBase.RouteEventArgs();
+                    var CheckEventArgs = new RouteEventArgs();
                     Check?.Invoke(this, CheckEventArgs);
                     if (CheckEventArgs.Handled)
                         return;

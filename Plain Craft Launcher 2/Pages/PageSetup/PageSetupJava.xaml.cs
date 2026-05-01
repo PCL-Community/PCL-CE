@@ -187,7 +187,7 @@ public partial class PageSetupJava
         return item;
     }
 
-    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnAdd_Click(object sender, RouteEventArgs e)
     {
         var ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序");
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))

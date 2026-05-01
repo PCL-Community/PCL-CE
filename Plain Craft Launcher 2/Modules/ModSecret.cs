@@ -90,7 +90,7 @@ internal static class ModSecret
                   3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
                   """,
                 MsgBoxStyle.Critical, "运行环境错误");
-            Environment.Exit((int)ModBase.ProcessReturnValues.Cancel);
+            Environment.Exit((int)Enums.ProcessReturnValues.Cancel);
         }
 
         if (!ModBase.CheckPermission(ModBase.ExePath + "PCL"))
@@ -103,12 +103,12 @@ internal static class ModSecret
                   3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
                   """,
                 MsgBoxStyle.Critical, "运行环境错误");
-            Environment.Exit((int)ModBase.ProcessReturnValues.Cancel);
+            Environment.Exit((int)Enums.ProcessReturnValues.Cancel);
         }
     }
 
     /// <summary>
-    ///     展示社区版提示
+    /// 展示社区版提示
     /// </summary>
     /// <param name="IsUpdate">是否为更新时启动</param>
     public static void ShowCEAnnounce()
@@ -128,7 +128,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     获取设备的短标识码
+    /// 获取设备的短标识码
     /// </summary>
     internal static string SecretGetUniqueAddress()
     {
@@ -180,7 +180,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     设置 Headers 的 UA、Referer。
+    /// 设置 Headers 的 UA、Referer。
     /// </summary>
     internal static void SecretHeadersSign(string Url, ref HttpRequestMessage Client, bool UseBrowserUserAgent = false,
         string CustomUserAgent = "")
@@ -605,8 +605,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
-    ///     如果不是，则下载一个。
+    /// 确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
+    /// 如果不是，则下载一个。
     /// </summary>
     internal static void DownloadLatestPCL(ModLoader.LoaderBase LoaderToSyncProgress = null)
     {
@@ -702,7 +702,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             });
             ShowedAnnounced.AddRange(ShowAnnounce.Select(x => x.id).ToList());
             ShowedAnnounced = ShowedAnnounced.Distinct().ToList();
-            States.Hint.ShowedAnnouncements = ShowedAnnounced.Join("|");
+            States.Hint.ShowedAnnouncements = string.Join('|', ShowedAnnounced);
         }
     }
 
@@ -713,17 +713,17 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     internal static string CPUName;
 
     /// <summary>
-    ///     系统 GPU 信息
+    /// 系统 GPU 信息
     /// </summary>
     internal static List<GPUInfo> GPUs = new();
 
     /// <summary>
-    ///     已安装物理内存大小，单位 MB
+    /// 已安装物理内存大小，单位 MB
     /// </summary>
     internal static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 
     /// <summary>
-    ///     系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
+    /// 系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
     /// </summary>
     public static string OSInfo = RuntimeInformation.OSDescription + " " + Environment.OSVersion.Version;
 
@@ -732,7 +732,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         internal string DriverVersion;
 
         /// <summary>
-        ///     显存大小，单位 MB
+        /// 显存大小，单位 MB
         /// </summary>
         internal long Memory;
 
@@ -740,7 +740,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
+    /// 获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
     /// </summary>
     internal static void GetSystemInfo()
     {
@@ -795,7 +795,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     #region 主题
 
     /// <summary>
-    ///     通用的ContextMenu主题刷新方法
+    /// 通用的ContextMenu主题刷新方法
     /// </summary>
     private static void RefreshAllContextMenuThemes()
     {
@@ -820,7 +820,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     ContextMenu打开事件处理器，确保在显示时应用正确主题
+    /// ContextMenu打开事件处理器，确保在显示时应用正确主题
     /// </summary>
     private static void OnContextMenuOpened(object sender, RoutedEventArgs e)
     {
@@ -841,7 +841,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     /// <summary>
-    ///     递归刷新元素及其子元素中的ContextMenu
+    /// 递归刷新元素及其子元素中的ContextMenu
     /// </summary>
     private static void RefreshContextMenusInElement(DependencyObject element)
     {

@@ -271,7 +271,7 @@ public partial class PageSetupUI
             ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
@@ -341,7 +341,7 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     刷新背景图片及设置页 UI。
+    /// 刷新背景图片及设置页 UI。
     /// </summary>
     /// <param name="IsHint">是否显示刷新提示。</param>
     /// <param name="Refresh">是否刷新图片显示。</param>
@@ -420,7 +420,7 @@ public partial class PageSetupUI
                         ModBase.Setup.Load("UiBackgroundSuit", true);
                         ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                         if (IsHint)
-                            ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                            ModMain.Hint("背景内容已刷新：" + PathUtils.GetFileNameFromPath(Address), ModMain.HintType.Finish,
                                 false);
                     }
                     catch (Exception ex)
@@ -435,7 +435,7 @@ public partial class PageSetupUI
                             ModMain.FrmMain.VideoBack.Source = new Uri(Address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (IsHint)
-                                ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                                ModMain.Hint("背景内容已刷新：" + PathUtils.GetFileNameFromPath(Address), ModMain.HintType.Finish,
                                     false);
                         }
                         catch (Exception playEx)
@@ -485,7 +485,7 @@ public partial class PageSetupUI
         }
     }
 
-    private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
+    private void RadioLogoType3_Check(object sender, RouteEventArgs e)
     {
         if (!(ModAnimation.AniControlEnabled == 0 && e.RaiseByMouse))
             return;
@@ -696,7 +696,7 @@ public partial class PageSetupUI
     }
 
     // 主题自定义
-    private void RadioLauncherTheme14_Change(object sender, ModBase.RouteEventArgs e)
+    private void RadioLauncherTheme14_Change(object sender, RouteEventArgs e)
     {
         // If RadioLauncherTheme14.Checked Then
         // If LabLauncherHue.Visibility = Visibility.Visible Then Exit Sub
@@ -775,7 +775,7 @@ public partial class PageSetupUI
         SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
     }
 
-    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnHomepageMarket_Click(object sender, RouteEventArgs e)
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.HomePageMarket });
     }
@@ -797,7 +797,7 @@ public partial class PageSetupUI
     private static bool _HiddenForceShow;
 
     /// <summary>
-    ///     是否强制显示被禁用的功能。
+    /// 是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
@@ -810,7 +810,7 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     更新功能隐藏带来的显示变化。
+    /// 更新功能隐藏带来的显示变化。
     /// </summary>
     public static void HiddenRefresh()
     {

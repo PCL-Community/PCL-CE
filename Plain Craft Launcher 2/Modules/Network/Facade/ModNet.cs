@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using System.IO;
 using System.Text;
 
@@ -103,7 +104,7 @@ public static class ModNet
     {
         foreach (var task in ModLoader.LoaderTaskbar.ToList())
         {
-            if (task.Show && task.State == ModBase.LoadState.Loading &&
+            if (task.Show && task.State == Enums.LoadState.Loading &&
                 (!IgnoreCustomDownload || !task.Name.Contains("自定义下载")))
                 return true;
         }

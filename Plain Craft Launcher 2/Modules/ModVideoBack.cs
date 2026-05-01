@@ -80,7 +80,7 @@ public static class ModVideoBack
     }
 
     /// <summary>
-    ///     尝试开始视频背景播放
+    /// 尝试开始视频背景播放
     /// </summary>
     public static void VideoPlay()
     {
@@ -101,7 +101,7 @@ public static class ModVideoBack
     }
 
     /// <summary>
-    ///     尝试停止视频背景播放
+    /// 尝试停止视频背景播放
     /// </summary>
     public static void VideoStop()
     {
@@ -122,7 +122,7 @@ public static class ModVideoBack
     }
 
     /// <summary>
-    ///     尝试暂停视频背景播放
+    /// 尝试暂停视频背景播放
     /// </summary>
     public static void VideoPause()
     {

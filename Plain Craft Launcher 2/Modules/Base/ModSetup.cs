@@ -77,7 +77,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     改变某个设置项的值。
+    /// 改变某个设置项的值。
     /// </summary>
     public void Set(string key, object value, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -85,7 +85,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     应用某个设置项的值。
+    /// 应用某个设置项的值。
     /// </summary>
     public object Load(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -117,7 +117,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     获取某个设置项的值。
+    /// 获取某个设置项的值。
     /// </summary>
     public object Get(string key, ModMinecraft.McInstance? instance = null)
     {
@@ -125,7 +125,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     初始化某个设置项的值。
+    /// 初始化某个设置项的值。
     /// </summary>
     public void Reset(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
     {
@@ -133,7 +133,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     获取某个设置项的默认值。
+    /// 获取某个设置项的默认值。
     /// </summary>
     public object GetDefault(string key)
     {
@@ -141,7 +141,7 @@ public class ModSetup : IConfigScope
     }
 
     /// <summary>
-    ///     某个设置项是否从未被设置过。
+    /// 某个设置项是否从未被设置过。
     /// </summary>
     public bool IsUnset(string key, ModMinecraft.McInstance? instance = null)
     {

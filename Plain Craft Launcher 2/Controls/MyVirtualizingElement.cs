@@ -14,7 +14,7 @@ public class MyVirtualizingElement<T> : FrameworkElement where T : FrameworkElem
     }
 
     /// <summary>
-    ///     实例化此控件。
+    /// 实例化此控件。
     /// </summary>
     public T Init()
     {
@@ -50,7 +50,7 @@ public class MyVirtualizingElement : FrameworkElement
     }
 
     /// <summary>
-    ///     实例化此控件。
+    /// 实例化此控件。
     /// </summary>
     public FrameworkElement Init()
     {
@@ -69,9 +69,9 @@ public class MyVirtualizingElement : FrameworkElement
     }
 
     /// <summary>
-    ///     获取实例化后的控件。
-    ///     如果该控件没有实例化，则会立即实例化。
-    ///     如果类型错误，则返回原值。
+    /// 获取实例化后的控件。
+    /// 如果该控件没有实例化，则会立即实例化。
+    /// 如果类型错误，则返回原值。
     /// </summary>
     public static FrameworkElement TryInit(FrameworkElement element)
     {

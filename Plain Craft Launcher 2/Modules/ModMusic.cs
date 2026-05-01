@@ -5,18 +5,19 @@ using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using System.IO;
 using System.Windows.Controls;
+using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
 public static class ModMusic
 {
     /// <summary>
-    ///     当前正在播放的 NAudio.Wave.WaveOutEvent。
+    /// 当前正在播放的 NAudio.Wave.WaveOutEvent。
     /// </summary>
     public static WaveOutEvent MusicNAudio;
 
     /// <summary>
-    ///     当前播放的音乐地址。
+    /// 当前播放的音乐地址。
     /// </summary>
     private static string MusicCurrent = "";
 
@@ -75,7 +76,7 @@ public static class ModMusic
             ModBase.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", ModBase.LogLevel.Developer);
 
             // 错误处理：精准提示用户
-            var fileName = ModBase.GetFileNameFromPath(MusicCurrent);
+            var fileName = PathUtils.GetFileNameFromPath(MusicCurrent);
             if (ex is MmException)
             {
                 var msg = ex.Message;
@@ -125,17 +126,17 @@ public static class ModMusic
     #region 播放列表
 
     /// <summary>
-    ///     接下来要播放的音乐文件路径。未初始化时为 Nothing。
+    /// 接下来要播放的音乐文件路径。未初始化时为 Nothing。
     /// </summary>
     public static List<string> MusicWaitingList;
 
     /// <summary>
-    ///     全部音乐文件路径。未初始化时为 Nothing。
+    /// 全部音乐文件路径。未初始化时为 Nothing。
     /// </summary>
     public static List<string> MusicAllList;
 
     /// <summary>
-    ///     初始化音乐播放列表。
+    /// 初始化音乐播放列表。
     /// </summary>
     /// <param name="ForceReload">强制全部重新载入列表。</param>
     /// <param name="PreventFirst">在重载列表时避免让某项成为第一项。</param>
@@ -183,8 +184,8 @@ public static class ModMusic
     }
 
     /// <summary>
-    ///     获取下一首播放的音乐路径并将其从列表中移除。
-    ///     如果没有，可能会返回 Nothing。
+    /// 获取下一首播放的音乐路径并将其从列表中移除。
+    /// 如果没有，可能会返回 Nothing。
     /// </summary>
     private static string DequeueNextMusicAddress()
     {
@@ -206,7 +207,7 @@ public static class ModMusic
     #region UI 控制
 
     /// <summary>
-    ///     刷新背景音乐按钮 UI 与设置页 UI。
+    /// 刷新背景音乐按钮 UI 与设置页 UI。
     /// </summary>
     private static void MusicRefreshUI()
     {
@@ -288,7 +289,7 @@ public static class ModMusic
         if (MusicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(MusicCurrent);
-            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(MusicCurrent), ModMain.HintType.Finish);
+            ModMain.Hint("重新播放：" + PathUtils.GetFileNameFromPath(MusicCurrent), ModMain.HintType.Finish);
         }
         else
         {
@@ -300,7 +301,7 @@ public static class ModMusic
             else
             {
                 MusicStartPlay(addr);
-                ModMain.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish);
+                ModMain.Hint("正在播放：" + PathUtils.GetFileNameFromPath(addr), ModMain.HintType.Finish);
             }
         }
 
@@ -362,7 +363,7 @@ public static class ModMusic
                     {
                         MusicStartPlay(addr, IsFirstLoad);
                         if (ShowHint)
-                            ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
+                            ModMain.Hint("背景音乐已刷新：" + PathUtils.GetFileNameFromPath(addr), ModMain.HintType.Finish,
                                 false);
                     }
                     catch

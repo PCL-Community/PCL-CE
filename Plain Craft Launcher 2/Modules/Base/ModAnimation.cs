@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -71,6 +72,7 @@ public static partial class ModAnimation
                     {
                         AniCount = 0;
                         AniTimer((int)Math.Round(DeltaTime * AniSpeed));
+                        // TODO
                         // #If DEBUG Then
                         // FrmMain.Title = "F " & AniFPS & ", A " & AniCount & ", R " & NetManage.FileRemain
                         // #Else
@@ -80,7 +82,7 @@ public static partial class ModAnimation
                             (Fps is < 62 and > 0 || AniCount > 4 || ModNet.NetManager.FileRemain != 0))
                             ModBase.Log("[Report] FPS " + Fps + ", 动画 " + AniCount + ", 下载中 " +
                                         ModNet.NetManager.FileRemain + "（" +
-                                        ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
+                                        ByteStream.GetReadableLength(ModNet.NetManager.Speed) + "/s）");
                     });
                 }
             }
@@ -303,7 +305,7 @@ public static partial class ModAnimation
                     {
                         // 利用 Last 记录了余下的小数值
                         var valueFromObject = NColor.FromObject(Ani.Value);
-                        var Delta = MathUtils.Percent(new NColor(0, 0, 0, 0), 
+                        var Delta = MathUtils.Percent(new NColor(0, 0, 0, 0),
                             valueFromObject,
                                         (float)(Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent) + (double)Ani.ValueLast));
                         var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
@@ -539,7 +541,7 @@ public static partial class ModAnimation
 
         public override string ToString()
         {
-            return ModBase.GetStringFromEnum(TypeMain) + " | " + TimeFinished + "/" + TimeTotal + "(" +
+            return EnumUtils.GetEnumName(TypeMain) + " | " + TimeFinished + "/" + TimeTotal + "(" +
                    Math.Round(TimePercent * 100d) + "%)" +
                    (Obj is null ? "" : " | " + Obj + "(" + Obj.GetType().Name + ")");
         }

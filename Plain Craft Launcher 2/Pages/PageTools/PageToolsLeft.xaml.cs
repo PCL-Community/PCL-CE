@@ -1,6 +1,8 @@
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils.Exts;
 using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -34,7 +36,7 @@ public partial class PageToolsLeft
         // 刷新子页面隐藏情况
         PageSetupUI.HiddenRefresh();
         // 选择第一个未被禁用的子页面
-        if (IsPageSwitched) 
+        if (IsPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.ToolsGameLink)
@@ -57,25 +59,25 @@ public partial class PageToolsLeft
         var button = (MyIconButton)sender;
         if (button.Tag is null)
             return;
-        double id = ModBase.Val(button.Tag);
+        double id = StringExtension.Val(button.Tag);
         switch (id)
         {
             case (double)FormMain.PageSubType.ToolsGameLink:
-            {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                ModMain.FrmToolsGameLink.Reload();
-                ItemGameLink.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmToolsGameLink is null)
+                        ModMain.FrmToolsGameLink = new PageToolsGameLink();
+                    ModMain.FrmToolsGameLink.Reload();
+                    ItemGameLink.Checked = true;
+                    break;
+                }
             case (double)FormMain.PageSubType.ToolsLauncherHelp:
-            {
-                if (ModMain.FrmToolsHelp is null)
-                    ModMain.FrmToolsHelp = new PageToolsHelp();
-                ModMain.FrmToolsHelp.Refresh();
-                ItemLauncherHelp.Checked = true;
-                break;
-            }
+                {
+                    if (ModMain.FrmToolsHelp is null)
+                        ModMain.FrmToolsHelp = new PageToolsHelp();
+                    ModMain.FrmToolsHelp.Refresh();
+                    ItemLauncherHelp.Checked = true;
+                    break;
+                }
         }
     }
 
@@ -88,20 +90,20 @@ public partial class PageToolsLeft
     #region 页面切换
 
     /// <summary>
-    ///     当前页面的编号。
+    /// 当前页面的编号。
     /// </summary>
     public FormMain.PageSubType PageID = FormMain.PageSubType.ToolsGameLink;
 
     /// <summary>
-    ///     勾选事件改变页面。
+    /// 勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyListItem)senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)StringExtension.Val(sender.Tag));
     }
 
     public object PageGet(FormMain.PageSubType? ID = null)
@@ -110,33 +112,33 @@ public partial class PageToolsLeft
         switch (ID)
         {
             case FormMain.PageSubType.ToolsGameLink:
-            {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                return ModMain.FrmToolsGameLink;
-            }
+                {
+                    if (ModMain.FrmToolsGameLink is null)
+                        ModMain.FrmToolsGameLink = new PageToolsGameLink();
+                    return ModMain.FrmToolsGameLink;
+                }
             case FormMain.PageSubType.ToolsTest:
-            {
-                if (ModMain.FrmToolsTest is null)
-                    ModMain.FrmToolsTest = new PageToolsTest();
-                return ModMain.FrmToolsTest;
-            }
+                {
+                    if (ModMain.FrmToolsTest is null)
+                        ModMain.FrmToolsTest = new PageToolsTest();
+                    return ModMain.FrmToolsTest;
+                }
             case FormMain.PageSubType.ToolsLauncherHelp:
-            {
-                if (ModMain.FrmToolsHelp is null)
-                    ModMain.FrmToolsHelp = new PageToolsHelp();
-                return ModMain.FrmToolsHelp;
-            }
+                {
+                    if (ModMain.FrmToolsHelp is null)
+                        ModMain.FrmToolsHelp = new PageToolsHelp();
+                    return ModMain.FrmToolsHelp;
+                }
 
             default:
-            {
-                throw new Exception("未知的更多子页面种类：" + (int)ID);
-            }
+                {
+                    throw new Exception("未知的更多子页面种类：" + (int)ID);
+                }
         }
     }
 
     /// <summary>
-    ///     切换现有页面。
+    /// 切换现有页面。
     /// </summary>
     public void PageChange(FormMain.PageSubType ID)
     {

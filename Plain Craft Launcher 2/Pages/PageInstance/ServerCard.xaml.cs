@@ -45,7 +45,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     初始化服务器卡片
+    /// 初始化服务器卡片
     /// </summary>
     public void UpdateServerInfo(MinecraftServerInfo serverInfo)
     {
@@ -54,7 +54,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     更新服务器UI
+    /// 更新服务器UI
     /// </summary>
     private async void UpdateServerUi()
     {
@@ -128,7 +128,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     刷新服务器状态
+    /// 刷新服务器状态
     /// </summary>
     public async Task RefreshServerStatus(bool withHint, CancellationToken token = default)
     {
@@ -140,7 +140,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     连接到服务器
+    /// 连接到服务器
     /// </summary>
     private void BtnConnect_Click(object sender, EventArgs e)
     {
@@ -163,7 +163,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     复制服务器地址
+    /// 复制服务器地址
     /// </summary>
     private void BtnCopy_Click(object sender, RoutedEventArgs e)
     {
@@ -180,7 +180,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     刷新服务器状态
+    /// 刷新服务器状态
     /// </summary>
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
@@ -188,7 +188,7 @@ public partial class ServerCard
     }
 
     /// <summary>
-    ///     编辑服务器信息
+    /// 编辑服务器信息
     /// </summary>
     private void BtnEdit_Click(object sender, RoutedEventArgs e)
     {
