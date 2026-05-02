@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -36,7 +36,7 @@ public static partial class ModDownload
                         _allDrops = new List<int>();
                     else
                         _allDrops = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(d => (int)Math.Round(ModBase.Val(d))).ToList();
+                            .Select(d => (int)Math.Round(MigrationHelpers.Val(d))).ToList();
                 }
 
                 return _allDrops.Count != 0 ? _allDrops : null;
@@ -145,7 +145,7 @@ public static partial class ModDownload
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
             // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
+            var CacheFilePath = LauncherPaths.TempDirectory + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
@@ -155,17 +155,17 @@ public static partial class ModDownload
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log("[Download] 未列出的版本官方源下载失败: " + ex.Message);
+                    LauncherLogger.Log("[Download] 未列出的版本官方源下载失败: " + ex.Message);
                 }
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
+                LauncherLogger.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
             }
 
             // 确定官方源是否可用
@@ -173,7 +173,7 @@ public static partial class ModDownload
             {
                 var DeltaTime = TimeUtils.GetTimeTick() - StartTime;
                 DlPreferMojang = DeltaTime < 4000;
-                ModBase.Log($"[Download] Mojang 官方源加载耗时：{DeltaTime}ms，{(DlPreferMojang ? "可优先使用官方源" : "不优先使用官方源")}");
+                LauncherLogger.Log($"[Download] Mojang 官方源加载耗时：{DeltaTime}ms，{(DlPreferMojang ? "可优先使用官方源" : "不优先使用官方源")}");
             }
 
             // 添加 PCL 特供项
@@ -233,7 +233,7 @@ public static partial class ModDownload
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
             // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
+            var CacheFilePath = LauncherPaths.TempDirectory + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
@@ -243,17 +243,17 @@ public static partial class ModDownload
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log("[Download] 未列出的版本镜像源下载失败: " + ex.Message);
+                    LauncherLogger.Log("[Download] 未列出的版本镜像源下载失败: " + ex.Message);
                 }
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
+                LauncherLogger.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
             }
 
             // 检查是否有要求的版本（#5195）
@@ -288,7 +288,7 @@ public static partial class ModDownload
             // 获取 Minecraft 版本列表
             switch (DlClientListLoader.State)
             {
-                case ModBase.LoadState.Finished:
+                case LoadState.Finished:
                 {
                     // 从当前的结果获取目标版本…
                     foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
@@ -298,14 +298,14 @@ public static partial class ModDownload
                     DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
                     break;
                 }
-                case ModBase.LoadState.Loading:
+                case LoadState.Loading:
                 {
                     DlClientListLoader.WaitForExit(Id);
                     break;
                 }
-                case ModBase.LoadState.Failed:
-                case ModBase.LoadState.Aborted:
-                case ModBase.LoadState.Waiting:
+                case LoadState.Failed:
+                case LoadState.Aborted:
+                case LoadState.Waiting:
                 {
                     DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
                     break;
@@ -316,13 +316,13 @@ public static partial class ModDownload
             foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
                 if ((string)Version["id"] == Id)
                     return Version["url"].ToString();
-            ModBase.Log($"未发现版本 {Id} 的 json 下载地址，版本列表返回为：{"\r\n"}{DlClientListLoader.Output.Value}",
-                ModBase.LogLevel.Debug);
+            LauncherLogger.Log($"未发现版本 {Id} 的 json 下载地址，版本列表返回为：{"\r\n"}{DlClientListLoader.Output.Value}",
+                LauncherLogger.LogLevel.Debug);
             return null;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"获取版本 {Id} 的 json 下载地址失败");
+            LauncherLogger.Log(ex, $"获取版本 {Id} 的 json 下载地址失败");
             return null;
         }
     }
@@ -1208,7 +1208,7 @@ public static partial class ModDownload
 
     private static List<DlNeoForgeListEntry> GetNeoForgeEntries(string latestJson, string latestLegacyJson)
     {
-        var versionNames = ModBase.RegexSearch(latestLegacyJson + latestJson, RegexPatterns.DlNeoForgeVersion);
+        var versionNames = LauncherText.RegexSearch(latestLegacyJson + latestJson, RegexPatterns.DlNeoForgeVersion);
         var versions = versionNames.Where(name => name != "47.1.82").Select(name => new DlNeoForgeListEntry(name))
             .OrderByDescending(a => a).ToList(); // 这个版本虽然在版本列表中，但不能下载
         if (!versions.Any())
@@ -1740,7 +1740,7 @@ public static partial class ModDownload
     // ''' </summary>
     // Public DlQuiltListBmclapiLoader As New LoaderTask(Of Integer, DlQuiltListResult)("DlQuiltList Bmclapi", AddressOf DlQuiltListBmclapiMain)
     // Private Sub DlQuiltListBmclapiMain(Loader As LoaderTask(Of Integer, DlQuiltListResult))
-    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions", IsJson:=True)
+    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions", isJson:=True)
     // Try
     // Dim Output = New DlQuiltListResult With {.IsOfficial = False, .SourceName = "BMCLAPI", .Value = Result}
     // If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
@@ -1822,7 +1822,7 @@ public static partial class ModDownload
                    .GetAwaiter()
                    .GetResult())
         {
-            ResultProduction = (JObject)ModBase.GetJson(productionResponse.AsString());
+            ResultProduction = (JObject)LauncherSerialization.GetJson(productionResponse.AsString());
         }
 
         JObject ResultSnapshot;
@@ -1834,7 +1834,7 @@ public static partial class ModDownload
                    .GetResult())
         {
             snapshotResponse.EnsureSuccessStatusCode();
-            ResultSnapshot = (JObject)ModBase.GetJson(snapshotResponse.AsString());
+            ResultSnapshot = (JObject)LauncherSerialization.GetJson(snapshotResponse.AsString());
         }
 
         var Result = new JObject();
@@ -2135,7 +2135,7 @@ public static partial class ModDownload
 
             default:
             {
-                ModBase.Setup.Reset("ToolDownloadMod");
+                LauncherEnvironment.Setup.Reset("ToolDownloadMod");
                 res.Add(original);
                 break;
             }
@@ -2165,9 +2165,9 @@ public static partial class ModDownload
                         continue; // 父子加载器的输入不一样，也不行
                 }
 
-                if (SubLoader.Key.State != ModBase.LoadState.Failed)
+                if (SubLoader.Key.State != LoadState.Failed)
                     BeforeLoadersAllFailed = false;
-                if (SubLoader.Key.State == ModBase.LoadState.Finished)
+                if (SubLoader.Key.State == LoadState.Finished)
                 {
                     // 检查加载器成功
                     MainLoader.Output = SubLoader.Key.Output;
@@ -2186,7 +2186,7 @@ public static partial class ModDownload
             {
                 LoaderList.First().Key.Start(MainLoader.Input, IsForceRestart);
                 foreach (var Loader in LoaderList.Skip(1))
-                    Loader.Key.State = ModBase.LoadState.Waiting; // 将其他源标记为未启动，以确保可以切换下载源（#184）
+                    Loader.Key.State = LoadState.Waiting; // 将其他源标记为未启动，以确保可以切换下载源（#184）
             }
 
             // 检查加载器失败或超时
@@ -2194,7 +2194,7 @@ public static partial class ModDownload
             {
                 if (WaitCycle != LoaderList[i].Value * 100)
                     continue;
-                if (i < LoaderList.Count - 1 && !LoaderList.All(l => l.Key.State == ModBase.LoadState.Failed))
+                if (i < LoaderList.Count - 1 && !LoaderList.All(l => l.Key.State == LoadState.Failed))
                 {
                     // 若还有下一个源，则启动下一个源
                     LoaderList[i + 1].Key.Start(MainLoader.Input, IsForceRestart);
@@ -2236,7 +2236,7 @@ public static partial class ModDownload
         List<KeyValuePair<ModLoader.LoaderTask<InputType, OutputType>, int>> LoaderList)
     {
         foreach (var Loader in LoaderList)
-            if (Loader.Key.State == ModBase.LoadState.Loading)
+            if (Loader.Key.State == LoadState.Loading)
                 Loader.Key.Abort();
     }
 

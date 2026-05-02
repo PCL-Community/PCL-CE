@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
@@ -32,7 +32,7 @@ public partial class MyMsgLogin
             return;
         MyConverter.IsExited = true;
         MyConverter.Result = Result;
-        ModBase.RunInUi(Close);
+        LauncherDispatcher.RunInUi(Close);
         Thread.Sleep(200);
         ModMain.FrmMain.ShowWindowToTop();
     }
@@ -41,7 +41,7 @@ public partial class MyMsgLogin
     {
         UserCode = (string)Data["user_code"];
         DeviceCode = (string)Data["device_code"];
-        ModBase.ClipboardSet(DeviceCode);
+        LauncherClipboard.ClipboardSet(DeviceCode);
         if (Data["verification_uri_complete"] is not null)
         {
             Website = (string)Data["verification_uri_complete"];
@@ -69,7 +69,7 @@ public partial class MyMsgLogin
         CustomEventService.SetEventData(Btn1, Website);
         CustomEventService.SetEventData(Btn2, UserCode);
         // 启动工作线程
-        ModBase.RunInNewThread(WorkThread, "MyMsgLogin");
+        LauncherDispatcher.RunInNewThread(WorkThread, "MyMsgLogin");
     }
 
     private void WorkThread()
@@ -77,8 +77,8 @@ public partial class MyMsgLogin
         Thread.Sleep(2000);
         if (MyConverter.IsExited)
             return;
-        ModBase.OpenWebsite(Website);
-        ModBase.ClipboardSet(UserCode);
+        LauncherShell.OpenWebsite(Website);
+        LauncherClipboard.ClipboardSet(UserCode);
         Thread.Sleep((Data["interval"].ToObject<int>() - 1) * 1000);
         // 轮询
         var UnknownFailureCount = 0;
@@ -98,7 +98,7 @@ public partial class MyMsgLogin
                         Timeout = 5000 + UnknownFailureCount * 5000, MakeLog = false
                     });
                 // 获取结果
-                var ResultJson = (JObject)ModBase.GetJson(Result);
+                var ResultJson = (JObject)LauncherSerialization.GetJson(Result);
                 ModProfile.ProfileLog($"令牌过期时间：{ResultJson["expires_in"]} 秒");
                 ModMain.Hint("网页登录成功！", ModMain.HintType.Finish);
                 Finished(new[] { ResultJson["access_token"].ToString(), ResultJson["refresh_token"].ToString() });
@@ -113,8 +113,8 @@ public partial class MyMsgLogin
                 if (UnknownFailureCount <= 2)
                 {
                     UnknownFailureCount += 1;
-                    ModBase.Log(ex, $"正版验证轮询第 {UnknownFailureCount} 次失败");
-                    ModBase.Log(ex.Message);
+                    LauncherLogger.Log(ex, $"正版验证轮询第 {UnknownFailureCount} 次失败");
+                    LauncherLogger.Log(ex.Message);
                     Thread.Sleep(2000);
                 }
                 else
@@ -130,25 +130,25 @@ public partial class MyMsgLogin
     #region 弹窗
 
     private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly int Uuid = LauncherDispatcher.GetUuid();
 
     public MyMsgLogin(ModMain.MyMsgBoxConverter Converter)
     {
         try
         {
             InitializeComponent();
-            Btn1.Name += ModBase.GetUuid();
-            Btn2.Name += ModBase.GetUuid();
-            Btn3.Name += ModBase.GetUuid();
+            Btn1.Name += LauncherDispatcher.GetUuid();
+            Btn2.Name += LauncherDispatcher.GetUuid();
+            Btn3.Name += LauncherDispatcher.GetUuid();
             MyConverter = Converter;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = LauncherWpf.GetWPFSize(1d);
             Data = (JObject)Converter.Content;
             OAuthUrl = Converter.AuthUrl?.ToString() ?? "";
             Init();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗初始化失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "正版验证弹窗初始化失败", LauncherLogger.LogLevel.Hint);
         }
 
         Loaded += Load;
@@ -163,8 +163,8 @@ public partial class MyMsgLogin
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (MyConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
+                        ? new MyColor(140d, 80d, 0d, 0d)
+                        : new MyColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -177,11 +177,11 @@ public partial class MyMsgLogin
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "MyMsgBox " + Uuid);
             // 记录日志
-            ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
+            LauncherLogger.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗加载失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "正版验证弹窗加载失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -195,7 +195,7 @@ public partial class MyMsgLogin
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
+                        new MyColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),

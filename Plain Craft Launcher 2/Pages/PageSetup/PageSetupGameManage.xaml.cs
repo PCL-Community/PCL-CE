@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 
@@ -62,12 +62,12 @@ public partial class PageSetupGameManage
         {
             Config.Download.Reset();
             Config.Tool.Reset();
-            ModBase.Log("[Setup] 已初始化其他页设置");
+            LauncherLogger.Log("[Setup] 已初始化其他页设置");
             ModMain.Hint("已初始化其他页设置！", ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化其他页设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化其他页设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
@@ -78,21 +78,21 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     // 滑动条
@@ -116,7 +116,7 @@ public partial class PageSetupGameManage
         });
     }
 
-    private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
+    private void SliderDownloadThread_PreviewChange(object sender, RouteEventArgs e)
     {
         if (SliderDownloadThread.Value < 100)
             return;

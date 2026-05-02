@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.CompilerServices;
+﻿using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using System.Collections;
@@ -11,7 +11,7 @@ namespace PCL;
 public static partial class ModLoader
 {
     // 任务栏进度条
-    public static ModBase.SafeList<LoaderBase> LoaderTaskbar = new();
+    public static SafeList<LoaderBase> LoaderTaskbar = new();
     public static double LoaderTaskbarProgress; // 平滑后的进度
     private static TaskbarItemProgressState LoaderTaskbarProgressLast = TaskbarItemProgressState.None;
 
@@ -20,7 +20,7 @@ public static partial class ModLoader
         if (ModMain.FrmSpeedLeft is not null)
             ModMain.FrmSpeedLeft.TaskRemove(Loader);
         LoaderTaskbar.Add(Loader);
-        ModBase.Log($"[Taskbar] {Loader.Name} 已加入任务列表");
+        LauncherLogger.Log($"[Taskbar] {Loader.Name} 已加入任务列表");
     }
 
     public static void LoaderTaskbarProgressRefresh()
@@ -31,12 +31,12 @@ public static partial class ModLoader
             var NewProgress = LoaderTaskbarProgressGet();
             // 若单个任务已中止，或全部任务已完成，则刷新并移除
             foreach (var Task in LoaderTaskbar)
-                if (LoaderTaskbar.All(l => l.State != ModBase.LoadState.Loading) ||
-                    Task.State == ModBase.LoadState.Waiting || Task.State == ModBase.LoadState.Aborted)
+                if (LoaderTaskbar.All(l => l.State != LoadState.Loading) ||
+                    Task.State == LoadState.Waiting || Task.State == LoadState.Aborted)
                 {
                     ModMain.FrmSpeedLeft?.TaskRefresh(Task);
                     LoaderTaskbar.Remove(Task);
-                    ModBase.Log($"[Taskbar] {Task.Name} 已移出任务列表");
+                    LauncherLogger.Log($"[Taskbar] {Task.Name} 已移出任务列表");
                 }
 
             // 更新平滑后的进度
@@ -44,7 +44,7 @@ public static partial class ModLoader
                 LoaderTaskbarProgress = NewProgress;
             else
                 LoaderTaskbarProgress = LoaderTaskbarProgress * 0.9d + NewProgress * 0.1d;
-            ModBase.RunInUi(() => ModMain.FrmMain.BtnExtraDownload.Progress = LoaderTaskbarProgress);
+            LauncherDispatcher.RunInUi(() => ModMain.FrmMain.BtnExtraDownload.Progress = LoaderTaskbarProgress);
             // 更新任务栏信息
             if (!LoaderTaskbar.Any() || LoaderTaskbarProgress == 1d)
             {
@@ -69,7 +69,7 @@ public static partial class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务栏进度显示失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "刷新任务栏进度显示失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -80,7 +80,7 @@ public static partial class ModLoader
             if (!LoaderTaskbar.Any())
                 return 1d;
 
-            return ModBase.MathClamp(
+            return LauncherText.MathClamp(
                 LoaderTaskbar.Select(l => l.Progress).Average(),
                 0,
                 1
@@ -88,7 +88,7 @@ public static partial class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取任务栏进度出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "获取任务栏进度出错", LauncherLogger.LogLevel.Feedback);
             return 0.5d;
         }
     }
@@ -106,11 +106,11 @@ public static partial class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case LoadState.Waiting:
                     {
                         return 0d;
                     }
-                    case ModBase.LoadState.Loading:
+                    case LoadState.Loading:
                     {
                         return _Progress == -1 ? 0.02d : _Progress;
                     }
@@ -145,17 +145,17 @@ public static partial class ModLoader
             bool IsForceRestart = false)
         {
             Start(Input, IsForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == LoadState.Loading)
             {
                 if (LoaderToSyncProgress is not null)
                     LoaderToSyncProgress.Progress = Progress;
                 Thread.Sleep(10);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == LoadState.Finished)
             {
             }
-            else if (State == ModBase.LoadState.Aborted)
+            else if (State == LoadState.Aborted)
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
@@ -178,7 +178,7 @@ public static partial class ModLoader
             object LoaderToSyncProgress = null, bool IsForceRestart = false)
         {
             Start(Input, IsForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == LoadState.Loading)
             {
                 if (LoaderToSyncProgress is not null)
                     ((dynamic)LoaderToSyncProgress).Progress = Progress;
@@ -188,10 +188,10 @@ public static partial class ModLoader
                     throw new TimeoutException(TimeoutMessage);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == LoadState.Finished)
             {
             }
-            else if (State == ModBase.LoadState.Aborted)
+            else if (State == LoadState.Aborted)
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
@@ -214,11 +214,11 @@ public static partial class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case LoadState.Waiting:
                     {
                         return 0d;
                     }
-                    case ModBase.LoadState.Loading:
+                    case LoadState.Loading:
                     {
                         var Total = 0d;
                         var Finished = 0d;

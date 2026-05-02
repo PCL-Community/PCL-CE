@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -62,7 +62,7 @@ public partial class PageDownloadNeoForge
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 NeoForge 版本列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化 NeoForge 版本列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 }

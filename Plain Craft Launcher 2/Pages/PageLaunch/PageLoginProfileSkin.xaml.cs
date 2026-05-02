@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 
 namespace PCL;
@@ -22,24 +22,24 @@ public partial class PageLoginProfileSkin
     /// </summary>
     public void Reload()
     {
-        ModBase.Log("[Profile] 刷新档案界面");
+        LauncherLogger.Log("[Profile] 刷新档案界面");
         Skin.Clear();
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
             BtnEdit.Visibility = Visibility.Visible;
-            ModBase.Log("[Profile] 使用正版皮肤加载器");
+            LauncherLogger.Log("[Profile] 使用正版皮肤加载器");
             Skin.Loader = PageLaunchLeft.SkinMs;
         }
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             BtnEdit.Visibility = Visibility.Visible;
-            ModBase.Log("[Profile] 使用 Authlib 皮肤加载器");
+            LauncherLogger.Log("[Profile] 使用 Authlib 皮肤加载器");
             Skin.Loader = PageLaunchLeft.SkinAuth;
         }
         else
         {
             BtnEdit.Visibility = Visibility.Collapsed;
-            ModBase.Log("[Profile] 使用离线皮肤加载器");
+            LauncherLogger.Log("[Profile] 使用离线皮肤加载器");
             Skin.Loader = PageLaunchLeft.SkinLegacy;
         }
 
@@ -87,12 +87,12 @@ public partial class PageLoginProfileSkin
     {
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
-            ModBase.OpenWebsite("https://account.live.com/password/Change");
+            LauncherShell.OpenWebsite("https://account.live.com/password/Change");
         }
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             var Server = ModProfile.SelectedProfile.Server;
-            ModBase.OpenWebsite(Server.Replace("/api/yggdrasil/authserver" + (Server.EndsWithF("/") ? "/" : ""),
+            LauncherShell.OpenWebsite(Server.Replace("/api/yggdrasil/authserver" + (Server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
@@ -111,7 +111,7 @@ public partial class PageLoginProfileSkin
     private void ChangeProfile(object sender, EventArgs e)
     {
         ModProfile.SelectedProfile = null;
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             ModMain.FrmLaunchLeft.RefreshPage(true);
             ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
@@ -124,7 +124,7 @@ public partial class PageLoginProfileSkin
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
             ModProfile.ChangeSkinMs();
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            LauncherShell.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             ModMain.Hint("当前档案不支持修改皮肤！");
@@ -148,7 +148,7 @@ public partial class PageLoginProfileSkin
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
             Skin.BtnSkinCape_Click(sender, e);
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            LauncherShell.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             ModMain.Hint("当前档案不支持修改披风！");

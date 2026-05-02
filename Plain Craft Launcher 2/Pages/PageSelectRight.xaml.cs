@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -77,7 +77,7 @@ public partial class PageSelectRight
         var elapsed = (DateTime.Now - LastInputTime).TotalMilliseconds;
         var currentDelay = ReloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Finished &&
+        if (elapsed >= currentDelay && ModMinecraft.McInstanceListLoader.State == LoadState.Finished &&
             !IsRefreshing)
         {
             IsRefreshing = true;
@@ -112,7 +112,7 @@ public partial class PageSelectRight
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Failed)
+        if (ModMinecraft.McInstanceListLoader.State == LoadState.Failed)
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
@@ -372,7 +372,7 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "将实例列表转换显示时失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "将实例列表转换显示时失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -411,7 +411,7 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载实例图标失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "加载实例图标失败", LauncherLogger.LogLevel.Hint);
             NewItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
@@ -433,7 +433,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeFill;
+            BtnStar.Logo = Logo.IconButtonLikeFill;
         }
         else
         {
@@ -442,7 +442,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeLine;
+            BtnStar.Logo = Logo.IconButtonLikeLine;
         }
 
         BtnStar.Click += (_, _) =>
@@ -452,13 +452,13 @@ public partial class PageSelectRight
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
-        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonOpen };
+        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = Logo.IconButtonOpen };
         BtnOpenFolder.ToolTip = "打开实例目录";
         ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
         BtnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonDelete };
+        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = Logo.IconButtonDelete };
         BtnDel.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDel, 30d);
@@ -466,7 +466,7 @@ public partial class PageSelectRight
         BtnDel.Click += (_, _) => DeleteVersion(sender, Version);
         if (Version.State != ModMinecraft.McInstanceState.Error)
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonSetup };
+            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = Logo.IconButtonSetup };
             BtnCont.ToolTip = "设置";
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -485,7 +485,7 @@ public partial class PageSelectRight
         }
         else
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = ModBase.Logo.IconButtonOpen };
+            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = Logo.IconButtonOpen };
             BtnCont.ToolTip = "打开文件夹";
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -540,12 +540,12 @@ public partial class PageSelectRight
             {
                 case 1:
                 {
-                    ModBase.IniClearCache(instance.PathIndie + "options.txt");
+                    LauncherSerialization.IniClearCache(instance.PathIndie + "options.txt");
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instance.PathInstance);
                     if (IsShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instance.PathInstance);
+                        LauncherFileSystem.DeleteDirectory(instance.PathInstance);
                         ModMain.Hint($"实例 {instance.Name} 已永久删除！", ModMain.HintType.Finish);
                     }
                     else
@@ -598,11 +598,11 @@ public partial class PageSelectRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, $"删除实例 {instance.Name} 被主动取消");
+            LauncherLogger.Log(ex, $"删除实例 {instance.Name} 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"删除实例 {instance.Name} 失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, $"删除实例 {instance.Name} 失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 

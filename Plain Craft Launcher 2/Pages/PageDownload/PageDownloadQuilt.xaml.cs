@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 namespace PCL;
 
@@ -37,7 +37,7 @@ public partial class PageDownloadQuilt
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Quilt 版本列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化 Quilt 版本列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -48,6 +48,6 @@ public partial class PageDownloadQuilt
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://quiltmc.org");
+        LauncherShell.OpenWebsite("https://quiltmc.org");
     }
 }

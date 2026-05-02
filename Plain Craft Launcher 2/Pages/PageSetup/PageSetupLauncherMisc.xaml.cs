@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -68,13 +68,13 @@ public partial class PageSetupLauncherMisc
             Config.Network.Reset();
             Config.Debug.Reset();
             Config.System.Reset();
-            ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
+            LauncherLogger.Log("[Setup] 已初始化启动器-杂项页设置");
             ModMain.Hint("已初始化杂项页设置！", ModMain.HintType.Finish, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动器-杂项页设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化启动器-杂项页设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
@@ -85,29 +85,29 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            LauncherEnvironment.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     // 网络
@@ -196,12 +196,12 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
+            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", LauncherPaths.ExecutableDirectory);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
-        ModBase.OpenExplorer(savePath);
+        LauncherShell.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
@@ -211,7 +211,7 @@ public partial class PageSetupLauncherMisc
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
         ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
-        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+        Process.Start(new ProcessStartInfo(LauncherPaths.ExecutablePath));
         FormMain.EndProgramForce();
     }
 

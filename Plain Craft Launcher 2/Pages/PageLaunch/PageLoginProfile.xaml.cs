@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,18 +36,18 @@ public partial class PageLoginProfile
     /// </summary>
     public void RefreshProfileList()
     {
-        ModBase.Log("[Profile] 刷新档案列表");
+        LauncherLogger.Log("[Profile] 刷新档案列表");
         ProfileCollection.Clear();
         ModProfile.GetProfile();
         try
         {
             foreach (var Profile in ModProfile.ProfileList)
                 ProfileCollection.Add(new ProfileItem(Profile));
-            ModBase.Log("[Profile] 档案列表刷新完成");
+            LauncherLogger.Log("[Profile] 档案列表刷新完成");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取档案列表失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "读取档案列表失败", LauncherLogger.LogLevel.Feedback);
         }
 
         if (!ModProfile.ProfileList.Any())
@@ -67,7 +67,7 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = (string)ModProfile.GetProfileInfo(profile);
-            var LogoPath = ModBase.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
+            var LogoPath = LauncherPaths.TempDirectory + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
             if (!(File.Exists(LogoPath) && !(new FileInfo(LogoPath).Length == 0L)))
                 LogoPath = ModBase.Logo.IconButtonUser;
             Logo = LogoPath;
@@ -86,17 +86,17 @@ public partial class PageLoginProfile
         var item = (MyListItem)sender;
         var tag = (ModProfile.McProfile)item.Tag;
         ModProfile.SelectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
-        ModBase.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
+        LauncherLogger.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
         ModProfile.LastUsedProfile =
             ModProfile.ProfileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
         ModProfile.SaveProfile(); // 保存档案配置，确保切换后的档案被正确保存
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.McLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.McLoginMsLoader.State = LoadState.Waiting;
+        ModLaunch.McLoginAuthLoader.State = LoadState.Waiting;
+        ModLaunch.McLoginLegacyLoader.State = LoadState.Waiting;
 
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             ModMain.FrmLaunchLeft.RefreshPage(true);
             ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
@@ -107,27 +107,27 @@ public partial class PageLoginProfile
     {
         // 更改 UUID
         var btnEditUuid = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonEdit, ToolTip = "更改 UUID", Tag = sender.Tag };
+            { Logo = Logo.IconButtonEdit, ToolTip = "更改 UUID", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2d);
         btnEditUuid.Click += EditProfileUuid;
         // 复制 UUID
         var btnCopyUuid = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonCopy, ToolTip = "复制 UUID", Tag = sender.Tag };
+            { Logo = Logo.IconButtonCopy, ToolTip = "复制 UUID", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnCopyUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2d);
         btnCopyUuid.Click += CopyProfileUuid;
         // 更改验证服务器名称
         var btnEditServerName = new MyIconButton
-            { Logo = ModBase.Logo.IconButtonInfo, ToolTip = "更改验证服务器名称", Tag = sender.Tag };
+            { Logo = Logo.IconButtonInfo, ToolTip = "更改验证服务器名称", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditServerName, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditServerName, 30d);
         ToolTipService.SetHorizontalOffset(btnEditServerName, 2d);
         btnEditServerName.Click += EditProfileServer;
         // 删除档案
-        var btnDelete = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, ToolTip = "删除档案", Tag = sender.Tag };
+        var btnDelete = new MyIconButton { Logo = Logo.IconButtonDelete, ToolTip = "删除档案", Tag = sender.Tag };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
@@ -142,10 +142,10 @@ public partial class PageLoginProfile
     // 创建档案
     private void BtnNew_Click(object sender, EventArgs e)
     {
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             ModProfile.CreateProfile();
-            ModBase.RunInUi(() => RefreshProfileList());
+            LauncherDispatcher.RunInUi(() => RefreshProfileList());
         });
     }
 
@@ -157,7 +157,7 @@ public partial class PageLoginProfile
 
     private void CopyProfileUuid(object sender, EventArgs e)
     {
-        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) ModBase.ClipboardSet(profile.Uuid);
+        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) LauncherClipboard.ClipboardSet(profile.Uuid);
     }
 
     // 编辑验证服务器名称
@@ -175,14 +175,14 @@ public partial class PageLoginProfile
                 ForceWait: true) == 2)
             return;
         ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);
-        ModBase.RunInUi(() => RefreshProfileList());
+        LauncherDispatcher.RunInUi(() => RefreshProfileList());
     }
 
     // 导入 / 导出档案
     private void BtnPort_Click(object sender, EventArgs e)
     {
         ModProfile.MigrateProfile();
-        ModBase.RunInUi(() => RefreshProfileList());
+        LauncherDispatcher.RunInUi(() => RefreshProfileList());
     }
 
     #endregion

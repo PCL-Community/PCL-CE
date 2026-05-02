@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using fNbt;
 using PCL.Core.Utils;
@@ -12,16 +12,16 @@ public static class ModWorld
     /// <summary>
     ///     尝试处理存档。
     /// </summary>
-    /// <exception cref="ModBase.CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
+    /// <exception cref="CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
     /// <exception cref="Exception"></exception>
     public static void ReadWorld(string SavePath)
     {
         if (File.Exists(SavePath))
         {
-            var ExtractPath = $@"{ModBase.PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
+            var ExtractPath = $@"{LauncherPaths.TempDirectory}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
             if (Directory.Exists(ExtractPath))
-                ModBase.DeleteDirectory(ExtractPath);
-            ModBase.ExtractFile(SavePath, ExtractPath);
+                LauncherFileSystem.DeleteDirectory(ExtractPath);
+            LauncherFileSystem.ExtractFile(SavePath, ExtractPath);
             SavePath = ExtractPath;
         }
 
@@ -31,7 +31,7 @@ public static class ModWorld
         if (!world.Read())
         {
             ModMain.Hint("存档文件可能已损坏，无法读取！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         var sb = new StringBuilder();
@@ -89,10 +89,10 @@ public static class ModWorld
         {
             try
             {
-                ModBase.Log($"[World] 读取存档：{SavePath}");
+                LauncherLogger.Log($"[World] 读取存档：{SavePath}");
                 if (!File.Exists(LevelDatPath))
                 {
-                    ModBase.Log("[World] 存档没有 level.dat 文件，读取失败");
+                    LauncherLogger.Log("[World] 存档没有 level.dat 文件，读取失败");
                     return false;
                 }
 
@@ -103,7 +103,7 @@ public static class ModWorld
                     var gameVersion = gameData.RootTag.Get<NbtCompound>("Version");
                     if (gameVersion is null)
                     {
-                        ModBase.Log("[World] Version 标签存在问题，读取失败");
+                        LauncherLogger.Log("[World] Version 标签存在问题，读取失败");
                         return false;
                     }
 
@@ -115,7 +115,7 @@ public static class ModWorld
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取存档时出错");
+                LauncherLogger.Log(ex, "读取存档时出错");
                 return false;
             }
         }

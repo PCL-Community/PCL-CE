@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -30,7 +30,7 @@ public partial class MyExtraButton
     public ShowCheckDelegate ShowCheck = null;
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyExtraButton()
     {
@@ -91,7 +91,7 @@ public partial class MyExtraButton
             if (_Show == value)
                 return;
             _Show = value;
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 if (value)
                 {
@@ -143,7 +143,7 @@ public partial class MyExtraButton
     {
         if (IsLeftMouseHeld)
         {
-            ModBase.Log("[Control] 按下附加按钮" +
+            LauncherLogger.Log("[Control] 按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
             Click?.Invoke(sender, e);
             e.Handled = true;
@@ -155,7 +155,7 @@ public partial class MyExtraButton
     {
         if (IsRightMouseHeld)
         {
-            ModBase.Log("[Control] 右键按下附加按钮" +
+            LauncherLogger.Log("[Control] 右键按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
             RightClick?.Invoke(sender, e);
             e.Handled = true;
@@ -271,7 +271,7 @@ public partial class MyExtraButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新图标按钮颜色出错");
+            LauncherLogger.Log(ex, "刷新图标按钮颜色出错");
         }
     }
 
@@ -280,7 +280,7 @@ public partial class MyExtraButton
     /// </summary>
     public void Ribble()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             var Shape = new Border
             {
@@ -296,7 +296,7 @@ public partial class MyExtraButton
                         Ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
                     ModAnimation.AaOpacity(Shape, -Shape.Opacity, 1000),
                     ModAnimation.AaCode(() => PanScale.Children.Remove(Shape), After: true)
-                }, "ExtraButton Ribble " + ModBase.GetUuid());
+                }, "ExtraButton Ribble " + LauncherDispatcher.GetUuid());
         });
     }
 

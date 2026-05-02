@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -30,7 +30,7 @@ public class MyPageRight : AdornerDecorator
 
     private bool _panScrollNullWarned;
 
-    public int PageUuid = ModBase.GetUuid();
+    public int PageUuid = LauncherDispatcher.GetUuid();
 
     // “返回顶部” 按钮检测的滚动区域
     public MyScrollViewer PanScroll
@@ -41,7 +41,7 @@ public class MyPageRight : AdornerDecorator
             if (res is null && !_panScrollNullWarned)
             {
                 _panScrollNullWarned = true;
-                ModBase.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
+                LauncherLogger.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", LauncherLogger.LogLevel.Debug);
             }
 
             return (MyScrollViewer)res;
@@ -57,8 +57,8 @@ public class MyPageRight : AdornerDecorator
             if (_PageState == value)
                 return;
             _PageState = value;
-            if (ModBase.ModeDebug)
-                ModBase.Log("[UI] 页面状态切换为 " + ModBase.GetStringFromEnum(value));
+            if (LauncherLogger.ModeDebug)
+                LauncherLogger.Log("[UI] 页面状态切换为 " + LauncherText.GetStringFromEnum(value));
         }
     }
 
@@ -100,11 +100,11 @@ public class MyPageRight : AdornerDecorator
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
-                ModBase.RunInUiWait(() => FinishedInvoke(RealLoader));
+                LauncherDispatcher.RunInUiWait(() => FinishedInvoke(RealLoader));
                 Thread.Sleep(20); // 由于大量初始化控件会导致掉帧，延迟触发 State 改变事件
             };
         RealLoader.OnStateChangedUi += (Loader, NewState, OldState) =>
-            ModBase.RunInUi(() => PageLoaderState(Loader, NewState, OldState));
+            LauncherDispatcher.RunInUi(() => PageLoaderState(Loader, NewState, OldState));
         // 隐藏 UI
         PanLoader.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Collapsed;
@@ -125,13 +125,13 @@ public class MyPageRight : AdornerDecorator
             }
         }
 
-        if (PageLoader.State == ModBase.LoadState.Finished && FinishedInvoke is not null)
-            ModBase.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
+        if (PageLoader.State == LoadState.Finished && FinishedInvoke is not null)
+            LauncherDispatcher.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
         PageLoaderUi.State = RealLoader;
         PageLoaderUi.Click += (_, _) =>
         {
-            if (RealLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
+            if (RealLoader.State == LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件
     }
 
@@ -163,21 +163,21 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnEnter()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnEnter");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnEnter");
         PageEnter?.Invoke();
         switch (PageState)
         {
             case PageStates.Empty:
             {
-                if (PageLoader is null || PageLoader.State == ModBase.LoadState.Finished ||
-                    PageLoader.State == ModBase.LoadState.Waiting || PageLoader.State == ModBase.LoadState.Aborted)
+                if (PageLoader is null || PageLoader.State == LoadState.Finished ||
+                    PageLoader.State == LoadState.Waiting || PageLoader.State == LoadState.Aborted)
                 {
                     // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
                     PageState = PageStates.ContentEnter;
                     TriggerEnterAnimation(PanAlways, (FrameworkElement)(PanContent ?? Child));
                 }
-                else if (PageLoader.State == ModBase.LoadState.Loading)
+                else if (PageLoader.State == LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
@@ -194,13 +194,13 @@ public class MyPageRight : AdornerDecorator
             case PageStates.ContentExit:
             {
                 // 和上面的一样，但是不管 PanAlways
-                if (PageLoader is null || PageLoader.State == ModBase.LoadState.Finished ||
-                    PageLoader.State == ModBase.LoadState.Waiting || PageLoader.State == ModBase.LoadState.Aborted)
+                if (PageLoader is null || PageLoader.State == LoadState.Finished ||
+                    PageLoader.State == LoadState.Waiting || PageLoader.State == LoadState.Aborted)
                 {
                     PageState = PageStates.ContentEnter;
                     TriggerEnterAnimation((FrameworkElement)(PanContent ?? Child));
                 }
-                else if (PageLoader.State == ModBase.LoadState.Loading)
+                else if (PageLoader.State == LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
@@ -221,7 +221,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception("在状态为 " + ModBase.GetStringFromEnum(PageState) + " 时触发了 PageOnEnter 事件。");
+                throw new Exception("在状态为 " + LauncherText.GetStringFromEnum(PageState) + " 时触发了 PageOnEnter 事件。");
             }
         }
     }
@@ -236,8 +236,8 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnExit()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnExit");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnExit");
         PageExit?.Invoke();
         switch (PageState)
         {
@@ -290,8 +290,8 @@ public class MyPageRight : AdornerDecorator
     {
         if (PageState == PageStates.Empty)
             return;
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnForceExit");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnForceExit");
         PageState = PageStates.Empty;
         ModAnimation.AniStop("PageRight PageChange " + PageUuid);
         // 由于动画会被强制中止，所以需要手动进行隐藏
@@ -314,9 +314,9 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnContentExit()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnContentExit");
-        if (PageLoader is not null && PageLoader.State == ModBase.LoadState.Loading)
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnContentExit");
+        if (PageLoader is not null && PageLoader.State == LoadState.Loading)
             throw new Exception("在调用 PageOnContentExit 时，加载器不能为 Loading 状态");
         // Loading 的加载器可能触发进一步变化，难以预测会触发子页面的动画还是加载器完成的动画
         switch (PageState)
@@ -357,8 +357,8 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnEnterAnimationFinished()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnEnterAnimationFinished");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnEnterAnimationFinished");
         switch (PageState)
         {
             case PageStates.ContentEnter:
@@ -376,7 +376,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception("在状态为 " + ModBase.GetStringFromEnum(PageState) +
+                throw new Exception("在状态为 " + LauncherText.GetStringFromEnum(PageState) +
                                     " 时触发了 PageOnEnterAnimationFinished 事件。");
             }
         }
@@ -388,8 +388,8 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnExitAnimationFinished()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnExitAnimationFinished");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnExitAnimationFinished");
         switch (PageState)
         {
             case PageStates.PageExit:
@@ -411,7 +411,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception("在状态为 " + ModBase.GetStringFromEnum(PageState) +
+                throw new Exception("在状态为 " + LauncherText.GetStringFromEnum(PageState) +
                                     " 时触发了 PageOnExitAnimationFinished 事件。");
             }
         }
@@ -423,8 +423,8 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnLoaderWaitFinished()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnLoaderWaitFinished");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnLoaderWaitFinished");
         switch (PageState)
         {
             case PageStates.LoaderWait:
@@ -440,7 +440,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception("在状态为 " + ModBase.GetStringFromEnum(PageState) +
+                throw new Exception("在状态为 " + LauncherText.GetStringFromEnum(PageState) +
                                     " 时触发了 PageOnLoaderWaitFinished 事件。");
             }
         }
@@ -452,13 +452,13 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnLoaderStayFinished()
     {
-        if (ModBase.ModeDebug)
-            ModBase.Log("[UI] 已触发 PageOnLoaderStayFinished");
+        if (LauncherLogger.ModeDebug)
+            LauncherLogger.Log("[UI] 已触发 PageOnLoaderStayFinished");
         switch (PageState)
         {
             case PageStates.LoaderStayForce:
             {
-                if (PageLoader.State == ModBase.LoadState.Finished)
+                if (PageLoader.State == LoadState.Finished)
                 {
                     PageState = PageStates.LoaderExit;
                     TriggerExitAnimation(PanLoader);
@@ -473,7 +473,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception("在状态为 " + ModBase.GetStringFromEnum(PageState) +
+                throw new Exception("在状态为 " + LauncherText.GetStringFromEnum(PageState) +
                                     " 时触发了 PageOnLoaderWaitFinished 事件。");
             }
         }
@@ -482,17 +482,17 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     ///     全局加载状态已改变。
     /// </summary>
-    private void PageLoaderState(object sender, ModBase.LoadState NewState, ModBase.LoadState OldState)
+    private void PageLoaderState(object sender, LoadState NewState, LoadState OldState)
     {
         switch (NewState)
         {
-            case ModBase.LoadState.Failed:
-            case ModBase.LoadState.Loading:
+            case LoadState.Failed:
+            case LoadState.Loading:
             {
-                if (OldState == ModBase.LoadState.Failed || OldState == ModBase.LoadState.Loading)
+                if (OldState == LoadState.Failed || OldState == LoadState.Loading)
                     return;
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
+                if (LauncherLogger.ModeDebug)
+                    LauncherLogger.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
                 // （重新）开始运行
                 // 需要从部分状态切换到 ReloadExit
                 switch (PageState)
@@ -513,14 +513,14 @@ public class MyPageRight : AdornerDecorator
 
                 break;
             }
-            case ModBase.LoadState.Finished:
-            case ModBase.LoadState.Aborted:
-            case ModBase.LoadState.Waiting:
+            case LoadState.Finished:
+            case LoadState.Aborted:
+            case LoadState.Waiting:
             {
-                if (!(OldState == ModBase.LoadState.Failed || OldState == ModBase.LoadState.Loading))
+                if (!(OldState == LoadState.Failed || OldState == LoadState.Loading))
                     return;
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
+                if (LauncherLogger.ModeDebug)
+                    LauncherLogger.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
                 // 运行结束
                 // 需要从 LoaderWait 切换到 ContentEnter，或从 LoaderStay 切换到 LoaderExit
                 switch (PageState)

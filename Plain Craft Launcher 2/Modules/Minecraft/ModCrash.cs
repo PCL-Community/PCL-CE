@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -43,7 +43,7 @@ public class CrashAnalyzer
         TempFolder = ModMain.RequestTaskTempFolder();
         Directory.CreateDirectory(TempFolder + @"Temp\");
         Directory.CreateDirectory(TempFolder + @"Report\");
-        ModBase.Log("[Crash] 崩溃分析暂存文件夹：" + TempFolder);
+        LauncherLogger.Log("[Crash] 崩溃分析暂存文件夹：" + TempFolder);
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class CrashAnalyzer
     /// <param name="LatestLog">从 PCL 捕获到的最后 200 行程序输出。</param>
     public void Collect(string VersionPathIndie, IList<string> LatestLog = null)
     {
-        ModBase.Log("[Crash] 步骤 1：收集日志文件");
+        LauncherLogger.Log("[Crash] 步骤 1：收集日志文件");
 
         // 简单收集可能的日志文件路径
         var PossibleLogs = new List<string>();
@@ -65,7 +65,7 @@ public class CrashAnalyzer
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 崩溃日志文件夹下的日志失败");
+            LauncherLogger.Log(ex, "收集 Minecraft 崩溃日志文件夹下的日志失败");
         }
 
         try
@@ -79,7 +79,7 @@ public class CrashAnalyzer
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 主文件夹下的日志失败");
+            LauncherLogger.Log(ex, "收集 Minecraft 主文件夹下的日志失败");
         }
 
         try
@@ -93,11 +93,11 @@ public class CrashAnalyzer
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 隔离文件夹下的日志失败");
+            LauncherLogger.Log(ex, "收集 Minecraft 隔离文件夹下的日志失败");
         }
 
         PossibleLogs.Add(VersionPathIndie + @"logs\latest.log"); // Minecraft 日志
-        var LaunchScript = ModBase.ReadFile(ModBase.ExePath + @"PCL\LatestLaunch.bat");
+        var LaunchScript = LauncherFileSystem.ReadFile(LauncherPaths.ExecutableDirectory + @"PCL\LatestLaunch.bat");
         if (LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false"))
             PossibleLogs.Add(VersionPathIndie + @"logs\debug.log"); // Minecraft Debug 日志
         PossibleLogs = PossibleLogs.Distinct().ToList();
@@ -114,39 +114,39 @@ public class CrashAnalyzer
                 if (Time < 3d && Info.Length > 0L)
                 {
                     RightLogs.Add(LogFile);
-                    ModBase.Log("[Crash] 可能可用的日志文件：" + LogFile + "（" + Math.Round(Time, 1) + " 分钟）");
+                    LauncherLogger.Log("[Crash] 可能可用的日志文件：" + LogFile + "（" + Math.Round(Time, 1) + " 分钟）");
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "确认崩溃日志时间失败（" + LogFile + "）");
+                LauncherLogger.Log(ex, "确认崩溃日志时间失败（" + LogFile + "）");
             }
 
         if (!RightLogs.Any())
-            ModBase.Log("[Crash] 未发现可能可用的日志文件");
+            LauncherLogger.Log("[Crash] 未发现可能可用的日志文件");
 
         // 将可能可用的日志文件导出
         foreach (var FilePath in RightLogs)
             try
             {
                 AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(FilePath,
-                    ModBase.ReadFile(FilePath).Split("\r\n".ToCharArray())));
+                    LauncherFileSystem.ReadFile(FilePath).Split("\r\n".ToCharArray())));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取可能的崩溃日志文件失败（" + FilePath + "）");
+                LauncherLogger.Log(ex, "读取可能的崩溃日志文件失败（" + FilePath + "）");
             }
 
         if (LatestLog is not null && LatestLog.Any())
         {
             var RawOutput = LatestLog.Join("\r\n");
-            ModBase.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + RawOutput);
-            ModBase.WriteFile(TempFolder + "RawOutput.log", RawOutput);
+            LauncherLogger.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + RawOutput);
+            LauncherFileSystem.WriteFile(TempFolder + "RawOutput.log", RawOutput);
             AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(TempFolder + "RawOutput.log", LatestLog.ToArray()));
             LatestLog.Clear();
         }
 
-        ModBase.Log("[Crash] 步骤 1：收集日志文件完成，收集到 " + AnalyzeRawFiles.Count + " 个文件");
+        LauncherLogger.Log("[Crash] 步骤 1：收集日志文件完成，收集到 " + AnalyzeRawFiles.Count + " 个文件");
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class CrashAnalyzer
     /// </summary>
     public void Import(string FilePath)
     {
-        ModBase.Log("[Crash] 步骤 1：自主导入日志文件");
+        LauncherLogger.Log("[Crash] 步骤 1：自主导入日志文件");
 
         // 尝试视作压缩包解压
         try
@@ -162,8 +162,8 @@ public class CrashAnalyzer
             var Info = new FileInfo(FilePath);
             if (Info.Exists && Info.Length > 0L && !FilePath.EndsWithF(".jar", true))
             {
-                ModBase.ExtractFile(FilePath, TempFolder + @"Temp\");
-                ModBase.Log("[Crash] 已解压导入的日志文件：" + FilePath);
+                LauncherFileSystem.ExtractFile(FilePath, TempFolder + @"Temp\");
+                LauncherLogger.Log("[Crash] 已解压导入的日志文件：" + FilePath);
                 goto Extracted;
             }
         }
@@ -172,8 +172,8 @@ public class CrashAnalyzer
         }
 
         // 并非压缩包
-        ModBase.CopyFile(FilePath, TempFolder + @"Temp\" + ModBase.GetFileNameFromPath(FilePath));
-        ModBase.Log("[Crash] 已复制导入的日志文件：" + FilePath);
+        LauncherFileSystem.CopyFile(FilePath, TempFolder + @"Temp\" + LauncherPaths.GetFileName(FilePath));
+        LauncherLogger.Log("[Crash] 已复制导入的日志文件：" + FilePath);
         Extracted: ;
 
 
@@ -186,16 +186,16 @@ public class CrashAnalyzer
                 var Ext = TargetFile.Extension.ToLower();
                 if (Ext == ".log" || Ext == ".txt")
                     AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(TargetFile.FullName,
-                        ModBase.ReadFile(TargetFile.FullName).Split("\r\n".ToCharArray())));
+                        LauncherFileSystem.ReadFile(TargetFile.FullName).Split("\r\n".ToCharArray())));
                 else
                     File.Delete(TargetFile.FullName);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "导入单个日志文件失败");
+                LauncherLogger.Log(ex, "导入单个日志文件失败");
             }
 
-        ModBase.Log("[Crash] 步骤 1：自主导入日志文件，收集到 " + AnalyzeRawFiles.Count + " 个文件");
+        LauncherLogger.Log("[Crash] 步骤 1：自主导入日志文件，收集到 " + AnalyzeRawFiles.Count + " 个文件");
     }
 
     /// <summary>
@@ -205,14 +205,14 @@ public class CrashAnalyzer
     public bool Prepare()
     {
         bool PrepareRet = default;
-        ModBase.Log("[Crash] 步骤 2：准备日志文本");
+        LauncherLogger.Log("[Crash] 步骤 2：准备日志文本");
 
         // 对日志文件进行分类
         DirectFile = default;
         var AllFiles = new List<KeyValuePair<AnalyzeFileType, KeyValuePair<string, string[]>>>();
         foreach (var LogFile in AnalyzeRawFiles)
         {
-            var MatchName = ModBase.GetFileNameFromPath(LogFile.Key).ToLower();
+            var MatchName = LauncherPaths.GetFileName(LogFile.Key).ToLower();
             AnalyzeFileType TargetType;
             if (MatchName.StartsWithF("hs_err"))
             {
@@ -255,25 +255,25 @@ public class CrashAnalyzer
             }
             else
             {
-                ModBase.Log("[Crash] " + MatchName + " 分类为 Ignore");
+                LauncherLogger.Log("[Crash] " + MatchName + " 分类为 Ignore");
                 continue;
             }
 
             if (LogFile.Value.Any())
             {
                 AllFiles.Add(new KeyValuePair<AnalyzeFileType, KeyValuePair<string, string[]>>(TargetType, LogFile));
-                ModBase.Log("[Crash] " + MatchName + " 分类为 " + ModBase.GetStringFromEnum(TargetType));
+                LauncherLogger.Log("[Crash] " + MatchName + " 分类为 " + LauncherText.GetStringFromEnum(TargetType));
             }
             else
             {
-                ModBase.Log("[Crash] " + MatchName + " 由于内容为空跳过");
+                LauncherLogger.Log("[Crash] " + MatchName + " 由于内容为空跳过");
             }
         }
 
         // 若只有额外日志，则将它们视作 Minecraft 日志
         if (AllFiles.Any() && AllFiles.All(p => p.Key == AnalyzeFileType.ExtraLogFile))
         {
-            ModBase.Log("[Crash] 由于仅发现了额外日志，将它们视作 Minecraft 日志进行分析");
+            LauncherLogger.Log("[Crash] 由于仅发现了额外日志，将它们视作 Minecraft 日志进行分析");
             AllFiles = AllFiles.Select(p =>
                 new KeyValuePair<AnalyzeFileType, KeyValuePair<string, string[]>>(AnalyzeFileType.MinecraftLog,
                     p.Value)).ToList();
@@ -310,7 +310,7 @@ public class CrashAnalyzer
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "获取日志文件修改时间失败");
+                                LauncherLogger.Log(ex, "获取日志文件修改时间失败");
                                 DatedFiles.Add(new DateTime(1900, 1, 1), File);
                             }
 
@@ -320,14 +320,14 @@ public class CrashAnalyzer
                         if (SelectType == AnalyzeFileType.HsErr)
                         {
                             LogHs = GetHeadTailLines(NewestFile.Value, 200, 100);
-                            ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为虚拟机错误信息");
-                            ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为虚拟机错误信息");
+                            LauncherLogger.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为虚拟机错误信息");
+                            LauncherLogger.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为虚拟机错误信息");
                         }
                         else
                         {
                             LogCrash = GetHeadTailLines(NewestFile.Value, 300, 700);
-                            ModBase.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
-                            ModBase.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
+                            LauncherLogger.Log("[Crash] 输出报告：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
+                            LauncherLogger.Log("[Crash] 导入分析：" + NewestFile.Key + "，作为 Minecraft 崩溃报告");
                         }
 
                         break;
@@ -340,9 +340,9 @@ public class CrashAnalyzer
                         var FileNameDict = new Dictionary<string, KeyValuePair<string, string[]>>();
                         foreach (var SelectedFile in SelectedFiles)
                         {
-                            FileNameDict[ModBase.GetFileNameFromPath(SelectedFile.Key).ToLower()] = SelectedFile;
+                            FileNameDict[LauncherPaths.GetFileName(SelectedFile.Key).ToLower()] = SelectedFile;
                             OutputFiles.Add(SelectedFile.Key);
-                            ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，作为 Minecraft 或启动器日志");
+                            LauncherLogger.Log("[Crash] 输出报告：" + SelectedFile.Key + "，作为 Minecraft 或启动器日志");
                         }
 
                         // 选择一份最佳的来自启动器的游戏日志
@@ -365,14 +365,14 @@ public class CrashAnalyzer
                                 else if (Line.Contains("以下为游戏输出的最后一段内容"))
                                 {
                                     HasLauncherMark = true;
-                                    ModBase.Log("[Crash] 找到 PCL 输出的游戏实时日志头");
+                                    LauncherLogger.Log("[Crash] 找到 PCL 输出的游戏实时日志头");
                                 }
 
                             // 导入后 500 行
                             if (!HasLauncherMark)
                                 LogMc += GetHeadTailLines(CurrentLog.Value, 0, 500);
                             LogMc = LogMc.TrimEnd("\r\n".ToCharArray());
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为启动器日志");
+                            LauncherLogger.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为启动器日志");
                             break;
                         }
 
@@ -383,7 +383,7 @@ public class CrashAnalyzer
                                 continue;
                             var CurrentLog = FileNameDict[FileName];
                             LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft 日志");
+                            LauncherLogger.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft 日志");
                             break;
                         }
 
@@ -394,7 +394,7 @@ public class CrashAnalyzer
                                 continue;
                             var CurrentLog = FileNameDict[FileName];
                             LogMcDebug += GetHeadTailLines(CurrentLog.Value, 1000, 0);
-                            ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft Debug 日志");
+                            LauncherLogger.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为 Minecraft Debug 日志");
                             break;
                         }
 
@@ -409,7 +409,7 @@ public class CrashAnalyzer
                             {
                                 var CurrentLog = FileNameDict.First().Value;
                                 LogMc += GetHeadTailLines(CurrentLog.Value, 1500, 500);
-                                ModBase.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为兜底日志");
+                                LauncherLogger.Log("[Crash] 导入分析：" + CurrentLog.Key + "，作为兜底日志");
                             }
                             else
                             {
@@ -429,7 +429,7 @@ public class CrashAnalyzer
                         foreach (var SelectedFile in SelectedFiles)
                         {
                             OutputFiles.Add(SelectedFile.Key);
-                            ModBase.Log("[Crash] 输出报告：" + SelectedFile.Key + "，不用作分析");
+                            LauncherLogger.Log("[Crash] 输出报告：" + SelectedFile.Key + "，不用作分析");
                         }
 
                         break;
@@ -438,18 +438,18 @@ public class CrashAnalyzer
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "分类处理日志文件时出错");
+                LauncherLogger.Log(ex, "分类处理日志文件时出错");
             }
         }
 
         // 结束
         PrepareRet = LogMc is not null || LogHs is not null || LogCrash is not null;
         if (PrepareRet)
-            ModBase.Log(("[Crash] 步骤 2：准备日志文本完成，找到" + (LogMc is null ? "" : "游戏日志、") +
+            LauncherLogger.Log(("[Crash] 步骤 2：准备日志文本完成，找到" + (LogMc is null ? "" : "游戏日志、") +
                          (LogMcDebug is null ? "" : "游戏 Debug 日志、") + (LogHs is null ? "" : "虚拟机日志、") +
                          (LogCrash is null ? "" : "崩溃日志、")).TrimEnd('、') + "用作分析");
         else
-            ModBase.Log("[Crash] 步骤 2：准备日志文本完成，没有任何可供分析的日志");
+            LauncherLogger.Log("[Crash] 步骤 2：准备日志文本完成，没有任何可供分析的日志");
 
         return PrepareRet;
     }
@@ -504,13 +504,13 @@ public class CrashAnalyzer
     public void Analyze(ModMinecraft.McInstance version = null)
     {
         _version = version;
-        ModBase.Log("[Crash] 步骤 3：分析崩溃原因");
+        LauncherLogger.Log("[Crash] 步骤 3：分析崩溃原因");
         LogAll = (LogMc ?? LogMcDebug ?? "") + (LogHs ?? "") + (LogCrash ?? "");
 
         // 处理 Quilt Mod Table 以避免错误分析 (CE #107)
         if (LogAll.Contains("quilt") && LogAll.Contains("Mod Table Version"))
         {
-            ModBase.Log("[Crash] 处理 Quilt Mod Table 后再继续分析");
+            LauncherLogger.Log("[Crash] 处理 Quilt Mod Table 后再继续分析");
             var beforeTable = LogAll.BeforeFirst("| Index");
             var afterTable = LogAll.AfterFirst("Mod Table Version:");
             LogAll = beforeTable + afterTable;
@@ -532,7 +532,7 @@ public class CrashAnalyzer
             // 崩溃日志
             if (LogCrash is not null)
             {
-                ModBase.Log("[Crash] 开始进行崩溃日志堆栈分析");
+                LauncherLogger.Log("[Crash] 开始进行崩溃日志堆栈分析");
                 Keywords.AddRange(AnalyzeStackKeyword(LogCrash.BeforeFirst("System Details")));
             }
 
@@ -542,7 +542,7 @@ public class CrashAnalyzer
                 var Fatals = LogMc.RegexSearch(@"/FATAL] .+?(?=[\n]+\[)");
                 if (LogMc.Contains("Unreported exception thrown!"))
                     Fatals.Add(LogMc.Between("Unreported exception thrown!", "at oolloo.jlw.Wrapper"));
-                ModBase.Log("[Crash] 开始进行 Minecraft 日志堆栈分析，发现 " + Fatals.Count + " 个报错项");
+                LauncherLogger.Log("[Crash] 开始进行 Minecraft 日志堆栈分析，发现 " + Fatals.Count + " 个报错项");
                 foreach (var Fatal in Fatals)
                     Keywords.AddRange(AnalyzeStackKeyword(Fatal));
             }
@@ -550,7 +550,7 @@ public class CrashAnalyzer
             // 虚拟机日志
             if (LogHs is not null)
             {
-                ModBase.Log("[Crash] 开始进行虚拟机堆栈分析");
+                LauncherLogger.Log("[Crash] 开始进行虚拟机堆栈分析");
                 var StackLogs = LogHs.Between("T H R E A D", "Registers:");
                 Keywords.AddRange(AnalyzeStackKeyword(StackLogs));
             }
@@ -568,7 +568,7 @@ public class CrashAnalyzer
         }
         else
         {
-            ModBase.Log("[Crash] 可能并未安装 Mod，不进行堆栈分析");
+            LauncherLogger.Log("[Crash] 可能并未安装 Mod，不进行堆栈分析");
         }
 
         // 3. 精准日志匹配，低优先级
@@ -579,13 +579,13 @@ public class CrashAnalyzer
 
         if (!CrashReasons.Any())
         {
-            ModBase.Log("[Crash] 步骤 3：分析崩溃原因完成，未找到可能的原因");
+            LauncherLogger.Log("[Crash] 步骤 3：分析崩溃原因完成，未找到可能的原因");
         }
         else
         {
-            ModBase.Log("[Crash] 步骤 3：分析崩溃原因完成，找到 " + CrashReasons.Count + " 条可能的原因");
+            LauncherLogger.Log("[Crash] 步骤 3：分析崩溃原因完成，找到 " + CrashReasons.Count + " 条可能的原因");
             foreach (var Reason in CrashReasons)
-                ModBase.Log("[Crash]  - " + ModBase.GetStringFromEnum(Reason.Key) +
+                LauncherLogger.Log("[Crash]  - " + LauncherText.GetStringFromEnum(Reason.Key) +
                             (Reason.Value.Any() ? "（" + Reason.Value.Join("；") + "）" : ""));
         }
     }
@@ -608,7 +608,7 @@ public class CrashAnalyzer
             CrashReasons.Add(Reason, new List<string>(Additional ?? Array.Empty<string>()));
         }
 
-        ModBase.Log("[Crash] 可能的崩溃原因：" + ModBase.GetStringFromEnum(Reason) +
+        LauncherLogger.Log("[Crash] 可能的崩溃原因：" + LauncherText.GetStringFromEnum(Reason) +
                     (Additional is not null && Additional.Any() ? "（" + Additional.Join("；") + "）" : ""));
     }
 
@@ -998,11 +998,11 @@ public class CrashAnalyzer
 
         PossibleStacks = PossibleStacks.Distinct().ToList();
 
-        ModBase.Log("[Crash] 找到 " + PossibleStacks.Count + " 条可能的堆栈信息");
+        LauncherLogger.Log("[Crash] 找到 " + PossibleStacks.Count + " 条可能的堆栈信息");
         if (!PossibleStacks.Any())
             return new List<string>();
         foreach (var Stack in PossibleStacks)
-            ModBase.Log("[Crash]  - " + Stack);
+            LauncherLogger.Log("[Crash]  - " + Stack);
 
         // 检查堆栈关键词
         var PossibleWords = new List<string>();
@@ -1034,12 +1034,12 @@ public class CrashAnalyzer
         }
 
         PossibleWords = PossibleWords.Distinct().ToList();
-        ModBase.Log("[Crash] 从堆栈信息中找到 " + PossibleWords.Count + " 个可能的 Mod ID 关键词");
+        LauncherLogger.Log("[Crash] 从堆栈信息中找到 " + PossibleWords.Count + " 个可能的 Mod ID 关键词");
         if (PossibleWords.Any())
-            ModBase.Log("[Crash]  - " + PossibleWords.Join(", "));
+            LauncherLogger.Log("[Crash]  - " + PossibleWords.Join(", "));
         if (PossibleWords.Count > 10)
         {
-            ModBase.Log("[Crash] 关键词过多，考虑匹配出错，不纳入考虑");
+            LauncherLogger.Log("[Crash] 关键词过多，考虑匹配出错，不纳入考虑");
             return new List<string>();
         }
 
@@ -1069,14 +1069,14 @@ public class CrashAnalyzer
             if (IsFabricDetail)
             {
                 Details = Details.Replace("Fabric Mods", "¨");
-                ModBase.Log("[Crash] 崩溃报告中检测到 Fabric Mod 信息格式");
+                LauncherLogger.Log("[Crash] 崩溃报告中检测到 Fabric Mod 信息格式");
             }
 
             var isQuiltDetail = Details.Contains("quilt-loader");
             if (isQuiltDetail)
             {
                 Details = Details.Replace("Mod Table Version", "¨");
-                ModBase.Log("[Crash] 崩溃报告中检测到 Quilt Mod 信息格式");
+                LauncherLogger.Log("[Crash] 崩溃报告中检测到 Quilt Mod 信息格式");
             }
 
             Details = Details.AfterLast("¨");
@@ -1089,7 +1089,7 @@ public class CrashAnalyzer
                     (IsFabricDetail && Line.StartsWithF(Constants.vbTab + Constants.vbTab) &&
                      !Line.RegexCheck(@"\t\tfabric[\w-]*: Fabric"))) // 只有一个 .jar
                     ModNameLines.Add(Line);
-            ModBase.Log("[Crash] 崩溃报告中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
+            LauncherLogger.Log("[Crash] 崩溃报告中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
 
             // 获取 Mod ID 与关键词的匹配行
             var HintLines = new List<string>();
@@ -1107,9 +1107,9 @@ public class CrashAnalyzer
             }
 
             HintLines = HintLines.Distinct().ToList();
-            ModBase.Log("[Crash] 崩溃报告中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
+            LauncherLogger.Log("[Crash] 崩溃报告中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
             foreach (var ModLine in HintLines)
-                ModBase.Log("[Crash]  - " + ModLine);
+                LauncherLogger.Log("[Crash]  - " + ModLine);
 
             // 从 Mod 匹配行中提取 .jar 文件的名称
             foreach (var Line in HintLines)
@@ -1130,7 +1130,7 @@ public class CrashAnalyzer
         {
             // Forge: Found valid mod file YungsBetterStrongholds-1.20-Forge-4.0.1.jar with {betterstrongholds} mods - versions {1.20-Forge-4.0.1}
             var ModNameLines = LogMcDebug.RegexSearch("(?<=valid mod file ).*", RegexOptions.Multiline);
-            ModBase.Log("[Crash] Debug 信息中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
+            LauncherLogger.Log("[Crash] Debug 信息中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
 
             // 获取 Mod ID 与关键词的匹配行
             var HintLines = new List<string>();
@@ -1140,9 +1140,9 @@ public class CrashAnalyzer
                     HintLines.Add(ModString);
 
             HintLines = HintLines.Distinct().ToList();
-            ModBase.Log("[Crash] Debug 信息中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
+            LauncherLogger.Log("[Crash] Debug 信息中找到 " + HintLines.Count + " 个可能的崩溃 Mod 匹配行");
             foreach (var ModLine in HintLines)
-                ModBase.Log("[Crash]  - " + ModLine);
+                LauncherLogger.Log("[Crash]  - " + ModLine);
 
             // 从 Mod 匹配行中提取 .jar 文件的名称
             foreach (var Line in HintLines)
@@ -1158,9 +1158,9 @@ public class CrashAnalyzer
         ModFileNames = ModFileNames.Distinct().ToList();
         if (!ModFileNames.Any()) return null;
 
-        ModBase.Log("[Crash] 找到 " + ModFileNames.Count + " 个可能的崩溃 Mod 文件名");
+        LauncherLogger.Log("[Crash] 找到 " + ModFileNames.Count + " 个可能的崩溃 Mod 文件名");
         foreach (var ModFileName in ModFileNames)
-            ModBase.Log("[Crash]  - " + ModFileName);
+            LauncherLogger.Log("[Crash]  - " + ModFileName);
         return ModFileNames;
     }
 
@@ -1205,13 +1205,13 @@ public class CrashAnalyzer
                         {
                             if (File.Exists(DirectFile.Value.Key))
                             {
-                                ModBase.ShellOnly(DirectFile.Value.Key);
+                                LauncherShell.ShellOnly(DirectFile.Value.Key);
                             }
                             else
                             {
-                                var FilePath = ModBase.PathTemp + "Crash.txt";
-                                ModBase.WriteFile(FilePath, DirectFile.Value.Value.Join("\r\n"));
-                                ModBase.ShellOnly(FilePath);
+                                var FilePath = LauncherPaths.TempDirectory + "Crash.txt";
+                                LauncherFileSystem.WriteFile(FilePath, DirectFile.Value.Value.Join("\r\n"));
+                                LauncherShell.ShellOnly(FilePath);
                             }
                         })))
         {
@@ -1219,7 +1219,7 @@ public class CrashAnalyzer
             {
                 // 弹窗选择：前往修改
                 PageInstanceLeft.Instance = _version;
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                     ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall));
                 break;
             }
@@ -1230,22 +1230,22 @@ public class CrashAnalyzer
                 try
                 {
                     // 获取文件路径
-                    ModBase.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
+                    LauncherDispatcher.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
                         "错误报告-" + DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
                         ".zip", "Minecraft 错误报告(*.zip)|*.zip"));
                     if (string.IsNullOrEmpty(FileAddress))
                         return;
-                    Directory.CreateDirectory(ModBase.GetPathFromFullPath(FileAddress));
+                    Directory.CreateDirectory(LauncherPaths.GetDirectoryFromPath(FileAddress));
                     if (File.Exists(FileAddress))
                         File.Delete(FileAddress);
                     // 输出诊断信息
-                    ModBase.FeedbackInfo();
+                    LauncherFeedback.FeedbackInfo();
                     // 复制文件
                     if (ExtraFiles is not null)
                         OutputFiles.AddRange(ExtraFiles);
                     foreach (var OutputFile in OutputFiles)
                     {
-                        var FileName = ModBase.GetFileNameFromPath(OutputFile);
+                        var FileName = LauncherPaths.GetFileName(OutputFile);
                         Encoding FileEncoding = null;
                         switch (FileName ?? "")
                         {
@@ -1271,24 +1271,24 @@ public class CrashAnalyzer
                         if (File.Exists(OutputFile))
                         {
                             if (FileEncoding is null)
-                                FileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
-                            var FileContent = ModBase.ReadFile(OutputFile, FileEncoding);
+                                FileEncoding = EncodingDetector.DetectEncoding(LauncherFileSystem.ReadFileBytes(OutputFile));
+                            var FileContent = LauncherFileSystem.ReadFile(OutputFile, FileEncoding);
                             FileContent = ModMinecraft.FilterAccessToken(FileContent,
                                 FileName == "启动脚本.bat" ? 'F' : '*');
                             FileContent = ModMinecraft.FilterUserName(FileContent, '*');
-                            ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
-                            ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
+                            LauncherFileSystem.WriteFile(TempFolder + @"Report\" + FileName, FileContent, encoding: FileEncoding);
+                            LauncherLogger.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
                         }
                     }
 
                     // 输出环境与启动信息
                     string EnvInfo = null;
                     string McLauncherLog = null;
-                    McLauncherLog = ModBase.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
+                    McLauncherLog = LauncherFileSystem.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
-                    var LaunchScript = ModBase.ReadFile(TempFolder + @"Report\启动脚本.bat");
-                    EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                    EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
+                    var LaunchScript = LauncherFileSystem.ReadFile(TempFolder + @"Report\启动脚本.bat");
+                    EnvInfo += $"PCL CE 版本：{LauncherEnvironment.VersionBaseName} {"\r\n"}";
+                    EnvInfo += $"识别码：{LauncherEnvironment.UniqueAddress}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
                     EnvInfo +=
                         $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
@@ -1300,7 +1300,7 @@ public class CrashAnalyzer
                     EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
                     EnvInfo +=
-                        $"操作系统：{ModSecret.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
+                        $"操作系统：{ModSecret.OSInfo}（64 位：{!LauncherEnvironment.Is32BitSystem}, ARM64: {LauncherEnvironment.IsArm64System}）{"\r\n"}";
                     EnvInfo += $"CPU：{ModSecret.CPUName}{"\r\n"}";
                     EnvInfo +=
                         $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(ModSecret.SystemMemorySize / 1024d, 2)} GB ({ModSecret.SystemMemorySize} MB){"\r\n"}";
@@ -1312,19 +1312,19 @@ public class CrashAnalyzer
                     }
 
                     File.CreateText(TempFolder + @"Report\环境与启动信息.txt").Close();
-                    ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
+                    LauncherFileSystem.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, encoding: Encoding.UTF8);
                     // 导出报告
                     ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
-                    ModBase.DeleteDirectory(TempFolder + @"Report\");
+                    LauncherFileSystem.DeleteDirectory(TempFolder + @"Report\");
                     ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "导出错误报告失败", ModBase.LogLevel.Feedback);
+                    LauncherLogger.Log(ex, "导出错误报告失败", LauncherLogger.LogLevel.Feedback);
                     return;
                 }
 
-                ModBase.OpenExplorer(FileAddress);
+                LauncherShell.OpenExplorer(FileAddress);
                 break;
             }
         }
@@ -1693,7 +1693,7 @@ public class CrashAnalyzer
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "确认启动器更新失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "确认启动器更新失败", LauncherLogger.LogLevel.Feedback);
         }
 
         return Results.Join(@"\n\n此外，").Replace(@"\n", "\r\n").Replace(@"\h", "")

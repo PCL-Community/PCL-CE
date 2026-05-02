@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Threading;
 using Downloader;
@@ -72,7 +72,7 @@ public static class FileDownloader
             {
                 lastException = ex;
                 CleanupTempFiles(localPath);
-                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+                LauncherLogger.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", LauncherLogger.LogLevel.Debug);
             }
         }
 
@@ -82,7 +82,7 @@ public static class FileDownloader
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
-        ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
+        LauncherLogger.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
 
         var perFileThreadLimit = enableParallelChunks ? Math.Max(1, ModNet.NetTaskThreadLimit) : 1;
@@ -140,7 +140,7 @@ public static class FileDownloader
         try
         {
             await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
-            ModBase.Log($"[Download] 下载成功：{localPath}");
+            LauncherLogger.Log($"[Download] 下载成功：{localPath}");
         }
         catch (TaskCanceledException ex)
         {

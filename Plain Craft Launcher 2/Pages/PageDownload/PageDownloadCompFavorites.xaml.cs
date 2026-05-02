@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -28,7 +28,7 @@ public partial class PageDownloadCompFavorites
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = ModBase.Logo.IconButtonSetup;
+            Btn_ManageTargetFav.Logo = Logo.IconButtonSetup;
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -49,7 +49,7 @@ public partial class PageDownloadCompFavorites
             var SelectedItem = (MyComboBoxItem)ComboTargetFav.SelectedItem;
             if (SelectedItem is null)
             {
-                ModBase.Log("[Favorites] 异常：未选择收藏夹");
+                LauncherLogger.Log("[Favorites] 异常：未选择收藏夹");
                 SelectedItem = (MyComboBoxItem)ComboTargetFav.Items.GetItemAt(0);
             }
 
@@ -85,7 +85,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Favorites] 加载收藏夹列表时出错");
+            LauncherLogger.Log(ex, "[Favorites] 加载收藏夹列表时出错");
         }
 
         return (List<string>)TargetList.Clone(); // 复制而不是直接引用！
@@ -296,7 +296,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化收藏夹列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -313,7 +313,7 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var Btn_EditNote = new MyIconButton();
-        Btn_EditNote.Logo = ModBase.Logo.IconButtonEdit;
+        Btn_EditNote.Logo = Logo.IconButtonEdit;
         Btn_EditNote.ToolTip = "修改备注";
         ToolTipService.SetPlacement(Btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_EditNote, 30d);
@@ -332,7 +332,7 @@ public partial class PageDownloadCompFavorites
         };
         // 删除按钮
         var Btn_Delete = new MyIconButton();
-        Btn_Delete.Logo = ModBase.Logo.IconButtonLikeFill;
+        Btn_Delete.Logo = Logo.IconButtonLikeFill;
         Btn_Delete.ToolTip = "取消收藏";
         ToolTipService.SetPlacement(Btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_Delete, 30d);
@@ -440,7 +440,7 @@ public partial class PageDownloadCompFavorites
     #region 事件
 
     // 选中状态改变
-    private void ItemCheckStatusChanged(object sender, ModBase.RouteEventArgs e)
+    private void ItemCheckStatusChanged(object sender, RouteEventArgs e)
     {
         var SenderItem = (MyListItem)sender;
         if (SelectedItemList.Contains(SenderItem))
@@ -455,14 +455,14 @@ public partial class PageDownloadCompFavorites
     {
         switch (Loader.State)
         {
-            case ModBase.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
                 if (ErrorMessage.Contains("不是有效的 json 文件"))
                 {
-                    ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", LauncherLogger.LogLevel.Debug);
                     PageLoaderRestart();
                 }
 
@@ -471,7 +471,7 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void Btn_FavoritesCancel_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesCancel_Clicked(object sender, RouteEventArgs e)
     {
         foreach (var Items in SelectedItemList.Clone())
             Items_CancelFavorites(Items);
@@ -488,27 +488,26 @@ public partial class PageDownloadCompFavorites
         RefreshBar();
     }
 
-    private void Btn_SelectCancel_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_SelectCancel_Clicked(object sender, RouteEventArgs e)
     {
         Items_SetSelectAll(false);
     }
 
-    private void Btn_FavoritesShare_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesShare_Clicked(object sender, RouteEventArgs e)
     {
         try
         {
-            ModBase.ClipboardSet(
-                ModComp.CompFavorites.GetShareCode(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id)
-                    .ToHashSet()));
+            LauncherClipboard.ClipboardSet(ModComp.CompFavorites.GetShareCode(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id)
+                .ToHashSet()));
             Items_SetSelectAll(false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "[CompFavourites] 分享收藏时发生错误", LauncherLogger.LogLevel.Hint);
         }
     }
 
-    private void Btn_FavoritesDownload_Clicked(object sender, ModBase.RouteEventArgs e)
+    private void Btn_FavoritesDownload_Clicked(object sender, RouteEventArgs e)
     {
         try
         {
@@ -577,7 +576,7 @@ public partial class PageDownloadCompFavorites
                 // 获取多个工程之间支持的版本的交集
                 var FinishedTasks = 0;
                 foreach (var Item in Ts.Input)
-                    ModBase.RunInNewThread(() =>
+                    LauncherDispatcher.RunInNewThread(() =>
                     {
                         try
                         {
@@ -587,7 +586,7 @@ public partial class PageDownloadCompFavorites
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogLevel.Hint);
+                            LauncherLogger.Log(ex, $"获取 {Item} 的下载信息失败", LauncherLogger.LogLevel.Hint);
                         }
                         finally
                         {
@@ -621,7 +620,7 @@ public partial class PageDownloadCompFavorites
                 }
 
                 int? SelectedVersion = 0;
-                ModBase.RunInUiWait(() =>
+                LauncherDispatcher.RunInUiWait(() =>
                 {
                     List<IMyRadio> Selection = [];
                     foreach (var i in SuitVersion)
@@ -661,7 +660,7 @@ public partial class PageDownloadCompFavorites
             GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
                 { ProgressWeight = 8d });
             var CheckLoader =
-                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
+                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({LauncherDispatcher.GetUuid()})", GetInfoAndDownloadLoader)
                     { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(CheckLoader);
@@ -671,7 +670,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "批量下载收藏时发生错误", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -702,7 +701,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 移除收藏时发生错误");
+            LauncherLogger.Log(ex, "[CompFavourites] 移除收藏时发生错误");
         }
     }
 
@@ -718,7 +717,7 @@ public partial class PageDownloadCompFavorites
         var NewItem = new MyMenuItem
         {
             Header = "分享当前收藏夹",
-            Icon = ModBase.Logo.IconButtonShare
+            Icon = Logo.IconButtonShare
         };
         NewItem.Click += (_, _) =>
         {
@@ -730,18 +729,18 @@ public partial class PageDownloadCompFavorites
                     return;
                 }
 
-                ModBase.ClipboardSet(ModComp.CompFavorites.GetShareCode(CurrentFavTarget.Favs));
+                LauncherClipboard.ClipboardSet(ModComp.CompFavorites.GetShareCode(CurrentFavTarget.Favs));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "[Favourites] 分享收藏时发生错误", LauncherLogger.LogLevel.Hint);
             }
         };
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
             Header = "导入收藏",
-            Icon = ModBase.Logo.IconButtonAdd
+            Icon = Logo.IconButtonAdd
         };
         NewItem.Click += (_, _) =>
         {
@@ -780,14 +779,14 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "解析分享数据失败", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "解析分享数据失败", LauncherLogger.LogLevel.Hint);
             }
         };
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
             Header = "新建收藏夹",
-            Icon = ModBase.Logo.IconButtonCreate
+            Icon = Logo.IconButtonCreate
         };
         NewItem.Click += (_, _) =>
         {
@@ -803,7 +802,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "重命名收藏夹名称",
-            Icon = ModBase.Logo.IconButtonEdit
+            Icon = Logo.IconButtonEdit
         };
         NewItem.Click += (_, _) =>
         {
@@ -818,7 +817,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "删除当前收藏夹",
-            Icon = ModBase.Logo.IconButtonDelete
+            Icon = Logo.IconButtonDelete
         };
         NewItem.Click += (_, _) =>
         {
@@ -863,7 +862,7 @@ public partial class PageDownloadCompFavorites
         foreach (var Id in FailIds)
             Content += $" - {Id}" + "\r\n";
         ModMain.MyMsgBox(Content, "部分收藏项目获取失败", Button2: "复制这些 ID", Button3: "移除这些收藏",
-            Button2Action: () => ModBase.ClipboardSet(FailIds.Join("\r\n")), Button3Action: () =>
+            Button2Action: () => LauncherClipboard.ClipboardSet(FailIds.Join("\r\n")), Button3Action: () =>
             {
                 foreach (var Id in FailIds)
                     CurrentFavTarget.Favs.Remove(Id);
@@ -888,24 +887,24 @@ public partial class PageDownloadCompFavorites
         if (IsSearching)
         {
             // 构造请求
-            var QueryList = new List<ModBase.SearchEntry<MyListItem>>();
+            var QueryList = new List<SearchEntry<MyListItem>>();
             foreach (var Item in CompItemList)
             {
                 if (!(Item.Tag is ModComp.CompProject))
                     continue;
                 var Entry = (ModComp.CompProject)Item.Tag;
-                var SearchSource = new List<ModBase.SearchSource>();
-                SearchSource.Add(new ModBase.SearchSource(Entry.RawName, 1d));
+                var SearchSource = new List<SearchSource>();
+                SearchSource.Add(new SearchSource(Entry.RawName, 1d));
                 if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
+                    SearchSource.Add(new SearchSource(Entry.Description, 0.4d));
                 if ((Entry.TranslatedName ?? "") != (Entry.RawName ?? ""))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.TranslatedName, 1d));
-                SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Tags), 0.2d));
-                QueryList.Add(new ModBase.SearchEntry<MyListItem> { Item = Item, SearchSource = SearchSource });
+                    SearchSource.Add(new SearchSource(Entry.TranslatedName, 1d));
+                SearchSource.Add(new SearchSource(string.Join("", Entry.Tags), 0.2d));
+                QueryList.Add(new SearchEntry<MyListItem> { Item = Item, SearchSource = SearchSource });
             }
 
             // 进行搜索
-            SearchResult = ModBase.Search(QueryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+            SearchResult = LauncherSearch.Search(QueryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
         }
 
         RefreshContent();

@@ -448,7 +448,7 @@ public static partial class ModMain
     }
     
     // 验证信息
-    if (ModLaunch.McLoginLoader.State == ModBase.LoadState.Finished)
+    if (ModLaunch.McLoginLoader.State == LoadState.Finished)
     {
         text = text.Replace("{user}", replacer(ModLaunch.McLoginLoader.Output.Name));
         text = text.Replace("{uuid}", replacer(ModLaunch.McLoginLoader.Output.Uuid.ToLower()));
@@ -474,11 +474,11 @@ public static partial class ModMain
     }
     
     // 高级
-    text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
-    text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
-    text = ModBase.RegexReplaceEach(text, @"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
-    text = ModBase.RegexReplaceEach(text, @"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    text = text.RegexReplaceEach(@"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+    text = text.RegexReplaceEach(@"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+    text = text.RegexReplaceEach(@"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
+    text = text.RegexReplaceEach(@"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    text = text.RegexReplaceEach(@"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
     
     return text;
 }

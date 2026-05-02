@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using PCL.Core.Utils.Validate;
 
 namespace PCL;
@@ -18,10 +18,10 @@ public partial class PageLoginOffline
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
+    private void RadioUuid_Checked(object sender, RouteEventArgs e)
     {
         if (RadioUuidCustom.Checked)
         {
@@ -82,6 +82,6 @@ public partial class PageLoginOffline
         ModProfile.SelectedProfile = NewProfile;
         ModProfile.IsCreatingProfile = false;
         ModMain.Hint("档案新建成功！", ModMain.HintType.Finish);
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 }

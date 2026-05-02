@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -29,18 +29,18 @@ public static partial class ModModpack
         var File = SystemDialogs.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件"); // 选择整合包文件
         if (string.IsNullOrEmpty(File))
             return;
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
             try
             {
                 ModpackInstall(File);
             }
-            catch (ModBase.CancelledException ex)
+        catch (CancelledException ex)
             {
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "手动安装整合包失败", ModBase.LogLevel.Msgbox);
+                LauncherLogger.Log(ex, "手动安装整合包失败", LauncherLogger.LogLevel.Msgbox);
             }
         });
     }
@@ -49,11 +49,11 @@ public static partial class ModModpack
     ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
     ///     必须在工作线程执行。
     /// </summary>
-    /// <exception cref="ModBase.CancelledException" />
+    /// <exception cref="CancelledException" />
     public static LoaderCombo<string> ModpackInstall(string File, string InstanceName = null, string Logo = null,
         string resourceId = null, bool isOnlineInstall = false)
     {
-        ModBase.Log("[ModPack] 整合包安装请求：" + (File ?? "null"));
+        LauncherLogger.Log("[ModPack] 整合包安装请求：" + (File ?? "null"));
         ZipArchive Archive = null;
         var ArchiveBaseFolder = "";
         try
@@ -63,7 +63,7 @@ public static partial class ModModpack
             if (TargetFolder.Contains("!") || TargetFolder.Contains(";"))
             {
                 ModMain.Hint("游戏路径中不能含有感叹号或分号：" + TargetFolder, ModMain.HintType.Critical);
-                throw new ModBase.CancelledException();
+                throw new CancelledException();
             }
 
             // 获取整合包种类与关键 Json
@@ -96,7 +96,7 @@ public static partial class ModModpack
 
                     if (Archive.GetEntry("manifest.json") is not null)
                     {
-                        var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Archive.GetEntry("manifest.json").Open(),
+                        var Json = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(Archive.GetEntry("manifest.json").Open(),
                             Encoding.UTF8));
                         if (Json["addons"] is null)
                         {
@@ -154,7 +154,7 @@ public static partial class ModModpack
 
                         if (FullNames[1] == "manifest.json")
                         {
-                            var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Entry.Open(), Encoding.UTF8));
+                            var Json = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(Entry.Open(), Encoding.UTF8));
                             if (Json["addons"] is null)
                             {
                                 PackType = 0;
@@ -202,40 +202,40 @@ public static partial class ModModpack
             {
                 case 0:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：CurseForge");
+                    LauncherLogger.Log("[ModPack] 整合包种类：CurseForge");
                     return InstallPackCurseForge(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
                         isOnlineInstall);
                 }
                 case 1:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：HMCL");
+                    LauncherLogger.Log("[ModPack] 整合包种类：HMCL");
                     return InstallPackHMCL(File, Archive, ArchiveBaseFolder);
                 }
                 case 2:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：MMC");
+                    LauncherLogger.Log("[ModPack] 整合包种类：MMC");
                     return InstallPackMMC(File, Archive, ArchiveBaseFolder);
                 }
                 case 3:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：MCBBS");
+                    LauncherLogger.Log("[ModPack] 整合包种类：MCBBS");
                     return InstallPackMCBBS(File, Archive, ArchiveBaseFolder, InstanceName);
                 }
                 case 4:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：Modrinth");
+                    LauncherLogger.Log("[ModPack] 整合包种类：Modrinth");
                     return InstallPackModrinth(File, Archive, ArchiveBaseFolder, InstanceName, Logo, resourceId,
                         isOnlineInstall);
                 }
                 case 9:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：带启动器的压缩包");
+                    LauncherLogger.Log("[ModPack] 整合包种类：带启动器的压缩包");
                     return InstallPackLauncherPack(File, Archive, ArchiveBaseFolder);
                 }
 
                 default:
                 {
-                    ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
+                    LauncherLogger.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
                     return InstallPackCompress(File, Archive);
                 }
             }
@@ -261,10 +261,10 @@ public static partial class ModModpack
                 loader.Progress = initialProgress;
 
                 // 删除旧目录
-                ModBase.DeleteDirectory(installTemp);
+                LauncherFileSystem.DeleteDirectory(installTemp);
 
                 // 解压文件，ProgressIncrementHandler 通过 Lambda 更新进度
-                ModBase.ExtractFile(fileAddress, installTemp, encode,
+                LauncherFileSystem.ExtractFile(fileAddress, installTemp, encode,
                     delta => loader.Progress += delta * progressIncrement);
 
                 // 解压成功，更新进度并退出循环
@@ -273,12 +273,12 @@ public static partial class ModModpack
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"第 {retryCount} 次解压尝试失败");
+                LauncherLogger.Log(ex, $"第 {retryCount} 次解压尝试失败");
 
                 if (ex is ArgumentException || ex is IOException)
                 {
                     encode = Encoding.UTF8;
-                    ModBase.Log("[ModPack] 已切换压缩包解压编码为 UTF8");
+                    LauncherLogger.Log("[ModPack] 已切换压缩包解压编码为 UTF8");
                 }
 
                 // 检查加载器状态，决定是否中止
@@ -310,13 +310,13 @@ public static partial class ModModpack
         // 复制文件
         if (Directory.Exists(OverridesFolder))
         {
-            ModBase.Log($"[ModPack] 处理整合包覆写文件夹：{OverridesFolder} → {VersionFolder}");
-            ModBase.CopyDirectory(OverridesFolder, VersionFolder,
+            LauncherLogger.Log($"[ModPack] 处理整合包覆写文件夹：{OverridesFolder} → {VersionFolder}");
+            LauncherFileSystem.CopyDirectory(OverridesFolder, VersionFolder,
                 Delta => Loader.Progress += Delta * ProgressIncrement);
         }
         else
         {
-            ModBase.Log($"[ModPack] 整合包中没有覆写文件夹：{OverridesFolder}");
+            LauncherLogger.Log($"[ModPack] 整合包中没有覆写文件夹：{OverridesFolder}");
             Loader.Progress += ProgressIncrement;
         }
 
@@ -325,17 +325,17 @@ public static partial class ModModpack
         var VersionIni = $@"{VersionFolder}PCL\Setup.ini";
         if (File.Exists(OverridesIni))
         {
-            ModBase.WriteIni(OverridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            ModBase.WriteIni(OverridesIni, "VersionArgumentIndieV2", Conversions.ToString(true));
-            ModBase.CopyFile(OverridesIni, VersionIni); // 覆写已有的 ini
+            LauncherSerialization.WriteIni(OverridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
+            LauncherSerialization.WriteIni(OverridesIni, "VersionArgumentIndieV2", Conversions.ToString(true));
+            LauncherFileSystem.CopyFile(OverridesIni, VersionIni); // 覆写已有的 ini
         }
         else
         {
-            ModBase.WriteIni(VersionIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            ModBase.WriteIni(VersionIni, "VersionArgumentIndieV2", Conversions.ToString(true));
+            LauncherSerialization.WriteIni(VersionIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
+            LauncherSerialization.WriteIni(VersionIni, "VersionArgumentIndieV2", Conversions.ToString(true));
         }
 
-        ModBase.IniClearCache(VersionIni); // 重置缓存，避免被安装过程中写入的 ini 覆盖
+        LauncherSerialization.IniClearCache(VersionIni); // 重置缓存，避免被安装过程中写入的 ini 覆盖
     }
 
     #region CurseForge
@@ -348,8 +348,8 @@ public static partial class ModModpack
         JObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "manifest.json").Open()));
+            Json = (JObject)LauncherSerialization.GetJson(
+                LauncherFileSystem.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "manifest.json").Open()));
         }
         catch (Exception ex)
         {
@@ -369,7 +369,7 @@ public static partial class ModModpack
             if (string.IsNullOrEmpty(InstanceName))
                 InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
             if (string.IsNullOrEmpty(InstanceName))
-                throw new ModBase.CancelledException();
+                throw new CancelledException();
         }
 
         // 获取 Mod API 版本信息
@@ -385,13 +385,13 @@ public static partial class ModModpack
                 // Forge 指定
                 if (Id.Contains("recommended"))
                     throw new Exception("该整合包版本过老，已不支持进行安装！");
-                ModBase.Log("[ModPack] 整合包 Forge 版本：" + Id);
+                LauncherLogger.Log("[ModPack] 整合包 Forge 版本：" + Id);
                 ForgeVersion = Id.Replace("forge-", "");
             }
             else if (Id.StartsWithF("neoforge-"))
             {
                 // NeoForge 指定
-                ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + Id);
+                LauncherLogger.Log("[ModPack] 整合包 NeoForge 版本：" + Id);
                 NeoForgeVersion = Id.Replace("neoforge-", "");
             }
             else if (Id.StartsWithF("fabric-"))
@@ -399,13 +399,13 @@ public static partial class ModModpack
                 // Fabric 指定
                 try
                 {
-                    ModBase.Log("[ModPack] 整合包 Fabric 版本：" + Id);
+                    LauncherLogger.Log("[ModPack] 整合包 Fabric 版本：" + Id);
                     FabricVersion = Id.Replace("fabric-", "");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取整合包 Fabric 版本失败：" + Id);
+                    LauncherLogger.Log(ex, "读取整合包 Fabric 版本失败：" + Id);
                 }
             }
             else if (Id.StartsWithF("quilt-"))
@@ -413,13 +413,13 @@ public static partial class ModModpack
                 // Quilt 指定
                 try
                 {
-                    ModBase.Log("[ModPack] 整合包 Quilt 版本：" + Id);
+                    LauncherLogger.Log("[ModPack] 整合包 Quilt 版本：" + Id);
                     QuiltVersion = Id.Replace("quilt-", "");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取整合包 Quilt 版本失败：" + Id);
+                    LauncherLogger.Log(ex, "读取整合包 Quilt 版本失败：" + Id);
                 }
             }
         }
@@ -468,18 +468,18 @@ public static partial class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    ret = (JArray)((JObject)LauncherSerialization.GetJson(ModDownload.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
                         "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json",
                         allowMirror)))["data"];
                     if (ModList.Count <= ret.Count)
                     {
-                        ModBase.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
+                        LauncherLogger.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
                         break;
                     }
 
                     allowMirror = false;
-                    ModBase.Log($"[Modpack] 获取模组数量不达标，设置镜像源允许状态为: {allowMirror}");
+                    LauncherLogger.Log($"[Modpack] 获取模组数量不达标，设置镜像源允许状态为: {allowMirror}");
                     if (tryCount > 3) throw new Exception("整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题");
                 } while (true);
 
@@ -588,20 +588,20 @@ public static partial class ModModpack
                 File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
                 States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                 States.Instance.IsLogoCustom[VersionFolder] = true;
-                ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
+                LauncherLogger.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
             // 删除原始整合包文件
             foreach (var Target in new[] { VersionFolder + "原始整合包.zip", VersionFolder + "原始整合包.mrpack" })
                 if (File.Exists(Target))
                 {
-                    ModBase.Log("[ModPack] 删除原始整合包文件：" + Target);
+                    LauncherLogger.Log("[ModPack] 删除原始整合包文件：" + Target);
                     File.Delete(Target);
                 }
 
-            if (File.Exists(FileAddress) && ModBase.GetFileNameWithoutExtentionFromPath(FileAddress) == "modpack")
+            if (File.Exists(FileAddress) && LauncherPaths.GetFileNameWithoutExtension(FileAddress) == "modpack")
             {
-                ModBase.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
+                LauncherLogger.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
                 File.Delete(FileAddress);
             }
 
@@ -620,7 +620,7 @@ public static partial class ModModpack
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "[ModPack] 获取整合包描述文本失败");
+                    LauncherLogger.Log(ex, "[ModPack] 获取整合包描述文本失败");
                 }
             } while (false);
         })
@@ -634,7 +634,7 @@ public static partial class ModModpack
         if (LoaderTaskbar.Any(l => (l.Name ?? "") == (LoaderName ?? "")))
         {
             ModMain.Hint("该整合包正在安装中！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 启动
@@ -643,7 +643,7 @@ public static partial class ModModpack
         LoaderTaskbarAdd(Loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
         if (!isOnlineInstall)
-            ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
+            LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
         return Loader;
     }
 
@@ -659,8 +659,8 @@ public static partial class ModModpack
         JObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modrinth.index.json").Open()));
+            Json = (JObject)LauncherSerialization.GetJson(
+                LauncherFileSystem.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modrinth.index.json").Open()));
         }
         catch (Exception ex)
         {
@@ -686,26 +686,26 @@ public static partial class ModModpack
                 case "forge": // eg. 14.23.5.2859 / 1.19-41.1.0
                 {
                     ForgeVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Forge 版本：" + ForgeVersion);
+                    LauncherLogger.Log("[ModPack] 整合包 Forge 版本：" + ForgeVersion);
                     break;
                 }
                 case "neoforge":
                 case "neo-forge": // eg. 20.6.98-beta
                 {
                     NeoForgeVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + NeoForgeVersion);
+                    LauncherLogger.Log("[ModPack] 整合包 NeoForge 版本：" + NeoForgeVersion);
                     break;
                 }
                 case "fabric-loader": // eg. 0.14.14
                 {
                     FabricVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Fabric 版本：" + FabricVersion);
+                    LauncherLogger.Log("[ModPack] 整合包 Fabric 版本：" + FabricVersion);
                     break;
                 }
                 case "quilt-loader": // eg. 0.26.0
                 {
                     QuiltVersion = Entry.Value.ToString();
-                    ModBase.Log("[ModPack] 整合包 Quilt 版本：" + QuiltVersion);
+                    LauncherLogger.Log("[ModPack] 整合包 Quilt 版本：" + QuiltVersion);
                     break;
                 }
 
@@ -727,7 +727,7 @@ public static partial class ModModpack
             if (string.IsNullOrEmpty(InstanceName))
                 InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
             if (string.IsNullOrEmpty(InstanceName))
-                throw new ModBase.CancelledException();
+                throw new CancelledException();
         }
 
         // 解压
@@ -755,7 +755,7 @@ public static partial class ModModpack
                 {
                     case "optional":
                     {
-                        if (ModMain.MyMsgBox("是否要下载可选文件 " + ModBase.GetFileNameFromPath(File["path"].ToString()) + "？",
+                        if (ModMain.MyMsgBox("是否要下载可选文件 " + LauncherPaths.GetFileName(File["path"].ToString()) + "？",
                                 "下载可选文件", "是", "否") == 2) continue;
 
                         break;
@@ -779,12 +779,12 @@ public static partial class ModModpack
             {
                 ModMain.MyMsgBox("整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！" + "\r\n" + "错误的文件：" + TargetPath,
                     "文件路径校验失败", IsWarn: true);
-                throw new ModBase.CancelledException();
+                throw new CancelledException();
             }
 
             FileList.Add(new DownloadFile(Urls, TargetPath,
-                new ModBase.FileChecker(ActualSize: File["fileSize"].ToObject<long>(),
-                    Hash: File["hashes"]["sha1"].ToString()), true));
+                new LauncherFileSystem.FileChecker(actualSize: File["fileSize"].ToObject<long>(),
+                    hash: File["hashes"]["sha1"].ToString()), true));
         }
 
         if (FileList.Any())
@@ -818,20 +818,20 @@ public static partial class ModModpack
                 File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
                 States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                 States.Instance.IsLogoCustom[VersionFolder] = true;
-                ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
+                LauncherLogger.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
             // 删除原始整合包文件
             foreach (var Target in new[] { VersionFolder + "原始整合包.zip", VersionFolder + "原始整合包.mrpack" })
                 if (File.Exists(Target))
                 {
-                    ModBase.Log("[ModPack] 删除原始整合包文件：" + Target);
+                    LauncherLogger.Log("[ModPack] 删除原始整合包文件：" + Target);
                     File.Delete(Target);
                 }
 
-            if (File.Exists(FileAddress) && ModBase.GetFileNameWithoutExtentionFromPath(FileAddress) == "modpack")
+            if (File.Exists(FileAddress) && LauncherPaths.GetFileNameWithoutExtension(FileAddress) == "modpack")
             {
-                ModBase.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
+                LauncherLogger.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
                 File.Delete(FileAddress);
             }
 
@@ -851,7 +851,7 @@ public static partial class ModModpack
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "[ModPack] 获取整合包描述文本失败");
+                    LauncherLogger.Log(ex, "[ModPack] 获取整合包描述文本失败");
                 }
             } while (false);
         })
@@ -865,7 +865,7 @@ public static partial class ModModpack
         if (LoaderTaskbar.Any(l => (l.Name ?? "") == (LoaderName ?? "")))
         {
             ModMain.Hint("该整合包正在安装中！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 启动
@@ -874,7 +874,7 @@ public static partial class ModModpack
         LoaderTaskbarAdd(Loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
         if (!isOnlineInstall)
-            ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
+            LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
         return Loader;
     }
 
@@ -888,8 +888,8 @@ public static partial class ModModpack
         JObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
+            Json = (JObject)LauncherSerialization.GetJson(
+                LauncherFileSystem.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
         }
         catch (Exception ex)
         {
@@ -904,7 +904,7 @@ public static partial class ModModpack
         if (string.IsNullOrEmpty(InstanceName))
             InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
         if (string.IsNullOrEmpty(InstanceName))
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         // 解压
         var InstallTemp = ModMain.RequestTaskTempFolder();
         var InstallLoaders = new List<LoaderBase>();
@@ -941,7 +941,7 @@ public static partial class ModModpack
         if (LoaderTaskbar.Any(l => (l.Name ?? "") == (LoaderName ?? "")))
         {
             ModMain.Hint("该整合包正在安装中！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 启动
@@ -949,7 +949,7 @@ public static partial class ModModpack
         Loader.Start(Request.TargetInstanceFolder);
         LoaderTaskbarAdd(Loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-        ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
         return Loader;
     }
 
@@ -969,7 +969,7 @@ public static partial class ModModpack
                         Archive.GetEntry(ArchiveBaseFolder + "manifest.json");
             using (var stream = Entry.Open())
             {
-                Json = (JObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
+                Json = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(stream, Encoding.UTF8));
             }
         }
         catch (Exception ex)
@@ -988,7 +988,7 @@ public static partial class ModModpack
             if (string.IsNullOrEmpty(InstanceName))
                 InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
 
-            if (string.IsNullOrEmpty(InstanceName)) throw new ModBase.CancelledException();
+            if (string.IsNullOrEmpty(InstanceName)) throw new CancelledException();
         }
 
         // 解压与路径准备
@@ -1067,7 +1067,7 @@ public static partial class ModModpack
         if (LoaderTaskbar.Any(l => l.Name == LoaderName))
         {
             ModMain.Hint("该整合包正在安装中！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 启动任务
@@ -1078,7 +1078,7 @@ public static partial class ModModpack
         LoaderTaskbarAdd(Loader);
 
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-        ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
 
         return Loader;
     }
@@ -1094,11 +1094,11 @@ public static partial class ModModpack
         ModMain.MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait: true);
         var TargetFolder = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）");
         if (string.IsNullOrEmpty(TargetFolder))
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         if (Directory.GetFileSystemEntries(TargetFolder).Length > 0)
         {
             ModMain.Hint("请选择一个空文件夹作为安装目标！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 解压
@@ -1113,11 +1113,11 @@ public static partial class ModModpack
                 foreach (var ExeFile in Directory.GetFiles(TargetFolder, "*.exe", SearchOption.TopDirectoryOnly))
                 {
                     var Info = FileVersionInfo.GetVersionInfo(ExeFile);
-                    ModBase.Log($"[Modpack] 文件 {ExeFile} 的产品名标识为 {Info.ProductName}");
+                    LauncherLogger.Log($"[Modpack] 文件 {ExeFile} 的产品名标识为 {Info.ProductName}");
                     if (Info.ProductName == "Plain Craft Launcher")
                     {
                         Launcher = ExeFile;
-                        ModBase.Log($"[Modpack] 发现整合包附带的 PCL 启动器：{ExeFile}");
+                        LauncherLogger.Log($"[Modpack] 发现整合包附带的 PCL 启动器：{ExeFile}");
                     }
                     else if ((Info.ProductName.ContainsF("Launcher", true) || Info.ProductName.ContainsF("启动", true)) &&
                              !(Info.ProductName == "Plain Craft Launcher Admin Manager"))
@@ -1125,7 +1125,7 @@ public static partial class ModModpack
                         if (Launcher is null)
                         {
                             Launcher = ExeFile;
-                            ModBase.Log($"[Modpack] 发现整合包附带的疑似第三方启动器：{ExeFile}");
+                            LauncherLogger.Log($"[Modpack] 发现整合包附带的疑似第三方启动器：{ExeFile}");
                         }
                     }
                 }
@@ -1134,32 +1134,32 @@ public static partial class ModModpack
                 // 尝试使用附带的启动器打开
                 if (Launcher is not null)
                 {
-                    ModBase.Log("[Modpack] 找到压缩包中附带的启动器：" + Launcher);
+                    LauncherLogger.Log("[Modpack] 找到压缩包中附带的启动器：" + Launcher);
                     if (ModMain.MyMsgBox($"整合包里似乎自带了启动器，是否换用它继续安装？{"\r\n"}即将打开：{Launcher}", "换用整合包启动器？", "换用",
                             "不换用") == 1)
                     {
-                        ModBase.OpenExplorer(TargetFolder);
-                        ModBase.ShellOnly(Launcher, "--wait"); // 要求等待已有的 PCL 退出
-                        ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
+                        LauncherShell.OpenExplorer(TargetFolder);
+                        LauncherShell.ShellOnly(Launcher, "--wait"); // 要求等待已有的 PCL 退出
+                        LauncherLogger.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
                         ModMain.FrmMain.EndProgram(false);
                         return;
                     }
                 }
                 else
                 {
-                    ModBase.Log("[Modpack] 未找到压缩包中附带的启动器");
+                    LauncherLogger.Log("[Modpack] 未找到压缩包中附带的启动器");
                 }
 
-                ModBase.OpenExplorer(TargetFolder);
+                LauncherShell.OpenExplorer(TargetFolder);
                 // 加入文件夹列表
-                var InstanceName = ModBase.GetFolderNameFromPath(TargetFolder);
+                var InstanceName = LauncherPaths.GetFolderName(TargetFolder);
                 Directory.CreateDirectory(TargetFolder + @".minecraft\");
                 PageSelectLeft.AddFolder(
                     TargetFolder + @".minecraft\" + ArchiveBaseFolder.Replace("/", @"\").TrimStart('\\'), InstanceName,
                     false); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
                 // 调用 modpack 文件进行安装
                 var ModpackFile = Directory.GetFiles(TargetFolder, "modpack.*", SearchOption.AllDirectories).First();
-                ModBase.Log("[Modpack] 调用 modpack 文件继续安装：" + ModpackFile);
+                LauncherLogger.Log("[Modpack] 调用 modpack 文件继续安装：" + ModpackFile);
                 ModpackInstall(ModpackFile);
             })
         });
@@ -1193,22 +1193,22 @@ public static partial class ModModpack
             throw new Exception("未能找到适合的文件结构，这可能不是一个 MC 压缩包"); // 没有匹配
         var ArchiveBaseFolder = Match.Value.Replace("/", @"\").TrimStart('\\'); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
         var InstanceName = Match.Groups[1].Value;
-        ModBase.Log("[ModPack] 检测到压缩包的 .minecraft 根目录：" + ArchiveBaseFolder + "，命中的实例名：" + InstanceName);
+        LauncherLogger.Log("[ModPack] 检测到压缩包的 .minecraft 根目录：" + ArchiveBaseFolder + "，命中的实例名：" + InstanceName);
         // 获取解压路径
         ModMain.MyMsgBox("接下来请选择一个空文件夹，它会被安装到这个文件夹里。", "安装", "继续", ForceWait: true);
         var TargetFolder = SystemDialogs.SelectFolder("选择安装目标（必须是一个空文件夹）");
         if (string.IsNullOrEmpty(TargetFolder))
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         if (TargetFolder.Contains("!") || TargetFolder.Contains(";"))
         {
             ModMain.Hint("Minecraft 文件夹路径中不能含有感叹号或分号！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         if (Directory.GetFileSystemEntries(TargetFolder).Length > 0)
         {
             ModMain.Hint("请选择一个空文件夹作为安装目标！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 解压
@@ -1218,10 +1218,10 @@ public static partial class ModModpack
             {
                 ExtractModpackFiles(TargetFolder, FileAddress, Task, 0.95d);
                 // 加入文件夹列表
-                PageSelectLeft.AddFolder(TargetFolder + ArchiveBaseFolder, ModBase.GetFolderNameFromPath(TargetFolder),
+                PageSelectLeft.AddFolder(TargetFolder + ArchiveBaseFolder, LauncherPaths.GetFolderName(TargetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
-                ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect));
+                LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect));
             })
         })
         {
@@ -1262,9 +1262,9 @@ public static partial class ModModpack
         MMCPackInfo PackInfo = null;
         try
         {
-            PackJson = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
-            PackInstance = ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
+            PackJson = (JObject)LauncherSerialization.GetJson(
+                LauncherFileSystem.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
+            PackInstance = LauncherFileSystem.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
 
             #region JSON Patches
 
@@ -1276,13 +1276,13 @@ public static partial class ModModpack
                     if (!Archive.Entries.Any(e =>
                             e.FullName.Equals(ArchiveBaseFolder + "patches/", StringComparison.OrdinalIgnoreCase)))
                         break;
-                    ModBase.Log("[ModPack] 安装的 MultiMC 整合包存在 JSON Patches");
+                    LauncherLogger.Log("[ModPack] 安装的 MultiMC 整合包存在 JSON Patches");
                     // 排序预处理
                     var Patches = new List<KeyValuePair<JObject, int>>();
                     foreach (var entry in Archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(ArchiveBaseFolder + "patches/"))
                         {
-                            var Patch = (JObject)ModBase.GetJson(ModBase.ReadFile(
+                            var Patch = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(
                                 Archive.GetEntry(ArchiveBaseFolder + "patches/" + entry.Name).Open(), Encoding.UTF8));
                             Patches.Add(new KeyValuePair<JObject, int>(Patch,
                                 (int)(Patch["order"] is not null ? Patch["order"] : 0)));
@@ -1302,7 +1302,7 @@ public static partial class ModModpack
 
                         if (!IsContainedInPackJson)
                         {
-                            ModBase.Log($"[ModPack] JSON-Patch {Patch.Key["uid"]} 未包含于 mmc-pack.json, 跳过该 Patch");
+                            LauncherLogger.Log($"[ModPack] JSON-Patch {Patch.Key["uid"]} 未包含于 mmc-pack.json, 跳过该 Patch");
                             Patches.Remove(Patch);
                         }
                     }
@@ -1350,7 +1350,7 @@ public static partial class ModModpack
                         if (PatchJson["+jvmArgs"] is not null)
                         {
                             JvmArguments.Merge(PatchJson["+jvmArgs"]);
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 JVM 参数");
+                            LauncherLogger.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 JVM 参数");
                         }
 
                         // Libraries
@@ -1384,21 +1384,21 @@ public static partial class ModModpack
                                 }
 
                             LibJson.Merge(Libs);
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 Libraries");
+                            LauncherLogger.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 Libraries");
                         }
 
                         // Tweakers
                         if (PatchJson["+tweakers"] is not null)
                         {
                             Tweakers = (string)PatchJson["+tweakers"][0];
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 Tweakers");
+                            LauncherLogger.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 Tweakers");
                         }
 
                         // AssetIndex
                         if (PatchJson["assetIndex"] is not null)
                         {
                             AssetIndex = (JObject)PatchJson["assetIndex"];
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 AssetIndex");
+                            LauncherLogger.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 AssetIndex");
                         }
 
                         // minecraftArguments -> arguments.game
@@ -1407,7 +1407,7 @@ public static partial class ModModpack
                             foreach (var Arg in PatchJson["minecraftArguments"].ToString().Split(" "))
                                 GameArguments.Add(Arg);
                             PackInfo.IsMcArgsEdited = true;
-                            ModBase.Log(
+                            LauncherLogger.Log(
                                 $"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 minecraftArguments 至 arguments.game");
                         }
 
@@ -1415,7 +1415,7 @@ public static partial class ModModpack
                         if (PatchJson["mainClass"] is not null)
                         {
                             MainClass = (string)PatchJson["mainClass"];
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 mainClass");
+                            LauncherLogger.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 mainClass");
                         }
 
                         // Java 版本要求
@@ -1426,25 +1426,25 @@ public static partial class ModModpack
                             var JavaMajors = (JArray)PatchJson["compatibleJavaMajors"];
                             foreach (var Java in JavaMajors)
                             {
-                                if (JavaVersion > ModBase.Val(Java))
+                                if (JavaVersion > MigrationHelpers.Val(Java))
                                     continue;
                                 // 优先选择主要的版本
-                                if (ModBase.Val(Java) == 21d)
+                                if (MigrationHelpers.Val(Java) == 21d)
                                 {
                                     JavaVersion = 21;
                                     JavaComponent = "java-runtime-delta";
                                 }
-                                else if (ModBase.Val(Java) == 17d)
+                                else if (MigrationHelpers.Val(Java) == 17d)
                                 {
                                     JavaVersion = 17;
                                     JavaComponent = "java-runtime-gamma";
                                 }
-                                else if (ModBase.Val(Java) == 11d)
+                                else if (MigrationHelpers.Val(Java) == 11d)
                                 {
                                     JavaVersion = 11;
                                     JavaComponent = null;
                                 }
-                                else if (ModBase.Val(Java) == 8d)
+                                else if (MigrationHelpers.Val(Java) == 8d)
                                 {
                                     JavaVersion = 8;
                                     JavaComponent = "jre-legacy";
@@ -1459,7 +1459,7 @@ public static partial class ModModpack
 
                             JavaVerJson = new JObject { { "majorVersion", JavaVersion } };
                             if (JavaComponent is not null) JavaVerJson.Add("component", JavaComponent);
-                            ModBase.Log($"[ModPack] JSON-Patch {PatchJson["uid"]} 要求 Java 版本: " + JavaVersion);
+                            LauncherLogger.Log($"[ModPack] JSON-Patch {PatchJson["uid"]} 要求 Java 版本: " + JavaVersion);
                         }
                     }
 
@@ -1494,7 +1494,7 @@ public static partial class ModModpack
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "应用 MMC JSON-Patches 失败");
+                    LauncherLogger.Log(ex, "应用 MMC JSON-Patches 失败");
                 }
             } while (false);
         }
@@ -1514,7 +1514,7 @@ public static partial class ModModpack
         if (string.IsNullOrEmpty(InstanceName))
             InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
         if (string.IsNullOrEmpty(InstanceName))
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         // 解压
         var InstallTemp = ModMain.RequestTaskTempFolder();
         var VersionFolder = $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}";
@@ -1537,7 +1537,7 @@ public static partial class ModModpack
                 if (File.Exists(MMCSetupFile))
                 {
                     List<string> Lines = [];
-                    foreach (var Line in ModBase.ReadFile(MMCSetupFile).Split(new[] { "\r", "\n" },
+                    foreach (var Line in LauncherFileSystem.ReadFile(MMCSetupFile).Split(new[] { "\r", "\n" },
                                  StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (!Line.Contains("="))
@@ -1545,12 +1545,12 @@ public static partial class ModModpack
                         Lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                     }
 
-                    ModBase.WriteFile(MMCSetupFile, Lines.Join("\r\n"));
+                    LauncherFileSystem.WriteFile(MMCSetupFile, Lines.Join("\r\n"));
                     // 读取文件
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideCommands",
+                    if (Conversions.ToBoolean(LauncherSerialization.ReadIni(MMCSetupFile, "OverrideCommands",
                             Conversions.ToString(false))))
                     {
-                        var PreLaunchCommand = ModBase.ReadIni(MMCSetupFile, "PreLaunchCommand");
+                        var PreLaunchCommand = LauncherSerialization.ReadIni(MMCSetupFile, "PreLaunchCommand");
                         if (!string.IsNullOrEmpty(PreLaunchCommand))
                         {
                             PreLaunchCommand = PreLaunchCommand.Replace(@"\""", "\"")
@@ -1559,45 +1559,45 @@ public static partial class ModModpack
                                 .Replace("$INST_DIR", "{verpath}").Replace("$INST_ID", "{name}")
                                 .Replace("$INST_NAME", "{name}");
                             Config.Instance.PreLaunchCommand[VersionFolder] = PreLaunchCommand;
-                            ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" + PreLaunchCommand);
+                            LauncherLogger.Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" + PreLaunchCommand);
                         }
                     }
 
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunch",
+                    if (Conversions.ToBoolean(LauncherSerialization.ReadIni(MMCSetupFile, "JoinServerOnLaunch",
                             Conversions.ToString(false))))
                     {
-                        var ServerAddress = ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress")
+                        var ServerAddress = LauncherSerialization.ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress")
                             .Replace(@"\""", "\"");
                         Config.Instance.ServerToEnter[VersionFolder] = ServerAddress;
-                        ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + ServerAddress);
+                        LauncherLogger.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + ServerAddress);
                     }
 
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility",
+                    if (Conversions.ToBoolean(LauncherSerialization.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility",
                             Conversions.ToString(false))))
                     {
                         Config.Instance.IgnoreJavaCompatibility[VersionFolder] = true;
-                        ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
+                        LauncherLogger.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
                     }
 
-                    var Logo = Path.GetFileName(ModBase.ReadIni(MMCSetupFile, "iconKey"));
+                    var Logo = Path.GetFileName(LauncherSerialization.ReadIni(MMCSetupFile, "iconKey"));
                     if (!string.IsNullOrEmpty(Logo) && File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png"))
                     {
                         States.Instance.IsLogoCustom[VersionFolder] = true;
                         States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
-                        ModBase.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
+                        LauncherFileSystem.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
                             $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\PCL\Logo.png");
-                        ModBase.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）");
+                        LauncherLogger.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）");
                     }
 
                     // JVM 参数
-                    var JvmArgs = ModBase.ReadIni(MMCSetupFile, "JvmArgs");
+                    var JvmArgs = LauncherSerialization.ReadIni(MMCSetupFile, "JvmArgs");
                     if (!string.IsNullOrEmpty(JvmArgs))
                     {
-                        if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideJavaArgs",
+                        if (Conversions.ToBoolean(LauncherSerialization.ReadIni(MMCSetupFile, "OverrideJavaArgs",
                                 Conversions.ToString(false))))
                         {
                             Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
-                            ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + JvmArgs);
+                            LauncherLogger.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + JvmArgs);
                         }
                         else
                         {
@@ -1605,14 +1605,14 @@ public static partial class ModModpack
                                                            Operators.ConcatenateObject(" ",
                                                                Config.Launch.JvmArgs));
                             Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
-                            ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + JvmArgs);
+                            LauncherLogger.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + JvmArgs);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"读取 MMC 配置文件失败（{InstallTemp}{ArchiveBaseFolder}instance.cfg）");
+                LauncherLogger.Log(ex, $"读取 MMC 配置文件失败（{InstallTemp}{ArchiveBaseFolder}instance.cfg）");
             }
 
             #endregion
@@ -1634,7 +1634,7 @@ public static partial class ModModpack
             {
                 case "org.lwjgl":
                 {
-                    ModBase.Log("[ModPack] 已跳过 LWJGL 项");
+                    LauncherLogger.Log("[ModPack] 已跳过 LWJGL 项");
                     break;
                 }
                 case "net.minecraft":
@@ -1684,7 +1684,7 @@ public static partial class ModModpack
         if (LoaderTaskbar.Any(l => (l.Name ?? "") == (LoaderName ?? "")))
         {
             ModMain.Hint("该整合包正在安装中！", ModMain.HintType.Critical);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         // 启动
@@ -1692,7 +1692,7 @@ public static partial class ModModpack
         Loader.Start(Request.TargetInstanceFolder);
         LoaderTaskbarAdd(Loader);
         ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-        ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager));
         return Loader;
     }
 

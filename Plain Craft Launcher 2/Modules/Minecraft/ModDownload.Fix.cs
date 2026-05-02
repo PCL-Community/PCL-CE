@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -33,7 +33,7 @@ public static partial class ModDownload
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取底层继承实例失败");
+            LauncherLogger.Log(ex, "获取底层继承实例失败");
         }
 
         // 检查 Json 是否标准
@@ -41,7 +41,7 @@ public static partial class ModDownload
             Version.JsonObject["downloads"]["client"]["url"] is null)
             throw new Exception("底层实例 " + Version.Name + " 中无 Jar 文件下载信息");
         // 检查文件
-        var Checker = new ModBase.FileChecker(1024L, (long)(Version.JsonObject["downloads"]["client"]["size"] ?? -1),
+        var Checker = new LauncherFileSystem.FileChecker(1024L, (long)(Version.JsonObject["downloads"]["client"]["size"] ?? -1),
             (string)Version.JsonObject["downloads"]["client"]["sha1"]);
         if (ReturnNothingOnFileUseable && Checker.Check(Version.PathInstance + Version.Name + ".jar") is null)
             return null; // 通过校验
@@ -63,12 +63,12 @@ public static partial class ModDownload
         // 获取信息
         var IndexInfo = ModMinecraft.McAssetsGetIndex(Version, true, true);
         var IndexAddress = ModMinecraft.McFolderSelected + @"assets\indexes\" + IndexInfo["id"] + ".json";
-        ModBase.Log("[Download] 实例 " + Version.Name + " 对应的资源文件索引为 " + IndexInfo["id"]);
+        LauncherLogger.Log("[Download] 实例 " + Version.Name + " 对应的资源文件索引为 " + IndexInfo["id"]);
         var IndexUrl = (string)(IndexInfo["url"] ?? "");
         if (string.IsNullOrEmpty(IndexUrl)) return null;
 
         return new DownloadFile(DlSourceLauncherOrMetaGet(IndexUrl), IndexAddress,
-            new ModBase.FileChecker(CanUseExistsFile: false));
+            new LauncherFileSystem.FileChecker(canUseExistsFile: false));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public static partial class ModDownload
 
         if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
         {
-            ModBase.Log("[Download] 已跳过所有 Libraries 检查");
+            LauncherLogger.Log("[Download] 已跳过所有 Libraries 检查");
         }
         else
         {
@@ -104,7 +104,7 @@ public static partial class ModDownload
 
         if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
         {
-            ModBase.Log("[Download] 已跳过所有 Assets 检查");
+            LauncherLogger.Log("[Download] 已跳过所有 Assets 检查");
         }
         else
         {
@@ -140,25 +140,25 @@ public static partial class ModDownload
                 {
                     var BackAssetsFile = DlClientAssetIndexGet(Version);
                     RealAddress = BackAssetsFile.LocalPath;
-                    TempAddress = ModBase.PathTemp + @"Cache\" + BackAssetsFile.LocalName;
+                    TempAddress = LauncherPaths.TempDirectory + @"Cache\" + BackAssetsFile.LocalName;
                     BackAssetsFile.LocalPath = TempAddress;
                     Task.Output = new List<DownloadFile> { BackAssetsFile };
                     // 检查是否需要更新：每天只更新一次
                     if (File.Exists(RealAddress) &&
                         Math.Abs((File.GetLastWriteTime(RealAddress).Date - DateTime.Now.Date).TotalDays) < 1d)
                     {
-                        ModBase.Log("[Download] 无需更新资源文件索引，取消");
+                        LauncherLogger.Log("[Download] 无需更新资源文件索引，取消");
                         Task.Abort();
                     }
                 }));
                 LoadersAssetsUpdate.Add(new LoaderDownload("后台下载资源文件索引", new List<DownloadFile>()));
                 LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>("后台复制资源文件索引", Task =>
                 {
-                    ModBase.CopyFile(TempAddress, RealAddress);
+                    LauncherFileSystem.CopyFile(TempAddress, RealAddress);
                     ModLaunch.McLaunchLog("后台更新资源文件索引成功：" + TempAddress);
                 }));
                 var Updater = new ModLoader.LoaderCombo<string>("后台更新资源文件索引", LoadersAssetsUpdate);
-                ModBase.Log("[Download] 开始后台检查资源文件索引");
+                LauncherLogger.Log("[Download] 开始后台检查资源文件索引");
                 Updater.Start();
             }
 

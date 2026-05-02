@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -225,67 +225,14 @@ namespace PCL
         }
 
         #endregion
-        /// <summary>
-        ///     删除注册表键。
-        /// </summary>
-        public static void DeleteReg(string Key, bool ThrowException = false)
-        {
-            try
-            {
-                var SubKey = Registry.CurrentUser.OpenSubKey(@"Software\" + ModSecret.RegFolder, true);
-                SubKey?.DeleteValue(Key);
-            }
-            catch (Exception ex)
-            {
-                Log(ex, "删除注册表出错：" + Key, ThrowException ? LogLevel.Hint : LogLevel.Developer);
-                if (ThrowException)
-                    throw;
-            }
-        }
-        /// <summary>
-        ///     指示接取到这个异常的函数进行重试。
-        /// </summary>
-        public class RestartException : Exception
-        {
-        }
-
-        /// <summary>
-        ///     指示用户手动取消了操作，或用户已知晓操作被取消的原因。
-        /// </summary>
-        public class CancelledException : Exception
-        {
-        }
-        /// <summary>
-        ///     设置剪贴板。将在另一线程运行，且不会抛出异常。
-        /// </summary>
-        public static void ClipboardSet(string Text, bool ShowSuccessHint = true)
-        {
-            RunInThread(() =>
-            {
-                var success = false;
-
-                for (var attempt = 0; attempt <= 5; attempt++)
-                    try
-                    {
-                        RunInUi(() => Clipboard.SetText(Text));
-                        success = true;
-                        break;
-                    }
-                    catch (Exception ex) when (attempt < 5)
-                    {
-                        Thread.Sleep(20);
-                    }
-                    catch (Exception finalEx)
-                    {
-                        Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
-                    }
-
-                if (success && ShowSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
-            });
-        }
         #region Debug
 
-        public static bool ModeDebug = false;
+        // TEMP(T10): Legacy adapter while production call sites migrate to LauncherLogger.ModeDebug.
+        public static bool ModeDebug
+        {
+            get => LauncherLogger.ModeDebug;
+            set => LauncherLogger.ModeDebug = value;
+        }
 
         // Log
         public enum LogLevel
@@ -327,287 +274,20 @@ namespace PCL
             Critical = 6
         }
 
-        private static bool IsCriticalErrorTriggered;
-
         /// <summary>
         ///     输出 Log。
         /// </summary>
         /// <param name="Title">如果要求弹窗，指定弹窗的标题。</param>
-        public static void Log(string Text, LogLevel Level = LogLevel.Normal, string Title = "出现错误")
-        {
-            // On Error Resume Next
-            // 放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
-            // 处理错误会导致再次调用 Log() 导致无限循环
-
-            // 输出日志
-            if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(Level))
-                LogWrapper.Warn(Text);
-            else if (LogLevel.Feedback == Level)
-                LogWrapper.Error(Text);
-            else if (LogLevel.Critical == Level)
-                LogWrapper.Fatal(Text);
-            else if (LogLevel.Debug == Level)
-                LogWrapper.Debug(Text);
-            else if (LogLevel.Developer == Level)
-                LogWrapper.Trace(Text);
-            else
-                LogWrapper.Info(Text);
-
-            if (IsProgramEnded || Level == LogLevel.Normal)
-                return;
-
-            // 去除前缀
-            Text = Text.RegexReplace(@"\[[^\]]+?\] ", "");
-
-            // 输出提示
-            switch (Level)
-            {
-                case LogLevel.Developer:
-                {
-                    break;
-                }
-                case LogLevel.Debug:
-                {
-                    if (ModeDebug)
-                        ModMain.Hint("[调试模式] " + Text, ModMain.HintType.Info, false);
-                    break;
-                }
-                /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                #End If
-                */
-                case LogLevel.Hint:
-                {
-                    ModMain.Hint(Text, ModMain.HintType.Critical, false);
-                    break;
-                }
-                case LogLevel.Msgbox:
-                {
-                    ModMain.MyMsgBox(Text, Title, IsWarn: true);
-                    break;
-                }
-                case LogLevel.Feedback:
-                {
-                    if (CanFeedback(false))
-                    {
-                        if (ModMain.MyMsgBox(Text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                                Title, "反馈", "取消", IsWarn: true) == 1)
-                            Feedback(false, true);
-                    }
-                    else
-                    {
-                        ModMain.MyMsgBox(Text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", Title,
-                            IsWarn: true);
-                    }
-
-                    break;
-                }
-                case LogLevel.Critical:
-                {
-                    if (IsCriticalErrorTriggered)
-                    {
-                        FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                        return;
-                    }
-
-                    IsCriticalErrorTriggered = true;
-                    if (CanFeedback(false))
-                    {
-                        if (Interaction.MsgBox(Text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                                (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), Title) ==
-                            MsgBoxResult.Yes)
-                            Feedback(false, true);
-                    }
-                    else
-                    {
-                        Interaction.MsgBox(Text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                            MsgBoxStyle.Critical, Title);
-                    }
-
-                    break;
-                }
-            }
-        }
+        public static void Log(string Text, LogLevel Level = LogLevel.Normal, string Title = "出现错误") => LauncherLogger.Log(Text, ToLauncherLogLevel(Level), Title);
 
         /// <summary>
         ///     输出错误信息。
         /// </summary>
         /// <param name="Desc">错误描述。会在处理时在末尾加入冒号。</param>
-        public static void Log(Exception Ex, string Desc, LogLevel Level = LogLevel.Debug, string Title = "出现错误")
+        public static void Log(Exception Ex, string Desc, LogLevel Level = LogLevel.Debug, string Title = "出现错误") => LauncherLogger.Log(Ex, Desc, ToLauncherLogLevel(Level), Title);
+        private static LauncherLogger.LogLevel ToLauncherLogLevel(LogLevel level)
         {
-            // On Error Resume Next
-            if (Ex is ThreadInterruptedException)
-                return;
-
-            // 获取错误信息
-            var ExFull = Desc + "：" + Ex.Message;
-
-            // 输出日志
-            if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(Level))
-                LogWrapper.Warn(Ex, Desc);
-            else if (LogLevel.Feedback == Level)
-                LogWrapper.Error(Ex, Desc);
-            else if (LogLevel.Critical == Level)
-                LogWrapper.Fatal(Ex, Desc);
-            else if (LogLevel.Debug == Level)
-                LogWrapper.Debug($"{Desc}:{Ex}");
-            else if (LogLevel.Developer == Level)
-                LogWrapper.Trace($"{Desc}:{Ex}");
-            else
-                LogWrapper.Error(Ex, Desc);
-
-            if (IsProgramEnded)
-                return;
-
-            if (Ex.GetType() == typeof(Win32Exception))
-                ExFull += "\r\n" + "与系统底层交互失败，请尝试重新安装 .NET 8 解决此问题";
-
-            // 输出提示
-            switch (Level)
-            {
-                case LogLevel.Normal:
-                {
-                    break;
-                }
-                case LogLevel.Developer:
-                {
-                    break;
-                }
-                case LogLevel.Debug:
-                {
-                    var ExLine = Desc + "：" + Ex;
-                    if (ModeDebug)
-                        ModMain.Hint("[调试模式] " + ExLine, ModMain.HintType.Info, false);
-                    break;
-                }
-                /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                #End If
-                */
-                case LogLevel.Hint:
-                {
-                    var ExLine = Desc + "：" + Ex;
-                    ModMain.Hint(ExLine, ModMain.HintType.Critical, false);
-                    break;
-                }
-                case LogLevel.Msgbox:
-                {
-                    ModMain.MyMsgBox(ExFull, Title, IsWarn: true);
-                    break;
-                }
-                case LogLevel.Feedback:
-                {
-                    if (CanFeedback(false))
-                    {
-                        if (ModMain.MyMsgBox(ExFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                                Title, "反馈", "取消", IsWarn: true) == 1)
-                            Feedback(false, true);
-                    }
-                    else
-                    {
-                        ModMain.MyMsgBox(ExFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", Title,
-                            IsWarn: true);
-                    }
-
-                    break;
-                }
-                case LogLevel.Critical:
-                {
-                    if (IsCriticalErrorTriggered)
-                    {
-                        FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                        return;
-                    }
-
-                    IsCriticalErrorTriggered = true;
-                    if (CanFeedback(false))
-                    {
-                        if (Interaction.MsgBox(
-                                ExFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                                (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), Title) ==
-                            MsgBoxResult.Yes)
-                            Feedback(false, true);
-                    }
-                    else
-                    {
-                        Interaction.MsgBox(ExFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                            MsgBoxStyle.Critical, Title);
-                    }
-
-                    break;
-                }
-            }
-        }
-        // 反馈
-        public static void Feedback(bool ShowMsgbox = true, bool ForceOpenLog = false)
-        {
-            // On Error Resume Next
-            FeedbackInfo();
-            string currentDate;
-            currentDate = Strings.Format(DateTime.Now, "yyyy-M-dd");
-
-            if (ForceOpenLog || (ShowMsgbox &&
-                                 ModMain.MyMsgBox(
-                                     "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
-                                     "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") ==
-                                 1)) OpenExplorer(ExePath + @"PCL\Log\");
-            OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
-        }
-
-        public static bool CanFeedback(bool ShowHint)
-        {
-            var stat = ModSecret.GetVersionStatus();
-            if (stat != ModSecret.VersionStatus.Latest)
-            {
-                if (ShowHint)
-                    if (ModMain.MyMsgBox(
-                            stat == ModSecret.VersionStatus.NotLatest
-                                ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
-                                : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
-                            "无法提交反馈", stat == ModSecret.VersionStatus.NotLatest ? "更新" : "重新检查更新", "取消") == 1)
-                        ModMain.FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        ///     在日志中输出系统诊断信息。
-        /// </summary>
-        public static void FeedbackInfo()
-        {
-            try
-            {
-                // Get system memory info
-                var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-
-                // Calculate memory and DPI scale
-                var availableMb = phyRam.Available / 1024 / 1024;
-                var totalMb = phyRam.Total / 1024 / 1024;
-                var dpiScale = Math.Round(DPI / 96.0, 2);
-
-                // Build diagnostic information string
-                var info = $"[System] Diagnostic Information:{"\r\n"}" +
-                           $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){"\r\n"}" +
-                           $"Memory: {availableMb} MB / {totalMb} MB{"\r\n"}" +
-                           $"DPI: {DPI} ({dpiScale * 100}%){"\r\n"}" +
-                           $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{"\r\n"}" +
-                           $"Executable Path: {ExePath}";
-
-                LogWrapper.Info(info);
-            }
-            catch (Exception ex)
-            {
-                // Basic fail-safe to replace "On Error Resume Next"
-                LogWrapper.Error(ex, "Failed to collect feedback information");
-            }
-        }
-
-        // 断言
-        public static void DebugAssert(bool Exp)
-        {
-            if (!Exp)
-                throw new Exception("断言命中");
+            return (LauncherLogger.LogLevel)(int)level;
         }
 
         #endregion

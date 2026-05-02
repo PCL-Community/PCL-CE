@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -35,7 +35,7 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyTextButton()
     {
@@ -76,7 +76,7 @@ public class MyTextButton : Label
     {
         if (!IsMouseDown) return;
         IsMouseDown = false;
-        ModBase.Log("[Control] 按下文本按钮：" + Text);
+        LauncherLogger.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
         ModMain.RaiseCustomEvent(this);
         e.Handled = true;

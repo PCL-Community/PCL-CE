@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
@@ -28,7 +28,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                    .GetAwaiter()
                    .GetResult())
         {
-            var ret = (JObject)ModBase.GetJson(response.AsString());
+            var ret = (JObject)LauncherSerialization.GetJson(response.AsString());
             if ((int)ret["code"] != 0)
                 throw new Exception("Mirror 酱获取数据不成功");
             var data = ret["data"];

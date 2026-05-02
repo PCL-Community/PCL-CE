@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -91,7 +91,7 @@ internal static class ModStyle
         {
             if (Dispatcher is null)
             {
-                ModBase.Log("[TimerRun] Dispatcher is null, unable to run", ModBase.LogLevel.Critical);
+                LauncherLogger.Log("[TimerRun] Dispatcher is null, unable to run", LauncherLogger.LogLevel.Critical);
                 return;
             }
 
@@ -168,7 +168,7 @@ internal static class ModStyle
         {
             if (lab is null)
             {
-                ModBase.Log("[Style] SetColorfulTextLab: lab is null");
+                LauncherLogger.Log("[Style] SetColorfulTextLab: lab is null");
                 return;
             }
 
@@ -255,7 +255,7 @@ internal static class ModStyle
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new ModBase.MyColor(color));
+                    curRun.Foreground = new SolidColorBrush(new MyColor(color));
                     curRun.FontWeight = HasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = HasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = HasStrickThroughProperty ? TextDecorations.Strikethrough : null;

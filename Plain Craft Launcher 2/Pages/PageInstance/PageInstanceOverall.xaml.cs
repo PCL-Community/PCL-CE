@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -102,7 +102,7 @@ public partial class PageInstanceOverall
     private void GetInstanceInfo()
     {
         ModpackCompItem = null;
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             PanInfo.Children.Clear();
             PanInfo.Children.Add(new MyLoading { Text = "正在获取信息", Margin = new Thickness(0d, 0d, 0d, 10d) });
@@ -115,7 +115,7 @@ public partial class PageInstanceOverall
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
                 if (!(compProjects.Count == 0))
-                    ModBase.RunInUi(() =>
+                    LauncherDispatcher.RunInUi(() =>
                     {
                         ModpackCompItem = compProjects.First().ToCompItem(false, false);
                         ModpackCompItem.Tag = compProjects.First();
@@ -125,7 +125,7 @@ public partial class PageInstanceOverall
         {
             Block = true
         });
-        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", _ => ModBase.RunInUi(() =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>("获取实例信息", _ => LauncherDispatcher.RunInUi(() =>
         {
             var instance = PageInstanceLeft.Instance;
             var instanceInfo = instance.Info;
@@ -240,13 +240,13 @@ public partial class PageInstanceOverall
                 PageInstanceLeft.Instance.DisplayType = (ModMinecraft.McInstanceCardType)States.Instance.CardType[PageInstanceLeft.Instance.PathInstance];
                 ModMain.FrmInstanceLeft.RefreshModDisabled();
 
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "修改实例分类失败（" + PageInstanceLeft.Instance.Name + "）", LauncherLogger.LogLevel.Feedback);
             }
 
             Reload(); // 更新 “打开 Mod 文件夹” 按钮
@@ -271,13 +271,13 @@ public partial class PageInstanceOverall
 
                 States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
                     (int)ModMinecraft.McInstanceCardType.Hidden;
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "隐藏实例 " + PageInstanceLeft.Instance.Name + " 失败", LauncherLogger.LogLevel.Feedback);
             }
         }
     }
@@ -299,7 +299,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 描述更改失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 描述更改失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -325,12 +325,12 @@ public partial class PageInstanceOverall
             JObject JsonObject;
             try
             {
-                JsonObject = (JObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
+                JsonObject = (JObject)LauncherSerialization.GetJson(LauncherFileSystem.ReadFile(PageInstanceLeft.Instance.PathInstance +
                                                                        PageInstanceLeft.Instance.Name + ".json"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "重命名读取 Json 时失败");
+                LauncherLogger.Log(ex, "重命名读取 Json 时失败");
                 JsonObject = PageInstanceLeft.Instance.JsonObject;
             }
 
@@ -338,7 +338,7 @@ public partial class PageInstanceOverall
             FileSystem.RenameDirectory(OldPath, TempName);
             FileSystem.RenameDirectory(TempPath, NewName);
             // 清理 ini 缓存
-            ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+            LauncherSerialization.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             if (Directory.Exists($"{NewPath}{OldName}-natives"))
@@ -350,7 +350,7 @@ public partial class PageInstanceOverall
                 }
                 else
                 {
-                    ModBase.DeleteDirectory($"{NewPath}{NewName}-natives");
+                    LauncherFileSystem.DeleteDirectory($"{NewPath}{NewName}-natives");
                     FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives");
                 }
             }
@@ -371,20 +371,20 @@ public partial class PageInstanceOverall
 
             // 替换实例设置文件中的路径
             if (File.Exists(NewPath + @"PCL\Setup.ini"))
-                ModBase.WriteFile(NewPath + @"PCL\Setup.ini",
-                    ModBase.ReadFile(NewPath + @"PCL\Setup.ini").Replace(OldPath, NewPath));
+                LauncherFileSystem.WriteFile(NewPath + @"PCL\Setup.ini",
+                    LauncherFileSystem.ReadFile(NewPath + @"PCL\Setup.ini").Replace(OldPath, NewPath));
             // 更改已选中的实例
-            if ((ModBase.ReadIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version") ?? "") == (OldName ?? ""))
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
+            if ((LauncherSerialization.ReadIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version") ?? "") == (OldName ?? ""))
+                LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
             // 写入实例 Json
             try
             {
                 JsonObject["id"] = NewName;
-                ModBase.WriteFile(NewPath + NewName + ".json", JsonObject.ToString());
+                LauncherFileSystem.WriteFile(NewPath + NewName + ".json", JsonObject.ToString());
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "重命名实例 Json 失败");
+                LauncherLogger.Log(ex, "重命名实例 Json 失败");
             }
 
             // 刷新与提示
@@ -392,14 +392,14 @@ public partial class PageInstanceOverall
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(NewName).Load();
             if (!(ModMinecraft.McInstanceSelected == null) &&
                 ModMinecraft.McInstanceSelected.Equals(PageInstanceLeft.Instance))
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
+                LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
             Reload();
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重命名实例失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "重命名实例失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -420,7 +420,7 @@ public partial class PageInstanceOverall
                     return;
                 }
 
-                ModBase.CopyFile(FileName, PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
+                LauncherFileSystem.CopyFile(FileName, PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
             }
             else
             {
@@ -429,7 +429,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.Instance.Name + "）", LauncherLogger.LogLevel.Feedback);
         }
 
         // 进行更改
@@ -439,7 +439,7 @@ public partial class PageInstanceOverall
             States.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
             States.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
             // 刷新显示
-            ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+            LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
             Reload();
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -447,7 +447,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "更改实例图标失败（" + PageInstanceLeft.Instance.Name + "）", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -465,7 +465,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 收藏状态更改失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 收藏状态更改失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -481,7 +481,7 @@ public partial class PageInstanceOverall
 
     public static void OpenVersionFolder(ModMinecraft.McInstance Version)
     {
-        ModBase.OpenExplorer(Version.PathInstance);
+        LauncherShell.OpenExplorer(Version.PathInstance);
     }
 
     // 存档文件夹
@@ -489,7 +489,7 @@ public partial class PageInstanceOverall
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"saves\";
         Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        LauncherShell.OpenExplorer(FolderPath);
     }
 
     // Mod 文件夹
@@ -497,7 +497,7 @@ public partial class PageInstanceOverall
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"mods\";
         Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        LauncherShell.OpenExplorer(FolderPath);
     }
 
     #endregion
@@ -515,7 +515,7 @@ public partial class PageInstanceOverall
             if (string.IsNullOrEmpty(SavePath))
                 return;
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
+            if (ModLaunch.McLaunchLoader.State == LoadState.Loading)
             {
                 ModMain.Hint("请在当前启动任务结束后再试！", ModMain.HintType.Critical);
                 return;
@@ -533,7 +533,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.Instance.Name + "）", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -566,17 +566,17 @@ public partial class PageInstanceOverall
             {
                 switch (Loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case LoadState.Finished:
                     {
                         ModMain.Hint(Loader.Name + "成功！", ModMain.HintType.Finish);
                         break;
                     }
-                    case ModBase.LoadState.Failed:
+                    case LoadState.Failed:
                     {
                         ModMain.Hint(Loader.Name + "失败：" + Loader.Error.Message, ModMain.HintType.Critical);
                         break;
                     }
-                    case ModBase.LoadState.Aborted:
+                    case LoadState.Aborted:
                     {
                         ModMain.Hint(Loader.Name + "已取消！");
                         break;
@@ -590,7 +590,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.Instance.Name + "）", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -614,10 +614,10 @@ public partial class PageInstanceOverall
                 return;
 
             // 备份实例核心文件
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
+            LauncherFileSystem.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
                 PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
                 ".json");
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
+            LauncherFileSystem.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
                 PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
                 ".jar");
             // 提交安装申请
@@ -654,7 +654,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "重置实例 " + PageInstanceLeft.Instance.Name + " 失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -669,7 +669,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "测试游戏失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "测试游戏失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -691,12 +691,12 @@ public partial class PageInstanceOverall
                 {
                     var instancePath = PageInstanceLeft.Instance.PathInstance;
                     var instanceName = PageInstanceLeft.Instance.Name;
-                    ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+                    LauncherSerialization.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instancePath);
                     if (IsShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instancePath);
+                        LauncherFileSystem.DeleteDirectory(instancePath);
                         ModMain.Hint("实例 " + instanceName + " 已永久删除！", ModMain.HintType.Finish);
                     }
                     else
@@ -720,11 +720,11 @@ public partial class PageInstanceOverall
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 被主动取消");
+            LauncherLogger.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -741,7 +741,7 @@ public partial class PageInstanceOverall
                 if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
                     return;
                 ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
-                ModBase.RunInNewThread(() =>
+                LauncherDispatcher.RunInNewThread(() =>
                 {
                     var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name +
                                             ".jar");

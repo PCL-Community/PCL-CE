@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
@@ -31,9 +31,9 @@ public partial class PageSetupAbout
             return;
         IsLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", LauncherEnvironment.VersionBaseName)
+            .Replace("%VERSIONCODE%", LauncherEnvironment.VersionCode.ToString()).Replace("%BRANCH%", LauncherEnvironment.VersionBranchName)
+            .Replace("%COMMIT_HASH%", LauncherEnvironment.CommitHashShort);
         LoadContributersAsync();
     }
 
@@ -53,7 +53,7 @@ public partial class PageSetupAbout
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载贡献者信息失败");
+            LauncherLogger.Log(ex, "加载贡献者信息失败");
         }
     }
 

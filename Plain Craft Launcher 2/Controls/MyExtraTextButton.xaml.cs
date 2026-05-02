@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -32,7 +32,7 @@ public partial class MyExtraTextButton
     private bool IsLeftMouseHeld;
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyExtraTextButton()
     {
@@ -91,7 +91,7 @@ public partial class MyExtraTextButton
             if (_Show == value)
                 return;
             _Show = value;
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 if (value)
                 {
@@ -130,7 +130,7 @@ public partial class MyExtraTextButton
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!IsLeftMouseHeld) return;
-        ModBase.Log("[Control] 按下附加图标按钮：" + Text);
+        LauncherLogger.Log("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(sender, e);
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
@@ -223,7 +223,7 @@ public partial class MyExtraTextButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新附加图标按钮颜色出错");
+            LauncherLogger.Log(ex, "刷新附加图标按钮颜色出错");
         }
     }
 }

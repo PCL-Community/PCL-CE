@@ -1,4 +1,4 @@
-using System.Diagnostics.Eventing.Reader;
+﻿using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -153,7 +153,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "作弊设置修改失败", ModBase.LogLevel.Hint);
+                            LauncherLogger.Log(ex, "作弊设置修改失败", LauncherLogger.LogLevel.Hint);
                         }
                     };
                     var rowIndex = PanSettingsList.RowDefinitions.Count;
@@ -287,7 +287,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
+                            LauncherLogger.Log(ex, "难度设置修改失败", LauncherLogger.LogLevel.Hint);
                         }
                     };
 
@@ -332,7 +332,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
+                            LauncherLogger.Log(ex, "难度设置修改失败", LauncherLogger.LogLevel.Hint);
                         }
                     };
 
@@ -461,7 +461,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取存档信息失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "获取存档信息失败", LauncherLogger.LogLevel.Msgbox);
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
             Hintversion1_9.Visibility = Visibility.Collapsed;
@@ -490,11 +490,11 @@ public partial class PageInstanceSavesInfo : IRefreshable
             {
                 try
                 {
-                    ModBase.ClipboardSet(content);
+                    LauncherClipboard.ClipboardSet(content);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "复制到剪贴板失败", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, "复制到剪贴板失败", LauncherLogger.LogLevel.Hint);
                 }
             };
         }
@@ -509,7 +509,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             var BtnChunkbase = new MyIconButton
             {
-                Logo = ModBase.Logo.IconButtonlink,
+                Logo = Logo.IconButtonlink,
                 ToolTip = "跳转到 Chunkbase",
                 Width = 22d,
                 Height = 22d
@@ -523,13 +523,13 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 {
                     if (versionName is null)
                     {
-                        ModBase.Log("当前存档版本无法确定，因此无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        LauncherLogger.Log("当前存档版本无法确定，因此无法跳转到 Chunkbase", LauncherLogger.LogLevel.Hint);
                         return;
                     }
 
                     if (versionName.Any(c => char.IsLetter(c)))
                     {
-                        ModBase.Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        LauncherLogger.Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", LauncherLogger.LogLevel.Hint);
                         return;
                     }
 
@@ -543,11 +543,11 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         usedVersion = versionName.Replace(".", "_");
                     var cbUri =
                         $"https://www.chunkbase.com/apps/seed-map#seed={content}&platform=java_{usedVersion}&dimension=overworld";
-                    ModBase.OpenWebsite(cbUri);
+                    LauncherShell.OpenWebsite(cbUri);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "跳转到 Chunkbase 失败", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, "跳转到 Chunkbase 失败", LauncherLogger.LogLevel.Hint);
                 }
             };
         }

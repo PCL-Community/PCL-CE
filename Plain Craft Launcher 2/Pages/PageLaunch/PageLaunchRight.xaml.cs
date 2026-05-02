@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using PCL.Core.App;
 using PCL.Core.Logging;
@@ -22,7 +22,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         PanBack.ScrollToHome();
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
-        PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
+        PanLog.Visibility = LauncherLogger.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
@@ -57,7 +57,7 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     private void Refresh()
     {
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
             {
                 try
                 {
@@ -68,10 +68,10 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, "加载 PCL 主页自定义信息失败",
+                        LauncherLogger.ModeDebug ? LauncherLogger.LogLevel.Msgbox : LauncherLogger.LogLevel.Hint);
                 }
-            }, $"刷新主页 #{ModBase.GetUuid()}");
+            }, $"刷新主页 #{LauncherDispatcher.GetUuid()}");
     }
 
     private void RefreshReal()
@@ -85,7 +85,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             // 本地文件
             LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = ModBase.ReadFile(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml"));
+            content = LauncherFileSystem.ReadFile(Path.Combine(LauncherPaths.ExecutableDirectory, "PCL", "Custom.xaml"));
         }
         else if (uiCustomType == 2)
         {
@@ -206,7 +206,7 @@ public partial class PageLaunchRight : IRefreshable
             }
         }
 
-        ModBase.RunInUi(() => LoadContent(content));
+        LauncherDispatcher.RunInUi(() => LoadContent(content));
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
 
-        var cachePath = Path.Combine(ModBase.PathTemp, "Cache", "Custom.xaml");
+        var cachePath = Path.Combine(LauncherPaths.TempDirectory, "Cache", "Custom.xaml");
         var cachedUrl = (string)States.UI.SavedHomepageUrl;
 
         if (url == cachedUrl && File.Exists(cachePath))
@@ -224,12 +224,12 @@ public partial class PageLaunchRight : IRefreshable
             LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
             // 后台更新缓存
             OnlineLoader.Start(url);
-            return ModBase.ReadFile(cachePath);
+            return LauncherFileSystem.ReadFile(cachePath);
         }
 
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
         HintWrapper.Show("正在加载主页……");
-        ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
+        LauncherDispatcher.RunInUiWait(() => LoadContent("")); // 先清空页面
         States.UI.SavedHomepageVersion = "";
         OnlineLoader.Start(url); // 下载完成后将会再次触发更新
         return "";
@@ -254,7 +254,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogLevel.Hint);
+                LauncherLogger.Log($"[Page] 读取外部文件失败：{externalPath}", LauncherLogger.LogLevel.Hint);
             }
         }
 
@@ -319,36 +319,36 @@ public partial class PageLaunchRight : IRefreshable
                 if (!string.IsNullOrEmpty(Version) && !string.IsNullOrEmpty(CurrentVersion) &&
                     (Version ?? "") == (CurrentVersion ?? ""))
                 {
-                    ModBase.Log($"[Page] 当前缓存的主页已为最新，当前版本：{Version}，检查源：{VersionAddress}");
+                    LauncherLogger.Log($"[Page] 当前缓存的主页已为最新，当前版本：{Version}，检查源：{VersionAddress}");
                     NeedDownload = false;
                 }
                 else
                 {
-                    ModBase.Log($"[Page] 需要下载联网主页，当前版本：{Version}，检查源：{VersionAddress}");
+                    LauncherLogger.Log($"[Page] 需要下载联网主页，当前版本：{Version}，检查源：{VersionAddress}");
                 }
             }
             catch (Exception exx)
             {
-                ModBase.Log(exx, "联网获取主页版本失败", ModBase.LogLevel.Developer);
-                ModBase.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{VersionAddress}");
+                LauncherLogger.Log(exx, "联网获取主页版本失败", LauncherLogger.LogLevel.Developer);
+                LauncherLogger.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{VersionAddress}");
             }
 
             // 实际下载
             if (NeedDownload)
             {
                 var FileContent = Requester.FetchString(Address);
-                ModBase.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
+                LauncherLogger.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
                 States.UI.SavedHomepageUrl = Address;
                 States.UI.SavedHomepageVersion = Version;
-                ModBase.WriteFile(ModBase.PathTemp + @"Cache\Custom.xaml", FileContent);
+                LauncherFileSystem.WriteFile(LauncherPaths.TempDirectory + @"Cache\Custom.xaml", FileContent);
             }
 
             // 要求刷新
-            ModBase.RunInUi(Refresh); // 不直接调用 Refresh，以防止死循环（#6245）
+            LauncherDispatcher.RunInUi(Refresh); // 不直接调用 Refresh，以防止死循环（#6245）
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"下载主页失败（{Address}）", ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, $"下载主页失败（{Address}）", LauncherLogger.ModeDebug ? LauncherLogger.LogLevel.Msgbox : LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -358,7 +358,7 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     public void ForceRefresh()
     {
-        ModBase.Log("[Page] 要求强制刷新主页");
+        LauncherLogger.Log("[Page] 要求强制刷新主页");
         ClearCache();
         // 实际的刷新
         if (ModMain.FrmMain.PageCurrent.Page == FormMain.PageType.Launch)
@@ -386,7 +386,7 @@ public partial class PageLaunchRight : IRefreshable
         OnlineLoader.Input = "";
         States.UI.SavedHomepageUrl = "";
         States.UI.SavedHomepageVersion = "";
-        ModBase.Log("[Page] 已清空主页缓存");
+        LauncherLogger.Log("[Page] 已清空主页缓存");
     }
 
     /// <summary>
@@ -406,7 +406,7 @@ public partial class PageLaunchRight : IRefreshable
             PanCustom.Children.Clear();
             if (string.IsNullOrWhiteSpace(Content))
             {
-                ModBase.Log("[Page] 实例化：清空主页 UI，来源为空");
+                LauncherLogger.Log("[Page] 实例化：清空主页 UI，来源为空");
                 return;
             }
 
@@ -419,14 +419,14 @@ public partial class PageLaunchRight : IRefreshable
                     Content = Content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
                 Content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{Content}</StackPanel>";
-                ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
+                LauncherLogger.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
+                PanCustom.Children.Add((UIElement)LauncherWpf.GetObjectFromXML(Content));
             }
             catch (Exception ex)
             {
-                if (ModBase.ModeDebug)
+                if (LauncherLogger.ModeDebug)
                 {
-                    ModBase.Log(ex, $"加载失败的主页内容：\r\n{Content}");
+                    LauncherLogger.Log(ex, $"加载失败的主页内容：\r\n{Content}");
                     if (ModMain.MyMsgBox(
                             ex is UnauthorizedAccessException
                                 ? ex.Message
@@ -435,14 +435,14 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, "加载主页界面失败", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, "加载主页界面失败", LauncherLogger.LogLevel.Hint);
                 }
 
                 return;
             }
 
             var LoadCostTime = (DateTime.Now - LoadStartTime).Milliseconds;
-            ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {LoadCostTime}ms");
+            LauncherLogger.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {LoadCostTime}ms");
             if (LoadCostTime > 3000)
                 ModMain.Hint($"主页加载过于缓慢（花费了 {Math.Round(LoadCostTime / 1000d, 1)} 秒），请向主页作者反馈此问题，或暂时停止使用该主页");
         }

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -29,9 +29,9 @@ public static partial class ModLaunch
     public static void McLaunchLog(string Text)
     {
         Text = ModMinecraft.FilterUserName(ModMinecraft.FilterAccessToken(Text, '*'), '*');
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
             ModMain.FrmLaunchRight.LabLog.Text += "\r\n" + "[" + TimeUtils.GetTimeNow() + "] " + Text);
-        ModBase.Log("[Launch] " + Text);
+        LauncherLogger.Log("[Launch] " + Text);
     }
 
     /// <summary>

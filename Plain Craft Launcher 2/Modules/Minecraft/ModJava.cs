@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -32,7 +32,7 @@ public static class ModJava
     public static JavaEntry JavaSelect(string CancelException, Version MinVersion = null, Version MaxVersion = null,
         ModMinecraft.McInstance RelatedInstance = null)
     {
-        ModBase.Log(
+        LauncherLogger.Log(
             $"[Java] 要求选择合适 Java，要求最低版本 {(MinVersion is not null ? MinVersion.ToString() : "未指定")}，要求选择的最高版本 {(MaxVersion is not null ? MaxVersion.ToString() : "未指定")}，关联实例 {(RelatedInstance is not null ? RelatedInstance.Name : "未指定")}");
 
         // 版本范围验证函数（安全处理 null 边界）
@@ -64,11 +64,11 @@ public static class ModJava
                                 if (!IsVersionSuitable(candidate.Installation.Version))
                                     ModMain.Hint(
                                         $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{MinVersion?.ToString() ?? "无下限"}, {MaxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
-                                ModBase.Log($"[Java] 返回实例 '{RelatedInstance.Name}' 指定的 Java: {candidate}");
+                                LauncherLogger.Log($"[Java] 返回实例 '{RelatedInstance.Name}' 指定的 Java: {candidate}");
                                 return candidate;
                             }
 
-                            ModBase.Log($"[Java] 警告：实例指定的 Java 路径无效或不可用: {existPref.JavaExePath}");
+                            LauncherLogger.Log($"[Java] 警告：实例指定的 Java 路径无效或不可用: {existPref.JavaExePath}");
 
                             break;
                         }
@@ -88,14 +88,14 @@ public static class ModJava
                                         ModMain.Hint(
                                             $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
                                             ModMain.HintType.Critical);
-                                    ModBase.Log(
+                                    LauncherLogger.Log(
                                         $"[Java] 返回实例 '{RelatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
                                     return candidate;
                                 }
                             }
                             else
                             {
-                                ModBase.Log($"[Java] 警告：实例相对路径指定的 Java 无效: {absPath}");
+                                LauncherLogger.Log($"[Java] 警告：实例相对路径指定的 Java 无效: {absPath}");
                             }
 
                             break;
@@ -104,22 +104,22 @@ public static class ModJava
                         case object _ when preference is UseGlobalPreference: // "global"
                         {
                             // 不返回，继续到全局设置检查
-                            ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 配置为使用全局 Java 设置，继续检查全局配置");
+                            LauncherLogger.Log($"[Java] 实例 '{RelatedInstance.Name}' 配置为使用全局 Java 设置，继续检查全局配置");
                             break;
                         }
 
                         default:
                         {
-                            ModBase.Log($"[Java] 警告：未知的 Java 偏好类型 '{preference}'，跳过处理");
+                            LauncherLogger.Log($"[Java] 警告：未知的 Java 偏好类型 '{preference}'，跳过处理");
                             break;
                         }
                     }
                 else
-                    ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 未指定 Java 偏好（空值），使用自动选择策略");
+                    LauncherLogger.Log($"[Java] 实例 '{RelatedInstance.Name}' 未指定 Java 偏好（空值），使用自动选择策略");
             }
             else
             {
-                ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 无 Java 偏好配置，使用自动选择策略");
+                LauncherLogger.Log($"[Java] 实例 '{RelatedInstance.Name}' 无 Java 偏好配置，使用自动选择策略");
             }
         }
 
@@ -134,19 +134,19 @@ public static class ModJava
             {
                 if (!IsVersionSuitable(candidate.Installation.Version))
                     ModMain.Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃");
-                ModBase.Log($"[Java] 返回全局指定的 Java: {candidate}");
+                LauncherLogger.Log($"[Java] 返回全局指定的 Java: {candidate}");
                 return candidate;
             }
 
-            ModBase.Log($"[Java] 警告：全局指定的 Java 路径无效或不可用: {globalJavaPath}");
+            LauncherLogger.Log($"[Java] 警告：全局指定的 Java 路径无效或不可用: {globalJavaPath}");
         }
         else
         {
-            ModBase.Log("[Java] 无全局 Java 配置，使用自动选择策略");
+            LauncherLogger.Log("[Java] 无全局 Java 配置，使用自动选择策略");
         }
 
         // ===== 优先级 3：自动搜索合适版本 =====
-        ModBase.Log("[Java] 开始自动搜索符合版本要求的 Java 运行时");
+        LauncherLogger.Log("[Java] 开始自动搜索符合版本要求的 Java 运行时");
         Javas.CheckAllAvailability();
 
         var reqMin = MinVersion ?? new Version(1, 0, 0);
@@ -157,16 +157,16 @@ public static class ModJava
 
         if (ret is null && candidates.Length == 0)
         {
-            ModBase.Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描");
+            LauncherLogger.Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描");
             Javas.ScanJavaAsync().GetAwaiter().GetResult();
             candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
             ret = candidates.FirstOrDefault();
         }
 
         if (ret is not null)
-            ModBase.Log($"[Java] 返回自动选择的 Java: {ret}");
+            LauncherLogger.Log($"[Java] 返回自动选择的 Java: {ret}");
         else
-            ModBase.Log("[Java] 最终未能确定可用的 Java 运行时");
+            LauncherLogger.Log("[Java] 最终未能确定可用的 Java 运行时");
 
         return ret;
     }
@@ -287,9 +287,9 @@ public static class ModJava
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "检查 Java 类别时出错", LauncherLogger.LogLevel.Feedback);
             if (RelatedVersion is not null)
-                ModBase.Setup.Reset("VersionArgumentJavaSelect", instance: RelatedVersion);
+                LauncherEnvironment.Setup.Reset("VersionArgumentJavaSelect", instance: RelatedVersion);
             Config.Launch.SelectedJava = "";
         }
 
@@ -332,13 +332,13 @@ public static class ModJava
             });
         JavaDownloadLoader.OnStateChangedThread += (Raw, NewState, OldState) =>
         {
-            if ((NewState == ModBase.LoadState.Failed || NewState == ModBase.LoadState.Aborted) &&
+            if ((NewState == LoadState.Failed || NewState == LoadState.Aborted) &&
                 LastJavaBaseDir is not null)
             {
-                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", ModBase.LogLevel.Debug);
-                ModBase.DeleteDirectory(LastJavaBaseDir);
+                LauncherLogger.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", LauncherLogger.LogLevel.Debug);
+                LauncherFileSystem.DeleteDirectory(LastJavaBaseDir);
             }
-            else if (NewState == ModBase.LoadState.Finished)
+            else if (NewState == LoadState.Finished)
             {
                 Javas.ScanJavaAsync().GetAwaiter().GetResult();
                 LastJavaBaseDir = null;
@@ -358,7 +358,7 @@ public static class ModJava
 
     private static void JavaFileList(ModLoader.LoaderTask<string, List<DownloadFile>> Loader)
     {
-        ModBase.Log("[Java] 开始获取 Java 下载信息");
+        LauncherLogger.Log("[Java] 开始获取 Java 下载信息");
         var IndexFileStr = ModNet.NetGetCodeByLoader(
             ModDownload.DlVersionListOrder(
                 new[]
@@ -372,7 +372,7 @@ public static class ModJava
         // 查找要下载的目标 Java
         JProperty TargetEntry = null;
         var Components =
-            (JObject)((JObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(ModBase.Is32BitSystem ? "86" : "64")}"];
+            (JObject)((JObject)LauncherSerialization.GetJson(IndexFileStr))[$"windows-x{(LauncherEnvironment.Is32BitSystem ? "86" : "64")}"];
         if (Components.ContainsKey(Loader.Input)) // 精确匹配
         {
             TargetEntry = Components.Property(Loader.Input);
@@ -407,7 +407,7 @@ public static class ModJava
             if (IgnoreHash.Contains((string)checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
-            var Checker = new ModBase.FileChecker(ActualSize: (long)Info["size"], Hash: (string)Info["sha1"]);
+            var Checker = new LauncherFileSystem.FileChecker(actualSize: (long)Info["size"], hash: (string)Info["sha1"]);
             var filePath = Path.GetFullPath(Path.Combine(LastJavaBaseDir, File.Name));
             if (!Files.IsPathWithinDirectory(filePath, LastJavaBaseDir))
                 throw new Exception($"{filePath} 不在 {LastJavaBaseDir} 中");
@@ -421,7 +421,7 @@ public static class ModJava
         }
 
         Loader.Output = Results;
-        ModBase.Log($"[Java] 需要下载 {Results.Count} 个文件，目标文件夹：{LastJavaBaseDir}");
+        LauncherLogger.Log($"[Java] 需要下载 {Results.Count} 个文件，目标文件夹：{LastJavaBaseDir}");
     }
 
     #endregion

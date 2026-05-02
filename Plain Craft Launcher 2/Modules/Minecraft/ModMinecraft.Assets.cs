@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -58,7 +58,7 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "皮肤文件存在错误", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "皮肤文件存在错误", LauncherLogger.LogLevel.Hint);
             return new McSkinInfo { IsVaild = false };
         }
 
@@ -86,8 +86,8 @@ public static partial class ModMinecraft
             throw new Exception("离线 Uuid 无正版皮肤文件。");
 
         // 尝试读取缓存
-        var cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
-        var cacheSkinAddress = ModBase.ReadIni(cachePath, uuid);
+        var cachePath = Path.Combine(LauncherPaths.TempDirectory, $"Cache\\Skin\\Index{type}.ini");
+        var cacheSkinAddress = LauncherSerialization.ReadIni(cachePath, uuid);
         if (!string.IsNullOrEmpty(cacheSkinAddress))
             return cacheSkinAddress;
 
@@ -109,7 +109,7 @@ public static partial class ModMinecraft
         string skinValue = null;
         try
         {
-            var json = (JObject)ModBase.GetJson((string)skinString);
+            var json = (JObject)LauncherSerialization.GetJson((string)skinString);
             foreach (var property in json["properties"])
                 if (property["name"]?.ToString() == "textures")
                 {
@@ -122,15 +122,15 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex,
+            LauncherLogger.Log(ex,
                 $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
-                ModBase.LogLevel.Developer);
+                LauncherLogger.LogLevel.Developer);
             throw new Exception("皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户", ex);
         }
 
         // 解码 Base64 并解析 JSON
         var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(skinValue));
-        var skinJson = (JObject)ModBase.GetJson(decoded.ToLowerInvariant());
+        var skinJson = (JObject)LauncherSerialization.GetJson(decoded.ToLowerInvariant());
 
         if (skinJson["textures"]?["skin"]?["url"] == null)
             throw new Exception("用户未设置自定义皮肤");
@@ -139,8 +139,8 @@ public static partial class ModMinecraft
         skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
 
         // 保存缓存
-        ModBase.WriteIni(cachePath, uuid, skinUrl);
-        ModBase.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
+        LauncherSerialization.WriteIni(cachePath, uuid, skinUrl);
+        LauncherLogger.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
 
         return skinUrl;
     }
@@ -152,8 +152,8 @@ public static partial class ModMinecraft
     /// </summary>
     public static string McSkinDownload(string Address)
     {
-        var SkinName = ModBase.GetFileNameFromPath(Address);
-        var FileAddress = ModBase.PathTemp + @"Cache\Skin\" + ModBase.GetHash(Address) + ".png";
+        var SkinName = LauncherPaths.GetFileName(Address);
+        var FileAddress = LauncherPaths.TempDirectory + @"Cache\Skin\" + LauncherHash.GetHash(Address) + ".png";
         lock (McSkinDownloadLock)
         {
             if (!File.Exists(FileAddress))
@@ -161,7 +161,7 @@ public static partial class ModMinecraft
                 FileDownloader.Download(Address, FileAddress + ModNet.NetDownloadEnd).GetAwaiter().GetResult();
                 File.Delete(FileAddress);
                 FileSystem.Rename(FileAddress + ModNet.NetDownloadEnd, FileAddress);
-                ModBase.Log("[Minecraft] 皮肤下载成功：" + FileAddress);
+                LauncherLogger.Log("[Minecraft] 皮肤下载成功：" + FileAddress);
             }
 
             return FileAddress;
@@ -261,7 +261,7 @@ public static partial class ModMinecraft
 
         public override string ToString()
         {
-            return (IsNatives ? "[Native] " : "") + ModBase.GetString(Size) + " | " + LocalPath;
+            return (IsNatives ? "[Native] " : "") + LauncherText.GetString(Size) + " | " + LocalPath;
         }
     }
 
@@ -303,7 +303,7 @@ public static partial class ModMinecraft
                 }
 
                 if (Rule["os"]["arch"] is not null) // 操作系统架构
-                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == ModBase.Is32BitSystem;
+                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == LauncherEnvironment.Is32BitSystem;
             }
 
             if (!(Rule["features"] == null)) // 标签
@@ -336,7 +336,7 @@ public static partial class ModMinecraft
     public static List<McLibToken> McLibListGet(McInstance Instance, bool IncludeInstanceJar)
     {
         // 获取当前支持库列表
-        ModBase.Log("[Minecraft] 获取支持库列表：" + Instance.Name);
+        LauncherLogger.Log("[Minecraft] 获取支持库列表：" + Instance.Name);
         var result = McLibListGetWithJson(Instance.JsonObject, TargetInstance: Instance);
 
         // 需要添加原版 Jar
@@ -376,7 +376,7 @@ public static partial class ModMinecraft
             if (!File.Exists(RealInstance.PathInstance + RealInstance.Name + ".json"))
             {
                 RealInstance = Instance;
-                ModBase.Log("[Minecraft] 可能缺少前置实例 " + RealInstance.Name + "，找不到对应的 JSON 文件", ModBase.LogLevel.Debug);
+                LauncherLogger.Log("[Minecraft] 可能缺少前置实例 " + RealInstance.Name + "，找不到对应的 JSON 文件", LauncherLogger.LogLevel.Debug);
             }
 
             // 获取详细下载信息
@@ -457,7 +457,7 @@ public static partial class ModMinecraft
                                 : CustomMcFolder + @"libraries\" + Library["downloads"]["artifact"]["path"].ToString()
                                     .Replace("/", @"\"),
                             init.Size = (long)Math.Round(
-                                ModBase.Val(Library["downloads"]["artifact"]["size"].ToString())),
+                                MigrationHelpers.Val(Library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.SHA1 = Library["downloads"]["artifact"]["sha1"]?.ToString(),
                             init.IsLocal = IsLocal, init).init);
                     }
@@ -472,7 +472,7 @@ public static partial class ModMinecraft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (Library["name"] ?? "Nothing") + "）");
+                    LauncherLogger.Log(ex, "处理实际支持库列表失败（无 Natives，" + (Library["name"] ?? "Nothing") + "）");
                     BasicArray.Add(new McLibToken
                     {
                         OriginalName = (string)Library["name"], Url = RootUrl, LocalPath = LocalPath, Size = 0L,
@@ -498,7 +498,7 @@ public static partial class ModMinecraft
                                   Library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
                                       .Replace("/", @"\"),
                             Size = (long)Math.Round(
-                                ModBase.Val(Library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
+                                MigrationHelpers.Val(Library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
                             SHA1 = Library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
                             IsLocal = IsLocal
@@ -515,7 +515,7 @@ public static partial class ModMinecraft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "处理实际支持库列表失败（有 Natives，" + (Library["name"] ?? "Nothing") + "）");
+                    LauncherLogger.Log(ex, "处理实际支持库列表失败（有 Natives，" + (Library["name"] ?? "Nothing") + "）");
                     BasicArray.Add(new McLibToken
                     {
                         OriginalName = (string)Library["name"], Url = RootUrl,
@@ -537,7 +537,7 @@ public static partial class ModMinecraft
         // D:\Minecraft\test\libraries\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar
         string GetVersion(McLibToken Token)
         {
-            return ModBase.GetFolderNameFromPath(ModBase.GetPathFromFullPath(Token.LocalPath));
+            return LauncherPaths.GetFolderName(LauncherPaths.GetDirectoryFromPath(Token.LocalPath));
         }
 
         for (int i = 0, loopTo = BasicArray.Count - 1; i <= loopTo; i++)
@@ -549,13 +549,13 @@ public static partial class ModMinecraft
                 var ResultArrayVersion = GetVersion(ResultArray[Key]);
                 if ((BasicArrayVersion ?? "") != (ResultArrayVersion ?? "") && KeepSameNameDifferentVersionResult)
                 {
-                    ModBase.Log(
+                    LauncherLogger.Log(
                         $"[Minecraft] 发现疑似重复的支持库：{BasicArray[i]} ({BasicArrayVersion}) 与 {ResultArray[Key]} ({ResultArrayVersion})");
-                    ResultArray.Add(Key + ModBase.GetUuid(), BasicArray[i]);
+                    ResultArray.Add(Key + LauncherDispatcher.GetUuid(), BasicArray[i]);
                 }
                 else
                 {
-                    ModBase.Log(
+                    LauncherLogger.Log(
                         $"[Minecraft] 发现重复的支持库：{BasicArray[i]} ({BasicArrayVersion}) 与 {ResultArray[Key]} ({ResultArrayVersion})，已忽略其中之一");
                     if (CompareVersionGe(BasicArrayVersion, ResultArrayVersion)) ResultArray[Key] = BasicArray[i];
                 }
@@ -589,19 +589,19 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例缺失主 Jar 文件所必须的信息", ModBase.LogLevel.Developer);
+            LauncherLogger.Log(ex, "实例缺失主 Jar 文件所必须的信息", LauncherLogger.LogLevel.Developer);
         }
 
         // Library 文件
         result.AddRange(McLibNetFilesFromTokens(McLibListGet(instance, false)));
 
         // Authlib-Injector 文件
-        var authlibTargetFile = ModBase.PathPure + @"\authlib-injector.jar";
+        var authlibTargetFile = LauncherPaths.PureAsciiDirectory + @"\authlib-injector.jar";
         JObject authlibDownloadInfo = null;
         try
         {
-            ModBase.Log("[Minecraft] 开始获取 Authlib-Injector 下载信息");
-            authlibDownloadInfo = (JObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
+            LauncherLogger.Log("[Minecraft] 开始获取 Authlib-Injector 下载信息");
+            authlibDownloadInfo = (JObject)LauncherSerialization.GetJson(ModNet.NetGetCodeByLoader(
                 new[]
                 {
                     "https://authlib-injector.yushi.moe/artifact/latest.json",
@@ -610,19 +610,19 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 Authlib-Injector 下载信息失败");
+            LauncherLogger.Log(ex, "获取 Authlib-Injector 下载信息失败");
         }
 
         // 校验文件
         if (authlibDownloadInfo is not null)
         {
-            var checker = new ModBase.FileChecker(Hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
+            var checker = new LauncherFileSystem.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
             if (checker.Check(authlibTargetFile) is not null)
             {
                 // 开始下载
                 var downloadAddress = authlibDownloadInfo["download_url"].ToString()
                     .Replace("bmclapi2.bangbang93.com/mirrors/authlib-injector", "authlib-injector.yushi.moe");
-                ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogLevel.Developer);
+                LauncherLogger.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, LauncherLogger.LogLevel.Developer);
                 result.Add(new DownloadFile(
                     new[]
                     {
@@ -630,18 +630,18 @@ public static partial class ModMinecraft
                         downloadAddress.Replace("authlib-injector.yushi.moe",
                             "bmclapi2.bangbang93.com/mirrors/authlib-injector")
                     }, authlibTargetFile,
-                    new ModBase.FileChecker(Hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
+                    new LauncherFileSystem.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
             }
         }
 
         // 修改渲染器
         var mesaLoaderWindowsVersion = "25.3.5";
         var mesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + mesaLoaderWindowsVersion + @"\Loader.jar";
+            LauncherPaths.PureAsciiDirectory + @"\mesa-loader-windows\" + mesaLoaderWindowsVersion + @"\Loader.jar";
         var renderer = -1;
         if (McInstanceSelected is not null)
             renderer = Conversions.ToInteger(
-                Operators.SubtractObject(ModBase.Setup.Get("VersionAdvanceRenderer", McInstanceSelected), 1));
+                Operators.SubtractObject(LauncherEnvironment.Setup.Get("VersionAdvanceRenderer", McInstanceSelected), 1));
         if (renderer == -1) renderer = Conversions.ToInteger(Config.Launch.Renderer);
 
         if (renderer != 0 && !File.Exists(mesaLoaderWindowsTargetFile))
@@ -649,7 +649,7 @@ public static partial class ModMinecraft
             var downloadAddress =
                 "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" +
                 mesaLoaderWindowsVersion + "/mesa-loader-windows-" + mesaLoaderWindowsVersion + "-" +
-                (ModBase.Is32BitSystem ? "x86" : ModBase.IsArm64System ? "arm64" : "x64") + ".jar";
+                (LauncherEnvironment.Is32BitSystem ? "x86" : LauncherEnvironment.IsArm64System ? "arm64" : "x64") + ".jar";
             result.Add(new DownloadFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
         }
 
@@ -660,7 +660,7 @@ public static partial class ModMinecraft
             {
                 if (Directory.Exists(instance.PathInstance + "labymod-neo"))
                     Directory.Delete(instance.PathInstance + "labymod-neo", true);
-                ModBase.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo",
+                LauncherShell.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo",
                     0x2);
             }
 
@@ -668,7 +668,7 @@ public static partial class ModMinecraft
             {
                 var channelType = instance.JsonObject["labymod_data"]["channelType"].ToString();
                 Directory.CreateDirectory($@"{McFolderSelected}labymod-neo\libraries");
-                ModBase.Log("[Minecraft] 开始获取 LabyMod 信息");
+                LauncherLogger.Log("[Minecraft] 开始获取 LabyMod 信息");
                 var labyManifest = (JObject)ModNet.NetGetCodeByRequestRetry(
                     $"https://releases.r2.labymod.net/api/v1/manifest/{channelType}/latest.json", IsJson: true);
                 var labyAssets = (JObject)labyManifest["assets"];
@@ -680,7 +680,7 @@ public static partial class ModMinecraft
                     var assetPath = $@"{McFolderSelected}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
-                    var checker = new ModBase.FileChecker(Hash: assetSHA1);
+                    var checker = new LauncherFileSystem.FileChecker(hash: assetSHA1);
                     if (checker.Check(assetPath) is null)
                         continue;
                     result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
@@ -688,19 +688,19 @@ public static partial class ModMinecraft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取 LabyMod 信息失败，跳过检查");
+                LauncherLogger.Log(ex, "获取 LabyMod 信息失败，跳过检查");
             }
         }
 
         // 跳过校验
         if (Conversions.ToBoolean(ShouldIgnoreFileCheck(instance)))
         {
-            ModBase.Log("[Minecraft] 用户要求尽量忽略文件检查，这可能会保留有误的文件");
+            LauncherLogger.Log("[Minecraft] 用户要求尽量忽略文件检查，这可能会保留有误的文件");
             result = result.Where(f =>
             {
                 if (File.Exists(f.LocalPath))
                 {
-                    ModBase.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, LauncherLogger.LogLevel.Debug);
                     return false;
                 }
 
@@ -722,12 +722,12 @@ public static partial class ModMinecraft
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.SHA1);
+            var checker = new LauncherFileSystem.FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.SHA1);
             if (checker.Check(token.LocalPath) is null)
                 continue;
             if (token.IsLocal)
             {
-                ModBase.Log("[Download] 已跳过被标记为本地文件的支持库: " + token.OriginalName);
+                LauncherLogger.Log("[Download] 已跳过被标记为本地文件的支持库: " + token.OriginalName);
                 continue;
             }
 
@@ -761,8 +761,8 @@ public static partial class ModMinecraft
             {
                 // Transformer 文件释放
                 if (!File.Exists(token.LocalPath))
-                    ModBase.WriteFile(token.LocalPath, ModBase.GetResourceStream("Resources/transformer.jar"));
-                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogLevel.Developer);
+                    LauncherFileSystem.WriteFile(token.LocalPath, LauncherPaths.GetResourceStream("Resources/transformer.jar"));
+                LauncherLogger.Log("[Download] 已自动释放 Transformer Discovery Service", LauncherLogger.LogLevel.Developer);
                 continue;
             }
 
@@ -771,7 +771,7 @@ public static partial class ModMinecraft
                 // OptiFine 主 Jar
                 var optiFineBase =
                     token.LocalPath.Replace(customMcFolder + @"libraries\optifine\OptiFine\", "").Split("_")[0] + "/" +
-                    ModBase.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
+                    LauncherPaths.GetFileName(token.LocalPath).Replace("-", "_");
                 optiFineBase = "/maven/com/optifine/" + optiFineBase;
                 if (optiFineBase.Contains("_pre"))
                     optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");
@@ -781,9 +781,9 @@ public static partial class ModMinecraft
             {
                 // LabyMod 只有一个下载源
                 urls.Add(token.Url);
-                ModBase.Log(
+                LauncherLogger.Log(
                     $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.Size},SHA1 = {token.SHA1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(Hash: token.SHA1); // 只校验 SHA1
+                checker = new LauncherFileSystem.FileChecker(hash: token.SHA1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {
@@ -816,9 +816,9 @@ public static partial class ModMinecraft
         // 判断 OptiFine 是否应该使用 installer
         if (McLibGetRet.Contains(@"optifine\OptiFine\1.") && splited[2].Split(".").Count() > 1)
         {
-            var majorVersion = (int)Math.Round(ModBase.Val(splited[2].Split(".")[1].BeforeFirst("_")));
+            var majorVersion = (int)Math.Round(MigrationHelpers.Val(splited[2].Split(".")[1].BeforeFirst("_")));
             var minorVersion = (int)Math.Round(splited[2].Split(".").Count() > 2
-                ? ModBase.Val(splited[2].Split(".")[2].BeforeFirst("_"))
+                ? MigrationHelpers.Val(splited[2].Split(".")[2].BeforeFirst("_"))
                 : 0d);
             if ((majorVersion == 12 || (majorVersion == 20 && minorVersion >= 4) || majorVersion >= 21) && File.Exists(
                     $@"{customMcFolder}libraries\{splited[0].Replace(".", @"\")}\{splited[1]}\{splited[2]}\{splited[1]}-{splited[2]}-installer.jar")) // 仅在 1.12 (无法追溯) 和 1.20.4+ (#5376) 遇到此问题
@@ -836,8 +836,8 @@ public static partial class ModMinecraft
     /// </summary>
     public static object ShouldIgnoreFileCheck(McInstance Version)
     {
-        return (bool)ModBase.Setup.Get("VersionAdvanceAssetsV2", Version) ||
-               Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionAdvanceAssets", Version), 2, false);
+        return (bool)LauncherEnvironment.Setup.Get("VersionAdvanceAssetsV2", Version) ||
+               Operators.ConditionalCompareObjectEqual(LauncherEnvironment.Setup.Get("VersionAdvanceAssets", Version), 2, false);
     }
 
     #endregion
@@ -881,8 +881,8 @@ public static partial class ModMinecraft
             // Log("[Minecraft] 无法获取资源文件索引下载地址，使用 assets 项提供的资源文件名：" & AssetsName)
             // Return GetJson("{""id"": """ & AssetsName & """}")
             // Else
-            ModBase.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
-            return (JToken)ModBase.GetJson(@"{
+            LauncherLogger.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
+            return (JToken)LauncherSerialization.GetJson(@"{
                 ""id"": ""legacy"",
                 ""sha1"": ""c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729"",
                 ""size"": 134284,
@@ -915,7 +915,7 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取资源文件索引名失败");
+            LauncherLogger.Log(ex, "获取资源文件索引名失败");
         }
 
         return "legacy";
@@ -946,7 +946,7 @@ public static partial class ModMinecraft
 
         public override string ToString()
         {
-            return ModBase.GetString(Size) + " | " + LocalPath;
+            return LauncherText.GetString(Size) + " | " + LocalPath;
         }
     }
 
@@ -964,7 +964,7 @@ public static partial class ModMinecraft
                     McFolderSelected + @"assets\indexes\" + indexName + ".json");
             var result = new List<McAssetsToken>();
             var json = (JsonObject)JsonNode.Parse(
-                ModBase.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
+                LauncherFileSystem.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
 
             // 读取列表
             foreach (var file in json["objects"].AsObject())
@@ -994,7 +994,7 @@ public static partial class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取资源文件列表失败：" + indexName);
+            LauncherLogger.Log(ex, "获取资源文件列表失败：" + indexName);
             throw;
         }
     }
@@ -1012,7 +1012,7 @@ public static partial class ModMinecraft
                 ModDownload.DlSourceAssetsGet(
                     $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                 token.LocalPath,
-                new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
+                new LauncherFileSystem.FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.Hash))).ToList();
         // 如果不检查 Hash，则立即处理
         var result = new List<DownloadFile>();
 
@@ -1038,12 +1038,12 @@ public static partial class ModMinecraft
                     ModDownload.DlSourceAssetsGet(
                         $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                     token.LocalPath,
-                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));
+                    new LauncherFileSystem.FileChecker(actualSize: token.Size == 0L ? -1 : token.Size, hash: token.Hash)));
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取实例缺失的资源文件下载列表失败");
+            LauncherLogger.Log(ex, "获取实例缺失的资源文件下载列表失败");
         }
 
         if (progressFeed is not null)

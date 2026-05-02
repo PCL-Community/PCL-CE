@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -64,20 +64,20 @@ public partial class MyLocalCompItem
                 {
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
                     {
-                        DescFileName = ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path);
+                        DescFileName = LauncherPaths.GetFileNameWithoutExtension(Entry.Path);
                         break;
                     }
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
                     {
                         DescFileName =
-                            ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "")
+                            LauncherPaths.GetFileNameWithoutExtension(Entry.Path.Replace(".disabled", "")
                                 .Replace(".old", "")); // McMod.McModState.Unavailable
                         break;
                     }
 
                     default:
                     {
-                        DescFileName = ModBase.GetFileNameFromPath(Entry.Path);
+                        DescFileName = LauncherPaths.GetFileName(Entry.Path);
                         break;
                     }
                 }
@@ -179,7 +179,7 @@ public partial class MyLocalCompItem
                     // Source="/Images/Icons/Unavailable.png" />
                 }
 
-                ImgState.Source = new MyBitmap(ModBase.PathImage + $"Icons/{Entry.State}.png");
+                ImgState.Source = new MyBitmap(LauncherEnvironment.PathImage + $"Icons/{Entry.State}.png");
             }
 
             // 标签
@@ -276,7 +276,7 @@ public partial class MyLocalCompItem
                 var modrinthUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
                 if (modrinthUrl is not null)
                 {
-                    ModBase.OpenWebsite(modrinthUrl);
+                    LauncherShell.OpenWebsite(modrinthUrl);
                     return;
                 }
             }
@@ -285,13 +285,13 @@ public partial class MyLocalCompItem
                 var curseForgeUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("curseforge.com"));
                 if (curseForgeUrl is not null)
                 {
-                    ModBase.OpenWebsite(curseForgeUrl);
+                    LauncherShell.OpenWebsite(curseForgeUrl);
                     return;
                 }
             }
         }
 
-        ModBase.Log("打开更新日志出现错误", ModBase.LogLevel.Hint);
+        LauncherLogger.Log("打开更新日志出现错误", LauncherLogger.LogLevel.Hint);
     }
 
     // 触发更新
@@ -414,7 +414,7 @@ public partial class MyLocalCompItem
 
     #region 基础属性
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     // Logo
     public string Logo
@@ -562,7 +562,7 @@ public partial class MyLocalCompItem
             Click?.Invoke(sender, e);
             if (e.Handled)
                 return;
-            ModBase.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
+            LauncherLogger.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
         }
     }
 
@@ -643,9 +643,9 @@ public partial class MyLocalCompItem
         var Elements = ((StackPanel)Parent).Children;
         var Index = Elements.IndexOf(this);
         CurrentSwipe.Start =
-            (int)Math.Round(ModBase.MathClamp(Math.Min(CurrentSwipe.Start, Index), 0d, Elements.Count - 1));
+            (int)Math.Round(LauncherText.MathClamp(Math.Min(CurrentSwipe.Start, Index), 0d, Elements.Count - 1));
         CurrentSwipe.End =
-            (int)Math.Round(ModBase.MathClamp(Math.Max(CurrentSwipe.End, Index), 0d, Elements.Count - 1));
+            (int)Math.Round(LauncherText.MathClamp(Math.Max(CurrentSwipe.End, Index), 0d, Elements.Count - 1));
         // 勾选所有范围中的项
         if (CurrentSwipe.Start == CurrentSwipe.End)
             return;
@@ -660,11 +660,11 @@ public partial class MyLocalCompItem
     // 勾选状态
     public event CheckEventHandler? Check;
 
-    public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void CheckEventHandler(object sender, RouteEventArgs e);
 
     public event ChangedEventHandler? Changed;
 
-    public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void ChangedEventHandler(object sender, RouteEventArgs e);
 
     private bool _Checked;
 
@@ -680,7 +680,7 @@ public partial class MyLocalCompItem
                 if (value == _Checked)
                     return;
                 _Checked = value;
-                var ChangedEventArgs = new ModBase.RouteEventArgs();
+                var ChangedEventArgs = new RouteEventArgs();
                 if (IsInitialized)
                 {
                     Changed?.Invoke(this, ChangedEventArgs);
@@ -693,7 +693,7 @@ public partial class MyLocalCompItem
 
                 if (value)
                 {
-                    var CheckEventArgs = new ModBase.RouteEventArgs();
+                    var CheckEventArgs = new RouteEventArgs();
                     Check?.Invoke(this, CheckEventArgs);
                     if (CheckEventArgs.Handled)
                         return;
@@ -761,7 +761,7 @@ public partial class MyLocalCompItem
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "设置 Checked 失败");
+                LauncherLogger.Log(ex, "设置 Checked 失败");
             }
         }
     }
@@ -788,7 +788,7 @@ public partial class MyLocalCompItem
                     CornerRadius = new CornerRadius(3d),
                     RenderTransform = new ScaleTransform(0.8d, 0.8d),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(LauncherWpf.GetWPFSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d

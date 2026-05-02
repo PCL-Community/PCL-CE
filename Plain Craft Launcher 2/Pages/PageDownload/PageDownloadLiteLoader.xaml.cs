@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -76,7 +76,7 @@ public partial class PageDownloadLiteLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LiteLoader 版本列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化 LiteLoader 版本列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -87,6 +87,6 @@ public partial class PageDownloadLiteLoader
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.liteloader.com");
+        LauncherShell.OpenWebsite("https://www.liteloader.com");
     }
 }

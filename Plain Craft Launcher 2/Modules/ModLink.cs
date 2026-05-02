@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json.Linq;
@@ -50,7 +50,7 @@ public static class ModLink
             }
             catch (Exception ex)
             {
-                ModBase.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
+                LauncherLogger.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
                 ModMain.Hint("请重新登录 Natayark Network 账号再试！", ModMain.HintType.Critical);
                 return false;
             }
@@ -98,14 +98,14 @@ public static class ModLink
 
         if (DlEasyTierLoader is not null)
         {
-            if (DlEasyTierLoader.State == ModBase.LoadState.Loading)
+            if (DlEasyTierLoader.State == LoadState.Loading)
             {
                 ModMain.Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！");
                 return false;
             }
 
-            if (DlEasyTierLoader.State == ModBase.LoadState.Failed ||
-                DlEasyTierLoader.State == ModBase.LoadState.Aborted)
+            if (DlEasyTierLoader.State == LoadState.Failed ||
+                DlEasyTierLoader.State == LoadState.Aborted)
             {
                 ModMain.Hint("正在下载 EasyTier，请稍后...");
                 DownloadEasyTier();
@@ -192,7 +192,7 @@ public static class ModLink
         foreach (var TargetJava in JavaNames)
         {
             var JavaProcesses = Process.GetProcessesByName(TargetJava);
-            ModBase.Log($"[MCDetect] 找到 {TargetJava} 进程 {JavaProcesses.Length} 个");
+            LauncherLogger.Log($"[MCDetect] 找到 {TargetJava} 进程 {JavaProcesses.Length} 个");
 
             if (JavaProcesses is null || JavaProcesses.Length == 0)
             {
@@ -201,7 +201,7 @@ public static class ModLink
             {
                 foreach (var p in JavaProcesses)
                 {
-                    ModBase.Log("[MCDetect] 检测到 Java 进程，PID: " + p.Id);
+                    LauncherLogger.Log("[MCDetect] 检测到 Java 进程，PID: " + p.Id);
                     PIDLookupResult.Add(p.Id.ToString());
                 }
             }
@@ -222,12 +222,12 @@ public static class ModLink
                 lookupList.AddRange(infos);
             }
 
-            ModBase.Log($"[MCDetect] 获取到端口数量 {lookupList.Count}");
+            LauncherLogger.Log($"[MCDetect] 获取到端口数量 {lookupList.Count}");
             // 并行查找本地，超时 3s 自动放弃
             var checkTasks = lookupList.Select(
             lookup => Task.Run(async () =>
             {
-                ModBase.Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}");
+                LauncherLogger.Log($"[MCDetect] 找到疑似端口，开始验证：{lookup}");
                 using (var test = McPingServiceFactory.CreateService("127.0.0.1", lookup.Item1, 3000))
                 {
                     try
@@ -236,7 +236,7 @@ public static class ModLink
                         var launcher = GetLauncherBrand(lookup.Item2);
                         if (!string.IsNullOrWhiteSpace(info?.Version.Name))
                         {
-                            ModBase.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
+                            LauncherLogger.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
                             res.Add(new Tuple<int, McPingResult, string>(lookup.Item1, info, launcher));
                             return Task.CompletedTask;
                         }
@@ -245,11 +245,11 @@ public static class ModLink
                     {
                         if (ex.InnerException is ObjectDisposedException)
                         {
-                            ModBase.Log($"[McDetect] {lookup} 验证超时，已强制断开连接，将尝试旧版检测");
+                            LauncherLogger.Log($"[McDetect] {lookup} 验证超时，已强制断开连接，将尝试旧版检测");
                         }
                         else
                         {
-                            ModBase.Log(ex, $"[McDetect] {lookup} 验证出错，将尝试旧版检测");
+                            LauncherLogger.Log(ex, $"[McDetect] {lookup} 验证出错，将尝试旧版检测");
                         }
                     }
                 }
@@ -260,7 +260,7 @@ public static class ModLink
                         var info = await test.PingAsync();
                         if (!string.IsNullOrWhiteSpace(info?.Version.Name))
                         {
-                            ModBase.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
+                            LauncherLogger.Log($"[MCDetect] 端口 {lookup} 为有效 Minecraft 世界");
                             res.Add(new Tuple<int, McPingResult, string>(lookup.Item1, info, string.Empty));
                             return Task.CompletedTask;
                         }
@@ -269,11 +269,11 @@ public static class ModLink
                     {
                         if (ex.InnerException is ObjectDisposedException)
                         {
-                            ModBase.Log($"[McDetect] {lookup} 验证超时，已强制断开连接");
+                            LauncherLogger.Log($"[McDetect] {lookup} 验证超时，已强制断开连接");
                         }
                         else
                         {
-                            ModBase.Log(ex, $"[McDetect] {lookup} 验证出错");
+                            LauncherLogger.Log(ex, $"[McDetect] {lookup} 验证出错");
                         }
                     }
                 }
@@ -283,7 +283,7 @@ public static class ModLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[MCDetect] 获取端口信息错误");
+            LauncherLogger.Log(ex, "[MCDetect] 获取端口信息错误");
         }
 
         return res;
@@ -301,7 +301,7 @@ public static class ModLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"[MCDetect] 检测 PID {pid} 进程的启动参数失败");
+            LauncherLogger.Log(ex, $"[MCDetect] 检测 PID {pid} 进程的启动参数失败");
             return "";
         }
     }
@@ -314,7 +314,7 @@ public static class ModLink
 
     public static int DownloadEasyTier()
     {
-        var dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
+        var dlTargetPath = $"{LauncherPaths.TempDirectory}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
 
         Basics.RunInNewThread(() =>
         {
@@ -324,7 +324,7 @@ public static class ModLink
                 var loaders = new List<ModLoader.LoaderBase>();
 
                 // Setup download addresses
-                var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
+                var architecture = LauncherEnvironment.IsArm64System ? "arm64" : "x86_64";
                 var addresses = new List<string>
                 {
                     $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",
@@ -334,12 +334,12 @@ public static class ModLink
                 // 1. Download EasyTier
                 loaders.Add(new LoaderDownload("下载 EasyTier", new List<DownloadFile>
                 {
-                    new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
+                    new(addresses.ToArray(), dlTargetPath, new LauncherFileSystem.FileChecker(1024 * 64))
                 }) { ProgressWeight = 15 });
 
                 // 2. Extract files
                 loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
-                    ModBase.ExtractFile(dlTargetPath,
+                    LauncherFileSystem.ExtractFile(dlTargetPath,
                         Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
                 ) { Block = true });
 
@@ -388,7 +388,7 @@ public static class ModLink
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "[Link] 清理旧版本 EasyTier 出错");
+                    LauncherLogger.Log(ex, "[Link] 清理旧版本 EasyTier 出错");
                 }
         }
     }

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -21,7 +21,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        ModBase.OpenExplorer($@"{CurrentSave}\");
+        LauncherShell.OpenExplorer($@"{CurrentSave}\");
     }
 
     #region 龙猫牌 页面管理
@@ -44,10 +44,10 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
+            PageChange((FormMain.PageSubType)MigrationHelpers.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType ID = FormMain.PageSubType.Default)
@@ -97,7 +97,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "切换分页面失败（ID " + (int)ID + "）", LauncherLogger.LogLevel.Feedback);
         }
         finally
         {
@@ -131,7 +131,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)MigrationHelpers.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()

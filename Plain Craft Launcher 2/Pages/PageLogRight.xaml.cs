@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -110,7 +110,7 @@ public partial class PageLogRight
 
     private void OnLogOutput(ModWatcher.Watcher sender, ModWatcher.LogOutputEventArgs e)
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (ModMain.FrmLogLeft.CurrentLog is not null)
             {
@@ -125,7 +125,7 @@ public partial class PageLogRight
     private void SliderMaxLog_ValueChanged(object o, bool user)
     {
         var sender = (MySlider)o;
-        ModBase.Setup.Set(sender.Tag.ToString(), sender.Value);
+        LauncherEnvironment.Setup.Set(sender.Tag.ToString(), sender.Value);
         if (ModMain.FrmSetupLauncherMisc is null)
             return;
         ModMain.FrmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;
@@ -135,12 +135,12 @@ public partial class PageLogRight
 
     #region 卡片按钮
 
-    private void BtnOperationClear_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationClear_Click(object sender, RouteEventArgs e)
     {
         ModMain.FrmLogLeft.FlowDocuments[ModMain.FrmLogLeft.CurrentUuid].Blocks.Clear();
     }
 
-    private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExport_Click(object sender, RouteEventArgs e)
     {
         // TODO(i18n): 文本 @ 文件选择弹窗 - 窗口标题 & 类型选择器选项
         var SavePath = SystemDialogs.SelectSaveFile("选择导出位置",
@@ -150,10 +150,10 @@ public partial class PageLogRight
         File.WriteAllLines(SavePath, ModMain.FrmLogLeft.CurrentLog.FullLog);
         // TODO(i18n): 文本 @ 左下角提示 - 导出成功提示
         ModMain.Hint("日志已导出！", ModMain.HintType.Finish);
-        ModBase.OpenExplorer(SavePath);
+        LauncherShell.OpenExplorer(SavePath);
     }
 
-    private void BtnOperationKill_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationKill_Click(object sender, RouteEventArgs e)
     {
         if (ModMain.FrmLogLeft.CurrentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
         {
@@ -163,7 +163,7 @@ public partial class PageLogRight
         }
     }
 
-    private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExportStackDump_Click(object sender, RouteEventArgs e)
     {
         var SavePath = SystemDialogs.SelectSaveFile("选择导出位置",
             $"游戏运行栈 - {DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log",
@@ -173,24 +173,24 @@ public partial class PageLogRight
         // TODO(i18n): 文本 @ 左下角提示 - 导出运行栈提示
         ModMain.Hint("正在导出运行栈，请稍等（可能需要 15 秒 ~ 1 分钟）");
         BtnOperationExportStackDump.IsEnabled = false;
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             var Dump = ModMain.FrmLogLeft.CurrentLog.ExportStackDump(SavePath);
             File.WriteAllLines(SavePath, Dump);
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 // TODO(i18n): 文本 @ 左下角提示 - 导出运行栈提示
                 ModMain.Hint("运行栈已导出！", ModMain.HintType.Finish);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
-            ModBase.OpenExplorer(SavePath);
+            LauncherShell.OpenExplorer(SavePath);
         });
     }
 
     private void OnGameExit()
     {
-        ModBase.RunInUi(() => BtnOperationKill.IsEnabled = false);
-        ModBase.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
+        LauncherDispatcher.RunInUi(() => BtnOperationKill.IsEnabled = false);
+        LauncherDispatcher.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
     }
 
     #endregion

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -9,7 +9,7 @@ public partial class MySlider
 {
     public delegate void ChangeEventHandler(object sender, bool user);
 
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
     // 自定义属性
 
@@ -23,7 +23,7 @@ public partial class MySlider
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MySlider()
     {
@@ -56,7 +56,7 @@ public partial class MySlider
         {
             try
             {
-                value = (int)Math.Round(ModBase.MathClamp(value, 0d, MaxValue));
+                value = (int)Math.Round(LauncherText.MathClamp(value, 0d, MaxValue));
                 if (_Value == value)
                     return;
 
@@ -65,7 +65,7 @@ public partial class MySlider
                 _Value = value;
                 if (ModAnimation.AniControlEnabled == 0)
                 {
-                    var e = new ModBase.RouteEventArgs();
+                    var e = new RouteEventArgs();
                     PreviewChange?.Invoke(this, e);
                     if (e.Handled)
                     {
@@ -117,7 +117,7 @@ public partial class MySlider
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "滑动条进度改变出错", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "滑动条进度改变出错", LauncherLogger.LogLevel.Hint);
             }
         }
     }
@@ -137,7 +137,7 @@ public partial class MySlider
         LineFore.Width = Math.Max(0d, NewWidth + (NewWidth < 0.5d ? 0d : 0.5d));
         LineBack.Width = Math.Max(0d,
             ActualWidth - ShapeDot.Width - NewWidth + (ActualWidth - ShapeDot.Width - NewWidth < 0.5d ? 0d : 0.5d));
-        ModBase.SetLeft(ShapeDot, NewWidth);
+        LauncherLayout.SetLeft(ShapeDot, NewWidth);
     }
 
     private void DragStart(object sender, MouseButtonEventArgs e)
@@ -161,7 +161,7 @@ public partial class MySlider
     public void DragDoing()
     {
         var Percent =
-            ModBase.MathClamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width), 0d,
+            LauncherText.MathClamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width), 0d,
                 1d);
         var NewValue = (int)Math.Round(Percent * MaxValue);
         if (!(NewValue == Value)) Value = NewValue;
@@ -195,7 +195,7 @@ public partial class MySlider
         TextHint.Text = GetHintText.DynamicInvoke(Value)?.ToString() ?? "";
         var typeface = new Typeface(TextHint.FontFamily, TextHint.FontStyle, TextHint.FontWeight, TextHint.FontStretch);
         var formattedText = new FormattedText(TextHint.Text, Thread.CurrentThread.CurrentCulture,
-            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.DPI);
+            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, LauncherWpf.DPI);
         TextHint.Width = formattedText.Width; // 使用手动测量的宽度修复 #1057
     }
 
@@ -259,7 +259,7 @@ public partial class MySlider
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "滑动条颜色改变出错");
+            LauncherLogger.Log(ex, "滑动条颜色改变出错");
         }
     }
 

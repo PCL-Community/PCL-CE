@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -74,7 +74,7 @@ public partial class PageDownloadForge
         // End If
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Forge 版本列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化 Forge 版本列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -112,6 +112,6 @@ public partial class PageDownloadForge
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://files.minecraftforge.net");
+        LauncherShell.OpenWebsite("https://files.minecraftforge.net");
     }
 }

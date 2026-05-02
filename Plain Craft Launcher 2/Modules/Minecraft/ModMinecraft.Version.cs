@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -121,7 +121,7 @@ public static partial class ModMinecraft
                         // 从老的实例独立设置中迁移：-1 未决定，0 使用全局设置，1 手动开启，2 手动关闭
                         if (!Config.Instance.IndieV1Config.IsDefault(PathInstance) && Config.Instance.IndieV1[PathInstance] > 0)
                         {
-                            ModBase.Log($"[Minecraft] 版本隔离初始化（{Name}）：从老的实例独立设置中迁移");
+                            LauncherLogger.Log($"[Minecraft] 版本隔离初始化（{Name}）：从老的实例独立设置中迁移");
                             return Config.Instance.IndieV1[PathInstance] == 1;
                         }
 
@@ -131,15 +131,15 @@ public static partial class ModMinecraft
                         if ((ModFolder.Exists && ModFolder.EnumerateFiles().Any()) ||
                             (SaveFolder.Exists && SaveFolder.EnumerateDirectories().Any()))
                         {
-                            ModBase.Log($"[Minecraft] 版本隔离初始化（{Name}）：实例文件夹下存在 mods 或 saves 文件夹，自动开启");
+                            LauncherLogger.Log($"[Minecraft] 版本隔离初始化（{Name}）：实例文件夹下存在 mods 或 saves 文件夹，自动开启");
                             return true;
                         }
 
                         // 根据全局的默认设置决定是否隔离
                         var IsRelease = State != McInstanceState.Fool && State != McInstanceState.Old &&
                                         State != McInstanceState.Snapshot;
-                        ModBase.Log(
-                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {ModBase.GetStringFromEnum(State)}，IsRelease {IsRelease}，Modable {Modable}");
+                        LauncherLogger.Log(
+                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {LauncherText.GetStringFromEnum(State)}，IsRelease {IsRelease}，Modable {Modable}");
                         
                         return Config.Launch.IndieSolutionV2 switch
                         {
@@ -166,7 +166,7 @@ public static partial class ModMinecraft
             get
             {
                 if (_name is null && !string.IsNullOrEmpty(PathInstance))
-                    _name = ModBase.GetFolderNameFromPath(PathInstance);
+                    _name = LauncherPaths.GetFolderName(PathInstance);
                 return _name;
             }
         }
@@ -329,7 +329,7 @@ public static partial class ModMinecraft
                         if (jsonVerName.Length < 32) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
                         {
                             _info.VanillaName = jsonVerName;
-                            ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
+                            LauncherLogger.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
                             goto VersionSearchFinish;
                         }
                     }
@@ -344,7 +344,7 @@ public static partial class ModMinecraft
                     }
 
                     // 非准确的版本判断警告
-                    ModBase.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
+                    LauncherLogger.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
                     _info.Reliable = false;
                     // 从文件夹名中获取
                     regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
@@ -371,7 +371,7 @@ public static partial class ModMinecraft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "识别 Minecraft 版本时出错");
+                    LauncherLogger.Log(ex, "识别 Minecraft 版本时出错");
                     _info.VanillaName = "Unknown";
                     Desc = "无法识别：" + ex.Message;
                 }
@@ -385,15 +385,15 @@ public static partial class ModMinecraft
                 if (_info.VanillaName.StartsWithF("1."))
                 {
                     var segments = _info.VanillaName.Split(" _-.".ToCharArray());
-                    _info.Vanilla = new Version((int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        0, (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                    _info.Vanilla = new Version((int)Math.Round(MigrationHelpers.Val(segments.Count() >= 2 ? segments[1] : "0")),
+                        0, (int)Math.Round(MigrationHelpers.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else if (_info.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
                 {
                     var segments = _info.VanillaName.Split(" _-.".ToCharArray());
-                    _info.Vanilla = new Version((int)Math.Round(ModBase.Val(segments[0])),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                    _info.Vanilla = new Version((int)Math.Round(MigrationHelpers.Val(segments[0])),
+                        (int)Math.Round(MigrationHelpers.Val(segments.Count() >= 2 ? segments[1] : "0")),
+                        (int)Math.Round(MigrationHelpers.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else
                 {
@@ -430,7 +430,7 @@ public static partial class ModMinecraft
                         if (JsonFiles.Count() == 1)
                         {
                             JsonPath = JsonFiles[0];
-                            ModBase.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + JsonPath, ModBase.LogLevel.Debug);
+                            LauncherLogger.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + JsonPath, LauncherLogger.LogLevel.Debug);
                         }
                         else
                         {
@@ -438,22 +438,22 @@ public static partial class ModMinecraft
                         }
                     }
 
-                    _jsonText = ModBase.ReadFile(JsonPath);
+                    _jsonText = LauncherFileSystem.ReadFile(JsonPath);
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                     if (!FastJsonCheck(_jsonText))
                     {
-                        if (ModBase.RunInUi())
+                        if (LauncherDispatcher.RunInUi())
                         {
-                            ModBase.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", ModBase.LogLevel.Debug);
-                            ModBase.GetJson(_jsonText); // 触发异常
+                            LauncherLogger.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", LauncherLogger.LogLevel.Debug);
+                            LauncherSerialization.GetJson(_jsonText); // 触发异常
                         }
                         else
                         {
-                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
+                            LauncherLogger.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", LauncherLogger.LogLevel.Debug);
                             Thread.Sleep(2000);
-                            _jsonText = ModBase.ReadFile(JsonPath);
+                            _jsonText = LauncherFileSystem.ReadFile(JsonPath);
                             if (!FastJsonCheck(_jsonText))
-                                ModBase.GetJson(_jsonText);
+                                LauncherSerialization.GetJson(_jsonText);
                         } // 触发异常
                     }
                 }
@@ -476,7 +476,7 @@ public static partial class ModMinecraft
                     var Text = JsonText; // 触发 JsonText 的 Get 事件
                     try
                     {
-                        _jsonObject = (JObject)ModBase.GetJson(Text);
+                        _jsonObject = (JObject)LauncherSerialization.GetJson(Text);
                         // 转换 HMCL 关键项
                         if (_jsonObject.ContainsKey("patches") && !_jsonObject.ContainsKey("time"))
                         {
@@ -488,15 +488,15 @@ public static partial class ModMinecraft
                             foreach (JObject Subjson in _jsonObject["patches"])
                                 SubjsonList.Add(Subjson);
                             SubjsonList.Sort((left, right) =>
-                                ModBase.Val((left["priority"] ?? "0").ToString()) <
-                                ModBase.Val((right["priority"] ?? "0").ToString()));
+                                MigrationHelpers.Val((left["priority"] ?? "0").ToString()) <
+                                MigrationHelpers.Val((right["priority"] ?? "0").ToString()));
                             foreach (var Subjson in SubjsonList)
                             {
                                 var Id = (string)Subjson["id"];
                                 if (Id is not null)
                                 {
                                     // 合并 JSON
-                                    ModBase.Log("[Minecraft] 合并 HMCL 分支项：" + Id);
+                                    LauncherLogger.Log("[Minecraft] 合并 HMCL 分支项：" + Id);
                                     if (CurrentObject is not null)
                                         CurrentObject.Merge(Subjson);
                                     else
@@ -504,7 +504,7 @@ public static partial class ModMinecraft
                                 }
                                 else
                                 {
-                                    ModBase.Log("[Minecraft] 存在为空的 HMCL 分支项");
+                                    LauncherLogger.Log("[Minecraft] 存在为空的 HMCL 分支项");
                                 }
                             }
 
@@ -527,7 +527,7 @@ public static partial class ModMinecraft
                                 if (Conversions.ToBoolean(
                                         Operators.ConditionalCompareObjectEqual(inheritInstanceName, Name, false)))
                                 {
-                                    ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogLevel.Debug);
+                                    LauncherLogger.Log("[Minecraft] 自引用的继承实例：" + Name, LauncherLogger.LogLevel.Debug);
                                     inheritInstanceName = "";
                                     break;
                                 }
@@ -553,7 +553,7 @@ public static partial class ModMinecraft
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "合并实例依赖项 JSON 失败（" + (inheritInstanceName ?? "null") + "）");
+                                LauncherLogger.Log(ex, "合并实例依赖项 JSON 失败（" + (inheritInstanceName ?? "null") + "）");
                             }
                         } while (false);
                     }
@@ -603,13 +603,13 @@ public static partial class ModMinecraft
                                 if (versionJson is not null)
                                     using (var versionJsonStream = new StreamReader(versionJson.Open()))
                                     {
-                                        _jsonVersion = (JObject)ModBase.GetJson(versionJsonStream.ReadToEnd());
+                                        _jsonVersion = (JObject)LauncherSerialization.GetJson(versionJsonStream.ReadToEnd());
                                     }
                             }
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"从实例 JAR 中读取 version.json 失败 ({PathInstance}{Name}.jar)");
+                            LauncherLogger.Log(ex, $"从实例 JAR 中读取 version.json 失败 ({PathInstance}{Name}.jar)");
                         }
                     } while (false);
                 }
@@ -661,13 +661,13 @@ public static partial class ModMinecraft
             try
             {
                 Directory.CreateDirectory(PathInstance + @"PCL\");
-                ModBase.CheckPermissionWithException(PathInstance + @"PCL\");
+                LauncherFileSystem.CheckPermissionWithException(PathInstance + @"PCL\");
             }
             catch (Exception ex)
             {
                 State = McInstanceState.Error;
                 Desc = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL";
-                ModBase.Log(ex, "没有访问实例文件夹的权限");
+                LauncherLogger.Log(ex, "没有访问实例文件夹的权限");
                 return false;
             }
 
@@ -678,7 +678,7 @@ public static partial class ModMinecraft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "实例 JSON 可用性检查失败（" + PathInstance + "）");
+                LauncherLogger.Log(ex, "实例 JSON 可用性检查失败（" + PathInstance + "）");
                 JsonText = "";
                 JsonObject = null;
                 Desc = ex.Message;
@@ -694,7 +694,7 @@ public static partial class ModMinecraft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "版本号获取失败（" + Name + "）");
+                LauncherLogger.Log(ex, "版本号获取失败（" + Name + "）");
                 State = McInstanceState.Error;
                 Desc = "版本号获取失败：" + ex;
                 return false;
@@ -704,7 +704,7 @@ public static partial class ModMinecraft
             try
             {
                 if (!string.IsNullOrEmpty(InheritInstanceName))
-                    if (!File.Exists(ModBase.GetPathFromFullPath(PathInstance) + InheritInstanceName + @"\" +
+                    if (!File.Exists(LauncherPaths.GetDirectoryFromPath(PathInstance) + InheritInstanceName + @"\" +
                                      InheritInstanceName + ".json"))
                     {
                         State = McInstanceState.Error;
@@ -714,7 +714,7 @@ public static partial class ModMinecraft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "依赖实例检查出错（" + Name + "）");
+                LauncherLogger.Log(ex, "依赖实例检查出错（" + Name + "）");
                 State = McInstanceState.Error;
                 Desc = "未知错误：" + ex;
                 return false;
@@ -841,73 +841,73 @@ public static partial class ModMinecraft
                     {
                         case McInstanceState.Original:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Grass.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Grass.png";
                             break;
                         }
                         case McInstanceState.Snapshot:
                         {
-                            Logo = ModBase.PathImage + "Blocks/CommandBlock.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/CommandBlock.png";
                             break;
                         }
                         case McInstanceState.Old:
                         {
-                            Logo = ModBase.PathImage + "Blocks/CobbleStone.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/CobbleStone.png";
                             break;
                         }
                         case McInstanceState.Forge:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Anvil.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Anvil.png";
                             break;
                         }
                         case McInstanceState.NeoForge:
                         {
-                            Logo = ModBase.PathImage + "Blocks/NeoForge.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/NeoForge.png";
                             break;
                         }
                         case McInstanceState.Cleanroom:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Cleanroom.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Cleanroom.png";
                             break;
                         }
                         case McInstanceState.Fabric:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Fabric.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Fabric.png";
                             break;
                         }
                         case McInstanceState.LegacyFabric:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Fabric.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Fabric.png";
                             break;
                         }
                         case McInstanceState.Quilt:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Quilt.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Quilt.png";
                             break;
                         }
                         case McInstanceState.OptiFine:
                         {
-                            Logo = ModBase.PathImage + "Blocks/GrassPath.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/GrassPath.png";
                             break;
                         }
                         case McInstanceState.LiteLoader:
                         {
-                            Logo = ModBase.PathImage + "Blocks/Egg.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/Egg.png";
                             break;
                         }
                         case McInstanceState.Fool:
                         {
-                            Logo = ModBase.PathImage + "Blocks/GoldBlock.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/GoldBlock.png";
                             break;
                         }
                         case McInstanceState.LabyMod:
                         {
-                            Logo = ModBase.PathImage + "Blocks/LabyMod.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/LabyMod.png";
                             break;
                         }
 
                         default:
                         {
-                            Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
+                            Logo = LauncherEnvironment.PathImage + "Blocks/RedstoneBlock.png";
                             break;
                         }
                     }
@@ -955,9 +955,9 @@ public static partial class ModMinecraft
             catch (Exception ex)
             {
                 Desc = "未知错误：" + ex;
-                Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
+                Logo = LauncherEnvironment.PathImage + "Blocks/RedstoneBlock.png";
                 State = McInstanceState.Error;
-                ModBase.Log(ex, "加载实例失败（" + Name + "）", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "加载实例失败（" + Name + "）", LauncherLogger.LogLevel.Feedback);
             }
             finally
             {
@@ -1249,19 +1249,19 @@ public static partial class ModMinecraft
                 // 末尾数字，如 C5 beta4 中的 5
                 result *= 100;
                 result = (int)Math.Round(result +
-                                         ModBase.Val(Strings.Right(OptiFine, OptiFine.Length - 1).RegexSeek("[0-9]+")));
+                                         MigrationHelpers.Val(Strings.Right(OptiFine, OptiFine.Length - 1).RegexSeek("[0-9]+")));
                 // 测试标记（正式版为 99，Pre[x] 为 50+x，Beta[x] 为 x）
                 result *= 100;
                 if (OptiFine.ContainsF("pre", true))
                     result += 50;
                 if (OptiFine.ContainsF("pre", true) || OptiFine.ContainsF("beta", true))
                 {
-                    if (ModBase.Val(Strings.Right(OptiFine, 1)) == 0d && Strings.Right(OptiFine, 1) != "0")
+                    if (MigrationHelpers.Val(Strings.Right(OptiFine, 1)) == 0d && Strings.Right(OptiFine, 1) != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
                         result =
                             (int)Math.Round(result +
-                                            ModBase.Val(OptiFine.ToLower().RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
+                                            MigrationHelpers.Val(OptiFine.ToLower().RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
                 }
                 else
                 {
@@ -1296,22 +1296,22 @@ public static partial class ModMinecraft
                 {
                     case var @case when @case > 4:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d +
-                                               ModBase.Val(segments[3]));
+                        return (int)Math.Round(MigrationHelpers.Val(segments[0]) * 1000000d + MigrationHelpers.Val(segments[1]) * 10000d +
+                                               MigrationHelpers.Val(segments[3]));
                     }
                     case 3:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d +
-                                               ModBase.Val(segments[2]));
+                        return (int)Math.Round(MigrationHelpers.Val(segments[0]) * 1000000d + MigrationHelpers.Val(segments[1]) * 10000d +
+                                               MigrationHelpers.Val(segments[2]));
                     }
                     case 2:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d);
+                        return (int)Math.Round(MigrationHelpers.Val(segments[0]) * 1000000d + MigrationHelpers.Val(segments[1]) * 10000d);
                     }
 
                     default:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d);
+                        return (int)Math.Round(MigrationHelpers.Val(segments[0]) * 1000000d);
                     }
                 }
             }
@@ -1367,7 +1367,7 @@ public static partial class ModMinecraft
                 return false;
             if (version.RegexCheck(@"^1\.\d"))
                 return true;
-            if (ModBase.Val(version.RegexSeek(@"^[2-9]\d\.\d+")) > 25d)
+            if (MigrationHelpers.Val(version.RegexSeek(@"^[2-9]\d\.\d+")) > 25d)
                 return true;
             return false;
         }
@@ -1385,8 +1385,8 @@ public static partial class ModMinecraft
             var segments = version.BeforeFirst("-").Split(".");
             if (segments.Length < 2)
                 return 0;
-            var major = (int)Math.Round(ModBase.Val(segments[0]));
-            var minor = (int)Math.Round(ModBase.Val(segments[1]));
+            var major = (int)Math.Round(MigrationHelpers.Val(segments[0]));
+            var minor = (int)Math.Round(MigrationHelpers.Val(segments[1]));
             if (major == 1) return minor * 10;
 
             if (major < 25) return 0;
@@ -1494,20 +1494,20 @@ public static partial class ModMinecraft
             // 如果没有可用实例，清空缓存并跳过后续处理
             if (!folderList.Any())
             {
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+                LauncherSerialization.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
                 McInstanceSelected = null;
                 States.Game.SelectedInstance = "";
-                ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
+                LauncherLogger.Log("[Minecraft] 未找到可用 Minecraft 实例");
                 return;
             }
 
             // 根据文件夹名列表生成辨识码
-            var folderListHash = ModBase.GetHash(McInstanceCacheVersion + "#" + string.Join("#", folderList));
+            var folderListHash = LauncherHash.GetHash(McInstanceCacheVersion + "#" + string.Join("#", folderList));
             var folderListCheck = (int)(folderListHash % (int.MaxValue - 1));
 
             // 尝试使用缓存
             var useCache = !McInstanceListForceRefresh &&
-                           ModBase.Val(ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) ==
+                           MigrationHelpers.Val(LauncherSerialization.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) ==
                            folderListCheck;
 
             if (useCache)
@@ -1523,8 +1523,8 @@ public static partial class ModMinecraft
             if (!useCache)
             {
                 McInstanceListForceRefresh = false;
-                ModBase.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
+                LauncherLogger.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
+                LauncherSerialization.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
                 McInstanceList = InitMcInstanceListWithoutCache(path);
             }
 
@@ -1534,7 +1534,7 @@ public static partial class ModMinecraft
                 return;
 
             // 尝试读取已储存的选择
-            var savedSelection = ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
+            var savedSelection = LauncherSerialization.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
             if (!string.IsNullOrEmpty(savedSelection))
                 foreach (var card in McInstanceList)
                 foreach (var instance in card.Value)
@@ -1542,7 +1542,7 @@ public static partial class ModMinecraft
                     {
                         McInstanceSelected = instance;
                         States.Game.SelectedInstance = McInstanceSelected.Name;
-                        ModBase.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McInstanceSelected.PathInstance);
+                        LauncherLogger.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McInstanceSelected.PathInstance);
                         return;
                     }
 
@@ -1555,13 +1555,13 @@ public static partial class ModMinecraft
             {
                 McInstanceSelected = firstInstance;
                 States.Game.SelectedInstance = McInstanceSelected.Name;
-                ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + McInstanceSelected.PathInstance);
+                LauncherLogger.Log("[Launch] 自动选择 Minecraft 实例：" + McInstanceSelected.PathInstance);
             }
             else
             {
                 McInstanceSelected = null;
                 States.Game.SelectedInstance = "";
-                ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
+                LauncherLogger.Log("[Minecraft] 未找到可用 Minecraft 实例");
             }
 
             // 调试延迟
@@ -1574,8 +1574,8 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
-            ModBase.Log(ex, "加载 .minecraft 实例列表失败", ModBase.LogLevel.Feedback);
+            LauncherSerialization.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
+            LauncherLogger.Log(ex, "加载 .minecraft 实例列表失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -1585,18 +1585,18 @@ public static partial class ModMinecraft
         var results = new Dictionary<McInstanceCardType, List<McInstance>>();
         try
         {
-            var cardCount = Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
+            var cardCount = Conversions.ToInteger(LauncherSerialization.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
             if (cardCount == -1)
                 return null;
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
             {
                 var cardType =
-                    (McInstanceCardType)Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
+                    (McInstanceCardType)Conversions.ToInteger(LauncherSerialization.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
                         ":"));
                 var instanceList = new List<McInstance>();
 
                 // 循环读取实例
-                foreach (var folder in ModBase.ReadIni(path + "PCL.ini", "CardValue" + (i + 1), ":").Split(":"))
+                foreach (var folder in LauncherSerialization.ReadIni(path + "PCL.ini", "CardValue" + (i + 1), ":").Split(":"))
                 {
                     if (string.IsNullOrEmpty(folder))
                         continue;
@@ -1605,12 +1605,12 @@ public static partial class ModMinecraft
                     {
                         if (_isFirstMcInstanceListLoad)
                         {
-                            ModBase.Log("[Minecraft] 清理残留的忽略项目：" + versionFolder); // #2781
+                            LauncherLogger.Log("[Minecraft] 清理残留的忽略项目：" + versionFolder); // #2781
                             File.Delete(versionFolder + ".pclignore");
                         }
                         else
                         {
-                            ModBase.Log("[Minecraft] 跳过要求忽略的项目：" + versionFolder);
+                            LauncherLogger.Log("[Minecraft] 跳过要求忽略的项目：" + versionFolder);
                             continue;
                         }
                     }
@@ -1677,7 +1677,7 @@ public static partial class ModMinecraft
                                                                                !((OldDesc ?? "") ==
                                                                                    (instance.Desc ?? ""))))
                             {
-                                ModBase.Log("[Minecraft] 实例 " + instance.Name + " 的错误状态已变更，新的状态为：" + instance.Desc);
+                                LauncherLogger.Log("[Minecraft] 实例 " + instance.Name + " 的错误状态已变更，新的状态为：" + instance.Desc);
                                 return null;
                             }
                         }
@@ -1685,14 +1685,14 @@ public static partial class ModMinecraft
                         // 校验未加载的实例
                         if (string.IsNullOrEmpty(instance.Logo))
                         {
-                            ModBase.Log("[Minecraft] 实例 " + instance.Name + " 未被加载");
+                            LauncherLogger.Log("[Minecraft] 实例 " + instance.Name + " 未被加载");
                             return null;
                         }
                     }
 
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "读取实例加载缓存失败（" + folder + "）");
+                        LauncherLogger.Log(ex, "读取实例加载缓存失败（" + folder + "）");
                         return null;
                     }
                 }
@@ -1705,7 +1705,7 @@ public static partial class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取实例缓存失败");
+            LauncherLogger.Log(ex, "读取实例缓存失败");
             return null;
         }
     }
@@ -1720,14 +1720,14 @@ public static partial class ModMinecraft
         {
             if (!folder.Exists || !folder.EnumerateFiles().Any())
             {
-                ModBase.Log("[Minecraft] 跳过空文件夹：" + folder.FullName);
+                LauncherLogger.Log("[Minecraft] 跳过空文件夹：" + folder.FullName);
                 continue;
             }
 
             if ((folder.Name == "cache" || folder.Name == "BLClient" || folder.Name == "PCL") &&
                 !File.Exists(folder.FullName + @"\" + folder.Name + ".json"))
             {
-                ModBase.Log("[Minecraft] 跳过可能不是实例文件夹的项目：" + folder.FullName);
+                LauncherLogger.Log("[Minecraft] 跳过可能不是实例文件夹的项目：" + folder.FullName);
                 continue;
             }
 
@@ -1736,19 +1736,19 @@ public static partial class ModMinecraft
             {
                 if (_isFirstMcInstanceListLoad)
                 {
-                    ModBase.Log("[Minecraft] 清理残留的忽略项目：" + instanceFolder); // #2781
+                    LauncherLogger.Log("[Minecraft] 清理残留的忽略项目：" + instanceFolder); // #2781
                     try
                     {
                         File.Delete(instanceFolder + ".pclignore");
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "清理残留的忽略项目失败（" + instanceFolder + "）", ModBase.LogLevel.Hint);
+                        LauncherLogger.Log(ex, "清理残留的忽略项目失败（" + instanceFolder + "）", LauncherLogger.LogLevel.Hint);
                     }
                 }
                 else
                 {
-                    ModBase.Log("[Minecraft] 跳过要求忽略的项目：" + instanceFolder);
+                    LauncherLogger.Log("[Minecraft] 跳过要求忽略的项目：" + instanceFolder);
                     continue;
                 }
             }
@@ -1898,7 +1898,7 @@ public static partial class ModMinecraft
         catch (Exception ex)
         {
             results.Clear();
-            ModBase.Log(ex, "分类实例列表失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "分类实例列表失败", LauncherLogger.LogLevel.Feedback);
         }
 
         #endregion
@@ -1975,15 +1975,15 @@ public static partial class ModMinecraft
 
         #region 保存卡片缓存
 
-        ModBase.WriteIni(path + "PCL.ini", "CardCount", results.Count.ToString());
+        LauncherSerialization.WriteIni(path + "PCL.ini", "CardCount", results.Count.ToString());
         for (int i = 0, loopTo = results.Count - 1; i <= loopTo; i++)
         {
-            ModBase.WriteIni(path + "PCL.ini", "CardKey" + (i + 1),
+            LauncherSerialization.WriteIni(path + "PCL.ini", "CardKey" + (i + 1),
                 ((int)results.Keys.ElementAtOrDefault(i)).ToString());
             var Value = "";
             foreach (var Instance in results.Values.ElementAtOrDefault(i))
                 Value += Instance.Name + ":";
-            ModBase.WriteIni(path + "PCL.ini", "CardValue" + (i + 1), Value);
+            LauncherSerialization.WriteIni(path + "PCL.ini", "CardValue" + (i + 1), Value);
         }
 
         #endregion

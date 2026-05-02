@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,7 +34,7 @@ public partial class PageSelectLeft : IRefreshable
     {
         ModMinecraft.McFolderListLoader.PreviewFinish += _ =>
         {
-            if (ModMain.FrmSelectLeft is not null) ModBase.RunInUiWait(McFolderListUI);
+            if (ModMain.FrmSelectLeft is not null) LauncherDispatcher.RunInUiWait(McFolderListUI);
         };
     }
 
@@ -113,7 +113,7 @@ public partial class PageSelectLeft : IRefreshable
                         AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
                         AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
-                            ModMinecraft.McFolderList.Count == 1 && folder.Location == ModBase.ExePath + ".minecraft\\"
+                            ModMinecraft.McFolderList.Count == 1 && folder.Location == LauncherPaths.ExecutableDirectory + ".minecraft\\"
                                 ? "清空"
                                 : "删除", ICON_DELETE, new Thickness(0, 0, 0, 2), ModMain.FrmSelectLeft.Delete_Click);
                         break;
@@ -181,7 +181,7 @@ public partial class PageSelectLeft : IRefreshable
                 // 图标按钮
                 var newIconButton = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSetup,
+                    Logo = Logo.IconButtonSetup,
                     LogoScale = 1.1
                 };
                 newIconButton.Click += (_, _) =>
@@ -206,7 +206,7 @@ public partial class PageSelectLeft : IRefreshable
             });
 
             // 创建新文件夹按钮
-            if (!Directory.Exists(ModBase.ExePath + ".minecraft\\"))
+            if (!Directory.Exists(LauncherPaths.ExecutableDirectory + ".minecraft\\"))
             {
                 var itemCreate = new MyListItem
                 {
@@ -216,7 +216,7 @@ public partial class PageSelectLeft : IRefreshable
                     Height = 34,
                     ToolTip = "在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹",
                     LogoScale = 0.9,
-                    Logo = ModBase.Logo.IconButtonCreate
+                    Logo = Logo.IconButtonCreate
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
                 ToolTipService.SetHorizontalOffset(itemCreate, -50);
@@ -233,7 +233,7 @@ public partial class PageSelectLeft : IRefreshable
                 Title = "添加已有文件夹",
                 Height = 34,
                 ToolTip = "将一个已有的 Minecraft 文件夹添加到列表",
-                Logo = ModBase.Logo.IconButtonAdd
+                Logo = Logo.IconButtonAdd
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemAdd, -50);
@@ -271,7 +271,7 @@ public partial class PageSelectLeft : IRefreshable
 
             if (!ModMinecraft.McFolderList.Any())
                 throw new ArgumentNullException("没有可用的 Minecraft 文件夹");
-            States.Game.SelectedFolder = ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$");
+            States.Game.SelectedFolder = ModMinecraft.McFolderList[0].Location.Replace(LauncherPaths.ExecutableDirectory, "$");
             ((MyListItem)ModMain.FrmSelectLeft.PanList.Children[1]).Checked = true;
         }
         catch (Exception ex)
@@ -378,7 +378,7 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"添加文件夹失败（{NewFolder}）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, $"添加文件夹失败（{NewFolder}）", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -400,12 +400,12 @@ public partial class PageSelectLeft : IRefreshable
         // 3. 能够找到可安装 Mod 的实例
         // 4. 该实例的隔离文件夹下不存在 mods
         // 满足以上全部条件则视为根目录整合包
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
             try
             {
                 if (!FolderPath.EndsWith(@"\")) FolderPath += @"\";
-                if (!ModBase.CheckPermission(FolderPath))
+                if (!LauncherFileSystem.CheckPermission(FolderPath))
                 {
                     if (ShowHint)
                     {
@@ -416,9 +416,9 @@ public partial class PageSelectLeft : IRefreshable
                     throw new Exception("PCL 没有访问文件夹的权限：" + FolderPath);
                 }
 
-                if (!ModBase.CheckPermission(FolderPath + @"versions\"))
+                if (!LauncherFileSystem.CheckPermission(FolderPath + @"versions\"))
                     foreach (var Folder in new DirectoryInfo(FolderPath).GetDirectories())
-                        if (ModBase.CheckPermission(Folder.FullName + @"\versions\"))
+                        if (LauncherFileSystem.CheckPermission(Folder.FullName + @"\versions\"))
                         {
                             FolderPath = Folder.FullName + @"\";
                             break;
@@ -449,7 +449,7 @@ public partial class PageSelectLeft : IRefreshable
 
                 if (!IsAdded) Folders.Add($"{DisplayName}>{FolderPath}");
                 States.Game.Folders = Folders.ToArray().Join("|");
-                States.Game.SelectedFolder = FolderPath.Replace(ModBase.ExePath, "$");
+                States.Game.SelectedFolder = FolderPath.Replace(LauncherPaths.ExecutableDirectory, "$");
                 ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
                 if (IsReplace) return;
                 if (ShowHint) ModMain.Hint($"文件夹 {DisplayName} 已添加！", ModMain.HintType.Finish);
@@ -466,12 +466,12 @@ public partial class PageSelectLeft : IRefreshable
                     if (ModIndieFolder.Exists && ModIndieFolder.EnumerateFiles().Any()) return;
                     Config.Instance.IndieV1[Version] = 2;
                     Config.Instance.IndieV2[Version] = false;
-                    ModBase.Log("[Setup] 已自动关闭单版本隔离：" + Version.Name, ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Setup] 已自动关闭单版本隔离：" + Version.Name, LauncherLogger.LogLevel.Debug);
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "向文件夹列表中添加新文件夹失败", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "向文件夹列表中添加新文件夹失败", LauncherLogger.LogLevel.Feedback);
             }
         }); // 加上斜杠……
     }
@@ -486,12 +486,12 @@ public partial class PageSelectLeft : IRefreshable
             return;
         }
 
-        if (!Directory.Exists(ModBase.ExePath + @".minecraft\"))
+        if (!Directory.Exists(LauncherPaths.ExecutableDirectory + @".minecraft\"))
         {
-            Directory.CreateDirectory(ModBase.ExePath + @".minecraft\");
-            Directory.CreateDirectory(ModBase.ExePath + @".minecraft\versions\");
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectory + @".minecraft\");
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectory + @".minecraft\versions\");
             States.Game.SelectedFolder = @"$.minecraft\";
-            ModMinecraft.McFolderLauncherProfilesJsonCreate(ModBase.ExePath + @".minecraft\");
+            ModMinecraft.McFolderLauncherProfilesJsonCreate(LauncherPaths.ExecutableDirectory + @".minecraft\");
             ModMain.Hint("新建 .minecraft 文件夹成功！", ModMain.HintType.Finish);
         }
 
@@ -563,7 +563,7 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "从列表中移除游戏文件夹失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "从列表中移除游戏文件夹失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -575,7 +575,7 @@ public partial class PageSelectLeft : IRefreshable
         var DeleteText =
             (Folder.Type == ModMinecraft.McFolder.Types.Original ||
              Folder.Type == ModMinecraft.McFolder.Types.RenamedOriginal) &&
-            (Folder.Location ?? "") == (ModBase.ExePath + @".minecraft\" ?? "") && ModMinecraft.McFolderList.Count == 1
+            (Folder.Location ?? "") == (LauncherPaths.ExecutableDirectory + @".minecraft\" ?? "") && ModMinecraft.McFolderList.Count == 1
                 ? "清空"
                 : "删除";
         if (ModMain.MyMsgBox(
@@ -608,29 +608,29 @@ public partial class PageSelectLeft : IRefreshable
         States.Game.Folders = !Folders.Any() ? "" : Folders.ToArray().Join("|");
         // 删除文件夹
         // 刷新列表
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
                 ModMain.Hint($"正在{DeleteText}文件夹 {Folder.Name}！");
-                ModBase.DeleteDirectory(Folder.Location);
+                LauncherFileSystem.DeleteDirectory(Folder.Location);
                 if (DeleteText == "清空") Directory.CreateDirectory(Folder.Location);
                 ModMain.Hint($"已{DeleteText}文件夹 {Folder.Name}！", ModMain.HintType.Finish);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"{DeleteText}文件夹 {Folder.Name} 失败", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, $"{DeleteText}文件夹 {Folder.Name} 失败", LauncherLogger.LogLevel.Hint);
             }
             finally
             {
                 ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
             }
-        }, "Folder Delete " + ModBase.GetUuid(), ThreadPriority.BelowNormal);
+        }, "Folder Delete " + LauncherDispatcher.GetUuid(), ThreadPriority.BelowNormal);
     }
 
     public void Open_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenExplorer(((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent).PlacementTarget)
+        LauncherShell.OpenExplorer(((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent).PlacementTarget)
             .Info);
     }
 
@@ -648,7 +648,7 @@ public partial class PageSelectLeft : IRefreshable
 
     public static void RefreshCurrent(string Folder)
     {
-        ModBase.WriteIni(Folder + "PCL.ini", "InstanceCache", ""); // 删除缓存以强制要求下一次加载时更新列表
+        LauncherSerialization.WriteIni(Folder + "PCL.ini", "InstanceCache", ""); // 删除缓存以强制要求下一次加载时更新列表
         if ((Folder ?? "") == (ModMinecraft.McFolderSelected ?? ""))
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
@@ -699,12 +699,12 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重命名文件夹失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "重命名文件夹失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
     // 点击选项
-    public void Folder_Change(MyListItem sender, ModBase.RouteEventArgs e)
+    public void Folder_Change(MyListItem sender, RouteEventArgs e)
     {
         if (!e.RaiseByMouse || !sender.Checked)
             return;
@@ -717,7 +717,7 @@ public partial class PageSelectLeft : IRefreshable
         }
 
         // 更换
-        States.Game.SelectedFolder = ((ModMinecraft.McFolder)sender.Tag).Location.Replace(ModBase.ExePath, "$");
+        States.Game.SelectedFolder = ((ModMinecraft.McFolder)sender.Tag).Location.Replace(LauncherPaths.ExecutableDirectory, "$");
         ModMinecraft.McFolderListLoader.Start(IsForceRestart: true);
         ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\"); // 刷新实例列表
@@ -737,7 +737,7 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "开始拖拽操作失败");
+                LauncherLogger.Log(ex, "开始拖拽操作失败");
             }
     }
 
@@ -795,7 +795,7 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽离开处理失败");
+            LauncherLogger.Log(ex, "拖拽离开处理失败");
         }
 
         e.Handled = true;
@@ -868,14 +868,14 @@ public partial class PageSelectLeft : IRefreshable
                 UpdateFolderOrder();
 
                 var Direction = SourceIndex < TargetIndex ? "后面" : "前面";
-                ModBase.Log(
-                    $"[Control] 文件夹拖拽排序：{SourceFolder.Name} -> 位置 {NewTargetIndex} (在 {TargetFolder.Name} {Direction})", ModBase.LogLevel.Debug);
+                LauncherLogger.Log(
+                    $"[Control] 文件夹拖拽排序：{SourceFolder.Name} -> 位置 {NewTargetIndex} (在 {TargetFolder.Name} {Direction})", LauncherLogger.LogLevel.Debug);
             }
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽放下操作失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "拖拽放下操作失败", LauncherLogger.LogLevel.Feedback);
         }
         finally
         {

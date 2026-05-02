@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -78,7 +78,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取模组信息失败: " + path);
+            LauncherLogger.Log(ex, "获取模组信息失败: " + path);
             return (DateTime.MinValue, 0L);
         }
     }
@@ -224,7 +224,7 @@ public partial class PageInstanceCompResource : IRefreshable
         // 检查是否为原理图管理界面且首次打开
         if (CurrentCompType == ModComp.CompType.Schematic && !States.Hint.SchematicFirstTime)
             // 显示首次打开提示
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 ModMain.MyMsgBox("现改为双击文件夹进入子文件夹。", "操作提示", "我知道了");
                 States.Hint.SchematicFirstTime = true;
@@ -245,10 +245,10 @@ public partial class PageInstanceCompResource : IRefreshable
                 ? ModLoader.LoaderFolderRunType.ForceRun
                 : ModLoader.LoaderFolderRunType.RunOnUpdated))
         {
-            ModBase.Log($"[System] 已刷新 {CurrentCompType} 列表");
+            LauncherLogger.Log($"[System] 已刷新 {CurrentCompType} 列表");
             ModFileInfoCache.Clear();
 
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 Filter = FilterType.All;
                 PanBack.ScrollToHome();
@@ -275,12 +275,12 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             ModComp.CompProjectCache.Clear();
             ModComp.CompFilesCache.Clear();
-            File.Delete(ModBase.PathTemp + @"Cache\LocalComp.json");
-            ModBase.Log("[CompResource] 由于点击刷新按钮，清理本地工程信息缓存");
+            File.Delete(LauncherPaths.TempDirectory + @"Cache\LocalComp.json");
+            LauncherLogger.Log("[CompResource] 由于点击刷新按钮，清理本地工程信息缓存");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "强制刷新时清理本地工程信息缓存失败");
+            LauncherLogger.Log(ex, "强制刷新时清理本地工程信息缓存失败");
         }
 
         switch (WhichPage)
@@ -326,7 +326,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLocalComp.CompResourceListLoader.State == ModBase.LoadState.Failed)
+        if (ModLocalComp.CompResourceListLoader.State == LoadState.Failed)
             LoaderRun(ModLoader.LoaderFolderRunType.ForceRun);
     }
 
@@ -369,14 +369,14 @@ public partial class PageInstanceCompResource : IRefreshable
             }
 
             CurrentFolderPath = folderPath;
-            ModBase.Log($"[原理图] 进入文件夹：{folderPath}");
+            LauncherLogger.Log($"[原理图] 进入文件夹：{folderPath}");
 
             ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, folderPath,
                 ModLoader.LoaderFolderRunType.ForceRun, LoaderInput: GetRequireLoaderData());
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进入文件夹失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "进入文件夹失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -391,7 +391,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进入文件夹失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "进入文件夹失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -424,12 +424,12 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "路径处理失败");
+            LauncherLogger.Log(ex, "路径处理失败");
             // 发生错误时直接返回根目录
             CurrentFolderPath = "";
         }
 
-        ModBase.Log($"[原理图] 返回上级文件夹：{(string.IsNullOrEmpty(CurrentFolderPath) ? "根目录" : CurrentFolderPath)}");
+        LauncherLogger.Log($"[原理图] 返回上级文件夹：{(string.IsNullOrEmpty(CurrentFolderPath) ? "根目录" : CurrentFolderPath)}");
 
         // 重新加载当前文件夹的内容
         string LoadPath;
@@ -445,12 +445,12 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 强制刷新UI状态
         // 确保按钮状态正确
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
             BtnManageBack.Visibility =
                 !string.IsNullOrEmpty(CurrentFolderPath) ? Visibility.Visible : Visibility.Collapsed);
 
         // 延迟一帧后再加载，确保UI状态已更新
-        ModBase.RunInUi(
+        LauncherDispatcher.RunInUi(
             () => ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, LoadPath,
                 ModLoader.LoaderFolderRunType.ForceRun, LoaderInput: GetRequireLoaderData()), true);
     }
@@ -551,7 +551,7 @@ public partial class PageInstanceCompResource : IRefreshable
             foreach (var ModEntity in itemsToShow)
                 ModItems[ModEntity.RawPath] = BuildLocalCompItem(ModEntity);
             // 显示结果
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 Filter = FilterType.All;
                 SearchBox.Text = ""; // 这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
@@ -561,7 +561,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"加载 {CurrentCompType} 列表 UI 失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, $"加载 {CurrentCompType} 列表 UI 失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -588,7 +588,7 @@ public partial class PageInstanceCompResource : IRefreshable
         catch (Exception ex)
         {
             ModAnimation.AniControlEnabled -= 1;
-            ModBase.Log(ex, $"创建 UI 项失败：{Entry.RawPath}");
+            LauncherLogger.Log(ex, $"创建 UI 项失败：{Entry.RawPath}");
             throw;
         }
     }
@@ -628,20 +628,20 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Logo.IconButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Logo.IconButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
         ToolTipService.SetHorizontalOffset(BtnCont, 2d);
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Logo.IconButtonDelete, Tag = sender };
         BtnDelete.ToolTip = "删除";
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
@@ -658,8 +658,8 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 LogoScale = 1d,
                 Logo = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? ModBase.Logo.IconButtonStop
-                    : ModBase.Logo.IconButtonCheck,
+                    ? Logo.IconButtonStop
+                    : Logo.IconButtonCheck,
                 Tag = sender
             };
             BtnED.ToolTip = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? "禁用" : "启用";
@@ -945,11 +945,11 @@ public partial class PageInstanceCompResource : IRefreshable
                 // 打开当前子文件夹
                 CompFilePath = CurrentFolderPath.EndsWith(@"\") ? CurrentFolderPath : CurrentFolderPath + @"\";
             Directory.CreateDirectory(CompFilePath);
-            ModBase.OpenExplorer(CompFilePath);
+            LauncherShell.OpenExplorer(CompFilePath);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开 Mods 文件夹失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "打开 Mods 文件夹失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -1066,19 +1066,19 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             foreach (var modFile in filePathList)
             {
-                var fileName = ModBase.GetFileNameFromPath(modFile)
+                var fileName = LauncherPaths.GetFileName(modFile)
                     .Replace(".disabled", "")
                     .Replace(".old", "");
 
                 if (!fileName.Contains(".")) fileName += ".jar"; // Ensure extension (#4227)
 
-                ModBase.CopyFile(modFile, Path.Combine(modFolder, fileName));
+                LauncherFileSystem.CopyFile(modFile, Path.Combine(modFolder, fileName));
             }
 
             // Success hint
             if (filePathList.Count() == 1)
             {
-                var installedName = ModBase.GetFileNameFromPath(filePathList.First()).Replace(".disabled", "")
+                var installedName = LauncherPaths.GetFileName(filePathList.First()).Replace(".disabled", "")
                     .Replace(".old", "");
                 HintWrapper.Show($"已安装 {installedName}！", HintTheme.Success);
             }
@@ -1187,7 +1187,7 @@ public partial class PageInstanceCompResource : IRefreshable
             return;
         }
 
-        ModBase.Log($"[System] 文件为 {Extension} 格式，尝试作为{CompTypeName}安装");
+        LauncherLogger.Log($"[System] 文件为 {Extension} 格式，尝试作为{CompTypeName}安装");
 
         // 检查实例兼容性
         if (CompType == ModComp.CompType.Mod && (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSelect ||
@@ -1236,7 +1236,7 @@ public partial class PageInstanceCompResource : IRefreshable
             Directory.CreateDirectory(CompFolder);
             foreach (var FilePath in FilePathList)
             {
-                var NewFileName = ModBase.GetFileNameFromPath(FilePath);
+                var NewFileName = LauncherPaths.GetFileName(FilePath);
                 if (CompType == ModComp.CompType.Mod)
                 {
                     NewFileName = NewFileName.Replace(".disabled", "").Replace(".old", "");
@@ -1249,11 +1249,11 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", "覆盖", "取消") != 1)
                         continue;
 
-                ModBase.CopyFile(FilePath, DestFile);
+                LauncherFileSystem.CopyFile(FilePath, DestFile);
             }
 
             if (FilePathList.Count() == 1)
-                ModMain.Hint($"已安装 {ModBase.GetFileNameFromPath(FilePathList.First())}！", ModMain.HintType.Finish);
+                ModMain.Hint($"已安装 {LauncherPaths.GetFileName(FilePathList.First())}！", ModMain.HintType.Finish);
             else
                 ModMain.Hint($"已安装 {FilePathList.Count()} 个{CompTypeName}！", ModMain.HintType.Finish);
 
@@ -1276,7 +1276,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     case ModComp.CompType.Schematic:
                     {
                         var CurrentForm = GetCurrentCompResourceForm();
-                        if (CurrentForm is not null) ModBase.RunInUi(() => CurrentForm.ReloadCompFileList(true));
+                        if (CurrentForm is not null) LauncherDispatcher.RunInUi(() => CurrentForm.ReloadCompFileList(true));
 
                         break;
                     }
@@ -1285,7 +1285,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"复制{CompTypeName}文件失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, $"复制{CompTypeName}文件失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -1335,11 +1335,11 @@ public partial class PageInstanceCompResource : IRefreshable
                     SystemDialogs.SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv");
                 if (string.IsNullOrWhiteSpace(savePath)) return;
                 File.WriteAllText(savePath, Content, Encoding.UTF8);
-                ModBase.OpenExplorer(savePath);
+                LauncherShell.OpenExplorer(savePath);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "导出资源信息失败", ModBase.LogLevel.Msgbox);
+                LauncherLogger.Log(ex, "导出资源信息失败", LauncherLogger.LogLevel.Msgbox);
             }
         }
 
@@ -1423,7 +1423,7 @@ public partial class PageInstanceCompResource : IRefreshable
     public HashSet<string> SelectedMods = new();
 
     // 单项切换选择状态
-    public void CheckChanged(MyLocalCompItem sender, ModBase.RouteEventArgs e)
+    public void CheckChanged(MyLocalCompItem sender, RouteEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
@@ -1651,7 +1651,7 @@ public partial class PageInstanceCompResource : IRefreshable
         return "";
     }
 
-    private void BtnSortClick(object sender, ModBase.RouteEventArgs e)
+    private void BtnSortClick(object sender, RouteEventArgs e)
     {
         var Body = new ContextMenu();
         foreach (SortMethod i in Enum.GetValues(typeof(SortMethod)))
@@ -1699,7 +1699,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行排序时出错", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "执行排序时出错", LauncherLogger.LogLevel.Hint);
             }
         }
     }
@@ -1840,7 +1840,7 @@ public partial class PageInstanceCompResource : IRefreshable
     #region 下边栏
 
     // 启用 / 禁用
-    private void BtnSelectED_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectED_Click(object sender, RouteEventArgs e)
     {
         EDMods(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedMods.Contains(m.RawPath)).ToList(),
             !sender.Equals(BtnSelectDisable));
@@ -1870,7 +1870,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (File.Exists(ModEntity.Path))
                     {
                         // 同时存在两个名称的 Mod
-                        if ((ModBase.GetFileMD5(ModEntity.Path) ?? "") != (ModBase.GetFileMD5(NewPath) ?? ""))
+                        if ((LauncherHash.GetFileMD5(ModEntity.Path) ?? "") != (LauncherHash.GetFileMD5(NewPath) ?? ""))
                         {
                             ModMain.MyMsgBox(
                                 $"目前同时存在启用和禁用的两个 Mod 文件：{"\r\n"} - {NewPath}{"\r\n"} - {ModEntity.Path}{"\r\n"}{"\r\n"}注意，这两个文件的内容并不相同。{"\r\n"}在手动删除或重命名其中一个文件后，才能继续操作。",
@@ -1881,7 +1881,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     else
                     {
                         // 已经重命名过了
-                        ModBase.Log("[Mod] Mod 的状态已被切换", ModBase.LogLevel.Debug);
+                        LauncherLogger.Log("[Mod] Mod 的状态已被切换", LauncherLogger.LogLevel.Debug);
                         continue;
                     }
                 }
@@ -1891,13 +1891,13 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (FileNotFoundException ex)
             {
-                ModBase.Log(ex, $"未找到需要重命名的 Mod（{ModEntity.Path ?? "null"}）", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, $"未找到需要重命名的 Mod（{ModEntity.Path ?? "null"}）", LauncherLogger.LogLevel.Feedback);
                 ReloadCompFileList(true);
                 return;
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"重命名 Mod 失败（{ModEntity.Path ?? "null"}）");
+                LauncherLogger.Log(ex, $"重命名 Mod 失败（{ModEntity.Path ?? "null"}）");
                 IsSuccessful = false;
             }
 
@@ -1932,7 +1932,7 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"更新 UI 列表项失败：{ModEntity.FileName}", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, $"更新 UI 列表项失败：{ModEntity.FileName}", LauncherLogger.LogLevel.Hint);
             }
         }
 
@@ -1951,7 +1951,7 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 更新
-    private void BtnSelectUpdate_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectUpdate_Click(object sender, RouteEventArgs e)
     {
         var UpdateList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedMods.Contains(m.RawPath) && m.CanUpdate).ToList();
@@ -2027,9 +2027,9 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
 
                 // 添加到下载列表
-                var TempAddress = ModBase.PathTemp + @"DownloadedComp\" +
+                var TempAddress = LauncherPaths.TempDirectory + @"DownloadedComp\" +
                                   Entry.FileName.Replace(CurrentReplaceName, NewestReplaceName);
-                var RealAddress = ModBase.GetPathFromFullPath(Entry.Path) +
+                var RealAddress = LauncherPaths.GetDirectoryFromPath(Entry.Path) +
                                   Entry.FileName.Replace(CurrentReplaceName, NewestReplaceName);
                 FileList.Add(File.ToNetFile(TempAddress));
                 FileCopyList[TempAddress] = RealAddress;
@@ -2049,7 +2049,7 @@ public partial class PageInstanceCompResource : IRefreshable
                             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Path, UIOption.AllDialogs,
                                 RecycleOption.SendToRecycleBin);
                         else
-                            ModBase.Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{Entry.Path}", ModBase.LogLevel.Debug);
+                            LauncherLogger.Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{Entry.Path}", LauncherLogger.LogLevel.Debug);
 
                     foreach (var Entry in FileCopyList)
                     {
@@ -2057,23 +2057,23 @@ public partial class PageInstanceCompResource : IRefreshable
                         {
                             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
                                 RecycleOption.SendToRecycleBin);
-                            ModBase.Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
+                            LauncherLogger.Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", LauncherLogger.LogLevel.Debug);
                         }
 
-                        if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                        if (Directory.Exists(LauncherPaths.GetDirectoryFromPath(Entry.Value)))
                         {
                             File.Move(Entry.Key, Entry.Value);
-                            FinishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
+                            FinishedFileNames.Add(LauncherPaths.GetFileName(Entry.Value));
                         }
                         else
                         {
-                            ModBase.Log($"[Mod] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                            LauncherLogger.Log($"[Mod] 更新后的目标文件夹已被删除：{Entry.Value}", LauncherLogger.LogLevel.Debug);
                         }
                     }
                 }
                 catch (OperationCanceledException ex)
                 {
-                    ModBase.Log(ex, "替换旧版资源文件时被主动取消");
+                    LauncherLogger.Log(ex, "替换旧版资源文件时被主动取消");
                 }
             }));
             // 结束处理
@@ -2089,13 +2089,13 @@ public partial class PageInstanceCompResource : IRefreshable
                 // 结果提示
                 switch (Loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case LoadState.Finished:
                     {
                         switch (FinishedFileNames.Count)
                         {
                             case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
                             {
-                                ModBase.Log("[CompUpdate] 没有资源被成功更新");
+                                LauncherLogger.Log("[CompUpdate] 没有资源被成功更新");
                                 break;
                             }
                             case 1:
@@ -2113,12 +2113,12 @@ public partial class PageInstanceCompResource : IRefreshable
 
                         break;
                     }
-                    case ModBase.LoadState.Failed:
+                    case LoadState.Failed:
                     {
                         ModMain.Hint("资源更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
                         break;
                     }
-                    case ModBase.LoadState.Aborted:
+                    case LoadState.Aborted:
                     {
                         ModMain.Hint("资源更新已中止！");
                         break;
@@ -2130,10 +2130,10 @@ public partial class PageInstanceCompResource : IRefreshable
                     }
                 }
 
-                ModBase.Log($"[CompUpdate] 已从正在进行资源更新的文件夹列表移除：{PathMods}");
+                LauncherLogger.Log($"[CompUpdate] 已从正在进行资源更新的文件夹列表移除：{PathMods}");
                 UpdatingVersions.Remove(PathMods);
                 // 清理缓存
-                ModBase.RunInNewThread(() =>
+                LauncherDispatcher.RunInNewThread(() =>
                 {
                     try
                     {
@@ -2143,12 +2143,12 @@ public partial class PageInstanceCompResource : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "清理资源更新缓存失败");
+                        LauncherLogger.Log(ex, "清理资源更新缓存失败");
                     }
                 }, "Clean Comp Update Cache", ThreadPriority.BelowNormal);
             };
             // 启动加载器
-            ModBase.Log($"[CompUpdate] 开始更新 {ModList.Count()} 个资源：{PathMods}");
+            LauncherLogger.Log($"[CompUpdate] 开始更新 {ModList.Count()} 个资源：{PathMods}");
             UpdatingVersions.Add(PathMods);
             Loader.Start();
             ModLoader.LoaderTaskbarAdd(Loader);
@@ -2158,12 +2158,12 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化资源更新失败");
+            LauncherLogger.Log(ex, "初始化资源更新失败");
         }
     }
 
     // 删除
-    private void BtnSelectDelete_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectDelete_Click(object sender, RouteEventArgs e)
     {
         DeleteMods(ModLocalComp.CompResourceListLoader.Output.Where(m => SelectedMods.Contains(m.RawPath)));
         ChangeAllSelected(false);
@@ -2218,13 +2218,13 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
                 catch (OperationCanceledException ex)
                 {
-                    ModBase.Log(ex, "删除资源被主动取消");
+                    LauncherLogger.Log(ex, "删除资源被主动取消");
                     ReloadCompFileList(true);
                     return;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"删除资源失败（{ModEntity.Path}）", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, $"删除资源失败（{ModEntity.Path}）", LauncherLogger.LogLevel.Msgbox);
                     IsSuccessful = false;
                 }
 
@@ -2276,12 +2276,12 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, "删除资源被主动取消");
+            LauncherLogger.Log(ex, "删除资源被主动取消");
             ReloadCompFileList(true);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除资源出现未知错误", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "删除资源出现未知错误", LauncherLogger.LogLevel.Feedback);
             ReloadCompFileList(true);
         }
 
@@ -2289,13 +2289,13 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 取消选择
-    private void BtnSelectCancel_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectCancel_Click(object sender, RouteEventArgs e)
     {
         ChangeAllSelected(false);
     }
 
     // 收藏
-    private void BtnSelectFavorites_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectFavorites_Click(object sender, RouteEventArgs e)
     {
         var Selected = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedMods.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
@@ -2303,11 +2303,11 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     // 分享
-    private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnSelectShare_Click(object sender, RouteEventArgs e)
     {
         var ShareList = ModLocalComp.CompResourceListLoader.Output
             .Where(m => SelectedMods.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
-        ModBase.ClipboardSet(ModComp.CompFavorites.GetShareCode(ShareList));
+        LauncherClipboard.ClipboardSet(ModComp.CompFavorites.GetShareCode(ShareList));
         ChangeAllSelected(false);
     }
 
@@ -2434,7 +2434,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (ModEntry.Authors is not null)
                         ContentLines.Add("作者：" + ModEntry.Authors);
                     ContentLines.Add("文件：" + ModEntry.FileName + "（" +
-                                     ModBase.GetString(GetModFileInfo(ModEntry.Path).Length) + "）");
+                                     LauncherText.GetString(GetModFileInfo(ModEntry.Path).Length) + "）");
                     if (ModEntry.Version is not null)
                         ContentLines.Add("版本：" + ModEntry.Version);
 
@@ -2491,13 +2491,13 @@ public partial class PageInstanceCompResource : IRefreshable
                         if (ModEntry.Url is null)
                             ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, "返回");
                         else if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, "打开官网", "返回") ==
-                                 1) ModBase.OpenWebsite(ModEntry.Url);
+                                 1) LauncherShell.OpenWebsite(ModEntry.Url);
                     }
                     // 其他资源类型保留百科搜索功能
                     else if (ModEntry.Url is null)
                     {
                         if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, "百科搜索", "返回") == 1)
-                            ModBase.OpenWebsite("https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
+                            LauncherShell.OpenWebsite("https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
                     }
                     else
                     {
@@ -2506,12 +2506,12 @@ public partial class PageInstanceCompResource : IRefreshable
                         {
                             case 1:
                             {
-                                ModBase.OpenWebsite(ModEntry.Url);
+                                LauncherShell.OpenWebsite(ModEntry.Url);
                                 break;
                             }
                             case 2:
                             {
-                                ModBase.OpenWebsite(
+                                LauncherShell.OpenWebsite(
                                     "https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
                                 break;
                             }
@@ -2522,7 +2522,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取资源详情失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "获取资源详情失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -2534,11 +2534,11 @@ public partial class PageInstanceCompResource : IRefreshable
             var ListItem = (MyLocalCompItem)sender.Tag;
             // 对于文件夹使用实际路径，对于文件使用原路径
             var targetPath = ListItem.Entry.IsFolder ? ListItem.Entry.ActualPath : ListItem.Entry.Path;
-            ModBase.OpenExplorer(targetPath);
+            LauncherShell.OpenExplorer(targetPath);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开资源文件位置失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "打开资源文件位置失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -2579,12 +2579,12 @@ public partial class PageInstanceCompResource : IRefreshable
 
 
         // 记录错误日志但不显示错误提示，因为通用的文件状态检查已经处理了
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
                 ModEntry.LoadNbtDataIfNeeded();
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     try
                     {
@@ -2592,7 +2592,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         if (ModEntry.Description is not null) ContentLines.Add(ModEntry.Description + "\r\n");
                         if (ModEntry.Authors is not null) ContentLines.Add("作者：" + ModEntry.Authors);
                         ContentLines.Add("文件：" + ModEntry.FileName + "（" +
-                                         ModBase.GetString(GetModFileInfo(ModEntry.Path).Length) + "）");
+                                         LauncherText.GetString(GetModFileInfo(ModEntry.Path).Length) + "）");
                         if (ModEntry.Version is not null) ContentLines.Add("版本：" + ModEntry.Version);
                         if (ModEntry.Path.EndsWithF(".litematic", true))
                             ShowLitematicDetails(ContentLines, ModEntry);
@@ -2606,13 +2606,13 @@ public partial class PageInstanceCompResource : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "显示原理图详情失败", ModBase.LogLevel.Feedback);
+                        LauncherLogger.Log(ex, "显示原理图详情失败", LauncherLogger.LogLevel.Feedback);
                     }
                 });
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "加载原理图 NBT 数据失败", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "加载原理图 NBT 数据失败", LauncherLogger.LogLevel.Feedback);
             }
         });
     }
@@ -2785,7 +2785,7 @@ public partial class PageInstanceCompResource : IRefreshable
         if (ModEntry.Url is null)
             ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, "返回");
         else if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, "打开官网", "返回") == 1)
-            ModBase.OpenWebsite(ModEntry.Url);
+            LauncherShell.OpenWebsite(ModEntry.Url);
     }
 
     #endregion
@@ -2824,7 +2824,7 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "搜索过程中发生异常");
+                LauncherLogger.Log(ex, "搜索过程中发生异常");
             }
         }));
     }
@@ -2832,32 +2832,32 @@ public partial class PageInstanceCompResource : IRefreshable
     private List<ModLocalComp.LocalCompFile> GetSearchResult(string query)
     {
         // 构造请求
-        var QueryList = new List<ModBase.SearchEntry<ModLocalComp.LocalCompFile>>();
+        var QueryList = new List<SearchEntry<ModLocalComp.LocalCompFile>>();
         foreach (var Entry in ModLocalComp.CompResourceListLoader.Output.AsReadOnly())
         {
-            var SearchSource = new List<ModBase.SearchSource>();
-            SearchSource.Add(new ModBase.SearchSource(Entry.Name, 1d));
-            SearchSource.Add(new ModBase.SearchSource(Entry.FileName, 1d));
-            if (Entry.Version is not null) SearchSource.Add(new ModBase.SearchSource(Entry.Version, 0.2d));
+            var SearchSource = new List<SearchSource>();
+            SearchSource.Add(new SearchSource(Entry.Name, 1d));
+            SearchSource.Add(new SearchSource(Entry.FileName, 1d));
+            if (Entry.Version is not null) SearchSource.Add(new SearchSource(Entry.Version, 0.2d));
             if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
+                SearchSource.Add(new SearchSource(Entry.Description, 0.4d));
             if (Entry.Comp is not null)
             {
                 if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName, 1d));
+                    SearchSource.Add(new SearchSource(Entry.Comp.RawName, 1d));
                 if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName, 1d));
+                    SearchSource.Add(new SearchSource(Entry.Comp.TranslatedName, 1d));
                 if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                    SearchSource.Add(new ModBase.SearchSource(Entry.Comp.Description, 0.4d));
-                SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
+                    SearchSource.Add(new SearchSource(Entry.Comp.Description, 0.4d));
+                SearchSource.Add(new SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
             }
 
-            QueryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>
+            QueryList.Add(new SearchEntry<ModLocalComp.LocalCompFile>
                 { Item = Entry, SearchSource = SearchSource });
         }
 
         // 进行搜索
-        return ModBase.Search(QueryList, query, 6, 0.35d).Select(r => r.Item).ToList();
+        return LauncherSearch.Search(QueryList, query, 6, 0.35d).Select(r => r.Item).ToList();
     }
 
     #endregion

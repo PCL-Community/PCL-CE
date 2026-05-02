@@ -1,4 +1,4 @@
-namespace PCL;
+﻿namespace PCL;
 
 public static class ModVideoBack
 {
@@ -37,7 +37,7 @@ public static class ModVideoBack
 
     public static void OnGamingStateChanged(object sender, BooleanEventArgs e) // 用户是否在游戏中 事件
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (IsGaming)
             {
@@ -59,7 +59,7 @@ public static class ModVideoBack
 
     public static void OnForcePlayChanged(object sender, BooleanEventArgs e) // 是否强行播放 事件
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (IsGaming)
             {
@@ -84,18 +84,18 @@ public static class ModVideoBack
     /// </summary>
     public static void VideoPlay()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (ModMain.FrmMain.VideoBack.Source is not null & !IsMinimized)
                 if (!IsGaming | ForcePlay)
                     try
                     {
                         ModMain.FrmMain.VideoBack.Play();
-                        ModBase.Log("[UI] 已开始视频背景播放");
+                        LauncherLogger.Log("[UI] 已开始视频背景播放");
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[UI] 开始视频背景播放失败");
+                        LauncherLogger.Log(ex, "[UI] 开始视频背景播放失败");
                     }
         });
     }
@@ -105,18 +105,18 @@ public static class ModVideoBack
     /// </summary>
     public static void VideoStop()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             try
             {
                 ModMain.FrmMain.VideoBack.Source = null;
                 ModMain.FrmMain.VideoBack.Stop();
                 ModMain.FrmMain.VideoBack.Position = TimeSpan.Zero;
-                ModBase.Log("[UI] 已停止视频背景播放");
+                LauncherLogger.Log("[UI] 已停止视频背景播放");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[UI] 停止视频背景播放失败");
+                LauncherLogger.Log(ex, "[UI] 停止视频背景播放失败");
             }
         });
     }
@@ -128,7 +128,7 @@ public static class ModVideoBack
     {
         // 窗口最小化后暂停
         // 游戏启动后暂停
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (IsMinimized)
             {
@@ -136,11 +136,11 @@ public static class ModVideoBack
                     try
                     {
                         ModMain.FrmMain.VideoBack.Pause();
-                        ModBase.Log("[UI] 已暂停视频背景播放");
+                        LauncherLogger.Log("[UI] 已暂停视频背景播放");
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[UI] 暂停视频背景播放失败");
+                        LauncherLogger.Log(ex, "[UI] 暂停视频背景播放失败");
                     }
             }
             else if (ForcePlay)
@@ -152,11 +152,11 @@ public static class ModVideoBack
                 {
                     if (!(ModMain.FrmSetupUI == null)) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                     ModMain.FrmMain.VideoBack.Pause();
-                    ModBase.Log("[UI] 已暂停视频背景播放");
+                    LauncherLogger.Log("[UI] 已暂停视频背景播放");
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "[UI] 暂停视频背景播放失败");
+                    LauncherLogger.Log(ex, "[UI] 暂停视频背景播放失败");
                 }
             }
         });

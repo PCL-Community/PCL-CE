@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -63,7 +63,7 @@ public partial class PageSetupLaunch
             // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
-            ((MyRadioBox)FindName("RadioRamType" + ModBase.Setup.Load("LaunchRamType"))).Checked = true;
+            ((MyRadioBox)FindName("RadioRamType" + LauncherEnvironment.Setup.Load("LaunchRamType"))).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
 
             // 高级设置
@@ -76,7 +76,7 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
-            if (ModBase.IsArm64System)
+            if (LauncherEnvironment.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -90,12 +90,12 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "启动设置项存在异常，已被自动重置", LauncherLogger.LogLevel.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "重载启动设置时出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -105,59 +105,59 @@ public partial class PageSetupLaunch
         try
         {
             Config.Launch.Reset();
-            ModBase.Log("[Setup] 已初始化启动设置");
+            LauncherLogger.Log("[Setup] 已初始化启动设置");
             ModMain.Hint("已初始化启动设置！", ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化启动设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
     }
 
     // 将控件改变路由到设置改变
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            LauncherEnvironment.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     // 切换到实例独立设置
@@ -210,7 +210,7 @@ public partial class PageSetupLaunch
         var ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
         var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
         var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
-        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
+        var ramEmpty = Math.Round(LauncherText.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
         // 设置最大可用内存
         if (ramTotal <= 1.5d)
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
@@ -225,7 +225,7 @@ public partial class PageSetupLaunch
         LabRamUsed.Text = $"{(ramUsed == Math.Floor(ramUsed) ? $"{ramUsed}.0" : ramUsed.ToString())} GB";
         LabRamTotal.Text = $" / {(ramTotal == Math.Floor(ramTotal) ? $"{ramTotal}.0" : ramTotal.ToString())} GB";
         LabRamWarn.Visibility =
-            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !LauncherEnvironment.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
@@ -560,14 +560,14 @@ public partial class PageSetupLaunch
     private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnAdvanceJvmReset.Visibility =
-            TextAdvanceJvm.Text == (string)ModBase.Setup.GetDefault("LaunchAdvanceJvm")
+            TextAdvanceJvm.Text == (string)LauncherEnvironment.Setup.GetDefault("LaunchAdvanceJvm")
                 ? Visibility.Hidden
                 : Visibility.Visible;
     }
 
     private void BtnAdvanceJvmReset_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Reset("LaunchAdvanceJvm");
+        LauncherEnvironment.Setup.Reset("LaunchAdvanceJvm");
         Reload();
     }
 
@@ -587,13 +587,13 @@ public partial class PageSetupLaunch
             }
             else
             {
-                ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+                LauncherEnvironment.Setup.Set((string)sender.Tag, sender.SelectedIndex);
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set((string)sender.Tag, sender.SelectedIndex);
         }
     }
 

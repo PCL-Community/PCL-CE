@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -49,7 +49,7 @@ public static partial class ModMinecraft
             // 弹窗结果
             if (msgResult == 2)
                 // 下载
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     PageDownloadInstall.McVersionWaitingForSelect = versionName;
                     ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
@@ -58,7 +58,7 @@ public static partial class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Minecraft 更新提示发送失败（" + (versionName ?? "Nothing") + "）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "Minecraft 更新提示发送失败（" + (versionName ?? "Nothing") + "）", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -119,7 +119,7 @@ public static partial class ModMinecraft
                 leftValue = (-3).ToString();
             if (leftValue == "experimental")
                 leftValue = (-4).ToString();
-            var leftValValue = ModBase.Val(leftValue);
+            var leftValValue = MigrationHelpers.Val(leftValue);
             if (rightValue == "rc")
                 rightValue = (-1).ToString();
             if (rightValue == "pre")
@@ -128,7 +128,7 @@ public static partial class ModMinecraft
                 rightValue = (-3).ToString();
             if (rightValue == "experimental")
                 rightValue = (-4).ToString();
-            var rightValValue = ModBase.Val(rightValue);
+            var rightValValue = MigrationHelpers.Val(rightValue);
             if (leftValValue == 0d && rightValValue == 0d)
             {
                 // 如果没有数值则直接比较字符串

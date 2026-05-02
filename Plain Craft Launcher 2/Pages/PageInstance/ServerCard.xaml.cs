@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic;
@@ -50,7 +50,7 @@ public partial class ServerCard
     public void UpdateServerInfo(MinecraftServerInfo serverInfo)
     {
         Server = serverInfo;
-        ModBase.RunInUi(() => UpdateServerUi());
+        LauncherDispatcher.RunInUi(() => UpdateServerUi());
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "启动服务器失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "启动服务器失败", LauncherLogger.LogLevel.Feedback);
             ModMain.Hint("启动服务器失败：" + ex.Message, ModMain.HintType.Critical);
         }
     }
@@ -174,7 +174,7 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "复制服务器地址失败");
+            LauncherLogger.Log(ex, "复制服务器地址失败");
             ModMain.Hint("复制服务器地址失败", ModMain.HintType.Critical);
         }
     }

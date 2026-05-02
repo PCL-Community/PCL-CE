@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -89,17 +89,17 @@ public partial class PageDownloadCompDetail
                 {
                     switch (MyLoader.State)
                     {
-                        case ModBase.LoadState.Failed:
+                        case LoadState.Failed:
                         {
                             ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
                             break;
                         }
-                        case ModBase.LoadState.Aborted:
+                        case LoadState.Aborted:
                         {
                             ModMain.Hint(MyLoader.Name + "已取消！");
                             break;
                         }
-                        case ModBase.LoadState.Loading:
+                        case LoadState.Loading:
                         {
                             return; // 不重新加载版本列表
                         }
@@ -116,7 +116,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "下载资源整合包失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -138,7 +138,7 @@ public partial class PageDownloadCompDetail
             if (File.ModLoaders.Any())
                 AllowedLoaders = File.ModLoaders;
             else if (_project.ModLoaders.Any()) AllowedLoaders = _project.ModLoaders;
-            ModBase.Log("[Comp] 世界要求的加载器种类：" + (AllowedLoaders.Any() ? AllowedLoaders.Join(" / ") : "无要求"));
+            LauncherLogger.Log("[Comp] 世界要求的加载器种类：" + (AllowedLoaders.Any() ? AllowedLoaders.Join(" / ") : "无要求"));
             // 判断某个版本是否符合资源要求
             IsVersionSuitable = Version =>
             {
@@ -158,19 +158,19 @@ public partial class PageDownloadCompDetail
             if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
             {
                 DefaultFolder = CachedFolder.GetOrDefault(File.Type,
-                    ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
-                ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
+                    ModMinecraft.McInstanceSelected?.PathIndie ?? LauncherPaths.ExecutableDirectory);
+                LauncherLogger.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
             }
             else if (ModMinecraft.McInstanceSelected is not null && IsVersionSuitable(ModMinecraft.McInstanceSelected))
             {
                 DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";
                 Directory.CreateDirectory(DefaultFolder);
-                ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
+                LauncherLogger.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
             }
             else
             {
                 // 查找所有可能的实例
-                var NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
+                var NeedLoad = ModMinecraft.McInstanceListLoader.State != LoadState.Finished;
                 if (NeedLoad)
                 {
                     ModMain.Hint("正在查找适合的游戏实例……");
@@ -188,7 +188,7 @@ public partial class PageDownloadCompDetail
                     // 再按文件夹中的文件数量降序
                     DefaultFolder = SelectedVersion.FullName;
                     Directory.CreateDirectory(DefaultFolder);
-                    ModBase.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
+                    LauncherLogger.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
                 }
                 else
                 {
@@ -196,7 +196,7 @@ public partial class PageDownloadCompDetail
                     if (NeedLoad)
                         ModMain.Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！");
                     else
-                        ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
+                        LauncherLogger.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                 }
             }
 
@@ -212,7 +212,7 @@ public partial class PageDownloadCompDetail
             Loaders.Add(new LoaderDownload("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
                 { ProgressWeight = 10d, Block = true });
             Loaders.Add(
-                new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
+                new ModLoader.LoaderTask<int, int>("安装世界", _ => LauncherFileSystem.ExtractFile(Target, TargetPath, Encoding.UTF8))
                     { ProgressWeight = 0.1d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", _ => System.IO.File.Delete(Target)));
 
@@ -227,7 +227,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载世界资源失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "下载世界资源失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -250,7 +250,7 @@ public partial class PageDownloadCompDetail
             _ => null
         };
 
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
@@ -284,7 +284,7 @@ public partial class PageDownloadCompDetail
                     if (File.ModLoaders.Any())
                         AllowedLoaders = File.ModLoaders;
                     else if (_project.ModLoaders.Any()) AllowedLoaders = _project.ModLoaders;
-                    ModBase.Log(
+                    LauncherLogger.Log(
                         $"[Comp] {Desc}要求的加载器种类：{(AllowedLoaders.Any() ? string.Join(" / ", AllowedLoaders) : "无要求")}");
 
                     // 判断某个版本是否符合资源要求 (局部函数)
@@ -315,20 +315,20 @@ public partial class PageDownloadCompDetail
                     if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
                     {
                         DefaultFolder = CachedFolder.GetOrDefault(File.Type,
-                            ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
-                        ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
+                            ModMinecraft.McInstanceSelected?.PathIndie ?? LauncherPaths.ExecutableDirectory);
+                        LauncherLogger.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
                     else if (ModMinecraft.McInstanceSelected != null &&
                              IsVersionSuitable(ModMinecraft.McInstanceSelected))
                     {
                         DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";
                         Directory.CreateDirectory(DefaultFolder);
-                        ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
+                        LauncherLogger.Log($"[Comp] 使用当前实例作为默认下载位置：{DefaultFolder}");
                     }
                     else
                     {
                         // 查找所有可能的实例
-                        var NeedLoad = ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished;
+                        var NeedLoad = ModMinecraft.McInstanceListLoader.State != LoadState.Finished;
                         if (NeedLoad)
                         {
                             ModMain.Hint("正在查找适合的游戏实例……");
@@ -348,7 +348,7 @@ public partial class PageDownloadCompDetail
                                 .First();
                             DefaultFolder = SelectedVersion.FullName;
                             Directory.CreateDirectory(DefaultFolder);
-                            ModBase.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
+                            LauncherLogger.Log($"[Comp] 使用适合的游戏实例作为默认下载位置：{DefaultFolder}");
                         }
                         else
                         {
@@ -356,14 +356,14 @@ public partial class PageDownloadCompDetail
                             if (NeedLoad)
                                 ModMain.Hint("当前 MC 文件夹中没有找到适合此资源文件的实例！");
                             else
-                                ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
+                                LauncherLogger.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                         }
                     }
                 }
 
                 // 获取文件名并弹窗
                 var FileName = ModComp.CompFileNameGet(_project, File);
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName,
                         $"{Desc}文件|" + (File.Type == ModComp.CompType.Mod
@@ -378,7 +378,7 @@ public partial class PageDownloadCompDetail
                     if (!Target.Contains("\\")) return;
 
                     // 记录缓存路径
-                    var targetDir = ModBase.GetPathFromFullPath(Target);
+                    var targetDir = LauncherPaths.GetDirectoryFromPath(Target);
                     if (Target != DefaultFolder)
                     {
                         if (CachedFolder.ContainsKey(File.Type))
@@ -388,7 +388,7 @@ public partial class PageDownloadCompDetail
                     }
 
                     // 构造下载任务
-                    var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
+                    var LoaderName = $"{Desc}下载：{LauncherPaths.GetFileNameWithoutExtension(Target)} ";
                     var Loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
@@ -410,24 +410,24 @@ public partial class PageDownloadCompDetail
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "保存资源文件失败", LauncherLogger.LogLevel.Feedback);
             }
         }, "Download CompDetail Save");
     }
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite(_project.Website);
+        LauncherShell.OpenWebsite(_project.Website);
     }
 
     private void BtnIntroWiki_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.mcmod.cn/class/" + _project.WikiId + ".html");
+        LauncherShell.OpenWebsite("https://www.mcmod.cn/class/" + _project.WikiId + ".html");
     }
 
     private void BtnIntroCopy_Click(object sender, EventArgs e)
     {
-        ModBase.ClipboardSet(_compItem.LabTitle.Text + _compItem.LabTitleRaw.Text);
+        LauncherClipboard.ClipboardSet(_compItem.LabTitle.Text + _compItem.LabTitleRaw.Text);
     }
 
     private void BtnFavorites_Click(object sender, EventArgs e)
@@ -438,7 +438,7 @@ public partial class PageDownloadCompDetail
     private void BtnIntroLinkCopy_Click(object sender, EventArgs e)
     {
         ModComp.CompClipboard.CurrentText = _project.Website;
-        ModBase.ClipboardSet(_project.Website);
+        LauncherClipboard.ClipboardSet(_project.Website);
     }
 
     // 翻译简介
@@ -465,7 +465,7 @@ public partial class PageDownloadCompDetail
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新收藏按钮状态时出错");
+            LauncherLogger.Log(ex, "刷新收藏按钮状态时出错");
         }
     }
 
@@ -526,14 +526,14 @@ public partial class PageDownloadCompDetail
     {
         switch (_compFileLoader.State)
         {
-            case ModBase.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var errorMessage = "";
                 if (_compFileLoader.Error is not null)
                     errorMessage = _compFileLoader.Error.Message;
                 if (errorMessage.Contains("不是有效的 Json 文件"))
                 {
-                    ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", LauncherLogger.LogLevel.Debug);
                     PageLoaderRestart();
                 }
 
@@ -968,7 +968,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化工程下载列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 

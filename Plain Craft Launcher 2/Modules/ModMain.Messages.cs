@@ -35,6 +35,57 @@ public static partial class ModMain
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
 
+    static ModMain()
+    {
+        RegisterFeedbackSink();
+    }
+
+    public static void RegisterFeedbackSink()
+    {
+        LauncherFeedback.Sink ??= new ModMainFeedbackSink();
+    }
+
+    private sealed class ModMainFeedbackSink : ILauncherFeedbackSink
+    {
+        public void ShowHint(string text, HintKind kind)
+        {
+            Hint(text, kind switch
+            {
+                HintKind.Finish => HintType.Finish,
+                HintKind.Critical => HintType.Critical,
+                _ => HintType.Info
+            }, false);
+        }
+
+        public int ShowMessage(string text, string title, string button1, string button2, bool isWarning)
+        {
+            return MyMsgBox(text, title, button1, button2, IsWarn: isWarning);
+        }
+
+        public bool CanFeedback(bool showHint)
+        {
+            var stat = ModSecret.GetVersionStatus();
+            if (stat == ModSecret.VersionStatus.Latest)
+                return true;
+            if (!showHint)
+                return false;
+
+            if (MyMsgBox(
+                    stat == ModSecret.VersionStatus.NotLatest
+                        ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
+                        : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
+                    "无法提交反馈", stat == ModSecret.VersionStatus.NotLatest ? "更新" : "重新检查更新", "取消") == 1)
+                NavigateToUpdatePage();
+
+            return false;
+        }
+
+        public void NavigateToUpdatePage()
+        {
+            FrmMain?.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
+        }
+    }
+
     #region 弹出提示
 
     /// <summary>

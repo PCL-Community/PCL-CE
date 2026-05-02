@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -94,7 +94,7 @@ public partial class PageSetupJava
             }
         };
         var btnOpenFolder = new MyIconButton();
-        btnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
+        btnOpenFolder.Logo = Logo.IconButtonOpen;
         btnOpenFolder.ToolTip = "打开";
         btnOpenFolder.Click += (sender, e) =>
         {
@@ -104,10 +104,10 @@ public partial class PageSetupJava
                 return;
             }
 
-            ModBase.OpenExplorer(J.Installation.JavaFolder);
+            LauncherShell.OpenExplorer(J.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
-        btnInfo.Logo = ModBase.Logo.IconButtonInfo;
+        btnInfo.Logo = Logo.IconButtonInfo;
         btnInfo.ToolTip = "详细信息";
         btnInfo.Click += (sender, e) =>
         {
@@ -143,14 +143,14 @@ public partial class PageSetupJava
             {
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonDisable;
+                btnEnableSwitch.Logo = Logo.IconButtonDisable;
                 btnEnableSwitch.ToolTip = "禁用此 Java";
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonEnable;
+                btnEnableSwitch.Logo = Logo.IconButtonEnable;
                 btnEnableSwitch.ToolTip = "启用此 Java";
             }
         }
@@ -178,7 +178,7 @@ public partial class PageSetupJava
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "调整 Java 启用状态失败", LauncherLogger.LogLevel.Hint);
             }
         };
         UpdateEnableStyle(J.IsEnabled);
@@ -186,7 +186,7 @@ public partial class PageSetupJava
         return item;
     }
 
-    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnAdd_Click(object sender, RouteEventArgs e)
     {
         var ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序");
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -81,7 +81,7 @@ public partial class PageToolsHelp : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载帮助列表 UI 失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "加载帮助列表 UI 失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -99,51 +99,51 @@ public partial class PageToolsHelp : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理帮助项目点击时发生意外错误", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "处理帮助项目点击时发生意外错误", LauncherLogger.LogLevel.Feedback);
         }
     }
 
     public static void EnterHelpPage(string Location)
     {
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+            if (!(ModMain.HelpLoader.State == LoadState.Finished))
+                ModMain.HelpLoader.WaitForExit(LauncherDispatcher.GetUuid());
             var Entry = new ModMain.HelpEntry(Location);
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 var FrmHelpDetail = new PageOtherHelpDetail();
                 if (FrmHelpDetail.Init(Entry))
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
                         { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
                 else
-                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", LauncherLogger.LogLevel.Debug);
             });
         });
     }
 
     public static void EnterHelpPage(ModMain.HelpEntry Entry)
     {
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
-            ModBase.RunInUi(() =>
+            if (!(ModMain.HelpLoader.State == LoadState.Finished))
+                ModMain.HelpLoader.WaitForExit(LauncherDispatcher.GetUuid());
+            LauncherDispatcher.RunInUi(() =>
             {
                 var FrmHelpDetail = new PageOtherHelpDetail();
                 if (FrmHelpDetail.Init(Entry))
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
                         { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
                 else
-                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", LauncherLogger.LogLevel.Debug);
             });
         });
     }
 
     public static PageOtherHelpDetail GetHelpPage(string Location)
     {
-        if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
-            ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+        if (!(ModMain.HelpLoader.State == LoadState.Finished))
+            ModMain.HelpLoader.WaitForExit(LauncherDispatcher.GetUuid());
         var FrmHelpDetail = new PageOtherHelpDetail();
         if (FrmHelpDetail.Init(new ModMain.HelpEntry(Location))) return FrmHelpDetail;
 
@@ -173,24 +173,24 @@ public partial class PageToolsHelp : IRefreshable
         else
         {
             // 构造请求
-            var QueryList = new List<ModBase.SearchEntry<ModMain.HelpEntry>>();
+            var QueryList = new List<SearchEntry<ModMain.HelpEntry>>();
             foreach (var Entry in ModMain.HelpLoader.Output)
             {
-                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.VersionBranchCode) == 50d && !Entry.ShowInPublic))
+                if (!Entry.ShowInSearch || (MigrationHelpers.Val(LauncherEnvironment.VersionBranchCode) == 50d && !Entry.ShowInPublic))
                     continue;
-                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.VersionBranchCode) != 50d && !Entry.ShowInSnapshot))
+                if (!Entry.ShowInSearch || (MigrationHelpers.Val(LauncherEnvironment.VersionBranchCode) != 50d && !Entry.ShowInSnapshot))
                     continue;
-                QueryList.Add(new ModBase.SearchEntry<ModMain.HelpEntry>
+                QueryList.Add(new SearchEntry<ModMain.HelpEntry>
                 {
                     Item = Entry,
-                    SearchSource = new List<ModBase.SearchSource>
+                    SearchSource = new List<SearchSource>
                         { new(Entry.Title, 1d), new(Entry.Desc, 0.5d), new(Entry.Search, 1.5d) }
                 });
                 // New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
             }
 
             // 进行搜索，构造列表
-            var SearchResult = ModBase.Search(QueryList, SearchBox.Text, 5, 0.08d);
+            var SearchResult = LauncherSearch.Search(QueryList, SearchBox.Text, 5, 0.08d);
             PanSearchList.Children.Clear();
             if (!SearchResult.Any())
             {
@@ -203,7 +203,7 @@ public partial class PageToolsHelp : IRefreshable
                 foreach (var Result in SearchResult)
                 {
                     var Item = Result.Item.ToListItem();
-                    if (ModBase.ModeDebug)
+                    if (LauncherLogger.ModeDebug)
                         Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" + Math.Round(Result.Similarity, 3) +
                                     "，" + Item.Info;
                     PanSearchList.Children.Add(Item);

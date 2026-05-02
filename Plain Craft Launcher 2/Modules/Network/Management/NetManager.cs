@@ -1,4 +1,4 @@
-namespace PCL.Network;
+﻿namespace PCL.Network;
 
 public sealed class NetManager
 {
@@ -7,7 +7,7 @@ public sealed class NetManager
 
     public Dictionary<string, DownloadFile> Files { get; } = new();
     public object LockFiles { get; } = new();
-    public ModBase.SafeList<PCL.Network.Loaders.LoaderDownload> Tasks { get; } = new();
+    public SafeList<PCL.Network.Loaders.LoaderDownload> Tasks { get; } = new();
     public object LockRemain { get; } = new();
     public int FileRemain
     {

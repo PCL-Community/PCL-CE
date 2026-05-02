@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -63,13 +63,13 @@ public partial class PageDownloadCleanroom
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 版本列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "可视化 Cleanroom 版本列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://cleanroommc.com/zh/");
+        LauncherShell.OpenWebsite("https://cleanroommc.com/zh/");
     }
 }

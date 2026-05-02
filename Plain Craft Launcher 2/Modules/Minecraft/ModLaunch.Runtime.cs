@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -29,7 +29,7 @@ public static partial class ModLaunch
     {
         McLaunchLog("内存优化开始");
         var Finished = false;
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             PageToolsTest.MemoryOptimize(false);
             Finished = true;
@@ -99,9 +99,9 @@ public static partial class ModLaunch
         IsLaunching = true;
         CurrentLaunchOptions = Options ?? new McLaunchOptions();
         // 预检查
-        if (!ModBase.RunInUi())
+        if (!LauncherDispatcher.RunInUi())
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
-        if (McLaunchLoader.State == ModBase.LoadState.Loading)
+        if (McLaunchLoader.State == LoadState.Loading)
         {
             ModMain.Hint("已有游戏正在启动中！", ModMain.HintType.Critical);
             IsLaunching = false;
@@ -151,15 +151,15 @@ public static partial class ModLaunch
     {
         switch (McLaunchLoader.State)
         {
-            case ModBase.LoadState.Finished:
-            case ModBase.LoadState.Failed:
-            case ModBase.LoadState.Waiting:
-            case ModBase.LoadState.Aborted:
+            case LoadState.Finished:
+            case LoadState.Failed:
+            case LoadState.Waiting:
+            case LoadState.Aborted:
             {
                 ModMain.FrmLaunchLeft.PageChangeToLogin();
                 break;
             }
-            case ModBase.LoadState.Loading:
+            case LoadState.Loading:
             {
                 // 在预检测结束后再触发动画
                 ModMain.FrmLaunchRight.LabLog.Text = "";
@@ -177,7 +177,7 @@ public static partial class ModLaunch
     private static void McLaunchStart(ModLoader.LoaderTask<McLaunchOptions, object> Loader)
     {
         // 开始动画
-        ModBase.RunInUiWait(ModMain.FrmLaunchLeft.PageChangeToLaunching);
+        LauncherDispatcher.RunInUiWait(ModMain.FrmLaunchLeft.PageChangeToLaunching);
         // 预检测（预检测的错误将直接抛出）
         try
         {
@@ -214,7 +214,7 @@ public static partial class ModLaunch
                 new ModLoader.LoaderTask<int, int>("结束处理", _ => McLaunchEnd()) { ProgressWeight = 1d }
             }; // .ProgressWeight = 15, .Block = False
             // 内存优化
-            switch (ModBase.Setup.Get("VersionRamOptimize", ModMinecraft.McInstanceSelected))
+            switch (LauncherEnvironment.Setup.Get("VersionRamOptimize", ModMinecraft.McInstanceSelected))
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全局
                 {
@@ -242,15 +242,15 @@ public static partial class ModLaunch
             }
 
             var LaunchLoader = new ModLoader.LoaderCombo<object>("Minecraft 启动", Loaders) { Show = false };
-            if (McLoginLoader.State == ModBase.LoadState.Finished)
-                McLoginLoader.State = ModBase.LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
+            if (McLoginLoader.State == LoadState.Finished)
+                McLoginLoader.State = LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
             // 等待加载器执行并更新 UI
             McLaunchLoaderReal = LaunchLoader;
             AbortHint = null;
             LaunchLoader.Start();
             // 任务栏进度条
             ModLoader.LoaderTaskbarAdd(LaunchLoader);
-            while (LaunchLoader.State == ModBase.LoadState.Loading)
+            while (LaunchLoader.State == LoadState.Loading)
             {
                 ModMain.FrmLaunchLeft.Dispatcher.Invoke(ModMain.FrmLaunchLeft.LaunchingRefresh);
                 Thread.Sleep(100);
@@ -260,12 +260,12 @@ public static partial class ModLaunch
             // 成功与失败处理
             switch (LaunchLoader.State)
             {
-                case ModBase.LoadState.Finished:
+                case LoadState.Finished:
                 {
                     ModMain.Hint(ModMinecraft.McInstanceSelected.Name + " 启动成功！", ModMain.HintType.Finish);
                     break;
                 }
-                case ModBase.LoadState.Aborted:
+                case LoadState.Aborted:
                 {
                     if (AbortHint is null)
                         ModMain.Hint(CurrentLaunchOptions?.SaveBatch is null ? "已取消启动！" : "已取消导出启动脚本！");
@@ -274,14 +274,14 @@ public static partial class ModLaunch
 
                     break;
                 }
-                case ModBase.LoadState.Failed:
+                case LoadState.Failed:
                 {
                     throw LaunchLoader.Error;
                 }
 
                 default:
                 {
-                    throw new Exception("错误的状态改变：" + ModBase.GetStringFromEnum(LaunchLoader.State));
+                    throw new Exception("错误的状态改变：" + LauncherText.GetStringFromEnum(LaunchLoader.State));
                 }
             }
 
@@ -311,8 +311,8 @@ public static partial class ModLaunch
 
             // 没有特殊处理过的错误信息
             McLaunchLog("错误：" + ex);
-            ModBase.Log(ex, CurrentLaunchOptions?.SaveBatch is null ? "Minecraft 启动失败" : "导出启动脚本失败",
-                ModBase.LogLevel.Msgbox, CurrentLaunchOptions?.SaveBatch is null ? "启动失败" : "导出启动脚本失败");
+            LauncherLogger.Log(ex, CurrentLaunchOptions?.SaveBatch is null ? "Minecraft 启动失败" : "导出启动脚本失败",
+                LauncherLogger.LogLevel.Msgbox, CurrentLaunchOptions?.SaveBatch is null ? "启动失败" : "导出启动脚本失败");
             throw;
         }
     }
@@ -334,22 +334,22 @@ public static partial class ModLaunch
         {
             if (ProcessInterop.IsAdmin() || !Config.Launch.SetGpuPreference)
             {
-                ModBase.Log(ex, "直接调整显卡设置失败");
+                LauncherLogger.Log(ex, "直接调整显卡设置失败");
             }
             else
             {
-                ModBase.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
+                LauncherLogger.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
                 try
                 {
                     if (ProcessInterop.StartAsAdmin($"--gpu \"{javaExePath}\"").ExitCode ==
-                        (int)ModBase.ProcessReturnValues.TaskDone)
+                        (int)ProcessReturnValues.TaskDone)
                         McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
                     else
                         throw new Exception("调整过程中出现异常");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "调整显卡设置失败，Minecraft 可能会使用默认显卡运行", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(exx, "调整显卡设置失败，Minecraft 可能会使用默认显卡运行", LauncherLogger.LogLevel.Hint);
                 }
             }
         }
@@ -382,19 +382,19 @@ public static partial class ModLaunch
                 ""profile"": ""66666555554444433333222221111100""
               }
             }";
-                var ReplaceJson = (JObject)ModBase.GetJson(ReplaceJsonString);
+                var ReplaceJson = (JObject)LauncherSerialization.GetJson(ReplaceJsonString);
                 // 更新文件
                 var Profiles =
-                    (JObject)ModBase.GetJson(
-                        ModBase.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
+                    (JObject)LauncherSerialization.GetJson(
+                        LauncherFileSystem.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
                 Profiles.Merge(ReplaceJson);
-                ModBase.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),
-                    Encoding: Encoding.GetEncoding("GB18030"));
+                LauncherFileSystem.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),
+                    encoding: Encoding.GetEncoding("GB18030"));
                 McLaunchLog("已更新 launcher_profiles.json");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更新 launcher_profiles.json 失败，将在删除文件后重试");
+                LauncherLogger.Log(ex, "更新 launcher_profiles.json 失败，将在删除文件后重试");
                 try
                 {
                     File.Delete(ModMinecraft.McFolderSelected + "launcher_profiles.json");
@@ -418,19 +418,19 @@ public static partial class ModLaunch
                         ""profile"": ""66666555554444433333222221111100""
                       }
                     }";
-                    var ReplaceJson = (JObject)ModBase.GetJson(ReplaceJsonString);
+                    var ReplaceJson = (JObject)LauncherSerialization.GetJson(ReplaceJsonString);
                     // 更新文件
                     var Profiles =
-                        (JObject)ModBase.GetJson(
-                            ModBase.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
+                        (JObject)LauncherSerialization.GetJson(
+                            LauncherFileSystem.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
                     Profiles.Merge(ReplaceJson);
-                    ModBase.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),
-                        Encoding: Encoding.GetEncoding("GB18030"));
+                    LauncherFileSystem.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),
+                        encoding: Encoding.GetEncoding("GB18030"));
                     McLaunchLog("已在删除后更新 launcher_profiles.json");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "更新 launcher_profiles.json 失败", ModBase.LogLevel.Feedback);
+                    LauncherLogger.Log(exx, "更新 launcher_profiles.json 失败", LauncherLogger.LogLevel.Feedback);
                 }
             }
         } while (false);
@@ -449,7 +449,7 @@ public static partial class ModLaunch
                 {
                     McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
                     SetupFileAddress = YosbrFileAddress;
-                    ModBase.WriteIni(SetupFileAddress, "lang", "none"); // 忽略默认语言
+                    LauncherSerialization.WriteIni(SetupFileAddress, "lang", "none"); // 忽略默认语言
                 }
             }
 
@@ -461,7 +461,7 @@ public static partial class ModLaunch
                 // 1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
                 // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
                 // 1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-                var CurrentLang = ModBase.ReadIni(SetupFileAddress, "lang", "none");
+                var CurrentLang = LauncherSerialization.ReadIni(SetupFileAddress, "lang", "none");
                 string RequiredLang; // 需要的语言
                 var hasExistingSaves = Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves");
                 var shouldUseDefault = CurrentLang == "none" || !hasExistingSaves;
@@ -506,21 +506,21 @@ public static partial class ModLaunch
                 }
                 else
                 {
-                    ModBase.WriteIni(SetupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
-                    ModBase.WriteIni(SetupFileAddress, "lang", RequiredLang);
+                    LauncherSerialization.WriteIni(SetupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
+                    LauncherSerialization.WriteIni(SetupFileAddress, "lang", RequiredLang);
                     McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}");
                 }
 
                 // 如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
                 if (CurrentLang == "none" || !Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves"))
                 {
-                    ModBase.WriteIni(SetupFileAddress, "forceUnicodeFont", "true");
+                    LauncherSerialization.WriteIni(SetupFileAddress, "forceUnicodeFont", "true");
                     McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示");
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更新 options.txt 失败", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "更新 options.txt 失败", LauncherLogger.LogLevel.Hint);
             }
         }
 
@@ -529,7 +529,7 @@ public static partial class ModLaunch
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全屏
             {
-                ModBase.WriteIni(SetupFileAddress, "fullscreen", "true");
+                LauncherSerialization.WriteIni(SetupFileAddress, "fullscreen", "true");
                 break;
             }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 默认
@@ -540,7 +540,7 @@ public static partial class ModLaunch
 
             default:
             {
-                ModBase.WriteIni(SetupFileAddress, "fullscreen", "false");
+                LauncherSerialization.WriteIni(SetupFileAddress, "fullscreen", "false");
                 break;
             }
         }
@@ -559,12 +559,12 @@ public static partial class ModLaunch
 
         // 设置环境变量
         var Paths = new List<string>(StartInfo.EnvironmentVariables["Path"].Split(";"));
-        Paths.Add(ModBase.ShortenPath(McLaunchJavaSelected.Installation.JavaFolder));
+        Paths.Add(LauncherPaths.ShortenPath(McLaunchJavaSelected.Installation.JavaFolder));
         StartInfo.EnvironmentVariables["Path"] = Paths.Distinct().ToList().Join(";");
-        StartInfo.EnvironmentVariables["appdata"] = ModBase.ShortenPath(ModMinecraft.McFolderSelected);
+        StartInfo.EnvironmentVariables["appdata"] = LauncherPaths.ShortenPath(ModMinecraft.McFolderSelected);
 
         // 设置其他参数
-        StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie);
+        StartInfo.WorkingDirectory = LauncherPaths.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie);
         StartInfo.UseShellExecute = false;
         StartInfo.RedirectStandardOutput = true;
         StartInfo.RedirectStandardError = true;
@@ -604,7 +604,7 @@ public static partial class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置进程优先级失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "设置进程优先级失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -613,7 +613,7 @@ public static partial class ModLaunch
         // 输出信息
         McLaunchLog("");
         McLaunchLog("~ 基础参数 ~");
-        McLaunchLog("PCL 版本：" + ModBase.VersionBaseName + " (" + ModBase.VersionCode + ")");
+        McLaunchLog("PCL 版本：" + LauncherEnvironment.VersionBaseName + " (" + LauncherEnvironment.VersionCode + ")");
         McLaunchLog(
             $"游戏版本：{ModMinecraft.McInstanceSelected.Info.VanillaName}（{ModMinecraft.McInstanceSelected.Info.Vanilla}，Drop {ModMinecraft.McInstanceSelected.Info.Drop}{(ModMinecraft.McInstanceSelected.Info.Reliable ? "" : "，无法完全确定")}）");
         McLaunchLog("资源版本：" + ModMinecraft.McAssetsGetIndexName(ModMinecraft.McInstanceSelected));
@@ -643,9 +643,9 @@ public static partial class ModLaunch
         McLaunchLog("");
 
         // 获取窗口标题
-        var WindowTitle = (string?)ModBase.Setup.Get("VersionArgumentTitle", ModMinecraft.McInstanceSelected);
+        var WindowTitle = (string?)LauncherEnvironment.Setup.Get("VersionArgumentTitle", ModMinecraft.McInstanceSelected);
         if (string.IsNullOrEmpty(WindowTitle) &&
-            !(bool)ModBase.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected))
+            !(bool)LauncherEnvironment.Setup.Get("VersionArgumentTitleEmpty", ModMinecraft.McInstanceSelected))
             WindowTitle = Conversions.ToString(Config.Launch.Title);
         WindowTitle = ArgumentReplace(WindowTitle, false);
 
@@ -661,9 +661,9 @@ public static partial class ModLaunch
         if (CurrentLaunchOptions.IsTest)
         {
             if (ModMain.FrmLogLeft is null)
-                ModBase.RunInUiWait(() => ModMain.FrmLogLeft = new PageLogLeft());
+                LauncherDispatcher.RunInUiWait(() => ModMain.FrmLogLeft = new PageLogLeft());
             if (ModMain.FrmLogRight is null)
-                ModBase.RunInUiWait(() =>
+                LauncherDispatcher.RunInUiWait(() =>
                 {
                     ModAnimation.AniControlEnabled += 1;
                     ModMain.FrmLogRight = new PageLogRight();
@@ -685,14 +685,14 @@ public static partial class ModLaunch
 
         // 暂停或开始音乐播放
         if (Conversions.ToBoolean(Config.Preference.Music.StopInGame))
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
-                if (ModMusic.MusicPause()) ModBase.Log("[Music] 已根据设置，在启动后暂停音乐播放");
+                if (ModMusic.MusicPause()) LauncherLogger.Log("[Music] 已根据设置，在启动后暂停音乐播放");
             });
         else if (Conversions.ToBoolean(Config.Preference.Music.StartInGame))
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
-                if (ModMusic.MusicResume()) ModBase.Log("[Music] 已根据设置，在启动后开始音乐播放");
+                if (ModMusic.MusicResume()) LauncherLogger.Log("[Music] 已根据设置，在启动后开始音乐播放");
             });
         // 暂停视频背景播放
         ModVideoBack.IsGaming = true;
@@ -706,7 +706,7 @@ public static partial class ModLaunch
             {
                 // 直接关闭
                 McLaunchLog("已根据设置，在启动后关闭启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.EndProgram(false));
+                LauncherDispatcher.RunInUi(() => ModMain.FrmMain.EndProgram(false));
                 break;
             }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
@@ -714,14 +714,14 @@ public static partial class ModLaunch
             {
                 // 隐藏
                 McLaunchLog("已根据设置，在启动后隐藏启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.Hidden = true);
+                LauncherDispatcher.RunInUi(() => ModMain.FrmMain.Hidden = true);
                 break;
             }
             case var case3 when Operators.ConditionalCompareObjectEqual(case3, 4, false):
             {
                 // 最小化
                 McLaunchLog("已根据设置，在启动后最小化启动器");
-                ModBase.RunInUi(() => ModMain.FrmMain.WindowState = WindowState.Minimized);
+                LauncherDispatcher.RunInUi(() => ModMain.FrmMain.WindowState = WindowState.Minimized);
                 break;
             }
             case var case4 when Operators.ConditionalCompareObjectEqual(case4, 5, false):
@@ -734,8 +734,8 @@ public static partial class ModLaunch
         // 启动计数
         States.System.LaunchCount += 1;
 
-        ModBase.Setup.Set("VersionLaunchCount",
-            Operators.AddObject(ModBase.Setup.Get("VersionLaunchCount", ModMinecraft.McInstanceSelected), 1),
+        LauncherEnvironment.Setup.Set("VersionLaunchCount",
+            Operators.AddObject(LauncherEnvironment.Setup.Get("VersionLaunchCount", ModMinecraft.McInstanceSelected), 1),
             instance: ModMinecraft.McInstanceSelected);
     }
 

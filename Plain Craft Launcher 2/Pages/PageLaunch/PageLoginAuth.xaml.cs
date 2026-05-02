@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
@@ -81,15 +81,15 @@ public partial class PageLoginAuth
             {
                 ModProfile.IsCreatingProfile = true;
                 ModLaunch.McLoginAuthLoader.Start(LoginData, true);
-                while (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.McLoginAuthLoader.State == LoadState.Loading)
                 {
                     BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginAuthLoader.Progress * 100d)}%";
                     await Task.Delay(50);
                 }
 
-                if (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Finished)
+                if (ModLaunch.McLoginAuthLoader.State == LoadState.Finished)
                     ModMain.FrmLaunchLeft.RefreshPage(true);
-                else if (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Aborted)
+                else if (ModLaunch.McLoginAuthLoader.State == LoadState.Aborted)
                     ModMain.Hint("已取消登录！");
                 else if (ModLaunch.McLoginAuthLoader.Error is null)
                     throw new Exception("未知错误！");
@@ -107,7 +107,7 @@ public partial class PageLoginAuth
                 }
                 else
                 {
-                    ModBase.Log(ex, "第三方登录尝试失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "第三方登录尝试失败", LauncherLogger.LogLevel.Msgbox);
                 }
             }
             finally
@@ -145,7 +145,7 @@ public partial class PageLoginAuth
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "从服务器获取名称失败");
+                LauncherLogger.Log(ex, "从服务器获取名称失败");
             }
 
             if (serverUri != null) TextServer.Text = serverUri;
@@ -171,11 +171,11 @@ public partial class PageLoginAuth
     {
         if (string.Equals(BtnLink.Content?.ToString(), "注册账号", StringComparison.OrdinalIgnoreCase))
         {
-            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString());
+            LauncherShell.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString());
         }
         else
         {
-            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
+            LauncherShell.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
         }
     }
 

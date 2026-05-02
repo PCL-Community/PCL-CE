@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -17,15 +17,15 @@ public partial class ModSetup
     // 切换选择
     public void LaunchInstanceSelect(string Value)
     {
-        ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
-        ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
+        LauncherLogger.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
+        LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
             ModMinecraft.McInstanceSelected == null ? "" : ModMinecraft.McInstanceSelected.Name);
     }
 
     public void LaunchFolderSelect(string Value)
     {
-        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", ModBase.ExePath));
-        ModMinecraft.McFolderSelected = Value.Replace("$", ModBase.ExePath);
+        LauncherLogger.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", LauncherPaths.ExecutableDirectory));
+        ModMinecraft.McFolderSelected = Value.Replace("$", LauncherPaths.ExecutableDirectory);
     }
 
     // 游戏内存
@@ -221,11 +221,11 @@ public partial class ModSetup
     {
         try
         {
-            ModBase.SetLaunchFont(value);
+            MigrationHelpers.SetLaunchFont(value);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "字体加载失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "字体加载失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -386,7 +386,7 @@ public partial class ModSetup
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
                 }
 
-                ModBase.Setup.Load("UiLogoText", true);
+                LauncherEnvironment.Setup.Load("UiLogoText", true);
                 break;
             }
             case 3: // 图片
@@ -407,12 +407,12 @@ public partial class ModSetup
 
                 try
                 {
-                    ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+                    ModMain.FrmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectory + @"PCL\Logo.png";
                 }
                 catch (Exception ex)
                 {
                     ModMain.FrmMain.ImageTitleLogo.Source = null;
-                    ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "显示标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
                 }
 
                 break;
@@ -432,7 +432,7 @@ public partial class ModSetup
                 break;
         }
 
-        ModBase.Setup.Load("UiLogoLeft", true);
+        LauncherEnvironment.Setup.Load("UiLogoLeft", true);
         if (ModMain.FrmSetupUI != null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
@@ -596,12 +596,12 @@ public partial class ModSetup
     // 调试选项
     public void SystemDebugMode(bool Value)
     {
-        ModBase.ModeDebug = Value;
+        LauncherLogger.ModeDebug = Value;
     }
 
     public void SystemDebugAnim(int Value)
     {
-        ModAnimation.AniSpeed = Value >= 30 ? 200d : ModBase.MathClamp(Value * 0.1d + 0.1d, 0.1d, 3d);
+        ModAnimation.AniSpeed = Value >= 30 ? 200d : LauncherText.MathClamp(Value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
     public void SystemHttpProxy(string value)
@@ -613,7 +613,7 @@ public partial class ModSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "HTTP 代理应用出错");
+            LauncherLogger.Log(ex, "HTTP 代理应用出错");
         }
     }
 
@@ -666,7 +666,7 @@ public partial class ModSetup
         if (ModMain.FrmInstanceSetup is null)
             return;
         // 为第三方登录清空缓存以更新描述
-        ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", "");
+        LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", "");
         if (PageInstanceLeft.Instance is null)
             return;
         PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();

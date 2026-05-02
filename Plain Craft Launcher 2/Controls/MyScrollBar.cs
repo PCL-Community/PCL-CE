@@ -1,4 +1,4 @@
-using System.Windows.Controls.Primitives;
+﻿using System.Windows.Controls.Primitives;
 
 namespace PCL;
 
@@ -6,7 +6,7 @@ public class MyScrollBar : ScrollBar
 {
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyScrollBar()
     {
@@ -75,7 +75,7 @@ public class MyScrollBar : ScrollBar
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "滚动条颜色改变出错");
+            LauncherLogger.Log(ex, "滚动条颜色改变出错");
         }
     }
 }

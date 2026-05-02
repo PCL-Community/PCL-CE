@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -150,8 +150,8 @@ public class MyResizer
     private void element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         GetCursorPos(out startMousePoint);
-        startMousePoint.X = (int)Math.Round(ModBase.GetWPFSize(startMousePoint.X));
-        startMousePoint.Y = (int)Math.Round(ModBase.GetWPFSize(startMousePoint.Y));
+        startMousePoint.X = (int)Math.Round(LauncherWpf.GetWPFSize(startMousePoint.X));
+        startMousePoint.Y = (int)Math.Round(LauncherWpf.GetWPFSize(startMousePoint.Y));
         startWindowSize = new Size(target.Width, target.Height);
         startWindowLeftUpPoint = new POINT((int)Math.Round(target.Left), (int)Math.Round(target.Top));
         var key = (UIElement)sender;
@@ -163,7 +163,7 @@ public class MyResizer
             resizeUp = true;
         if (downElements.ContainsKey(key))
             resizeDown = true;
-        ModBase.RunInNewThread(updateSizeLoop, "窗口大小调整检测");
+        LauncherDispatcher.RunInNewThread(updateSizeLoop, "窗口大小调整检测");
     }
 
     private void updateSizeLoop()
@@ -186,8 +186,8 @@ public class MyResizer
     {
         PointAPI pointAPI = default;
         GetCursorPos(out pointAPI);
-        pointAPI.X = (int)Math.Round(ModBase.GetWPFSize(pointAPI.X));
-        pointAPI.Y = (int)Math.Round(ModBase.GetWPFSize(pointAPI.Y));
+        pointAPI.X = (int)Math.Round(LauncherWpf.GetWPFSize(pointAPI.X));
+        pointAPI.Y = (int)Math.Round(LauncherWpf.GetWPFSize(pointAPI.Y));
         try
         {
             double NewWidth = -1;

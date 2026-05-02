@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -134,7 +134,7 @@ namespace PCL
         public static void Raise(EventType type, string arg)
         {
             if (type == EventType.None) return;
-            ModBase.Log($"[Control] 执行自定义事件：{type}, {arg}");
+            LauncherLogger.Log($"[Control] 执行自定义事件：{type}, {arg}");
 
             try
             {
@@ -150,19 +150,19 @@ namespace PCL
                             return;
                         }
                         ModMain.Hint("正在开启中，请稍候：" + arg);
-                        ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
+                        LauncherDispatcher.RunInThread(() => LauncherShell.OpenWebsite(arg));
                         break;
 
                     case EventType.打开文件:
                     case EventType.打开帮助:
                     case EventType.执行命令:
-                        ModBase.RunInThread(() =>
+                        LauncherDispatcher.RunInThread(() =>
                         {
                             try
                             {
                                 var actualPaths = GetAbsoluteUrls(args[0], type);
                                 string location = actualPaths[0], workingDir = actualPaths[1];
-                                ModBase.Log($"[Control] 打开类自定义事件实际路径：{location}，工作目录：{workingDir}");
+                                LauncherLogger.Log($"[Control] 打开类自定义事件实际路径：{location}，工作目录：{workingDir}");
 
                                 if (type == EventType.打开帮助)
                                 {
@@ -177,7 +177,7 @@ namespace PCL
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "执行打开类自定义事件失败", ModBase.LogLevel.Msgbox);
+                                LauncherLogger.Log(ex, "执行打开类自定义事件失败", LauncherLogger.LogLevel.Msgbox);
                             }
                         });
                         break;
@@ -192,7 +192,7 @@ namespace PCL
                             }
                             args[0] = ModMinecraft.McInstanceSelected.Name;
                         }
-                        ModBase.RunInUi(() =>
+                        LauncherDispatcher.RunInUi(() =>
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
@@ -207,14 +207,14 @@ namespace PCL
                         break;
 
                     case EventType.复制文本:
-                        ModBase.ClipboardSet(arg);
+                        LauncherClipboard.ClipboardSet(arg);
                         break;
 
                     case EventType.刷新主页:
                     case EventType.刷新页面:
                         if (ModMain.FrmMain?.PageRight is IRefreshable refreshable)
                         {
-                            ModBase.RunInUiWait(() => refreshable.Refresh());
+                            LauncherDispatcher.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
                                 ModMain.Hint("已刷新！", ModMain.HintType.Finish);
                         }
@@ -231,7 +231,7 @@ namespace PCL
                         break;
 
                     case EventType.刷新帮助:
-                        ModBase.RunInUiWait(() => PageToolsLeft.RefreshHelp());
+                        LauncherDispatcher.RunInUiWait(() => PageToolsLeft.RefreshHelp());
                         if (string.IsNullOrEmpty(arg))
                             ModMain.Hint("已刷新！", ModMain.HintType.Finish);
                         break;
@@ -242,11 +242,11 @@ namespace PCL
 
                     case EventType.内存优化:
                         if (PageToolsTest.AskTrulyWantMemoryOptimize())
-                            ModBase.RunInThread(() => PageToolsTest.MemoryOptimize(true));
+                            LauncherDispatcher.RunInThread(() => PageToolsTest.MemoryOptimize(true));
                         break;
 
                     case EventType.清理垃圾:
-                        ModBase.RunInThread(() => PageToolsTest.RubbishClear());
+                        LauncherDispatcher.RunInThread(() => PageToolsTest.RubbishClear());
                         break;
 
                     case EventType.弹出窗口:
@@ -268,7 +268,7 @@ namespace PCL
                         break;
 
                     case EventType.切换页面:
-                        ModBase.RunInUi(() =>
+                        LauncherDispatcher.RunInUi(() =>
                         {
                             var pageType = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
                             var subType = args.Length == 1
@@ -280,7 +280,7 @@ namespace PCL
 
                     case EventType.导入整合包:
                     case EventType.安装整合包:
-                        ModBase.RunInUi(() => ModModpack.ModpackInstall());
+                        LauncherDispatcher.RunInUi(() => ModModpack.ModpackInstall());
                         break;
 
                     case EventType.下载文件:
@@ -297,7 +297,7 @@ namespace PCL
                             switch (args.Length)
                             {
                                 case 1:
-                                    PageToolsTest.StartCustomDownload(args[0], ModBase.GetFileNameFromPath(args[0]));
+                                    PageToolsTest.StartCustomDownload(args[0], LauncherPaths.GetFileName(args[0]));
                                     break;
                                 case 2:
                                     PageToolsTest.StartCustomDownload(args[0], args[1]);
@@ -317,7 +317,7 @@ namespace PCL
                     case EventType.写入设置:
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
-                        ModBase.Setup.SetSafe(args[0], args[1], instance: ModMinecraft.McInstanceSelected);
+                        LauncherEnvironment.Setup.SetSafe(args[0], args[1], instance: ModMinecraft.McInstanceSelected);
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;
@@ -339,7 +339,7 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"事件执行失败（{type}, {arg}）", ModBase.LogLevel.Msgbox);
+                LauncherLogger.Log(ex, $"事件执行失败（{type}, {arg}）", LauncherLogger.LogLevel.Msgbox);
             }
         }
 
@@ -351,13 +351,13 @@ namespace PCL
             // 联网帮助页面处理
             if (relativeUrl.StartsWithF("http", true))
             {
-                if (ModBase.RunInUi())
+                if (LauncherDispatcher.RunInUi())
                     throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
 
                 string rawFileName;
                 try
                 {
-                    rawFileName = ModBase.GetFileNameFromPath(relativeUrl);
+                    rawFileName = LauncherPaths.GetFileName(relativeUrl);
                     if (!rawFileName.EndsWithF(".json", true))
                         throw new Exception("未指向 .json 后缀的文件");
                 }
@@ -369,7 +369,7 @@ namespace PCL
                 }
 
                 string localTemp = ModMain.RequestTaskTempFolder() + rawFileName;
-                ModBase.Log($"[Event] 转换网络资源：{relativeUrl} -> {localTemp}");
+                LauncherLogger.Log($"[Event] 转换网络资源：{relativeUrl} -> {localTemp}");
                 try
                 {
                     // 修正：直接调用静态方法 NetDownloadByClient，而不是 .Download
@@ -394,29 +394,29 @@ namespace PCL
             if (relativeUrl.Contains(":\\"))
             {
                 location = relativeUrl;
-                ModBase.Log($"[Control] 自定义事件中由绝对路径{type}：{location}");
+                LauncherLogger.Log($"[Control] 自定义事件中由绝对路径{type}：{location}");
             }
             else if (File.Exists(System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl)))
             {
                 location = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl);
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径{type}：{location}");
+                LauncherLogger.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径{type}：{location}");
             }
             else if (File.Exists(System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help", relativeUrl)))
             {
                 location = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help", relativeUrl);
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
+                LauncherLogger.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(LauncherPaths.TempDirectory, "CE", "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help");
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
+                location = System.IO.Path.Combine(LauncherPaths.TempDirectory, "CE", "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(LauncherPaths.TempDirectory, "CE", "Help");
+                LauncherLogger.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)
             {
                 location = relativeUrl;
-                ModBase.Log($"[Control] 自定义事件中直接{type}：{location}");
+                LauncherLogger.Log($"[Control] 自定义事件中直接{type}：{location}");
             }
             else
             {
@@ -428,7 +428,7 @@ namespace PCL
 
         private static bool EventSafetyConfirm(string message)
         {
-            if (ModBase.Setup.Get("HintCustomCommand") == "True")
+            if (LauncherEnvironment.Setup.Get("HintCustomCommand") == "True")
                 return true;
 
             switch (ModMain.MyMsgBox(
@@ -441,7 +441,7 @@ namespace PCL
                 case 1:
                     return true;
                 case 2:
-                    ModBase.Setup.Set("HintCustomCommand", "True");
+                    LauncherEnvironment.Setup.Set("HintCustomCommand", "True");
                     return true;
                 default:
                     return false;

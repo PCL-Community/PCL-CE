@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Windows;
@@ -34,16 +34,16 @@ public static partial class ModAnimation
         var MinFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
 
 
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
-                ModBase.Log("[Animation] 动画线程开始");
+                LauncherLogger.Log("[Animation] 动画线程开始");
                 while (true)
                 {
                     // 两帧之间的间隔时间
                     var DeltaTime =
-                        (long)Math.Round(ModBase.MathClamp(TimeUtils.GetTimeTick() - AniLastTick, 0, 100000));
+                        (long)Math.Round(LauncherText.MathClamp(TimeUtils.GetTimeTick() - AniLastTick, 0, 100000));
                     if (DeltaTime < MinFrameGap)
                     {
                         // 限制 FPS
@@ -53,9 +53,9 @@ public static partial class ModAnimation
 
                     AniLastTick = TimeUtils.GetTimeTick();
                     // 记录 FPS
-                    if (ModBase.ModeDebug)
+                    if (LauncherLogger.ModeDebug)
                     {
-                        if (ModBase.MathClamp(AniLastTick - AniFPSTimer, 0d, 100000d) >= 500d)
+                        if (LauncherText.MathClamp(AniLastTick - AniFPSTimer, 0d, 100000d) >= 500d)
                         {
                             AniFPS = AniFPSCounter;
                             AniFPSCounter = 0;
@@ -66,7 +66,7 @@ public static partial class ModAnimation
                     }
 
                     // 执行动画
-                    ModBase.RunInUiWait(() =>
+                    LauncherDispatcher.RunInUiWait(() =>
                     {
                         AniCount = 0;
                         AniTimer((int)Math.Round(DeltaTime * AniSpeed));
@@ -75,11 +75,11 @@ public static partial class ModAnimation
                         // #Else
                         // If ModeDebug Then FrmMain.Title = "FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManage.FileRemain
                         // #End If
-                        if (RandomUtils.NextInt(0, 64 * (ModBase.ModeDebug ? 5 : 30)) == 0 &&
+                        if (RandomUtils.NextInt(0, 64 * (LauncherLogger.ModeDebug ? 5 : 30)) == 0 &&
                             ((AniFPS < 62 && AniFPS > 0) || AniCount > 4 || ModNet.NetManager.FileRemain != 0))
-                            ModBase.Log("[Report] FPS " + AniFPS + ", 动画 " + AniCount + ", 下载中 " +
+                            LauncherLogger.Log("[Report] FPS " + AniFPS + ", 动画 " + AniCount + ", 下载中 " +
                                         ModNet.NetManager.FileRemain + "（" +
-                                        ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
+                                        LauncherText.GetString(ModNet.NetManager.Speed) + "/s）");
                     });
                 }
             }
@@ -88,7 +88,7 @@ public static partial class ModAnimation
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "动画帧执行失败", ModBase.LogLevel.Critical);
+                LauncherLogger.Log(ex, "动画帧执行失败", LauncherLogger.LogLevel.Critical);
             }
         }, "Animation", ThreadPriority.AboveNormal);
     }
@@ -101,7 +101,7 @@ public static partial class ModAnimation
         try
         {
             if (DeltaTick / AniSpeed > 100d)
-                ModBase.Log("[Animation] 两个动画帧间隔 " + DeltaTick + " ms", ModBase.LogLevel.Developer);
+                LauncherLogger.Log("[Animation] 两个动画帧间隔 " + DeltaTick + " ms", LauncherLogger.LogLevel.Developer);
             var i = -1;
             // 循环每个动画组
             while (i + 1 < AniGroups.Count)
@@ -184,7 +184,7 @@ public static partial class ModAnimation
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "动画刻执行失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "动画刻执行失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -200,24 +200,24 @@ public static partial class ModAnimation
             {
                 case AniType.Number:
                 {
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
+                    var Delta = LauncherText.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     if (Delta != 0d)
                         switch (Ani.TypeSub)
                         {
                             case AniTypeSub.X:
                             {
-                                ModBase.DeltaLeft((FrameworkElement)Ani.Obj, Delta);
+                                LauncherLayout.DeltaLeft((FrameworkElement)Ani.Obj, Delta);
                                 break;
                             }
                             case AniTypeSub.Y:
                             {
-                                ModBase.DeltaTop((FrameworkElement)Ani.Obj, Delta);
+                                LauncherLayout.DeltaTop((FrameworkElement)Ani.Obj, Delta);
                                 break;
                             }
                             case AniTypeSub.Opacity:
                             {
-                                ((dynamic)Ani.Obj).Opacity = ModBase.MathClamp(
+                                ((dynamic)Ani.Obj).Opacity = LauncherText.MathClamp(
                                     Convert.ToDouble(((dynamic)Ani.Obj).Opacity) + Delta, 0d, 1d);
                                 break;
                             }
@@ -301,14 +301,14 @@ public static partial class ModAnimation
                 case AniType.Color:
                 {
                     // 利用 Last 记录了余下的小数值
-                    var Delta = ModBase.MathPercent(new ModBase.MyColor(0d, 0d, 0d, 0d), (ModBase.MyColor)Ani.Value,
+                    var Delta = LauncherText.MathPercent(new MyColor(0d, 0d, 0d, 0d), (MyColor)Ani.Value,
                                     Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent)) +
-                                (ModBase.MyColor)Ani.ValueLast;
+                                (MyColor)Ani.ValueLast;
                     var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
                     var Prop = (DependencyProperty)((dynamic)Ani.Obj)[1];
-                    var NewColor = new ModBase.MyColor(Obj.GetValue(Prop)) + Delta;
+                    var NewColor = new MyColor(Obj.GetValue(Prop)) + Delta;
                     Obj.SetValue(Prop, Prop.PropertyType.Name == "Color" ? (Color)NewColor : (SolidColorBrush)NewColor);
-                    Ani.ValueLast = NewColor - new ModBase.MyColor(Obj.GetValue(Prop));
+                    Ani.ValueLast = NewColor - new MyColor(Obj.GetValue(Prop));
                     break;
                 }
 
@@ -318,17 +318,17 @@ public static partial class ModAnimation
                     var Delta = Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent);
                     Obj.Margin = new Thickness(
                         Obj.Margin.Left +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
-                        Obj.Margin.Top + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta),
+                        LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
+                        Obj.Margin.Top + LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta),
                         Obj.Margin.Right +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
+                        LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
                         Obj.Margin.Bottom +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta));
+                        LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta));
                     Obj.Width = Math.Max(
-                        Obj.Width + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Width), Delta), 0d);
+                        Obj.Width + LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Width), Delta), 0d);
                     Obj.Height =
                         Math.Max(
-                            Obj.Height + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Height), Delta), 0d);
+                            Obj.Height + LauncherText.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Height), Delta), 0d);
                     break;
                 }
 
@@ -383,7 +383,7 @@ public static partial class ModAnimation
                         Obj.RenderTransform = new ScaleTransform(1d, 1d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
+                    var Delta = LauncherText.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     ((ScaleTransform)Obj.RenderTransform).ScaleX =
                         Math.Max(((ScaleTransform)Obj.RenderTransform).ScaleX + Delta, 0d);
@@ -401,7 +401,7 @@ public static partial class ModAnimation
                         Obj.RenderTransform = new RotateTransform(0d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
+                    var Delta = LauncherText.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     ((RotateTransform)Obj.RenderTransform).Angle = ((RotateTransform)Obj.RenderTransform).Angle + Delta;
                     break;
@@ -412,7 +412,7 @@ public static partial class ModAnimation
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "执行动画失败：" + Ani, ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "执行动画失败：" + Ani, LauncherLogger.LogLevel.Hint);
         }
 
         return Ani;
@@ -434,7 +434,7 @@ public static partial class ModAnimation
     {
         public List<AniData> Data;
         public long StartTick;
-        public int Uuid = ModBase.GetUuid();
+        public int Uuid = LauncherDispatcher.GetUuid();
     }
 
     /// <summary>
@@ -537,7 +537,7 @@ public static partial class ModAnimation
 
         public override string ToString()
         {
-            return ModBase.GetStringFromEnum(TypeMain) + " | " + TimeFinished + "/" + TimeTotal + "(" +
+            return LauncherText.GetStringFromEnum(TypeMain) + " | " + TimeFinished + "/" + TimeTotal + "(" +
                    Math.Round(TimePercent * 100d) + "%)" +
                    (Obj is null ? "" : " | " + Obj + "(" + Obj.GetType().Name + ")");
         }
@@ -941,14 +941,14 @@ public static partial class ModAnimation
     /// <param name="After">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaColor(FrameworkElement Obj, DependencyProperty Prop, ModBase.MyColor Value, int Time = 400,
+    public static AniData AaColor(FrameworkElement Obj, DependencyProperty Prop, MyColor Value, int Time = 400,
         int Delay = 0, AniEase Ease = null, bool After = false)
     {
         return new AniData
         {
             TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
             Obj = new object[] { Obj, Prop, "" }, Value = Value, IsAfter = After, TimeFinished = -Delay,
-            ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
+            ValueLast = new MyColor(0d, 0d, 0d, 0d)
         };
     }
 
@@ -971,9 +971,9 @@ public static partial class ModAnimation
         {
             TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
             Obj = new object[] { Obj, Prop, Res },
-            Value = new ModBase.MyColor(System.Windows.Application.Current.FindResource(Res)) -
-                    new ModBase.MyColor(Obj.GetValue(Prop)),
-            IsAfter = After, TimeFinished = -Delay, ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
+            Value = new MyColor(System.Windows.Application.Current.FindResource(Res)) -
+                    new MyColor(Obj.GetValue(Prop)),
+            IsAfter = After, TimeFinished = -Delay, ValueLast = new MyColor(0d, 0d, 0d, 0d)
         };
     }
 
@@ -994,11 +994,11 @@ public static partial class ModAnimation
     public static AniData AaScale(object Obj, double Value, int Time = 400, int Delay = 0, AniEase Ease = null,
         bool After = false, bool Absolute = false)
     {
-        ModBase.MyRect ChangeRect;
+        MyRect ChangeRect;
         if (Absolute)
-            ChangeRect = new ModBase.MyRect(-0.5d * Value, -0.5d * Value, Value, Value);
+            ChangeRect = new MyRect(-0.5d * Value, -0.5d * Value, Value, Value);
         else
-            ChangeRect = new ModBase.MyRect(
+            ChangeRect = new MyRect(
                 Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualWidth * Value),
                 Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualHeight * Value),
                 Convert.ToDouble(((dynamic)Obj).ActualWidth * Value),
@@ -1247,12 +1247,12 @@ public static partial class ModAnimation
     {
         public override double GetValue(double t)
         {
-            return ModBase.MathClamp(t, 0d, 1d);
+            return LauncherText.MathClamp(t, 0d, 1d);
         }
 
         public override double GetDelta(double t1, double t0)
         {
-            return ModBase.MathClamp(t1, 0d, 1d) - ModBase.MathClamp(t0, 0d, 1d);
+            return LauncherText.MathClamp(t1, 0d, 1d) - LauncherText.MathClamp(t0, 0d, 1d);
         }
     }
 
@@ -1271,7 +1271,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            return Math.Pow(ModBase.MathClamp(t, 0d, 1d), (double)p);
+            return Math.Pow(LauncherText.MathClamp(t, 0d, 1d), (double)p);
         }
     }
 
@@ -1289,7 +1289,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            return 1d - Math.Pow(ModBase.MathClamp(1d - t, 0d, 1d), (double)p);
+            return 1d - Math.Pow(LauncherText.MathClamp(1d - t, 0d, 1d), (double)p);
         }
     }
 
@@ -1331,7 +1331,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double percent)
         {
-            var p = ModBase.MathClamp(percent, 0d, 1d);
+            var p = LauncherText.MathClamp(percent, 0d, 1d);
             if (alpha == 0d)
                 return p; // 退化到线性
             return (alpha + 1d) * p / (1d + alpha * p);
@@ -1353,7 +1353,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            t = ModBase.MathClamp(t, 0d, 1d);
+            t = LauncherText.MathClamp(t, 0d, 1d);
             return Math.Pow(t, p) * Math.Cos(1.5d * Math.PI * (1d - t));
         }
     }
@@ -1372,7 +1372,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            t = ModBase.MathClamp(t, 0d, 1d);
+            t = LauncherText.MathClamp(t, 0d, 1d);
             return 1d - Math.Pow(1d - t, p) * Math.Cos(1.5d * Math.PI * t);
         }
     }
@@ -1429,7 +1429,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            t = ModBase.MathClamp(t, 0d, 1d);
+            t = LauncherText.MathClamp(t, 0d, 1d);
             return Math.Pow(t, (p - 1) * 0.25d) * Math.Cos((p - 3.5d) * Math.PI * Math.Pow(1d - t, 1.5d));
         }
     }
@@ -1448,7 +1448,7 @@ public static partial class ModAnimation
 
         public override double GetValue(double t)
         {
-            t = 1d - ModBase.MathClamp(t, 0d, 1d);
+            t = 1d - LauncherText.MathClamp(t, 0d, 1d);
             return 1d - Math.Pow(t, (p - 1) * 0.25d) * Math.Cos((p - 3.5d) * Math.PI * Math.Pow(1d - t, 1.5d));
         }
     }
@@ -1468,7 +1468,7 @@ public static partial class ModAnimation
             AniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
         // 添加到正在执行的动画组
         var NewEntry = new AniGroupEntry
-            { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
+            { Data = MigrationHelpers.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(Name))
             Name = NewEntry.Uuid.ToString();
         else

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows.Controls;
 using Microsoft.VisualBasic;
 using NAudio;
@@ -58,7 +58,7 @@ public static class ModMusic
                 if (reader.TotalTime.TotalMilliseconds > 0d)
                 {
                     var progress = reader.CurrentTime.TotalMilliseconds / reader.TotalTime.TotalMilliseconds;
-                    ModBase.RunInUi(() => ModMain.FrmMain.BtnExtraMusic.Progress = progress);
+                    LauncherDispatcher.RunInUi(() => ModMain.FrmMain.BtnExtraMusic.Progress = progress);
                 }
 
                 Thread.Sleep(100);
@@ -72,10 +72,10 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", ModBase.LogLevel.Developer);
+            LauncherLogger.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", LauncherLogger.LogLevel.Developer);
 
             // 错误处理：精准提示用户
-            var fileName = ModBase.GetFileNameFromPath(MusicCurrent);
+            var fileName = LauncherPaths.GetFileName(MusicCurrent);
             if (ex is MmException)
             {
                 var msg = ex.Message;
@@ -84,7 +84,7 @@ public static class ModMusic
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
                     ModMain.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", ModMain.HintType.Critical);
                 else
-                    ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, $"播放失败（{fileName}）", LauncherLogger.LogLevel.Hint);
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
@@ -98,7 +98,7 @@ public static class ModMusic
             }
             else
             {
-                ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, $"播放失败（{fileName}）", LauncherLogger.LogLevel.Hint);
             }
 
             // 移除无效文件
@@ -149,9 +149,9 @@ public static class ModMusic
             if (MusicAllList is null)
             {
                 MusicAllList = new List<string>();
-                var musicDir = Path.Combine(ModBase.ExePath, "PCL", "Musics");
+                var musicDir = Path.Combine(LauncherPaths.ExecutableDirectory, "PCL", "Musics");
                 Directory.CreateDirectory(musicDir);
-                foreach (var file in ModBase.EnumerateFiles(musicDir))
+                foreach (var file in LauncherFileSystem.EnumerateFiles(musicDir))
                 {
                     var ext = file.Extension.ToLowerInvariant();
                     // 忽略非音频文件
@@ -178,7 +178,7 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化音乐列表失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "初始化音乐列表失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -210,7 +210,7 @@ public static class ModMusic
     /// </summary>
     private static void MusicRefreshUI()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             try
             {
@@ -221,19 +221,19 @@ public static class ModMusic
                 else
                 {
                     ModMain.FrmMain.BtnExtraMusic.Show = true;
-                    var fileName = ModBase.GetFileNameWithoutExtentionFromPath(MusicCurrent);
+                    var fileName = LauncherPaths.GetFileNameWithoutExtension(MusicCurrent);
                     var isSingle = MusicAllList.Count == 1;
                     string tipText;
                     if (MusicState == MusicStates.Pause)
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = ModBase.Logo.IconPlay;
+                        ModMain.FrmMain.BtnExtraMusic.Logo = Logo.IconPlay;
                         ModMain.FrmMain.BtnExtraMusic.LogoScale = 0.8d;
                         tipText = $"已暂停：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
                     }
                     else
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = ModBase.Logo.IconMusic;
+                        ModMain.FrmMain.BtnExtraMusic.Logo = Logo.IconMusic;
                         ModMain.FrmMain.BtnExtraMusic.LogoScale = 1d;
                         tipText = $"正在播放：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");
@@ -248,7 +248,7 @@ public static class ModMusic
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "刷新背景音乐 UI 失败", ModBase.LogLevel.Feedback);
+                LauncherLogger.Log(ex, "刷新背景音乐 UI 失败", LauncherLogger.LogLevel.Feedback);
             }
         });
     }
@@ -276,7 +276,7 @@ public static class ModMusic
 
             default:
             {
-                ModBase.Log("[Music] 音乐目前为停止状态，已强制尝试开始播放", ModBase.LogLevel.Debug);
+                LauncherLogger.Log("[Music] 音乐目前为停止状态，已强制尝试开始播放", LauncherLogger.LogLevel.Debug);
                 MusicRefreshPlay(false);
                 break;
             }
@@ -288,7 +288,7 @@ public static class ModMusic
         if (MusicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(MusicCurrent);
-            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(MusicCurrent), ModMain.HintType.Finish);
+            ModMain.Hint("重新播放：" + LauncherPaths.GetFileName(MusicCurrent), ModMain.HintType.Finish);
         }
         else
         {
@@ -300,7 +300,7 @@ public static class ModMusic
             else
             {
                 MusicStartPlay(addr);
-                ModMain.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish);
+                ModMain.Hint("正在播放：" + LauncherPaths.GetFileName(addr), ModMain.HintType.Finish);
             }
         }
 
@@ -362,7 +362,7 @@ public static class ModMusic
                     {
                         MusicStartPlay(addr, IsFirstLoad);
                         if (ShowHint)
-                            ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
+                            ModMain.Hint("背景音乐已刷新：" + LauncherPaths.GetFileName(addr), ModMain.HintType.Finish,
                                 false);
                     }
                     catch
@@ -377,7 +377,7 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景音乐播放失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "刷新背景音乐播放失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -385,22 +385,22 @@ public static class ModMusic
     {
         if (string.IsNullOrEmpty(Address))
             return;
-        ModBase.Log("[Music] 播放开始：" + Address);
+        LauncherLogger.Log("[Music] 播放开始：" + Address);
         MusicCurrent = Address;
-        ModBase.RunInNewThread(() => MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal);
+        LauncherDispatcher.RunInNewThread(() => MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal);
     }
 
     public static bool MusicPause()
     {
         if (MusicState != MusicStates.Play)
         {
-            ModBase.Log($"[Music] 无需暂停播放，当前状态为 {MusicState}");
+            LauncherLogger.Log($"[Music] 无需暂停播放，当前状态为 {MusicState}");
             return false;
         }
 
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
-            ModBase.Log("[Music] 已暂停播放");
+            LauncherLogger.Log("[Music] 已暂停播放");
             MusicNAudio?.Pause();
             MusicRefreshUI();
         });
@@ -411,13 +411,13 @@ public static class ModMusic
     {
         if (MusicState == MusicStates.Play || MusicAllList.Count == 0)
         {
-            ModBase.Log($"[Music] 无需继续播放，当前状态为 {MusicState}");
+            LauncherLogger.Log($"[Music] 无需继续播放，当前状态为 {MusicState}");
             return false;
         }
 
-        ModBase.RunInThread(() =>
+        LauncherDispatcher.RunInThread(() =>
         {
-            ModBase.Log("[Music] 已恢复播放");
+            LauncherLogger.Log("[Music] 已恢复播放");
             try
             {
                 MusicNAudio?.Play();

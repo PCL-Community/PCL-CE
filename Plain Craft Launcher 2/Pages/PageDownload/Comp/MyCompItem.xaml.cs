@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -99,7 +99,7 @@ public partial class MyCompItem
 
     #region 基础属性
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     // Logo
     public string Logo
@@ -182,7 +182,7 @@ public partial class MyCompItem
         var typeface = new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight,
             textBlock.FontStretch);
         var formattedText = new FormattedText(textBlock.Text, Thread.CurrentThread.CurrentCulture,
-            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, ModBase.DPI);
+            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, LauncherWpf.DPI);
         return formattedText.Width > textBlock.ActualWidth;
     }
 
@@ -262,7 +262,7 @@ public partial class MyCompItem
             foreach (MyCard Card in ModMain.FrmDownloadCompDetail.PanResults.Children)
                 if (!string.IsNullOrEmpty(Card.Title) && !Card.IsSwapped)
                     Titles.Add(Card.Title);
-            ModBase.Log("[Comp] 记录当前已展开的卡片：" + string.Join("、", Titles));
+            LauncherLogger.Log("[Comp] 记录当前已展开的卡片：" + string.Join("、", Titles));
             var additional = ModMain.FrmMain.PageCurrent.Additional.Value;
             ModMain.FrmMain.PageCurrent.Additional = additional with { ExpandedTitles = Titles };
         }
@@ -407,7 +407,7 @@ public partial class MyCompItem
                     CornerRadius = new CornerRadius(3d),
                     RenderTransform = new ScaleTransform(0.8d, 0.8d),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(LauncherWpf.GetWPFSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d

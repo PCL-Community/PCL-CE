@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Windows;
@@ -117,7 +117,7 @@ public partial class PageSetupLog
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "日志保存失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "日志保存失败", LauncherLogger.LogLevel.Hint);
         }
         finally
         {

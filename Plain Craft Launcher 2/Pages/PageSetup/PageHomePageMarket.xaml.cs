@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
 using PCL.Core.IO.Net.Http.Client.Request;
@@ -34,10 +34,10 @@ namespace PCL
                 var content = HttpRequest.Create(HomepageMarketUri).SendAsync().Result.AsStringAsync().Result;
                 content = content.Replace("EventType=\"刷新主页\"", "EventType=\"刷新主页市场\"");
 
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     PanCustom.Children.Clear();
-                    var element = ModBase.GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>") as UIElement;
+                    var element = LauncherWpf.GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>") as UIElement;
 
                     if (element != null)
                     {

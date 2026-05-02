@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -22,7 +22,7 @@ public partial class PageComp
     {
         try
         {
-            ModBase.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {Storage.Results.Count} 个结果，当前在第 {Page + 1} 页");
+            LauncherLogger.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {Storage.Results.Count} 个结果，当前在第 {Page + 1} 页");
             // 列表项
             PanProjects.Children.Clear();
             var index = Math.Min(Page * PageSize, Storage.Results.Count - 1);
@@ -63,7 +63,7 @@ public partial class PageComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"可视化{TypeNameSpaced}列表出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, $"可视化{TypeNameSpaced}列表出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -72,14 +72,14 @@ public partial class PageComp
     {
         switch (Loader.State)
         {
-            case ModBase.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
                 if (ErrorMessage.Contains("不是有效的 json 文件"))
                 {
-                    ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", LauncherLogger.LogLevel.Debug);
                     ((MyPageRight)Parent).PageLoaderRestart();
                 }
 
@@ -109,11 +109,11 @@ public partial class PageComp
         CardPages.IsEnabled = false;
         Page = NewPage;
         ModMain.FrmMain.BackToTop();
-        ModBase.Log($"[Download] {TypeName}：切换到第 {Page + 1} 页");
-        ModBase.RunInThread(() =>
+        LauncherLogger.Log($"[Download] {TypeName}：切换到第 {Page + 1} 页");
+        LauncherDispatcher.RunInThread(() =>
         {
             Thread.Sleep(100); // 等待向上滚的动画结束
-            ModBase.RunInUi(() => CardPages.IsEnabled = true);
+            LauncherDispatcher.RunInUi(() => CardPages.IsEnabled = true);
             Loader.Start();
         });
     }
@@ -137,7 +137,7 @@ public partial class PageComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新收藏状态时出错");
+            LauncherLogger.Log(ex, "刷新收藏状态时出错");
         }
     }
 
@@ -334,8 +334,8 @@ public partial class PageComp
         var ModLoader = ModComp.CompLoaderType.Any;
         if (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack) // 只有 Mod 考虑加载器
         {
-            ModLoader = (ModComp.CompLoaderType)ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
-            if (GameVersion is not null && GameVersion.Contains(".") && ModBase.Val(GameVersion.Split(".")[1]) < 14d &&
+            ModLoader = (ModComp.CompLoaderType)MigrationHelpers.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
+            if (GameVersion is not null && GameVersion.Contains(".") && MigrationHelpers.Val(GameVersion.Split(".")[1]) < 14d &&
                 ModLoader == ModComp.CompLoaderType.Forge) // 1.14-
                                                            // 选择了 Forge
                 ModLoader = ModComp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
@@ -353,10 +353,10 @@ public partial class PageComp
             : selectedTag;
         Request.ModLoader =
             (ModComp.CompLoaderType)(PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack
-                ? ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
+                ? MigrationHelpers.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
                 : (double)ModComp.CompLoaderType.Any);
-        Request.Source = (ModComp.CompSourceType)ModBase.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
-        Request.Sort = (ModComp.CompSortType)ModBase.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
+        Request.Source = (ModComp.CompSourceType)MigrationHelpers.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
+        Request.Sort = (ModComp.CompSortType)MigrationHelpers.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
         return Request;
     }
 

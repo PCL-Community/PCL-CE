@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -165,11 +165,11 @@ public partial class PageSetupUI
             }
             catch
             {
-                ModBase.Setup.Reset("UiCustomPreset");
+                LauncherEnvironment.Setup.Reset("UiCustomPreset");
             }
 
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioCustomType",
-                ModBase.Setup.Load("UiCustomType", true))))).Checked = true;
+                LauncherEnvironment.Setup.Load("UiCustomType", true))))).Checked = true;
             TextCustomNet.Text = Conversions.ToString(Config.Preference.Homepage.CustomUrl);
 
             // 功能隐藏
@@ -216,12 +216,12 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "个性化设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "个性化设置项存在异常，已被自动重置", LauncherLogger.LogLevel.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载个性化设置时出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "重载个性化设置时出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -231,12 +231,12 @@ public partial class PageSetupUI
         try
         {
             Config.Preference.Reset();
-            ModBase.Log("[Setup] 已初始化个性化设置！");
+            LauncherLogger.Log("[Setup] 已初始化个性化设置！");
             ModMain.Hint("已初始化个性化设置", ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化个性化设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化个性化设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
@@ -247,36 +247,36 @@ public partial class PageSetupUI
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         // 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        if (ModAnimation.AniControlEnabled == 0) LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            LauncherEnvironment.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
@@ -292,7 +292,7 @@ public partial class PageSetupUI
     // 背景图片
     private void BtnUIBgOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Pictures\");
+        LauncherShell.OpenExplorer(LauncherPaths.ExecutableDirectory + @"PCL\Pictures\");
     }
 
     private void BtnBackgroundRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -334,7 +334,7 @@ public partial class PageSetupUI
                              """, "警告", Button2: "取消",
                 IsWarn: true) == 1)
         {
-            ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Pictures");
+            LauncherFileSystem.DeleteDirectory(LauncherPaths.ExecutableDirectory + @"PCL\Pictures");
             BackgroundRefresh(false, true);
             ModMain.Hint("背景内容已清空！", ModMain.HintType.Finish);
         }
@@ -350,8 +350,8 @@ public partial class PageSetupUI
         try
         {
             // 获取可用的图片文件
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures\");
-            var Pic = ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Pictures\").Where(file =>
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectory + @"PCL\Pictures\");
+            var Pic = LauncherFileSystem.EnumerateFiles(LauncherPaths.ExecutableDirectory + @"PCL\Pictures\").Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -367,14 +367,14 @@ public partial class PageSetupUI
                     ModVideoBack.VideoStop();
 
                     if (videoEx.Message.Contains("0xC00D109B"))
-                        ModBase.Log(
+                        LauncherLogger.Log(
                             $"""
                              刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。
                              你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。
                              文件：{videoAddress}
-                             """, ModBase.LogLevel.Msgbox);
+                             """, LauncherLogger.LogLevel.Msgbox);
                     else
-                        ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogLevel.Msgbox);
+                        LauncherLogger.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", LauncherLogger.LogLevel.Msgbox);
                 }
             };
             ModMain.FrmMain.VideoBack.MediaFailed -= videoHandler;
@@ -415,12 +415,12 @@ public partial class PageSetupUI
                     {
                         ModMain.FrmMain.ImgBack.Background = null;
                         ModVideoBack.VideoStop();
-                        ModBase.Log("[UI] 加载背景内容：" + Address);
+                        LauncherLogger.Log("[UI] 加载背景内容：" + Address);
                         ModMain.FrmMain.ImgBack.Background = new MyBitmap(Address);
-                        ModBase.Setup.Load("UiBackgroundSuit", true);
+                        LauncherEnvironment.Setup.Load("UiBackgroundSuit", true);
                         ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                         if (IsHint)
-                            ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                            ModMain.Hint("背景内容已刷新：" + LauncherPaths.GetFileName(Address), ModMain.HintType.Finish,
                                 false);
                     }
                     catch (Exception ex)
@@ -428,19 +428,19 @@ public partial class PageSetupUI
                         try
                         {
                             ModMain.FrmMain.VideoBack.MediaFailed += videoHandler;
-                            ModBase.Log(ex, "[UI] 加载背景图片失败" + Address);
-                            if (ModBase.ModeDebug)
+                            LauncherLogger.Log(ex, "[UI] 加载背景图片失败" + Address);
+                            if (LauncherLogger.ModeDebug)
                                 ModMain.Hint("图片加载失败，尝试将文件作为视频播放：" + Address);
                             ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.FrmMain.VideoBack.Source = new Uri(Address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (IsHint)
-                                ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                                ModMain.Hint("背景内容已刷新：" + LauncherPaths.GetFileName(Address), ModMain.HintType.Finish,
                                     false);
                         }
                         catch (Exception playEx)
                         {
-                            ModBase.Log(playEx, "播放背景内容时出现未知错误：");
+                            LauncherLogger.Log(playEx, "播放背景内容时出现未知错误：");
                         }
                     }
                 }
@@ -452,7 +452,7 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景内容时出现未知错误", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "刷新背景内容时出现未知错误", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -465,59 +465,59 @@ public partial class PageSetupUI
         try
         {
             // 拷贝文件
-            File.Delete(ModBase.ExePath + @"PCL\Logo.png");
-            ModBase.CopyFile(FileName, ModBase.ExePath + @"PCL\Logo.png");
+            File.Delete(LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
+            LauncherFileSystem.CopyFile(FileName, LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
             // 设置当前显示
             ModMain.FrmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-            ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+            ModMain.FrmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectory + @"PCL\Logo.png";
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("参数无效"))
-                ModBase.Log("""
+                LauncherLogger.Log("""
                             改变标题栏图片失败，该图片文件可能并非标准格式。
                             你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                             """,
-                    ModBase.LogLevel.Msgbox);
+                    LauncherLogger.LogLevel.Msgbox);
             else
-                ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogLevel.Msgbox);
+                LauncherLogger.Log(ex, "设置标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
             ModMain.FrmMain.ImageTitleLogo.Source = null;
         }
     }
 
-    private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
+    private void RadioLogoType3_Check(object sender, RouteEventArgs e)
     {
         if (!(ModAnimation.AniControlEnabled == 0 && e.RaiseByMouse))
             return;
         Refresh: ;
 
         // 已有图片则不再选择
-        if (File.Exists(ModBase.ExePath + @"PCL\Logo.png"))
+        if (File.Exists(LauncherPaths.ExecutableDirectory + @"PCL\Logo.png"))
         {
             try
             {
                 ModMain.FrmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-                ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+                ModMain.FrmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectory + @"PCL\Logo.png";
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("参数无效"))
-                    ModBase.Log("""
+                    LauncherLogger.Log("""
                                 调整标题栏图片失败，该图片文件可能并非标准格式。
                                 你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                                 """,
-                        ModBase.LogLevel.Msgbox);
+                        LauncherLogger.LogLevel.Msgbox);
                 else
-                    ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "调整标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
                 ModMain.FrmMain.ImageTitleLogo.Source = null;
                 e.Handled = true;
                 try
                 {
-                    File.Delete(ModBase.ExePath + @"PCL\Logo.png");
+                    File.Delete(LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "清理错误的标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(exx, "清理错误的标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
                 }
             }
 
@@ -536,13 +536,13 @@ public partial class PageSetupUI
             try
             {
                 // 拷贝文件
-                File.Delete(ModBase.ExePath + @"PCL\Logo.png");
-                ModBase.CopyFile(FileName, ModBase.ExePath + @"PCL\Logo.png");
+                File.Delete(LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
+                LauncherFileSystem.CopyFile(FileName, LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
                 goto Refresh;
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "复制标题栏图片失败", ModBase.LogLevel.Msgbox);
+                LauncherLogger.Log(ex, "复制标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
             }
         }
     }
@@ -551,20 +551,20 @@ public partial class PageSetupUI
     {
         try
         {
-            File.Delete(ModBase.ExePath + @"PCL\Logo.png");
+            File.Delete(LauncherPaths.ExecutableDirectory + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
             ModMain.Hint("标题栏图片已清空！", ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "清空标题栏图片失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "清空标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
     // 背景音乐
     private void BtnMusicOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Musics\");
+        LauncherShell.OpenExplorer(LauncherPaths.ExecutableDirectory + @"PCL\Musics\");
     }
 
     private void BtnMusicRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -581,7 +581,7 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = $"背景音乐（{ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Musics\").Count()} 首）";
+            CardMusic.Title = $"背景音乐（{LauncherFileSystem.EnumerateFiles(LauncherPaths.ExecutableDirectory + @"PCL\Musics\").Count()} 首）";
         }
         else
         {
@@ -601,7 +601,7 @@ public partial class PageSetupUI
                              此操作不可撤销，是否确定？
                              """, "警告", Button2: "取消",
                 IsWarn: true) == 1)
-            ModBase.RunInThread(() =>
+            LauncherDispatcher.RunInThread(() =>
             {
                 ModMain.Hint("正在删除背景音乐……");
                 // 停止播放音乐
@@ -612,23 +612,23 @@ public partial class PageSetupUI
                 // 删除文件
                 try
                 {
-                    ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Musics");
+                    LauncherFileSystem.DeleteDirectory(LauncherPaths.ExecutableDirectory + @"PCL\Musics");
                     // DisableSMTCSupport()
                     ModMain.Hint("背景音乐已删除！", ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "删除背景音乐失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "删除背景音乐失败", LauncherLogger.LogLevel.Msgbox);
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
-                    ModBase.RunInUi(() => ModMusic.MusicRefreshPlay(false));
+                    Directory.CreateDirectory(LauncherPaths.ExecutableDirectory + @"PCL\Musics");
+                    LauncherDispatcher.RunInUi(() => ModMusic.MusicRefreshPlay(false));
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "重建背景音乐文件夹失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "重建背景音乐文件夹失败", LauncherLogger.LogLevel.Msgbox);
                 }
             });
     }
@@ -655,16 +655,16 @@ public partial class PageSetupUI
     {
         try
         {
-            if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
+            if (File.Exists(LauncherPaths.ExecutableDirectory + @"PCL\Custom.xaml"))
                 if (ModMain.MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn: true) == 2)
                     return;
-            ModBase.WriteFile(ModBase.ExePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
+            LauncherFileSystem.WriteFile(LauncherPaths.ExecutableDirectory + @"PCL\Custom.xaml", LauncherPaths.GetResourceStream("Resources/Custom.xml"));
             ModMain.Hint("教学文件已生成！", ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Custom.xaml");
+            LauncherShell.OpenExplorer(LauncherPaths.ExecutableDirectory + @"PCL\Custom.xaml");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "生成教学文件失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "生成教学文件失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -691,12 +691,12 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
         ModSecret.ThemeRefresh();
     }
 
     // 主题自定义
-    private void RadioLauncherTheme14_Change(object sender, ModBase.RouteEventArgs e)
+    private void RadioLauncherTheme14_Change(object sender, RouteEventArgs e)
     {
         // If RadioLauncherTheme14.Checked Then
         // If LabLauncherHue.Visibility = Visibility.Visible Then Exit Sub
@@ -740,7 +740,7 @@ public partial class PageSetupUI
     // 赞助
     private void BtnLauncherDonate_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://afdian.com/a/LTCat");
+        LauncherShell.OpenWebsite("https://afdian.com/a/LTCat");
     }
 
     // 滑动条
@@ -775,7 +775,7 @@ public partial class PageSetupUI
         SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
     }
 
-    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnHomepageMarket_Click(object sender, RouteEventArgs e)
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.HomePageMarket });
     }
@@ -966,7 +966,7 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新功能隐藏项目失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "刷新功能隐藏项目失败", LauncherLogger.LogLevel.Feedback);
         }
     }
 

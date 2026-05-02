@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -106,7 +106,7 @@ public partial class PageInstanceSetup
 
             // 游戏内存
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
-                ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
+                LauncherEnvironment.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
             ComboRamOptimize.SelectedIndex = Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance];
 
@@ -129,17 +129,17 @@ public partial class PageInstanceSetup
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
             if (Conversions.ToBoolean(
                     Operators.ConditionalCompareObjectEqual(
-                        ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
+                        LauncherEnvironment.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
             {
-                ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
-                ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
+                LauncherLogger.Log("[Setup] 已迁移老版本的关闭文件校验设置");
+                LauncherEnvironment.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
                 Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
             }
 
             CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance];
-            if (ModBase.IsArm64System)
+            if (LauncherEnvironment.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -155,7 +155,7 @@ public partial class PageInstanceSetup
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载实例独立设置时出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "重载实例独立设置时出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -169,24 +169,24 @@ public partial class PageInstanceSetup
 
             Config.Instance.Reset(PageInstanceLeft.Instance.PathInstance);
 
-            ModBase.Log("[Setup] 已初始化实例独立设置");
+            LauncherLogger.Log("[Setup] 已初始化实例独立设置");
             ModMain.Hint("已初始化实例独立设置！", ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化实例独立设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化实例独立设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
     }
 
     // 将控件改变路由到设置改变
-    private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
+    private void RadioBoxChange(object o, RouteEventArgs routeEventArgs)
     {
         var sender = (MyRadioBox)o;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
+            LauncherEnvironment.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -219,13 +219,13 @@ public partial class PageInstanceSetup
     {
         var sender = (MySlider)o;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
+            LauncherEnvironment.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
     }
 
     private static void ComboChange(MyComboBox sender, object e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
+            LauncherEnvironment.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
                 instance: PageInstanceLeft.Instance);
     }
 
@@ -289,7 +289,7 @@ public partial class PageInstanceSetup
         var RamAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
         var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
         var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
-        var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        var RamEmpty = Math.Round(LauncherText.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
         // 设置最大可用内存
         if (RamTotal <= 1.5d)
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));
@@ -304,7 +304,7 @@ public partial class PageInstanceSetup
         LabRamUsed.Text = $"{(RamUsed == Math.Floor(RamUsed) ? $"{RamUsed}.0" : RamUsed)} GB";
         LabRamTotal.Text = $" / {(RamTotal == Math.Floor(RamTotal) ? $"{RamTotal}.0" : RamTotal)} GB";
         LabRamWarn.Visibility =
-            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !ModBase.Is32BitSystem &&
+            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !LauncherEnvironment.Is32BitSystem &&
             ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -465,7 +465,7 @@ public partial class PageInstanceSetup
     {
         // 跟随全局设置
         if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 2, false)))
+                Operators.ConditionalCompareObjectEqual(LauncherEnvironment.Setup.Get("VersionRamType", Version), 2, false)))
             return PageSetupLaunch.GetRam(Version, true, Is32BitJava);
 
         // ------------------------------------------
@@ -475,7 +475,7 @@ public partial class PageInstanceSetup
         // 使用当前实例的设置
         var RamGive = default(double);
         if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 0, false)))
+                Operators.ConditionalCompareObjectEqual(LauncherEnvironment.Setup.Get("VersionRamType", Version), 0, false)))
         {
             // 自动配置
             var RamAvailable =
@@ -547,7 +547,7 @@ public partial class PageInstanceSetup
         else
         {
             // 手动配置
-            var Value = Conversions.ToInteger(ModBase.Setup.Get("VersionRamCustom", Version));
+            var Value = Conversions.ToInteger(LauncherEnvironment.Setup.Get("VersionRamCustom", Version));
             if (Value <= 12)
                 RamGive = Value * 0.1d + 0.3d;
             else if (Value <= 25)
@@ -632,7 +632,7 @@ public partial class PageInstanceSetup
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Conversions.ToBoolean(ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
+        if (Conversions.ToBoolean(LauncherEnvironment.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
         {
             HintServerLoginLock.Visibility = Visibility.Visible;
             ComboServerLoginRequire.IsEnabled = false;
@@ -714,10 +714,10 @@ public partial class PageInstanceSetup
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
         PageLoginAuth.DraggedAuthServer = TextServerAuthServer.Text;
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             Thread.Sleep(150);
-            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
         });
     }
 
@@ -816,7 +816,7 @@ public partial class PageInstanceSetup
         catch (Exception ex)
         {
             Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = "使用全局设置";
-            ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "更新实例设置 Java 下拉框失败", LauncherLogger.LogLevel.Feedback);
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
             {
@@ -967,7 +967,7 @@ public partial class PageInstanceSetup
         Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = json;
 
 
-        ModBase.Log(logMessage);
+        LauncherLogger.Log(logMessage);
         RefreshRam(true);
     }
 

@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -112,7 +112,7 @@ public partial class PageInstanceSaves : IRefreshable
     private void FileSystemRefreshTimer_Tick(object sender, EventArgs e)
     {
         fileSystemRefreshTimer.Stop();
-        ModBase.RunInUi(() => Reload(), true);
+        LauncherDispatcher.RunInUi(() => Reload(), true);
     }
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -188,13 +188,13 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
-                        ModBase.CopyFile(saveLogo, target);
+                            $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{LauncherHash.GetStringMD5(saveLogo)}.png";
+                        LauncherFileSystem.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
                     else
                     {
-                        saveLogo = ModBase.PathImage + "Icons/NoIcon.png";
+                        saveLogo = LauncherEnvironment.PathImage + "Icons/NoIcon.png";
                     }
 
                     var worldItem = new MyListItem
@@ -210,38 +210,38 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnOpen = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonOpen,
+                        Logo = Logo.IconButtonOpen,
                         ToolTip = "打开"
                     };
-                    BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
+                    BtnOpen.Click += (_, _) => LauncherShell.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonDelete,
+                        Logo = Logo.IconButtonDelete,
                         ToolTip = "删除"
                     };
                     BtnDelete.Click += (_, _) =>
                     {
                         worldItem.IsEnabled = false;
                         worldItem.Info = "删除中……";
-                        ModBase.RunInNewThread(() =>
+                        LauncherDispatcher.RunInNewThread(() =>
                         {
                             try
                             {
                                 FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs,
                                     RecycleOption.SendToRecycleBin);
                                 ModMain.Hint("已将存档移至回收站！");
-                                ModBase.RunInUiWait(() => RemoveItem(worldItem));
+                                LauncherDispatcher.RunInUiWait(() => RemoveItem(worldItem));
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "删除存档失败！", ModBase.LogLevel.Hint);
-                                ModBase.RunInUiWait(() => Reload());
+                                LauncherLogger.Log(ex, "删除存档失败！", LauncherLogger.LogLevel.Hint);
+                                LauncherDispatcher.RunInUiWait(() => Reload());
                             }
                         });
                     };
                     var BtnCopy = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonCopy,
+                        Logo = Logo.IconButtonCopy,
                         ToolTip = "复制"
                     };
                     BtnCopy.Click += (_, _) =>
@@ -261,12 +261,12 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "复制失败……", ModBase.LogLevel.Hint);
+                            LauncherLogger.Log(ex, "复制失败……", LauncherLogger.LogLevel.Hint);
                         }
                     };
                     var BtnInfo = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonInfo,
+                        Logo = Logo.IconButtonInfo,
                         ToolTip = "详情"
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -274,7 +274,7 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnLaunch = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconPlayGame,
+                        Logo = Logo.IconPlayGame,
                         ToolTip = "快捷启动"
                     };
                     BtnLaunch.Click += (_, _) =>
@@ -301,7 +301,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新存档UI失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "刷新存档UI失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -314,7 +314,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "检查存档快捷启动失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -322,31 +322,31 @@ public partial class PageInstanceSaves : IRefreshable
     {
         try
         {
-            ModBase.Log("[World] 刷新存档文件");
+            LauncherLogger.Log("[World] 刷新存档文件");
             saveFolders.Clear();
             if (Directory.Exists(WorldPath))
                 saveFolders = Directory.EnumerateDirectories(WorldPath).ToList();
             else
                 saveFolders = new List<string>();
 
-            if (ModBase.ModeDebug)
-                ModBase.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", ModBase.LogLevel.Debug);
+            if (LauncherLogger.ModeDebug)
+                LauncherLogger.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", LauncherLogger.LogLevel.Debug);
             PanList.Children.Clear();
             CheckQuickPlay();
 
-            if (ModBase.ModeDebug)
+            if (LauncherLogger.ModeDebug)
             {
                 if ((bool)QuickPlayFeature)
-                    ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[World] 该实例支持存档快捷启动", LauncherLogger.LogLevel.Debug);
                 else
-                    ModBase.Log("[World] 该实例不支持存档快捷启动", ModBase.LogLevel.Debug);
+                    LauncherLogger.Log("[World] 该实例不支持存档快捷启动", LauncherLogger.LogLevel.Debug);
             }
 
             RefreshUI(); // 确保UI刷新
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "载入存档列表失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "载入存档列表失败", LauncherLogger.LogLevel.Hint);
         }
     }
 
@@ -360,7 +360,7 @@ public partial class PageInstanceSaves : IRefreshable
 
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(WorldPath);
+        LauncherShell.OpenExplorer(WorldPath);
     }
 
     private void BtnPaste_Click(object sender, MouseButtonEventArgs e)
@@ -381,7 +381,7 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         else
                         {
-                            ModBase.CopyDirectory(i, WorldPath + GetFolderNameFromPath(i));
+                            LauncherFileSystem.CopyDirectory(i, WorldPath + GetFolderNameFromPath(i));
                             Copied += 1;
                         }
                     }
@@ -392,12 +392,12 @@ public partial class PageInstanceSaves : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "粘贴存档文件夹失败", ModBase.LogLevel.Hint);
+                    LauncherLogger.Log(ex, "粘贴存档文件夹失败", LauncherLogger.LogLevel.Hint);
                 }
 
             if (Copied > 0)
                 ModMain.Hint("已粘贴 " + Copied + " 个文件夹", ModMain.HintType.Finish);
-            ModBase.RunInUi(() => Reload());
+            LauncherDispatcher.RunInUi(() => Reload());
         }));
         var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.Instance.Name} - 复制存档", loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
@@ -486,16 +486,16 @@ public partial class PageInstanceSaves : IRefreshable
         {
             if (IsSearching)
             {
-                var queryList = new List<ModBase.SearchEntry<string>>();
+                var queryList = new List<SearchEntry<string>>();
                 foreach (var saveFolder in saveFolders)
                 {
                     var folderName = GetFolderNameFromPath(saveFolder);
-                    var searchSource = new List<ModBase.SearchSource>();
-                    searchSource.Add(new ModBase.SearchSource(folderName, 1d));
-                    queryList.Add(new ModBase.SearchEntry<string> { Item = saveFolder, SearchSource = searchSource });
+                    var searchSource = new List<SearchSource>();
+                    searchSource.Add(new SearchSource(folderName, 1d));
+                    queryList.Add(new SearchEntry<string> { Item = saveFolder, SearchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+                _searchResult = LauncherSearch.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
             }
             else
             {
@@ -506,7 +506,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "搜索过程中发生异常");
+            LauncherLogger.Log(ex, "搜索过程中发生异常");
         }
     }
 

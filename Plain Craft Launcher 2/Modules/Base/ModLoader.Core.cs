@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.CompilerServices;
+﻿using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using System.Collections;
@@ -53,7 +53,7 @@ public static partial class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "文件夹加载器启动检测出错");
+            LauncherLogger.Log(ex, "文件夹加载器启动检测出错");
         }
 
         // 写入检查数据
@@ -88,11 +88,11 @@ public static partial class ModLoader
     /// </summary>
     public abstract partial class LoaderBase : ILoadingTrigger
     {
-        public delegate void OnStateChangedThreadEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedThreadEventHandler(LoaderBase Loader, LoadState NewState,
+            LoadState OldState);
 
-        public delegate void OnStateChangedUiEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedUiEventHandler(LoaderBase Loader, LoadState NewState,
+            LoadState OldState);
 
         public delegate void PreviewFinishEventHandler(LoaderBase Loader);
 
@@ -122,7 +122,7 @@ public static partial class ModLoader
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取父加载器失败（" + Name + "）", ModBase.LogLevel.Feedback);
+                    LauncherLogger.Log(ex, "获取父加载器失败（" + Name + "）", LauncherLogger.LogLevel.Feedback);
                     return null;
                 }
 

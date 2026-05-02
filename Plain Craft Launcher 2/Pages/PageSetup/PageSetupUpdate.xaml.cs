@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -24,7 +24,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.VersionBaseName);
+        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(LauncherEnvironment.VersionBaseName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
     }
@@ -34,30 +34,30 @@ public partial class PageSetupUpdate
         try
         {
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(LauncherEnvironment.VersionBaseName)
             if (await ModSecret.RemoteServer.IsLatestAsync(
                     ModSecret.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
-                    SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode))
+                    LauncherEnvironment.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
+                    SemVer.Parse(LauncherEnvironment.VersionBaseName),
+                    LauncherEnvironment.VersionCode))
             {
-                ModBase.Log("[Update] 已是最新版本");
+                LauncherLogger.Log("[Update] 已是最新版本");
                 return UpdateStatus.Latest;
             }
 
-            ModBase.Log("[Update] 有可用的新版本");
+            LauncherLogger.Log("[Update] 有可用的新版本");
             return UpdateStatus.Available;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "无法获取最新版本信息，请检查网络连接", LauncherLogger.LogLevel.Hint);
             return UpdateStatus.Error;
         }
     }
 
     public async void CheckUpdate()
     {
-        ModBase.Log("[Update] 开始检查更新");
+        LauncherLogger.Log("[Update] 开始检查更新");
         CardUpdate.Visibility = Visibility.Collapsed;
         CardCheck.Visibility = Visibility.Visible;
         TextCurrentDesc.Text = "正在检查更新...";
@@ -72,7 +72,7 @@ public partial class PageSetupUpdate
                     UpdateInfo = ModSecret.RemoteServer.GetLatestVersion(
                         ModSecret.IsCurrentVersionBeta
                             ? UpdateChannel.beta
-                            : UpdateChannel.stable, ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                            : UpdateChannel.stable, LauncherEnvironment.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
                     TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
                     var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
@@ -90,13 +90,13 @@ public partial class PageSetupUpdate
                 {
                     TextCurrentDesc.Text = "检查更新时出错";
                     if (checkUpdateEx is not null)
-                        ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        LauncherLogger.Log(checkUpdateEx, "[Update] 检查更新失败", LauncherLogger.LogLevel.Msgbox);
                     else
-                        ModBase.Log("[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        LauncherLogger.Log("[Update] 检查更新失败", LauncherLogger.LogLevel.Msgbox);
                     return;
                 }
 
-                if (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == ModBase.LoadState.Loading)
+                if (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == LoadState.Loading)
                 {
                     BtnUpdate_Timer();
                     BtnUpdate.IsEnabled = false;
@@ -137,9 +137,9 @@ public partial class PageSetupUpdate
 
     public void BtnUpdate_Timer()
     {
-        while (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == ModBase.LoadState.Loading)
+        while (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == LoadState.Loading)
         {
-            ModBase.RunInUi(() => BtnUpdate.Text = $"{Math.Round(ModSecret.UpdateLoader.Progress, 2)}%");
+            LauncherDispatcher.RunInUi(() => BtnUpdate.Text = $"{Math.Round(ModSecret.UpdateLoader.Progress, 2)}%");
             Thread.Sleep(200);
         }
     }
@@ -147,14 +147,13 @@ public partial class PageSetupUpdate
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
-        if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !ModBase
-                .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
+        if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !                LauncherShell.ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {
             ModMain.MyMsgBox(
-                $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。{"\r\n"}你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(ModBase.IsArm64System ? "Arm64" : "x64")} 选项下载。",
+                $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。{"\r\n"}你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(LauncherEnvironment.IsArm64System ? "Arm64" : "x64")} 选项下载。",
                 "启动器更新 - 缺少运行环境", "下载 .NET 8 运行时", "取消",
-                Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
+                Button1Action: () => LauncherShell.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
             return;
         }
 
@@ -266,12 +265,12 @@ public partial class PageSetupUpdate
 
     private void BtnGetMirrorCDK_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://mirrorchyan.com/");
+        LauncherShell.OpenWebsite("https://mirrorchyan.com/");
     }
 
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.VersionBaseName);
+        LauncherShell.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + LauncherEnvironment.VersionBaseName);
     }
 
     public string VersionNameFormat(string str)

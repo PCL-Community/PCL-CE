@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -36,7 +36,7 @@ public static partial class ModLaunch
         if (ModMinecraft.McInstanceSelected.PathInstance.Contains("!") ||
             ModMinecraft.McInstanceSelected.PathInstance.Contains(";"))
             throw new Exception("游戏路径中不可包含 ! 或 ;（" + ModMinecraft.McInstanceSelected.PathInstance + "）");
-        if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)States.Hint.NonAsciiGamePath &&
+        if (Conversions.ToBoolean(MigrationHelpers.IsUtf8CodePage() && !(bool)States.Hint.NonAsciiGamePath &&
                                   !ModMinecraft.McInstanceSelected.PathInstance.IsASCII()))
         {
             var userChoice = ModMain.MyMsgBox(
@@ -54,31 +54,31 @@ public static partial class ModLaunch
             throw new Exception("Minecraft 存在问题：" + ModMinecraft.McInstanceSelected.Desc);
         // 检查输入信息
         var CheckResult = "";
-        ModBase.RunInUiWait(() => CheckResult = Conversions.ToString(ModProfile.IsProfileValid()));
+        LauncherDispatcher.RunInUiWait(() => CheckResult = Conversions.ToString(ModProfile.IsProfileValid()));
         if (ModProfile.SelectedProfile is null) // 没选档案
         {
             CheckResult = "请先选择一个档案再启动游戏！";
         }
         else if (ModMinecraft.McInstanceSelected.Info.HasLabyMod || Conversions.ToBoolean(
                      Operators.ConditionalCompareObjectEqual(
-                         ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 1,
+                         LauncherEnvironment.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 1,
                          false))) // 要求正版验证
         {
             if (!(ModProfile.SelectedProfile.Type == McLoginType.Ms)) CheckResult = "当前实例要求使用正版验证，请使用正版验证档案启动游戏！";
         }
         else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(
-                     ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 2,
+                     LauncherEnvironment.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 2,
                      false))) // 要求第三方验证
         {
             if (!(ModProfile.SelectedProfile.Type == McLoginType.Auth))
                 CheckResult = "当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！";
             else if (Conversions.ToBoolean(!Operators.ConditionalCompareObjectEqual(
                          ModProfile.SelectedProfile.Server.BeforeLast("/authserver"),
-                         ModBase.Setup.Get("VersionServerAuthServer", ModMinecraft.McInstanceSelected), false)))
+                         LauncherEnvironment.Setup.Get("VersionServerAuthServer", ModMinecraft.McInstanceSelected), false)))
                 CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！";
         }
         else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(
-                     ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 3,
+                     LauncherEnvironment.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 3,
                      false))) // 要求正版验证或第三方验证
         {
             if (ModProfile.SelectedProfile.Type == McLoginType.Legacy)
@@ -86,7 +86,7 @@ public static partial class ModLaunch
             else if (Conversions.ToBoolean(ModProfile.SelectedProfile.Type == McLoginType.Auth &&
                                            !Operators.ConditionalCompareObjectEqual(
                                                ModProfile.SelectedProfile.Server.BeforeLast("/authserver"),
-                                               ModBase.Setup.Get("VersionServerAuthServer",
+                                               LauncherEnvironment.Setup.Get("VersionServerAuthServer",
                                                    ModMinecraft.McInstanceSelected), false)))
                 CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！";
         }
@@ -150,14 +150,14 @@ public static partial class ModLaunch
                         $"看起来你似乎没买正版...{"\r\n"}如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。{"\r\n"}{"\r\n"}在验证一个正版账号之后，就不会出现这个提示了！",
                         "考虑一下正版？", "支持正版游戏！", "下次一定") ==
                     1)
-                    ModBase.OpenWebsite(
+                    LauncherShell.OpenWebsite(
                         "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
             }
             else
             {
                 switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
                             Button1Action: () =>
-                                ModBase.OpenWebsite(
+                                LauncherShell.OpenWebsite(
                                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
                 {
                     case 2:
@@ -244,7 +244,7 @@ public static partial class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(UserName + Password + BaseUrl + (int)Type) %
+            return (int)Math.Round(LauncherHash.GetHash(UserName + Password + BaseUrl + (int)Type) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -273,7 +273,7 @@ public static partial class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
+            return (int)Math.Round(LauncherHash.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -312,7 +312,7 @@ public static partial class ModLaunch
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                ModBase.GetHash(UserName + SkinType + SkinName + (int)Type) % (decimal)int.MaxValue);
+                LauncherHash.GetHash(UserName + SkinType + SkinName + (int)Type) % (decimal)int.MaxValue);
         }
     }
 
@@ -347,7 +347,7 @@ public static partial class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取登录输入信息失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "获取登录输入信息失败", LauncherLogger.LogLevel.Feedback);
         }
 
         return LoginData;
@@ -355,7 +355,7 @@ public static partial class ModLaunch
 
     private static void McLoginStart(ModLoader.LoaderTask<McLoginData, McLoginResult> Data)
     {
-        ModBase.Log("[Profile] 开始加载选定档案");
+        LauncherLogger.Log("[Profile] 开始加载选定档案");
         // 校验登录信息
         var CheckResult = Conversions.ToString(ModProfile.IsProfileValid());
         if (!string.IsNullOrEmpty(CheckResult))
@@ -384,8 +384,8 @@ public static partial class ModLaunch
         // 尝试加载
         Loader.WaitForExit(Data.Input, McLoginLoader, Data.IsForceRestarting);
         Data.Output = (McLoginResult)((dynamic)Loader).Output;
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
-        ModBase.Log("[Profile] 选定档案加载完成");
+        LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
+        LauncherLogger.Log("[Profile] 选定档案加载完成");
     }
 
     #endregion
@@ -624,7 +624,7 @@ public static partial class ModLaunch
                    .GetResult())
         {
             response.EnsureSuccessStatusCode();
-            PrepareJson = (JObject)ModBase.GetJson(response.AsString());
+            PrepareJson = (JObject)LauncherSerialization.GetJson(response.AsString());
         }
 
         McLaunchLog("网页登录地址：" + PrepareJson["verification_uri"]);
@@ -635,12 +635,12 @@ public static partial class ModLaunch
         ModMain.WaitingMyMsgBox.Add(Converter);
         while (Converter.Result is null)
             Thread.Sleep(100);
-        if (Converter.Result is ModBase.RestartException)
+        if (Converter.Result is RestartException)
         {
             if (ModMain.MyMsgBox(
-                    $"请在登录时选择 {ModBase.vbLQ}其他登录方法{ModBase.vbRQ}，然后选择 {ModBase.vbLQ}使用我的密码{ModBase.vbRQ}。{"\r\n"}如果没有该选项，请选择 {ModBase.vbLQ}设置密码{ModBase.vbRQ}，设置完毕后再登录。",
+                    $"请在登录时选择 {LauncherText.vbLQ}其他登录方法{LauncherText.vbRQ}，然后选择 {LauncherText.vbLQ}使用我的密码{LauncherText.vbRQ}。{"\r\n"}如果没有该选项，请选择 {LauncherText.vbLQ}设置密码{LauncherText.vbRQ}，设置完毕后再登录。",
                     "需要使用密码登录", "重新登录", "设置密码", "取消",
-                    Button2Action: () => ModBase.OpenWebsite("https://account.live.com/password/Change")) ==
+                    Button2Action: () => LauncherShell.OpenWebsite("https://account.live.com/password/Change")) ==
                 1) goto Retry;
 
             throw new Exception("$$");
@@ -685,7 +685,7 @@ public static partial class ModLaunch
         }
         catch (ThreadInterruptedException ex)
         {
-            ModBase.Log(ex, "加载线程已终止");
+            LauncherLogger.Log(ex, "加载线程已终止");
         }
         catch (Exception ex)
         {
@@ -695,7 +695,7 @@ public static partial class ModLaunch
 
             ModProfile.ProfileLog("正版验证 Step 1/6 获取 OAuth Token 失败：" + ex);
             var IsIgnore = false;
-            ModBase.RunInUiWait(() =>
+            LauncherDispatcher.RunInUiWait(() =>
             {
                 if (!IsLaunching)
                     return;
@@ -707,7 +707,7 @@ public static partial class ModLaunch
             if (IsIgnore) return new[] { "Ignore", "" };
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JObject)LauncherSerialization.GetJson(Result);
         var AccessToken = ResultJson["access_token"].ToString();
         var RefreshToken = ResultJson["refresh_token"].ToString();
         return new[] { AccessToken, RefreshToken };
@@ -767,7 +767,7 @@ public static partial class ModLaunch
         {
             ModProfile.ProfileLog("正版验证 Step 2/6 获取 XBLToken 失败：" + ex);
             var IsIgnore = false;
-            ModBase.RunInUiWait(() =>
+            LauncherDispatcher.RunInUiWait(() =>
             {
                 if (!IsLaunching)
                     return;
@@ -779,7 +779,7 @@ public static partial class ModLaunch
             if (IsIgnore) return "Ignore";
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JObject)LauncherSerialization.GetJson(Result);
         var XBLToken = ResultJson["Token"].ToString();
         return XBLToken;
     }
@@ -839,7 +839,7 @@ public static partial class ModLaunch
                 if (result.Contains("2148916233"))
                 {
                     if (ModMain.MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", "取消") == 1)
-                        ModBase.OpenWebsite("https://signup.live.com/signup");
+                        LauncherShell.OpenWebsite("https://signup.live.com/signup");
                     throw new Exception("$$");
                 }
 
@@ -854,14 +854,14 @@ public static partial class ModLaunch
                     if (ModMain.MyMsgBox("该账号年龄不足，你需要先修改出生日期，然后才能登录。" + "\r\n" + "该账号目前填写的年龄是否在 13 岁以上？",
                             "登录提示", "13 岁以上", "12 岁以下", "我不知道") == 1)
                     {
-                        ModBase.OpenWebsite("https://account.live.com/editprof.aspx");
+                        LauncherShell.OpenWebsite("https://account.live.com/editprof.aspx");
                         ModMain.MyMsgBox(
                             "请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。" + "\r\n" + "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！",
                             "登录提示");
                     }
                     else
                     {
-                        ModBase.OpenWebsite(
+                        LauncherShell.OpenWebsite(
                             "https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
                         ModMain.MyMsgBox(
                             "请根据打开的网页的说明，修改账号的出生日期（至少改为 18 岁以上）。" + "\r\n" +
@@ -873,7 +873,7 @@ public static partial class ModLaunch
 
                 ModProfile.ProfileLog("正版验证 Step 3/6 获取 XSTSToken 失败：" + response.StatusCode);
                 var IsIgnore = false;
-                ModBase.RunInUiWait(() =>
+                LauncherDispatcher.RunInUiWait(() =>
                 {
                     if (!IsLaunching)
                         return;
@@ -892,7 +892,7 @@ public static partial class ModLaunch
             }
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(result);
+        var ResultJson = (JObject)LauncherSerialization.GetJson(result);
         var XSTSToken = ResultJson["Token"].ToString();
         var UHS = ResultJson["DisplayClaims"]["xui"][0]["uhs"].ToString();
         return new[] { XSTSToken, UHS };
@@ -928,19 +928,19 @@ public static partial class ModLaunch
             var Message = ex.Message;
             if (ex.StatusCode.Equals(HttpStatusCode.TooManyRequests))
             {
-                ModBase.Log(ex, "正版验证 Step 4 汇报 429");
+                LauncherLogger.Log(ex, "正版验证 Step 4 汇报 429");
                 throw new Exception("$登录尝试太过频繁，请等待几分钟后再试！");
             }
 
             if (ex.StatusCode is { } arg1 && arg1 == HttpStatusCode.Forbidden)
             {
-                ModBase.Log(ex, "正版验证 Step 4 汇报 403");
+                LauncherLogger.Log(ex, "正版验证 Step 4 汇报 403");
                 throw new Exception("$当前 IP 的登录尝试异常。" + "\r\n" + "如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！");
             }
 
             ModProfile.ProfileLog("正版验证 Step 4/6 获取 MC AccessToken 失败：" + ex);
             var IsIgnore = false;
-            ModBase.RunInUiWait(() =>
+            LauncherDispatcher.RunInUiWait(() =>
             {
                 if (!IsLaunching)
                     return;
@@ -958,7 +958,7 @@ public static partial class ModLaunch
             throw;
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JObject)LauncherSerialization.GetJson(Result);
         var AccessToken = ResultJson["access_token"].ToString();
         if (string.IsNullOrWhiteSpace(AccessToken))
             throw new Exception("获取到的 Minecraft AccessToken 为空，登录流程异常！");
@@ -988,7 +988,7 @@ public static partial class ModLaunch
                 result = response.AsString();
             }
 
-            var ResultJson = (JObject)ModBase.GetJson(result);
+            var ResultJson = (JObject)LauncherSerialization.GetJson(result);
             if (!(ResultJson.ContainsKey("items") && ResultJson["items"].Any(x =>
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
@@ -997,7 +997,7 @@ public static partial class ModLaunch
                 {
                     case 1:
                     {
-                        ModBase.OpenWebsite(
+                        LauncherShell.OpenWebsite(
                             "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
                         break;
                     }
@@ -1008,7 +1008,7 @@ public static partial class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证 Step 5 异常：" + result);
+            LauncherLogger.Log(ex, "正版验证 Step 5 异常：" + result);
             throw;
         }
     }
@@ -1042,20 +1042,20 @@ public static partial class ModLaunch
             var Message = ex.Message;
             if (ex.StatusCode.Equals(HttpStatusCode.TooManyRequests))
             {
-                ModBase.Log(ex, "正版验证 Step 6 汇报 429");
+                LauncherLogger.Log(ex, "正版验证 Step 6 汇报 429");
                 throw new Exception("$登录尝试太过频繁，请等待几分钟后再试！");
             }
 
             if (ex.StatusCode is { } arg2 && arg2 == HttpStatusCode.NotFound)
             {
-                ModBase.Log(ex, "正版验证 Step 6 汇报 404");
-                ModBase.RunInNewThread(() =>
+                LauncherLogger.Log(ex, "正版验证 Step 6 汇报 404");
+                LauncherDispatcher.RunInNewThread(() =>
                 {
                     switch (ModMain.MyMsgBox("请先创建 Minecraft 玩家档案，然后再重新登录。", "登录失败", "创建档案", "取消"))
                     {
                         case 1:
                         {
-                            ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
+                            LauncherShell.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
                             break;
                         }
                     }
@@ -1065,7 +1065,7 @@ public static partial class ModLaunch
 
             ModProfile.ProfileLog("正版验证 Step 6/6 获取玩家档案信息失败：" + ex);
             var IsIgnore = false;
-            ModBase.RunInUiWait(() =>
+            LauncherDispatcher.RunInUiWait(() =>
             {
                 if (!IsLaunching)
                     return;
@@ -1083,7 +1083,7 @@ public static partial class ModLaunch
             throw;
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JObject)LauncherSerialization.GetJson(Result);
         var UUID = ResultJson["id"].ToString();
         var UserName = ResultJson["name"].ToString();
         return new[] { UUID, UserName, Result };
@@ -1266,7 +1266,7 @@ public static partial class ModLaunch
         RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
         RefreshInfo.Add(new JProperty("requestUser", true));
         ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-        var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
+        var LoginJson = (JObject)LauncherSerialization.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
             new FetchParam
             {
                 Method = "POST",
@@ -1304,7 +1304,7 @@ public static partial class ModLaunch
                 new JProperty("agent", new JObject(new JProperty("name", "Minecraft"), new JProperty("version", 1))),
                 new JProperty("username", Data.Input.UserName), new JProperty("password", Data.Input.Password),
                 new JProperty("requestUser", true));
-            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
+            var LoginJson = (JObject)LauncherSerialization.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
                 new FetchParam
                 {
                     Method = "POST",
@@ -1342,7 +1342,7 @@ public static partial class ModLaunch
                 if (SelectedName is null)
                 {
                     ModProfile.ProfileLog("要求玩家选择角色");
-                    ModBase.RunInUiWait(() =>
+                    LauncherDispatcher.RunInUiWait(() =>
                     {
                         var SelectionControl = new List<IMyRadio>();
                         var SelectionJson = new List<JToken>();

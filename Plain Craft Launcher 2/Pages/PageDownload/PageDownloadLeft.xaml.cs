@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace PCL;
@@ -13,7 +13,7 @@ public partial class PageDownloadLeft : IRefreshable
     // 强制刷新
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)MigrationHelpers.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh(FormMain.PageSubType SubType)
@@ -236,10 +236,10 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem { Tag: { } tag })
-            PageChange((FormMain.PageSubType)ModBase.Val(tag));
+            PageChange((FormMain.PageSubType)MigrationHelpers.Val(tag));
     }
 
     public object PageGet(FormMain.PageSubType ID)
@@ -379,7 +379,7 @@ public partial class PageDownloadLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "切换分页面失败（ID " + (int)ID + "）", LauncherLogger.LogLevel.Feedback);
         }
         finally
         {

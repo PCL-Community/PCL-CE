@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using Microsoft.VisualBasic;
 using PCL.Core.IO;
 using PCL.Core.UI;
@@ -77,7 +77,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnApply = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconPlayGame,
+                    Logo = Logo.IconPlayGame,
                     ToolTip = "回到到此快照"
                 };
 
@@ -103,13 +103,13 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "应用快照过程中出现错误", ModBase.LogLevel.Msgbox);
+                        LauncherLogger.Log(ex, "应用快照过程中出现错误", LauncherLogger.LogLevel.Msgbox);
                     }
                 };
 
                 var btnExport = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSave,
+                    Logo = Logo.IconButtonSave,
                     ToolTip = "导出到压缩包"
                 };
 
@@ -118,7 +118,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     try
                     {
                         var savePath = SystemDialogs.SelectSaveFile("选择保存备份导出的位置", $"{item.Name}.zip",
-                            "压缩文件(*.zip)|*.zip", ModBase.ExePath);
+                            "压缩文件(*.zip)|*.zip", LauncherPaths.ExecutableDirectory);
                         if (string.IsNullOrEmpty(savePath))
                             return;
                         ModMain.Hint("快照导出中，请勿执行其他操作！");
@@ -138,13 +138,13 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "备份导出过程中出现错误", ModBase.LogLevel.Msgbox);
+                        LauncherLogger.Log(ex, "备份导出过程中出现错误", LauncherLogger.LogLevel.Msgbox);
                     }
                 };
 
                 var btnDelete = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonDelete,
+                    Logo = Logo.IconButtonDelete,
                     ToolTip = "删除"
                 };
 
@@ -165,13 +165,13 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "执行删除任务失败");
+                        LauncherLogger.Log(ex, "执行删除任务失败");
                     }
                 };
 
                 var btnInfo = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonInfo,
+                    Logo = Logo.IconButtonInfo,
                     ToolTip = "信息"
                 };
 
@@ -193,7 +193,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "执行删除任务失败");
+                        LauncherLogger.Log(ex, "执行删除任务失败");
                     }
                 };
                 newItem.Buttons = [btnDelete, btnExport, btnInfo, btnApply];
@@ -203,7 +203,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取备份信息失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "获取备份信息失败", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -226,7 +226,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                 load.Progress = 0.2d;
 
                 load.Progress = 1d;
-                ModBase.RunInUi(() => RefreshList());
+                LauncherDispatcher.RunInUi(() => RefreshList());
             }));
             var loader = new ModLoader.LoaderCombo<int>($"{input} - 制作备份", loaders)
                 { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
@@ -238,7 +238,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "备份过程中出现错误", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "备份过程中出现错误", LauncherLogger.LogLevel.Msgbox);
         }
     }
 
@@ -256,7 +256,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
             })
         };
         var loader =
-            new ModLoader.LoaderCombo<int>($"{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - 备份清理",
+            new ModLoader.LoaderCombo<int>($"{LauncherPaths.GetFolderName(PageInstanceSavesLeft.CurrentSave)} - 备份清理",
                 loaders) { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -54,7 +54,7 @@ public partial class PageToolsGameLink
         if (LobbyAnnouncementLoader is null)
         {
             var loaders = new List<ModLoader.LoaderBase>();
-            loaders.Add(new ModLoader.LoaderTask<int, int>("大厅界面初始化", _ => ModBase.RunInUi(() =>
+            loaders.Add(new ModLoader.LoaderTask<int, int>("大厅界面初始化", _ => LauncherDispatcher.RunInUi(() =>
             {
                 HintAnnounce.Visibility = Visibility.Visible;
                 HintAnnounce.Theme = MyHint.Themes.Blue;
@@ -67,13 +67,13 @@ public partial class PageToolsGameLink
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        ModBase.RunInUi(() => ModMain.Hint(ex.Message, ModMain.HintType.Critical));
+        LauncherDispatcher.RunInUi(() => ModMain.Hint(ex.Message, ModMain.HintType.Critical));
 
         try
         {
             await LobbyService.LeaveLobbyAsync();
 
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 CardPlayerList.Title = "大厅成员列表（正在获取信息）";
                 StackPlayerList.Children.Clear();
@@ -82,7 +82,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception secEx)
         {
-            ModBase.Log(secEx, "Occured an exception when exit server.");
+            LauncherLogger.Log(secEx, "Occured an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }
@@ -133,8 +133,8 @@ public partial class PageToolsGameLink
 
     private void OnServerStartedHandler()
     {
-        ModBase.Log("Received server started event.");
-        ModBase.RunInUi(() =>
+        LauncherLogger.Log("Received server started event.");
+        LauncherDispatcher.RunInUi(() =>
         {
             LabFinishId.Text = LobbyService.CurrentLobbyCode;
             StackPlayerList.Children.Clear();
@@ -149,7 +149,7 @@ public partial class PageToolsGameLink
         {
             await LobbyService.LeaveLobbyAsync();
 
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 CardPlayerList.Title = "大厅成员列表（正在获取信息）";
                 StackPlayerList.Children.Clear();
@@ -158,14 +158,14 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Occured an exception when exit server.");
+            LauncherLogger.Log(ex, "Occured an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }
 
     private void OnClientPingHandler(long latency)
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             LabFinishQuality.Text = "已连接";
             LabFinishPing.Text = latency + "ms";
@@ -175,7 +175,7 @@ public partial class PageToolsGameLink
 
     private void OnUserStopGame()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             CardPlayerList.Title = "大厅成员列表（正在获取信息）";
             StackPlayerList.Children.Clear();
@@ -187,8 +187,8 @@ public partial class PageToolsGameLink
 
     private void OnPlayersChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
-        ModBase.Log("接收到玩家列表改变事件");
-        ModBase.RunInUi(() =>
+        LauncherLogger.Log("接收到玩家列表改变事件");
+        LauncherDispatcher.RunInUi(() =>
         {
             switch (e.Action)
             {
@@ -224,7 +224,7 @@ public partial class PageToolsGameLink
     {
         LogWrapper.Info("[Lobby] Found new world changes");
 
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             #region 处理集合变更
 
@@ -356,7 +356,7 @@ public partial class PageToolsGameLink
     // 获取公告信息
     private void GetAnnouncement()
     {
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
@@ -381,7 +381,7 @@ public partial class PageToolsGameLink
                         if (cacheVer == States.Link.AnnounceCacheVer)
                         {
                             LogWrapper.Info("[Link] Using cached announcement data");
-                            jObj = (JObject)ModBase.GetJson(States.Link.AnnounceCache);
+                            jObj = (JObject)LauncherSerialization.GetJson(States.Link.AnnounceCache);
                         }
                         else
                         {
@@ -394,7 +394,7 @@ public partial class PageToolsGameLink
                                     ContentType = "application/json",
                                     Timeout = 7000
                                 });
-                            jObj = (JObject)ModBase.GetJson(received);
+                            jObj = (JObject)LauncherSerialization.GetJson(received);
 
                             // 更新缓存
                             States.Link.AnnounceCache = received;
@@ -424,7 +424,7 @@ public partial class PageToolsGameLink
 
                 if (Convert.ToDouble(jObj["version"]) > LobbyInfoProvider.ProtocolVersion)
                 {
-                    ModBase.RunInUi(() =>
+                    LauncherDispatcher.RunInUi(() =>
                     {
                         HintAnnounce.Theme = MyHint.Themes.Red;
                         HintAnnounce.Text = "Please update to the latest PCL CE to use the lobby";
@@ -446,7 +446,7 @@ public partial class PageToolsGameLink
                     // 版本过滤
                     var minVer = Convert.ToDouble(notice["minVer"]);
                     var maxVer = Convert.ToDouble(notice["maxVer"]);
-                    if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
+                    if (LauncherEnvironment.VersionCode < minVer || LauncherEnvironment.VersionCode > maxVer) continue;
 
                     // 类型映射
                     var type = LinkAnnounceType.Notice;
@@ -482,15 +482,15 @@ public partial class PageToolsGameLink
 
                 if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
                 {
-                    ModBase.RunInUi(() => LabNatayarkUserName.Text = "Click to login Natayark account");
+                    LauncherDispatcher.RunInUi(() => LabNatayarkUserName.Text = "Click to login Natayark account");
                 }
                 else
                 {
-                    ModBase.RunInUi(() => LabNatayarkUserName.Text = "Loading...");
+                    LauncherDispatcher.RunInUi(() => LabNatayarkUserName.Text = "Loading...");
                     if (string.IsNullOrEmpty(NatayarkProfileManager.NaidProfile.Username))
                         ReloadNaidData();
                     else
-                        ModBase.RunInUi(() =>
+                        LauncherDispatcher.RunInUi(() =>
                         {
                             if (NatayarkProfileManager.NaidProfile.Status == 0)
                             {
@@ -510,7 +510,7 @@ public partial class PageToolsGameLink
             catch (Exception ex)
             {
                 LobbyInfoProvider.IsLobbyAvailable = false;
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     HintAnnounce.Theme = MyHint.Themes.Red;
                     HintAnnounce.Text = "Failed to connect to lobby server";
@@ -569,7 +569,7 @@ public partial class PageToolsGameLink
 
     private void ReloadNaidData()
     {
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
@@ -606,7 +606,7 @@ public partial class PageToolsGameLink
 
                 #region 3. UI 状态更新
 
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     var profile = NatayarkProfileManager.NaidProfile;
 
@@ -629,9 +629,9 @@ public partial class PageToolsGameLink
             {
                 #region 错误处理
 
-                ModBase.Log(ex, "Failed to refresh Natayark ID info, re-login required");
+                LauncherLogger.Log(ex, "Failed to refresh Natayark ID info, re-login required");
 
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     LabNatayarkUserName.Text = "Failed to fetch info";
                     LabNatayarkUserName.Opacity = 0.6;
@@ -659,7 +659,7 @@ public partial class PageToolsGameLink
                 BtnNatayarkUserName.IsEnabled = false;
                 ModWebServer.StartNaidAuthorize(() =>
                 {
-                    ModBase.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
+                    LauncherDispatcher.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
                     ModMain.Hint("已完成登录操作", ModMain.HintType.Finish);
                     ReloadNaidData();
                 });
@@ -671,7 +671,7 @@ public partial class PageToolsGameLink
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.NaidRefreshToken = "";
             LabNatayarkUserName.Text = "点击登录 Natayark 账户";
-            ModBase.Log("[Link] 已退出登录 Natayark Network");
+            LauncherLogger.Log("[Link] 已退出登录 Natayark Network");
             ModMain.Hint("已退出登录！", ModMain.HintType.Finish, false);
         }
     }
@@ -686,13 +686,13 @@ public partial class PageToolsGameLink
             BtnNatTest.IsEnabled = false;
             LabNatType.Text = "正在测试";
             var status = await CliNetTest.GetNetStatusAsync();
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
                 LabNatType.Text =
                     $"{CliNetTest.GetNatTypeString(status.UdpNatType)} (UDP), {CliNetTest.GetNatTypeString(status.TcpNatType)}(TCP)");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "[Link] 获取网络测试结果失败", LauncherLogger.LogLevel.Hint);
             BtnNatTest.IsEnabled = true;
             LabNatType.Text = "测试失败";
         }
@@ -711,7 +711,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "从剪贴板识别大厅编号出错");
+            LauncherLogger.Log(ex, "从剪贴板识别大厅编号出错");
             return;
         }
 
@@ -784,12 +784,12 @@ public partial class PageToolsGameLink
 
     private async Task CreateLobby(int port)
     {
-        ModBase.Log("[Link] 创建大厅，端口：" + port);
+        LauncherLogger.Log("[Link] 创建大厅，端口：" + port);
 
 
         var username = LobbyInfoProvider.GetUsername();
 
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             BtnFinishPing.Visibility = Visibility.Collapsed;
             LabFinishPing.Text = "-ms";
@@ -809,7 +809,7 @@ public partial class PageToolsGameLink
         var res = await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(true);
 
         if (!res)
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 CardPlayerList.Title = "大厅成员列表（正在获取信息）";
                 StackPlayerList.Children.Clear();
@@ -823,12 +823,12 @@ public partial class PageToolsGameLink
         if (!ModLink.LobbyPrecheck())
             return;
 
-        ModBase.Log("Start to join lobby.");
+        LauncherLogger.Log("Start to join lobby.");
 
         var id = TextJoinLobbyId.Text;
         var username = LobbyInfoProvider.GetUsername();
 
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             BtnFinishPing.Visibility = Visibility.Visible;
             LabFinishPing.Text = "-ms";
@@ -846,7 +846,7 @@ public partial class PageToolsGameLink
         var res = await LobbyService.JoinLobbyAsync(id, username).ConfigureAwait(true);
 
         if (!res)
-            ModBase.RunInUi(() =>
+            LauncherDispatcher.RunInUi(() =>
             {
                 CardPlayerList.Title = "大厅成员列表（正在获取信息）";
                 StackPlayerList.Children.Clear();
@@ -865,7 +865,7 @@ public partial class PageToolsGameLink
     #region PanLoad | 加载中页面
 
     // 承接状态切换的 UI 改变
-    private void OnLoadStateChanged(ModLoader.LoaderBase loader, ModBase.LoadState newState, ModBase.LoadState oldState)
+    private void OnLoadStateChanged(ModLoader.LoaderBase loader, LoadState newState, LoadState oldState)
     {
     }
 
@@ -873,9 +873,9 @@ public partial class PageToolsGameLink
 
     private static void SetLoadDesc(string intro, string step)
     {
-        ModBase.Log("连接步骤：" + intro);
+        LauncherLogger.Log("连接步骤：" + intro);
         _loadStep = step;
-        ModBase.RunInUiWait(() =>
+        LauncherDispatcher.RunInUiWait(() =>
         {
             if (ModMain.FrmToolsGameLink is null || !ModMain.FrmToolsGameLink.LabLoadDesc.IsLoaded)
                 return;
@@ -887,7 +887,7 @@ public partial class PageToolsGameLink
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!(InitLoader.State == ModBase.LoadState.Failed))
+        if (!(InitLoader.State == LoadState.Failed))
             return;
         InitLoader.Start(IsForceRestart: true);
     }
@@ -895,14 +895,14 @@ public partial class PageToolsGameLink
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (InitLoader.State == ModBase.LoadState.Loading)
+        if (InitLoader.State == LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
             InitLoader.Abort();
         }
         else
         {
-            InitLoader.State = ModBase.LoadState.Waiting;
+            InitLoader.State = LoadState.Waiting;
         }
     }
 
@@ -944,7 +944,7 @@ public partial class PageToolsGameLink
     #region PanFinish | 加载完成页面
 
     // 退出
-    private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private async void BtnFinishExit_Click(object sender, RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
         if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
@@ -956,18 +956,18 @@ public partial class PageToolsGameLink
     }
 
     // 复制大厅编号
-    private void BtnFinishCopy_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private void BtnFinishCopy_Click(object sender, RouteEventArgs routeEventArgs)
     {
-        ModBase.ClipboardSet(LabFinishId.Text);
+        LauncherClipboard.ClipboardSet(LabFinishId.Text);
     }
 
     // 复制 IP
-    private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
+    private void BtnFinishCopyIp_Click(object sender, RouteEventArgs routeEventArgs)
     {
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-            "复制", "返回", Button1Action: () => ModBase.ClipboardSet(ip));
+            "复制", "返回", Button1Action: () => LauncherClipboard.ClipboardSet(ip));
     }
 
     #endregion
@@ -991,7 +991,7 @@ public partial class PageToolsGameLink
             if (_CurrentSubpage == value)
                 return;
             _CurrentSubpage = value;
-            ModBase.Log("[Link] 子页面更改为 " + ModBase.GetStringFromEnum(value));
+            LauncherLogger.Log("[Link] 子页面更改为 " + LauncherText.GetStringFromEnum(value));
             PageOnContentExit();
         }
     }

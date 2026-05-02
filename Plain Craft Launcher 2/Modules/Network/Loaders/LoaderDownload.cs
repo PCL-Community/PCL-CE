@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace PCL.Network.Loaders;
 
 public class LoaderDownload : ModLoader.LoaderBase
 {
-    public ModBase.SafeList<PCL.Network.DownloadFile> Files;
+    public SafeList<PCL.Network.DownloadFile> Files;
     private int _fileRemain;
     private readonly object _fileRemainLock = new();
     private double _progress;
@@ -17,14 +17,14 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public override double Progress
     {
-        get => State >= ModBase.LoadState.Finished ? 1 : (Files.Any() ? _progress : 0);
+        get => State >= LoadState.Finished ? 1 : (Files.Any() ? _progress : 0);
         set => throw new Exception("文件下载不允许指定进度");
     }
 
     public LoaderDownload(string name, List<PCL.Network.DownloadFile> fileTasks)
     {
         Name = name;
-        Files = new ModBase.SafeList<PCL.Network.DownloadFile>(fileTasks ?? new List<PCL.Network.DownloadFile>());
+        Files = new SafeList<PCL.Network.DownloadFile>(fileTasks ?? new List<PCL.Network.DownloadFile>());
     }
 
     public void RefreshStat()
@@ -41,13 +41,13 @@ public class LoaderDownload : ModLoader.LoaderBase
     public override void Start(object Input = null, bool IsForceRestart = false)
     {
         if (Input is List<PCL.Network.DownloadFile> inputFiles)
-            Files = new ModBase.SafeList<PCL.Network.DownloadFile>(inputFiles);
+            Files = new SafeList<PCL.Network.DownloadFile>(inputFiles);
 
         lock (LockState)
         {
-            if (State == ModBase.LoadState.Loading)
+            if (State == LoadState.Loading)
                 return;
-            State = ModBase.LoadState.Loading;
+            State = LoadState.Loading;
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
@@ -59,7 +59,7 @@ public class LoaderDownload : ModLoader.LoaderBase
         ModNet.NetManager.Start(this);
         RefreshStat();
 
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
+        LauncherDispatcher.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)
@@ -166,9 +166,9 @@ public class LoaderDownload : ModLoader.LoaderBase
         RaisePreviewFinish();
         lock (LockState)
         {
-            if (State > ModBase.LoadState.Loading)
+            if (State > LoadState.Loading)
                 return;
-            State = ModBase.LoadState.Finished;
+            State = LoadState.Finished;
         }
 
         ModNet.NetManager.Finish(this);
@@ -183,10 +183,10 @@ public class LoaderDownload : ModLoader.LoaderBase
     {
         lock (LockState)
         {
-            if (State > ModBase.LoadState.Loading)
+            if (State > LoadState.Loading)
                 return;
             Error = exList.FirstOrDefault() ?? new Exception("未知下载错误");
-            State = ModBase.LoadState.Failed;
+            State = LoadState.Failed;
         }
 
         FailCount += exList.Count;
@@ -205,9 +205,9 @@ public class LoaderDownload : ModLoader.LoaderBase
     {
         lock (LockState)
         {
-            if (State >= ModBase.LoadState.Finished)
+            if (State >= LoadState.Finished)
                 return;
-            State = ModBase.LoadState.Aborted;
+            State = LoadState.Aborted;
         }
 
         _cancellationTokenSource?.Cancel();

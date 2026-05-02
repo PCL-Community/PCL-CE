@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -243,7 +243,7 @@ public static partial class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[CompFavorites] 生成分享出错");
+                LauncherLogger.Log(ex, "[CompFavorites] 生成分享出错");
             }
 
             return "";
@@ -257,7 +257,7 @@ public static partial class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[CompFavorites] 通过分享获取 ID 出错");
+                LauncherLogger.Log(ex, "[CompFavorites] 通过分享获取 ID 出错");
             }
 
             return new HashSet<string>();
@@ -279,12 +279,12 @@ public static partial class ModComp
                 if (HasFavs)
                 {
                     Item.Header = $"取消收藏 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeFill;
+                    Item.Icon = Logo.IconButtonLikeFill;
                 }
                 else
                 {
                     Item.Header = $"收藏到 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeLine;
+                    Item.Icon = Logo.IconButtonLikeLine;
                 }
 
                 Item.Click += (_, _) =>
@@ -306,7 +306,7 @@ public static partial class ModComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
+                        LauncherLogger.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
                 Body.Items.Add(Item);
@@ -346,7 +346,7 @@ public static partial class ModComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
+                        LauncherLogger.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
                 Body.Items.Add(Item);
@@ -1432,12 +1432,12 @@ public static partial class ModComp
             var para = FromCurseForge ? "modId" : "project_id";
             string result = null;
 
-            var DescHash = $"{Id}{ModBase.GetStringMD5(Description)}";
-            var CacheFilePath = $@"{ModBase.PathTemp}Cache\CompTranslation.ini";
-            var CacheTranslation = ModBase.ReadIni(CacheFilePath, DescHash);
+            var DescHash = $"{Id}{LauncherHash.GetStringMD5(Description)}";
+            var CacheFilePath = $@"{LauncherPaths.TempDirectory}Cache\CompTranslation.ini";
+            var CacheTranslation = LauncherSerialization.ReadIni(CacheFilePath, DescHash);
             if (!string.IsNullOrWhiteSpace(CacheTranslation))
             {
-                result = ModBase.Base64Decode(CacheTranslation);
+                result = LauncherSerialization.Base64Decode(CacheTranslation);
                 return result;
             }
 
@@ -1448,7 +1448,7 @@ public static partial class ModComp
                 if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"].ToString();
-                    ModBase.WriteIni(CacheFilePath, DescHash, ModBase.Base64Encode(result));
+                    LauncherSerialization.WriteIni(CacheFilePath, DescHash, LauncherSerialization.Base64Encode(result));
                 }
             }
             catch (HttpRequestException ex)
@@ -1459,11 +1459,11 @@ public static partial class ModComp
                     return null;
                 }
 
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "获取中文描述时出现错误", LauncherLogger.LogLevel.Hint);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "获取中文描述时出现错误", LauncherLogger.LogLevel.Hint);
             }
 
             return result;
@@ -1664,7 +1664,7 @@ public static partial class ModComp
             {
                 Title = TranslatedName,
                 Info = Description.Replace("\r", "").Replace("\n", ""),
-                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{ModBase.PathImage}Icons/NoIcon.png" : LogoUrl,
+                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{LauncherEnvironment.PathImage}Icons/NoIcon.png" : LogoUrl,
                 Tags = Tags,
                 Tag = this,
                 LogoCornerRadius = new CornerRadius(6)
@@ -1676,7 +1676,7 @@ public static partial class ModComp
         {
             if (string.IsNullOrEmpty(LogoUrl))
             {
-                img.Source = ModBase.PathImage + "Icons/NoIcon.png";
+                img.Source = LauncherEnvironment.PathImage + "Icons/NoIcon.png";
             }
             else
             {
@@ -1828,7 +1828,7 @@ public static partial class ModComp
                 (RawName ?? "") == (Project.RawName ?? "") || (Description ?? "") == (Project.Description ?? "") ||
                 (GetRaw(Slug) ?? "") == (GetRaw(Project.Slug) ?? ""))
             {
-                ModBase.Log($"[Comp] 将 {RawName} ({Slug}) 与 {Project.RawName} ({Project.Slug}) 认定为相似工程");
+                LauncherLogger.Log($"[Comp] 将 {RawName} ({Slug}) 与 {Project.RawName} ({Project.Slug}) 认定为相似工程");
                 // 如果只有一个有 DatabaseEntry，设置给另外一个
                 if (DatabaseEntry is null && Project.DatabaseEntry is not null)
                     DatabaseEntry = Project.DatabaseEntry;
@@ -2241,12 +2241,12 @@ public static partial class ModComp
                     }
                     case CompFileStatus.Beta:
                     {
-                        return ModBase.ModeDebug ? "Beta 版" : "测试版";
+                        return LauncherLogger.ModeDebug ? "Beta 版" : "测试版";
                     }
 
                     default:
                     {
-                        return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
+                        return LauncherLogger.ModeDebug ? "Alpha 版" : "早期测试版";
                     }
                 }
             }
@@ -2265,7 +2265,7 @@ public static partial class ModComp
         public DownloadFile ToNetFile(string LocalAddress)
         {
             return new DownloadFile(DownloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? FileName : ""),
-                new ModBase.FileChecker(Hash: Hash), true);
+                new LauncherFileSystem.FileChecker(hash: Hash), true);
         }
 
         /// <summary>
@@ -2355,9 +2355,9 @@ public static partial class ModComp
                         // 使用 switch 表达式精简 Logo 选择喵！
                         Logo = Status switch
                         {
-                            CompFileStatus.Release => ModBase.PathImage + "Icons/R.png",
-                            CompFileStatus.Beta => ModBase.PathImage + "Icons/B.png",
-                            _ => ModBase.PathImage + "Icons/A.png"
+                            CompFileStatus.Release => LauncherEnvironment.PathImage + "Icons/R.png",
+                            CompFileStatus.Beta => LauncherEnvironment.PathImage + "Icons/B.png",
+                            _ => LauncherEnvironment.PathImage + "Icons/A.png"
                         }
                     };
                     newItem.Click += onClick;
@@ -2365,7 +2365,7 @@ public static partial class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Logo.IconButtonSave, ToolTip = "另存为" };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);

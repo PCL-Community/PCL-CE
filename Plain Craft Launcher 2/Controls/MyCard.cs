@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -31,7 +31,7 @@ public class MyCard : AnimatedBackgroundGrid
     {
         MainChrome = new MyDropShadow
         {
-            Margin = new Thickness(-3, -3, -3, -3 - ModBase.GetWPFSize(1d)), ShadowRadius = 3d,
+            Margin = new Thickness(-3, -3, -3, -3 - LauncherWpf.GetWPFSize(1d)), ShadowRadius = 3d,
             Opacity = DropShadowIdleOpacity, CornerRadius = new CornerRadius(5d)
         };
         MainChrome.SetResourceReference(MyDropShadow.ColorProperty, "ColorObject1");
@@ -160,7 +160,7 @@ public class MyCard : AnimatedBackgroundGrid
             Height = SwapedHeight;
             ModAnimation.AniStop("MyCard Height " + Uuid);
             IsHeightAnimating = false;
-            ModBase.RunInUi(() => UseAnimation = RawUseAnimation, true);
+            LauncherDispatcher.RunInUi(() => UseAnimation = RawUseAnimation, true);
         }
     }
 
@@ -188,7 +188,7 @@ public class MyCard : AnimatedBackgroundGrid
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[MyCard] InstallMethod 调用失败");
+            LauncherLogger.Log(ex, "[MyCard] InstallMethod 调用失败");
         }
 
         stack.Children.Add(new FrameworkElement { Height = 18d }); // 下边距，同时适应折叠
@@ -405,11 +405,11 @@ public class MyCard : AnimatedBackgroundGrid
     private bool IsCustomMouseDown = false; //用于触发自定义事件的 MouseDown
     public event PreviewSwapEventHandler? PreviewSwap;
 
-    public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewSwapEventHandler(object sender, RouteEventArgs e);
 
     public event SwapEventHandler? Swap;
 
-    public delegate void SwapEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void SwapEventHandler(object sender, RouteEventArgs e);
 
     public const int SwapedHeight = 40;
 
@@ -437,7 +437,7 @@ public class MyCard : AnimatedBackgroundGrid
         if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return; // 检测点击位置；或已经不在可视树上的误判
 
-        var e2 = new ModBase.RouteEventArgs(true);
+        var e2 = new RouteEventArgs(true);
         PreviewSwap?.Invoke(this, e2);
         if (e2.Handled)
         {
@@ -446,7 +446,7 @@ public class MyCard : AnimatedBackgroundGrid
         }
 
         IsSwapped = !IsSwapped;
-        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title == null ? "" : "：" + Title));
+        LauncherLogger.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title == null ? "" : "：" + Title));
         Swap?.Invoke(this, e2);
     }
 

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -75,13 +75,13 @@ public partial class PageSetupGameLink
         try
         {
             Config.Link.Reset();
-            ModBase.Log("[Setup] 已初始化联机页设置");
+            LauncherLogger.Log("[Setup] 已初始化联机页设置");
             ModMain.Hint("已初始化联机页设置！", ModMain.HintType.Finish, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化联机页设置失败", ModBase.LogLevel.Msgbox);
+            LauncherLogger.Log(ex, "初始化联机页设置失败", LauncherLogger.LogLevel.Msgbox);
         }
 
         Reload();
@@ -92,7 +92,7 @@ public partial class PageSetupGameLink
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void
@@ -100,14 +100,14 @@ public partial class PageSetupGameLink
             object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            LauncherEnvironment.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
@@ -120,7 +120,7 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "改变配置项失败", ModBase.LogLevel.Hint);
+                LauncherLogger.Log(ex, "改变配置项失败", LauncherLogger.LogLevel.Hint);
             }
     }
 
@@ -131,10 +131,10 @@ public partial class PageSetupGameLink
         {
             BtnNetTest.IsEnabled = false;
             BtnNetTest.Text = "正在测试";
-            ModBase.RunInNewThread(() =>
+            LauncherDispatcher.RunInNewThread(() =>
             {
                 var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     TextUdpNatType.Text =
                         "UDP NAT 类型: " + CliNetTest.GetNatTypeString(status.UdpNatType);
@@ -148,7 +148,7 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            LauncherLogger.Log(ex, "[Link] 获取网络测试结果失败", LauncherLogger.LogLevel.Hint);
             BtnNetTest.IsEnabled = true;
             BtnNetTest.Text = "开始测试";
         }

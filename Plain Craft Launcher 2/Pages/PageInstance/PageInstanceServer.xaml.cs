@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -158,22 +158,22 @@ public partial class PageInstanceServer : MyPageRight
     /// </summary>
     public async void RefreshServers()
     {
-        ModBase.Log("刷新服务器列表");
+        LauncherLogger.Log("刷新服务器列表");
         try
         {
             // 读取服务器信息
             await LoadServersFromFile();
 
             // 在UI线程中更新界面
-            ModBase.RunInUi(() => UpdateServerUi());
+            LauncherDispatcher.RunInUi(() => UpdateServerUi());
 
             // 异步ping所有服务器
             PingAllServers();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical));
+            LauncherLogger.Log(ex, "刷新服务器列表失败", LauncherLogger.LogLevel.Feedback);
+            LauncherDispatcher.RunInUi(() => ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical));
         }
     }
 
@@ -193,7 +193,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "刷新服务器列表失败", LauncherLogger.LogLevel.Feedback);
             ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical);
         }
     }
@@ -280,7 +280,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取servers.dat文件失败");
+            LauncherLogger.Log(ex, "读取servers.dat文件失败");
         }
     }
 
@@ -291,7 +291,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (serversList is not null)
         {
-            ModBase.Log($"Found {serversList.Count} servers:");
+            LauncherLogger.Log($"Found {serversList.Count} servers:");
 
             // 遍历 servers 列表中的每个服务器
             for (int i = 0, loopTo = serversList.Count - 1; i <= loopTo; i++)
@@ -305,9 +305,9 @@ public partial class PageInstanceServer : MyPageRight
                     var name = server.Get<NbtString>("name")?.Value ?? "Unknown";
                     var iconBase64 = server.Get<NbtString>("icon")?.Value;
 
-                    ModBase.Log($"服务器 {i + 1}:");
-                    ModBase.Log($"  名字: {name}");
-                    ModBase.Log($"  IP: {ip}");
+                    LauncherLogger.Log($"服务器 {i + 1}:");
+                    LauncherLogger.Log($"  名字: {name}");
+                    LauncherLogger.Log($"  IP: {ip}");
                     // Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
                     ServerList.Add(new MinecraftServerInfo
                     {
@@ -321,7 +321,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         else
         {
-            ModBase.Log("No 'servers' list found in servers.dat.");
+            LauncherLogger.Log("No 'servers' list found in servers.dat.");
         }
     }
 
@@ -349,14 +349,14 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (ServerList.Count == 0)
         {
-            ModBase.Log("没有找到任何服务器");
+            LauncherLogger.Log("没有找到任何服务器");
             PanNoServer.Visibility = Visibility.Visible;
             PanContent.Visibility = Visibility.Collapsed;
             PanServers.Visibility = Visibility.Collapsed;
             return;
         }
 
-        ModBase.Log("找到服务器列表");
+        LauncherLogger.Log("找到服务器列表");
         PanNoServer.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Visible;
         PanServers.Visibility = Visibility.Visible;
@@ -390,7 +390,7 @@ public partial class PageInstanceServer : MyPageRight
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"Ping 服务器失败: {currentServer}");
+                        LauncherLogger.Log(ex, $"Ping 服务器失败: {currentServer}");
                     }
                     finally
                     {
@@ -403,11 +403,11 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log("PingAllServers 被取消", ModBase.LogLevel.Debug);
+            LauncherLogger.Log("PingAllServers 被取消", LauncherLogger.LogLevel.Debug);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "PingAllServers 失败");
+            LauncherLogger.Log(ex, "PingAllServers 失败");
         }
     }
 
@@ -422,9 +422,9 @@ public partial class PageInstanceServer : MyPageRight
             using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
             {
                 McPingResult? result;
-                ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);
+                LauncherLogger.Log("Pinging server: " + server.Address + ":" + addr.Port);
                 result = await query.PingAsync(token); // 传递 token
-                ModBase.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
+                LauncherLogger.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
                 if (result is not null)
                 {
                     server.Status = ServerStatus.Online;
@@ -444,12 +444,12 @@ public partial class PageInstanceServer : MyPageRight
         catch (OperationCanceledException ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log("Ping 服务器被取消: " + server.Address, ModBase.LogLevel.Debug);
+            LauncherLogger.Log("Ping 服务器被取消: " + server.Address, LauncherLogger.LogLevel.Debug);
         }
         catch (Exception ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
+            LauncherLogger.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
         }
 
         return server;

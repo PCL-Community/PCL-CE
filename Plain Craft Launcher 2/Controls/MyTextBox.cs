@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -49,7 +49,7 @@ public class MyTextBox : TextBox
 
     // 事件
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyTextBox()
     {
@@ -176,10 +176,10 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 ChangeValidateResult(IsValidated, true);
             else
-                ModBase.RunInNewThread(() =>
+                LauncherDispatcher.RunInNewThread(() =>
                 {
                     Thread.Sleep(30);
-                    ModBase.RunInUi(() => ChangeValidateResult(IsValidated, false));
+                    LauncherDispatcher.RunInUi(() => ChangeValidateResult(IsValidated, false));
                 }, "DelayedValidate Change");
         }
 
@@ -189,13 +189,13 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 labWrong.Text = ValidateResult;
             else
-                ModBase.RunInNewThread(() =>
+                LauncherDispatcher.RunInNewThread(() =>
                 {
                     var IsFinished = false;
                     while (!IsFinished)
                     {
                         Thread.Sleep(20);
-                        ModBase.RunInUiWait(() =>
+                        LauncherDispatcher.RunInUiWait(() =>
                         {
                             if (labWrong is not null)
                             {
@@ -283,7 +283,7 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进行输入验证时出错", ModBase.LogLevel.Critical);
+            LauncherLogger.Log(ex, "进行输入验证时出错", LauncherLogger.LogLevel.Critical);
         }
     }
 
@@ -361,7 +361,7 @@ public class MyTextBox : TextBox
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "文本框颜色改变出错");
+            LauncherLogger.Log(ex, "文本框颜色改变出错");
         }
     }
 

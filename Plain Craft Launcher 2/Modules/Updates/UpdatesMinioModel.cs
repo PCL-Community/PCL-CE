@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
@@ -70,7 +70,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{ModBase.PathTemp}Cache\Update\Download\";
+        var tempPath = $@"{LauncherPaths.TempDirectory}Cache\Update\Download\";
         loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取版本信息", load =>
         {
             var channelName = GetChannelName(channel, arch);
@@ -80,7 +80,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
-            var selfSha256 = ModBase.GetFileSHA256(ModBase.ExePathWithName);
+            var selfSha256 = LauncherHash.GetFileSHA256(LauncherPaths.ExecutablePath);
             var remoteUpdSha256 = deJsonData.sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.patches.Contains(patchFileName))
@@ -105,9 +105,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 var diff = new BsDiff();
                 var newFile = diff
-                    .ApplyAsync(ModBase.ReadFileBytes(ModBase.ExePathWithName), ModBase.ReadFileBytes(tempPath))
+                    .ApplyAsync(LauncherFileSystem.ReadFileBytes(LauncherPaths.ExecutablePath), LauncherFileSystem.ReadFileBytes(tempPath))
                     .GetAwaiter().GetResult();
-                ModBase.WriteFile(output, newFile);
+                LauncherFileSystem.WriteFile(output, newFile);
             }
             else
             {
@@ -156,11 +156,11 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private JToken GetRemoteInfoByName(string name, string path = "")
     {
-        var localInfoFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", $"{name}.json");
+        var localInfoFile = Path.Combine(LauncherPaths.TempDirectory, "Cache", "Update", $"{name}.json");
         JToken jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = JToken.Parse(ModBase.ReadFile(localInfoFile));
+            jsonData = JToken.Parse(LauncherFileSystem.ReadFile(localInfoFile));
         }
         else
         {
@@ -171,7 +171,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
             var content = response.AsString();
             jsonData = JToken.Parse(content);
-            ModBase.WriteFile(localInfoFile, content);
+            LauncherFileSystem.WriteFile(localInfoFile, content);
         }
 
         return jsonData;
@@ -185,10 +185,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     /// <returns></returns>
     private bool IsCacheValid(string path, string hash)
     {
-        var cacheFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", path);
+        var cacheFile = Path.Combine(LauncherPaths.TempDirectory, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).Hours < 1 &&
-               (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
+               (LauncherHash.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
     }
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)

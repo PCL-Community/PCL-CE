@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -34,8 +34,8 @@ public class MyBitmap
             try
             {
                 FilePathOrResourceName =
-                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.PathImage);
-                if (FilePathOrResourceName.StartsWithF(ModBase.PathImage))
+                    FilePathOrResourceName.Replace("pack://application:,,,/images/", LauncherEnvironment.PathImage);
+                if (FilePathOrResourceName.StartsWithF(LauncherEnvironment.PathImage))
                 {
                     if (_Cache.ContainsKey(FilePathOrResourceName))
                     {
@@ -80,7 +80,7 @@ public class MyBitmap
                     throw new Exception($"加载 MyBitmap 意外失败（{FilePathOrResourceName}）", ex);
                 }
 
-                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", ModBase.LogLevel.Developer);
+                LauncherLogger.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", LauncherLogger.LogLevel.Developer);
                 break;
             }
         } while (false);

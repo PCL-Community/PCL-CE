@@ -1,4 +1,4 @@
-using System.Security.Authentication;
+﻿using System.Security.Authentication;
 using System.Windows;
 using Microsoft.VisualBasic;
 
@@ -16,7 +16,7 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -24,21 +24,21 @@ public partial class PageLoginMs
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
         BtnLogin.Text = "0%";
-        ModBase.RunInNewThread(() =>
+        LauncherDispatcher.RunInNewThread(() =>
         {
             try
             {
                 ModProfile.SelectedProfile = null;
                 ModLaunch.McLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.McLoginMsLoader.State == LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginMsLoader.Progress * 100d)}%");
+                    LauncherDispatcher.RunInUi(() => BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginMsLoader.Progress * 100d)}%");
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Finished)
-                    ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
-                else if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Aborted)
+                if (ModLaunch.McLoginMsLoader.State == LoadState.Finished)
+                    LauncherDispatcher.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+                else if (ModLaunch.McLoginMsLoader.State == LoadState.Aborted)
                     throw new ThreadInterruptedException();
                 else if (ModLaunch.McLoginMsLoader.Error is null)
                     throw new Exception("未知错误！");
@@ -60,21 +60,21 @@ public partial class PageLoginMs
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
-                    ModBase.Log(ex,
+                    LauncherLogger.Log(ex,
                         """
                         正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。
 
                         原始错误信息：
-                        """, ModBase.LogLevel.Msgbox);
+                        """, LauncherLogger.LogLevel.Msgbox);
                 }
                 else
                 {
-                    ModBase.Log(ex, "正版登录尝试失败", ModBase.LogLevel.Msgbox);
+                    LauncherLogger.Log(ex, "正版登录尝试失败", LauncherLogger.LogLevel.Msgbox);
                 }
             }
             finally
             {
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     BtnLogin.IsEnabled = true;
                     BtnBack.Visibility = Visibility.Visible;

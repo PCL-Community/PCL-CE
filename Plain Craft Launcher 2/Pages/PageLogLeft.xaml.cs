@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
@@ -63,7 +63,7 @@ public partial class PageLogLeft
                 };
                 NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var RemoveButton = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, LogoScale = 1.1d };
+                var RemoveButton = new MyIconButton { Logo = Logo.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
                 RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 NewItem.Buttons = new[] { RemoveButton };
@@ -84,7 +84,7 @@ public partial class PageLogLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "构建游戏实时日志 UI 出错", ModBase.LogLevel.Feedback);
+            LauncherLogger.Log(ex, "构建游戏实时日志 UI 出错", LauncherLogger.LogLevel.Feedback);
         }
     }
 
@@ -99,7 +99,7 @@ public partial class PageLogLeft
                     Margin = new Thickness(0d, 12d, 0d, 0d);
                 else
                     Margin = new Thickness(0d);
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     var Paragraph = new Paragraph(new Run(e.LogText)) { Foreground = e.Color, Margin = Margin };
                     FlowDocuments[Uuid].Blocks.Add(Paragraph);
@@ -137,10 +137,10 @@ public partial class PageLogLeft
 
     public void Add(ModWatcher.Watcher watcher)
     {
-        var uuid = ModBase.GetUuid();
+        var uuid = LauncherDispatcher.GetUuid();
         ShownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
         watcher.LogOutput += OnLogOutput;
-        ModBase.RunInUi(() => FlowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
+        LauncherDispatcher.RunInUi(() => FlowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
         SelectionChange(uuid);
         ModMain.FrmMain.BtnExtraLog.ShowRefresh();
     }
@@ -166,7 +166,7 @@ public partial class PageLogLeft
                 }
         }
 
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             ModMain.FrmLogRight.Reload();
             Reload();
@@ -191,7 +191,7 @@ public partial class PageLogLeft
             }
             else
             {
-                ModBase.RunInUi(() =>
+                LauncherDispatcher.RunInUi(() =>
                 {
                     ModMain.FrmLogRight.Reload();
                     Reload();
@@ -218,7 +218,7 @@ public partial class PageLogLeft
     }
 
     // 点击选项
-    public void Version_Change(object sender, ModBase.RouteEventArgs e)
+    public void Version_Change(object sender, RouteEventArgs e)
     {
         SelectionChange((int)((MyListItem)sender).Tag);
     }

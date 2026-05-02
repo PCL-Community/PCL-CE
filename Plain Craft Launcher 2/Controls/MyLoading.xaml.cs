@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -14,7 +14,7 @@ public partial class MyLoading
 
     public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
 
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly int Uuid = LauncherDispatcher.GetUuid();
 
     public bool AutoRun { get; set; } = true;
 
@@ -97,7 +97,7 @@ public partial class MyLoading
 
     private void RefreshText()
     {
-        ModBase.RunInUi(() =>
+        LauncherDispatcher.RunInUi(() =>
         {
             if (InnerState == MyLoadingState.Error)
             {
@@ -111,7 +111,7 @@ public partial class MyLoading
                     else
                     {
                         while (Ex.InnerException is not null) Ex = Ex.InnerException;
-                        LabText.Text = ModBase.StrTrim(Ex.Message).ToString();
+                        LabText.Text = MigrationHelpers.StrTrim(Ex.Message).ToString();
                         if (new[]
                             {
                             "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
@@ -294,7 +294,7 @@ public partial class MyLoading
                 IsLooping = false;
                 AniLoop();
             }, After: true)
-        }, "MyLoader Loop " + Uuid + "/" + ModBase.GetUuid());
+        }, "MyLoader Loop " + Uuid + "/" + LauncherDispatcher.GetUuid());
         if (ShowProgress)
         {
         }

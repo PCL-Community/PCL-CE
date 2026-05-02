@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -42,10 +42,10 @@ public class MyImage : Image
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"加载图片失败（{value}）");
+                    LauncherLogger.Log(ex, $"加载图片失败（{value}）");
                     try
                     {
-                        if (value.StartsWithF(ModBase.PathTemp) && File.Exists(value)) File.Delete(value);
+                        if (value.StartsWithF(LauncherPaths.TempDirectory) && File.Exists(value)) File.Delete(value);
                     }
                     catch
                     {
@@ -105,7 +105,7 @@ public class MyImage : Image
             catch (Exception ex)
             {
                 // 更换备用地址
-                ModBase.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                LauncherLogger.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", LauncherLogger.LogLevel.Developer);
                 TempPath = GetTempPath(Url);
                 TempFile = new FileInfo(TempPath);
                 if (EnableCache && TempFile.Exists)
@@ -130,7 +130,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string Url)
     {
-        return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
+        return Path.Combine(LauncherPaths.TempDirectory, "Cache", "Images", $"{LauncherHash.GetStringMD5(Url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
@@ -142,7 +142,7 @@ public class MyImage : Image
 
         try
         {
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            Directory.CreateDirectory(LauncherPaths.GetDirectoryFromPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
@@ -167,7 +167,7 @@ public class MyImage : Image
             if (File.Exists(tempPath)) File.Delete(tempPath);
             if (File.Exists(tempDownloadingPath)) File.Delete(tempDownloadingPath);
 
-            ModBase.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
+            LauncherLogger.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
             return string.Empty;
         }
     }

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -40,7 +40,7 @@ public partial class MyHint
 
     // 触发点击事件
     private bool IsMouseDown;
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherDispatcher.GetUuid();
 
     public MyHint()
     {
@@ -61,8 +61,8 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d),
-                    ModBase.GetWPFSize(1d));
+                BorderThickness = new Thickness(3d, LauncherWpf.GetWPFSize(1d), LauncherWpf.GetWPFSize(1d),
+                    LauncherWpf.GetWPFSize(1d));
             else
                 BorderThickness = new Thickness(3d, 0d, 0d, 0d);
         }
@@ -126,22 +126,22 @@ public partial class MyHint
         }
 
         var s = ThemeService.CurrentTone;
-        Background = new ModBase.MyColor().FromHSL2(hue, 90, s.L7 * 100);
-        BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        Background = new MyColor().FromHSL2(hue, 90, s.L7 * 100);
+        BorderBrush = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        LabText.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        BtnClose.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
     {
         ThemeService.ColorModeChanged += (v, theme) => _ThemeChanged(v, theme);
-        if (CanClose && ModBase.Setup.Get(RelativeSetup) != null)
+        if (CanClose && LauncherEnvironment.Setup.Get(RelativeSetup) != null)
             Visibility = Visibility.Collapsed;
     }
 
     private void BtnClose_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Set(RelativeSetup, true);
+        LauncherEnvironment.Setup.Set(RelativeSetup, true);
         ModAnimation.AniDispose(this, false);
     }
 
@@ -150,7 +150,7 @@ public partial class MyHint
         if (!IsMouseDown)
             return;
         IsMouseDown = false;
-        ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
+        LauncherLogger.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
     }
