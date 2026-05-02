@@ -921,7 +921,65 @@ public partial class MyListItem : IMyRadio
 
     // 菜单与按钮绑定
     public Action<MyListItem, EventArgs> ContentHandler { get; set; }
+    
+    /// <summary>
+    /// 图标可选的圆角。仅当 Logo 为位图（MyImage 或 Canvas）时生效。
+    /// 当所有角的圆角半径均 ≥ 0 时，应用圆角效果；否则不应用。
+    /// </summary>
+    public CornerRadius LogoCornerRadius
+    {
+        get => field;
+        set
+        {
+            field = value;
+            if (PathLogo is Canvas) _canvasClipHandlerAdded = false;
+            ApplyLogoCornerRadius();
+        }
+    } = new CornerRadius(-1);
+    
+    private bool IsLogoCornerRadiusEnabled() => 
+        LogoCornerRadius is { TopLeft: >= 0, TopRight: >= 0, BottomLeft: >= 0, BottomRight: >= 0 };
 
+    private void UpdateCanvasClip(Canvas c)
+    {
+        if (c is { ActualWidth: > 0, ActualHeight: > 0 })
+        {
+            var r = LogoCornerRadius;
+            double radius = Math.Max(Math.Max(r.TopLeft, r.TopRight), Math.Max(r.BottomLeft, r.BottomRight));
+            c.Clip = new RectangleGeometry(new Rect(0, 0, c.ActualWidth, c.ActualHeight), radius, radius);
+        }
+    }
+
+    private bool _canvasClipHandlerAdded = false;
+
+    private void ApplyLogoCornerRadius()
+    {
+        if (PathLogo is null || !IsLogoCornerRadiusEnabled()) return;
+
+        switch (PathLogo)
+        {
+            case MyImage myImage:
+                myImage.CornerRadius = LogoCornerRadius;
+                break;
+            case Canvas canvas when !_canvasClipHandlerAdded && canvas is { ActualWidth: 0, ActualHeight: 0 }:
+                UpdateCanvasClip(canvas);
+                canvas.SizeChanged += OnCanvasLogoSizeChanged;
+                _canvasClipHandlerAdded = true;
+                break;
+            case Canvas canvas:
+                UpdateCanvasClip(canvas);
+                break;
+        }
+    }
+
+    private void OnCanvasLogoSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is not Canvas { ActualWidth: > 0, ActualHeight: > 0 } canvas) return;
+    
+        UpdateCanvasClip(canvas);
+        canvas.SizeChanged -= OnCanvasLogoSizeChanged;
+        _canvasClipHandlerAdded = false;
+    }
     #endregion
 
     #region 点击

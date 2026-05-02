@@ -876,9 +876,9 @@ public static class ModDownload
         public string VersionName;
 
         /// <summary>
-        ///     加载器名称。Forge 或 NeoForge。
+        ///     加载器名称。Forge / NeoForge / Cleanroom。
         /// </summary>
-        public string LoaderName => (int)ForgeType == 1 ? "NeoForge" : "Forge";
+        public string LoaderName => ForgeType.ToString();
 
         /// <summary>
         ///     文件扩展名。不以小数点开头。
