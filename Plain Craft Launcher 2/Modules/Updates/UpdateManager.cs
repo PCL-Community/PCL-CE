@@ -45,7 +45,9 @@ public class UpdateManager
                 var isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
                     ModBase.VersionCode);
-                return (UpdateEnums.VersionStatus)Convert.ToInt32(isNewerThanStable && isBetaLatest);
+                return isNewerThanStable && isBetaLatest
+                    ? UpdateEnums.VersionStatus.Latest
+                    : UpdateEnums.VersionStatus.NotLatest;
             }
 
             return RemoteServer.IsLatest(
