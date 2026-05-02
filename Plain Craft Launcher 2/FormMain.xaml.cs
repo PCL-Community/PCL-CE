@@ -363,32 +363,6 @@ public partial class FormMain
         // 被移除的窗口设置选项
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
-        // 修改主题设置项名称
-        if (LowerVersionCode <= 207)
-        {
-            var UnlockedTheme = new List<string> { "2" };
-            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV1.ToString().Split("|")));
-            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|")));
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Distinct().ToList().Join("|");
-        }
-
-        // 重置欧皇彩
-        if (LastVersionCode <= 115 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("13"))
-        {
-            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
-            UnlockedTheme.Remove("13");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
-            ModMain.MyMsgBox("由于新版 PCL 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
-        }
-
-        // 重置滑稽彩
-        if (LastVersionCode <= 152 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("12"))
-        {
-            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
-            UnlockedTheme.Remove("12");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
-            ModMain.MyMsgBox("由于新版 PCL 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
-        }
 
         // 移动自定义皮肤
         if (LastVersionCode <= 161 && File.Exists(ModBase.ExePath + @"PCL\CustomSkin.png") &&
@@ -422,7 +396,7 @@ public partial class FormMain
         }
 
         // 更新后展示社区版提示
-        ModSecret.ShowCEAnnounce();
+        UpdateManager.ShowCEAnnounce();
         // 输出更新日志
         if (LastVersionCode <= 0)
             return;

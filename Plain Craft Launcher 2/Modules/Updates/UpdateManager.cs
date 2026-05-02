@@ -252,4 +252,24 @@ public class UpdateManager
                 return;
         }
     }
+
+    /// <summary>
+    ///     展示社区版提示
+    /// </summary>
+    /// <param name="IsUpdate">是否为更新时启动</param>
+    public static void ShowCEAnnounce()
+    {
+        ModMain.MyMsgBox(@"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
+PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
+
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+
+该版本与官方版本的特性区别：
+- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
+- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
+
+此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了");
+    }
 }

@@ -29,6 +29,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -105,7 +106,7 @@ public static class ModBase
     /// <summary>
     ///     识别码。
     /// </summary>
-    public static string UniqueAddress = ModSecret.SecretGetUniqueAddress();
+    public static string UniqueAddress = Identify.LauncherId;
 
     /// <summary>
     ///     程序是否已结束。

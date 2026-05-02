@@ -2072,6 +2072,39 @@ public static class ModLaunch
 
     #region 启动参数
 
+    internal static void SecretLaunchJvmArgs(ref List<string> DataList)
+    {
+        var DataJvmCustom =
+            Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", ModMinecraft.McInstanceSelected));
+        DataList.Insert(0,
+            Conversions.ToString(string.IsNullOrEmpty(DataJvmCustom)
+                ? Config.Launch.JvmArgs
+                : DataJvmCustom)); // 可变 JVM 参数
+        switch (Config.Launch.PreferredIpStack)
+        {
+            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            {
+                DataList.Add("-Djava.net.preferIPv4Stack=true");
+                DataList.Add("-Djava.net.preferIPv4Addresses=true");
+                break;
+            }
+            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
+            {
+                DataList.Add("-Djava.net.preferIPv6Stack=true");
+                DataList.Add("-Djava.net.preferIPv6Addresses=true");
+                break;
+            }
+        }
+
+        double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
+        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb:N1}G");
+        double totalRamMb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d;
+        DataList.Add($"-Xmn{Math.Floor(totalRamMb * 0.15)}m");
+        DataList.Add($"-Xmx{Math.Floor(totalRamMb)}m");
+        if (!DataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
+            DataList.Add("-Dlog4j2.formatMsgNoLookups=true");
+    }
+
     public class LaunchArgument
     {
         private readonly List<string> _features = new();
@@ -2518,7 +2551,7 @@ public static class ModLaunch
         }
 
         // 内存、Log4j 防御参数等
-        ModSecret.SecretLaunchJvmArgs(ref DataList);
+        SecretLaunchJvmArgs(ref DataList);
 
         // Authlib-Injector
         if (McLoginLoader.Output.Type == "Auth")

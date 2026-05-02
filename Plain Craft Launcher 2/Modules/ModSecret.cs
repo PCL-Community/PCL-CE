@@ -1,30 +1,16 @@
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Management;
-using System.Net;
-using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.UI.Theme;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
 internal static class ModSecret
 {
-    #region 杂项
-
 #if DEBUG
     public const string RegFolder = "PCLCEDebug"; // 社区开发版的注册表与社区常规版的注册表隔离，以防数据冲突
 #else
@@ -59,7 +45,7 @@ internal static class ModSecret
     {
         // 提升 UI 线程优先级
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
-        // 确保 .NET Framework 版本
+        // 确保 WPF 字体渲染环境正常
         try
         {
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
@@ -105,67 +91,4 @@ internal static class ModSecret
             Environment.Exit((int)ModBase.ProcessReturnValues.Cancel);
         }
     }
-
-    /// <summary>
-    ///     展示社区版提示
-    /// </summary>
-    /// <param name="IsUpdate">是否为更新时启动</param>
-    public static void ShowCEAnnounce()
-    {
-        ModMain.MyMsgBox(@"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
-PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
-
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-
-该版本与官方版本的特性区别：
-- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
-- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
-
-此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了");
-    }
-
-    /// <summary>
-    ///     获取设备的短标识码
-    /// </summary>
-    internal static string SecretGetUniqueAddress()
-    {
-        return Identify.LauncherId;
-    }
-
-    internal static void SecretLaunchJvmArgs(ref List<string> DataList)
-    {
-        var DataJvmCustom =
-            Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", ModMinecraft.McInstanceSelected));
-        DataList.Insert(0,
-            Conversions.ToString(string.IsNullOrEmpty(DataJvmCustom)
-                ? Config.Launch.JvmArgs
-                : DataJvmCustom)); // 可变 JVM 参数
-        switch (Config.Launch.PreferredIpStack)
-        {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DataList.Add("-Djava.net.preferIPv4Stack=true");
-                DataList.Add("-Djava.net.preferIPv4Addresses=true");
-                break;
-            }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
-            {
-                DataList.Add("-Djava.net.preferIPv6Stack=true");
-                DataList.Add("-Djava.net.preferIPv6Addresses=true");
-                break;
-            }
-        }
-
-        double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
-        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb:N1}G");
-        double totalRamMb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d;
-        DataList.Add($"-Xmn{Math.Floor(totalRamMb * 0.15)}m");
-        DataList.Add($"-Xmx{Math.Floor(totalRamMb)}m");
-        if (!DataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
-            DataList.Add("-Dlog4j2.formatMsgNoLookups=true");
-    }
-
-    #endregion
 }
