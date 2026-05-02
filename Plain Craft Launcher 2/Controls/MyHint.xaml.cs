@@ -127,10 +127,10 @@ public partial class MyHint
         }
 
         var s = ThemeService.CurrentTone;
-        Background = new NColor().FromHsl2(hue, 90, s.L7 * 100);
-        BorderBrush = new NColor().FromHsl2(hue, 90, s.L2 * 100);
-        LabText.Foreground = new NColor().FromHsl2(hue, 90, s.L2 * 100);
-        BtnClose.Foreground = new NColor().FromHsl2(hue, 90, s.L2 * 100);
+        Background = new MyColor().FromHSL2(hue, 90, s.L7 * 100);
+        BorderBrush = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        LabText.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        BtnClose.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)

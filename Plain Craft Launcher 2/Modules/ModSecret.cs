@@ -65,14 +65,14 @@ internal static class ModSecret
         try
         {
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.Dpi);
+                Fonts.SystemTypefaces.First(), 96d, new MyColor(), ModBase.Dpi);
         }
         catch (UriFormatException ex) // 修复 #3555
         {
             Environment.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"),
                 EnvironmentVariableTarget.User);
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.Dpi);
+                Fonts.SystemTypefaces.First(), 96d, new MyColor(), ModBase.Dpi);
         }
 
         // 检测当前文件夹权限
@@ -222,10 +222,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static NColor ColorGray1 = NColor.FromObject(AppResources["ColorObjectGray1"]);
-    public static NColor ColorGray4 = NColor.FromObject(AppResources["ColorObjectGray4"]);
-    public static NColor ColorGray5 = NColor.FromObject(AppResources["ColorObjectGray5"]);
-    public static NColor ColorSemiTransparent = NColor.FromObject(AppResources["ColorBrushSemiTransparent"]);
+    public static MyColor ColorGray1 = new MyColor(AppResources["ColorObjectGray1"]);
+    public static MyColor ColorGray4 = new MyColor(AppResources["ColorObjectGray4"]);
+    public static MyColor ColorGray5 = new MyColor(AppResources["ColorObjectGray5"]);
+    public static MyColor ColorSemiTransparent = new MyColor(AppResources["ColorBrushSemiTransparent"]);
 
     public static int ThemeNow = -1;
 
@@ -250,10 +250,10 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         // ThemeRefreshColor()
         // RaiseThemeChanged(IsDarkMode)
-        ColorGray1 = NColor.FromObject(AppResources["ColorObjectGray1"]);
-        ColorGray4 = NColor.FromObject(AppResources["ColorObjectGray4"]);
-        ColorGray5 = NColor.FromObject(AppResources["ColorObjectGray5"]);
-        ColorSemiTransparent = NColor.FromObject(AppResources["ColorBrushSemiTransparent"]);
+        ColorGray1 = new MyColor(AppResources["ColorObjectGray1"]);
+        ColorGray4 = new MyColor(AppResources["ColorObjectGray4"]);
+        ColorGray5 = new MyColor(AppResources["ColorObjectGray5"]);
+        ColorSemiTransparent = new MyColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 

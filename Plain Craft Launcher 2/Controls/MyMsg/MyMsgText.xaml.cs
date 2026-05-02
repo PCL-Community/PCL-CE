@@ -1,10 +1,10 @@
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Controls;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -59,8 +59,8 @@ public partial class MyMsgText
             ModAnimation.Start(
                 ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (MyConverter.IsWarn
-                        ? new NColor(140, 80, 0, 0)
-                        : new NColor(90, 0, 0, 0)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
+                        ? new MyColor(140, 80, 0, 0)
+                        : new MyColor(90, 0, 0, 0)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.Start(
                 new[]
@@ -96,7 +96,7 @@ public partial class MyMsgText
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.Start(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new NColor(0, 0, 0, 0) - ModMain.FrmMain.PanMsgBackground.Background, 200,
+                        new MyColor(0, 0, 0, 0) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),

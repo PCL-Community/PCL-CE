@@ -1,10 +1,10 @@
+using PCL.Core.App;
 using PCL.Core.UI;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -145,27 +145,27 @@ public partial class MyIconButton
             if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
             {
                 if (PanBack.Background is null)
-                    PanBack.Background = new NColor(0, 255, 255, 255);
+                    PanBack.Background = new MyColor(0, 255, 255, 255);
                 if (Path.Fill is null)
                     switch (Theme)
                     {
                         case Themes.Red:
                             {
-                                Path.Fill = new NColor(160, 255, 76, 76);
+                                Path.Fill = new MyColor(160, 255, 76, 76);
                                 break;
                             }
                         case Themes.Black:
                             {
                                 if (ModSecret.IsDarkMode)
-                                    Path.Fill = new NColor(160, 255, 255, 255);
+                                    Path.Fill = new MyColor(160, 255, 255, 255);
                                 else
-                                    Path.Fill = new NColor(160, 0, 0, 0);
+                                    Path.Fill = new MyColor(160, 0, 0, 0);
 
                                 break;
                             }
                         case Themes.Custom:
                             {
-                                Path.Fill = new NColor(160, Foreground);
+                                Path.Fill = new MyColor(160, Foreground);
                                 break;
                             }
                     }
@@ -185,27 +185,27 @@ public partial class MyIconButton
                         case Themes.White:
                             {
                                 AnimList.Add(ModAnimation.AaColor(PanBack, BackgroundProperty,
-                                    new NColor(50, 255, 255, 255) - PanBack.Background, AnimationColorIn));
+                                    new MyColor(50, 255, 255, 255) - PanBack.Background, AnimationColorIn));
                                 break;
                             }
                         case Themes.Red:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                    new NColor(255, 76, 76) - Path.Fill, AnimationColorIn));
+                                    new MyColor(255, 76, 76) - Path.Fill, AnimationColorIn));
                                 break;
                             }
                         case Themes.Black:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
                                     (ModSecret.IsDarkMode
-                                        ? new NColor(230, 255, 255, 255)
-                                        : new NColor(230, 0, 0, 0)) - Path.Fill, AnimationColorIn));
+                                        ? new MyColor(230, 255, 255, 255)
+                                        : new MyColor(230, 0, 0, 0)) - Path.Fill, AnimationColorIn));
                                 break;
                             }
                         case Themes.Custom:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                    new NColor(255, Foreground) - Path.Fill, AnimationColorIn));
+                                    new MyColor(255, Foreground) - Path.Fill, AnimationColorIn));
                                 break;
                             }
                     }
@@ -222,38 +222,38 @@ public partial class MyIconButton
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty, "ColorBrush4",
                                     AnimationColorOut));
-                                PanBack.Background = new NColor(0, 255, 255, 255);
+                                PanBack.Background = new MyColor(0, 255, 255, 255);
                                 break;
                             }
                         case Themes.White:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                    new NColor(234, 242, 254), AnimationColorOut));
+                                    new MyColor(234, 242, 254), AnimationColorOut));
                                 AnimList.Add(ModAnimation.AaColor(PanBack, BackgroundProperty,
-                                    new NColor(0, 255, 255, 255) - PanBack.Background, AnimationColorOut));
+                                    new MyColor(0, 255, 255, 255) - PanBack.Background, AnimationColorOut));
                                 break;
                             }
                         case Themes.Red:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                    new NColor(160, 255, 76, 76) - Path.Fill, AnimationColorOut));
-                                PanBack.Background = new NColor(0, 255, 255, 255);
+                                    new MyColor(160, 255, 76, 76) - Path.Fill, AnimationColorOut));
+                                PanBack.Background = new MyColor(0, 255, 255, 255);
                                 break;
                             }
                         case Themes.Black:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
                                     (ModSecret.IsDarkMode
-                                        ? new NColor(160, 255, 255, 255)
-                                        : new NColor(160, 0, 0, 0)) - Path.Fill, AnimationColorOut));
-                                PanBack.Background = new NColor(0, 255, 255, 255);
+                                        ? new MyColor(160, 255, 255, 255)
+                                        : new MyColor(160, 0, 0, 0)) - Path.Fill, AnimationColorOut));
+                                PanBack.Background = new MyColor(0, 255, 255, 255);
                                 break;
                             }
                         case Themes.Custom:
                             {
                                 AnimList.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                                    new NColor(160, Foreground) - Path.Fill, AnimationColorOut));
-                                PanBack.Background = new NColor(0, 255, 255, 255);
+                                    new MyColor(160, Foreground) - Path.Fill, AnimationColorOut));
+                                PanBack.Background = new MyColor(0, 255, 255, 255);
                                 break;
                             }
                     }
@@ -274,31 +274,31 @@ public partial class MyIconButton
                         }
                     case Themes.White:
                         {
-                            Path.Fill = new NColor(234, 242, 254);
+                            Path.Fill = new MyColor(234, 242, 254);
                             break;
                         }
                     case Themes.Red:
                         {
-                            Path.Fill = new NColor(160, 255, 76, 76);
+                            Path.Fill = new MyColor(160, 255, 76, 76);
                             break;
                         }
                     case Themes.Black:
                         {
                             if (ModSecret.IsDarkMode)
-                                Path.Fill = new NColor(160, 255, 255, 255);
+                                Path.Fill = new MyColor(160, 255, 255, 255);
                             else
-                                Path.Fill = new NColor(160, 0, 0, 0);
+                                Path.Fill = new MyColor(160, 0, 0, 0);
 
                             break;
                         }
                     case Themes.Custom:
                         {
-                            Path.Fill = new NColor(160, Foreground);
+                            Path.Fill = new MyColor(160, Foreground);
                             break;
                         }
                 }
 
-                PanBack.Background = new NColor(0, 255, 255, 255);
+                PanBack.Background = new MyColor(0, 255, 255, 255);
             }
         }
         catch (Exception ex)

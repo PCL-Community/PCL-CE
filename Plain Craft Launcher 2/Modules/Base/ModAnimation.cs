@@ -227,7 +227,7 @@ public static partial class ModAnimation
                                 case AniTypeSub.Width:
                                     {
                                         var Obj = (FrameworkElement)Ani.Obj;
-                                        Obj.Width = Math.Max((double.IsNaN(Obj.Width) ? Obj.ActualWidth : Obj.Width) + Delta,
+                                        Obj.Width = Math.Max((Obj.Width is double.NaN ? Obj.ActualWidth : Obj.Width) + Delta,
                                             0d);
                                         break;
                                     }
@@ -235,7 +235,7 @@ public static partial class ModAnimation
                                     {
                                         var Obj = (FrameworkElement)Ani.Obj;
                                         Obj.Height =
-                                            Math.Max((double.IsNaN(Obj.Height) ? Obj.ActualHeight : Obj.Height) + Delta, 0d);
+                                            Math.Max((Obj.Height is double.NaN ? Obj.ActualHeight : Obj.Height) + Delta, 0d);
                                         break;
                                     }
                                 case AniTypeSub.Value:
@@ -304,15 +304,15 @@ public static partial class ModAnimation
                 case AniType.Color:
                     {
                         // 利用 Last 记录了余下的小数值
-                        var valueFromObject = NColor.FromObject(Ani.Value);
-                        var Delta = MathUtils.Percent(new NColor(0, 0, 0, 0),
+                        var valueFromObject = new MyColor(Ani.Value);
+                        var Delta = MathUtils.Percent(new MyColor(0, 0, 0, 0),
                             valueFromObject,
-                                        (float)(Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent) + (double)Ani.ValueLast));
+                            Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent)) + (MyColor)Ani.ValueLast;
                         var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
                         var Prop = (DependencyProperty)((dynamic)Ani.Obj)[1];
-                        var NewColor = NColor.FromObject(Obj.GetValue(Prop)) + Delta;
+                        var NewColor = new MyColor(Obj.GetValue(Prop)) + Delta;
                         Obj.SetValue(Prop, Prop.PropertyType.Name == "Color" ? (Color)NewColor : (SolidColorBrush)NewColor);
-                        Ani.ValueLast = NewColor - NColor.FromObject(Obj.GetValue(Prop));
+                        Ani.ValueLast = NewColor - new MyColor(Obj.GetValue(Prop));
                         break;
                     }
 
@@ -407,7 +407,7 @@ public static partial class ModAnimation
 
                         var Delta = MathUtils.Percent(0d, (double)Ani.Value,
                             Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
-                        ((RotateTransform)Obj.RenderTransform).Angle = ((RotateTransform)Obj.RenderTransform).Angle + Delta;
+                        ((RotateTransform)Obj.RenderTransform).Angle += Delta;
                         break;
                     }
             }
@@ -956,7 +956,7 @@ public static partial class ModAnimation
     /// <param name="After">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaColor(FrameworkElement Obj, DependencyProperty Prop, NColor Value, int Time = 400,
+    public static AniData AaColor(FrameworkElement Obj, DependencyProperty Prop, MyColor Value, int Time = 400,
         int Delay = 0, AniEase Ease = null, bool After = false)
     {
         return new AniData
@@ -968,7 +968,7 @@ public static partial class ModAnimation
             Value = Value,
             IsAfter = After,
             TimeFinished = -Delay,
-            ValueLast = new NColor(0, 0, 0, 0)
+            ValueLast = new MyColor(0, 0, 0, 0)
         };
     }
 
@@ -993,11 +993,11 @@ public static partial class ModAnimation
             TimeTotal = Time,
             Ease = Ease ?? new AniEaseLinear(),
             Obj = new object[] { Obj, Prop, Res },
-            Value = NColor.FromObject(System.Windows.Application.Current.FindResource(Res)) -
-                    NColor.FromObject(Obj.GetValue(Prop)),
+            Value = new MyColor(System.Windows.Application.Current.FindResource(Res)) -
+                    new MyColor(Obj.GetValue(Prop)),
             IsAfter = After,
             TimeFinished = -Delay,
-            ValueLast = new NColor(0, 0, 0, 0)
+            ValueLast = new MyColor(0, 0, 0, 0)
         };
     }
 

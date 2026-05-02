@@ -481,7 +481,7 @@ public static class ModMinecraft
         /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
         public McInstance(string name)
         {
-            PathInstance = (name.Contains(":") ? "" : McFolderSelected + @"versions\") + name +
+            PathInstance = (name.Contains(':') ? "" : McFolderSelected + @"versions\") + name +
                            (name.EndsWithF(@"\") ? "" : @"\"); // 补全完整路径
             // 补全右划线
         }
@@ -2105,7 +2105,7 @@ public static class ModMinecraft
 
         #region 循环加载每个实例的信息
 
-        foreach (var folder in new DirectoryInfo(path + "versions").GetDirectories())
+        foreach (var folder in new DirectoryInfo(Path.Combine(path, "versions")).GetDirectories())
         {
             if (!folder.Exists || !folder.EnumerateFiles().Any())
             {
@@ -2120,8 +2120,8 @@ public static class ModMinecraft
                 continue;
             }
 
-            var instanceFolder = Basics.GetAppImagePath(@"\");
-            if (File.Exists(instanceFolder + ".pclignore"))
+            var instanceFolder = folder.FullName;
+            if (File.Exists(Path.Combine(instanceFolder, ".pclignore")))
             {
                 if (_isFirstMcInstanceListLoad)
                 {

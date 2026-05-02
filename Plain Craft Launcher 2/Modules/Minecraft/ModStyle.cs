@@ -256,7 +256,7 @@ internal static class ModStyle
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new NColor(color));
+                    curRun.Foreground = new SolidColorBrush(new MyColor(color));
                     curRun.FontWeight = HasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = HasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = HasStrickThroughProperty ? TextDecorations.Strikethrough : null;

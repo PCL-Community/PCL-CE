@@ -1,9 +1,9 @@
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.App;
 
 namespace PCL;
 
@@ -67,7 +67,7 @@ public class AnimatedBackgroundGrid : Grid
                 {
                     ModAnimation.AaColor(grid.AnimatableElement,
                         grid._animatableBrushProperty,
-                        new NColor(brush.Subtract(grid.AnimatableBrush)),
+                        new MyColor(brush.Subtract(grid.AnimatableBrush)),
                         300)
                 }, "MyCard Theme " + grid.Uuid);
             await Task.Delay(300);

@@ -6,7 +6,6 @@ using PCL.Core.App.Configuration.Storage;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using System.IO;
 using System.Windows;
@@ -202,7 +201,11 @@ public partial class PageInstanceOverall
                 });
             if (instanceInfo.HasLiteLoader)
                 items.Add(new MyListItem
-                { Title = "LiteLoader", Info = "已安装", Logo = "pack://application:,,,/images/Blocks/Egg.png" });
+                {
+                    Title = "LiteLoader",
+                    Info = "已安装",
+                    Logo = "pack://application:,,,/images/Blocks/Egg.png"
+                });
             if (instanceInfo.HasLegacyFabric)
                 items.Add(new MyListItem
                 {

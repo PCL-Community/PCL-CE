@@ -20,7 +20,7 @@ public static class MathUtils
             return "0";
         }
 
-        var isNegative = input.StartsWith('-');
+        var isNegative = input is ['-', ..];
         if (isNegative)
         {
             input = input.TrimStart('-');
@@ -107,7 +107,7 @@ public static class MathUtils
     /// <summary>
     /// 获取两颜色间的百分比，根据 RGB 计算。小数点精确到 6 位。
     /// </summary>
-    public static NColor Percent(NColor valueA, NColor valueB, float percent)
+    public static MyColor Percent(MyColor valueA, MyColor valueB, double percent)
     {
         return Round(valueA * (1 - percent) + valueB * percent, 6);
     }
@@ -128,14 +128,14 @@ public static class MathUtils
     /// <summary>
     /// 提供 <see cref="NColor"/> 类型支持的 Round。
     /// </summary>
-    public static NColor Round(NColor col, int w = 0)
+    public static MyColor Round(MyColor col, int w = 0)
     {
-        return new NColor
+        return new MyColor
         {
-            A = Round(col.A, w),
-            R = Round(col.R, w),
-            G = Round(col.G, w),
-            B = Round(col.B, w)
+            A = Math.Round(col.A, w),
+            R = Math.Round(col.R, w),
+            G = Math.Round(col.G, w),
+            B = Math.Round(col.B, w)
         };
     }
 

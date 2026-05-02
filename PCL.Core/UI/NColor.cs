@@ -50,7 +50,9 @@ public struct NColor :
 
     public NColor(float r, float g, float b, float a = 255f)
     {
-        _color = new Vector4(Math.Clamp(r, 0, 255), Math.Clamp(g, 0, 255), Math.Clamp(b, 0, 255),
+        _color = new Vector4(Math.Clamp(r, 0, 255),
+            Math.Clamp(g, 0, 255),
+            Math.Clamp(b, 0, 255),
             Math.Clamp(a, 0, 255));
     }
 

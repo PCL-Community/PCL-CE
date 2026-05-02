@@ -1,12 +1,10 @@
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Controls;
-using PCL.Core.Utils;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
 
 namespace PCL;
 
@@ -63,9 +61,8 @@ public partial class MyMsgInput
             ModAnimation.Start(
                 ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (MyConverter.IsWarn
-                        ? new NColor(140, 80, 0, 0)
-                        : new NColor(new SolidColorBrush(Color.FromArgb(90, 0, 0, 0)).Subtract((SolidColorBrush)ModMain.FrmMain.PanMsgBackground.Background))),
-                    200),
+                        ? new MyColor(140d, 80d, 0d, 0d)
+                        : new MyColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.Start(
                 new[]
@@ -100,7 +97,7 @@ public partial class MyMsgInput
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.Start(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new NColor(0, 0, 0, 0) - ModMain.FrmMain.PanMsgBackground.Background, 200,
+                        new MyColor(0, 0, 0, 0) - ModMain.FrmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
