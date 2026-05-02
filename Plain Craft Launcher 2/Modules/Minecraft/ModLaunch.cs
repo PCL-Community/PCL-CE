@@ -2910,9 +2910,6 @@ public static class ModLaunch
                     || Library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0")
                     || Library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
                 continue;
-            if (Library.Name is not null &&
-                Library.Name.Contains("com.cleanroommc:cleanroom:0.2")) // Cleanroom 的主 Jar 必须放在 ClassPath 第一位
-                CpStrings.Insert(0, Library.LocalPath);
             if (Library.Name is not null && Library.Name == "optifine:OptiFine")
                 OptiFineCp = Library.LocalPath;
             else
