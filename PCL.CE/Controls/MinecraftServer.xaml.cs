@@ -12,7 +12,7 @@ namespace PCL.CE;
 public partial class MinecraftServer : Grid
 {
     private const string FallbackImageUri =
-        "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png";
+        "pack://application:,,,/PCL.CE;component/Images/Icons/DefaultServer.png";
 
     private static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address),
         typeof(string), typeof(MinecraftServer), new PropertyMetadata(string.Empty, OnAddressChanged));

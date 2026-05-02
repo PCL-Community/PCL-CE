@@ -230,7 +230,7 @@ public static class SharedExtensions
         if (isArgConfig)
         {
             fullTypeName = typeName;
-            typeName = typeName.Substring(37, typeName.Length - 38);
+            typeName = typeName.Substring(40, typeName.Length - 41);
         }
         else fullTypeName = null;
         return typeName;

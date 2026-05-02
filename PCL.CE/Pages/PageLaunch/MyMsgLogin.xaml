@@ -10,7 +10,7 @@
             <TranslateTransform x:Name="TransformPos" X="0" Y="40" />
         </TransformGroup>
     </Grid.RenderTransform>
-    <controls:BlurBorder Name="PanBorder" CornerRadius="7"
+    <controls:BlurBorder x:Name="PanBorder" CornerRadius="7"
                          Background="{DynamicResource ColorBrushBackground}"
                          MouseLeftButtonDown="Drag">
         <controls:BlurBorder.Effect>

@@ -4,6 +4,7 @@
         <TargetFramework>net8.0-windows</TargetFramework>
         <OutputType>WinExe</OutputType>
         <RootNamespace>PCL.CE</RootNamespace>
+        <AssemblyName>PCL.CE</AssemblyName>
         <MyType>Custom</MyType>
         <IsWebBootstrapper>false</IsWebBootstrapper>
         <StartupObject>PCL.CE.Program</StartupObject>
@@ -151,6 +152,6 @@
     <!-- 项目自定义源生成器 -->
     <ItemGroup>
         <AdditionalFiles Include="Core\App\IoC\LifecycleState.cs" />
-        <ProjectReference Include="..\PCL.CE.SourceGenerators\PCL.CE.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\PCL.CE.SourceGenerators\PCL.CE.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 </Project>

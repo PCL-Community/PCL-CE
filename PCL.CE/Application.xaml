@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PCL.CE"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
+             xmlns:behaviors="clr-namespace:PCL.CE.Controls.Behaviors"
              xmlns:controls="clr-namespace:PCL.CE.Core.UI.Controls"
              xmlns:cvt="clr-namespace:PCL.CE.Core.UI.Converters"
              ShutdownMode="OnExplicitShutdown">

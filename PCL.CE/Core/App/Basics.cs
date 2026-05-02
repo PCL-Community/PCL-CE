@@ -22,7 +22,7 @@ public static class Basics
     /// 启动器元数据。
     /// </summary>
     public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!)!;
+        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.CE.metadata.json")!)!;
 
     /// <summary>
     /// 版本名称。
@@ -176,7 +176,7 @@ public static class Basics
         return resourceInfo?.Stream;
     }
 
-    private const string AssemblyImagePath = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
+    private const string AssemblyImagePath = "pack://application:,,,/PCL.CE;component/Images/";
     public static string GetAppImagePath(string imageName) => AssemblyImagePath + imageName;
 
     #endregion

@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using PCL.CE.Core.IO.Net.Http.Client.Request;
 
-namespace PCL
+namespace PCL.CE
 {
     public partial class PageHomePageMarket : MyPageRight, IRefreshable
     {
@@ -37,7 +37,7 @@ namespace PCL
                 ModBase.RunInUi(() =>
                 {
                     PanCustom.Children.Clear();
-                    var element = ModBase.GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL;assembly=Plain Craft Launcher 2' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>") as UIElement;
+                    var element = ModBase.GetObjectFromXML($"<StackPanel xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' xmlns:local='clr-namespace:PCL.CE;assembly=PCL.CE' xmlns:sys='clr-namespace:System;assembly=System.Runtime'>{content}</StackPanel>") as UIElement;
 
                     if (element != null)
                     {

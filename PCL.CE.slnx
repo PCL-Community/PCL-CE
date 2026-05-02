@@ -8,7 +8,7 @@
     <Platform Name="ARM64" />
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="PCL.CE.SourceGenerators/PCL.CE.Core.SourceGenerators.csproj" />
+  <Project Path="PCL.CE.SourceGenerators/PCL.CE.SourceGenerators.csproj" />
   <Project Path="PCL.CE.Test/PCL.CE.Test.csproj">
     <Build Project="false" />
   </Project>

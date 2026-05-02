@@ -1,6 +1,6 @@
 ﻿using PCL.CE.Core.ViewModel.Homepage;
 
-namespace PCL
+namespace PCL.CE
 {
     public partial class PageHomepageNewsView : MyPageRight
     {

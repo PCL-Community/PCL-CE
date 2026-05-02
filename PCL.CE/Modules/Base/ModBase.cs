@@ -80,7 +80,7 @@ public static class ModBase
     /// <summary>
     ///     程序内嵌图片文件夹路径，以“/”结尾。
     /// </summary>
-    public static readonly string PathImage = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
+    public static readonly string PathImage = "pack://application:,,,/PCL.CE;component/Images/";
 
     /// <summary>
     ///     当前程序的语言。

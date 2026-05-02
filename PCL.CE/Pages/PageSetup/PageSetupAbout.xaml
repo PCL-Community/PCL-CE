@@ -56,7 +56,7 @@
                         x:Name="ImgPCLLogo"
                         Grid.Row="2"
                         Margin="3" MouseLeftButtonDown="ImgPCLLogo_Click"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-CE.png">
+                        Source="/PCL.CE;component/Images/Heads/Logo-CE.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -67,7 +67,7 @@
                     <Image
                         Grid.Row="0"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/LTCat.jpg">
+                        Source="/PCL.CE;component/Images/Heads/LTCat.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -79,7 +79,7 @@
                         x:Name="ImgPCLCommunity"
                         Grid.Row="1"  MouseLeftButtonDown="ImgPCLCommunity_Click"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/PCL-Community.png" />
+                        Source="/PCL.CE;component/Images/Heads/PCL-Community.png" />
                     <local:MyButton
                         Grid.Row="0"
                         Grid.Column="2"
@@ -247,7 +247,7 @@
                     <Image
                         Grid.Row="0"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/bangbang93.png">
+                        Source="/PCL.CE;component/Images/Heads/bangbang93.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -258,7 +258,7 @@
                     <Image
                         Grid.Row="1"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png">
+                        Source="/PCL.CE;component/Images/Heads/wiki.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -269,7 +269,7 @@
                     <Image
                         Grid.Row="2"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/Pysio.jpg">
+                        Source="/PCL.CE;component/Images/Heads/Pysio.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -280,7 +280,7 @@
                     <Image
                         Grid.Row="3"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/Yunmoan.jpg">
+                        Source="/PCL.CE;component/Images/Heads/Yunmoan.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -291,7 +291,7 @@
                     <Image
                         Grid.Row="4"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/EasyTier.png">
+                        Source="/PCL.CE;component/Images/Heads/EasyTier.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -302,7 +302,7 @@
                     <Image
                         Grid.Row="5"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/z0z0r4.png">
+                        Source="/PCL.CE;component/Images/Heads/z0z0r4.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -313,7 +313,7 @@
                     <Image
                         Grid.Row="6"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/00ll00.png">
+                        Source="/PCL.CE;component/Images/Heads/00ll00.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -324,7 +324,7 @@
                     <Image
                         Grid.Row="7"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/Patrick.png">
+                        Source="/PCL.CE;component/Images/Heads/Patrick.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -335,7 +335,7 @@
                     <Image
                         Grid.Row="8"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/Hao_Tian.jpg">
+                        Source="/PCL.CE;component/Images/Heads/Hao_Tian.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -346,7 +346,7 @@
                     <Image
                         Grid.Row="9"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/MCBBS.png">
+                        Source="/PCL.CE;component/Images/Heads/MCBBS.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -357,7 +357,7 @@
                     <Image
                         Grid.Row="10"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/PCL2.png">
+                        Source="/PCL.CE;component/Images/Heads/PCL2.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
