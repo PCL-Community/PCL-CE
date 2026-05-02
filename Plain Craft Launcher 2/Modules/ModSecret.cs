@@ -197,9 +197,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     }
 
     #endregion
-
-
-
+    
     #region 更新
 
     public static bool IsCheckingUpdates = false;
@@ -495,90 +493,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             ShowedAnnounced.AddRange(ShowAnnounce.Select(x => x.id).ToList());
             ShowedAnnounced = ShowedAnnounced.Distinct().ToList();
             States.Hint.ShowedAnnouncements = ShowedAnnounced.Join("|");
-        }
-    }
-
-    #endregion
-
-    #region 系统信息
-
-    internal static string CPUName;
-
-    /// <summary>
-    ///     系统 GPU 信息
-    /// </summary>
-    internal static List<GPUInfo> GPUs = new();
-
-    /// <summary>
-    ///     已安装物理内存大小，单位 MB
-    /// </summary>
-    internal static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
-
-    /// <summary>
-    ///     系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
-    /// </summary>
-    public static string OSInfo = RuntimeInformation.OSDescription + " " + Environment.OSVersion.Version;
-
-    public class GPUInfo
-    {
-        internal string DriverVersion;
-
-        /// <summary>
-        ///     显存大小，单位 MB
-        /// </summary>
-        internal long Memory;
-
-        internal string Name;
-    }
-
-    /// <summary>
-    ///     获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
-    /// </summary>
-    internal static void GetSystemInfo()
-    {
-        // CPU
-        try
-        {
-            var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
-
-            foreach (ManagementObject queryObj in searcher.Get())
-            {
-                CPUName = queryObj["Name"].ToString().Trim();
-                break; // 通常只需要第一个CPU的信息
-            }
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "获取 CPU 信息时出错", ModBase.LogLevel.Normal);
-        }
-
-        // GPU
-        try
-        {
-            var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
-
-            foreach (ManagementObject queryObj in searcher.Get())
-            {
-                var gpuInfo = new GPUInfo();
-
-                if (queryObj["Name"] is not null) gpuInfo.Name = Conversions.ToString(queryObj["Name"]);
-                if (queryObj["AdapterRAM"] is not null)
-                {
-                    var ramMB = Conversions.ToLong(queryObj["AdapterRAM"]) / (1024 * 1024);
-                    gpuInfo.Memory = ramMB;
-                }
-
-                if (queryObj["DriverVersion"] is not null)
-                    gpuInfo.DriverVersion = Conversions.ToString(queryObj["DriverVersion"]);
-
-                GPUs.Add(gpuInfo);
-            }
-
-            ModBase.Log("已获取系统环境信息");
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "获取 GPU 信息时出错", ModBase.LogLevel.Normal);
         }
     }
 
