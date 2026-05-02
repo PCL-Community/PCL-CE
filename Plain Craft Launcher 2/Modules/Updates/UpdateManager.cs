@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils;
@@ -46,11 +45,11 @@ public class UpdateManager
                 var isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
                     ModBase.VersionCode);
-                return (UpdateEnums.VersionStatus)Conversions.ToInteger(isNewerThanStable && isBetaLatest);
+                return (UpdateEnums.VersionStatus)Convert.ToInt32(isNewerThanStable && isBetaLatest);
             }
 
             return RemoteServer.IsLatest(
-                Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
+                IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                 ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
                 ModBase.VersionCode)
                 ? UpdateEnums.VersionStatus.Latest
@@ -98,7 +97,7 @@ public class UpdateManager
                 var loaders = new List<ModLoader.LoaderBase>();
                 // 下载
                 loaders.AddRange(RemoteServer.GetDownloadLoader(
-                    Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
+                    IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
@@ -231,19 +230,18 @@ public class UpdateManager
 
     private static void ScheduleBasedOnConfig()
     {
-        var updateDesire = Config.Update.UpdateMode;
-        switch (updateDesire)
+        switch (Config.Update.UpdateMode)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case LauncherAutoUpdateBehavior.DownloadAndInstall:
                 ModBase.Log("[Update] 更新设置: 自动下载并安装更新");
                 if (GetVersionStatus() != UpdateEnums.VersionStatus.Latest)
                     UpdateStart(UpdateEnums.UpdateType.Silent);
                 break;
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case LauncherAutoUpdateBehavior.DownloadAndAnnounce:
                 ModBase.Log("[Update] 更新设置: 自动下载并提示更新");
                 UpdateStart(UpdateEnums.UpdateType.DownloadAndPrompt);
                 break;
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false):
+            case LauncherAutoUpdateBehavior.AnnounceOnly:
                 ModBase.Log("[Update] 更新设置: 提示更新");
                 UpdateStart(UpdateEnums.UpdateType.PromptOnly);
                 break;

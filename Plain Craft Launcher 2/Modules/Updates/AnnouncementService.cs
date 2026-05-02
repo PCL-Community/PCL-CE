@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-using PCL.Core.App;
+﻿using PCL.Core.App;
 
 namespace PCL;
 
@@ -7,12 +6,10 @@ public static class AnnouncementService
 {
     public static void Load()
     {
-        var announcementDesire = States.System.AnnounceSolution;
-        if (!Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectLessEqual(announcementDesire, 1, false)))
+        if (States.System.AnnounceSolution > 1)
             return;
 
-        var showedAnnounced = States.Hint.ShowedAnnouncements.ToString()
+        var showedAnnounced = States.Hint.ShowedAnnouncements
             .Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
             .ToList();
 
