@@ -1,9 +1,3 @@
-using System.Globalization;
-using System.IO;
-using System.Windows;
-using System.Windows.Media;
-using Microsoft.VisualBasic;
-using PCL.Core.App;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
