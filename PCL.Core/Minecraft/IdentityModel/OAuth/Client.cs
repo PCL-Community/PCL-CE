@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Minecraft.IdentityModel.OAuth;
 

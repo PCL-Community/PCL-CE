@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Net;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 
-namespace PCL.Core.IO.Net.Http.Client;
+namespace PCL.Core.IO.Net.Http;
 
 public class HttpProxyManager : IWebProxy, IDisposable
 {
@@ -19,8 +19,8 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     private readonly object _lock = new();
     private ProxyMode _mode = ProxyMode.SystemProxy;
-    private readonly WebProxy _customWebProxy = new() {BypassProxyOnLocal = true};
-    private readonly WebProxy _systemWebProxy = new() {BypassProxyOnLocal = true};
+    private readonly WebProxy _customWebProxy = new() { BypassProxyOnLocal = true };
+    private readonly WebProxy _systemWebProxy = new() { BypassProxyOnLocal = true };
     private const string ProxyRegPathFull = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
     private const string ProxyRegPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
     private readonly RegistryChangeMonitor _proxyMonitor = new(ProxyRegPath);
@@ -28,10 +28,10 @@ public class HttpProxyManager : IWebProxy, IDisposable
     private HttpProxyManager()
     {
         RefreshSystemProxy(); // 初始化系统代理
-        _proxyMonitor.Changed += _onSystemProxyChanged;
+        _proxyMonitor.Changed += _OnSystemProxyChanged;
     }
 
-    private void _onSystemProxyChanged(object? sender, EventArgs e)
+    private void _OnSystemProxyChanged(object? sender, EventArgs e)
     {
         RefreshSystemProxy();
     }

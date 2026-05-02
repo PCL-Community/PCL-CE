@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 

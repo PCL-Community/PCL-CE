@@ -5,8 +5,8 @@ using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 

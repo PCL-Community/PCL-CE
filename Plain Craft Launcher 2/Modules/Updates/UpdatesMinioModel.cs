@@ -2,11 +2,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 

@@ -10,12 +10,13 @@ using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.IO.Net.Http;
+using PCL;
 
 namespace PCL;
 

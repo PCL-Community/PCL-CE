@@ -74,10 +74,10 @@ public abstract class HttpServer : IDisposable
 
         _cancellationTokenSource = new CancellationTokenSource();
         _server.Start();
-        _handleLoop = _handleRequest();
+        _handleLoop = _HandleRequest();
     }
 
-    private async Task _handleRequest()
+    private async Task _HandleRequest()
     {
         var cancellationToken = _cancellationTokenSource?.Token ?? CancellationToken.None;
 
@@ -86,7 +86,7 @@ public abstract class HttpServer : IDisposable
             try
             {
                 var context = await _server.GetContextAsync();
-                _ = Task.Run(async () => await _processRequest(context), cancellationToken);
+                _ = Task.Run(async () => await _ProcessRequest(context), cancellationToken);
             }
             catch (OperationCanceledException) { break; } // Cancellation
             catch (ObjectDisposedException) { break; } // Disposed
@@ -94,7 +94,7 @@ public abstract class HttpServer : IDisposable
         }
     }
 
-    private async Task _processRequest(HttpListenerContext context)
+    private async Task _ProcessRequest(HttpListenerContext context)
     {
         try
         {

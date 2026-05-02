@@ -24,6 +24,8 @@ public class DnsSrvResource : IDnsResource
         BinaryPrimitives.WriteUInt16BigEndian(span[4..6], (ushort)Port);
         BinaryPrimitives.WriteUInt16BigEndian(span[6..8], (ushort)Target.Length);
         Encoding.UTF8.GetBytes(Target).CopyTo(span[8..]);
+        buf.CopyTo(bytes);
+        offset += length;
     }
 
     public void ReadBytes(ReadOnlyMemory<byte> bytes, ref int offset, int length)
