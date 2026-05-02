@@ -32,45 +32,45 @@ public class ThemeManager
     {
         ModBase.RunInUi(() =>
         {
-            if (!ModMain.FrmMain.IsLoaded)
-                return;
-            // 主页面背景
-            if (Config.Preference.Background.BackgroundColorful)
-            {
-                LinearGradientBrush brush = new()
-                {
-                    EndPoint = new Point(0.1, 1),
-                    StartPoint = new Point(0.9, 0)
-                };
-
-                var hue = ThemeService.GetCurrentThemeArgs().Hue;
-                var hue1 = hue - 15;
-                var hue2 = hue + 15;
-                var tone = ThemeService.CurrentTone;
-                var darkLight = IsDarkMode ? 0.2d : 1d;
-                brush.GradientStops.Add(new GradientStop
-                    { Offset = -0.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue1) });
-                brush.GradientStops.Add(new GradientStop
-                    { Offset = 0.4d, Color = LabColor.FromLch(0.96d * darkLight, tone.C7, hue) });
-                brush.GradientStops.Add(new GradientStop
-                    { Offset = 1.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue2) });
-                ModMain.FrmMain.PanForm.Background = brush;
-            }
-            else
-            {
-                ModMain.FrmMain.PanForm.Background =
-                    (Brush)System.Windows.Application.Current.Resources["ColorBrushBackground"];
-            }
-
-            ModMain.FrmMain.PanForm.Background.Freeze();
-
-            // 通用ContextMenu主题刷新
+            if (!ModMain.FrmMain.IsLoaded) return;
+            RefreshBackground();
             RefreshAllContextMenuThemes();
-            foreach (var btn in ModMain.FrmMain.PanTitleSelect.Children.OfType<MyRadioButton>())
-                btn.RefreshMyRadioButtonColor();
         });
     }
+    
+    // 主页面背景
+    private static void RefreshBackground()
+    {
+        if (Config.Preference.Background.BackgroundColorful)
+        {
+            var brush = new LinearGradientBrush
+            {
+                EndPoint = new Point(0.1, 1),
+                StartPoint = new Point(0.9, 0)
+            };
 
+            var hue = ThemeService.GetCurrentThemeArgs().Hue;
+            var hue1 = hue - 15;
+            var hue2 = hue + 15;
+            var tone = ThemeService.CurrentTone;
+            var darkLight = IsDarkMode ? 0.2d : 1d;
+            brush.GradientStops.Add(new GradientStop
+                { Offset = -0.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue1) });
+            brush.GradientStops.Add(new GradientStop
+                { Offset = 0.4d, Color = LabColor.FromLch(0.96d * darkLight, tone.C7, hue) });
+            brush.GradientStops.Add(new GradientStop
+                { Offset = 1.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue2) });
+            ModMain.FrmMain.PanForm.Background = brush;
+        }
+        else
+        {
+            ModMain.FrmMain.PanForm.Background = (Brush)System.Windows.Application.Current.Resources["ColorBrushBackground"];
+        }
+
+        ModMain.FrmMain.PanForm.Background.Freeze();
+    }
+
+    // 通用ContextMenu主题刷新
     private static void RefreshAllContextMenuThemes()
     {
         try

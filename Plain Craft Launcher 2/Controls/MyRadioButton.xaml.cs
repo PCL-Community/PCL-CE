@@ -5,6 +5,8 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
+using PCL.Core.UI.Theme;
 
 namespace PCL;
 
@@ -52,6 +54,15 @@ public partial class MyRadioButton
         {
             if (LabText != null)
                 LabText.Text = (string)GetValue(TextProperty);
+            
+            ThemeService.ColorModeChanged += OnColorModeChanged;
+            ThemeService.ColorThemeChanged += OnColorThemeChanged;
+        };
+
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ColorModeChanged -= OnColorModeChanged;
+            ThemeService.ColorThemeChanged -= OnColorThemeChanged;
         };
 
         MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();
@@ -62,6 +73,15 @@ public partial class MyRadioButton
         Loaded += RefreshColor;
     }
 
+    private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
+    {
+        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+    }
+    private void OnColorThemeChanged(ColorTheme theme)
+    {
+        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+    }
+    
     // 自定义属性
 
     public string Logo
