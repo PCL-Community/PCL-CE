@@ -119,10 +119,10 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
                 // filter
                 if (proxies.Length == 0 || !proxies.Any(static x => x.Protocol.Equals(ProxyProtocol.Http))) isSystemProxyEnabled = 0;
-                var selectedProxy = proxies.First(static x => x.Protocol.Equals(ProxyProtocol.Http));
+                var selectedProxy = proxies.FirstOrDefault(static x => x.Protocol.Equals(ProxyProtocol.Http));
 
                 // apply
-                _systemWebProxy.Address = (selectedProxy.Address.IsNullOrEmpty() || isSystemProxyEnabled == 0)
+                _systemWebProxy.Address = (isSystemProxyEnabled == 0 || selectedProxy!.Address.IsNullOrEmpty())
                     ? null
                     : new Uri($"http://{selectedProxy.Address}");
 
