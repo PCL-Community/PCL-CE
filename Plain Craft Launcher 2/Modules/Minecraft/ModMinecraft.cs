@@ -59,7 +59,7 @@ public static class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Minecraft 更新提示发送失败（" + (versionName ?? "Nothing") + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "Minecraft 更新提示发送失败（" + (versionName ?? "Nothing") + "）", ModBase.LogType.Feedback);
         }
     }
 
@@ -273,7 +273,7 @@ public static class ModMinecraft
                 var path = folder.Split(">")[1];
                 try
                 {
-                    ModBase.CheckPermissionWithException(path);
+                    Directories.CheckPermissionWithException(path);
                     cacheMcFolderList.Add(new McFolder { Name = name, Location = path, Type = McFolder.Types.Custom });
                 }
                 catch (Exception ex)
@@ -294,14 +294,14 @@ public static class ModMinecraft
             // 扫描当前文件夹
             try
             {
-                if (Directory.Exists(ModBase.ExePath + @"versions\"))
+                if (Directory.Exists(Basics.GetAppImagePath(@"versions\")))
                     originalMcFolderList.Add(new McFolder
-                    { Name = "当前文件夹", Location = ModBase.ExePath, Type = McFolder.Types.Original });
-                foreach (var folder in new DirectoryInfo(ModBase.ExePath).GetDirectories())
-                    if (Directory.Exists(folder.FullName + @"versions\") || folder.Name == ".minecraft")
+                    { Name = "当前文件夹", Location = Basics.ExecutableDirectory, Type = McFolder.Types.Original });
+                foreach (var folder in new DirectoryInfo(Basics.ExecutableDirectory).GetDirectories())
+                    if (Directory.Exists(Basics.GetAppImagePath(@"versions\")) || folder.Name == ".minecraft")
                     {
                         var newCurrentFolder = new McFolder
-                        { Name = folder.Name, Location = folder.FullName + @"\", Type = McFolder.Types.Original };
+                        { Name = folder.Name, Location = Basics.GetAppImagePath(@"\"), Type = McFolder.Types.Original };
                         originalMcFolderList.Add(newCurrentFolder);
                         currentMcFolderList.Add(newCurrentFolder);
                     }
@@ -319,7 +319,7 @@ public static class ModMinecraft
                 originalMcFolderList.Add(new McFolder
                 { Name = "官方启动器文件夹", Location = MojangPath, Type = McFolder.Types.Original });
 
-            ModBase.Log(cacheMcFolderList.Count + " 个自定义文件夹，" + originalMcFolderList.Count + " 个原始文件夹");
+            ModBase.Log(Basics.GetAppImagePath(" 个自定义文件夹，") + originalMcFolderList.Count + " 个原始文件夹");
 
             var unAdded = false;
             foreach (var newOriginalFolder in originalMcFolderList)
@@ -345,7 +345,7 @@ public static class ModMinecraft
             // 将自定义文件夹情况同步到设置
             var config = new List<string>();
             foreach (var Folder in cacheMcFolderList)
-                config.Add(Folder.Name + ">" + Folder.Location);
+                config.Add(Basics.GetAppImagePath(">") + Folder.Location);
             if (!config.Any())
                 config.Add(""); // 防止 0 元素 Join 返回 Nothing
             States.Game.Folders = string.Join('|', config);
@@ -355,9 +355,9 @@ public static class ModMinecraft
             // 若没有可用文件夹，则创建 .minecraft
             if (!cacheMcFolderList.Any())
             {
-                Directory.CreateDirectory(ModBase.ExePath + @".minecraft\versions\");
+                Directory.CreateDirectory(Basics.GetAppImagePath(@".minecraft\versions\"));
                 cacheMcFolderList.Add(new McFolder
-                { Name = "当前文件夹", Location = ModBase.ExePath + @".minecraft\", Type = McFolder.Types.Original });
+                { Name = "当前文件夹", Location = Basics.GetAppImagePath(@".minecraft\"), Type = McFolder.Types.Original });
             }
 
             foreach (var Folder in cacheMcFolderList) McFolderLauncherProfilesJsonCreate(Folder.Location);
@@ -370,7 +370,7 @@ public static class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载 Minecraft 文件夹列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "加载 Minecraft 文件夹列表失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -397,12 +397,12 @@ public static class ModMinecraft
     ""selectedProfile"": ""PCL"",
     ""clientToken"": ""23323323323323323323323323323333""
 }";
-            ModBase.WriteFile(Folder + "launcher_profiles.json", ResultJson, Encoding: Encoding.GetEncoding("GB18030"));
+            Files.WriteFile(Folder + "launcher_profiles.json", ResultJson, encoding: Encoding.GetEncoding("GB18030"));
             ModBase.Log("[Minecraft] 已创建 launcher_profiles.json：" + Folder);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "创建 launcher_profiles.json 失败（" + Folder + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "创建 launcher_profiles.json 失败（" + Folder + "）", ModBase.LogType.Feedback);
         }
     }
 
@@ -818,7 +818,7 @@ public static class ModMinecraft
                         if (JsonFiles.Count() == 1)
                         {
                             JsonPath = JsonFiles[0];
-                            ModBase.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + JsonPath, ModBase.LogLevel.Debug);
+                            ModBase.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + JsonPath, ModBase.LogType.Debug);
                         }
                         else
                         {
@@ -826,20 +826,20 @@ public static class ModMinecraft
                         }
                     }
 
-                    _jsonText = ModBase.ReadFile(JsonPath);
+                    _jsonText = Files.ReadAllTextOrEmpty(JsonPath);
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                     if (!FastJsonCheck(_jsonText))
                     {
-                        if (ModBase.RunInUi())
+                        if (ModBase.IsRunInUi())
                         {
-                            ModBase.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", ModBase.LogLevel.Debug);
+                            ModBase.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", ModBase.LogType.Debug);
                             ModBase.GetJson(_jsonText); // 触发异常
                         }
                         else
                         {
-                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
+                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogType.Debug);
                             Thread.Sleep(2000);
-                            _jsonText = ModBase.ReadFile(JsonPath);
+                            _jsonText = Files.ReadAllTextOrEmpty(JsonPath);
                             if (!FastJsonCheck(_jsonText))
                                 ModBase.GetJson(_jsonText);
                         } // 触发异常
@@ -915,7 +915,7 @@ public static class ModMinecraft
                                 if (Conversions.ToBoolean(
                                         Operators.ConditionalCompareObjectEqual(inheritInstanceName, Name, false)))
                                 {
-                                    ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogLevel.Debug);
+                                    ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogType.Debug);
                                     inheritInstanceName = "";
                                     break;
                                 }
@@ -1048,8 +1048,9 @@ public static class ModMinecraft
             // 检查权限
             try
             {
-                Directory.CreateDirectory(PathInstance + @"PCL\");
-                ModBase.CheckPermissionWithException(PathInstance + @"PCL\");
+                var dir = Path.Combine(PathInstance, "PCL");
+                Directory.CreateDirectory(dir);
+                Directories.CheckPermissionWithException(dir);
             }
             catch (Exception ex)
             {
@@ -1229,73 +1230,73 @@ public static class ModMinecraft
                     {
                         case McInstanceState.Original:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Grass.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Grass.png");
                                 break;
                             }
                         case McInstanceState.Snapshot:
                             {
-                                Logo = ModBase.PathImage + "Blocks/CommandBlock.png";
+                                Logo = Basics.GetAppImagePath("Blocks/CommandBlock.png");
                                 break;
                             }
                         case McInstanceState.Old:
                             {
-                                Logo = ModBase.PathImage + "Blocks/CobbleStone.png";
+                                Logo = Basics.GetAppImagePath("Blocks/CobbleStone.png");
                                 break;
                             }
                         case McInstanceState.Forge:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Anvil.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Anvil.png");
                                 break;
                             }
                         case McInstanceState.NeoForge:
                             {
-                                Logo = ModBase.PathImage + "Blocks/NeoForge.png";
+                                Logo = Basics.GetAppImagePath("Blocks/NeoForge.png");
                                 break;
                             }
                         case McInstanceState.Cleanroom:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Cleanroom.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Cleanroom.png");
                                 break;
                             }
                         case McInstanceState.Fabric:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Fabric.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Fabric.png");
                                 break;
                             }
                         case McInstanceState.LegacyFabric:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Fabric.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Fabric.png");
                                 break;
                             }
                         case McInstanceState.Quilt:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Quilt.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Quilt.png");
                                 break;
                             }
                         case McInstanceState.OptiFine:
                             {
-                                Logo = ModBase.PathImage + "Blocks/GrassPath.png";
+                                Logo = Basics.GetAppImagePath("Blocks/GrassPath.png");
                                 break;
                             }
                         case McInstanceState.LiteLoader:
                             {
-                                Logo = ModBase.PathImage + "Blocks/Egg.png";
+                                Logo = Basics.GetAppImagePath("Blocks/Egg.png");
                                 break;
                             }
                         case McInstanceState.Fool:
                             {
-                                Logo = ModBase.PathImage + "Blocks/GoldBlock.png";
+                                Logo = Basics.GetAppImagePath("Blocks/GoldBlock.png");
                                 break;
                             }
                         case McInstanceState.LabyMod:
                             {
-                                Logo = ModBase.PathImage + "Blocks/LabyMod.png";
+                                Logo = Basics.GetAppImagePath("Blocks/LabyMod.png");
                                 break;
                             }
 
                         default:
                             {
-                                Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
+                                Logo = Basics.GetAppImagePath("Blocks/RedstoneBlock.png");
                                 break;
                             }
                     }
@@ -1343,9 +1344,9 @@ public static class ModMinecraft
             catch (Exception ex)
             {
                 Desc = "未知错误：" + ex;
-                Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
+                Logo = Basics.GetAppImagePath("Blocks/RedstoneBlock.png");
                 State = McInstanceState.Error;
-                ModBase.Log(ex, "加载实例失败（" + Name + "）", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "加载实例失败（" + Name + "）", ModBase.LogType.Feedback);
             }
             finally
             {
@@ -1963,7 +1964,7 @@ public static class ModMinecraft
         catch (Exception ex)
         {
             IniFile.Open(Path.Combine(path, "PCL.ini")).Write("InstanceCache", ""); // 要求下次重新加载
-            ModBase.Log(ex, "加载 .minecraft 实例列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "加载 .minecraft 实例列表失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -2113,13 +2114,13 @@ public static class ModMinecraft
             }
 
             if ((folder.Name == "cache" || folder.Name == "BLClient" || folder.Name == "PCL") &&
-                !File.Exists(folder.FullName + @"\" + folder.Name + ".json"))
+                !File.Exists(Basics.GetAppImagePath(@"\") + folder.Name + ".json"))
             {
                 ModBase.Log("[Minecraft] 跳过可能不是实例文件夹的项目：" + folder.FullName);
                 continue;
             }
 
-            var instanceFolder = folder.FullName + @"\";
+            var instanceFolder = Basics.GetAppImagePath(@"\");
             if (File.Exists(instanceFolder + ".pclignore"))
             {
                 if (_isFirstMcInstanceListLoad)
@@ -2131,7 +2132,7 @@ public static class ModMinecraft
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "清理残留的忽略项目失败（" + instanceFolder + "）", ModBase.LogLevel.Hint);
+                        ModBase.Log(ex, "清理残留的忽略项目失败（" + instanceFolder + "）", ModBase.LogType.Hint);
                     }
                 }
                 else
@@ -2286,7 +2287,7 @@ public static class ModMinecraft
         catch (Exception ex)
         {
             results.Clear();
-            ModBase.Log(ex, "分类实例列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "分类实例列表失败", ModBase.LogType.Feedback);
         }
 
         #endregion
@@ -2370,7 +2371,7 @@ public static class ModMinecraft
                 ((int)results.Keys.ElementAtOrDefault(i)).ToString());
             var Value = "";
             foreach (var Instance in results.Values.ElementAtOrDefault(i))
-                Value += Instance.Name + ":";
+                Value += Basics.GetAppImagePath(":");
             IniFile.Open(path + "PCL.ini").Write("CardValue" + (i + 1), Value);
         }
 
@@ -2464,7 +2465,7 @@ public static class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "皮肤文件存在错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "皮肤文件存在错误", ModBase.LogType.Hint);
             return new McSkinInfo { IsVaild = false };
         }
 
@@ -2492,7 +2493,7 @@ public static class ModMinecraft
             throw new Exception("离线 Uuid 无正版皮肤文件。");
 
         // 尝试读取缓存
-        var cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
+        var cachePath = Path.Combine(Basics.PathTemp, $"Cache\\Skin\\Index{type}.ini");
         var cacheSkinAddress = IniFile.Open(cachePath).Read(uuid);
         if (!string.IsNullOrEmpty(cacheSkinAddress))
             return cacheSkinAddress;
@@ -2530,7 +2531,7 @@ public static class ModMinecraft
         {
             ModBase.Log(ex,
                 $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
-                ModBase.LogLevel.Developer);
+                ModBase.LogType.Developer);
             throw new Exception("皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户", ex);
         }
 
@@ -2559,7 +2560,7 @@ public static class ModMinecraft
     public static string McSkinDownload(string Address)
     {
         var SkinName = PathUtils.GetFileNameFromPath(Address);
-        var FileAddress = ModBase.PathTemp + @"Cache\Skin\" + TextUtils.GetHash(Address) + ".png";
+        var FileAddress = Basics.GetAppImagePath(@"Cache\Skin\") + TextUtils.GetHash(Address) + ".png";
         lock (McSkinDownloadLock)
         {
             if (!File.Exists(FileAddress))
@@ -2709,7 +2710,7 @@ public static class ModMinecraft
                 }
 
                 if (Rule["os"]["arch"] is not null) // 操作系统架构
-                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == ModBase.Is32BitSystem;
+                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == Basics.Is32BitSystem;
             }
 
             if (!(Rule["features"] == null)) // 标签
@@ -2782,7 +2783,7 @@ public static class ModMinecraft
             if (!File.Exists(RealInstance.PathInstance + RealInstance.Name + ".json"))
             {
                 RealInstance = Instance;
-                ModBase.Log("[Minecraft] 可能缺少前置实例 " + RealInstance.Name + "，找不到对应的 JSON 文件", ModBase.LogLevel.Debug);
+                ModBase.Log("[Minecraft] 可能缺少前置实例 " + RealInstance.Name + "，找不到对应的 JSON 文件", ModBase.LogType.Debug);
             }
 
             // 获取详细下载信息
@@ -2850,7 +2851,7 @@ public static class ModMinecraft
             {
                 string LocalPath;
                 if (IsLocal && TargetInstance is not null) // 纯本地项
-                    LocalPath = TargetInstance.PathInstance + @"libraries\" +
+                    LocalPath = Basics.GetAppImagePath(@"libraries\") +
                                 Library["name"].ToString().AfterFirst(":").Replace(":", "-") + ".jar";
                 else
                     LocalPath = McLibGet((string)Library["name"], customMcFolder: CustomMcFolder);
@@ -2977,7 +2978,7 @@ public static class ModMinecraft
                 {
                     ModBase.Log(
                         $"[Minecraft] 发现疑似重复的支持库：{BasicArray[i]} ({BasicArrayVersion}) 与 {ResultArray[Key]} ({ResultArrayVersion})");
-                    ResultArray.Add(Key + ModBase.GetUuid(), BasicArray[i]);
+                    ResultArray.Add(Key + GlobalUniqueId.GetUniqueId(), BasicArray[i]);
                 }
                 else
                 {
@@ -3015,7 +3016,7 @@ public static class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例缺失主 Jar 文件所必须的信息", ModBase.LogLevel.Developer);
+            ModBase.Log(ex, "实例缺失主 Jar 文件所必须的信息", ModBase.LogType.Developer);
         }
 
         // Library 文件
@@ -3048,7 +3049,7 @@ public static class ModMinecraft
                 // 开始下载
                 var downloadAddress = authlibDownloadInfo["download_url"].ToString()
                     .Replace("bmclapi2.bangbang93.com/mirrors/authlib-injector", "authlib-injector.yushi.moe");
-                ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogLevel.Developer);
+                ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogType.Developer);
                 result.Add(new DownloadFile(
                     [
                         downloadAddress,
@@ -3074,7 +3075,7 @@ public static class ModMinecraft
             var downloadAddress =
                 "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" +
                 mesaLoaderWindowsVersion + "/mesa-loader-windows-" + mesaLoaderWindowsVersion + "-" +
-                (ModBase.Is32BitSystem ? "x86" : ModBase.IsArm64System ? "arm64" : "x64") + ".jar";
+                (Basics.Is32BitSystem ? "x86" : Basics.IsArm64System ? "arm64" : "x64") + ".jar";
             result.Add(new DownloadFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
         }
 
@@ -3083,9 +3084,9 @@ public static class ModMinecraft
         {
             if ((instance.PathIndie ?? "") == (instance.PathInstance ?? ""))
             {
-                if (Directory.Exists(instance.PathInstance + "labymod-neo"))
-                    Directory.Delete(instance.PathInstance + "labymod-neo", true);
-                File.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo");
+                if (Directory.Exists(Basics.GetAppImagePath("labymod-neo")))
+                    Directory.Delete(Basics.GetAppImagePath("labymod-neo"), true);
+                File.CreateSymbolicLink(Basics.GetAppImagePath("labymod-neo"), McFolderSelected + "labymod-neo");
             }
 
             try
@@ -3124,7 +3125,7 @@ public static class ModMinecraft
             {
                 if (File.Exists(f.LocalPath))
                 {
-                    ModBase.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, ModBase.LogLevel.Debug);
+                    ModBase.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, ModBase.LogType.Debug);
                     return false;
                 }
 
@@ -3185,8 +3186,8 @@ public static class ModMinecraft
             {
                 // Transformer 文件释放
                 if (!File.Exists(token.LocalPath))
-                    ModBase.WriteFile(token.LocalPath, ModBase.GetResourceStream("Resources/transformer.jar"));
-                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogLevel.Developer);
+                    Files.WriteFile(token.LocalPath, Basics.GetResourceStream("Resources/transformer.jar"));
+                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogType.Developer);
                 continue;
             }
 
@@ -3388,7 +3389,7 @@ public static class ModMinecraft
                     McFolderSelected + @"assets\indexes\" + indexName + ".json");
             var result = new List<McAssetsToken>();
             var json = (JsonObject)JsonNode.Parse(
-                ModBase.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
+                Files.ReadAllTextOrEmpty($@"{McFolderSelected}assets\indexes\{indexName}.json"));
 
             // 读取列表
             foreach (var file in json["objects"].AsObject())
@@ -3396,7 +3397,7 @@ public static class ModMinecraft
                 string localPath;
                 if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
                     // Remap
-                    localPath = instance.PathIndie + @"resources\" + file.Key.Replace("/", @"\");
+                    localPath = Basics.GetAppImagePath(@"resources\") + file.Key.Replace("/", @"\");
                 else if (json["virtual"] is not null && json["virtual"].GetValue<bool>())
                     // Virtual
                     localPath = McFolderSelected + @"assets\virtual\legacy\" + file.Key.Replace("/", @"\");

@@ -91,7 +91,7 @@ public static partial class ModAnimation
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "动画帧执行失败", ModBase.LogLevel.Critical);
+                ModBase.Log(ex, "动画帧执行失败", ModBase.LogType.Critical);
             }
         }, "Animation", ThreadPriority.AboveNormal);
     }
@@ -104,7 +104,7 @@ public static partial class ModAnimation
         try
         {
             if (DeltaTick / AniSpeed > 100d)
-                ModBase.Log("[Animation] 两个动画帧间隔 " + DeltaTick + " ms", ModBase.LogLevel.Developer);
+                ModBase.Log("[Animation] 两个动画帧间隔 " + DeltaTick + " ms", ModBase.LogType.Developer);
             var i = -1;
             // 循环每个动画组
             while (i + 1 < AniGroups.Count)
@@ -187,7 +187,7 @@ public static partial class ModAnimation
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "动画刻执行失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "动画刻执行失败", ModBase.LogType.Hint);
         }
     }
 
@@ -416,7 +416,7 @@ public static partial class ModAnimation
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "执行动画失败：" + Ani, ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "执行动画失败：" + Ani, ModBase.LogType.Hint);
         }
 
         return Ani;
@@ -432,13 +432,13 @@ public static partial class ModAnimation
     /// <summary>
     /// 动画组列表。
     /// </summary>
-    public static ConcurrentDictionary<string, AniGroupEntry> AniGroups = new();
+    public static ConcurrentDictionary<string, AniGroupEntry> AniGroups = [];
 
     public class AniGroupEntry
     {
         public List<AniData> Data;
         public long StartTick;
-        public int Uuid = ModBase.GetUuid();
+        public ulong Uuid = GlobalUniqueId.GetUniqueId();
     }
 
     /// <summary>
@@ -1508,7 +1508,7 @@ public static partial class ModAnimation
             AniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
         // 添加到正在执行的动画组
         var NewEntry = new AniGroupEntry
-        { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
+        { Data = ListUtils.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(Name))
             Name = NewEntry.Uuid.ToString();
         else

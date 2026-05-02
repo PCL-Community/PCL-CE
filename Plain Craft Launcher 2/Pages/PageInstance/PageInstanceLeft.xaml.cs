@@ -298,7 +298,7 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogType.Feedback);
         }
         finally
         {

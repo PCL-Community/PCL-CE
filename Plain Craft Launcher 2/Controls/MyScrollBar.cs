@@ -1,4 +1,5 @@
 using System.Windows.Controls.Primitives;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -6,7 +7,7 @@ public class MyScrollBar : ScrollBar
 {
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyScrollBar()
     {

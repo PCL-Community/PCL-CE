@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using PCL.Core.App;
 using static PCL.MyLoading;
 
 namespace PCL;
@@ -14,7 +15,7 @@ public partial class MyLoading
 
     public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
 
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public bool AutoRun { get; set; } = true;
 
@@ -294,7 +295,7 @@ public partial class MyLoading
                 IsLooping = false;
                 AniLoop();
             }, After: true)
-        }, "MyLoader Loop " + Uuid + "/" + ModBase.GetUuid());
+        }, "MyLoader Loop " + Uuid + "/" + GlobalUniqueId.GetUniqueId());
         if (ShowProgress)
         {
         }

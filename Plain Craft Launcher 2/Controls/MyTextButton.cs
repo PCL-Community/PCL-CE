@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -26,7 +27,7 @@ public class MyTextButton : Label
                     ModAnimation.AaOpacity(button, 1d, 170)
                 }, "MyTextButton Text " + button.Uuid);
         }));
-    
+
     private string ColorName;
 
     // 鼠标事件
@@ -35,7 +36,7 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyTextButton()
     {

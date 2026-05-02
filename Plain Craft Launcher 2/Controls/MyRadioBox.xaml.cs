@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Shapes;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -43,7 +44,7 @@ public partial class MyRadioBox : IMyRadio
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyRadioBox()
     {
@@ -170,7 +171,7 @@ public partial class MyRadioBox : IMyRadio
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "单选框勾选改变错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "单选框勾选改变错误", ModBase.LogType.Hint);
         }
     }
 

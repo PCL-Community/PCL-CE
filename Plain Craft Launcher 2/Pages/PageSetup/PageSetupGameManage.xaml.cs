@@ -68,7 +68,7 @@ public partial class PageSetupGameManage
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化其他页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化其他页设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();

@@ -1,3 +1,5 @@
+using PCL.Core.Utils;
+
 namespace PCL.Network;
 
 public sealed class NetManager
@@ -5,9 +7,9 @@ public sealed class NetManager
     private static readonly Lazy<NetManager> _instance = new(() => new NetManager());
     public static NetManager Instance => _instance.Value;
 
-    public Dictionary<string, DownloadFile> Files { get; } = new();
+    public Dictionary<string, DownloadFile> Files { get; } = [];
     public object LockFiles { get; } = new();
-    public ModBase.SafeList<PCL.Network.Loaders.LoaderDownload> Tasks { get; } = new();
+    public ConcurrentHashSet<Loaders.LoaderDownload> Tasks { get; } = [];
     public object LockRemain { get; } = new();
     public int FileRemain
     {

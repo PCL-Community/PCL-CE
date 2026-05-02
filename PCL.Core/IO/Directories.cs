@@ -94,6 +94,9 @@ public static class Directories
         }
     }
 
+    public static bool CheckPermission(string path) => CheckPermissionAsync(path).GetAwaiter().GetResult();
+
+
     /// <summary>
     /// 异步检查文件夹权限，若无权限或文件夹不存在则抛出异常。
     /// 不修改文件系统。
@@ -152,6 +155,10 @@ public static class Directories
             throw new UnauthorizedAccessException($"无法访问文件夹 {path}：{ex.Message}", ex);
         }
     }
+
+    public static void CheckPermissionWithException(string path) =>
+        CheckPermissionWithExceptionAsync(path).GetAwaiter().GetResult();
+
 
     /// <summary>
     /// 检查是否为受保护的系统文件夹。

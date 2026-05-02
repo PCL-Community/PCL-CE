@@ -77,7 +77,7 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
-            if (ModBase.IsArm64System)
+            if (Basics.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -91,12 +91,12 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogType.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -111,7 +111,7 @@ public partial class PageSetupLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();
@@ -226,7 +226,7 @@ public partial class PageSetupLaunch
         LabRamUsed.Text = $"{(ramUsed == Math.Floor(ramUsed) ? $"{ramUsed}.0" : ramUsed.ToString())} GB";
         LabRamTotal.Text = $" / {(ramTotal == Math.Floor(ramTotal) ? $"{ramTotal}.0" : ramTotal.ToString())} GB";
         LabRamWarn.Visibility =
-            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !Basics.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;

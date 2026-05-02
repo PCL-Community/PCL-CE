@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils.Exts;
@@ -107,10 +108,10 @@ public partial class PageInstanceInstall
             PageInstanceLeft.Instance.Info.HasLabyMod)
             Directory.Delete(PageInstanceLeft.Instance.PathIndie + "labymod-neo", true);
         // 备份实例核心文件
-        ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
+        Files.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
             PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json");
         if (File.Exists(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar"))
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
+            Files.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
                 PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
                 ".jar");
         // 确认独立 API (如 Fabric API 等) 是否需要被修改
@@ -1374,7 +1375,7 @@ public partial class PageInstanceInstall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogType.Feedback);
             }
         } while (false);
     }
@@ -1500,7 +1501,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFine 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 OptiFine 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1579,7 +1580,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LiteLoader 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 LiteLoader 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1684,7 +1685,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Forge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Forge 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1766,7 +1767,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 NeoForge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 NeoForge 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1846,7 +1847,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Cleanroom 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1932,7 +1933,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Fabric 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2065,7 +2066,7 @@ public partial class PageInstanceInstall
                 {
                     if (!version.DisplayName.StartsWith("["))
                     {
-                        ModBase.Log("[Download] 已特判修改 Fabric API 显示名：" + version.DisplayName, ModBase.LogLevel.Debug);
+                        ModBase.Log("[Download] 已特判修改 Fabric API 显示名：" + version.DisplayName, ModBase.LogType.Debug);
                         version.DisplayName = "[" + _vanillaName + "] " + version.DisplayName;
                     }
 
@@ -2097,7 +2098,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Fabric API 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2179,7 +2180,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LegacyFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 LegacyFabric 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2309,7 +2310,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Legacy Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Legacy Fabric API 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2394,7 +2395,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Quilt 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Quilt 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2501,7 +2502,7 @@ public partial class PageInstanceInstall
                 {
                     if (!Version.DisplayName.StartsWith("["))
                     {
-                        ModBase.Log("[Download] 已特判修改 QSL 显示名：" + Version.DisplayName, ModBase.LogLevel.Debug);
+                        ModBase.Log("[Download] 已特判修改 QSL 显示名：" + Version.DisplayName, ModBase.LogType.Debug);
                         Version.DisplayName = "[" + _vanillaName + "] " + Version.DisplayName;
                     }
 
@@ -2531,7 +2532,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 QSL 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 QSL 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2662,7 +2663,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 OptiFabric 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -2767,7 +2768,7 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LabyMod 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 LabyMod 安装版本列表出错", ModBase.LogType.Feedback);
         }
     }
 

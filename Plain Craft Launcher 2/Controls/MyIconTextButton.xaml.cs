@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -42,7 +43,7 @@ public partial class MyIconTextButton
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyIconTextButton()
     {

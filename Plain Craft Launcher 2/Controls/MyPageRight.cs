@@ -33,7 +33,7 @@ public class MyPageRight : AdornerDecorator
 
     private bool _panScrollNullWarned;
 
-    public int PageUuid = ModBase.GetUuid();
+    public ulong PageUuid = GlobalUniqueId.GetUniqueId();
 
     // “返回顶部” 按钮检测的滚动区域
     public MyScrollViewer PanScroll
@@ -44,7 +44,7 @@ public class MyPageRight : AdornerDecorator
             if (res is null && !_panScrollNullWarned)
             {
                 _panScrollNullWarned = true;
-                ModBase.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
+                ModBase.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", ModBase.LogType.Debug);
             }
 
             return (MyScrollViewer)res;

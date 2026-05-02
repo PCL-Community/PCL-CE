@@ -72,7 +72,7 @@ public static class FileDownloader
             {
                 lastException = ex;
                 CleanupTempFiles(localPath);
-                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogType.Debug);
             }
         }
 

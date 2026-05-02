@@ -1,6 +1,8 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Controls;
+using PCL.Core.Utils.OS;
 using PCL.Network;
 using System.Net;
 using System.Windows.Controls;
@@ -78,7 +80,7 @@ public partial class MyMsgLogin
         Thread.Sleep(2000);
         if (MyConverter.IsExited)
             return;
-        ModBase.OpenWebsite(Website);
+        ShellUtils.OpenWebsite(Website);
         ModBase.ClipboardSet(UserCode);
         Thread.Sleep((Data["interval"].ToObject<int>() - 1) * 1000);
         // 轮询
@@ -132,25 +134,25 @@ public partial class MyMsgLogin
     #region 弹窗
 
     private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyMsgLogin(ModMain.MyMsgBoxConverter Converter)
     {
         try
         {
             InitializeComponent();
-            Btn1.Name += ModBase.GetUuid();
-            Btn2.Name += ModBase.GetUuid();
-            Btn3.Name += ModBase.GetUuid();
+            Btn1.Name += GlobalUniqueId.GetUniqueId();
+            Btn2.Name += GlobalUniqueId.GetUniqueId();
+            Btn3.Name += GlobalUniqueId.GetUniqueId();
             MyConverter = Converter;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = ModBase.GetWpfSize(1d);
             Data = (JObject)Converter.Content;
             OAuthUrl = Converter.AuthUrl?.ToString() ?? "";
             Init();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "正版验证弹窗初始化失败", ModBase.LogType.Hint);
         }
 
         Loaded += Load;
@@ -183,7 +185,7 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "正版验证弹窗加载失败", ModBase.LogType.Hint);
         }
     }
 

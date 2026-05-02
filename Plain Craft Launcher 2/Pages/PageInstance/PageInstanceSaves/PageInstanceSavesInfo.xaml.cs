@@ -1,9 +1,9 @@
-using System.Diagnostics.Eventing.Reader;
+using fNbt;
+using PCL.Core.UI.Icons;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using fNbt;
-using PCL.Core.UI.Icons;
 
 namespace PCL;
 
@@ -129,7 +129,8 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     var allowCommandValue = int.Parse(gameLevel.Get<NbtByte>("allowCommands").Value.ToString());
                     var combo = new MyComboBox
                     {
-                        Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
+                        Width = 100d,
+                        HorizontalAlignment = HorizontalAlignment.Left,
                         ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
                     };
                     combo.Items.Add(new { Value = 0, Display = "不允许" });
@@ -154,12 +155,12 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "作弊设置修改失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, "作弊设置修改失败", ModBase.LogType.Hint);
                         }
                     };
                     var rowIndex = PanSettingsList.RowDefinitions.Count;
                     PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(1d, GridUnitType.Auto) });
+                    { Height = new GridLength(1d, GridUnitType.Auto) });
 
                     var headTextBlock = new TextBlock { Text = "是否允许作弊", Margin = new Thickness(0d, 3d, 0d, 3d) };
                     Grid.SetRow(headTextBlock, rowIndex);
@@ -171,7 +172,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     PanSettingsList.Children.Add(headTextBlock);
                     PanSettingsList.Children.Add(combo);
                     PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(8d, GridUnitType.Pixel) });
+                    { Height = new GridLength(8d, GridUnitType.Pixel) });
                 }
 
                 if (hasDifficulty)
@@ -201,7 +202,8 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                     var difficultyCombo = new MyComboBox
                     {
-                        Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
+                        Width = 100d,
+                        HorizontalAlignment = HorizontalAlignment.Left,
                         ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
                     };
                     difficultyCombo.Items.Add(new { Value = 0, Display = "和平" });
@@ -218,13 +220,15 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         isHardcoreCheck = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("hardcore");
                     else
                         isHardcoreCheck = gameLevel.Get<NbtByte>("hardcore");
-                        
+
                     var isHardcoreMode = isHardcoreCheck.Value == 1;
 
                     var lockCheckBox = new MyCheckBox
                     {
-                        Text = "锁定难度", ToolTip = "锁定当前难度设置，锁定后无法在游戏中更改游戏难度",
-                        VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10d, 0d, 0d, 0d)
+                        Text = "锁定难度",
+                        ToolTip = "锁定当前难度设置，锁定后无法在游戏中更改游戏难度",
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(10d, 0d, 0d, 0d)
                     };
 
                     if (isHardcoreMode)
@@ -239,7 +243,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                             lockedElement = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked");
                         else
                             lockedElement = gameLevel.Get<NbtByte>("DifficultyLocked");
-                        
+
                         var isLocked = lockedElement is not null && lockedElement.Value == 1;
                         lockCheckBox.Checked = isLocked;
                     }
@@ -268,7 +272,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                             {
                                 gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
                             }
-                            
+
                             if (!isHardcoreMode)
                             {
                                 var newLocked = lockCheckBox.Checked == true ? 1 : 0;
@@ -288,7 +292,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogType.Hint);
                         }
                     };
 
@@ -308,7 +312,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                             {
                                 gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
                             }
-                            
+
                             if (!isHardcoreMode)
                             {
                                 var newLocked = lockCheckBox.Checked == true ? 1 : 0;
@@ -333,13 +337,13 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogType.Hint);
                         }
                     };
 
                     var rowIndex = PanSettingsList.RowDefinitions.Count;
                     PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(1d, GridUnitType.Auto) });
+                    { Height = new GridLength(1d, GridUnitType.Auto) });
 
                     var headTextBlock = new TextBlock { Text = "游戏难度", Margin = new Thickness(0d, 3d, 0d, 3d) };
                     Grid.SetRow(headTextBlock, rowIndex);
@@ -396,31 +400,31 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     switch (gameType.Value)
                     {
                         case 0:
-                        {
-                            gameTypeName = "生存模式";
-                            break;
-                        }
+                            {
+                                gameTypeName = "生存模式";
+                                break;
+                            }
                         case 1:
-                        {
-                            gameTypeName = "创造模式";
-                            break;
-                        }
+                            {
+                                gameTypeName = "创造模式";
+                                break;
+                            }
                         case 2:
-                        {
-                            gameTypeName = "冒险模式";
-                            break;
-                        }
+                            {
+                                gameTypeName = "冒险模式";
+                                break;
+                            }
                         case 3:
-                        {
-                            gameTypeName = "旁观模式";
-                            break;
-                        }
+                            {
+                                gameTypeName = "旁观模式";
+                                break;
+                            }
 
                         default:
-                        {
-                            gameTypeName = "生存模式";
-                            break;
-                        }
+                            {
+                                gameTypeName = "生存模式";
+                                break;
+                            }
                     }
                 }
 
@@ -462,7 +466,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取存档信息失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "获取存档信息失败", ModBase.LogType.Msgbox);
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
             Hintversion1_9.Visibility = Visibility.Collapsed;
@@ -495,7 +499,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "复制到剪贴板失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "复制到剪贴板失败", ModBase.LogType.Hint);
                 }
             };
         }
@@ -524,13 +528,13 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 {
                     if (versionName is null)
                     {
-                        ModBase.Log("当前存档版本无法确定，因此无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        ModBase.Log("当前存档版本无法确定，因此无法跳转到 Chunkbase", ModBase.LogType.Hint);
                         return;
                     }
 
                     if (versionName.Any(c => char.IsLetter(c)))
                     {
-                        ModBase.Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        ModBase.Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", ModBase.LogType.Hint);
                         return;
                     }
 
@@ -544,11 +548,11 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         usedVersion = versionName.Replace(".", "_");
                     var cbUri =
                         $"https://www.chunkbase.com/apps/seed-map#seed={content}&platform=java_{usedVersion}&dimension=overworld";
-                    ModBase.OpenWebsite(cbUri);
+                    ShellUtils.OpenWebsite(cbUri);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "跳转到 Chunkbase 失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "跳转到 Chunkbase 失败", ModBase.LogType.Hint);
                 }
             };
         }
@@ -565,7 +569,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         Grid.SetRow(contentStack, rowIndex);
         Grid.SetColumn(contentStack, 2);
     }
-    
+
     public string GetDifficultyName(int newDifficulty)
     {
         return newDifficulty switch

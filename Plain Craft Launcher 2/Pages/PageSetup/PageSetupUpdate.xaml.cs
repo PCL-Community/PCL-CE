@@ -1,6 +1,7 @@
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -25,7 +26,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.VersionBaseName);
+        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(Basics.VersionName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
     }
@@ -35,12 +36,12 @@ public partial class PageSetupUpdate
         try
         {
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(Basics.VersionName)
             if (await ModSecret.RemoteServer.IsLatestAsync(
                     ModSecret.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
-                    SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode))
+                    Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
+                    SemVer.Parse(Basics.VersionName),
+                    Basics.VersionCode))
             {
                 ModBase.Log("[Update] 已是最新版本");
                 return UpdateStatus.Latest;
@@ -51,7 +52,7 @@ public partial class PageSetupUpdate
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogType.Hint);
             return UpdateStatus.Error;
         }
     }
@@ -73,7 +74,7 @@ public partial class PageSetupUpdate
                         UpdateInfo = ModSecret.RemoteServer.GetLatestVersion(
                             ModSecret.IsCurrentVersionBeta
                                 ? UpdateChannel.beta
-                                : UpdateChannel.stable, ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                                : UpdateChannel.stable, Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
                         TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
                         var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
                         if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
@@ -91,9 +92,9 @@ public partial class PageSetupUpdate
                     {
                         TextCurrentDesc.Text = "检查更新时出错";
                         if (checkUpdateEx is not null)
-                            ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                            ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogType.Msgbox);
                         else
-                            ModBase.Log("[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                            ModBase.Log("[Update] 检查更新失败", ModBase.LogType.Msgbox);
                         return;
                     }
 
@@ -148,14 +149,14 @@ public partial class PageSetupUpdate
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
-        if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !ModBase
+        if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !ProcessUtils
                 .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {
             ModMain.MyMsgBox(
-                $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。{"\r\n"}你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(ModBase.IsArm64System ? "Arm64" : "x64")} 选项下载。",
+                $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。\r\n你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(Basics.IsArm64System ? "Arm64" : "x64")} 选项下载。",
                 "启动器更新 - 缺少运行环境", "下载 .NET 8 运行时", "取消",
-                Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
+                Button1Action: () => ShellUtils.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
             return;
         }
 
@@ -267,12 +268,12 @@ public partial class PageSetupUpdate
 
     private void BtnGetMirrorCDK_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://mirrorchyan.com/");
+        ShellUtils.OpenWebsite("https://mirrorchyan.com/");
     }
 
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.VersionBaseName);
+        ShellUtils.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + Basics.VersionName);
     }
 
     public string VersionNameFormat(string str)

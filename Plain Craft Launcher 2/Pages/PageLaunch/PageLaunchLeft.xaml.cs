@@ -73,29 +73,29 @@ public partial class PageLaunchLeft
         {
             // 自动整合包安装：准备
             string PackInstallPath = null;
-            if (File.Exists(ModBase.ExePath + "modpack.zip"))
-                PackInstallPath = ModBase.ExePath + "modpack.zip";
-            if (File.Exists(ModBase.ExePath + "modpack.mrpack"))
-                PackInstallPath = ModBase.ExePath + "modpack.mrpack";
+            if (File.Exists(Basics.ExecutableDirectory + "modpack.zip"))
+                PackInstallPath = Basics.GetAppImagePath("modpack.zip");
+            if (File.Exists(Basics.ExecutableDirectory + "modpack.mrpack"))
+                PackInstallPath = Basics.GetAppImagePath("modpack.mrpack");
             if (PackInstallPath is not null)
             {
-                ModBase.Log("[Launch] 需自动安装整合包：" + PackInstallPath, ModBase.LogLevel.Debug);
+                ModBase.Log("[Launch] 需自动安装整合包：" + PackInstallPath, ModBase.LogType.Debug);
                 States.Game.SelectedFolder = @"$.minecraft\";
-                if (!Directory.Exists(ModBase.ExePath + @".minecraft\"))
+                if (!Directory.Exists(Basics.ExecutableDirectory + @".minecraft\"))
                 {
-                    Directory.CreateDirectory(ModBase.ExePath + @".minecraft\");
-                    Directory.CreateDirectory(ModBase.ExePath + @".minecraft\versions\");
-                    ModMinecraft.McFolderLauncherProfilesJsonCreate(ModBase.ExePath + @".minecraft\");
+                    Directory.CreateDirectory(Basics.ExecutableDirectory + @".minecraft\");
+                    Directory.CreateDirectory(Basics.ExecutableDirectory + @".minecraft\versions\");
+                    ModMinecraft.McFolderLauncherProfilesJsonCreate(Basics.ExecutableDirectory + @".minecraft\");
                 }
 
-                PageSelectLeft.AddFolder(ModBase.ExePath + @".minecraft\",
-                    PathUtils.GetFolderNameFromPath(ModBase.ExePath), false);
+                PageSelectLeft.AddFolder(Basics.ExecutableDirectory + @".minecraft\",
+                    PathUtils.GetFolderNameFromPath(Basics.ExecutableDirectory), false);
                 ModMinecraft.McFolderListLoader.WaitForExit();
             }
 
             // 确认 Minecraft 文件夹存在
             ModMinecraft.McFolderSelected =
-                States.Game.SelectedFolder.ToString().Replace("$", ModBase.ExePath);
+                States.Game.SelectedFolder.ToString().Replace("$", Basics.ExecutableDirectory);
             if (string.IsNullOrEmpty(ModMinecraft.McFolderSelected) || !Directory.Exists(ModMinecraft.McFolderSelected))
             {
                 // 无效的文件夹
@@ -103,9 +103,9 @@ public partial class PageLaunchLeft
                     ModBase.Log("[Launch] 没有已储存的 Minecraft 文件夹");
                 else
                     ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModMinecraft.McFolderSelected,
-                        ModBase.LogLevel.Debug);
+                        ModBase.LogType.Debug);
                 ModMinecraft.McFolderListLoader.WaitForExit(IsForceRestart: true);
-                States.Game.SelectedFolder = ModMinecraft.McFolderList[0].Location.Replace(ModBase.ExePath, "$");
+                States.Game.SelectedFolder = ModMinecraft.McFolderList[0].Location.Replace(Basics.ExecutableDirectory, "$");
             }
 
             ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.McFolderSelected);
@@ -131,7 +131,7 @@ public partial class PageLaunchLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "自动安装整合包失败：" + PackInstallPath, ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "自动安装整合包失败：" + PackInstallPath, ModBase.LogType.Msgbox);
                 }
 
             // 确认 Minecraft 版本实例
@@ -142,7 +142,7 @@ public partial class PageLaunchLeft
             {
                 // 无效的实例
                 ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (Instance is null ? "null" : Instance.PathInstance),
-                    Instance == null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
+                    Instance == null ? ModBase.LogType.Normal : ModBase.LogType.Debug);
                 if (ModMinecraft.McInstanceListLoader.State != Enums.LoadState.Finished)
                     ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
@@ -326,7 +326,7 @@ public partial class PageLaunchLeft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "取消启动结束进程失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "取消启动结束进程失败", ModBase.LogType.Hint);
             }
         }
     }
@@ -465,7 +465,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新启动信息失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新启动信息失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -735,7 +735,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换登录分页失败（" + EnumUtils.GetEnumName(Type) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换登录分页失败（" + EnumUtils.GetEnumName(Type) + "）", ModBase.LogType.Feedback);
             return PageNew;
         }
     }
@@ -810,7 +810,7 @@ public partial class PageLaunchLeft
 
         if (string.IsNullOrEmpty(UserName))
         {
-            Data.Output = ModBase.PathImage + "Skins/" + ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) +
+            Data.Output = Basics.GetAppImagePath($"Skins/{ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName))}") +
                           ".png";
             ModBase.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
             goto Finish;
@@ -837,21 +837,18 @@ public partial class PageLaunchLeft
 
             if (ex.ToString().Contains("429"))
             {
-                Data.Output = ModBase.PathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) + ".png";
-                ModBase.Log("[Minecraft] 获取正版皮肤失败（" + UserName + "）：获取皮肤太过频繁，请 5 分钟后再试！", ModBase.LogLevel.Hint);
+                Data.Output = Basics.GetAppImagePath($"Skins/{ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName))}.png");
+                ModBase.Log("[Minecraft] 获取正版皮肤失败（" + UserName + "）：获取皮肤太过频繁，请 5 分钟后再试！", ModBase.LogType.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                Data.Output = ModBase.PathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) + ".png";
+                Data.Output = Basics.GetAppImagePath($"Skins/{ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName))}.png");
                 ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                Data.Output = ModBase.PathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) + ".png";
-                ModBase.Log(ex, "获取微软正版皮肤失败（" + UserName + "）", ModBase.LogLevel.Hint);
+                Data.Output = Basics.GetAppImagePath($"Skins/{ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName))}.png");
+                ModBase.Log(ex, "获取微软正版皮肤失败（" + UserName + "）", ModBase.LogType.Hint);
             }
         }
 
@@ -882,7 +879,7 @@ public partial class PageLaunchLeft
             if (ModMain.FrmLoginProfileSkin is not null && ModMain.FrmLoginProfileSkin.Skin is not null)
                 ModMain.FrmLoginProfileSkin.Skin.Clear();
         });
-        Data.Output = ModBase.PathImage + "Skins/" + ModMinecraft.McSkinSex(Data.Input[1]) + ".png";
+        Data.Output = Basics.GetAppImagePath($"Skins/{ModMinecraft.McSkinSex(Data.Input[1])}.png");
         // 刷新显示
         if (ModMain.FrmLoginProfileSkin is not null && ReferenceEquals(ModMain.FrmLoginProfileSkin.Skin.Loader, Data))
             ModBase.RunInUi(() => ModMain.FrmLoginProfileSkin.Skin.Load());
@@ -915,7 +912,7 @@ public partial class PageLaunchLeft
         var Uuid = Data.Input[1];
         if (string.IsNullOrEmpty(UserName))
         {
-            Data.Output = ModBase.PathImage + "Skins/Steve.png";
+            Data.Output = Basics.GetAppImagePath("Skins/Steve.png");
             ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败，ID 为空");
             goto Finish;
         }
@@ -940,19 +937,19 @@ public partial class PageLaunchLeft
 
             if (ex.ToString().Contains("429"))
             {
-                Data.Output = ModBase.PathImage + "Skins/Steve.png";
+                Data.Output = Basics.GetAppImagePath("Skins/Steve.png");
                 ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败（" + UserName + "）：获取皮肤太过频繁，请 5 分钟后再试！",
-                    ModBase.LogLevel.Hint);
+                    ModBase.LogType.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                Data.Output = ModBase.PathImage + "Skins/Steve.png";
+                Data.Output = Basics.GetAppImagePath("Skins/Steve.png");
                 ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                Data.Output = ModBase.PathImage + "Skins/Steve.png";
-                ModBase.Log(ex, "获取 Authlib-Injector 皮肤失败（" + UserName + "）", ModBase.LogLevel.Hint);
+                Data.Output = Basics.GetAppImagePath("Skins/Steve.png");
+                ModBase.Log(ex, "获取 Authlib-Injector 皮肤失败（" + UserName + "）", ModBase.LogType.Hint);
             }
         }
 

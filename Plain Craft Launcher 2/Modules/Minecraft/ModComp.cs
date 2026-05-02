@@ -681,7 +681,7 @@ public static class ModComp
     private static string InitializeModDbAndGetConnectionString()
     {
         ModBase.Log("[DB] 解压 ModData (SQLite) 中");
-        using (var compressedDbData = ModBase.GetResourceStream("Resources/mcmod.buf"))
+        using (var compressedDbData = Basics.GetResourceStream("Resources/mcmod.buf"))
         {
             using (var trueDbFile = new GZipStream(compressedDbData, CompressionMode.Decompress))
             {
@@ -691,7 +691,7 @@ public static class ModComp
                     trueDbFile.CopyTo(ms);
                     ms.Seek(0L, SeekOrigin.Begin);
                     var fileHash = SHA1Provider.Instance.ComputeHash(ms).ToHexString();
-                    var dbDir = Path.Combine(ModBase.PathTemp, "Cache");
+                    var dbDir = Path.Combine(Basics.PathTemp, "Cache");
                     var dbPath = Path.Combine(dbDir, $"ModData{fileHash}.sqlite");
 
                     if (File.Exists(dbPath) && !IsDatabaseValid(dbPath))
@@ -798,7 +798,7 @@ public static class ModComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取模组翻译信息失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "获取模组翻译信息失败", ModBase.LogType.Hint);
             return null;
         }
     }
@@ -1853,7 +1853,7 @@ public static class ModComp
             string result = null;
 
             var DescHash = $"{Id}{TextUtils.GetStringMD5(Description)}";
-            var CacheFilePath = $@"{ModBase.PathTemp}Cache\CompTranslation.ini";
+            var CacheFilePath = $@"{Basics.PathTemp}Cache\CompTranslation.ini";
             var CacheTranslation = await IniFile.Open(CacheFilePath).ReadAsync(DescHash).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(CacheTranslation))
             {
@@ -1879,11 +1879,11 @@ public static class ModComp
                     return null;
                 }
 
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogType.Hint);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogType.Hint);
             }
 
             return result;
@@ -2099,7 +2099,7 @@ public static class ModComp
         {
             if (string.IsNullOrEmpty(LogoUrl))
             {
-                img.Source = ModBase.PathImage + "Icons/NoIcon.png";
+                img.Source = Basics.GetAppImagePath("Icons/NoIcon.png");
             }
             else
             {
@@ -3417,9 +3417,9 @@ public static class ModComp
                         // 使用 switch 表达式精简 Logo 选择喵！
                         Logo = Status switch
                         {
-                            CompFileStatus.Release => ModBase.PathImage + "Icons/R.png",
-                            CompFileStatus.Beta => ModBase.PathImage + "Icons/B.png",
-                            _ => ModBase.PathImage + "Icons/A.png"
+                            CompFileStatus.Release => Basics.GetAppImagePath("Icons/R.png"),
+                            CompFileStatus.Beta => Basics.GetAppImagePath("Icons/B.png"),
+                            _ => Basics.GetAppImagePath("Icons/A.png")
                         }
                     };
                     newItem.Click += onClick;
@@ -3606,7 +3606,7 @@ public static class ModComp
             Deps = Deps.Where(dep =>
             {
                 if (!CompProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogType.Debug);
                 return CompProjectCache.ContainsKey(dep);
             }).ToList();
             // 添加开头间隔
@@ -3632,7 +3632,7 @@ public static class ModComp
             OptionalDeps = OptionalDeps.Where(dep =>
             {
                 if (!CompProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogType.Debug);
                 return CompProjectCache.ContainsKey(dep);
             }).ToList();
             // 添加开头间隔

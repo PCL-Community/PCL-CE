@@ -48,7 +48,7 @@ public partial class PageLoginProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取档案列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "读取档案列表失败", ModBase.LogType.Feedback);
         }
 
         if (!ModProfile.ProfileList.Any())
@@ -68,7 +68,7 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = (string)ModProfile.GetProfileInfo(profile);
-            var LogoPath = ModBase.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
+            var LogoPath = Basics.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
             if (!(File.Exists(LogoPath) && !(new FileInfo(LogoPath).Length == 0L)))
                 LogoPath = Core.UI.Icons.Logo.ButtonUser;
             Logo = LogoPath;

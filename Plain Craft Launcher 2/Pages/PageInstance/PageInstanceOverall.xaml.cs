@@ -6,6 +6,7 @@ using PCL.Core.App.Configuration.Storage;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using System.IO;
 using System.Windows;
@@ -259,7 +260,7 @@ public partial class PageInstanceOverall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogType.Feedback);
             }
 
             Reload(); // 更新 “打开 Mod 文件夹” 按钮
@@ -290,7 +291,7 @@ public partial class PageInstanceOverall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogType.Feedback);
             }
         }
     }
@@ -312,7 +313,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 描述更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 描述更改失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -338,7 +339,7 @@ public partial class PageInstanceOverall
             JObject JsonObject;
             try
             {
-                JsonObject = (JObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
+                JsonObject = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(PageInstanceLeft.Instance.PathInstance +
                                                                        PageInstanceLeft.Instance.Name + ".json"));
             }
             catch (Exception ex)
@@ -384,8 +385,8 @@ public partial class PageInstanceOverall
 
             // 替换实例设置文件中的路径
             if (File.Exists(NewPath + @"PCL\Setup.ini"))
-                ModBase.WriteFile(NewPath + @"PCL\Setup.ini",
-                    ModBase.ReadFile(NewPath + @"PCL\Setup.ini").Replace(OldPath, NewPath));
+                Files.WriteFile(NewPath + @"PCL\Setup.ini",
+                    Files.ReadAllTextOrEmpty(NewPath + @"PCL\Setup.ini").Replace(OldPath, NewPath));
             // 更改已选中的实例
             if ((IniFile.Open(ModMinecraft.McFolderSelected + "PCL.ini").Read("Version") ?? "") == (OldName ?? ""))
                 IniFile.Open(ModMinecraft.McFolderSelected + "PCL.ini").Write("Version", NewName);
@@ -393,7 +394,7 @@ public partial class PageInstanceOverall
             try
             {
                 JsonObject["id"] = NewName;
-                ModBase.WriteFile(NewPath + NewName + ".json", JsonObject.ToString());
+                Files.WriteFile(NewPath + NewName + ".json", JsonObject.ToString());
             }
             catch (Exception ex)
             {
@@ -412,7 +413,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重命名实例失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "重命名实例失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -433,7 +434,7 @@ public partial class PageInstanceOverall
                     return;
                 }
 
-                ModBase.CopyFile(FileName, PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
+                Files.CopyFile(FileName, PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
             }
             else
             {
@@ -442,7 +443,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogType.Feedback);
         }
 
         // 进行更改
@@ -460,7 +461,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogType.Feedback);
         }
     }
 
@@ -478,7 +479,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 收藏状态更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 收藏状态更改失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -494,7 +495,7 @@ public partial class PageInstanceOverall
 
     public static void OpenVersionFolder(ModMinecraft.McInstance Version)
     {
-        ModBase.OpenExplorer(Version.PathInstance);
+        Basics.OpenPath(Version.PathInstance);
     }
 
     // 存档文件夹
@@ -502,7 +503,7 @@ public partial class PageInstanceOverall
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"saves\";
         Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        Basics.OpenPath(FolderPath);
     }
 
     // Mod 文件夹
@@ -510,7 +511,7 @@ public partial class PageInstanceOverall
     {
         var FolderPath = PageInstanceLeft.Instance.PathIndie + @"mods\";
         Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        Basics.OpenPath(FolderPath);
     }
 
     #endregion
@@ -546,7 +547,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogType.Msgbox);
         }
     }
 
@@ -603,7 +604,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogType.Msgbox);
         }
     }
 
@@ -627,10 +628,10 @@ public partial class PageInstanceOverall
                 return;
 
             // 备份实例核心文件
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
+            Files.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
                 PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
                 ".json");
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
+            Files.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
                 PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
                 ".jar");
             // 提交安装申请
@@ -667,7 +668,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -682,7 +683,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "测试游戏失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "测试游戏失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -737,7 +738,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogType.Msgbox);
         }
     }
 

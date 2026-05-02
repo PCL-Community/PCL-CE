@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
@@ -12,15 +13,15 @@ namespace PCL;
 public partial class MyMsgInput
 {
     private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyMsgInput(ModMain.MyMsgBoxConverter Converter)
     {
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
+            Btn1.Name = Btn1.Name + GlobalUniqueId.GetUniqueId();
+            Btn2.Name = Btn2.Name + GlobalUniqueId.GetUniqueId();
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
             LabText.Text = Converter.Text;
@@ -37,12 +38,12 @@ public partial class MyMsgInput
 
             Btn2.Text = Converter.Button2;
             Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = ModBase.GetWpfSize(1d);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "输入弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "输入弹窗初始化失败", ModBase.LogType.Hint);
         }
 
         Loaded += Load;
@@ -82,7 +83,7 @@ public partial class MyMsgInput
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "输入弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "输入弹窗加载失败", ModBase.LogType.Hint);
         }
     }
 
@@ -145,7 +146,7 @@ public partial class MyMsgInput
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "拖拽移动失败", ModBase.LogType.Hint);
         }
     }
 }

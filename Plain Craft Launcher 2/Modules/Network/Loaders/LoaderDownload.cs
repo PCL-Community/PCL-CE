@@ -6,7 +6,7 @@ namespace PCL.Network.Loaders;
 
 public class LoaderDownload : ModLoader.LoaderBase
 {
-    public ModBase.SafeList<PCL.Network.DownloadFile> Files;
+    public ConcurrentBag<PCL.Network.DownloadFile> Files;
     private int _fileRemain;
     private readonly object _fileRemainLock = new();
     private double _progress;
@@ -22,7 +22,7 @@ public class LoaderDownload : ModLoader.LoaderBase
     public LoaderDownload(string name, List<PCL.Network.DownloadFile> fileTasks)
     {
         Name = name;
-        Files = new ModBase.SafeList<PCL.Network.DownloadFile>(fileTasks ?? new List<PCL.Network.DownloadFile>());
+        Files = new ConcurrentBag<DownloadFile>(fileTasks);
     }
 
     public void RefreshStat()
@@ -39,7 +39,7 @@ public class LoaderDownload : ModLoader.LoaderBase
     public override void Start(object Input = null, bool IsForceRestart = false)
     {
         if (Input is List<PCL.Network.DownloadFile> inputFiles)
-            Files = new ModBase.SafeList<PCL.Network.DownloadFile>(inputFiles);
+            Files = new ConcurrentBag<DownloadFile>(inputFiles);
 
         lock (LockState)
         {

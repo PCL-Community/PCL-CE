@@ -126,14 +126,14 @@ public partial class MySkin
             if (FileAddress.Contains(@"\"))
             {
                 File.Delete(FileAddress);
-                if (Address.StartsWith(ModBase.PathImage))
+                if (Address.StartsWith(Basics.AssemblyImagePath))
                 {
                     var Image = new MyBitmap(Address);
                     Image.Save(FileAddress);
                 }
                 else
                 {
-                    ModBase.CopyFile(Address, FileAddress);
+                    Files.CopyFile(Address, FileAddress);
                 }
 
                 ModMain.Hint("皮肤保存成功！", ModMain.HintType.Finish);
@@ -141,7 +141,7 @@ public partial class MySkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "保存皮肤失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "保存皮肤失败", ModBase.LogType.Hint);
         }
     }
 
@@ -161,7 +161,7 @@ public partial class MySkin
             Address = Loader.Output;
             if (string.IsNullOrEmpty(Address))
                 throw new Exception("皮肤加载器 " + Loader.Name + " 没有输出");
-            if (!Address.StartsWith(ModBase.PathImage) && !File.Exists(Address))
+            if (!Address.StartsWith(Basics.AssemblyImagePath) && !File.Exists(Address))
                 throw new FileNotFoundException("皮肤文件未找到", Address);
             // 加载
             MyBitmap Image;
@@ -171,7 +171,7 @@ public partial class MySkin
             }
             catch (Exception ex) // #2272
             {
-                ModBase.Log(ex, $"皮肤文件已损坏：{Address}", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, $"皮肤文件已损坏：{Address}", ModBase.LogType.Hint);
                 File.Delete(Address);
                 return;
             }
@@ -218,7 +218,7 @@ public partial class MySkin
             // 用于显示档案列表头像的图片
             var SkinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
-            var CachePath = ModBase.PathTemp + $@"Cache\Skin\Head\{SkinHeadId}.png";
+            var CachePath = Basics.PathTemp + $@"Cache\Skin\Head\{SkinHeadId}.png";
             ModProfile.SelectedProfile.SkinHeadId = SkinHeadId;
             ModProfile.SaveProfile();
             var CompleteHead = new Bitmap(56, 56);
@@ -238,14 +238,14 @@ public partial class MySkin
                     }
             }
 
-            if (!Directory.Exists(ModBase.PathTemp + @"Cache\Skin\Head"))
-                Directory.CreateDirectory(ModBase.PathTemp + @"Cache\Skin\Head");
+            if (!Directory.Exists(Basics.PathTemp + @"Cache\Skin\Head"))
+                Directory.CreateDirectory(Basics.PathTemp + @"Cache\Skin\Head");
             CompleteHead.Save(CachePath, ImageFormat.Png);
             ModBase.Log("[Skin] 载入头像成功：" + Loader.Name);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "载入头像失败（" + (Address ?? "null") + "," + Loader.Name + "）", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "载入头像失败（" + (Address ?? "null") + "," + Loader.Name + "）", ModBase.LogType.Hint);
         }
     }
 
@@ -297,19 +297,19 @@ public partial class MySkin
         else
             // 清空缓存
             // 刷新控件
-            ModBase.RunInThread(() =>
+            ModBase.RunInWorkerThread(() =>
             {
                 try
                 {
                     ModMain.Hint("正在刷新头像……");
                     ModBase.Log("[Skin] 正在清空皮肤缓存");
-                    if (Directory.Exists(ModBase.PathTemp + @"Cache\Skin"))
-                        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"Cache\Skin").GetAwaiter().GetResult();
-                    if (Directory.Exists(ModBase.PathTemp + @"Cache\Uuid"))
-                        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"Cache\Uuid").GetAwaiter().GetResult();
-                    IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini").Invalidate();
-                    IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexAuth.ini").Invalidate();
-                    IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Invalidate();
+                    if (Directory.Exists(Basics.PathTemp + @"Cache\Skin"))
+                        Directories.DeleteDirectoryAsync(Basics.PathTemp + @"Cache\Skin").GetAwaiter().GetResult();
+                    if (Directory.Exists(Basics.PathTemp + @"Cache\Uuid"))
+                        Directories.DeleteDirectoryAsync(Basics.PathTemp + @"Cache\Uuid").GetAwaiter().GetResult();
+                    IniFile.Open(Basics.PathTemp + @"Cache\Skin\IndexMs.ini").Invalidate();
+                    IniFile.Open(Basics.PathTemp + @"Cache\Skin\IndexAuth.ini").Invalidate();
+                    IniFile.Open(Basics.PathTemp + @"Cache\Uuid\Mojang.ini").Invalidate();
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.SkinLegacy, PageLaunchLeft.SkinMs })
@@ -318,7 +318,7 @@ public partial class MySkin
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "刷新皮肤缓存失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "刷新皮肤缓存失败", ModBase.LogType.Msgbox);
                 }
             });
     }
@@ -332,11 +332,11 @@ public partial class MySkin
         // 更新缓存
         // 刷新控件
         // 完成提示
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             try
             {
-                IniFile.Open(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini").Write(ModProfile.SelectedProfile.Uuid,
+                IniFile.Open(Basics.PathTemp + @"Cache\Skin\IndexMs.ini").Write(ModProfile.SelectedProfile.Uuid,
                     SkinAddress);
                 ModBase.Log(string.Format("[Skin] 已写入皮肤地址缓存 {0} -> {1}", ModProfile.SelectedProfile.Uuid, SkinAddress));
                 foreach (var SkinLoader in new[] { PageLaunchLeft.SkinMs, PageLaunchLeft.SkinLegacy })
@@ -345,7 +345,7 @@ public partial class MySkin
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更改正版皮肤后刷新皮肤失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "更改正版皮肤后刷新皮肤失败", ModBase.LogType.Feedback);
             }
         });
     }
@@ -388,8 +388,8 @@ public partial class MySkin
                 {
                     if (itemSkin["url"] is null)
                         continue;
-                    var localFile = $@"{ModBase.PathTemp}Cache\Capes\{itemSkin["alias"]}.png";
-                    var capeFrontFile = $@"{ModBase.PathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
+                    var localFile = $@"{Basics.PathTemp}Cache\Capes\{itemSkin["alias"]}.png";
+                    var capeFrontFile = $@"{Basics.PathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
                     if (File.Exists(localFile) && File.Exists(capeFrontFile))
                     {
                         itemSkin["url"] = capeFrontFile;
@@ -456,7 +456,7 @@ public partial class MySkin
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "获取玩家皮肤列表失败", ModBase.LogLevel.Feedback);
+                        ModBase.Log(ex, "获取玩家皮肤列表失败", ModBase.LogType.Feedback);
                     }
                 });
                 if (SelId is null)
@@ -480,7 +480,7 @@ public partial class MySkin
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更改披风失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "更改披风失败", ModBase.LogType.Hint);
             }
             finally
             {

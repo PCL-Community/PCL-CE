@@ -1,11 +1,12 @@
+using PCL.Core.App;
+using PCL.Core.Logging;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media;
-using PCL.Core.App;
-using PCL.Core.Logging;
-using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -116,26 +117,26 @@ public static class ModWatcher
         switch (level)
         {
             case GameLogLevel.Debug:
-            {
-                return GetColorBrush("ColorBrushDebug");
-            }
+                {
+                    return GetColorBrush("ColorBrushDebug");
+                }
             case GameLogLevel.Info:
-            {
-                GetColorBrush(ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
-                break;
-            }
+                {
+                    GetColorBrush(ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
+                    break;
+                }
             case GameLogLevel.Warn:
-            {
-                return GetColorBrush("ColorBrushWarn");
-            }
+                {
+                    return GetColorBrush("ColorBrushWarn");
+                }
             case GameLogLevel.Error:
-            {
-                return GetColorBrush("ColorBrushError");
-            }
+                {
+                    return GetColorBrush("ColorBrushError");
+                }
             case GameLogLevel.Fatal:
-            {
-                return GetColorBrush("ColorBrushFatal");
-            }
+                {
+                    return GetColorBrush("ColorBrushFatal");
+                }
         }
 
         return GetColorBrush(ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
@@ -296,7 +297,7 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "Minecraft 日志监控主循环出错", ModBase.LogLevel.Feedback);
+                    ModBase.Log(ex, "Minecraft 日志监控主循环出错", ModBase.LogType.Feedback);
                     State = MinecraftState.Ended;
                 }
             }, "Minecraft Watcher PID " + PID);
@@ -356,30 +357,30 @@ public static class ModWatcher
             switch (level)
             {
                 case GameLogLevel.Debug:
-                {
-                    CountDebug = (uint)(CountDebug + 1L);
-                    break;
-                }
+                    {
+                        CountDebug = (uint)(CountDebug + 1L);
+                        break;
+                    }
                 case GameLogLevel.Info:
-                {
-                    CountInfo = (uint)(CountInfo + 1L);
-                    break;
-                }
+                    {
+                        CountInfo = (uint)(CountInfo + 1L);
+                        break;
+                    }
                 case GameLogLevel.Warn:
-                {
-                    CountWarn = (uint)(CountWarn + 1L);
-                    break;
-                }
+                    {
+                        CountWarn = (uint)(CountWarn + 1L);
+                        break;
+                    }
                 case GameLogLevel.Error:
-                {
-                    CountError = (uint)(CountError + 1L);
-                    break;
-                }
+                    {
+                        CountError = (uint)(CountError + 1L);
+                        break;
+                    }
                 case GameLogLevel.Fatal:
-                {
-                    CountFatal = (uint)(CountFatal + 1L);
-                    break;
-                }
+                    {
+                        CountFatal = (uint)(CountFatal + 1L);
+                        break;
+                    }
             }
 
             LogOutput?.Invoke(this, new LogOutputEventArgs(line, color));
@@ -447,7 +448,7 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "输出 Minecraft 日志失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "输出 Minecraft 日志失败", ModBase.LogType.Feedback);
             }
         }
 
@@ -571,7 +572,7 @@ public static class ModWatcher
                 catch (Win32Exception ex)
                 {
                     // 拒绝访问（#1062）
-                    ModBase.Log(ex, "由于反作弊或安全软件拦截，PCL 无法操作游戏窗口", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "由于反作弊或安全软件拦截，PCL 无法操作游戏窗口", ModBase.LogType.Hint);
                     IsWindowFinished = true;
                 }
 
@@ -614,7 +615,7 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "检查 Minecraft 窗口失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "检查 Minecraft 窗口失败", ModBase.LogType.Feedback);
             }
         }
 
@@ -703,7 +704,7 @@ public static class ModWatcher
                     Thread.Sleep(2000);
                     WatcherLog("崩溃分析开始");
                     ;
-                    var Analyzer = new CrashAnalyzer(PID);
+                    var Analyzer = new CrashAnalyzer((ulong)PID);
                     Analyzer.Collect(Version.PathIndie, LatestLog.ToList());
                     Analyzer.Prepare();
                     Analyzer.Analyze(Version);
@@ -711,12 +712,12 @@ public static class ModWatcher
                         new List<string>
                         {
                             Version.PathInstance + Version.Name + ".json",
-                            LogWrapper.CurrentLogger.CurrentLogFiles.Last(), ModBase.ExePath + @"PCL\LatestLaunch.bat"
+                            LogWrapper.CurrentLogger.CurrentLogFiles.Last(), Basics.ExecutableDirectory + @"PCL\LatestLaunch.bat"
                         });
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "崩溃分析失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(ex, "崩溃分析失败", ModBase.LogType.Feedback);
                 }
             }, "Crash Analyzer");
         }
@@ -775,7 +776,7 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "强制结束 Minecraft 进程失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "强制结束 Minecraft 进程失败", ModBase.LogType.Hint);
                 }
             });
         }
@@ -786,7 +787,7 @@ public static class ModWatcher
             var Dump = new List<string>();
             for (var i = 1; i <= 3; i++)
             {
-                Dump.Add(ModBase.ShellAndGetOutput(JStackPath, "-l -e " + GameProcess.Id));
+                Dump.Add(ProcessUtils.ShellAndGetOutput(JStackPath, "-l -e " + GameProcess.Id));
                 Thread.Sleep(3000);
             }
 

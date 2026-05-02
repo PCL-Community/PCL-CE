@@ -1,3 +1,4 @@
+using PCL.Core.Utils.OS;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -42,11 +43,12 @@ public partial class PageDownloadCleanroom
                     continue;
                 // 增加卡片
                 var NewCard = new MyCard
-                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 NewCard.Children.Add(NewStack);
@@ -63,13 +65,13 @@ public partial class PageDownloadCleanroom
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 Cleanroom 版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://cleanroommc.com/zh/");
+        ShellUtils.OpenWebsite("https://cleanroommc.com/zh/");
     }
 }

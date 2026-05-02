@@ -1,3 +1,4 @@
+using PCL.Core.Utils.OS;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -78,7 +79,7 @@ public partial class PageDownloadLiteLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LiteLoader 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 LiteLoader 版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -89,6 +90,6 @@ public partial class PageDownloadLiteLoader
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.liteloader.com");
+        ShellUtils.OpenWebsite("https://www.liteloader.com");
     }
 }

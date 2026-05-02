@@ -8,6 +8,7 @@ using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -101,9 +102,9 @@ public static class ModMain
     /// <summary>
     /// 等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
     /// </summary>
-    private static ModBase.SafeList<HintMessage> HintWaiting
+    private static ConcurrentQueue<HintMessage> HintWaiting
     {
-        get => field ??= new ModBase.SafeList<HintMessage>();
+        get => field ??= [];
         set;
     }
 
@@ -130,7 +131,7 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "短程主时钟执行异常", ModBase.LogLevel.Critical);
+            ModBase.Log(ex, "短程主时钟执行异常", ModBase.LogType.Critical);
         }
 
         Timer4Count += 1;
@@ -178,7 +179,7 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "长程主时钟执行异常", ModBase.LogLevel.Critical);
+                ModBase.Log(ex, "长程主时钟执行异常", ModBase.LogType.Critical);
             }
         }
     }
@@ -197,7 +198,7 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "程序主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "程序主时钟出错", ModBase.LogType.Feedback);
             }
         }, "Timer Main");
         if (!IsAprilEnabled)
@@ -220,7 +221,7 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "愚人节主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "愚人节主时钟出错", ModBase.LogType.Feedback);
             }
         }, "Timer Main Fool");
     }
@@ -264,7 +265,7 @@ public static class ModMain
     /// </summary>
     public static void Hint(string? Text, HintType Type = HintType.Info, bool Log = true)
     {
-        HintWaiting.Add(new HintMessage { Text = Text ?? "", Type = Type, Log = Log });
+        HintWaiting.Enqueue(new HintMessage { Text = Text ?? "", Type = Type, Log = Log });
     }
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
@@ -282,20 +283,17 @@ public static class ModMain
     {
         try
         {
-            // Tag 存储了：{ 是否可以重用, Uuid }
-            if (!HintWaiting.Any())
-                return;
-            while (HintWaiting.Any())
+            while (HintWaiting.TryDequeue(out var result))
             {
                 // '清除空提示
                 // If IsNothing(HintWaiting(0)) OrElse IsNothing(HintWaiting(0)(0)) Then
                 // HintWaiting.RemoveAt(0)
                 // Continue Do
                 // End If
-                var CurrentHint = HintWaiting[0];
+                var currentHint = result;
                 // 去回车
-                CurrentHint.Text = CurrentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
-                    .Replace("\n", " ");
+                currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace('\r', ' ')
+                    .Replace('\n', ' ');
                 // 超量提示直接忽略
                 if (FrmMain!.PanHint.Children.Count >= 20)
                     goto EndHint;
@@ -303,12 +301,12 @@ public static class ModMain
                 Border? DoubleStack = null;
                 foreach (Border stack in FrmMain.PanHint.Children)
                     if (stack.Tag is object[] tagArray && (bool)tagArray[0] &&
-                                              (((TextBlock)stack.Child).Text ?? "") == (CurrentHint.Text ?? ""))
+                                              (((TextBlock)stack.Child).Text ?? "") == (currentHint.Text ?? ""))
                         DoubleStack = stack;
                 // 获取渐变颜色
                 NColor TargetColor0, TargetColor1;
                 var percent = 0.3f;
-                switch (CurrentHint.Type)
+                switch (currentHint.Type)
                 {
                     case HintType.Info:
                         {
@@ -338,7 +336,7 @@ public static class ModMain
                     if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
                     {
                         ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
-                        var Delay = (800d + Math.Clamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
+                        var Delay = (800d + Math.Clamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
                                     ModAnimation.AniSpeed;
                         ModAnimation.Start(new[]
                             {
@@ -373,7 +371,7 @@ public static class ModMain
                 else
                 {
                     // 准备控件
-                    var newHintTag = new object[] { true, ModBase.GetUuid() };
+                    var newHintTag = new object[] { true, GlobalUniqueId.GetUniqueId() };
                     var NewHintControl = new Border
                     {
                         Tag = newHintTag,
@@ -393,7 +391,7 @@ public static class ModMain
                         {
                             TextTrimming = TextTrimming.CharacterEllipsis,
                             FontSize = 13d,
-                            Text = CurrentHint.Text,
+                            Text = currentHint.Text,
                             Foreground = new NColor(255, 255, 255),
                             Margin = new Thickness(33d, 5d, 8d, 5d)
                         }
@@ -427,7 +425,7 @@ public static class ModMain
                     ]);
                     ModAnimation.Start(Animations, $"Hint Show {newHintTag[1]}");
                     // 结束动画
-                    var Delay = (800d + Math.Clamp(CurrentHint.Text!.Length, 5d, 23d) * 180d) *
+                    var Delay = (800d + Math.Clamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
                                 ModAnimation.AniSpeed;
                     ModAnimation.Start(
                         new[]
@@ -445,14 +443,13 @@ public static class ModMain
                 // 结束处理
             EndHint:;
 
-                if (CurrentHint.Log)
-                    ModBase.Log("[UI] 弹出提示：" + CurrentHint.Text);
-                HintWaiting.RemoveAt(0);
+                if (currentHint.Log)
+                    ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogLevel.Normal);
+            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogType.Normal);
         }
     }
 
@@ -593,13 +590,13 @@ public static class ModMain
             Button3Action = Button3Action
         };
         WaitingMyMsgBox.Add(Converter);
-        if (ModBase.RunInUi())
+        if (ModBase.IsRunInUi())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
         if (Button2.Length > 0 || ForceWait)
         {
             // 若有多个按钮则开始等待
-            if (FrmMain is null || (FrmMain.PanMsg is null && ModBase.RunInUi()))
+            if (FrmMain is null || (FrmMain.PanMsg is null && ModBase.IsRunInUi()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(Converter);
@@ -636,7 +633,7 @@ public static class ModMain
                 }
 
                 ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + Button1 + "," + Button2 + "," + Button3,
-                    ModBase.LogLevel.Debug);
+                    ModBase.LogType.Debug);
             }
             else
             {
@@ -693,13 +690,13 @@ public static class ModMain
             Button3Action = Button3Action
         };
         WaitingMyMsgBox.Add(Converter);
-        if (ModBase.RunInUi())
+        if (ModBase.IsRunInUi())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
         if (Button2.Length > 0 || ForceWait)
         {
             // 若有多个按钮则开始等待
-            if (FrmMain is null || (FrmMain.PanMsg is null && ModBase.RunInUi()))
+            if (FrmMain is null || (FrmMain.PanMsg is null && ModBase.IsRunInUi()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(Converter);
@@ -736,7 +733,7 @@ public static class ModMain
                 }
 
                 ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + Button1 + "," + Button2 + "," + Button3,
-                    ModBase.LogLevel.Debug);
+                    ModBase.LogType.Debug);
             }
             else
             {
@@ -898,7 +895,7 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -1028,7 +1025,7 @@ public static class ModMain
         public HelpEntry(string FilePath)
         {
             RawPath = FilePath;
-            var JsonData = (JObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
+            var JsonData = (JObject)ModBase.GetJson(ModMain.ArgumentReplace(Files.ReadAllTextOrEmpty(FilePath)));
             if (JsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + FilePath, FilePath);
             // 加载常规信息
@@ -1057,7 +1054,7 @@ public static class ModMain
                 var XamlAddress = FilePath.ToLower().Replace(".json", ".xaml");
                 if (File.Exists(XamlAddress))
                 {
-                    XamlContent = ModBase.ReadFile(XamlAddress);
+                    XamlContent = Files.ReadAllTextOrEmpty(XamlAddress);
                     IsEvent = false;
                 }
                 else
@@ -1084,13 +1081,13 @@ public static class ModMain
             if (IsEvent)
             {
                 if (EventType == "弹出窗口")
-                    Logo = ModBase.PathImage + "Blocks/GrassPath.png";
+                    Logo = Basics.GetAppImagePath("Blocks/GrassPath.png");
                 else
-                    Logo = ModBase.PathImage + "Blocks/CommandBlock.png";
+                    Logo = Basics.GetAppImagePath("Blocks/CommandBlock.png");
             }
             else
             {
-                Logo = ModBase.PathImage + "Blocks/Grass.png";
+                Logo = Basics.GetAppImagePath("Blocks/Grass.png");
             }
 
             // 设置属性
@@ -1130,15 +1127,15 @@ public static class ModMain
                 {
                     var IgnoreList = new List<string>();
                     // 读取自定义文件
-                    if (Directory.Exists(ModBase.ExePath + @"PCL\Help\"))
-                        foreach (var File in Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Help\").GetAwaiter().GetResult())
+                    if (Directory.Exists(Basics.ExecutableDirectory + @"PCL\Help\"))
+                        foreach (var File in Directories.EnumerateFilesAsync(Basics.ExecutableDirectory + @"PCL\Help\").GetAwaiter().GetResult())
                             switch (File.Extension.ToLower() ?? "")
                             {
                                 case ".helpignore":
                                     {
                                         // 加载忽略列表
                                         ModBase.Log("[Help] 发现 .helpignore 文件：" + File.FullName);
-                                        foreach (var Line in ModBase.ReadFile(File.FullName)
+                                        foreach (var Line in Files.ReadAllTextOrEmpty(File.FullName)
                                                      .Split("\r\n".ToCharArray()))
                                         {
                                             var RealString = Line.BeforeFirst("#").Trim();
@@ -1160,14 +1157,14 @@ public static class ModMain
 
                     ModBase.Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " + FileList.Count + " 条");
                     // 读取自带文件
-                    foreach (var File in Directories.EnumerateFilesAsync(ModBase.PathHelpFolder).GetAwaiter().GetResult())
+                    foreach (var File in Directories.EnumerateFilesAsync(Basics.HelpFolder).GetAwaiter().GetResult())
                     {
                         // 跳过非 Json 文件与以 . 开头的文件夹
                         if (File.Extension.ToLower() != ".json" || File.Directory.FullName
-                                .Replace(ModBase.PathHelpFolder.TrimEnd('\\'), "").Contains(@"\."))
+                                .Replace(Basics.HelpFolder.TrimEnd('\\'), "").Contains(@"\."))
                             continue;
                         // 检查忽略列表
-                        var RealPath = File.FullName.Replace(ModBase.PathHelpFolder.TrimEnd('\\'), "");
+                        var RealPath = File.FullName.Replace(Basics.HelpFolder.TrimEnd('\\'), "");
                         foreach (var Ignore in IgnoreList)
                             if (RealPath.RegexCheck(Ignore))
                             {
@@ -1184,7 +1181,7 @@ public static class ModMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "检查帮助文件夹失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "检查帮助文件夹失败", ModBase.LogType.Msgbox);
                 }
 
                 if (Loader.IsAborted)
@@ -1202,7 +1199,7 @@ public static class ModMain
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "初始化帮助条目失败（" + FilePath + "）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "初始化帮助条目失败（" + FilePath + "）", ModBase.LogType.Msgbox);
                     }
 
                 // 回设
@@ -1226,12 +1223,12 @@ public static class ModMain
     /// </summary>
     public static void HelpExtract()
     {
-        Directories.DeleteDirectoryAsync(ModBase.PathTemp + @"CE\Help").GetAwaiter().GetResult();
-        Directory.CreateDirectory(ModBase.PathTemp + @"CE\Help");
-        ModBase.WriteFile(ModBase.PathTemp + @"CE\Cache\Help.zip", ModBase.GetResourceStream("Resources/Help.zip"));
-        Files.ExtractFileAsync(ModBase.PathTemp + @"CE\Cache\Help.zip", ModBase.PathTemp + @"CE\Help").GetAwaiter().GetResult();
-        ModBase.Log("[Help] 已解压内置帮助文件，目前状态：" + File.Exists(ModBase.PathTemp + @"CE\Help\启动器\备份设置.xaml"),
-            ModBase.LogLevel.Debug);
+        Directories.DeleteDirectoryAsync(Basics.PathTemp + @"CE\Help").GetAwaiter().GetResult();
+        Directory.CreateDirectory(Basics.PathTemp + @"CE\Help");
+        Files.WriteFile(Basics.PathTemp + @"CE\Cache\Help.zip", Basics.GetResourceStream("Resources/Help.zip"));
+        Files.ExtractFileAsync(Basics.PathTemp + @"CE\Cache\Help.zip", Basics.PathTemp + @"CE\Help").GetAwaiter().GetResult();
+        ModBase.Log("[Help] 已解压内置帮助文件，目前状态：" + File.Exists(Basics.PathTemp + @"CE\Help\启动器\备份设置.xaml"),
+            ModBase.LogType.Debug);
     }
 
     /// <summary>
@@ -1239,7 +1236,7 @@ public static class ModMain
     /// </summary>
     public static string HelpArgumentReplace(string Xaml)
     {
-        var Result = Xaml.Replace("{path}", TextUtils.EscapeXml(ModBase.ExePath));
+        var Result = Xaml.Replace("{path}", TextUtils.EscapeXml(Basics.ExecutableDirectory));
         Result = Result.RegexReplaceEach(@"\{hint\}", _ => TextUtils.EscapeXml(PageToolsTest.GetRandomHint()));
         Result = Result.RegexReplaceEach(@"\{cave\}", _ => TextUtils.EscapeXml(PageToolsTest.GetRandomCave()));
         return Result;
@@ -1394,7 +1391,7 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "愚人节移动出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "愚人节移动出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1414,7 +1411,7 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置窗口置顶失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "设置窗口置顶失败", ModBase.LogType.Hint);
         }
     }
 
@@ -1484,14 +1481,14 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         };
 
         // 基础
-        text = text.Replace("{pcl_version}", replacer(ModBase.VersionBaseName));
-        text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
-        text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
-        text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
-        text = text.Replace("{identify}", replacer(ModBase.UniqueAddress));
+        text = text.Replace("{pcl_version}", replacer(Basics.VersionName));
+        text = text.Replace("{pcl_version_code}", replacer(Basics.VersionCode.ToString()));
+        text = text.Replace("{pcl_version_branch}", replacer(Basics.BranchName));
+        text = text.Replace("{pcl_branch}", replacer(Basics.BranchName));
+        text = text.Replace("{identify}", replacer(Basics.UniqueIdentificationId));
         text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
         text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
-        text = text.Replace("{path_temp}", replacer(ModBase.PathTemp));
+        text = text.Replace("{path_temp}", replacer(Basics.PathTemp));
 
         // 时间
         if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
@@ -1586,8 +1583,8 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
             try
             {
                 ModBase.Log("[System] 开始清理任务缓存文件夹");
-                Directories.DeleteDirectoryAsync($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\").GetAwaiter().GetResult();
-                Directories.DeleteDirectoryAsync($@"{ModBase.PathTemp}TaskTemp\").GetAwaiter().GetResult();
+                Directories.DeleteDirectoryAsync($@"{Basics.OsDrive}ProgramData\PCL\TaskTemp\").GetAwaiter().GetResult();
+                Directories.DeleteDirectoryAsync($@"{Basics.PathTemp}TaskTemp\").GetAwaiter().GetResult();
                 ModBase.Log("[System] 已清理任务缓存文件夹");
             }
             catch (Exception ex)
@@ -1620,11 +1617,11 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
         {
             try
             {
-                ResultFolder = $@"{ModBase.PathTemp}TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+                ResultFolder = $@"{Basics.PathTemp}TaskTemp\{GlobalUniqueId.GetUniqueId()}-{RandomUtils.NextInt(0, 1000000)}\";
                 if (RequireNonSpace && ResultFolder.Contains(" "))
                     break; // 带空格
                 Directory.CreateDirectory(ResultFolder);
-                ModBase.CheckPermissionWithException(ResultFolder);
+                Directories.CheckPermissionWithException(ResultFolder);
                 return ResultFolder;
             }
             catch
@@ -1634,9 +1631,9 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
 
         // 使用备用路径
         ResultFolder =
-            $@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+            $@"{Basics.OsDrive}ProgramData\PCL\TaskTemp\{GlobalUniqueId.GetUniqueId()}-{RandomUtils.NextInt(0, 1000000)}\";
         Directory.CreateDirectory(ResultFolder);
-        ModBase.CheckPermission(ResultFolder);
+        Directories.CheckPermission(ResultFolder);
         return ResultFolder;
     }
 
@@ -1656,6 +1653,6 @@ Math.Clamp(1d - (Math.Abs(Direction.Y) - Math.Abs(Direction.X)) * (SpeedValue / 
             {
                 foreach (var e in events)
                     e.Raise();
-            }, $"执行自定义事件 {ModBase.GetUuid()}");
+            }, $"执行自定义事件 {GlobalUniqueId.GetUniqueId()}");
     }
 }

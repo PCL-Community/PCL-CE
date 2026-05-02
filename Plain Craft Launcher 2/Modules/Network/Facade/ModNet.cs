@@ -57,7 +57,7 @@ public static class ModNet
     {
         var temp = ModMain.RequestTaskTempFolder() + "download.txt";
         FileDownloader.Download(urls, temp, UseBrowserUserAgent).GetAwaiter().GetResult();
-        var content = ModBase.ReadFile(temp);
+        var content = Files.ReadAllTextOrEmpty(temp);
         File.Delete(temp);
         return IsJson ? ModBase.GetJson(content).ToString() : content;
     }

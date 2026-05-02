@@ -157,7 +157,7 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "启动服务器失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "启动服务器失败", ModBase.LogType.Feedback);
             ModMain.Hint("启动服务器失败：" + ex.Message, ModMain.HintType.Critical);
         }
     }

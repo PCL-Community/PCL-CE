@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,7 +10,7 @@ public class MyPageLeft : Grid
     public static DependencyProperty AnimatedControlProperty =
         DependencyProperty.Register("AnimatedControl", typeof(FrameworkElement), typeof(MyPageLeft));
 
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     private bool _animatedControlNullWarned;
 
@@ -22,7 +23,7 @@ public class MyPageLeft : Grid
             if (res is null && !_animatedControlNullWarned)
             {
                 _animatedControlNullWarned = true;
-                ModBase.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
+                ModBase.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", ModBase.LogType.Debug);
             }
 
             return (FrameworkElement)res;

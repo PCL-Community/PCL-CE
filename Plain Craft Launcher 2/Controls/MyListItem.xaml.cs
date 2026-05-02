@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Exts;
 
@@ -181,7 +182,7 @@ public partial class MyListItem : IMyRadio
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "设置帮助 MyListItem 失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(ex, "设置帮助 MyListItem 失败", ModBase.LogType.Msgbox);
                 CustomEventService.SetEventType(this, CustomEvent.EventType.None);
                 CustomEventService.SetEventData(this, "");
             }
@@ -210,7 +211,7 @@ public partial class MyListItem : IMyRadio
                     CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6 : 0),
                     RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(ModBase.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d
@@ -340,7 +341,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     /// <summary>
     /// 是否启用缩放动画。
@@ -574,8 +575,8 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (_Logo.Contains(ModBase.PathTemp + @"Cache\Skin\Head") ||
-                    _Logo.Contains(ModBase.PathTemp + @"Cache\Cape"))
+                if (_Logo.Contains(Basics.PathTemp + @"Cache\Skin\Head") ||
+                    _Logo.Contains(Basics.PathTemp + @"Cache\Cape"))
                     RenderOptions.SetBitmapScalingMode(PathLogo, BitmapScalingMode.NearestNeighbor);
                 else
                     RenderOptions.SetBitmapScalingMode(PathLogo, BitmapScalingMode.Linear);

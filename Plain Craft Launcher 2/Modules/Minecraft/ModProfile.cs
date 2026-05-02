@@ -3,10 +3,12 @@ using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.IO.Net;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -15,7 +17,6 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using PCL.Core.IO;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -42,10 +43,10 @@ public static class ModProfile
     /// <summary>
     /// 档案操作日志
     /// </summary>
-    public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
+    public static void ProfileLog(string content, ModBase.LogType type = ModBase.LogType.Normal)
     {
         var output = "[Profile] " + content;
-        ModBase.Log(output, level);
+        ModBase.Log(output, type);
     }
 
     #region 旧版迁移
@@ -162,7 +163,7 @@ public static class ModProfile
             //return string.Empty.Truncate("0", 32);
             return string.Empty;
         // 从缓存获取
-        var uuid = IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Read(name);
+        var uuid = IniFile.Open(Basics.PathTemp + @"Cache\Uuid\Mojang.ini").Read(name);
         if (Strings.Len(uuid) == 32)
             return uuid;
         // 从官网获取
@@ -203,7 +204,7 @@ public static class ModProfile
         // 写入缓存
         if (!(Strings.Len(uuid) == 32))
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
-        IniFile.Open(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini").Write(name, uuid);
+        IniFile.Open(Basics.PathTemp + @"Cache\Uuid\Mojang.ini").Write(name, uuid);
         return uuid;
     }
 
@@ -288,18 +289,18 @@ public static class ModProfile
     {
         ProfileLog("开始获取本地档案");
         ProfileList.Clear();
-        var profilePath = Path.Combine(ModBase.PathAppdataConfig, "profiles.json");
+        var profilePath = Path.Combine(Basics.AppdataConfig, "profiles.json");
         try
         {
-            if (!Directory.Exists(ModBase.PathAppdataConfig))
-                Directory.CreateDirectory(ModBase.PathAppdataConfig);
+            if (!Directory.Exists(Basics.AppdataConfig))
+                Directory.CreateDirectory(Basics.AppdataConfig);
             if (!File.Exists(profilePath))
             {
                 File.Create(profilePath).Close();
-                ModBase.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
+                Files.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
             }
 
-            var profileJobj = JObject.Parse(ModBase.ReadFile(profilePath));
+            var profileJobj = JObject.Parse(Files.ReadAllTextOrEmpty(profilePath));
             LastUsedProfile = (int)profileJobj["lastUsed"];
             var profileListJobj = (JArray)profileJobj["profiles"];
             foreach (var Profile in profileListJobj)
@@ -354,14 +355,14 @@ public static class ModProfile
             try
             {
                 var profilePathBak =
-                    Path.Combine(ModBase.PathAppdataConfig, $"profiles.json.bak{DateTime.Now.ToBinary()}");
+                    Path.Combine(Basics.AppdataConfig, $"profiles.json.bak{DateTime.Now.ToBinary()}");
                 File.Move(profilePath, profilePathBak);
             }
             catch (Exception ex1)
             {
             }
 
-            ModBase.Log(ex, "档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。", ModBase.LogType.Msgbox);
         }
     }
 
@@ -418,7 +419,7 @@ public static class ModProfile
                 json = new JObject { { "lastUsed", LastUsedProfile }, { "profiles", list } };
             }
 
-            var actualFile = Path.Combine(ModBase.PathAppdataConfig, "profiles.json");
+            var actualFile = Path.Combine(Basics.AppdataConfig, "profiles.json");
             var tempFile = actualFile + ".tmp";
             var bakFile = actualFile + ".bak";
             File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Formatting.None)));
@@ -430,7 +431,7 @@ public static class ModProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "写入档案列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "写入档案列表失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -568,7 +569,7 @@ public static class ModProfile
                     if (exSummary.Contains("403"))
                         ModMain.MyMsgBox("首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。", "ID 修改失败", "我知道了");
                     else
-                        ModBase.Log(ex, "修改档案 ID 失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "修改档案 ID 失败", ModBase.LogType.Msgbox);
                 }
             });
         }
@@ -577,7 +578,7 @@ public static class ModProfile
         else if (SelectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             var server = SelectedProfile.Server;
-            ModBase.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
+            ShellUtils.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
@@ -1132,7 +1133,7 @@ public static class ModProfile
                 {
                     { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
                     {
-                        new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file",
+                        new ByteArrayContent(Files.ReadAllBytesOrEmpty(skinInfo.LocalFile)), "file",
                         PathUtils.GetFileNameFromPath(skinInfo.LocalFile)
                     }
                 };
@@ -1176,7 +1177,7 @@ public static class ModProfile
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
                     ModMain.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", ModMain.HintType.Critical);
                 else
-                    ModBase.Log(ex, "更改皮肤失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "更改皮肤失败", ModBase.LogType.Hint);
             }
             finally
             {

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -28,7 +29,7 @@ public class MyComboBox : ComboBox
     private MyTextBox TextBox;
 
     // 基础
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyComboBox()
     {
@@ -108,7 +109,7 @@ public class MyComboBox : ComboBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化可编辑文本框失败（" + (Name ?? "") + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "初始化可编辑文本框失败（" + (Name ?? "") + "）", ModBase.LogType.Feedback);
         }
     }
 
@@ -192,7 +193,7 @@ public class MyComboBox : ComboBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置下拉框属性失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "设置下拉框属性失败", ModBase.LogType.Feedback);
         }
     }
 

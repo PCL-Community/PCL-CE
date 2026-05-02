@@ -1,4 +1,5 @@
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.Windows;
 using System.Windows.Input;
 
@@ -88,12 +89,12 @@ public partial class PageLoginProfileSkin
     {
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
-            ModBase.OpenWebsite("https://account.live.com/password/Change");
+            ShellUtils.OpenWebsite("https://account.live.com/password/Change");
         }
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             var Server = ModProfile.SelectedProfile.Server;
-            ModBase.OpenWebsite(Server.Replace("/api/yggdrasil/authserver" + (Server.EndsWithF("/") ? "/" : ""),
+            ShellUtils.OpenWebsite(Server.Replace("/api/yggdrasil/authserver" + (Server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
@@ -125,7 +126,7 @@ public partial class PageLoginProfileSkin
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
             ModProfile.ChangeSkinMs();
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            ShellUtils.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             ModMain.Hint("当前档案不支持修改皮肤！");
@@ -149,7 +150,7 @@ public partial class PageLoginProfileSkin
         if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
             Skin.BtnSkinCape_Click(sender, e);
         else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            ShellUtils.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             ModMain.Hint("当前档案不支持修改披风！");

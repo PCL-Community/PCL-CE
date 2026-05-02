@@ -4,22 +4,23 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Core.App;
 
 namespace PCL;
 
 public partial class MyMsgText
 {
     private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyMsgText(ModMain.MyMsgBoxConverter Converter)
     {
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
-            Btn3.Name = Btn3.Name + ModBase.GetUuid();
+            Btn1.Name = Btn1.Name + GlobalUniqueId.GetUniqueId();
+            Btn2.Name = Btn2.Name + GlobalUniqueId.GetUniqueId();
+            Btn3.Name = Btn3.Name + GlobalUniqueId.GetUniqueId();
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
             LabCaption.Text = Converter.Text;
@@ -34,12 +35,12 @@ public partial class MyMsgText
             Btn3.Text = Converter.Button3;
             Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
             Btn3.Visibility = string.IsNullOrEmpty(Converter.Button3) ? Visibility.Collapsed : Visibility.Visible;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = ModBase.GetWpfSize(1d);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "普通弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "普通弹窗初始化失败", ModBase.LogType.Hint);
         }
 
         Loaded += Load;
@@ -77,7 +78,7 @@ public partial class MyMsgText
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "普通弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "普通弹窗加载失败", ModBase.LogType.Hint);
         }
     }
 
@@ -165,7 +166,7 @@ public partial class MyMsgText
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "拖拽移动失败", ModBase.LogType.Hint);
         }
     }
 }

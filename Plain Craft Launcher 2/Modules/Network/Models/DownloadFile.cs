@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Utils;
 
@@ -5,7 +6,7 @@ namespace PCL.Network;
 
 public class DownloadFile
 {
-    public int Id { get; } = ModBase.GetUuid();
+    public ulong Id { get; } = GlobalUniqueId.GetUniqueId();
     public string LocalPath { get; set; }
     public string LocalName { get; }
     public List<string> Urls { get; }

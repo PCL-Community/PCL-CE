@@ -74,7 +74,7 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", ModBase.LogLevel.Developer);
+            ModBase.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", ModBase.LogType.Developer);
 
             // 错误处理：精准提示用户
             var fileName = PathUtils.GetFileNameFromPath(MusicCurrent);
@@ -86,7 +86,7 @@ public static class ModMusic
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
                     ModMain.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", ModMain.HintType.Critical);
                 else
-                    ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogType.Hint);
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
@@ -100,7 +100,7 @@ public static class ModMusic
             }
             else
             {
-                ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogType.Hint);
             }
 
             // 移除无效文件
@@ -151,7 +151,7 @@ public static class ModMusic
             if (MusicAllList is null)
             {
                 MusicAllList = new List<string>();
-                var musicDir = Path.Combine(ModBase.ExePath, "PCL", "Musics");
+                var musicDir = Path.Combine(Basics.ExecutableDirectory, "PCL", "Musics");
                 Directory.CreateDirectory(musicDir);
                 foreach (var file in Directories.EnumerateFilesAsync(musicDir).GetAwaiter().GetResult())
                 {
@@ -180,7 +180,7 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化音乐列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "初始化音乐列表失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -223,7 +223,7 @@ public static class ModMusic
                 else
                 {
                     ModMain.FrmMain.BtnExtraMusic.Show = true;
-                    var fileName = ModBase.GetFileNameWithoutExtentionFromPath(MusicCurrent);
+                    var fileName = Path.GetFileNameWithoutExtension(MusicCurrent);
                     var isSingle = MusicAllList.Count == 1;
                     string tipText;
                     if (MusicState == MusicStates.Pause)
@@ -250,7 +250,7 @@ public static class ModMusic
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "刷新背景音乐 UI 失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "刷新背景音乐 UI 失败", ModBase.LogType.Feedback);
             }
         });
     }
@@ -278,7 +278,7 @@ public static class ModMusic
 
             default:
                 {
-                    ModBase.Log("[Music] 音乐目前为停止状态，已强制尝试开始播放", ModBase.LogLevel.Debug);
+                    ModBase.Log("[Music] 音乐目前为停止状态，已强制尝试开始播放", ModBase.LogType.Debug);
                     MusicRefreshPlay(false);
                     break;
                 }
@@ -379,7 +379,7 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景音乐播放失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新背景音乐播放失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -400,7 +400,7 @@ public static class ModMusic
             return false;
         }
 
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             ModBase.Log("[Music] 已暂停播放");
             MusicNAudio?.Pause();
@@ -417,7 +417,7 @@ public static class ModMusic
             return false;
         }
 
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             ModBase.Log("[Music] 已恢复播放");
             try

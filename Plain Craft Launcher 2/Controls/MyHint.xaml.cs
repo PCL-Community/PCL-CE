@@ -41,7 +41,7 @@ public partial class MyHint
 
     // 触发点击事件
     private bool IsMouseDown;
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyHint()
     {
@@ -62,8 +62,8 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d),
-                    ModBase.GetWPFSize(1d));
+                BorderThickness = new Thickness(3d, ModBase.GetWpfSize(1d), ModBase.GetWpfSize(1d),
+                    ModBase.GetWpfSize(1d));
             else
                 BorderThickness = new Thickness(3d, 0d, 0d, 0d);
         }

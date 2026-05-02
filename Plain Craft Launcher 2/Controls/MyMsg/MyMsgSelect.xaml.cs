@@ -6,13 +6,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Core.App;
 
 namespace PCL;
 
 public partial class MyMsgSelect
 {
     private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     private int SelectedIndex = -1;
 
@@ -21,8 +22,8 @@ public partial class MyMsgSelect
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
+            Btn1.Name = Btn1.Name + GlobalUniqueId.GetUniqueId();
+            Btn2.Name = Btn2.Name + GlobalUniqueId.GetUniqueId();
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
             Btn1.Text = Converter.Button1;
@@ -34,7 +35,7 @@ public partial class MyMsgSelect
 
             Btn2.Text = Converter.Button2;
             Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = ModBase.GetWpfSize(1d);
             // 添加选择控件
             Btn1.IsEnabled = false;
             foreach (var rawContent in (IEnumerable)Converter.Content)
@@ -65,7 +66,7 @@ public partial class MyMsgSelect
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "选择弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "选择弹窗初始化失败", ModBase.LogType.Hint);
         }
 
         Loaded += Load;
@@ -106,7 +107,7 @@ public partial class MyMsgSelect
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "选择弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "选择弹窗加载失败", ModBase.LogType.Hint);
         }
     }
 
@@ -169,7 +170,7 @@ public partial class MyMsgSelect
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "拖拽移动失败", ModBase.LogType.Hint);
         }
     }
 }

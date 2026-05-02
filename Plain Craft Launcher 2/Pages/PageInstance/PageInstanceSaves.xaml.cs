@@ -1,4 +1,5 @@
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
@@ -192,12 +193,12 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         var target =
                             $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{TextUtils.GetStringMD5(saveLogo)}.png";
-                        ModBase.CopyFile(saveLogo, target);
+                        Files.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
                     else
                     {
-                        saveLogo = ModBase.PathImage + "Icons/NoIcon.png";
+                        saveLogo = Basics.GetAppImagePath("Icons/NoIcon.png");
                     }
 
                     var worldItem = new MyListItem
@@ -216,7 +217,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = Logo.ButtonOpen,
                         ToolTip = "打开"
                     };
-                    BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
+                    BtnOpen.Click += (_, _) => Basics.OpenPath(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
                         Logo = Logo.ButtonDelete,
@@ -237,7 +238,7 @@ public partial class PageInstanceSaves : IRefreshable
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "删除存档失败！", ModBase.LogLevel.Hint);
+                                ModBase.Log(ex, "删除存档失败！", ModBase.LogType.Hint);
                                 ModBase.RunInUiWait(() => Reload());
                             }
                         });
@@ -264,7 +265,7 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "复制失败……", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, "复制失败……", ModBase.LogType.Hint);
                         }
                     };
                     var BtnInfo = new MyIconButton
@@ -304,7 +305,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新存档UI失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "刷新存档UI失败", ModBase.LogType.Hint);
         }
     }
 
@@ -317,7 +318,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogType.Hint);
         }
     }
 
@@ -333,23 +334,23 @@ public partial class PageInstanceSaves : IRefreshable
                 saveFolders = new List<string>();
 
             if (ModBase.ModeDebug)
-                ModBase.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", ModBase.LogLevel.Debug);
+                ModBase.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", ModBase.LogType.Debug);
             PanList.Children.Clear();
             CheckQuickPlay();
 
             if (ModBase.ModeDebug)
             {
                 if ((bool)QuickPlayFeature)
-                    ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogLevel.Debug);
+                    ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogType.Debug);
                 else
-                    ModBase.Log("[World] 该实例不支持存档快捷启动", ModBase.LogLevel.Debug);
+                    ModBase.Log("[World] 该实例不支持存档快捷启动", ModBase.LogType.Debug);
             }
 
             RefreshUI(); // 确保UI刷新
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "载入存档列表失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "载入存档列表失败", ModBase.LogType.Hint);
         }
     }
 
@@ -363,7 +364,7 @@ public partial class PageInstanceSaves : IRefreshable
 
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(WorldPath);
+        Basics.OpenPath(WorldPath);
     }
 
     private void BtnPaste_Click(object sender, MouseButtonEventArgs e)
@@ -395,7 +396,7 @@ public partial class PageInstanceSaves : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "粘贴存档文件夹失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "粘贴存档文件夹失败", ModBase.LogType.Hint);
                 }
 
             if (Copied > 0)

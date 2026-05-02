@@ -1,6 +1,6 @@
-﻿using System;
-using System.IO;
 using PCL.Core.Utils.OS;
+using System;
+using System.IO;
 using Special = System.Environment.SpecialFolder;
 
 namespace PCL.Core.App;
@@ -22,7 +22,7 @@ public static class Paths
     private static string _sharedData;
     private static string _sharedLocalData;
     private static string _temp;
-    
+
     /// <summary>
     /// Per-instance data directory.
     /// </summary>
@@ -32,7 +32,7 @@ public static class Paths
     /// Shared synchronized data directory.
     /// </summary>
     public static string SharedData { get => _sharedData; set => _sharedData = value; }
-    
+
     /// <summary>
     /// Shared synchronized data directory of old versions.<br/>
     /// Keep the value just for migration, DO NOT USE IT.
@@ -43,7 +43,7 @@ public static class Paths
     /// Shared local data directory, used to put some large files that can be released or downloaded back anytime.
     /// </summary>
     public static string SharedLocalData { get => _sharedLocalData; set => _sharedLocalData = value; }
-    
+
     /// <summary>
     /// Temporary files directory (can be deleted anytime, except when the program is running).
     /// </summary>

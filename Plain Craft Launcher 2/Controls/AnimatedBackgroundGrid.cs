@@ -3,6 +3,7 @@ using PCL.Core.Utils;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -14,7 +15,7 @@ public class AnimatedBackgroundGrid : Grid
 
     private readonly DependencyProperty _animatableBrushProperty;
 
-    public readonly int Uuid = ModBase.GetUuid();
+    public readonly ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     private bool _isAnimating;
 

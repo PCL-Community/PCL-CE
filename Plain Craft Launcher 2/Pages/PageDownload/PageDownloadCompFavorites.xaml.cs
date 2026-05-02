@@ -299,7 +299,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -465,7 +465,7 @@ public partial class PageDownloadCompFavorites
                         ErrorMessage = Loader.Error.Message;
                     if (ErrorMessage.Contains("不是有效的 json 文件"))
                     {
-                        ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                        ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogType.Debug);
                         PageLoaderRestart();
                     }
 
@@ -507,7 +507,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogType.Hint);
         }
     }
 
@@ -590,7 +590,7 @@ public partial class PageDownloadCompFavorites
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogType.Hint);
                         }
                         finally
                         {
@@ -664,7 +664,7 @@ public partial class PageDownloadCompFavorites
             GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
             { ProgressWeight = 8d });
             var CheckLoader =
-                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
+                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({GlobalUniqueId.GetUniqueId()})", GetInfoAndDownloadLoader)
                 { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(CheckLoader);
@@ -674,7 +674,7 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogType.Hint);
         }
     }
 
@@ -737,7 +737,7 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogType.Hint);
             }
         };
         Body.Items.Add(NewItem);
@@ -783,7 +783,7 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "解析分享数据失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "解析分享数据失败", ModBase.LogType.Hint);
             }
         };
         Body.Items.Add(NewItem);

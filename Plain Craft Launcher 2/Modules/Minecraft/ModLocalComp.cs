@@ -95,7 +95,7 @@ public static class ModLocalComp
             // 为文件夹设置特定图标
             if (IsFolder) return "pack://application:,,,/images/Icons/Folder.png";
 
-            return ModBase.PathImage + "Icons/NoIcon.png";
+            return Basics.GetAppImagePath("Icons/NoIcon.png");
         }
 
         #region Litematic 文件处理
@@ -107,7 +107,7 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Litematic NBT 数据：{Path}", ModBase.LogLevel.Debug);
+                ModBase.Log($"开始读取 Litematic NBT 数据：{Path}", ModBase.LogType.Debug);
                 using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
@@ -120,7 +120,7 @@ public static class ModLocalComp
                     var metadataTag = scheNbt.RootTag.Get<NbtCompound>("Metadata");
                     if (metadataTag is not null)
                     {
-                        ModBase.Log("找到 Litematic Metadata 节点", ModBase.LogLevel.Debug);
+                        ModBase.Log("找到 Litematic Metadata 节点", ModBase.LogType.Debug);
 
                         // 读取名称
                         var nameTag = metadataTag.Get<NbtString>("Name");
@@ -169,11 +169,11 @@ public static class ModLocalComp
                     }
                     else
                     {
-                        ModBase.Log("未找到 Litematic Metadata 节点", ModBase.LogLevel.Debug);
+                        ModBase.Log("未找到 Litematic Metadata 节点", ModBase.LogType.Debug);
                     }
                 }
 
-                ModBase.Log("Litematic NBT 数据读取完成", ModBase.LogLevel.Debug);
+                ModBase.Log("Litematic NBT 数据读取完成", ModBase.LogType.Debug);
             }
             catch (Exception ex)
             {
@@ -192,7 +192,7 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Schem NBT 数据：{Path}", ModBase.LogLevel.Debug);
+                ModBase.Log($"开始读取 Schem NBT 数据：{Path}", ModBase.LogType.Debug);
 
                 // 使用自动检测压缩格式
                 using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -246,7 +246,7 @@ public static class ModLocalComp
                     }
                 }
 
-                ModBase.Log("Schem NBT 数据读取完成", ModBase.LogLevel.Debug);
+                ModBase.Log("Schem NBT 数据读取完成", ModBase.LogType.Debug);
             }
             catch (Exception ex)
             {
@@ -265,7 +265,7 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Schematic NBT 数据：{Path}", ModBase.LogLevel.Debug);
+                ModBase.Log($"开始读取 Schematic NBT 数据：{Path}", ModBase.LogType.Debug);
                 using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
@@ -283,9 +283,9 @@ public static class ModLocalComp
                     // 读取材料列表
                     var materialsTag = scheNbt.RootTag.Get<NbtString>("Materials");
                     if (materialsTag is not null)
-                        ModBase.Log($"Schematic 材料类型：{materialsTag.Value}", ModBase.LogLevel.Debug);
+                        ModBase.Log($"Schematic 材料类型：{materialsTag.Value}", ModBase.LogType.Debug);
 
-                    ModBase.Log("Schematic NBT 数据读取完成", ModBase.LogLevel.Debug);
+                    ModBase.Log("Schematic NBT 数据读取完成", ModBase.LogType.Debug);
                 }
             }
             catch (Exception ex)
@@ -305,7 +305,7 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 NBT 结构文件数据：{Path}", ModBase.LogLevel.Debug);
+                ModBase.Log($"开始读取 NBT 结构文件数据：{Path}", ModBase.LogType.Debug);
                 using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
@@ -451,7 +451,7 @@ public static class ModLocalComp
                     if (IsFolder)
                         _Name = PathUtils.GetFolderNameFromPath(ActualPath);
                     else
-                        _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
+                        _Name = System.IO.Path.GetFileNameWithoutExtension(Path);
                 }
 
                 return _Name;
@@ -968,7 +968,7 @@ public static class ModLocalComp
                 if (Path.EndsWithF(".litematic", true) || Path.EndsWithF(".nbt", true) ||
                     Path.EndsWithF(".schem", true) || Path.EndsWithF(".schematic", true))
                 {
-                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
+                    _Name = System.IO.Path.GetFileNameWithoutExtension(Path);
                     IsLoaded = true;
                     return;
                 }
@@ -1056,7 +1056,7 @@ public static class ModLocalComp
             {
                 try
                 {
-                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
+                    _Name = System.IO.Path.GetFileNameWithoutExtension(Path);
                     // 根据文件类型加载数据
                     if (Path.EndsWithF(".litematic", true))
                     {
@@ -1078,7 +1078,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "投影文件信息获取失败（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "投影文件信息获取失败（" + Path + "）", ModBase.LogType.Developer);
                     _FileUnavailableReason = ex;
                 }
 
@@ -1096,12 +1096,12 @@ public static class ModLocalComp
             }
             catch (UnauthorizedAccessException ex)
             {
-                ModBase.Log(ex, "资源文件由于无权限无法打开（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "资源文件由于无权限无法打开（" + Path + "）", ModBase.LogType.Developer);
                 _FileUnavailableReason = new UnauthorizedAccessException("没有读取此文件的权限，请尝试右键以管理员身份运行 PCL", ex);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "资源文件无法打开（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "资源文件无法打开（" + Path + "）", ModBase.LogType.Developer);
                 _FileUnavailableReason = ex;
             }
             finally
@@ -1130,7 +1130,7 @@ public static class ModLocalComp
                     string InfoString = null;
                     if (InfoEntry is not null)
                     {
-                        InfoString = ModBase.ReadFile(InfoEntry.Open());
+                        InfoString = Files.ReadAllTextOrEmpty(InfoEntry.Open());
                         if (InfoString.Length < 15)
                             InfoString = null;
                     }
@@ -1167,10 +1167,10 @@ public static class ModLocalComp
                         if (LogoItem is not null)
                         {
                             var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
+                            Logo = System.IO.Path.Combine(Basics.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
                             {
-                                ModBase.WriteFile(Logo, EntryStream);
+                                Files.WriteFile(Logo, EntryStream);
                             }
                         }
                     }
@@ -1215,7 +1215,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 mcmod.info 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 mcmod.info 时出现未知错误（" + Path + "）", ModBase.LogType.Developer);
                 }
             } while (false);
 
@@ -1231,7 +1231,7 @@ public static class ModLocalComp
                     string FabricText = null;
                     if (FabricEntry != null)
                     {
-                        FabricText = ModBase.ReadFile(FabricEntry.Open(), Encoding.UTF8);
+                        FabricText = Files.ReadAllTextOrEmpty(FabricEntry.Open(), Encoding.UTF8);
                         if (!FabricText.Contains("schemaVersion")) FabricText = null;
                     }
 
@@ -1260,10 +1260,10 @@ public static class ModLocalComp
                         if (LogoItem != null)
                         {
                             var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
+                            Logo = System.IO.Path.Combine(Basics.PathTemp, "Cache", "Images", $"{md5}.png");
                             using (var EntryStream = LogoItem.Open())
                             {
-                                ModBase.WriteFile(Logo, EntryStream);
+                                Files.WriteFile(Logo, EntryStream);
                             }
                         }
                     }
@@ -1275,7 +1275,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 fabric.mod.json 时出错（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 fabric.mod.json 时出错（" + Path + "）", ModBase.LogType.Developer);
                 }
             } while (false);
 
@@ -1292,7 +1292,7 @@ public static class ModLocalComp
                     string QuiltText = null;
                     if (QuiltEntry is not null)
                     {
-                        QuiltText = ModBase.ReadFile(QuiltEntry.Open(), Encoding.UTF8);
+                        QuiltText = Files.ReadAllTextOrEmpty(QuiltEntry.Open(), Encoding.UTF8);
                         if (!QuiltText.Contains("schema_version"))
                             QuiltText = null;
                     }
@@ -1325,10 +1325,10 @@ public static class ModLocalComp
                             if (LogoItem is not null)
                             {
                                 var md5 = TextUtils.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                                Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
+                                Logo = System.IO.Path.Combine(Basics.PathTemp, "Cache", "Images", $"{md5}.png");
                                 using (var EntryStream = LogoItem.Open())
                                 {
-                                    ModBase.WriteFile(Logo, EntryStream);
+                                    Files.WriteFile(Logo, EntryStream);
                                 }
                             }
                         }
@@ -1338,7 +1338,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 quilt.mod.json 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 quilt.mod.json 时出现未知错误（" + Path + "）", ModBase.LogType.Developer);
                 }
             } while (false);
 
@@ -1499,7 +1499,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 mods.toml 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "读取 mods.toml 时出现未知错误（" + Path + "）", ModBase.LogType.Developer);
             }
 
             #endregion
@@ -1515,7 +1515,7 @@ public static class ModLocalComp
                     string FmlText = null;
                     if (FmlEntry is not null)
                     {
-                        FmlText = ModBase.ReadFile(FmlEntry.Open(), Encoding.UTF8);
+                        FmlText = Files.ReadAllTextOrEmpty(FmlEntry.Open(), Encoding.UTF8);
                         if (!FmlText.Contains("Lnet/minecraftforge/fml/common/Mod;"))
                             FmlText = null;
                     }
@@ -1618,22 +1618,22 @@ public static class ModLocalComp
                     try
                     {
                         var md5 = TextUtils.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path);
-                        Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
+                        Logo = System.IO.Path.Combine(Basics.PathTemp, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {
-                            ModBase.WriteFile(Logo, entryStream);
+                            Files.WriteFile(Logo, entryStream);
                         }
 
-                        ModBase.Log("成功提取资源包图标：" + Path, ModBase.LogLevel.Debug);
+                        ModBase.Log("成功提取资源包图标：" + Path, ModBase.LogType.Debug);
                     }
                     catch (Exception logoEx)
                     {
-                        ModBase.Log(logoEx, "提取 pack.png 图标失败（" + Path + "）", ModBase.LogLevel.Developer);
+                        ModBase.Log(logoEx, "提取 pack.png 图标失败（" + Path + "）", ModBase.LogType.Developer);
                     }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "识别资源包图标时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "识别资源包图标时出现未知错误（" + Path + "）", ModBase.LogType.Developer);
             }
 
             #endregion
@@ -1648,7 +1648,7 @@ public static class ModLocalComp
                     var MetaEntry = Jar.GetEntry("META-INF/MANIFEST.MF");
                     if (MetaEntry is not null)
                     {
-                        var MetaString = ModBase.ReadFile(MetaEntry.Open()).Replace(" :", ":").Replace(": ", ":");
+                        var MetaString = Files.ReadAllTextOrEmpty(MetaEntry.Open()).Replace(" :", ":").Replace(": ", ":");
                         if (MetaString.Contains("Implementation-Version:"))
                         {
                             MetaString = MetaString.Substring(MetaString.IndexOfF("Implementation-Version:") +
@@ -1661,7 +1661,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log("获取 META-INF 中的版本信息失败（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log("获取 META-INF 中的版本信息失败（" + Path + "）", ModBase.LogType.Developer);
                     Version = null;
                 }
 
@@ -1778,7 +1778,7 @@ public static class ModLocalComp
                     var Info = new FileInfo(Path);
                     var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-C")
                         .ToString();
-                    var Cached = IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
+                    var Cached = IniFile.Open(Basics.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
                     if (!string.IsNullOrEmpty(Cached) && Cached.RegexCheck(@"^\d+$")) // #5062
                     {
                         _CurseForgeHash = uint.Parse(Cached);
@@ -1787,7 +1787,7 @@ public static class ModLocalComp
 
                     // 读取文件
                     var data = new List<byte>();
-                    foreach (var b in ModBase.ReadFileBytes(Path))
+                    foreach (var b in File.ReadAllBytes(Path))
                     {
                         if (b == 9 || b == 10 || b == 13 || b == 32)
                             continue;
@@ -1838,7 +1838,7 @@ public static class ModLocalComp
                     h = h ^ (h >> 15);
                     _CurseForgeHash = h;
                     // 写入缓存
-                    IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, h.ToString());
+                    IniFile.Open(Basics.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, h.ToString());
                 }
 
                 return (uint)_CurseForgeHash;
@@ -1860,7 +1860,7 @@ public static class ModLocalComp
                     var Info = new FileInfo(Path);
                     var CacheKey = TextUtils.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-M")
                         .ToString();
-                    var Cached = IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
+                    var Cached = IniFile.Open(Basics.PathTemp + @"Cache\CompHash.ini").Read(CacheKey);
                     if (!string.IsNullOrEmpty(Cached))
                     {
                         _ModrinthHash = Cached;
@@ -1870,7 +1870,7 @@ public static class ModLocalComp
                     // 计算 SHA1
                     _ModrinthHash = Files.GetFileSHA1Async(Path).GetAwaiter().GetResult();
                     // 写入缓存
-                    IniFile.Open(ModBase.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, _ModrinthHash);
+                    IniFile.Open(Basics.PathTemp + @"Cache\CompHash.ini").Write(CacheKey, _ModrinthHash);
                 }
 
                 return _ModrinthHash;
@@ -2041,17 +2041,17 @@ public static class ModLocalComp
                 });
 
             // 获取本地文件缓存
-            var CachePath = ModBase.PathTemp + @"Cache\LocalComp.json";
+            var CachePath = Basics.PathTemp + @"Cache\LocalComp.json";
             var Cache = new JObject();
             try
             {
-                var CacheContent = ModBase.ReadFile(CachePath);
+                var CacheContent = Files.ReadAllTextOrEmpty(CachePath);
                 if (!string.IsNullOrWhiteSpace(CacheContent))
                 {
                     Cache = (JObject)ModBase.GetJson(CacheContent);
                     if (!Cache.ContainsKey("version") || Cache["version"].ToObject<int>() != LocalModCacheVersion)
                     {
-                        ModBase.Log("[Mod] 本地 Mod 信息缓存版本已过期，将弃用这些缓存信息", ModBase.LogLevel.Debug);
+                        ModBase.Log("[Mod] 本地 Mod 信息缓存版本已过期，将弃用这些缓存信息", ModBase.LogType.Debug);
                         Cache = new JObject();
                     }
                 }
@@ -2316,7 +2316,7 @@ public static class ModLocalComp
             Cache[Entry.ModrinthHash + McInstance + string.Join("", ModLoaders)] = Entry.ToJson();
         }
 
-        ModBase.WriteFile(ModBase.PathTemp + "Cache\\LocalComp.json",
+        Files.WriteFile(Basics.PathTemp + "Cache\\LocalComp.json",
             Cache.ToString(ModBase.ModeDebug ? Formatting.Indented : Formatting.None));
 
         // 刷新 UI

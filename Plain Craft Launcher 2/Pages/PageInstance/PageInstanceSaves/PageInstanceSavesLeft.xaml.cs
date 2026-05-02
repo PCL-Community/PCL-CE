@@ -1,8 +1,10 @@
 using PCL.Core.UI;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -23,7 +25,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        ModBase.OpenExplorer($@"{CurrentSave}\");
+        Basics.OpenPath($@"{CurrentSave}\");
     }
 
     #region 龙猫牌 页面管理
@@ -99,7 +101,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogType.Feedback);
         }
         finally
         {

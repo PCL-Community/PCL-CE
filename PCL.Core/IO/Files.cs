@@ -174,13 +174,19 @@ public static class Files
                 FileShare.ReadWrite, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
             await using var destinationStream = new FileStream(fullToPath, FileMode.Create, FileAccess.Write,
                 FileShare.Read, bufferSize, FileOptions.Asynchronous);
-            await sourceStream.CopyToAsync(destinationStream, cancelToken);
+            await sourceStream.CopyToAsync(destinationStream, cancelToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             throw new IOException($"复制文件出错：{fromPath} -> {toPath}", ex);
         }
     }
+
+    /// <inheritdoc cref="CopyFileAsync"/>
+    public static void CopyFile(string fromPath, string toPath)
+        => CopyFileAsync(fromPath, toPath).GetAwaiter().GetResult();
+
+
 
     public static async Task CopyDirectoryAsync(string sourceDir, string destDir, CancellationToken cancelToken = default)
     {
@@ -201,16 +207,21 @@ public static class Files
         await Parallel.ForEachAsync(files, parallelOptions, async (file, ct) =>
         {
             var destFile = Path.Combine(destDir, Path.GetFileName(file));
-            await CopyFileAsync(file, destFile, ct);
-        });
+            await CopyFileAsync(file, destFile, ct).ConfigureAwait(false);
+        }).ConfigureAwait(false);
 
         // 并行处理子目录
         await Parallel.ForEachAsync(directories, parallelOptions, async (subDir, ct) =>
         {
             var destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
-            await CopyDirectoryAsync(subDir, destSubDir, ct);
-        });
+            await CopyDirectoryAsync(subDir, destSubDir, ct).ConfigureAwait(false);
+        }).ConfigureAwait(false);
     }
+
+    /// <inheritdoc cref="CopyDirectoryAsync"/>
+    public static void CopyDirectory(string sourceDir, string destDir)
+        => CopyDirectoryAsync(sourceDir, destDir).GetAwaiter().GetResult();
+
 
     /// <summary>
     /// 读取文件为字节数组，支持读取被占用的文件。
@@ -237,6 +248,11 @@ public static class Files
         }
     }
 
+    /// <inheritdoc cref="ReadAllBytesOrEmptyAsync"/>
+    public static byte[] ReadAllBytesOrEmpty(string filePath) =>
+        ReadAllBytesOrEmptyAsync(filePath).GetAwaiter().GetResult();
+
+
     /// <summary>
     /// 读取文件为字符串。
     /// </summary>
@@ -250,8 +266,8 @@ public static class Files
         {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
-            if (encoding == null) return await File.ReadAllTextAsync(fullPath, cancelToken);
-            return await File.ReadAllTextAsync(fullPath, encoding, cancelToken);
+            if (encoding == null) return await File.ReadAllTextAsync(fullPath, cancelToken).ConfigureAwait(false);
+            return await File.ReadAllTextAsync(fullPath, encoding, cancelToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -259,6 +275,13 @@ public static class Files
             return "";
         }
     }
+
+    /// <inheritdoc cref="ReadAllTextOrEmptyAsync(string,System.Text.Encoding?,System.Threading.CancellationToken)"/>
+
+    public static string ReadAllTextOrEmpty(string filePath, Encoding? encoding = null) =>
+        ReadAllTextOrEmptyAsync(filePath, encoding).GetAwaiter().GetResult();
+
+
 
     /// <summary>
     /// 从流中读取所有文本。
@@ -286,6 +309,12 @@ public static class Files
             return string.Empty;
         }
     }
+
+    /// <inheritdoc cref="ReadAllTextOrEmptyAsync(Stream,System.Text.Encoding?,System.Threading.CancellationToken)"/>
+
+    public static string ReadAllTextOrEmpty(Stream stream, Encoding? encoding = null) =>
+        ReadAllTextOrEmptyAsync(stream, encoding).GetAwaiter().GetResult();
+
 
     /// <summary>
     /// 异步读取文件到流。
@@ -338,14 +367,19 @@ public static class Files
             await using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 encoding ??= EncodingDetector.DetectEncoding(fileStream);
             // 注：从此处开始，编码检测使用的 stream 已经销毁
-            await File.AppendAllTextAsync(fullPath, text, encoding, cancelToken);
+            await File.AppendAllTextAsync(fullPath, text, encoding, cancelToken).ConfigureAwait(false);
         }
         else
         {
             encoding ??= new UTF8Encoding(false); // 无 BOM 的 UTF-8
-            await File.WriteAllTextAsync(fullPath, text, encoding, cancelToken);
+            await File.WriteAllTextAsync(fullPath, text, encoding, cancelToken).ConfigureAwait(false);
         }
     }
+
+    /// <inheritdoc cref="WriteFileAsync(string,string,bool,System.Text.Encoding?,System.Threading.CancellationToken)"/>
+    public static void WriteFile(string filePath, string text, bool append = false, Encoding? encoding = null)
+        => WriteFileAsync(filePath, text, append, encoding).GetAwaiter().GetResult();
+
 
     /// <summary>
     /// 写入字节数组到文件，自动创建目录。
@@ -367,8 +401,12 @@ public static class Files
 
         var fileMode = append ? FileMode.Append : FileMode.Create;
         await using var fileStream = new FileStream(fullPath, fileMode, FileAccess.Write, FileShare.Read);
-        await fileStream.WriteAsync(content.AsMemory(), cancelToken);
+        await fileStream.WriteAsync(content.AsMemory(), cancelToken).ConfigureAwait(false);
     }
+
+    /// <inheritdoc cref="WriteFileAsync(string,byte[],bool,System.Threading.CancellationToken)"/>
+    public static void WriteFile(string filePath, byte[] content, bool append = false)
+        => WriteFileAsync(filePath, content, append).GetAwaiter().GetResult();
 
     /// <summary>
     /// 将流写入文件，自动创建目录。
@@ -401,6 +439,10 @@ public static class Files
             return false;
         }
     }
+
+    /// <inheritdoc cref="WriteFileAsync(string,Stream?,System.Threading.CancellationToken)"/>
+    public static void WriteFile(string filePath, Stream? stream)
+        => WriteFileAsync(filePath, stream).GetAwaiter().GetResult();
 
     #endregion
 

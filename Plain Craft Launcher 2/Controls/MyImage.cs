@@ -1,4 +1,4 @@
-using PCL.Core.IO;
+using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -46,7 +46,7 @@ public class MyImage : Image
                     ModBase.Log(ex, $"加载图片失败（{value}）");
                     try
                     {
-                        if (value.StartsWithF(ModBase.PathTemp) && File.Exists(value)) File.Delete(value);
+                        if (value.StartsWithF(Basics.PathTemp) && File.Exists(value)) File.Delete(value);
                     }
                     catch
                     {
@@ -106,7 +106,7 @@ public class MyImage : Image
             catch (Exception ex)
             {
                 // 更换备用地址
-                ModBase.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", ModBase.LogType.Developer);
                 TempPath = GetTempPath(Url);
                 TempFile = new FileInfo(TempPath);
                 if (EnableCache && TempFile.Exists)
@@ -131,7 +131,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string Url)
     {
-        return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{TextUtils.GetStringMD5(Url)}.png");
+        return Path.Combine(Basics.PathTemp, "Cache", "Images", $"{TextUtils.GetStringMD5(Url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();

@@ -1,3 +1,6 @@
+using PCL.Core.App;
+using PCL.Core.UI.Media;
+using PCL.Core.Utils.Exts;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -5,8 +8,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PCL.Core.UI.Media;
-using PCL.Core.Utils.Exts;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 // 一个万能的自动图片类型转换工具类
@@ -35,8 +36,8 @@ public class MyBitmap
             try
             {
                 FilePathOrResourceName =
-                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.PathImage);
-                if (FilePathOrResourceName.StartsWithF(ModBase.PathImage))
+                    FilePathOrResourceName.Replace("pack://application:,,,/images/", Basics.AssemblyImagePath);
+                if (FilePathOrResourceName.StartsWithF(Basics.AssemblyImagePath))
                 {
                     if (_Cache.ContainsKey(FilePathOrResourceName))
                     {
@@ -81,7 +82,7 @@ public class MyBitmap
                     throw new Exception($"加载 MyBitmap 意外失败（{FilePathOrResourceName}）", ex);
                 }
 
-                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", ModBase.LogType.Developer);
                 break;
             }
         } while (false);

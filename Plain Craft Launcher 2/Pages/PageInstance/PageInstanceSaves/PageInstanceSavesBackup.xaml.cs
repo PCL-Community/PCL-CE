@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
@@ -104,7 +105,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "应用快照过程中出现错误", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "应用快照过程中出现错误", ModBase.LogType.Msgbox);
                     }
                 };
 
@@ -119,7 +120,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     try
                     {
                         var savePath = SystemDialogs.SelectSaveFile("选择保存备份导出的位置", $"{item.Name}.zip",
-                            "压缩文件(*.zip)|*.zip", ModBase.ExePath);
+                            "压缩文件(*.zip)|*.zip", Basics.ExecutableDirectory);
                         if (string.IsNullOrEmpty(savePath))
                             return;
                         ModMain.Hint("快照导出中，请勿执行其他操作！");
@@ -139,7 +140,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "备份导出过程中出现错误", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "备份导出过程中出现错误", ModBase.LogType.Msgbox);
                     }
                 };
 
@@ -204,7 +205,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取备份信息失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "获取备份信息失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -239,7 +240,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "备份过程中出现错误", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "备份过程中出现错误", ModBase.LogType.Msgbox);
         }
     }
 

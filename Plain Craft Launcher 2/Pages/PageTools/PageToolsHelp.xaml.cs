@@ -85,7 +85,7 @@ public partial class PageToolsHelp : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载帮助列表 UI 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "加载帮助列表 UI 失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -103,16 +103,16 @@ public partial class PageToolsHelp : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理帮助项目点击时发生意外错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "处理帮助项目点击时发生意外错误", ModBase.LogType.Feedback);
         }
     }
 
     public static void EnterHelpPage(string Location)
     {
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             if (!(ModMain.HelpLoader.State == Enums.LoadState.Finished))
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+                ModMain.HelpLoader.WaitForExit(GlobalUniqueId.GetUniqueId());
             var Entry = new ModMain.HelpEntry(Location);
             ModBase.RunInUi(() =>
             {
@@ -121,17 +121,17 @@ public partial class PageToolsHelp : IRefreshable
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
                     { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
                 else
-                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
+                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogType.Debug);
             });
         });
     }
 
     public static void EnterHelpPage(ModMain.HelpEntry Entry)
     {
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             if (!(ModMain.HelpLoader.State == Enums.LoadState.Finished))
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+                ModMain.HelpLoader.WaitForExit(GlobalUniqueId.GetUniqueId());
             ModBase.RunInUi(() =>
             {
                 var FrmHelpDetail = new PageOtherHelpDetail();
@@ -139,7 +139,7 @@ public partial class PageToolsHelp : IRefreshable
                     ModMain.FrmMain.PageChange(new FormMain.PageStackData
                     { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
                 else
-                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
+                    ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogType.Debug);
             });
         });
     }
@@ -147,7 +147,7 @@ public partial class PageToolsHelp : IRefreshable
     public static PageOtherHelpDetail GetHelpPage(string Location)
     {
         if (!(ModMain.HelpLoader.State == Enums.LoadState.Finished))
-            ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+            ModMain.HelpLoader.WaitForExit(GlobalUniqueId.GetUniqueId());
         var FrmHelpDetail = new PageOtherHelpDetail();
         if (FrmHelpDetail.Init(new ModMain.HelpEntry(Location))) return FrmHelpDetail;
 
@@ -180,9 +180,9 @@ public partial class PageToolsHelp : IRefreshable
             var QueryList = new List<SearchEntry<ModMain.HelpEntry>>();
             foreach (var Entry in ModMain.HelpLoader.Output)
             {
-                if (!Entry.ShowInSearch || (StringExtension.Val(ModBase.VersionBranchCode) == 50d && !Entry.ShowInPublic))
+                if (!Entry.ShowInSearch || (StringExtension.Val(Basics.BranchCode) == 50d && !Entry.ShowInPublic))
                     continue;
-                if (!Entry.ShowInSearch || (StringExtension.Val(ModBase.VersionBranchCode) != 50d && !Entry.ShowInSnapshot))
+                if (!Entry.ShowInSearch || (StringExtension.Val(Basics.BranchCode) != 50d && !Entry.ShowInSnapshot))
                     continue;
                 QueryList.Add(new SearchEntry<ModMain.HelpEntry>
                 (

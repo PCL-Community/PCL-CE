@@ -3,6 +3,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -32,7 +33,7 @@ public partial class MyExtraTextButton
     private bool IsLeftMouseHeld;
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyExtraTextButton()
     {

@@ -1,6 +1,7 @@
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -158,7 +159,7 @@ public partial class PageSetupLeft
                     }
                 case 2:
                     {
-                        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+                        ShellUtils.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
                         break;
                     }
             }
@@ -329,7 +330,7 @@ public partial class PageSetupLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"切换分页面失败（ID {(int)ID}）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, $"切换分页面失败（ID {(int)ID}）", ModBase.LogType.Feedback);
         }
         finally
         {

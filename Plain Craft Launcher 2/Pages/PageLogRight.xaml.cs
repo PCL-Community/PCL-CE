@@ -1,9 +1,10 @@
+using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using PCL.Core.App;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -29,7 +30,7 @@ public partial class PageLogRight
         PanLogCard.Inlines.Add(new Run("实时日志"));
         PanLogCard.Inlines.Add(new Run(" | "));
         LabDebug = new Run("0 Debug")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"] };
+        { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"] };
         PanLogCard.Inlines.Add(LabDebug);
         PanLogCard.Inlines.Add(new Run(" | "));
         LabInfo = new Run("0 Info")
@@ -41,15 +42,15 @@ public partial class PageLogRight
         PanLogCard.Inlines.Add(LabInfo);
         PanLogCard.Inlines.Add(new Run(" | "));
         LabWarn = new Run("0 Warn")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushWarn"] };
+        { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushWarn"] };
         PanLogCard.Inlines.Add(LabWarn);
         PanLogCard.Inlines.Add(new Run(" | "));
         LabError = new Run("0 Error")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushError"] };
+        { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushError"] };
         PanLogCard.Inlines.Add(LabError);
         PanLogCard.Inlines.Add(new Run(" | "));
         LabFatal = new Run("0 Fatal")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushFatal"] };
+        { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushFatal"] };
         PanLogCard.Inlines.Add(LabFatal);
     }
 
@@ -150,7 +151,7 @@ public partial class PageLogRight
         File.WriteAllLines(SavePath, ModMain.FrmLogLeft.CurrentLog.FullLog);
         // TODO(i18n): 文本 @ 左下角提示 - 导出成功提示
         ModMain.Hint("日志已导出！", ModMain.HintType.Finish);
-        ModBase.OpenExplorer(SavePath);
+        Basics.OpenPath(SavePath);
     }
 
     private void BtnOperationKill_Click(object sender, RouteEventArgs e)
@@ -183,7 +184,7 @@ public partial class PageLogRight
                 ModMain.Hint("运行栈已导出！", ModMain.HintType.Finish);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
-            ModBase.OpenExplorer(SavePath);
+            Basics.OpenPath(SavePath);
         });
     }
 

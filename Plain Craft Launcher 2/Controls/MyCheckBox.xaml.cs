@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -51,7 +52,7 @@ public partial class MyCheckBox
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyCheckBox()
     {

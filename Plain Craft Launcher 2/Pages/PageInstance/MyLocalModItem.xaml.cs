@@ -3,11 +3,12 @@ using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.IO;
 
 namespace PCL;
 
@@ -66,13 +67,13 @@ public partial class MyLocalCompItem
                 {
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
                         {
-                            DescFileName = ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path);
+                            DescFileName = Path.GetFileNameWithoutExtension(Entry.Path);
                             break;
                         }
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
                         {
                             DescFileName =
-                                ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "")
+                                Path.GetFileNameWithoutExtension(Entry.Path.Replace(".disabled", "")
                                     .Replace(".old", "")); // McMod.McModState.Unavailable
                             break;
                         }
@@ -181,7 +182,7 @@ public partial class MyLocalCompItem
                     // Source="/Images/Icons/Unavailable.png" />
                 }
 
-                ImgState.Source = new MyBitmap(ModBase.PathImage + $"Icons/{Entry.State}.png");
+                ImgState.Source = new MyBitmap(Basics.GetAppImagePath($"Icons/{Entry.State}.png"));
             }
 
             // 标签
@@ -278,7 +279,7 @@ public partial class MyLocalCompItem
                 var modrinthUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
                 if (modrinthUrl is not null)
                 {
-                    ModBase.OpenWebsite(modrinthUrl);
+                    ShellUtils.OpenWebsite(modrinthUrl);
                     return;
                 }
             }
@@ -287,13 +288,13 @@ public partial class MyLocalCompItem
                 var curseForgeUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("curseforge.com"));
                 if (curseForgeUrl is not null)
                 {
-                    ModBase.OpenWebsite(curseForgeUrl);
+                    ShellUtils.OpenWebsite(curseForgeUrl);
                     return;
                 }
             }
         }
 
-        ModBase.Log("打开更新日志出现错误", ModBase.LogLevel.Hint);
+        ModBase.Log("打开更新日志出现错误", ModBase.LogType.Hint);
     }
 
     // 触发更新
@@ -416,7 +417,7 @@ public partial class MyLocalCompItem
 
     #region 基础属性
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     // Logo
     public string Logo
@@ -790,7 +791,7 @@ public partial class MyLocalCompItem
                     CornerRadius = new CornerRadius(3d),
                     RenderTransform = new ScaleTransform(0.8d, 0.8d),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(ModBase.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d

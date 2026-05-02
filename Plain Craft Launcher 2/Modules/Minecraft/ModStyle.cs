@@ -92,7 +92,7 @@ internal static class ModStyle
         {
             if (Dispatcher is null)
             {
-                ModBase.Log("[TimerRun] Dispatcher is null, unable to run", ModBase.LogLevel.Critical);
+                ModBase.Log("[TimerRun] Dispatcher is null, unable to run", ModBase.LogType.Critical);
                 return;
             }
 

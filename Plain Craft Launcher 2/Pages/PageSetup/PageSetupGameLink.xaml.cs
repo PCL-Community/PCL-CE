@@ -81,7 +81,7 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化联机页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化联机页设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();
@@ -120,7 +120,7 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "改变配置项失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "改变配置项失败", ModBase.LogType.Hint);
             }
     }
 
@@ -148,7 +148,7 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogType.Hint);
             BtnNetTest.IsEnabled = true;
             BtnNetTest.Text = "开始测试";
         }

@@ -1,12 +1,13 @@
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.UI.Icons;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.UI.Icons;
 using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
@@ -87,9 +88,9 @@ public partial class PageInstanceScreenshot : IRefreshable
             PanContent.Visibility = Visibility.Visible;
         }
     }
-    
+
     private static string[] AllowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
-    
+
     private async Task LoadFileList()
     {
         ModBase.Log("[Screenshot] 刷新截图文件");
@@ -191,7 +192,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "打开截图失败！", ModBase.LogLevel.Hint);
+                        ModBase.Log(ex, "打开截图失败！", ModBase.LogType.Hint);
                     }
                 }; // 使用系统默认程序打开
                 Grid.SetRow(image, 1);
@@ -274,7 +275,7 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void BtnOpen_Click(MyIconTextButton sender, EventArgs e)
     {
-        ModBase.OpenExplorer(GetPathFromSender(sender));
+        Basics.OpenPath(GetPathFromSender(sender));
     }
 
     private void BtnDelete_Click(MyIconTextButton sender, EventArgs e)
@@ -289,7 +290,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除截图失败！", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "删除截图失败！", ModBase.LogType.Hint);
         }
     }
 
@@ -326,6 +327,6 @@ public partial class PageInstanceScreenshot : IRefreshable
     {
         if (!Directory.Exists(ScreenshotPath))
             Directory.CreateDirectory(ScreenshotPath);
-        ModBase.OpenExplorer(ScreenshotPath);
+        Basics.OpenPath(ScreenshotPath);
     }
 }

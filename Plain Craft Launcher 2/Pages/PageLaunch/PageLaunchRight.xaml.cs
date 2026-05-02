@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.Exts;
@@ -70,9 +71,9 @@ public partial class PageLaunchRight : IRefreshable
                 catch (Exception ex)
                 {
                     ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                        ModBase.ModeDebug ? ModBase.LogType.Msgbox : ModBase.LogType.Hint);
                 }
-            }, $"刷新主页 #{ModBase.GetUuid()}");
+            }, $"刷新主页 #{GlobalUniqueId.GetUniqueId()}");
     }
 
     private void RefreshReal()
@@ -86,7 +87,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             // 本地文件
             LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = ModBase.ReadFile(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml"));
+            content = Files.ReadAllTextOrEmpty(Path.Combine(Basics.ExecutableDirectory, "PCL", "Custom.xaml"));
         }
         else if (uiCustomType == 2)
         {
@@ -217,7 +218,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
 
-        var cachePath = Path.Combine(ModBase.PathTemp, "Cache", "Custom.xaml");
+        var cachePath = Path.Combine(Basics.PathTemp, "Cache", "Custom.xaml");
         var cachedUrl = (string)States.UI.SavedHomepageUrl;
 
         if (url == cachedUrl && File.Exists(cachePath))
@@ -225,7 +226,7 @@ public partial class PageLaunchRight : IRefreshable
             LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
             // 后台更新缓存
             OnlineLoader.Start(url);
-            return ModBase.ReadFile(cachePath);
+            return Files.ReadAllTextOrEmpty(cachePath);
         }
 
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
@@ -255,7 +256,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogLevel.Hint);
+                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogType.Hint);
             }
         }
 
@@ -330,7 +331,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch (Exception exx)
             {
-                ModBase.Log(exx, "联网获取主页版本失败", ModBase.LogLevel.Developer);
+                ModBase.Log(exx, "联网获取主页版本失败", ModBase.LogType.Developer);
                 ModBase.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{VersionAddress}");
             }
 
@@ -341,7 +342,7 @@ public partial class PageLaunchRight : IRefreshable
                 ModBase.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
                 States.UI.SavedHomepageUrl = Address;
                 States.UI.SavedHomepageVersion = Version;
-                ModBase.WriteFile(ModBase.PathTemp + @"Cache\Custom.xaml", FileContent);
+                Files.WriteFile(Basics.PathTemp + @"Cache\Custom.xaml", FileContent);
             }
 
             // 要求刷新
@@ -349,7 +350,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"下载主页失败（{Address}）", ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(ex, $"下载主页失败（{Address}）", ModBase.ModeDebug ? ModBase.LogType.Msgbox : ModBase.LogType.Hint);
         }
     }
 
@@ -421,7 +422,7 @@ public partial class PageLaunchRight : IRefreshable
                 Content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{Content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
+                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXml(Content));
             }
             catch (Exception ex)
             {
@@ -436,7 +437,7 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, "加载主页界面失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, "加载主页界面失败", ModBase.LogType.Hint);
                 }
 
                 return;

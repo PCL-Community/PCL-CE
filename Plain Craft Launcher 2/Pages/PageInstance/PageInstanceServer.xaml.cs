@@ -172,7 +172,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogType.Feedback);
             ModBase.RunInUi(() => ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical));
         }
     }
@@ -193,7 +193,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogType.Feedback);
             ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical);
         }
     }
@@ -403,7 +403,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log("PingAllServers 被取消", ModBase.LogLevel.Debug);
+            ModBase.Log("PingAllServers 被取消", ModBase.LogType.Debug);
         }
         catch (Exception ex)
         {
@@ -444,7 +444,7 @@ public partial class PageInstanceServer : MyPageRight
         catch (OperationCanceledException ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log("Ping 服务器被取消: " + server.Address, ModBase.LogLevel.Debug);
+            ModBase.Log("Ping 服务器被取消: " + server.Address, ModBase.LogType.Debug);
         }
         catch (Exception ex)
         {

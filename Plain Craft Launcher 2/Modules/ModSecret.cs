@@ -8,7 +8,6 @@ using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -66,14 +65,14 @@ internal static class ModSecret
         try
         {
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.DPI);
+                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.Dpi);
         }
         catch (UriFormatException ex) // 修复 #3555
         {
             Environment.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"),
                 EnvironmentVariableTarget.User);
             var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.DPI);
+                Fonts.SystemTypefaces.First(), 96d, new NColor(), ModBase.Dpi);
         }
 
         // 检测当前文件夹权限
@@ -87,7 +86,7 @@ internal static class ModSecret
             Interaction.MsgBox(
                 $$"""
                   PCL 无法创建 PCL 文件夹（{{dataPath}}），请尝试：
-                  1. 将 PCL 移动到其他文件夹{{(ModBase.ExePath.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
+                  1. 将 PCL 移动到其他文件夹{{(Basics.ExecutableDirectory.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
                   2. 删除当前目录中的 PCL 文件夹，然后再试。
                   3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
                   """,
@@ -95,12 +94,12 @@ internal static class ModSecret
             Environment.Exit((int)Enums.ProcessReturnValues.Cancel);
         }
 
-        if (!ModBase.CheckPermission(ModBase.ExePath + "PCL"))
+        if (!Directories.CheckPermission(Path.Combine(Basics.ExecutableDirectory, "PCL")))
         {
             Interaction.MsgBox(
                 $$"""
                   PCL 没有对当前文件夹的写入权限，请尝试：
-                  1. 将 PCL 移动 to 其他文件夹{{(ModBase.ExePath.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
+                  1. 将 PCL 移动 to 其他文件夹{{(Basics.ExecutableDirectory.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
                   2. 删除当前目录中的 PCL 文件夹，然后再试。
                   3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
                   """,
@@ -127,14 +126,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 - 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
 
 此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了");
-    }
-
-    /// <summary>
-    /// 获取设备的短标识码
-    /// </summary>
-    internal static string SecretGetUniqueAddress()
-    {
-        return Identify.LauncherId;
     }
 
     internal static void SecretLaunchJvmArgs(ref List<string> DataList)
@@ -194,8 +185,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         var userAgent = !string.IsNullOrEmpty(CustomUserAgent)
             ? CustomUserAgent
             : UseBrowserUserAgent
-                ? $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
-                : $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode}";
+                ? $"PCL2/{Basics.Metadata.Version.UpstreamVersion}.{Basics.BranchCode} PCLCE/{Basics.Metadata.Version.StandardVersion} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
+                : $"PCL2/{Basics.Metadata.Version.UpstreamVersion}.{Basics.BranchCode} PCLCE/{Basics.Metadata.Version.StandardVersion}";
         Client.Headers.Add("User-Agent", userAgent);
     }
 
@@ -430,7 +421,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         get
         {
-            if (ModBase.VersionBaseName.Contains("beta"))
+            if (Basics.VersionName.Contains("beta"))
                 return true;
             return (int)Config.Update.UpdateChannel == 1;
         }
@@ -447,27 +438,27 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         try
         {
-            if (IsCurrentVersionBeta && !((int)Config.Update.UpdateChannel == 1))
+            if (IsCurrentVersionBeta && Config.Update.UpdateChannel != Core.App.UpdateChannel.Beta)
             {
                 var isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode);
+                    Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(Basics.VersionName),
+                    Basics.VersionCode);
                 var isBetaLatest = RemoteServer.IsLatest(UpdateChannel.beta,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode);
+                    Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(Basics.VersionName),
+                    Basics.VersionCode);
                 return (VersionStatus)Conversions.ToInteger(isNewerThanStable && isBetaLatest);
             }
 
             return RemoteServer.IsLatest(
                 Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
-                ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                ModBase.VersionCode)
+                Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(Basics.VersionName),
+                Basics.VersionCode)
                 ? VersionStatus.Latest
                 : VersionStatus.NotLatest;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogType.Hint);
             return VersionStatus.Unknown;
         }
     }
@@ -484,19 +475,19 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     public static void UpdateStart(UpdateType type, string receivedKey = null, bool forceValidated = false)
     {
-        var dlTargetPath = ModBase.ExePath + @"PCL\Plain Craft Launcher Community Edition.exe";
+        var dlTargetPath = Basics.ExecutableDirectory + @"PCL\Plain Craft Launcher Community Edition.exe";
         ModBase.RunInNewThread(() =>
         {
             try
             {
                 var version = RemoteServer.GetLatestVersion(
                     IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
+                    Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
                 );
 
-                ModBase.WriteFile($"{ModBase.PathTemp}CEUpdateLog.md", version.Changelog);
-                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.VersionBaseName}");
-                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.VersionBaseName)))
+                Files.WriteFile($"{Basics.PathTemp}CEUpdateLog.md", version.Changelog);
+                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {Basics.VersionName}");
+                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(Basics.VersionName)))
                     return;
                 if (type == UpdateType.PromptOnly)
                 {
@@ -504,7 +495,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                     ModBase.RunInUi(() =>
                     {
                         if (ModMain.MyMsgBox(
-                                $"启动器有新版本可用（{ModBase.VersionBaseName} -> {version.VersionName}){"\r\n"}是否立即更新？",
+                                $"启动器有新版本可用（{Basics.VersionName} -> {version.VersionName}){"\r\n"}是否立即更新？",
                                 "启动器更新", "更新", "取消") ==
                             1) ModMain.FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
                     });
@@ -516,7 +507,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 // 下载
                 loaders.AddRange(RemoteServer.GetDownloadLoader(
                     Conversions.ToBoolean(IsCurrentVersionBeta) ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
+                    Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
                     var curHash = Files.GetFileSHA256Async(dlTargetPath).GetAwaiter().GetResult();
@@ -534,7 +525,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                         ModBase.RunInUi(() =>
                         {
                             ModMain.FrmMain.BtnExtraUpdateRestart.ToolTip =
-                                $"重启 PCL CE 以应用软件更新 ({ModBase.VersionBaseName} → {version.VersionName})";
+                                $"重启 PCL CE 以应用软件更新 ({Basics.VersionName} → {version.VersionName})";
                             ModMain.FrmMain.BtnExtraUpdateRestart.ShowRefresh();
                             ModMain.FrmMain.BtnExtraUpdateRestart.Ribble();
                         });
@@ -577,7 +568,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     {
         try
         {
-            var fileName = ModBase.ExePath + @"PCL\Plain Craft Launcher Community Edition.exe";
+            var fileName = Basics.ExecutableDirectory + @"PCL\Plain Craft Launcher Community Edition.exe";
             if (!File.Exists(fileName))
             {
                 ModBase.Log("[System] 更新失败：未找到更新文件");
@@ -586,7 +577,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
             // id old new restart
             var text =
-                $"update {Process.GetCurrentProcess().Id} \"{ModBase.ExePathWithName}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
+                $"update {Process.GetCurrentProcess().Id} \"{Basics.ExecutableDirectory}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
             ModBase.Log("[System] 更新程序启动，参数：" + text);
             Process.Start(new ProcessStartInfo(fileName)
             { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, Arguments = text });
@@ -598,8 +589,8 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
         catch (Win32Exception ex)
         {
-            ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", ModBase.LogLevel.Debug, "出现错误");
-            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", true, true, false, null, null, null) == 1)
+            ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", ModBase.LogType.Debug, "出现错误");
+            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, Basics.ExecutableDirectory), "更新失败", "查看帮助", "确定", "", true, true, false, null, null, null) == 1)
             {
                 CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json");
             }
@@ -613,9 +604,9 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
     internal static void DownloadLatestPCL(ModLoader.LoaderBase LoaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
-        var LatestPCLPath = ModBase.PathTemp + "CE-Latest.exe";
+        var LatestPCLPath = Basics.PathTemp + "CE-Latest.exe";
         var target = RemoteServer.GetLatestVersion(UpdateChannel.stable,
-            ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+            Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception("无法获取更新");
         if (File.Exists(LatestPCLPath) && (Files.GetFileSHA256Async(LatestPCLPath).GetAwaiter().GetResult()) == (target.SHA256 ?? ""))
@@ -624,14 +615,14 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
             return;
         }
 
-        if ((Files.GetFileSHA256Async(ModBase.ExePathWithName).GetAwaiter().GetResult()) == (target.SHA256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((Files.GetFileSHA256Async(Basics.ExecutableDirectory).GetAwaiter().GetResult()) == (target.SHA256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
-            ModBase.CopyFile(ModBase.ExePathWithName, LatestPCLPath);
+            Files.CopyFile(Basics.ExecutableDirectory, LatestPCLPath);
             return;
         }
 
         var loaders = RemoteServer.GetDownloadLoader(UpdateChannel.stable,
-            ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, LatestPCLPath);
+            Basics.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, LatestPCLPath);
         var loader = new ModLoader.LoaderCombo<int>("下载最新稳定版", loaders);
         loader.Start();
         loader.WaitForExit();
@@ -759,7 +750,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 CPU 信息时出错", ModBase.LogLevel.Normal);
+            ModBase.Log(ex, "获取 CPU 信息时出错", ModBase.LogType.Normal);
         }
 
         // GPU
@@ -788,7 +779,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 GPU 信息时出错", ModBase.LogLevel.Normal);
+            ModBase.Log(ex, "获取 GPU 信息时出错", ModBase.LogType.Normal);
         }
     }
 

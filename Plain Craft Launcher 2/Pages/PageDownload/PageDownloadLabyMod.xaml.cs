@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -45,7 +46,7 @@ public partial class PageDownloadLabyMod
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LabyMod 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 LabyMod 版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -61,6 +62,6 @@ public partial class PageDownloadLabyMod
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://labymod.net");
+        ShellUtils.OpenWebsite("https://labymod.net");
     }
 }

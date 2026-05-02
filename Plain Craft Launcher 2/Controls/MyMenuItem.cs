@@ -16,7 +16,7 @@ public class MyMenuItem : MenuItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyMenuItem()
     {

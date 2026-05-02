@@ -7,6 +7,7 @@ using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Threading;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using System.ComponentModel;
@@ -38,15 +39,15 @@ public partial class FormMain
     {
         ModBase.RunInNewThread(() =>
         {
-            var ChangelogFile = $"{ModBase.PathTemp}CEUpdateLog.md";
+            var ChangelogFile = $"{Basics.PathTemp}CEUpdateLog.md";
             string Changelog;
             if (File.Exists(ChangelogFile))
-                Changelog = ModBase.ReadFile(ChangelogFile);
+                Changelog = Files.ReadAllTextOrEmpty(ChangelogFile);
             else
                 Changelog = "欢迎使用呀~";
             if (ModMain.MyMsgBoxMarkdown(Changelog,
-                    "PCL CE 已更新至 " + ModBase.VersionBranchName + " " + ModBase.VersionBaseName, "确定", "完整更新日志") ==
-                2) ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
+                    "PCL CE 已更新至 " + Basics.BranchName + " " + Basics.VersionName, "确定", "完整更新日志") ==
+                2) ShellUtils.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
         }, "UpdateLog Output");
     }
 
@@ -56,7 +57,6 @@ public partial class FormMain
 
     public FormMain()
     {
-        ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
         // 刷新主题
         // ThemeCheckAll(False)
         // ThemeRefreshColor()
@@ -68,7 +68,7 @@ public partial class FormMain
         ModMain.FrmLaunchRight = new PageLaunchRight();
         // 版本号改变
         var LastVersion = States.System.LastVersion;
-        if (LastVersion < ModBase.VersionCode)
+        if (LastVersion < Basics.VersionCode)
         {
             // 重新询问是否启用遥测数据收集
             if (LastVersion <= 511)
@@ -82,7 +82,7 @@ public partial class FormMain
             // 触发升级
             UpgradeSub(LastVersion);
         }
-        else if (LastVersion > ModBase.VersionCode)
+        else if (LastVersion > Basics.VersionCode)
             // 触发降级
             DowngradeSub(LastVersion);
         // 版本隔离设置迁移
@@ -113,6 +113,8 @@ public partial class FormMain
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
+        // 注册UI线程检查
+        DispatcherHelper.GetUiThreadId = () => Thread.CurrentThread.ManagedThreadId;
         // 加载 UI
         InitializeComponent();
         Opacity = 0d;
@@ -123,7 +125,7 @@ public partial class FormMain
         }
         catch (Exception ex) // 修复 #2019
         {
-            ModBase.Log(ex, "读取窗口默认大小失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "读取窗口默认大小失败", ModBase.LogType.Hint);
             Height = MinHeight + 100d;
             Width = MinWidth + 100d;
         }
@@ -158,7 +160,7 @@ public partial class FormMain
         ModMinecraft.McFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
-        ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
+        ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - Basics.ApplicationStartTick) + " ms");
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
     }
@@ -166,7 +168,6 @@ public partial class FormMain
     private void FormMain_Loaded() // (sender As Object, e As RoutedEventArgs) Handles Me.Loaded
     {
         FormMain_SizeChanged();
-        ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
         ModBase.FrmHandle = new WindowInteropHelper(this).Handle;
         // 读取设置
         ModBase.Setup.Load("UiBackgroundOpacity");
@@ -232,7 +233,7 @@ public partial class FormMain
                 RenderTransform = null;
                 IsWindowLoadFinished = true;
                 ModBase.Log(
-                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ModBase.ExePathWithName}");
+                    $"[System] DPI：{ModBase.Dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutableDirectory}");
             }, After: true)
         }, "Form Show");
         // Timer 启动
@@ -272,7 +273,7 @@ public partial class FormMain
                         $"{hint}{"\r\n"}{"\r\n"}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
                         "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn: true, Button2Action: () =>
                         {
-                            ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
+                            ShellUtils.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
                             EndProgram(false);
                         });
                 }
@@ -282,7 +283,7 @@ public partial class FormMain
                 // EULA 提示
                 if (!States.System.LauncherEula)
                     switch (ModMain.MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
-                                Button3Action: () => ModBase.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
+                                Button3Action: () => ShellUtils.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
                     {
                         case 1:
                             {
@@ -319,18 +320,18 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogType.Feedback);
                 }
 
                 ModSecret.GetSystemInfo();
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "初始弹窗提示运行失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "初始弹窗提示运行失败", ModBase.LogType.Feedback);
             }
         }, "Start Loader", ThreadPriority.BelowNormal);
 
-        ModBase.Log($"[Start] 第三阶段加载用时：{TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick} ms");
+        ModBase.Log($"[Start] 第三阶段加载用时：{TimeUtils.GetTimeTick() - Basics.ApplicationStartTick} ms");
     }
 
     // 根据打开次数触发的事件
@@ -345,8 +346,8 @@ public partial class FormMain
     // 升级与降级事件
     private void UpgradeSub(int LastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 升高到 " + ModBase.VersionCode);
-        States.System.LastVersion = ModBase.VersionCode;
+        ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 升高到 " + Basics.VersionCode);
+        States.System.LastVersion = Basics.VersionCode;
         // 检查有记录的最高版本号
         int LowerVersionCode;
 #if BETA
@@ -357,10 +358,10 @@ public partial class FormMain
                 End If
 #else
         LowerVersionCode = States.System.LastAlphaVersion;
-        if (LowerVersionCode < ModBase.VersionCode)
+        if (LowerVersionCode < Basics.VersionCode)
         {
-            States.System.LastAlphaVersion = ModBase.VersionCode;
-            ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + ModBase.VersionCode);
+            States.System.LastAlphaVersion = Basics.VersionCode;
+            ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + Basics.VersionCode);
         }
 #endif
 
@@ -395,17 +396,17 @@ public partial class FormMain
         }
 
         // 移动自定义皮肤
-        if (LastVersionCode <= 161 && File.Exists(ModBase.ExePath + @"PCL\CustomSkin.png") &&
-            !File.Exists(ModBase.PathAppdata + "CustomSkin.png"))
+        if (LastVersionCode <= 161 && File.Exists(Basics.ExecutableDirectory + @"PCL\CustomSkin.png") &&
+            !File.Exists(Basics.AppdataPath + "CustomSkin.png"))
         {
-            ModBase.CopyFile(ModBase.ExePath + @"PCL\CustomSkin.png", ModBase.PathAppdata + "CustomSkin.png");
+            Files.CopyFile(Basics.ExecutableDirectory + @"PCL\CustomSkin.png", Basics.AppdataPath + "CustomSkin.png");
             ModBase.Log("[Start] 已移动离线自定义皮肤 (162)");
         }
 
-        if (LastVersionCode <= 263 && File.Exists(ModBase.PathTemp + "CustomSkin.png") &&
-            !File.Exists(ModBase.PathAppdata + "CustomSkin.png"))
+        if (LastVersionCode <= 263 && File.Exists(Basics.PathTemp + "CustomSkin.png") &&
+            !File.Exists(Basics.AppdataPath + "CustomSkin.png"))
         {
-            ModBase.CopyFile(ModBase.PathTemp + "CustomSkin.png", ModBase.PathAppdata + "CustomSkin.png");
+            Files.CopyFile(Basics.PathTemp + "CustomSkin.png", Basics.AppdataPath + "CustomSkin.png");
             ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
         }
 
@@ -430,15 +431,15 @@ public partial class FormMain
         // 输出更新日志
         if (LastVersionCode <= 0)
             return;
-        if (LowerVersionCode >= ModBase.VersionCode)
+        if (LowerVersionCode >= Basics.VersionCode)
             return;
         ShowUpdateLog();
     }
 
     private void DowngradeSub(int LastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 降低到 " + ModBase.VersionCode);
-        States.System.LastVersion = ModBase.VersionCode;
+        ModBase.Log("[Start] 版本号从 " + LastVersionCode + " 降低到 " + Basics.VersionCode);
+        States.System.LastVersion = Basics.VersionCode;
     }
 
     #endregion
@@ -670,7 +671,7 @@ public partial class FormMain
                 ModBase.FeedbackInfo();
                 ModBase.Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
                 IsLogShown = true;
-                ModBase.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last());
+                ProcessUtils.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles[^1]);
             }
 
             Thread.Sleep(500); // 防止 PCL 在记事本打开前就被掐掉
@@ -751,7 +752,7 @@ public partial class FormMain
     //“帮助”
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
+        ShellUtils.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
     }
 
     #endregion
@@ -927,7 +928,7 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切回窗口时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切回窗口时出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -970,7 +971,7 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理拖放时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "处理拖放时出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -1023,7 +1024,7 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "无法接取文本拖拽事件", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "无法接取文本拖拽事件", ModBase.LogType.Developer);
                 }
             }
             else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -1043,7 +1044,7 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "接取拖拽事件失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "接取拖拽事件失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -1053,7 +1054,7 @@ public partial class FormMain
         {
             var FilePath = FilePathList.First();
             ModBase.Log("[System] 接受文件拖拽：" + FilePath + (FilePathList.Any() ? $" 等 {FilePathList.Count()} 个文件" : ""),
-                ModBase.LogLevel.Developer);
+                ModBase.LogType.Developer);
             // 基础检查
             if (Directory.Exists(FilePathList.First()) && !File.Exists(FilePathList.First()))
             {
@@ -1092,11 +1093,11 @@ public partial class FormMain
             if (Extension == "xaml")
             {
                 ModBase.Log("[System] 文件后缀为 XAML，作为主页加载");
-                if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
+                if (File.Exists(Basics.ExecutableDirectory + @"PCL\Custom.xaml"))
                     if (ModMain.MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") == 2)
                         return;
 
-                ModBase.CopyFile(FilePath, ModBase.ExePath + @"PCL\Custom.xaml");
+                Files.CopyFile(FilePath, Basics.ExecutableDirectory + @"PCL\Custom.xaml");
                 ModBase.RunInUi(() =>
                 {
                     Config.Preference.Homepage.Type = 1;
@@ -1130,7 +1131,7 @@ public partial class FormMain
                     case PageSubType.VersionWorld:
                         {
                             var DestFolder = PageInstanceLeft.Instance.PathIndie + @"saves\" +
-                                             ModBase.GetFileNameWithoutExtentionFromPath(FilePath);
+                                             Path.GetFileNameWithoutExtension(FilePath);
                             if (Directory.Exists(DestFolder))
                             {
                                 ModMain.Hint("发现同名文件夹，无法粘贴：" + DestFolder, ModMain.HintType.Critical);
@@ -1138,7 +1139,7 @@ public partial class FormMain
                             }
 
                             Files.ExtractFileAsync(FilePath, DestFolder).GetAwaiter().GetResult();
-                            ModMain.Hint($"已导入 {ModBase.GetFileNameWithoutExtentionFromPath(FilePath)}",
+                            ModMain.Hint($"已导入 {Path.GetFileNameWithoutExtension(FilePath)}",
                                 ModMain.HintType.Finish);
                             if (ModMain.FrmInstanceSaves is not null)
                                 ModBase.RunInUi(() => ModMain.FrmInstanceSaves.Reload());
@@ -1154,7 +1155,7 @@ public partial class FormMain
                                 return;
                             }
 
-                            ModBase.CopyFile(FilePath, DestFile);
+                            Files.CopyFile(FilePath, DestFile);
                             ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
                             if (ModMain.FrmInstanceResourcePack is not null)
                                 ModBase.RunInUi(() => ModMain.FrmInstanceResourcePack.ReloadCompFileList());
@@ -1170,7 +1171,7 @@ public partial class FormMain
                                 return;
                             }
 
-                            ModBase.CopyFile(FilePath, DestFile);
+                            Files.CopyFile(FilePath, DestFile);
                             ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
                             if (ModMain.FrmInstanceShader is not null)
                                 ModBase.RunInUi(() => ModMain.FrmInstanceShader.ReloadCompFileList());
@@ -1192,7 +1193,7 @@ public partial class FormMain
                 }
 
                 Directory.CreateDirectory(PageInstanceLeft.Instance.PathIndie + @"schematics\");
-                ModBase.CopyFile(FilePath, DestFile);
+                Files.CopyFile(FilePath, DestFile);
                 ModMain.Hint($"已导入 {PathUtils.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
                 if (ModMain.FrmInstanceSchematic is not null)
                     ModBase.RunInUi(() => ModMain.FrmInstanceSchematic.ReloadCompFileList());
@@ -1243,7 +1244,7 @@ public partial class FormMain
                 try
                 {
                     ModBase.Log("[System] 尝试进行错误报告分析");
-                    var Analyzer = new CrashAnalyzer(ModBase.GetUuid());
+                    var Analyzer = new CrashAnalyzer(GlobalUniqueId.GetUniqueId());
                     Analyzer.Import(FilePath);
                     if (!Analyzer.Prepare())
                         break;
@@ -1253,7 +1254,7 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "自主错误报告分析失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(ex, "自主错误报告分析失败", ModBase.LogType.Feedback);
                 }
             } while (false);
 
@@ -1270,7 +1271,7 @@ public partial class FormMain
         if (msg == 30)
         {
             var NowDate = DateTime.Now;
-            if (NowDate.Date == ModBase.ApplicationOpenTime.Date)
+            if (NowDate.Date == Basics.ApplicationOpenTime.Date)
             {
                 ModBase.Log("[System] 系统时间微调为：" + NowDate.ToLongDateString() + " " + NowDate.ToLongTimeString());
                 IsSystemTimeChanged = false;
@@ -1988,7 +1989,7 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换主要页面失败（ID " + (int)PageCurrent.Page + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换主要页面失败（ID " + (int)PageCurrent.Page + "）", ModBase.LogType.Feedback);
         }
         finally
         {
@@ -2241,7 +2242,7 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "强制关闭所有 Minecraft 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "强制关闭所有 Minecraft 失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -2272,7 +2273,7 @@ public partial class FormMain
         if (RealScroll is not null)
             RealScroll.PerformVerticalOffsetDelta(-RealScroll.VerticalOffset);
         else
-            ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogLevel.Hint);
+            ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogType.Hint);
     }
 
     private void BtnExtraBack_Click(object sender, MouseButtonEventArgs e)

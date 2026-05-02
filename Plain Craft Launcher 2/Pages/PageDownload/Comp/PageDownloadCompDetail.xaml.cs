@@ -1,17 +1,17 @@
 using FluentValidation;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
 using System.Collections;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.IO;
-using PCL.Core.Utils;
 using Control = System.Windows.Forms.Control;
 
 namespace PCL;
@@ -118,7 +118,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -160,7 +160,7 @@ public partial class PageDownloadCompDetail
             if (CachedFolder.ContainsKey(File.Type) && !string.IsNullOrEmpty(CachedFolder[File.Type]))
             {
                 _ = CachedFolder.TryGetValue(File.Type, out var value);
-                DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath;
+                DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? Basics.ExecutableDirectory;
                 ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
             }
             else if (ModMinecraft.McInstanceSelected is not null && IsVersionSuitable(ModMinecraft.McInstanceSelected))
@@ -229,7 +229,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载世界资源失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "下载世界资源失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -318,7 +318,7 @@ public partial class PageDownloadCompDetail
                     {
 
                         _ = CachedFolder.TryGetValue(File.Type, out var value);
-                        DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath;
+                        DefaultFolder = value ?? ModMinecraft.McInstanceSelected?.PathIndie ?? Basics.ExecutableDirectory;
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
                     else if (ModMinecraft.McInstanceSelected != null &&
@@ -391,7 +391,7 @@ public partial class PageDownloadCompDetail
                     }
 
                     // 构造下载任务
-                    var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
+                    var LoaderName = $"{Desc}下载：{Path.GetFileNameWithoutExtension(Target)} ";
                     var Loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
@@ -413,19 +413,19 @@ public partial class PageDownloadCompDetail
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "保存资源文件失败", ModBase.LogType.Feedback);
             }
         }, "Download CompDetail Save");
     }
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite(_project.Website);
+        ShellUtils.OpenWebsite(_project.Website);
     }
 
     private void BtnIntroWiki_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.mcmod.cn/class/" + _project.WikiId + ".html");
+        ShellUtils.OpenWebsite("https://www.mcmod.cn/class/" + _project.WikiId + ".html");
     }
 
     private void BtnIntroCopy_Click(object sender, EventArgs e)
@@ -536,7 +536,7 @@ public partial class PageDownloadCompDetail
                         errorMessage = _compFileLoader.Error.Message;
                     if (errorMessage.Contains("不是有效的 Json 文件"))
                     {
-                        ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
+                        ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogType.Debug);
                         PageLoaderRestart();
                     }
 
@@ -972,7 +972,7 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogType.Feedback);
         }
     }
 

@@ -9,11 +9,11 @@ namespace PCL;
 
 public partial class PageLogLeft
 {
-    public ModWatcher.Watcher CurrentLog;
-    public int CurrentUuid;
-    public Dictionary<int, FlowDocument> FlowDocuments = new();
+    public ModWatcher.Watcher? CurrentLog;
+    public ulong CurrentUuid;
+    public Dictionary<ulong, FlowDocument> FlowDocuments = new();
     public int IsLoading;
-    public List<KeyValuePair<int, ModWatcher.Watcher>> ShownLogs = new();
+    public List<KeyValuePair<ulong, ModWatcher.Watcher>> ShownLogs = new();
 
     public PageLogLeft()
     {
@@ -91,7 +91,7 @@ public partial class PageLogLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "构建游戏实时日志 UI 出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "构建游戏实时日志 UI 出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -144,22 +144,22 @@ public partial class PageLogLeft
 
     public void Add(ModWatcher.Watcher watcher)
     {
-        var uuid = ModBase.GetUuid();
-        ShownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
+        var uuid = GlobalUniqueId.GetUniqueId();
+        ShownLogs.Add(new KeyValuePair<ulong, ModWatcher.Watcher>(uuid, watcher));
         watcher.LogOutput += OnLogOutput;
         ModBase.RunInUi(() => FlowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
         SelectionChange(uuid);
         ModMain.FrmMain.BtnExtraLog.ShowRefresh();
     }
 
-    public void SelectionChange(int Uuid)
+    public void SelectionChange(ulong Uuid)
     {
         if (IsLoading > 0)
             return;
         // If CurrentUuid > 0 Then FlowDocuments(CurrentUuid) = FrmLogRight.PanLog.Document
         if (Uuid <= 0)
         {
-            CurrentUuid = -1;
+            CurrentUuid = 0;
             CurrentLog = null;
         }
         else
@@ -180,7 +180,7 @@ public partial class PageLogLeft
         });
     }
 
-    public void RemoveItem(int Uuid)
+    public void RemoveItem(ulong Uuid)
     {
         for (int i = 0, loopTo = ShownLogs.Count - 1; i <= loopTo; i++)
         {
@@ -192,7 +192,7 @@ public partial class PageLogLeft
             {
                 if (ShownLogs.Count == 0)
                     // 没有可以显示的了
-                    SelectionChange(-1);
+                    SelectionChange(0);
                 else
                     SelectionChange(ShownLogs[new[] { new[] { i, ShownLogs.Count - 1 }.Min(), 0 }.Max()].Key);
             }
@@ -221,12 +221,12 @@ public partial class PageLogLeft
     // End Sub
     public void Remove_Click(object sender, RoutedEventArgs e)
     {
-        RemoveItem((int)((MyListItem)((MyIconButton)sender).Parent).Tag);
+        RemoveItem((ulong)((MyListItem)((MyIconButton)sender).Parent).Tag);
     }
 
     // 点击选项
     public void Version_Change(object sender, RouteEventArgs e)
     {
-        SelectionChange((int)((MyListItem)sender).Tag);
+        SelectionChange((ulong)((MyListItem)sender).Tag);
     }
 }

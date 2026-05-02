@@ -3,6 +3,7 @@ using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -216,12 +217,12 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "个性化设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "个性化设置项存在异常，已被自动重置", ModBase.LogType.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载个性化设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "重载个性化设置时出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -236,7 +237,7 @@ public partial class PageSetupUI
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化个性化设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化个性化设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();
@@ -292,7 +293,7 @@ public partial class PageSetupUI
     // 背景图片
     private void BtnUIBgOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Pictures\");
+        Basics.OpenPath(Path.Combine(Basics.ExecutableDirectory, "PCL", "Pictures"));
     }
 
     private void BtnBackgroundRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -334,7 +335,7 @@ public partial class PageSetupUI
                              """, "警告", Button2: "取消",
                 IsWarn: true) == 1)
         {
-            Directories.DeleteDirectoryAsync(ModBase.ExePath + @"PCL\Pictures").GetAwaiter().GetResult();
+            Directories.DeleteDirectoryAsync(Basics.ExecutableDirectory + @"PCL\Pictures").GetAwaiter().GetResult();
             BackgroundRefresh(false, true);
             ModMain.Hint("背景内容已清空！", ModMain.HintType.Finish);
         }
@@ -350,8 +351,8 @@ public partial class PageSetupUI
         try
         {
             // 获取可用的图片文件
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures\");
-            var Pic = Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Pictures\").GetAwaiter().GetResult().Where(file =>
+            Directory.CreateDirectory(Basics.ExecutableDirectory + @"PCL\Pictures\");
+            var Pic = Directories.EnumerateFilesAsync(Basics.ExecutableDirectory + @"PCL\Pictures\").GetAwaiter().GetResult().Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -372,9 +373,9 @@ public partial class PageSetupUI
                              刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。
                              你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。
                              文件：{videoAddress}
-                             """, ModBase.LogLevel.Msgbox);
+                             """, ModBase.LogType.Msgbox);
                     else
-                        ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogType.Msgbox);
                 }
             };
             ModMain.FrmMain.VideoBack.MediaFailed -= videoHandler;
@@ -452,7 +453,7 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景内容时出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新背景内容时出现未知错误", ModBase.LogType.Feedback);
         }
     }
 
@@ -465,11 +466,11 @@ public partial class PageSetupUI
         try
         {
             // 拷贝文件
-            File.Delete(ModBase.ExePath + @"PCL\Logo.png");
-            ModBase.CopyFile(FileName, ModBase.ExePath + @"PCL\Logo.png");
+            File.Delete(Basics.ExecutableDirectory + @"PCL\Logo.png");
+            Files.CopyFile(FileName, Basics.ExecutableDirectory + @"PCL\Logo.png");
             // 设置当前显示
             ModMain.FrmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-            ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+            ModMain.FrmMain.ImageTitleLogo.Source = Basics.ExecutableDirectory + @"PCL\Logo.png";
         }
         catch (Exception ex)
         {
@@ -478,9 +479,9 @@ public partial class PageSetupUI
                             改变标题栏图片失败，该图片文件可能并非标准格式。
                             你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                             """,
-                    ModBase.LogLevel.Msgbox);
+                    ModBase.LogType.Msgbox);
             else
-                ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogType.Msgbox);
             ModMain.FrmMain.ImageTitleLogo.Source = null;
         }
     }
@@ -492,12 +493,12 @@ public partial class PageSetupUI
     Refresh:;
 
         // 已有图片则不再选择
-        if (File.Exists(ModBase.ExePath + @"PCL\Logo.png"))
+        if (File.Exists(Basics.ExecutableDirectory + @"PCL\Logo.png"))
         {
             try
             {
                 ModMain.FrmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-                ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+                ModMain.FrmMain.ImageTitleLogo.Source = Basics.ExecutableDirectory + @"PCL\Logo.png";
             }
             catch (Exception ex)
             {
@@ -506,18 +507,18 @@ public partial class PageSetupUI
                                 调整标题栏图片失败，该图片文件可能并非标准格式。
                                 你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                                 """,
-                        ModBase.LogLevel.Msgbox);
+                        ModBase.LogType.Msgbox);
                 else
-                    ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogType.Msgbox);
                 ModMain.FrmMain.ImageTitleLogo.Source = null;
                 e.Handled = true;
                 try
                 {
-                    File.Delete(ModBase.ExePath + @"PCL\Logo.png");
+                    File.Delete(Basics.ExecutableDirectory + @"PCL\Logo.png");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "清理错误的标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(exx, "清理错误的标题栏图片失败", ModBase.LogType.Msgbox);
                 }
             }
 
@@ -536,13 +537,13 @@ public partial class PageSetupUI
             try
             {
                 // 拷贝文件
-                File.Delete(ModBase.ExePath + @"PCL\Logo.png");
-                ModBase.CopyFile(FileName, ModBase.ExePath + @"PCL\Logo.png");
+                File.Delete(Basics.ExecutableDirectory + @"PCL\Logo.png");
+                Files.CopyFile(FileName, Basics.ExecutableDirectory + @"PCL\Logo.png");
                 goto Refresh;
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "复制标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(ex, "复制标题栏图片失败", ModBase.LogType.Msgbox);
             }
         }
     }
@@ -551,20 +552,20 @@ public partial class PageSetupUI
     {
         try
         {
-            File.Delete(ModBase.ExePath + @"PCL\Logo.png");
+            File.Delete(Basics.ExecutableDirectory + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
             ModMain.Hint("标题栏图片已清空！", ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "清空标题栏图片失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "清空标题栏图片失败", ModBase.LogType.Msgbox);
         }
     }
 
     // 背景音乐
     private void BtnMusicOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Musics\");
+        Basics.OpenPath(Path.Combine(Basics.ExecutableDirectory, "PCL", "Musics"));
     }
 
     private void BtnMusicRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -581,7 +582,7 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = $"背景音乐（{Directories.EnumerateFilesAsync(ModBase.ExePath + @"PCL\Musics\").GetAwaiter().GetResult().Count()} 首）";
+            CardMusic.Title = $"背景音乐（{Directories.EnumerateFilesAsync(Basics.ExecutableDirectory + @"PCL\Musics\").GetAwaiter().GetResult().Count()} 首）";
         }
         else
         {
@@ -601,7 +602,7 @@ public partial class PageSetupUI
                              此操作不可撤销，是否确定？
                              """, "警告", Button2: "取消",
                 IsWarn: true) == 1)
-            ModBase.RunInThread(() =>
+            ModBase.RunInWorkerThread(() =>
             {
                 ModMain.Hint("正在删除背景音乐……");
                 // 停止播放音乐
@@ -612,23 +613,23 @@ public partial class PageSetupUI
                 // 删除文件
                 try
                 {
-                    Directories.DeleteDirectoryAsync(ModBase.ExePath + @"PCL\Musics").GetAwaiter().GetResult();
+                    Directories.DeleteDirectoryAsync(Basics.ExecutableDirectory + @"PCL\Musics").GetAwaiter().GetResult();
                     // DisableSMTCSupport()
                     ModMain.Hint("背景音乐已删除！", ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "删除背景音乐失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "删除背景音乐失败", ModBase.LogType.Msgbox);
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
+                    Directory.CreateDirectory(Basics.ExecutableDirectory + @"PCL\Musics");
                     ModBase.RunInUi(() => ModMusic.MusicRefreshPlay(false));
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "重建背景音乐文件夹失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "重建背景音乐文件夹失败", ModBase.LogType.Msgbox);
                 }
             });
     }
@@ -655,16 +656,16 @@ public partial class PageSetupUI
     {
         try
         {
-            if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
+            if (File.Exists(Basics.ExecutableDirectory + @"PCL\Custom.xaml"))
                 if (ModMain.MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn: true) == 2)
                     return;
-            ModBase.WriteFile(ModBase.ExePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
+            Files.WriteFile(Basics.ExecutableDirectory + @"PCL\Custom.xaml", Basics.GetResourceStream("Resources/Custom.xml"));
             ModMain.Hint("教学文件已生成！", ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Custom.xaml");
+            Basics.OpenPath(Path.Combine(Basics.ExecutableDirectory, "PCL", "Custom.xaml"));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "生成教学文件失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "生成教学文件失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -740,7 +741,7 @@ public partial class PageSetupUI
     // 赞助
     private void BtnLauncherDonate_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://afdian.com/a/LTCat");
+        ShellUtils.OpenWebsite("https://afdian.com/a/LTCat");
     }
 
     // 滑动条
@@ -966,7 +967,7 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新功能隐藏项目失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新功能隐藏项目失败", ModBase.LogType.Feedback);
         }
     }
 

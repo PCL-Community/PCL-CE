@@ -65,7 +65,7 @@ public partial class PageComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"可视化{TypeNameSpaced}列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, $"可视化{TypeNameSpaced}列表出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -80,7 +80,7 @@ public partial class PageComp
                     errorMessage = Loader.Error.Message;
                     if (errorMessage.Contains("不是有效的 json 文件"))
                     {
-                        ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                        ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogType.Debug);
                         ((MyPageRight)Parent).PageLoaderRestart();
                     }
 
@@ -111,7 +111,7 @@ public partial class PageComp
         Page = NewPage;
         ModMain.FrmMain.BackToTop();
         ModBase.Log($"[Download] {TypeName}：切换到第 {Page + 1} 页");
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             Thread.Sleep(100); // 等待向上滚的动画结束
             ModBase.RunInUi(() => CardPages.IsEnabled = true);

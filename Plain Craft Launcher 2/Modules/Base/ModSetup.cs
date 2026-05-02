@@ -163,8 +163,8 @@ public class ModSetup : IConfigScope
 
     public void LaunchFolderSelect(string Value)
     {
-        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", ModBase.ExePath));
-        ModMinecraft.McFolderSelected = Value.Replace("$", ModBase.ExePath);
+        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", Basics.ExecutableDirectory));
+        ModMinecraft.McFolderSelected = Value.Replace("$", Basics.ExecutableDirectory);
     }
 
     // 游戏内存
@@ -364,7 +364,7 @@ public class ModSetup : IConfigScope
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "字体加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "字体加载失败", ModBase.LogType.Hint);
         }
     }
 
@@ -546,12 +546,12 @@ public class ModSetup : IConfigScope
 
                     try
                     {
-                        ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
+                        ModMain.FrmMain.ImageTitleLogo.Source = Basics.ExecutableDirectory + @"PCL\Logo.png";
                     }
                     catch (Exception ex)
                     {
                         ModMain.FrmMain.ImageTitleLogo.Source = null;
-                        ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogType.Msgbox);
                     }
 
                     break;

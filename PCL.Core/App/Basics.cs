@@ -1,13 +1,16 @@
-﻿using System;
+using PCL.Core.Logging;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Secret;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Windows;
-using PCL.Core.Logging;
-using PCL.Core.Utils;
 
 namespace PCL.Core.App;
 
@@ -43,6 +46,49 @@ public static class Basics
     /// 当前日期是否为愚人节。
     /// </summary>
     public static bool IsAprilFool => DateTime.Now is { Month: 4, Day: 1 };
+
+#if DEBUG
+    public const string BranchName = "Debug";
+    public const string BranchCode = "100";
+#elif DEBUGCI
+    public const string BranchName = "CI";
+    public const string BranchCode = "50";
+#else
+    public const string BranchName = "Publish";
+    public const string BranchCode = "0";
+#endif
+
+    /// <summary>
+    /// 应用程序启动时的时间刻度。
+    /// </summary>
+    /// <remarks>每次访问时调用 TimeUtils.GetTimeTick 获取值。</remarks>
+    public static long ApplicationStartTick => TimeUtils.GetTimeTick();
+
+    /// <summary>
+    /// 程序打开时的时间。
+    /// </summary>
+    public static DateTime ApplicationOpenTime = DateTime.Now;
+
+    /// <summary>
+    /// 识别码
+    /// </summary>
+    public static string UniqueIdentificationId = Identify.LauncherId;
+
+
+    /// <summary>
+    /// 是否为 32 位系统。
+    /// </summary>
+    public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
+
+    /// <summary>
+    /// 是否为 ARM64 架构。
+    /// </summary>
+    public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
+
+    /// <summary>
+    /// 是否使用 GBK 编码。
+    /// </summary>
+    public static bool IsGbkEncoding = Encoding.Default.CodePage == 936;
 
     #endregion
 
@@ -92,6 +138,29 @@ public static class Basics
     /// 实时获取的当前目录。若要在可执行文件目录中存放文件等内容，请使用更准确的 <see cref="ExecutableDirectory"/> 而不是这个目录。
     /// </summary>
     public static string CurrentDirectory => Environment.CurrentDirectory;
+
+    /// <summary>
+    /// 系统盘盘符，以 \ 结尾。例如 “C:\”。
+    /// </summary>
+    public static string OsDrive =>
+        Environment.GetLogicalDrives().Where(Directory.Exists).First().ToUpper()[0] + @":\"; // #3799
+
+    /// <summary>
+    /// 程序的缓存文件夹路径，以 \ 结尾。
+    /// </summary>
+    public static string PathTemp => $"{Paths.Temp}\\";
+
+    /// <summary>
+    /// AppData 中的 PCL 文件夹路径，以 \ 结尾。
+    /// </summary>
+    public static string AppdataPath => $"{Paths.SharedData}\\";
+
+    /// <summary>
+    /// AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
+    /// </summary>
+    public static string AppdataConfig => Path.Combine(AppdataPath, (BranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\"));
+
+    public static string HelpFolder => Path.Combine(PathTemp, @"CE\Help\");
 
     #endregion
 
@@ -176,7 +245,7 @@ public static class Basics
         return resourceInfo?.Stream;
     }
 
-    private const string AssemblyImagePath = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
+    public const string AssemblyImagePath = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
     public static string GetAppImagePath(string imageName) => AssemblyImagePath + imageName;
 
     #endregion

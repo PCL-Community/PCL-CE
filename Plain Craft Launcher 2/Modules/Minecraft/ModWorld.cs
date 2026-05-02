@@ -1,4 +1,5 @@
 using fNbt;
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -20,7 +21,7 @@ public static class ModWorld
     {
         if (File.Exists(SavePath))
         {
-            var ExtractPath = $@"{ModBase.PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
+            var ExtractPath = $@"{Basics.PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
             if (Directory.Exists(ExtractPath))
                 Directories.DeleteDirectoryAsync(ExtractPath).GetAwaiter().GetResult();
             Files.ExtractFileAsync(SavePath, ExtractPath).GetAwaiter().GetResult();

@@ -1,9 +1,11 @@
+using Newtonsoft.Json.Linq;
+using PCL.Core.App;
+using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Network;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
-using PCL.Core.Utils;
-using PCL.Network;
 
 namespace PCL;
 
@@ -101,7 +103,7 @@ public partial class PageSetupFeedback
         li.Title = item.Title;
         li.Type = MyListItem.CheckType.Clickable;
         li.Info = commonInfo;
-        li.Logo = ModBase.PathImage + logo;
+        li.Logo = Basics.GetAppImagePath(logo);
         li.Tags = item.Type;
 
         li.Click += (sender, e) => ShowFeedbackDetail(item);
@@ -121,10 +123,10 @@ public partial class PageSetupFeedback
                      """, $"#{item.ID} {item.Title}", Button2: "查看详情"))
         {
             case 2:
-            {
-                ModBase.OpenWebsite(item.Url);
-                break;
-            }
+                {
+                    ShellUtils.OpenWebsite(item.Url);
+                    break;
+                }
         }
     }
 

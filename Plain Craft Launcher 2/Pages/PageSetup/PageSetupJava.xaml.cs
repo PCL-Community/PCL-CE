@@ -1,11 +1,11 @@
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.UI.Icons;
+using PCL.Core.Utils.OS;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -61,7 +61,7 @@ public partial class PageSetupJava
         if (string.IsNullOrEmpty(currentSetJava))
             itemAuto.SetChecked(true, false, false);
     }
-    
+
     private MyListItem ItemBuild(JavaEntry J)
     {
         var item = new MyListItem();
@@ -105,7 +105,7 @@ public partial class PageSetupJava
                 return;
             }
 
-            ModBase.OpenExplorer(J.Installation.JavaFolder);
+            Basics.OpenPath(J.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.Logo = Logo.ButtonInfo;
@@ -129,7 +129,7 @@ public partial class PageSetupJava
                 "Java 信息");
         };
         var btnEnableSwitch = new MyIconButton();
-        
+
         item.Buttons = [btnOpenFolder, btnInfo, btnEnableSwitch];
 
         void UpdateEnableStyle(bool isCurEnable)
@@ -155,7 +155,7 @@ public partial class PageSetupJava
                 btnEnableSwitch.ToolTip = "启用此 Java";
             }
         }
-        
+
         btnEnableSwitch.Click += (_, _) =>
         {
             try
@@ -179,7 +179,7 @@ public partial class PageSetupJava
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogType.Hint);
             }
         };
         UpdateEnableStyle(J.IsEnabled);

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -24,7 +25,7 @@ public partial class MySlider
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MySlider()
     {
@@ -118,7 +119,7 @@ public partial class MySlider
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "滑动条进度改变出错", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "滑动条进度改变出错", ModBase.LogType.Hint);
             }
         }
     }
@@ -196,7 +197,7 @@ public partial class MySlider
         TextHint.Text = GetHintText.DynamicInvoke(Value)?.ToString() ?? "";
         var typeface = new Typeface(TextHint.FontFamily, TextHint.FontStyle, TextHint.FontWeight, TextHint.FontStretch);
         var formattedText = new FormattedText(TextHint.Text, Thread.CurrentThread.CurrentCulture,
-            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.DPI);
+            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.Dpi);
         TextHint.Width = formattedText.Width; // 使用手动测量的宽度修复 #1057
     }
 

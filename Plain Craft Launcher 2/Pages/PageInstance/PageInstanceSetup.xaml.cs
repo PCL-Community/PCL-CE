@@ -139,7 +139,7 @@ public partial class PageInstanceSetup
             CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance];
-            if (ModBase.IsArm64System)
+            if (Basics.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -155,7 +155,7 @@ public partial class PageInstanceSetup
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载实例独立设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "重载实例独立设置时出错", ModBase.LogType.Feedback);
         }
     }
 
@@ -174,7 +174,7 @@ public partial class PageInstanceSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化实例独立设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化实例独立设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();
@@ -304,7 +304,7 @@ public partial class PageInstanceSetup
         LabRamUsed.Text = $"{(RamUsed == Math.Floor(RamUsed) ? $"{RamUsed}.0" : RamUsed)} GB";
         LabRamTotal.Text = $" / {(RamTotal == Math.Floor(RamTotal) ? $"{RamTotal}.0" : RamTotal)} GB";
         LabRamWarn.Visibility =
-            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !ModBase.Is32BitSystem &&
+            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !Basics.Is32BitSystem &&
             ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -816,7 +816,7 @@ public partial class PageInstanceSetup
         catch (Exception ex)
         {
             Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = "使用全局设置";
-            ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogType.Feedback);
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
             {

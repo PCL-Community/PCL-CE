@@ -317,7 +317,7 @@ public static class ModLink
 
     public static int DownloadEasyTier()
     {
-        var dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
+        var dlTargetPath = $"{Basics.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
 
         Basics.RunInNewThread(() =>
         {
@@ -327,7 +327,7 @@ public static class ModLink
                 var loaders = new List<ModLoader.LoaderBase>();
 
                 // Setup download addresses
-                var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
+                var architecture = Basics.IsArm64System ? "arm64" : "x86_64";
                 var addresses = new List<string>
                 {
                     $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",

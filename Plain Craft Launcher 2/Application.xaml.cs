@@ -69,11 +69,11 @@ public partial class Application
             }
 
             // 初始化文件结构
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures");
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
-            Directory.CreateDirectory(ModBase.PathTemp + "Cache");
-            Directory.CreateDirectory(ModBase.PathTemp + "Download");
-            Directory.CreateDirectory(ModBase.PathAppdata);
+            Directory.CreateDirectory(Basics.ExecutableDirectory + @"PCL\Pictures");
+            Directory.CreateDirectory(Basics.ExecutableDirectory + @"PCL\Musics");
+            Directory.CreateDirectory(Basics.PathTemp + "Cache");
+            Directory.CreateDirectory(Basics.PathTemp + "Download");
+            Directory.CreateDirectory(Basics.AppdataPath);
             /* TODO ERROR: Skipped IfDirectiveTrivia
             #If False Then
             */ /* TODO ERROR: Skipped DisabledTextTrivia
@@ -122,12 +122,12 @@ public partial class Application
             var currentOSVersion = NtInterop.GetCurrentOsVersion();
             if (currentOSVersion.Build < 17763)
                 problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统");
-            if (ModBase.Is32BitSystem)
+            if (Basics.Is32BitSystem)
                 problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏");
-            if (ModBase.ExePath.Contains(Path.GetTempPath()) || ModBase.ExePath.Contains(@"AppData\Local\Temp\"))
+            if (Basics.ExecutableDirectory.Contains(Path.GetTempPath()) || Basics.ExecutableDirectory.Contains(@"AppData\Local\Temp\"))
                 problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失");
-            if (ModBase.ExePath.ContainsF("wechat_files", true) || ModBase.ExePath.ContainsF("WeChat Files", true) ||
-                ModBase.ExePath.ContainsF("Tencent Files", true))
+            if (Basics.ExecutableDirectory.ContainsF("wechat_files", true) || Basics.ExecutableDirectory.ContainsF("WeChat Files", true) ||
+                Basics.ExecutableDirectory.ContainsF("Tencent Files", true))
                 problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失");
             if (problemList.Count != 0)
                 ModMain.MyMsgBox(
@@ -144,20 +144,19 @@ public partial class Application
             ModBase.Setup.Load("UiFont");
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
-                updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")
+                updateBranchCfg.SetValue(Basics.VersionName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
-                var oldLogFile = $@"{ModBase.ExePath}PCL\Log-CE{i}.log";
+                var oldLogFile = $@"{Basics.ExecutableDirectory}PCL\Log-CE{i}.log";
                 if (File.Exists(oldLogFile))
                     File.Delete(oldLogFile);
             }
 
             // 计时
-            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
-            ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
+            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - Basics.ApplicationStartTick) + " ms");
             // 执行测试
             /* TODO ERROR: Skipped IfDirectiveTrivia
             #If DEBUGRESERVED Then
@@ -170,7 +169,7 @@ public partial class Application
         }
         catch (Exception ex)
         {
-            var FilePath = ModBase.ExePathWithName;
+            var FilePath = Basics.ExecutableDirectory;
             MessageBox.Show(ex + "\r\n" + "PCL 所在路径：" + (string.IsNullOrEmpty(FilePath) ? "获取失败" : FilePath),
                 "PCL 初始化错误", MessageBoxButton.OK, MessageBoxImage.Error);
             FormMain.EndProgramForce(Enums.ProcessReturnValues.Exception);
@@ -200,7 +199,7 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                ModBase.OpenWebsite("https://get.dot.net/8");
+                ShellUtils.OpenWebsite("https://get.dot.net/8");
                 LogWrapper.Error(e.Exception,
                     "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
             }

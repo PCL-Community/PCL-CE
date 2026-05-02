@@ -117,7 +117,7 @@ public partial class PageSetupLog
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "日志保存失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "日志保存失败", ModBase.LogType.Hint);
         }
         finally
         {

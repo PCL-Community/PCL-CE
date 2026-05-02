@@ -1,3 +1,4 @@
+using PCL.Core.Utils.OS;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -82,12 +83,12 @@ public partial class PageDownloadOptiFine
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFine 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 OptiFine 版本列表出错", ModBase.LogType.Feedback);
         }
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.optifine.net/");
+        ShellUtils.OpenWebsite("https://www.optifine.net/");
     }
 }

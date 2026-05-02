@@ -1,13 +1,13 @@
-using System.Net.Http;
-using System.Windows;
-using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -72,7 +72,9 @@ public partial class PageLoginAuth
         var LoginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
         {
             BaseUrl = TextServer.Text.EndsWithF("/") ? $"{TextServer.Text}authserver" : $"{TextServer.Text}/authserver",
-            UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
+            UserName = TextName.Text,
+            Password = TextPass.Password,
+            Description = "Authlib-Injector",
             Type = ModLaunch.McLoginType.Auth
         };
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
@@ -107,7 +109,7 @@ public partial class PageLoginAuth
                 }
                 else
                 {
-                    ModBase.Log(ex, "第三方登录尝试失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "第三方登录尝试失败", ModBase.LogType.Msgbox);
                 }
             }
             finally
@@ -171,11 +173,11 @@ public partial class PageLoginAuth
     {
         if (string.Equals(BtnLink.Content?.ToString(), "注册账号", StringComparison.OrdinalIgnoreCase))
         {
-            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString());
+            ShellUtils.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString());
         }
         else
         {
-            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
+            ShellUtils.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
         }
     }
 

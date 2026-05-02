@@ -288,7 +288,7 @@ public static class ModJava
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogType.Feedback);
             if (RelatedVersion is not null)
                 ModBase.Setup.Reset("VersionArgumentJavaSelect", instance: RelatedVersion);
             Config.Launch.SelectedJava = "";
@@ -336,7 +336,7 @@ public static class ModJava
             if ((NewState == Enums.LoadState.Failed || NewState == Enums.LoadState.Aborted) &&
                 LastJavaBaseDir is not null)
             {
-                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", ModBase.LogLevel.Debug);
+                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", ModBase.LogType.Debug);
                 Directories.DeleteDirectoryAsync(LastJavaBaseDir).GetAwaiter().GetResult();
             }
             else if (NewState == Enums.LoadState.Finished)
@@ -373,7 +373,7 @@ public static class ModJava
         // 查找要下载的目标 Java
         JProperty TargetEntry = null;
         var Components =
-            (JObject)((JObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(ModBase.Is32BitSystem ? "86" : "64")}"];
+            (JObject)((JObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(Basics.Is32BitSystem ? "86" : "64")}"];
         if (Components.ContainsKey(Loader.Input)) // 精确匹配
         {
             TargetEntry = Components.Property(Loader.Input);

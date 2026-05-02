@@ -5,6 +5,7 @@ using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -28,7 +29,7 @@ public static class ModModpack
         var File = SystemDialogs.SelectFile("整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack", "选择整合包压缩文件"); // 选择整合包文件
         if (string.IsNullOrEmpty(File))
             return;
-        ModBase.RunInThread(() =>
+        ModBase.RunInWorkerThread(() =>
         {
             try
             {
@@ -40,7 +41,7 @@ public static class ModModpack
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "手动安装整合包失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(ex, "手动安装整合包失败", ModBase.LogType.Msgbox);
             }
         });
     }
@@ -96,7 +97,7 @@ public static class ModModpack
 
                     if (Archive.GetEntry("manifest.json") is not null)
                     {
-                        var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Archive.GetEntry("manifest.json").Open(),
+                        var Json = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(Archive.GetEntry("manifest.json").Open(),
                             Encoding.UTF8));
                         if (Json["addons"] is null)
                         {
@@ -154,7 +155,7 @@ public static class ModModpack
 
                         if (FullNames[1] == "manifest.json")
                         {
-                            var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Entry.Open(), Encoding.UTF8));
+                            var Json = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(Entry.Open(), Encoding.UTF8));
                             if (Json["addons"] is null)
                             {
                                 PackType = 0;
@@ -327,7 +328,7 @@ public static class ModModpack
         {
             IniFile.Open(OverridesIni).Write("VersionArgumentIndie", 1.ToString()); // 开启版本隔离
             IniFile.Open(OverridesIni).Write("VersionArgumentIndieV2", Conversions.ToString(true));
-            ModBase.CopyFile(OverridesIni, VersionIni); // 覆写已有的 ini
+            Files.CopyFile(OverridesIni, VersionIni); // 覆写已有的 ini
         }
         else
         {
@@ -349,7 +350,7 @@ public static class ModModpack
         try
         {
             Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "manifest.json").Open()));
+                Files.ReadAllTextOrEmpty(Archive.GetEntry(ArchiveBaseFolder + "manifest.json").Open()));
         }
         catch (Exception ex)
         {
@@ -599,7 +600,7 @@ public static class ModModpack
                     File.Delete(Target);
                 }
 
-            if (File.Exists(FileAddress) && ModBase.GetFileNameWithoutExtentionFromPath(FileAddress) == "modpack")
+            if (File.Exists(FileAddress) && Path.GetFileNameWithoutExtension(FileAddress) == "modpack")
             {
                 ModBase.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
                 File.Delete(FileAddress);
@@ -660,7 +661,7 @@ public static class ModModpack
         try
         {
             Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modrinth.index.json").Open()));
+                Files.ReadAllTextOrEmpty(Archive.GetEntry(ArchiveBaseFolder + "modrinth.index.json").Open()));
         }
         catch (Exception ex)
         {
@@ -829,7 +830,7 @@ public static class ModModpack
                     File.Delete(Target);
                 }
 
-            if (File.Exists(FileAddress) && ModBase.GetFileNameWithoutExtentionFromPath(FileAddress) == "modpack")
+            if (File.Exists(FileAddress) && Path.GetFileNameWithoutExtension(FileAddress) == "modpack")
             {
                 ModBase.Log("[ModPack] 删除安装整合包文件：" + FileAddress);
                 File.Delete(FileAddress);
@@ -889,7 +890,7 @@ public static class ModModpack
         try
         {
             Json = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
+                Files.ReadAllTextOrEmpty(Archive.GetEntry(ArchiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
         }
         catch (Exception ex)
         {
@@ -969,7 +970,7 @@ public static class ModModpack
                         Archive.GetEntry(ArchiveBaseFolder + "manifest.json");
             using (var stream = Entry.Open())
             {
-                Json = (JObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
+                Json = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(stream, Encoding.UTF8));
             }
         }
         catch (Exception ex)
@@ -1138,8 +1139,8 @@ public static class ModModpack
                     if (ModMain.MyMsgBox($"整合包里似乎自带了启动器，是否换用它继续安装？{"\r\n"}即将打开：{Launcher}", "换用整合包启动器？", "换用",
                             "不换用") == 1)
                     {
-                        ModBase.OpenExplorer(TargetFolder);
-                        ModBase.ShellOnly(Launcher, "--wait"); // 要求等待已有的 PCL 退出
+                        Basics.OpenPath(TargetFolder);
+                        ProcessUtils.ShellOnly(Launcher, ["--wait"]); // 要求等待已有的 PCL 退出
                         ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
                         ModMain.FrmMain.EndProgram(false);
                         return;
@@ -1150,7 +1151,7 @@ public static class ModModpack
                     ModBase.Log("[Modpack] 未找到压缩包中附带的启动器");
                 }
 
-                ModBase.OpenExplorer(TargetFolder);
+                Basics.OpenPath(TargetFolder);
                 // 加入文件夹列表
                 var InstanceName = PathUtils.GetFolderNameFromPath(TargetFolder);
                 Directory.CreateDirectory(TargetFolder + @".minecraft\");
@@ -1263,8 +1264,8 @@ public static class ModModpack
         try
         {
             PackJson = (JObject)ModBase.GetJson(
-                ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
-            PackInstance = ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
+                Files.ReadAllTextOrEmpty(Archive.GetEntry(ArchiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
+            PackInstance = Files.ReadAllTextOrEmpty(Archive.GetEntry(ArchiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
 
             #region JSON Patches
 
@@ -1282,7 +1283,7 @@ public static class ModModpack
                     foreach (var entry in Archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(ArchiveBaseFolder + "patches/"))
                         {
-                            var Patch = (JObject)ModBase.GetJson(ModBase.ReadFile(
+                            var Patch = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(
                                 Archive.GetEntry(ArchiveBaseFolder + "patches/" + entry.Name).Open(), Encoding.UTF8));
                             Patches.Add(new KeyValuePair<JObject, int>(Patch,
                                 (int)(Patch["order"] is not null ? Patch["order"] : 0)));
@@ -1537,7 +1538,7 @@ public static class ModModpack
                 if (File.Exists(MMCSetupFile))
                 {
                     List<string> Lines = [];
-                    foreach (var Line in ModBase.ReadFile(MMCSetupFile).Split(['\r', '\n'],
+                    foreach (var Line in Files.ReadAllTextOrEmpty(MMCSetupFile).Split(['\r', '\n'],
                                  StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (!Line.Contains("="))
@@ -1545,7 +1546,7 @@ public static class ModModpack
                         Lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                     }
 
-                    ModBase.WriteFile(MMCSetupFile, string.Join("\r\n", Lines));
+                    Files.WriteFile(MMCSetupFile, string.Join("\r\n", Lines));
                     // 读取文件
                     if (Conversions.ToBoolean(IniFile.Open(MMCSetupFile).Read("OverrideCommands",
                             Conversions.ToString(false))))
@@ -1584,7 +1585,7 @@ public static class ModModpack
                     {
                         States.Instance.IsLogoCustom[VersionFolder] = true;
                         States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
-                        ModBase.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
+                        Files.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
                             $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\PCL\Logo.png");
                         ModBase.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）");
                     }

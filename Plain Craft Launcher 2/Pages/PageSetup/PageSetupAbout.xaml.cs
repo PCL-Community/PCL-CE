@@ -1,8 +1,9 @@
+using PCL.Core.App;
+using PCL.Core.IO.Net.Http.Client.Request;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
-using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL;
 
@@ -31,9 +32,9 @@ public partial class PageSetupAbout
             return;
         IsLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", Basics.VersionName)
+            .Replace("%VERSIONCODE%", Basics.VersionCode.ToString()).Replace("%BRANCH%", Basics.BranchName)
+            .Replace("%COMMIT_HASH%", Basics.Metadata.Version.CommitDigest);
         LoadContributersAsync();
     }
 
@@ -70,98 +71,98 @@ public partial class PageSetupAbout
             switch (ClickCount)
             {
                 case 5:
-                {
-                    ModMain.Hint("点这个很好玩么……");
-                    break;
-                }
-                case 15:
-                {
-                    ModMain.Hint("还点？");
-                    break;
-                }
-                case 25:
-                {
-                    switch (ModMain.MyMsgBox("你现在是不是超无聊的？", "咕咕咕？", "是的", "并不是"))
                     {
-                        case 2:
-                        {
-                            ModMain.Hint("那你还点啥……真是搞不懂。");
-                            break;
-                        }
+                        ModMain.Hint("点这个很好玩么……");
+                        break;
                     }
-
-                    break;
-                }
-                case 50:
-                {
-                    ModMain.Hint("嗯，加油吧，嗯……");
-                    break;
-                }
-                case 75:
-                {
-                    ModMain.Hint("隐藏主题 混乱黄 已……嗯不对，这是 PCL 社区版，应该没有这玩意……");
-                    break;
-                }
-                case 100:
-                {
-                    ModMain.Hint("你咋还这么无聊啊？");
-                    break;
-                }
-                case 130:
-                {
-                    ModMain.Hint("后面什么都没有了哦！");
-                    break;
-                }
-                case 150:
-                {
-                    switch (ModMain.MyMsgBox("你真的不累么？", "温馨提示", "累死了", "真的不累"))
+                case 15:
                     {
-                        case 1:
+                        ModMain.Hint("还点？");
+                        break;
+                    }
+                case 25:
+                    {
+                        switch (ModMain.MyMsgBox("你现在是不是超无聊的？", "咕咕咕？", "是的", "并不是"))
                         {
-                            ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
-                            break;
+                            case 2:
+                                {
+                                    ModMain.Hint("那你还点啥……真是搞不懂。");
+                                    break;
+                                }
                         }
-                        case 2:
+
+                        break;
+                    }
+                case 50:
+                    {
+                        ModMain.Hint("嗯，加油吧，嗯……");
+                        break;
+                    }
+                case 75:
+                    {
+                        ModMain.Hint("隐藏主题 混乱黄 已……嗯不对，这是 PCL 社区版，应该没有这玩意……");
+                        break;
+                    }
+                case 100:
+                    {
+                        ModMain.Hint("你咋还这么无聊啊？");
+                        break;
+                    }
+                case 130:
+                    {
+                        ModMain.Hint("后面什么都没有了哦！");
+                        break;
+                    }
+                case 150:
+                    {
+                        switch (ModMain.MyMsgBox("你真的不累么？", "温馨提示", "累死了", "真的不累"))
                         {
-                            switch (ModMain.MyMsgBox("你真的真的不累么？", "超温馨的温馨提示", "累死了", "真的真的不累"))
-                            {
-                                case 1:
+                            case 1:
                                 {
                                     ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
                                     break;
                                 }
-                                case 2:
+                            case 2:
                                 {
-                                    switch (ModMain.MyMsgBox("你真的真的真的不累么？", "超超超温馨的温馨提示", "累死了", "真的真的真的不累"))
+                                    switch (ModMain.MyMsgBox("你真的真的不累么？", "超温馨的温馨提示", "累死了", "真的真的不累"))
                                     {
                                         case 1:
-                                        {
-                                            ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
-                                            break;
-                                        }
+                                            {
+                                                ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
+                                                break;
+                                            }
                                         case 2:
-                                        {
-                                            ModMain.Hint("好吧……不过后面是真的啥也没了，不用点了真的。");
-                                            break;
-                                        }
+                                            {
+                                                switch (ModMain.MyMsgBox("你真的真的真的不累么？", "超超超温馨的温馨提示", "累死了", "真的真的真的不累"))
+                                                {
+                                                    case 1:
+                                                        {
+                                                            ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
+                                                            break;
+                                                        }
+                                                    case 2:
+                                                        {
+                                                            ModMain.Hint("好吧……不过后面是真的啥也没了，不用点了真的。");
+                                                            break;
+                                                        }
+                                                }
+
+                                                break;
+                                            }
                                     }
 
                                     break;
                                 }
-                            }
-
-                            break;
                         }
-                    }
 
-                    break;
-                }
+                        break;
+                    }
                 case 200:
-                {
-                    ModMain.Hint("还点，还点就不让你点了……");
-                    ImgPCLLogo.IsHitTestVisible = false;
-                    return;
-                }
+                    {
+                        ModMain.Hint("还点，还点就不让你点了……");
+                        ImgPCLLogo.IsHitTestVisible = false;
+                        return;
+                    }
             }
 
             var rand = new Random();

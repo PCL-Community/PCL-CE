@@ -141,7 +141,7 @@ public static class ModDownload
                 {
                     var BackAssetsFile = DlClientAssetIndexGet(Version);
                     RealAddress = BackAssetsFile.LocalPath;
-                    TempAddress = ModBase.PathTemp + @"Cache\" + BackAssetsFile.LocalName;
+                    TempAddress = Basics.PathTemp + @"Cache\" + BackAssetsFile.LocalName;
                     BackAssetsFile.LocalPath = TempAddress;
                     Task.Output = new List<DownloadFile> { BackAssetsFile };
                     // 检查是否需要更新：每天只更新一次
@@ -155,7 +155,7 @@ public static class ModDownload
                 LoadersAssetsUpdate.Add(new LoaderDownload("后台下载资源文件索引", new List<DownloadFile>()));
                 LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>("后台复制资源文件索引", Task =>
                 {
-                    ModBase.CopyFile(TempAddress, RealAddress);
+                    Files.CopyFile(TempAddress, RealAddress);
                     ModLaunch.McLaunchLog("后台更新资源文件索引成功：" + TempAddress);
                 }));
                 var Updater = new ModLoader.LoaderCombo<string>("后台更新资源文件索引", LoadersAssetsUpdate);
@@ -333,7 +333,7 @@ public static class ModDownload
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
             // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
+            var CacheFilePath = Basics.PathTemp + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
@@ -348,7 +348,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -421,7 +421,7 @@ public static class ModDownload
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
             // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
+            var CacheFilePath = Basics.PathTemp + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
@@ -436,7 +436,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -505,7 +505,7 @@ public static class ModDownload
                 if ((string)Version["id"] == Id)
                     return Version["url"].ToString();
             ModBase.Log($"未发现版本 {Id} 的 json 下载地址，版本列表返回为：{"\r\n"}{DlClientListLoader.Output.Value}",
-                ModBase.LogLevel.Debug);
+                ModBase.LogType.Debug);
             return null;
         }
         catch (Exception ex)

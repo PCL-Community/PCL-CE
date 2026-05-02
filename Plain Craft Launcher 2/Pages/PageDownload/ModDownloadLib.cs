@@ -8,6 +8,7 @@ using PCL.Core.UI;
 using PCL.Core.UI.Icons;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Network;
 using PCL.Network.Loaders;
 using System.Diagnostics;
@@ -91,7 +92,7 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogType.Feedback);
             return null;
         }
     }
@@ -149,7 +150,7 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -196,12 +197,12 @@ public static class ModDownloadLib
             if (Conversions.ToBoolean(id == "1.16.5" && Config.Download.FixAuthLib != null)) // 1.16.5 Authlib 修复
                 try
                 {
-                    var json = ModBase.ReadFile(instanceFolder + instanceName + ".json");
+                    var json = Files.ReadAllTextOrEmpty(instanceFolder + instanceName + ".json");
                     json = json.Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                         .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                         .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd", "bbd00ca33b052f73a6312254780fc580d2da3535")
                         .Replace("76328", "87662");
-                    ModBase.WriteFile(instanceFolder + instanceName + ".json", json);
+                    Files.WriteFile(instanceFolder + instanceName + ".json", json);
                 }
                 catch (Exception ex)
                 {
@@ -237,9 +238,9 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JObject)ModBase.GetJson(ModBase.ReadFile(instanceFolder + instanceName + ".json"));
+                var versionJson = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(instanceFolder + instanceName + ".json"));
                 versionJson.Add("clientVersion", id);
-                ModBase.WriteFile(instanceFolder + instanceName + ".json", versionJson.ToString());
+                Files.WriteFile(instanceFolder + instanceName + ".json", versionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -283,11 +284,11 @@ public static class ModDownloadLib
         // 确定图标
         string Logo = Entry["type"].ToString() switch
         {
-            "release" => ModBase.PathImage + "Blocks/Grass.png",
-            "snapshot" => ModBase.PathImage + "Blocks/CommandBlock.png",
-            "pending" => ModBase.PathImage + "Blocks/CommandBlock.png",
-            "special" => ModBase.PathImage + "Blocks/GoldBlock.png",
-            _ => ModBase.PathImage + "Blocks/CobbleStone.png"
+            "release" => Basics.GetAppImagePath("Blocks/Grass.png"),
+            "snapshot" => Basics.GetAppImagePath("Blocks/CommandBlock.png"),
+            "pending" => Basics.GetAppImagePath("Blocks/CommandBlock.png"),
+            "special" => Basics.GetAppImagePath("Blocks/GoldBlock.png"),
+            _ => Basics.GetAppImagePath("Blocks/CobbleStone.png")
         };
 
         // 建立控件
@@ -450,8 +451,8 @@ echo ------------------------------
 echo ----------------------
 echo 服务端已停止。
 pause";
-                ModBase.WriteFile(VersionFolder + "Launch Server.bat", Bat.Replace("\n", "\r\n"),
-                    Encoding: Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encoding.GetEncoding("GB18030"));
+                Files.WriteFile(VersionFolder + "Launch Server.bat", Bat.Replace("\n", "\r\n"),
+                    encoding: Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encoding.GetEncoding("GB18030"));
                 // 删除实例 JSON
                 File.Delete(VersionFolder + Id + ".json");
             })
@@ -472,7 +473,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 服务端下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Minecraft 服务端下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -528,7 +529,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -539,7 +540,7 @@ pause";
     public static void McUpdateLogShow(JToken VersionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(VersionJson["id"].ToString());
-        ModBase.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
+        ShellUtils.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
     }
 
     #endregion
@@ -554,7 +555,7 @@ pause";
             var VersionFolder = ModMinecraft.McFolderSelected + @"versions\" + Id + @"\";
             var IsNewVersion = StringExtension.Val(DownloadInfo.Inherit.Split(".")[1]) >= 14d;
             var Target = IsNewVersion
-                ? ModBase.PathTemp + @"Cache\Code\" + DownloadInfo.NameVersion + "_" + ModBase.GetUuid()
+                ? Basics.PathTemp + @"Cache\Code\" + DownloadInfo.NameVersion + "_" + GlobalUniqueId.GetUniqueId()
                 : ModMinecraft.McFolderSelected + @"libraries\optifine\OptiFine\" +
                   DownloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "") + @"\" +
                   DownloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "");
@@ -597,7 +598,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -632,7 +633,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -898,10 +899,10 @@ pause";
                 Directory.CreateDirectory(McFolder + @"versions\" + DownloadInfo.Inherit);
                 if (!File.Exists(McFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit +
                                  ".json"))
-                    ModBase.CopyFile($"{ClientFolder}{ClientName}.json",
+                    Files.CopyFile($"{ClientFolder}{ClientName}.json",
                         $@"{McFolder}versions\{DownloadInfo.Inherit}\{DownloadInfo.Inherit}.json");
                 if (!File.Exists(McFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".jar"))
-                    ModBase.CopyFile($"{ClientFolder}{ClientName}.jar",
+                    Files.CopyFile($"{ClientFolder}{ClientName}.jar",
                         $@"{McFolder}versions\{DownloadInfo.Inherit}\{DownloadInfo.Inherit}.jar");
             }
         })
@@ -925,15 +926,15 @@ pause";
                         Directories.DeleteDirectoryAsync(BaseMcFolder + @"versions\" + DownloadInfo.Inherit).GetAwaiter().GetResult();
                     Directory.CreateDirectory(BaseMcFolder + @"versions\" + DownloadInfo.Inherit + @"\");
                     ModMinecraft.McFolderLauncherProfilesJsonCreate(BaseMcFolder);
-                    ModBase.CopyFile(
+                    Files.CopyFile(
                         McFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".json",
                         BaseMcFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".json");
-                    ModBase.CopyFile(
+                    Files.CopyFile(
                         McFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".jar",
                         BaseMcFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".jar");
                     Task.Progress = 0.06d;
                     // 进行安装
-                    var UseJavaWrapper = ModBase.IsUtf8CodePage();
+                    var UseJavaWrapper = ShellUtils.IsUtf8CodePage;
                 Retry:;
 
                     try
@@ -983,7 +984,7 @@ pause";
                         Directory.CreateDirectory(VersionFolder);
                         Task.Progress = 0.1d;
                         if (File.Exists(VersionFolder + Id + ".jar")) File.Delete(VersionFolder + Id + ".jar");
-                        ModBase.CopyFile(
+                        Files.CopyFile(
                             McFolder + @"versions\" + DownloadInfo.Inherit + @"\" + DownloadInfo.Inherit + ".jar",
                             VersionFolder + Id + ".jar");
                         Task.Progress = 0.7d;
@@ -1026,7 +1027,7 @@ pause";
         ]
     }
 }";
-                        ModBase.WriteFile(VersionFolder + Id + ".json", Json);
+                        Files.WriteFile(VersionFolder + Id + ".json", Json);
                     }
                     catch (Exception ex)
                     {
@@ -1129,7 +1130,7 @@ pause";
                    (Entry.RequiredForgeVersion is null ? "，不兼容 Forge" :
                        string.IsNullOrEmpty(Entry.RequiredForgeVersion) ? "" :
                        "，兼容 Forge " + Entry.RequiredForgeVersion),
-            Logo = ModBase.PathImage + "Blocks/GrassPath.png"
+            Logo = Basics.GetAppImagePath("Blocks/GrassPath.png")
         };
         NewItem.Click += OnClick;
         // 建立菜单
@@ -1175,7 +1176,7 @@ pause";
             Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
         else
             Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite("https://optifine.net/changelog?f=" + Version.NameFile);
+        ShellUtils.OpenWebsite("https://optifine.net/changelog?f=" + Version.NameFile);
     }
 
     public static void OptiFineSave_Click(object sender, RoutedEventArgs e)
@@ -1199,7 +1200,7 @@ pause";
         try
         {
             var Id = DownloadInfo.Inherit;
-            var Target = ModBase.PathTemp + @"Download\" + Id + "-Liteloader.jar";
+            var Target = Basics.PathTemp + @"Download\" + Id + "-Liteloader.jar";
             var VersionName = DownloadInfo.Inherit + "-LiteLoader";
             var VersionFolder = ModMinecraft.McFolderSelected + @"versions\" + VersionName + @"\";
 
@@ -1240,7 +1241,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LiteLoader 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 LiteLoader 下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -1251,7 +1252,7 @@ pause";
             var Id = DownloadInfo.Inherit;
             var Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""),
                 "LiteLoader 安装器 (*.jar)|*.jar");
-            if (!Target.Contains(@"\"))
+            if (!Target.Contains('\\'))
                 return;
 
             // 重复任务检查
@@ -1323,7 +1324,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LiteLoader 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 LiteLoader 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -1337,7 +1338,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = DownloadInfo.Inherit;
-        var Target = ModBase.PathTemp + @"Download\" + Id + "-Liteloader.jar";
+        var Target = Basics.PathTemp + @"Download\" + Id + "-Liteloader.jar";
         var VersionName = DownloadInfo.Inherit + "-LiteLoader";
         var VersionFolder = McFolder + @"versions\" + VersionName + @"\";
         var Loaders = new List<ModLoader.LoaderBase>();
@@ -1383,7 +1384,7 @@ pause";
                 VersionJson.Add("minimumLauncherVersion", 18);
                 VersionJson.Add("inheritsFrom", DownloadInfo.Inherit);
                 VersionJson.Add("jar", DownloadInfo.Inherit);
-                ModBase.WriteFile(VersionFolder + VersionName + ".json", VersionJson.ToString());
+                Files.WriteFile(VersionFolder + VersionName + ".json", VersionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -1422,7 +1423,7 @@ pause";
             Tag = Entry,
             Info = (Entry.IsPreview ? "测试版" : "稳定版") +
                    (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : "，发布于 " + Entry.ReleaseTime),
-            Logo = ModBase.PathImage + "Blocks/Egg.png"
+            Logo = Basics.GetAppImagePath("Blocks/Egg.png")
         };
         NewItem.Click += OnClick;
         // 建立菜单
@@ -1480,7 +1481,7 @@ pause";
             Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag;
         else
             Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
-        ModBase.OpenWebsite("https://jenkins.liteloader.com/view/" + Version.Inherit);
+        ShellUtils.OpenWebsite("https://jenkins.liteloader.com/view/" + Version.Inherit);
     }
 
     public static void LiteLoaderSave_Click(object sender, RoutedEventArgs e)
@@ -1563,7 +1564,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"开始 {Info.LoaderName} 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, $"开始 {Info.LoaderName} 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -1605,10 +1606,10 @@ pause";
         string Arguments;
         if (Conversions.ToBoolean(UseJavaWrapper && !Config.Launch.DisableJlw))
             Arguments =
-                $@"-Doolloo.jlw.tmpdir=""{Paths.Temp.TrimEnd('\\')}"" -cp ""{Path.Combine(ModBase.PathTemp, "Cache", "forge_installer.jar")};{Target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{McFolder}";
+                $@"-Doolloo.jlw.tmpdir=""{Paths.Temp.TrimEnd('\\')}"" -cp ""{Path.Combine(Basics.PathTemp, "Cache", "forge_installer.jar")};{Target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{McFolder}";
         else
             Arguments =
-                $@"-cp ""{ModBase.PathTemp}Cache\forge_installer.jar;{Target}"" com.bangbang93.ForgeInstaller ""{McFolder}";
+                $@"-cp ""{Basics.PathTemp}Cache\forge_installer.jar;{Target}"" com.bangbang93.ForgeInstaller ""{McFolder}";
         if (Java.Installation.MajorVersion >= 9)
             Arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " + Arguments;
         // 开始启动
@@ -1947,8 +1948,8 @@ pause";
                     Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     Task.Progress = 0.2d;
                     var Json = (JObject)ModBase.GetJson(
-                        ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
-                    var Json2 = (JObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
+                        Files.ReadAllTextOrEmpty(Installer.GetEntry("install_profile.json").Open()));
+                    var Json2 = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(Installer.GetEntry("version.json").Open()));
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib))
@@ -1994,7 +1995,7 @@ pause";
                             Libs[i].LocalPath.EndsWithF($"{LoaderName.ToLower()}-{Inherit}-{LoaderVersion}-client.jar"))
                         {
                             ModBase.Log($"[Download] 已从待下载 {LoaderName} 支持库中移除：" + Libs[i].LocalPath,
-                                ModBase.LogLevel.Debug);
+                                ModBase.LogType.Debug);
                             Libs.RemoveAt(i);
                             break;
                         }
@@ -2028,7 +2029,7 @@ pause";
                         if (!File.Exists(RealPath))
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(RealPath));
-                            ModBase.CopyFile(LibFile.LocalPath, RealPath);
+                            Files.CopyFile(LibFile.LocalPath, RealPath);
                         }
 
                         if (ModBase.ModeDebug)
@@ -2063,10 +2064,10 @@ pause";
                     var ClientName = PathUtils.GetFolderNameFromPath(ClientFolder);
                     Directory.CreateDirectory(McFolder + @"versions\" + Inherit);
                     if (!File.Exists(McFolder + @"versions\" + Inherit + @"\" + Inherit + ".json"))
-                        ModBase.CopyFile(ClientFolder + ClientName + ".json",
+                        Files.CopyFile(ClientFolder + ClientName + ".json",
                             McFolder + @"versions\" + Inherit + @"\" + Inherit + ".json");
                     if (!File.Exists(McFolder + @"versions\" + Inherit + @"\" + Inherit + ".jar"))
-                        ModBase.CopyFile(ClientFolder + ClientName + ".jar",
+                        Files.CopyFile(ClientFolder + ClientName + ".jar",
                             McFolder + @"versions\" + Inherit + @"\" + Inherit + ".jar");
                 }
 
@@ -2090,21 +2091,21 @@ pause";
 
 
                         // 新建目标实例文件夹
-                        var Json = ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
+                        var Json = ModBase.GetJson(Files.ReadAllTextOrEmpty(Installer.GetEntry("install_profile.json").Open()));
                         Directory.CreateDirectory(VersionFolder);
                         Task.Progress = 0.04d;
                         // 释放 launcher_installer.json
                         ModMinecraft.McFolderLauncherProfilesJsonCreate(McFolder);
                         Task.Progress = 0.05d;
                         // 运行 Forge 安装器
-                        var UseJavaWrapper = ModBase.IsUtf8CodePage();
+                        var UseJavaWrapper = ShellUtils.IsUtf8CodePage;
                     Retry:
 
                         try
                         {
                             // 释放 Forge 注入器
-                            ModBase.WriteFile(ModBase.PathTemp + @"Cache\forge_installer.jar",
-                                ModBase.GetResourceStream("Resources/forge-installer.jar"));
+                            Files.WriteFile(Basics.PathTemp + @"Cache\forge_installer.jar",
+                                Basics.GetResourceStream("Resources/forge-installer.jar"));
                             Task.Progress = 0.06d;
                             // 运行注入器
                             ForgelikeInjector(InstallerAddress, Task, McFolder, UseJavaWrapper, ForgeType);
@@ -2137,8 +2138,8 @@ pause";
                         if (DeltaList.Count == 1)
                         {
                             var JsonFile = DeltaList[0].EnumerateFiles().First();
-                            ModBase.WriteFile(VersionFolder + TargetVersion + ".json",
-                                ModBase.ReadFile(JsonFile.FullName));
+                            Files.WriteFile(VersionFolder + TargetVersion + ".json",
+                                Files.ReadAllTextOrEmpty(JsonFile.FullName));
                             ModBase.Log(
                                 $"[Download] 已拷贝新增的实例 Json 文件：{JsonFile.FullName} -> {VersionFolder}{TargetVersion}.json");
                         }
@@ -2192,7 +2193,7 @@ pause";
                         Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                         Task.Progress = 0.2d;
                         var Json = (JObject)ModBase.GetJson(
-                            ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
+                            Files.ReadAllTextOrEmpty(Installer.GetEntry("install_profile.json").Open()));
                         Task.Progress = 0.4d;
                         // 新建实例文件夹
                         Directory.CreateDirectory(VersionFolder);
@@ -2203,9 +2204,9 @@ pause";
                             ModBase.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + InstallerAddress);
                             // 建立 Json 文件
                             var JsonVersion = (JObject)ModBase.GetJson(
-                                ModBase.ReadFile(Installer.GetEntry(Json["json"].ToString().TrimStart('/')).Open()));
+                                Files.ReadAllTextOrEmpty(Installer.GetEntry(Json["json"].ToString().TrimStart('/')).Open()));
                             JsonVersion["id"] = TargetVersion;
-                            ModBase.WriteFile(VersionFolder + TargetVersion + ".json", JsonVersion.ToString());
+                            Files.WriteFile(VersionFolder + TargetVersion + ".json", JsonVersion.ToString());
                             Task.Progress = 0.6d;
                             // 解压支持库文件
                             Installer.Dispose();
@@ -2222,14 +2223,14 @@ pause";
                                 customMcFolder: McFolder);
                             if (File.Exists(JarAddress))
                                 File.Delete(JarAddress);
-                            ModBase.WriteFile(JarAddress,
+                            Files.WriteFile(JarAddress,
                                 Installer.GetEntry((string)Json["install"]["filePath"]).Open());
                             Task.Progress = 0.9d;
                             // 建立 Json 文件
                             Json["versionInfo"]["id"] = TargetVersion;
                             if (Json["versionInfo"]["inheritsFrom"] is null)
                                 ((JObject)Json["versionInfo"]).Add("inheritsFrom", Inherit);
-                            ModBase.WriteFile(VersionFolder + TargetVersion + ".json", Json["versionInfo"].ToString());
+                            Files.WriteFile(VersionFolder + TargetVersion + ".json", Json["versionInfo"].ToString());
                         }
                     }
                     catch (Exception ex)
@@ -2277,7 +2278,7 @@ pause";
         if (Entries.Any())
             FreshVersion = Entries[0];
         else
-            ModBase.Log("[System] 未找到可用的 Forge 版本", ModBase.LogLevel.Debug);
+            ModBase.Log("[System] 未找到可用的 Forge 版本", ModBase.LogType.Debug);
         ModDownload.DlForgeVersionEntry RecommendedVersion = null;
         foreach (var Entry in Entries)
             if (Entry.IsRecommended)
@@ -2326,7 +2327,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = string.Join(", ", temp),
-            Logo = ModBase.PathImage + "Blocks/Anvil.png"
+            Logo = Basics.GetAppImagePath("Blocks/Anvil.png")
         };
         NewItem.Click += OnClick;
         // 建立菜单
@@ -2372,7 +2373,7 @@ pause";
             Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
         else
             Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(
+        ShellUtils.OpenWebsite(
             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{Version.Inherit}-{Version.VersionName}/forge-{Version.Inherit}-{Version.VersionName}-changelog.txt");
     }
 
@@ -2423,7 +2424,7 @@ pause";
 
                 if (RecommendedList.Count < 5) throw new Exception("获取的推荐版本数过少（" + Result + "）");
                 var CacheJson = "{" + string.Join(',', RecommendedList) + "}";
-                ModBase.WriteFile(ModBase.PathTemp + @"Cache\ForgeRecommendedList.json", CacheJson);
+                Files.WriteFile(Basics.PathTemp + @"Cache\ForgeRecommendedList.json", CacheJson);
                 ModBase.Log("[Download] 刷新 Forge 推荐版本缓存成功");
             }
             catch (Exception ex)
@@ -2444,7 +2445,7 @@ pause";
         {
             if (McInstance is null)
                 return null;
-            var List = ModBase.ReadFile(ModBase.PathTemp + @"Cache\ForgeRecommendedList.json");
+            var List = Files.ReadAllTextOrEmpty(Basics.PathTemp + @"Cache\ForgeRecommendedList.json");
             if (List is null || string.IsNullOrEmpty(List))
             {
                 ModBase.Log("[Download] 没有 Forge 推荐版本缓存文件");
@@ -2458,7 +2459,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 Forge 推荐版本失败（" + (McInstance ?? "null") + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "获取 Forge 推荐版本失败（" + (McInstance ?? "null") + "）", ModBase.LogType.Feedback);
             return null;
         }
     }
@@ -2489,7 +2490,7 @@ pause";
                     break;
                 }
         else
-            ModBase.Log("[System] 未找到可用的 NeoForge 版本", ModBase.LogLevel.Debug);
+            ModBase.Log("[System] 未找到可用的 NeoForge 版本", ModBase.LogType.Debug);
 
         // 显示各个版本
         if (FreshStableVersion is not null)
@@ -2527,7 +2528,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Info,
             Info = Info.IsBeta ? "测试版" : "稳定版",
-            Logo = ModBase.PathImage + "Blocks/NeoForge.png"
+            Logo = Basics.GetAppImagePath("Blocks/NeoForge.png")
         };
         NewItem.Click += OnClick;
         // 建立菜单
@@ -2573,7 +2574,7 @@ pause";
             Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
         else
             Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(Info.UrlBase + "-changelog.txt");
+        ShellUtils.OpenWebsite(Info.UrlBase + "-changelog.txt");
     }
 
     public static void NeoForgeSave_Click(object sender, RoutedEventArgs e)
@@ -2601,7 +2602,7 @@ pause";
         if (Entries.Any())
             FreshBetaVersion = Entries[0];
         else
-            ModBase.Log("[System] 未找到可用的 Cleanroom 版本", ModBase.LogLevel.Debug);
+            ModBase.Log("[System] 未找到可用的 Cleanroom 版本", ModBase.LogType.Debug);
         // 显示各个版本
         // If FreshStableVersion IsNot Nothing Then
         // Dim Fresh = NeoForgeDownloadListItem(FreshStableVersion, OnClick, IsSaveOnly)
@@ -2636,7 +2637,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Info,
             Info = Info.IsBeta ? "测试版" : "稳定版",
-            Logo = ModBase.PathImage + "Blocks/Cleanroom.png"
+            Logo = Basics.GetAppImagePath("Blocks/Cleanroom.png")
         };
         NewItem.Click += OnClick;
         // 建立菜单
@@ -2682,7 +2683,7 @@ pause";
             Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
         else
             Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(Info.UrlBase + "-changelog.txt");
+        ShellUtils.OpenWebsite(Info.UrlBase + "-changelog.txt");
     }
 
     public static void CleanroomSave_Click(object sender, RoutedEventArgs e)
@@ -2741,7 +2742,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Fabric 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Fabric 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -2854,7 +2855,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Legacy Fabric 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Legacy Fabric 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -2924,7 +2925,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry["stable"].ToObject<bool>() ? "稳定版" : "测试版",
-            Logo = ModBase.PathImage + "Blocks/Fabric.png"
+            Logo = Basics.GetAppImagePath("Blocks/Fabric.png")
         };
         NewItem.Click += OnClick;
         NewItem.ContentHandler = FabricContMenuBuild;
@@ -2944,7 +2945,7 @@ pause";
 
     private static void FabricLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://fabricmc.net/blog");
+        ShellUtils.OpenWebsite("https://fabricmc.net/blog");
     }
 
     public static MyListItem FabricApiDownloadListItem(ModComp.CompFile Entry, MyListItem.ClickEventHandler OnClick)
@@ -2958,7 +2959,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry.StatusDescription + "，发布于 " + Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
-            Logo = ModBase.PathImage + "Blocks/Fabric.png"
+            Logo = Basics.GetAppImagePath("Blocks/Fabric.png")
         };
         NewItem.Click += OnClick;
         // 结束
@@ -2976,7 +2977,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry.StatusDescription + "，发布于 " + Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
-            Logo = ModBase.PathImage + "Blocks/OptiFabric.png"
+            Logo = Basics.GetAppImagePath("Blocks/OptiFabric.png")
         };
         NewItem.Click += OnClick;
         // 结束
@@ -2998,7 +2999,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry["stable"].ToObject<bool>() ? "稳定版" : "测试版",
-            Logo = ModBase.PathImage + "Blocks/Fabric.png"
+            Logo = Basics.GetAppImagePath("Blocks/Fabric.png")
         };
         NewItem.Click += OnClick;
         // 结束
@@ -3017,7 +3018,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry.StatusDescription + "，发布于 " + Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
-            Logo = ModBase.PathImage + "Blocks/Fabric.png"
+            Logo = Basics.GetAppImagePath("Blocks/Fabric.png")
         };
         NewItem.Click += OnClick;
         // 结束
@@ -3068,7 +3069,7 @@ pause";
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Quilt 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 Quilt 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -3142,7 +3143,7 @@ pause";
             Info = Entry["maven"].ToString().Contains("installer") ? "安装器" :
                 Entry["version"].ToString().Contains("beta") || Entry["version"].ToString().Contains("pre") ? "测试版" :
                 "稳定版",
-            Logo = ModBase.PathImage + "Blocks/Quilt.png"
+            Logo = Basics.GetAppImagePath("Blocks/Quilt.png")
         };
         NewItem.Click += OnClick;
         NewItem.ContentHandler = QuiltContMenuBuild;
@@ -3162,7 +3163,7 @@ pause";
 
     private static void QuiltLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://quiltmc.org/en/blog/1/");
+        ShellUtils.OpenWebsite("https://quiltmc.org/en/blog/1/");
     }
 
     public static MyListItem QSLDownloadListItem(ModComp.CompFile Entry, MyListItem.ClickEventHandler OnClick)
@@ -3176,7 +3177,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry.StatusDescription + "，发布于 " + Entry.ReleaseDate.ToString("yyyy'/'MM'/'dd HH':'mm"),
-            Logo = ModBase.PathImage + "Blocks/Quilt.png"
+            Logo = Basics.GetAppImagePath("Blocks/Quilt.png")
         };
         NewItem.Click += OnClick;
         // 结束
@@ -3224,7 +3225,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -3265,7 +3266,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -3366,9 +3367,9 @@ pause";
             // 顺手添加 Json 项目
             try
             {
-                var VersionJson = (JObject)ModBase.GetJson(ModBase.ReadFile(VersionFolder + VersionName + ".json"));
+                var VersionJson = (JObject)ModBase.GetJson(Files.ReadAllTextOrEmpty(VersionFolder + VersionName + ".json"));
                 VersionJson.Add("clientVersion", Id);
-                ModBase.WriteFile(VersionFolder + VersionName + ".json", VersionJson.ToString());
+                Files.WriteFile(VersionFolder + VersionName + ".json", VersionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -3415,7 +3416,7 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry["channel"].ToString().Contains("snapshot") ? "快照版" : "稳定版",
-            Logo = ModBase.PathImage + "Blocks/LabyMod.png"
+            Logo = Basics.GetAppImagePath("Blocks/LabyMod.png")
         };
         NewItem.Click += OnClick;
         NewItem.ContentHandler = LabyModContMenuBuild;
@@ -3440,7 +3441,7 @@ pause";
 
     private static void LabyModLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://www.labymod.net/zh_Hans/download");
+        ShellUtils.OpenWebsite("https://www.labymod.net/zh_Hans/download");
     }
 
     private static void LabyModSave_Click(object sender, RoutedEventArgs e)
@@ -3706,13 +3707,13 @@ pause";
                 {
                     ModBase.Log(
                         Conversions.ToString(Operators.ConcatenateObject("[Download] 由于实例已被独立启动，不清理实例文件夹：",
-                            ((dynamic)Loader).Input)), ModBase.LogLevel.Developer);
+                            ((dynamic)Loader).Input)), ModBase.LogType.Developer);
                 }
                 else
                 {
                     ModBase.Log(
                         Conversions.ToString(Operators.ConcatenateObject("[Download] 由于下载失败或取消，清理实例文件夹：",
-                            ((dynamic)Loader).Input)), ModBase.LogLevel.Developer);
+                            ((dynamic)Loader).Input)), ModBase.LogType.Developer);
                     Directories.DeleteDirectoryAsync(Conversions.ToString(((dynamic)Loader).Input)).GetAwaiter().GetResult();
                 }
             }
@@ -3750,7 +3751,7 @@ pause";
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始合并安装失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始合并安装失败", ModBase.LogType.Feedback);
             return false;
         }
     }
@@ -3870,7 +3871,7 @@ pause";
         var LoaderList = new List<ModLoader.LoaderBase>();
         // 添加忽略标识
         LoaderList.Add(new ModLoader.LoaderTask<int, int>("添加忽略标识",
-                _ => ModBase.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
+                _ => Files.WriteFile(InstanceFolder + ".pclignore", "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
         { Show = false, Block = false });
         // Fabric API
         if (Request.FabricApi is not null)
@@ -4236,7 +4237,7 @@ pause";
 
         #region 读取文件并检查文件是否合规
 
-        var MinecraftJsonText = ModBase.ReadFile(MinecraftJsonPath);
+        var MinecraftJsonText = Files.ReadAllTextOrEmpty(MinecraftJsonPath);
         if (!HasLabyMod)
         {
             if (!MinecraftJsonText.StartsWithF("{"))
@@ -4247,7 +4248,7 @@ pause";
 
         if (HasOptiFine)
         {
-            var OptiFineJsonText = ModBase.ReadFile(OptiFineJsonPath);
+            var OptiFineJsonText = Files.ReadAllTextOrEmpty(OptiFineJsonPath);
             if (!OptiFineJsonText.StartsWithF("{"))
                 throw new Exception("OptiFine Json 有误，地址：" + OptiFineJsonPath + "，前段内容：" +
                                     OptiFineJsonText.Substring(0, Math.Min(OptiFineJsonText.Length, 1000)));
@@ -4256,7 +4257,7 @@ pause";
 
         if (HasForge)
         {
-            var ForgeJsonText = ModBase.ReadFile(ForgeJsonPath);
+            var ForgeJsonText = Files.ReadAllTextOrEmpty(ForgeJsonPath);
             if (!ForgeJsonText.StartsWithF("{"))
                 throw new Exception("Forge Json 有误，地址：" + ForgeJsonPath + "，前段内容：" +
                                     ForgeJsonText.Substring(0, Math.Min(ForgeJsonText.Length, 1000)));
@@ -4265,7 +4266,7 @@ pause";
 
         if (HasNeoForge)
         {
-            var NeoForgeJsonText = ModBase.ReadFile(NeoForgeJsonPath);
+            var NeoForgeJsonText = Files.ReadAllTextOrEmpty(NeoForgeJsonPath);
             if (!NeoForgeJsonText.StartsWithF("{"))
                 throw new Exception("NeoForge Json 有误，地址：" + NeoForgeJsonPath + "，前段内容：" +
                                     NeoForgeJsonText.Substring(0, Math.Min(NeoForgeJsonText.Length, 1000)));
@@ -4274,7 +4275,7 @@ pause";
 
         if (HasCleanroom)
         {
-            var CleanroomJsonText = ModBase.ReadFile(CleanroomJsonPath);
+            var CleanroomJsonText = Files.ReadAllTextOrEmpty(CleanroomJsonPath);
             if (!CleanroomJsonText.StartsWithF("{"))
                 throw new Exception("Cleanroom Json 有误，地址：" + CleanroomJsonPath + "，前段内容：" +
                                     CleanroomJsonText.Substring(0, Math.Min(CleanroomJsonText.Length, 1000)));
@@ -4283,7 +4284,7 @@ pause";
 
         if (HasLiteLoader)
         {
-            var LiteLoaderJsonText = ModBase.ReadFile(LiteLoaderJsonPath);
+            var LiteLoaderJsonText = Files.ReadAllTextOrEmpty(LiteLoaderJsonPath);
             if (!LiteLoaderJsonText.StartsWithF("{"))
                 throw new Exception("LiteLoader Json 有误，地址：" + LiteLoaderJsonPath + "，前段内容：" +
                                     LiteLoaderJsonText.Substring(0, Math.Min(LiteLoaderJsonText.Length, 1000)));
@@ -4292,7 +4293,7 @@ pause";
 
         if (HasFabric)
         {
-            var FabricJsonText = ModBase.ReadFile(FabricJsonPath);
+            var FabricJsonText = Files.ReadAllTextOrEmpty(FabricJsonPath);
             if (!FabricJsonText.StartsWithF("{"))
                 throw new Exception("Fabric Json 有误，地址：" + FabricJsonPath + "，前段内容：" +
                                     FabricJsonText.Substring(0, Math.Min(FabricJsonText.Length, 1000)));
@@ -4301,7 +4302,7 @@ pause";
 
         if (HasLegacyFabric)
         {
-            var LegacyFabricJsonText = ModBase.ReadFile(LegacyFabricJsonPath);
+            var LegacyFabricJsonText = Files.ReadAllTextOrEmpty(LegacyFabricJsonPath);
             if (!LegacyFabricJsonText.StartsWithF("{"))
                 throw new Exception("Legacy Fabric Json 有误，地址：" + FabricJsonPath + "，前段内容：" +
                                     LegacyFabricJsonText.Substring(0, Math.Min(LegacyFabricJsonText.Length, 1000)));
@@ -4310,7 +4311,7 @@ pause";
 
         if (HasQuilt)
         {
-            var QuiltJsonText = ModBase.ReadFile(QuiltJsonPath);
+            var QuiltJsonText = Files.ReadAllTextOrEmpty(QuiltJsonPath);
             if (!QuiltJsonText.StartsWithF("{"))
                 throw new Exception("Quilt Json 有误，地址：" + QuiltJsonPath + "，前段内容：" +
                                     QuiltJsonText.Substring(0, Math.Min(QuiltJsonText.Length, 1000)));
@@ -4319,7 +4320,7 @@ pause";
 
         if (HasLabyMod)
         {
-            var LabyModJsonText = ModBase.ReadFile(LabyModJsonPath);
+            var LabyModJsonText = Files.ReadAllTextOrEmpty(LabyModJsonPath);
             if (!LabyModJsonText.StartsWithF("{"))
                 throw new Exception("LabyMod Json 有误，地址：" + LabyModJsonPath + "，前段内容：" +
                                     LabyModJsonText.Substring(0, Math.Min(LabyModJsonText.Length, 1000)));
@@ -4526,12 +4527,12 @@ pause";
 
         #region 保存
 
-        ModBase.WriteFile(OutputJsonPath, OutputJson.ToString());
+        Files.WriteFile(OutputJsonPath, OutputJson.ToString());
         if ((MinecraftJar ?? "") != (OutputJar ?? "")) // 可能是同一个文件
         {
             if (File.Exists(OutputJar))
                 File.Delete(OutputJar);
-            ModBase.CopyFile(MinecraftJar, OutputJar);
+            Files.CopyFile(MinecraftJar, OutputJar);
         }
 
         ModBase.Log("[Download] 实例合并 " + OutputName + " 完成");

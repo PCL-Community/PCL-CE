@@ -202,7 +202,7 @@ public partial class PageDownloadClient
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 MC 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "可视化 MC 版本列表出错", ModBase.LogType.Feedback);
         }
     }
 

@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -42,7 +43,7 @@ public partial class MyRadioButton
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyRadioButton()
     {
@@ -195,7 +196,7 @@ public partial class MyRadioButton
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "单选按钮勾选改变错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "单选按钮勾选改变错误", ModBase.LogType.Hint);
         }
     }
 

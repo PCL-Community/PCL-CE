@@ -1,9 +1,10 @@
+using PCL.Core.App;
+using PCL.Core.IO.Net.Http;
+using PCL.Core.Link.Natayark;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using Microsoft.VisualBasic;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.Link.Natayark;
 
 namespace PCL;
 
@@ -229,12 +230,12 @@ public static class ModWebServer
 
         private Task<HttpRouteResponse> HandleIcon(HttpListenerRequest request)
         {
-            return HttpRouteResponse.Input(ModBase.GetResourceStream("Images/icon.ico")).AsTask();
+            return HttpRouteResponse.Input(Basics.GetResourceStream("Images/icon.ico")).AsTask();
         }
 
         private Task<HttpRouteResponse> HandleComplete(HttpListenerRequest request)
         {
-            return HttpRouteResponse.Input(ModBase.GetResourceStream("Resources/oauth-complete.html"), "text/html")
+            return HttpRouteResponse.Input(Basics.GetResourceStream("Resources/oauth-complete.html"), "text/html")
                 .AsTask();
         }
     }
@@ -301,7 +302,7 @@ public static class ModWebServer
                 }
 
                 // 打开 OAuth URL
-                ModBase.OpenWebsite(url.Replace("%r", $"http://localhost:{serverPort}/callback"));
+                ShellUtils.OpenWebsite(url.Replace("%r", $"http://localhost:{serverPort}/callback"));
             }, $"CallbackWebServerLoading/{serviceName}");
         return true;
     }

@@ -66,11 +66,11 @@ public partial class PageLoginMs
                         正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。
 
                         原始错误信息：
-                        """, ModBase.LogLevel.Msgbox);
+                        """, ModBase.LogType.Msgbox);
                 }
                 else
                 {
-                    ModBase.Log(ex, "正版登录尝试失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, "正版登录尝试失败", ModBase.LogType.Msgbox);
                 }
             }
             finally

@@ -448,7 +448,7 @@ public partial class PageToolsGameLink
                     // 版本过滤
                     var minVer = Convert.ToDouble(notice["minVer"]);
                     var maxVer = Convert.ToDouble(notice["maxVer"]);
-                    if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
+                    if (Basics.VersionCode < minVer || Basics.VersionCode > maxVer) continue;
 
                     // 类型映射
                     var type = LinkAnnounceType.Notice;
@@ -694,7 +694,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogType.Hint);
             BtnNatTest.IsEnabled = true;
             LabNatType.Text = "测试失败";
         }

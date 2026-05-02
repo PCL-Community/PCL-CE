@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
@@ -6,8 +7,6 @@ using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Markup;
-using PCL.Core.IO;
-using PCL.Core.Utils;
 
 namespace PCL
 {
@@ -145,13 +144,13 @@ namespace PCL
                             return;
                         }
                         ModMain.Hint("正在开启中，请稍候：" + arg);
-                        ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
+                        ModBase.RunInWorkerThread(() => ShellUtils.OpenWebsite(arg));
                         break;
 
                     case EventType.打开文件:
                     case EventType.打开帮助:
                     case EventType.执行命令:
-                        ModBase.RunInThread(() =>
+                        ModBase.RunInWorkerThread(() =>
                         {
                             try
                             {
@@ -172,7 +171,7 @@ namespace PCL
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "执行打开类自定义事件失败", ModBase.LogLevel.Msgbox);
+                                ModBase.Log(ex, "执行打开类自定义事件失败", ModBase.LogType.Msgbox);
                             }
                         });
                         break;
@@ -237,11 +236,11 @@ namespace PCL
 
                     case EventType.内存优化:
                         if (PageToolsTest.AskTrulyWantMemoryOptimize())
-                            ModBase.RunInThread(() => PageToolsTest.MemoryOptimize(true));
+                            ModBase.RunInWorkerThread(() => PageToolsTest.MemoryOptimize(true));
                         break;
 
                     case EventType.清理垃圾:
-                        ModBase.RunInThread(() => PageToolsTest.RubbishClear());
+                        ModBase.RunInWorkerThread(() => PageToolsTest.RubbishClear());
                         break;
 
                     case EventType.弹出窗口:
@@ -334,7 +333,7 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"事件执行失败（{type}, {arg}）", ModBase.LogLevel.Msgbox);
+                ModBase.Log(ex, $"事件执行失败（{type}, {arg}）", ModBase.LogType.Msgbox);
             }
         }
 
@@ -346,7 +345,7 @@ namespace PCL
             // 联网帮助页面处理
             if (relativeUrl.StartsWithF("http", true))
             {
-                if (ModBase.RunInUi())
+                if (ModBase.IsRunInUi())
                     throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
 
                 string rawFileName;
@@ -402,10 +401,10 @@ namespace PCL
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(Basics.PathTemp, "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "Help");
+                location = System.IO.Path.Combine(Basics.PathTemp, "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(Basics.PathTemp, "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -15,7 +16,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyComboBoxItem()
     {

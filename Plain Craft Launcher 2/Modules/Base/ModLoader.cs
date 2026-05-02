@@ -18,12 +18,12 @@ public static class ModLoader
     }
 
     // 任务栏进度条
-    public static ModBase.SafeList<LoaderBase> LoaderTaskbar = new();
+    public static ConcurrentHashSet<LoaderBase> LoaderTaskbar = [];
     public static double LoaderTaskbarProgress; // 平滑后的进度
     private static TaskbarItemProgressState LoaderTaskbarProgressLast = TaskbarItemProgressState.None;
 
     // 文件夹刷新类委托
-    private static readonly Dictionary<LoaderBase, LoaderFolderDictionaryEntry> LoaderFolderDictionary = new();
+    private static readonly Dictionary<LoaderBase, LoaderFolderDictionaryEntry> LoaderFolderDictionary = [];
 
     public static void LoaderTaskbarAdd<T>(LoaderCombo<T> Loader)
     {
@@ -79,7 +79,7 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务栏进度显示失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "刷新任务栏进度显示失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -98,7 +98,7 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取任务栏进度出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "获取任务栏进度出错", ModBase.LogType.Feedback);
             return 0.5d;
         }
     }
@@ -223,7 +223,7 @@ public static class ModLoader
         /// <summary>
         /// 加载器的标识编号。
         /// </summary>
-        public int Uuid = ModBase.GetUuid();
+        public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
         public LoaderBase()
         {
@@ -246,7 +246,7 @@ public static class ModLoader
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取父加载器失败（" + Name + "）", ModBase.LogLevel.Feedback);
+                    ModBase.Log(ex, "获取父加载器失败（" + Name + "）", ModBase.LogType.Feedback);
                     return null;
                 }
 
@@ -304,7 +304,7 @@ public static class ModLoader
                     OnStateChangedUi?.Invoke(this, value, OldState);
                 });
                 if (HasOnStateChangedThread)
-                    ModBase.RunInThread(() => OnStateChangedThread?.Invoke(this, value, OldState));
+                    ModBase.RunInWorkerThread(() => OnStateChangedThread?.Invoke(this, value, OldState));
             }
         }
 
@@ -569,7 +569,7 @@ public static class ModLoader
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "加载输入获取失败（" + Name + "）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "加载输入获取失败（" + Name + "）", ModBase.LogType.Hint);
                 Error = ex;
                 lock (LockState)
                 {
@@ -624,7 +624,7 @@ public static class ModLoader
                     {
                         ModBase.Log(
                             $"[Loader] 加载线程 {Name} ({Task.CurrentId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{(LastRunningTask is null ? -1 : LastRunningTask.Id)}）",
-                            ModBase.LogLevel.Developer);
+                            ModBase.LogType.Developer);
                         return;
                     }
 
@@ -653,7 +653,7 @@ public static class ModLoader
                     if (IsAborted) return;
                     ModBase.Log(ex,
                         $"加载线程 {Name} ({Task.CurrentId}) 出错，已完成 {Math.Round(Progress * 100d)}%",
-                        ModBase.LogLevel.Developer);
+                        ModBase.LogType.Developer);
                     Error = ex;
                     State = Enums.LoadState.Failed;
                 }
@@ -763,7 +763,7 @@ public static class ModLoader
             if (IsForceRestart)
                 foreach (var Loader in Loaders)
                     Loader.State = Enums.LoadState.Waiting;
-            ModBase.RunInThread(Update);
+            ModBase.RunInWorkerThread(Update);
         }
 
         public override void Abort()
@@ -776,7 +776,7 @@ public static class ModLoader
                     return;
             }
 
-            ModBase.RunInThread(() =>
+            ModBase.RunInWorkerThread(() =>
             {
                 foreach (var Loader in Loaders) Loader.Abort();
             });
@@ -890,7 +890,7 @@ public static class ModLoader
                                 {
                                     ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
                                                 + loader.Name,
-                                        ModBase.LogLevel.Developer);
+                                        ModBase.LogType.Developer);
                                     goto Restart;
                                 }
                             }

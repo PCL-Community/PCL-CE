@@ -47,7 +47,7 @@ public partial class PageToolsTest
         TextDownloadFolder.Validate();
 
         if (!string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) || string.IsNullOrEmpty(TextDownloadFolder.Text))
-            TextDownloadFolder.Text = ModBase.ExePath + @"PCL\MyDownload\";
+            TextDownloadFolder.Text = Basics.ExecutableDirectory + @"PCL\MyDownload\";
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
@@ -96,7 +96,7 @@ public partial class PageToolsTest
                     }
                 case Enums.LoadState.Failed:
                     {
-                        ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogType.Msgbox);
                         Console.Beep();
                         break;
                     }
@@ -127,17 +127,17 @@ public partial class PageToolsTest
             try
             {
                 Directory.CreateDirectory(Folder);
-                ModBase.CheckPermissionWithException(Folder);
+                Directories.CheckPermissionWithException(Folder);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"访问文件夹失败（{Folder}）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, $"访问文件夹失败（{Folder}）", ModBase.LogType.Hint);
                 return;
             }
 
             ModBase.Log("[Download] 自定义下载文件名：" + FileName);
             ModBase.Log("[Download] 自定义下载文件目标：" + Folder);
-            var uuid = ModBase.GetUuid();
+            var uuid = GlobalUniqueId.GetUniqueId();
             ModLoader.LoaderBase loaderdownload;
             if (new HttpValidator().Validate(Url).IsValid)
                 loaderdownload = new LoaderDownload($"自定义下载文件：{FileName} ",
@@ -155,7 +155,7 @@ public partial class PageToolsTest
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始自定义下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "开始自定义下载失败", ModBase.LogType.Feedback);
         }
     }
 
@@ -253,8 +253,8 @@ public partial class PageToolsTest
                                 num += Directories.DeleteDirectoryAsync(dirInfo2.FullName, true).GetAwaiter().GetResult();
                     }
 
-                    num += Directories.DeleteDirectoryAsync(ModBase.PathTemp, true).GetAwaiter().GetResult();
-                    num += Directories.DeleteDirectoryAsync(ModBase.OsDrive + @"ProgramData\PCL\", true).GetAwaiter().GetResult();
+                    num += Directories.DeleteDirectoryAsync(Basics.PathTemp, true).GetAwaiter().GetResult();
+                    num += Directories.DeleteDirectoryAsync(Basics.OsDrive + @"ProgramData\PCL\", true).GetAwaiter().GetResult();
                     if (num != 0)
                     {
                         ModMain.MyMsgBox($"""
@@ -262,7 +262,7 @@ public partial class PageToolsTest
                                            PCL 即将自动重启……
                                            """,
                             "缓存已清理", "确定", "", "", false, true, true);
-                        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+                        Process.Start(new ProcessStartInfo(Basics.ExecutableDirectory));
                         FormMain.EndProgramForce();
                     }
                     else
@@ -277,7 +277,7 @@ public partial class PageToolsTest
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "清理垃圾失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, "清理垃圾失败", ModBase.LogType.Hint);
             }
             finally
             {
@@ -412,7 +412,7 @@ public partial class PageToolsTest
     {
         if (AskTrulyWantMemoryOptimize())
         {
-            ModBase.RunInThread(() => MemoryOptimize(true));
+            ModBase.RunInWorkerThread(() => MemoryOptimize(true));
         }
     }
 
@@ -437,7 +437,7 @@ public partial class PageToolsTest
                     ModBase.RunInUi(() =>
                     {
                         var Path = SystemDialogs.SelectSaveFile("保存皮肤", $"{ID}.png", "皮肤图片文件(*.png)|*.png");
-                        ModBase.CopyFile(Result, Path);
+                        Files.CopyFile(Result, Path);
                         ModMain.Hint($"玩家 {ID} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
                 }
@@ -518,7 +518,7 @@ public partial class PageToolsTest
             return;
         var shortcutPath = choice == 2 ? desktop : start;
         var locationName = choice == 2 ? desktopName : startName;
-        Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
+        Files.CreateShortcut(shortcutPath, Basics.ExecutableDirectory);
         ModMain.Hint($"已在{locationName}创建快捷方式", ModMain.HintType.Finish);
     }
 
@@ -581,7 +581,7 @@ public partial class PageToolsTest
 
     private async Task DownloadImageToLocalAsync(string imageUrl)
     {
-        var savePath = ModBase.PathTemp + @"Download\" + TextUtils.GetHash(imageUrl) + ".png";
+        var savePath = Basics.PathTemp + @"Download\" + TextUtils.GetHash(imageUrl) + ".png";
         var client = NetworkService.GetClient();
         try
         {
@@ -606,7 +606,7 @@ public partial class PageToolsTest
                     return;
                 }
 
-                ModBase.CopyFile(savePath, path);
+                Files.CopyFile(savePath, path);
                 File.Delete(savePath);
                 ModMain.Hint("自定义成就图片已保存！", ModMain.HintType.Finish);
             }

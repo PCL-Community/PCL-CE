@@ -1,10 +1,12 @@
 using Microsoft.VisualBasic;
+using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -38,7 +40,7 @@ public class CrashAnalyzer
     private string LogMc;
     private string LogMcDebug;
 
-    public CrashAnalyzer(int UUID)
+    public CrashAnalyzer(ulong UUID)
     {
         // 构建文件结构
         TempFolder = ModMain.RequestTaskTempFolder();
@@ -98,7 +100,7 @@ public class CrashAnalyzer
         }
 
         PossibleLogs.Add(VersionPathIndie + @"logs\latest.log"); // Minecraft 日志
-        var LaunchScript = ModBase.ReadFile(ModBase.ExePath + @"PCL\LatestLaunch.bat");
+        var LaunchScript = Files.ReadAllTextOrEmpty(Basics.ExecutableDirectory + @"PCL\LatestLaunch.bat");
         if (LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false"))
             PossibleLogs.Add(VersionPathIndie + @"logs\debug.log"); // Minecraft Debug 日志
         PossibleLogs = PossibleLogs.Distinct().ToList();
@@ -131,7 +133,7 @@ public class CrashAnalyzer
             try
             {
                 AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(FilePath,
-                    ModBase.ReadFile(FilePath).Split("\r\n".ToCharArray())));
+                    Files.ReadAllTextOrEmpty(FilePath).Split("\r\n".ToCharArray())));
             }
             catch (Exception ex)
             {
@@ -142,7 +144,7 @@ public class CrashAnalyzer
         {
             var RawOutput = string.Join("\r\n", LatestLog);
             ModBase.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + RawOutput);
-            ModBase.WriteFile(TempFolder + "RawOutput.log", RawOutput);
+            Files.WriteFile(TempFolder + "RawOutput.log", RawOutput);
             AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(TempFolder + "RawOutput.log", LatestLog.ToArray()));
             LatestLog.Clear();
         }
@@ -173,7 +175,7 @@ public class CrashAnalyzer
         }
 
         // 并非压缩包
-        ModBase.CopyFile(FilePath, TempFolder + @"Temp\" + PathUtils.GetFileNameFromPath(FilePath));
+        Files.CopyFile(FilePath, TempFolder + @"Temp\" + PathUtils.GetFileNameFromPath(FilePath));
         ModBase.Log("[Crash] 已复制导入的日志文件：" + FilePath);
     Extracted:;
 
@@ -187,7 +189,7 @@ public class CrashAnalyzer
                 var Ext = TargetFile.Extension.ToLower();
                 if (Ext == ".log" || Ext == ".txt")
                     AnalyzeRawFiles.Add(new KeyValuePair<string, string[]>(TargetFile.FullName,
-                        ModBase.ReadFile(TargetFile.FullName).Split("\r\n".ToCharArray())));
+                        Files.ReadAllTextOrEmpty(TargetFile.FullName).Split("\r\n".ToCharArray())));
                 else
                     File.Delete(TargetFile.FullName);
             }
@@ -1230,13 +1232,13 @@ public class CrashAnalyzer
                         {
                             if (File.Exists(DirectFile.Value.Key))
                             {
-                                ModBase.ShellOnly(DirectFile.Value.Key);
+                                ProcessUtils.ShellOnly(DirectFile.Value.Key);
                             }
                             else
                             {
-                                var FilePath = ModBase.PathTemp + "Crash.txt";
-                                ModBase.WriteFile(FilePath, string.Join("\r\n", DirectFile.Value.Value));
-                                ModBase.ShellOnly(FilePath);
+                                var FilePath = Path.Combine(Paths.Temp, "Crash.txt");
+                                Files.WriteFileAsync(FilePath, string.Join("\r\n", DirectFile.Value.Value)).GetAwaiter().GetResult();
+                                ProcessUtils.ShellOnly(FilePath);
                             }
                         })))
         {
@@ -1296,12 +1298,12 @@ public class CrashAnalyzer
                             if (File.Exists(OutputFile))
                             {
                                 if (FileEncoding is null)
-                                    FileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
-                                var FileContent = ModBase.ReadFile(OutputFile, FileEncoding);
+                                    FileEncoding = EncodingDetector.DetectEncoding(Files.ReadAllBytesOrEmpty(OutputFile));
+                                var FileContent = Files.ReadAllTextOrEmpty(OutputFile, FileEncoding);
                                 FileContent = ModMinecraft.FilterAccessToken(FileContent,
                                     FileName == "启动脚本.bat" ? 'F' : '*');
                                 FileContent = ModMinecraft.FilterUserName(FileContent, '*');
-                                ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
+                                Files.WriteFile(TempFolder + @"Report\" + FileName, FileContent, encoding: FileEncoding);
                                 ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
                             }
                         }
@@ -1309,11 +1311,11 @@ public class CrashAnalyzer
                         // 输出环境与启动信息
                         string EnvInfo = null;
                         string McLauncherLog = null;
-                        McLauncherLog = ModBase.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
+                        McLauncherLog = Files.ReadAllTextOrEmpty(TempFolder + @"Report\PCL 启动器日志.txt")
                             .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
-                        var LaunchScript = ModBase.ReadFile(TempFolder + @"Report\启动脚本.bat");
-                        EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                        EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
+                        var LaunchScript = Files.ReadAllTextOrEmpty(TempFolder + @"Report\启动脚本.bat");
+                        EnvInfo += $"PCL CE 版本：{Basics.VersionName} {"\r\n"}";
+                        EnvInfo += $"识别码：{Basics.UniqueIdentificationId}{"\r\n"}";
                         EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
                         EnvInfo +=
                             $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
@@ -1325,7 +1327,7 @@ public class CrashAnalyzer
                         EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
                         EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
                         EnvInfo +=
-                            $"操作系统：{ModSecret.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
+                            $"操作系统：{ModSecret.OSInfo}（64 位：{!Basics.Is32BitSystem}, ARM64: {Basics.IsArm64System}）{"\r\n"}";
                         EnvInfo += $"CPU：{ModSecret.CPUName}{"\r\n"}";
                         EnvInfo +=
                             $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(ModSecret.SystemMemorySize / 1024d, 2)} GB ({ModSecret.SystemMemorySize} MB){"\r\n"}";
@@ -1337,7 +1339,7 @@ public class CrashAnalyzer
                         }
 
                         File.CreateText(TempFolder + @"Report\环境与启动信息.txt").Close();
-                        ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
+                        Files.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, encoding: Encoding.UTF8);
                         // 导出报告
                         ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
                         Directories.DeleteDirectoryAsync(TempFolder + @"Report\").GetAwaiter().GetResult();
@@ -1345,11 +1347,11 @@ public class CrashAnalyzer
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "导出错误报告失败", ModBase.LogLevel.Feedback);
+                        ModBase.Log(ex, "导出错误报告失败", ModBase.LogType.Feedback);
                         return;
                     }
 
-                    ModBase.OpenExplorer(FileAddress);
+                    Basics.OpenPath(FileAddress);
                     break;
                 }
         }
@@ -1718,7 +1720,7 @@ public class CrashAnalyzer
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "确认启动器更新失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "确认启动器更新失败", ModBase.LogType.Feedback);
         }
 
         return string.Join(@"\n\n此外，", Results).Replace(@"\n", "\r\n").Replace(@"\h", "")

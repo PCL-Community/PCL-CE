@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -49,7 +50,7 @@ public class MyTextBox : TextBox
 
     // 事件
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyTextBox()
     {
@@ -283,7 +284,7 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进行输入验证时出错", ModBase.LogLevel.Critical);
+            ModBase.Log(ex, "进行输入验证时出错", ModBase.LogType.Critical);
         }
     }
 

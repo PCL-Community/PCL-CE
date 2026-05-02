@@ -150,8 +150,8 @@ public class MyResizer
     private void element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         GetCursorPos(out startMousePoint);
-        startMousePoint.X = (int)Math.Round(ModBase.GetWPFSize(startMousePoint.X));
-        startMousePoint.Y = (int)Math.Round(ModBase.GetWPFSize(startMousePoint.Y));
+        startMousePoint.X = (int)Math.Round(ModBase.GetWpfSize(startMousePoint.X));
+        startMousePoint.Y = (int)Math.Round(ModBase.GetWpfSize(startMousePoint.Y));
         startWindowSize = new Size(target.Width, target.Height);
         startWindowLeftUpPoint = new POINT((int)Math.Round(target.Left), (int)Math.Round(target.Top));
         var key = (UIElement)sender;
@@ -186,8 +186,8 @@ public class MyResizer
     {
         PointAPI pointAPI = default;
         GetCursorPos(out pointAPI);
-        pointAPI.X = (int)Math.Round(ModBase.GetWPFSize(pointAPI.X));
-        pointAPI.Y = (int)Math.Round(ModBase.GetWPFSize(pointAPI.Y));
+        pointAPI.X = (int)Math.Round(ModBase.GetWpfSize(pointAPI.X));
+        pointAPI.Y = (int)Math.Round(ModBase.GetWpfSize(pointAPI.Y));
         try
         {
             double NewWidth = -1;

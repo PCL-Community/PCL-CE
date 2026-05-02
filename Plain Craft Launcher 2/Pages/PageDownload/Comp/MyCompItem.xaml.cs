@@ -1,3 +1,4 @@
+using PCL.Core.App;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -99,7 +100,7 @@ public partial class MyCompItem
 
     #region 基础属性
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     // Logo
     public string Logo
@@ -182,7 +183,7 @@ public partial class MyCompItem
         var typeface = new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight,
             textBlock.FontStretch);
         var formattedText = new FormattedText(textBlock.Text, Thread.CurrentThread.CurrentCulture,
-            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, ModBase.DPI);
+            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, ModBase.Dpi);
         return formattedText.Width > textBlock.ActualWidth;
     }
 
@@ -284,42 +285,42 @@ public partial class MyCompItem
                 switch (ModMain.FrmMain.PageCurrentSub)
                 {
                     case FormMain.PageSubType.DownloadMod:
-                    {
-                        TargetType = ModComp.CompType.Mod;
-                        TargetVersion = ModMain.FrmDownloadMod.Content.Loader.Input.GameVersion;
-                        TargetLoader = ModMain.FrmDownloadMod.Content.Loader.Input.ModLoader;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.Mod;
+                            TargetVersion = ModMain.FrmDownloadMod.Content.Loader.Input.GameVersion;
+                            TargetLoader = ModMain.FrmDownloadMod.Content.Loader.Input.ModLoader;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadPack:
-                    {
-                        TargetType = ModComp.CompType.ModPack;
-                        TargetVersion = ModMain.FrmDownloadPack.Content.Loader.Input.GameVersion;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.ModPack;
+                            TargetVersion = ModMain.FrmDownloadPack.Content.Loader.Input.GameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadDataPack:
-                    {
-                        TargetType = ModComp.CompType.DataPack;
-                        TargetVersion = ModMain.FrmDownloadDataPack.Content.Loader.Input.GameVersion;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.DataPack;
+                            TargetVersion = ModMain.FrmDownloadDataPack.Content.Loader.Input.GameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadResourcePack:
-                    {
-                        TargetType = ModComp.CompType.ResourcePack;
-                        TargetVersion = ModMain.FrmDownloadResourcePack.Content.Loader.Input.GameVersion;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.ResourcePack;
+                            TargetVersion = ModMain.FrmDownloadResourcePack.Content.Loader.Input.GameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadShader:
-                    {
-                        TargetType = ModComp.CompType.Shader;
-                        TargetVersion = ModMain.FrmDownloadShader.Content.Loader.Input.GameVersion;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.Shader;
+                            TargetVersion = ModMain.FrmDownloadShader.Content.Loader.Input.GameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadWorld:
-                    {
-                        TargetType = ModComp.CompType.World;
-                        TargetVersion = ModMain.FrmDownloadWorld.Content.Loader.Input.GameVersion;
-                        break;
-                    }
+                        {
+                            TargetType = ModComp.CompType.World;
+                            TargetVersion = ModMain.FrmDownloadWorld.Content.Loader.Input.GameVersion;
+                            break;
+                        }
                 }
             }
         }
@@ -407,7 +408,7 @@ public partial class MyCompItem
                     CornerRadius = new CornerRadius(3d),
                     RenderTransform = new ScaleTransform(0.8d, 0.8d),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(ModBase.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d

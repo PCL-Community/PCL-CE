@@ -252,7 +252,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"错误的规则：{Rule}", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, $"错误的规则：{Rule}", ModBase.LogType.Hint);
                     return false;
                 }
 
@@ -515,13 +515,13 @@ public partial class PageInstanceExport : IRefreshable
             ConfigLines.Add(Sperator);
             ConfigLines.AddRange(GetExtraFileLines());
             // 结束
-            ModBase.WriteFile(ConfigPath, string.Join("\r\n", ConfigLines));
+            Files.WriteFile(ConfigPath, string.Join("\r\n", ConfigLines));
             ModMain.Hint("已保存配置文件：" + ConfigPath, ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ConfigPath);
+            Basics.OpenPath(ConfigPath);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "保存配置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "保存配置失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -538,7 +538,7 @@ public partial class PageInstanceExport : IRefreshable
             // 保存配置文件路径到缓存
             States.System.ExportConfigPath = configPath;
 
-            var fileContent = ModBase.ReadFile(configPath);
+            var fileContent = Files.ReadAllTextOrEmpty(configPath);
             var Segments = fileContent.Split(Sperator);
 
             if (Segments.Length == 0)
@@ -589,7 +589,7 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"读取配置文件失败：{configPath}", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, $"读取配置文件失败：{configPath}", ModBase.LogType.Msgbox);
         }
     }
 
@@ -611,7 +611,7 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "选择配置文件失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "选择配置文件失败", ModBase.LogType.Msgbox);
         }
     }
 
@@ -749,7 +749,7 @@ public partial class PageInstanceExport : IRefreshable
             Loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
             {
                 ModSecret.DownloadLatestPCL(Loader);
-                ModBase.CopyFile(ModBase.PathTemp + "CE-Latest.exe", CacheFolder + "Plain Craft Launcher.exe");
+                Files.CopyFile(Basics.PathTemp + "CE-Latest.exe", CacheFolder + "Plain Craft Launcher.exe");
             })
             {
                 ProgressWeight = 0.5d,
@@ -800,7 +800,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (!ShouldKeep)
                         continue;
                     var TargetPath = OverridesFolder + RelativePath;
-                    ModBase.CopyFile(Entry.FullName, TargetPath);
+                    Files.CopyFile(Entry.FullName, TargetPath);
                     // 若为压缩包，考虑联网获取路径
                     if (CheckHostedAssets &&
                         new[] { ".zip", ".rar", ".jar", ".disabled", ".old" }.Contains(Entry.Extension.ToLower()) &&
@@ -836,7 +836,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 else if (File.Exists(Line))
                 {
-                    ModBase.CopyFile(Line, BaseFolder + PathUtils.GetFileNameFromPath(Line));
+                    Files.CopyFile(Line, BaseFolder + PathUtils.GetFileNameFromPath(Line));
                 }
                 else
                 {
@@ -856,20 +856,20 @@ public partial class PageInstanceExport : IRefreshable
             */ // 复制 PCL 个性化内容
             if (IncludePCLCustom)
             {
-                if (Directory.Exists(ModBase.ExePath + @"PCL\Pictures\"))
-                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Pictures\", CacheFolder + @"PCL\Pictures\").GetAwaiter().GetResult();
-                if (Directory.Exists(ModBase.ExePath + @"PCL\Musics\"))
-                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Musics\", CacheFolder + @"PCL\Musics\").GetAwaiter().GetResult();
-                if (Directory.Exists(ModBase.ExePath + @"PCL\Help\"))
-                    Directories.CopyDirectoryAsync(ModBase.ExePath + @"PCL\Help\", CacheFolder + @"PCL\Help\").GetAwaiter().GetResult();
-                if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
-                    ModBase.CopyFile(ModBase.ExePath + @"PCL\Custom.xaml", CacheFolder + @"PCL\Custom.xaml");
-                if (File.Exists(ModBase.ExePath + @"PCL\Setup.ini"))
-                    ModBase.CopyFile(ModBase.ExePath + @"PCL\Setup.ini", CacheFolder + @"PCL\Setup.ini");
-                if (File.Exists(ModBase.ExePath + @"PCL\hints.txt"))
-                    ModBase.CopyFile(ModBase.ExePath + @"PCL\hints.txt", CacheFolder + @"PCL\hints.txt");
-                if (File.Exists(ModBase.ExePath + @"PCL\Logo.png"))
-                    ModBase.CopyFile(ModBase.ExePath + @"PCL\Logo.png", CacheFolder + @"PCL\Logo.png");
+                if (Directory.Exists(Basics.ExecutableDirectory + @"PCL\Pictures\"))
+                    Directories.CopyDirectoryAsync(Basics.ExecutableDirectory + @"PCL\Pictures\", CacheFolder + @"PCL\Pictures\").GetAwaiter().GetResult();
+                if (Directory.Exists(Basics.ExecutableDirectory + @"PCL\Musics\"))
+                    Directories.CopyDirectoryAsync(Basics.ExecutableDirectory + @"PCL\Musics\", CacheFolder + @"PCL\Musics\").GetAwaiter().GetResult();
+                if (Directory.Exists(Basics.ExecutableDirectory + @"PCL\Help\"))
+                    Directories.CopyDirectoryAsync(Basics.ExecutableDirectory + @"PCL\Help\", CacheFolder + @"PCL\Help\").GetAwaiter().GetResult();
+                if (File.Exists(Basics.ExecutableDirectory + @"PCL\Custom.xaml"))
+                    Files.CopyFile(Basics.ExecutableDirectory + @"PCL\Custom.xaml", CacheFolder + @"PCL\Custom.xaml");
+                if (File.Exists(Basics.ExecutableDirectory + @"PCL\Setup.ini"))
+                    Files.CopyFile(Basics.ExecutableDirectory + @"PCL\Setup.ini", CacheFolder + @"PCL\Setup.ini");
+                if (File.Exists(Basics.ExecutableDirectory + @"PCL\hints.txt"))
+                    Files.CopyFile(Basics.ExecutableDirectory + @"PCL\hints.txt", CacheFolder + @"PCL\hints.txt");
+                if (File.Exists(Basics.ExecutableDirectory + @"PCL\Logo.png"))
+                    Files.CopyFile(Basics.ExecutableDirectory + @"PCL\Logo.png", CacheFolder + @"PCL\Logo.png");
             }
         })
         {
@@ -1069,7 +1069,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
 
                 Directory.Delete(CacheFolder, true);
-                ModBase.OpenExplorer(PackPath);
+                Basics.OpenPath(PackPath);
             })
         {
             ProgressWeight = 6d

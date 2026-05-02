@@ -1,11 +1,12 @@
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.UI;
+using PCL.Core.Utils.OS;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -74,7 +75,7 @@ public partial class PageSetupLauncherMisc
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动器-杂项页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "初始化启动器-杂项页设置失败", ModBase.LogType.Msgbox);
         }
 
         Reload();
@@ -196,12 +197,12 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
+            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", Basics.ExecutableDirectory);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
-        ModBase.OpenExplorer(savePath);
+        Basics.OpenPath(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
@@ -211,7 +212,7 @@ public partial class PageSetupLauncherMisc
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
         ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
-        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+        Process.Start(new ProcessStartInfo(Basics.ExecutableDirectory));
         FormMain.EndProgramForce();
     }
 

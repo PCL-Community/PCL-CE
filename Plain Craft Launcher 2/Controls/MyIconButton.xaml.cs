@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -30,7 +31,7 @@ public partial class MyIconButton
 
     // 自定义属性
 
-    public int Uuid = ModBase.GetUuid();
+    public ulong Uuid = GlobalUniqueId.GetUniqueId();
 
     public MyIconButton()
     {

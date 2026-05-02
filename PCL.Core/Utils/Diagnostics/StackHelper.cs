@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -69,6 +69,8 @@ public static class StackHelper
 
         return list;
     }
+
+    public static string GetStackString() => string.Join('\n', GetStack());
 
     // 将 async/iterator 的 MoveNext 映射回原始方法名（尽力而为的启发式）
     private static MethodBase _TryMapAsyncOrIterator(MethodBase method)
