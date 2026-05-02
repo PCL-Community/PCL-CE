@@ -37,7 +37,6 @@ public partial class Application
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
             StartupValidation.EnsureWpfFont();
-            StartupValidation.EnsureFolderPermission();
             // 检查参数调用
             var args = Basics.CommandLineArguments;
             if (args.Length > 0)
