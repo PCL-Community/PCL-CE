@@ -11,6 +11,9 @@ using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
+using System.Globalization;
+using System.Windows.Media;
+using Microsoft.VisualBasic;
 
 namespace PCL;
 
@@ -34,7 +37,7 @@ public partial class Application
             // 创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(new BindingErrorTraceListener());
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
-            ModSecret.SecretOnApplicationStart();
+            SecretOnApplicationStart();
             // 检查参数调用
             var args = Basics.CommandLineArguments;
             if (args.Length > 0)
@@ -245,6 +248,57 @@ public partial class Application
         public override void WriteLine(string message)
         {
             ModBase.Log($"警告，检测到 Binding 失败：{message}");
+        }
+    }
+    
+    internal static void SecretOnApplicationStart()
+    {
+        // 提升 UI 线程优先级
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        // 确保 WPF 字体渲染环境正常
+        try
+        {
+            var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                Fonts.SystemTypefaces.First(), 96d, new ModBase.MyColor(), ModBase.DPI);
+        }
+        catch (UriFormatException ex) // 修复 #3555
+        {
+            Environment.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"),
+                EnvironmentVariableTarget.User);
+            var VersionTest = new FormattedText("", CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                Fonts.SystemTypefaces.First(), 96d, new ModBase.MyColor(), ModBase.DPI);
+        }
+
+        // 检测当前文件夹权限
+        var dataPath = Paths.Data;
+        try
+        {
+            Directory.CreateDirectory(dataPath);
+        }
+        catch (Exception ex)
+        {
+            Interaction.MsgBox(
+                $$"""
+                  PCL 无法创建 PCL 文件夹（{{dataPath}}），请尝试：
+                  1. 将 PCL 移动到其他文件夹{{(ModBase.ExePath.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
+                  2. 删除当前目录中的 PCL 文件夹，然后再试。
+                  3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
+                  """,
+                MsgBoxStyle.Critical, "运行环境错误");
+            Environment.Exit((int)ModBase.ProcessReturnValues.Cancel);
+        }
+
+        if (!ModBase.CheckPermission(ModBase.ExePath + "PCL"))
+        {
+            Interaction.MsgBox(
+                $$"""
+                  PCL 没有对当前文件夹的写入权限，请尝试：
+                  1. 将 PCL 移动 to 其他文件夹{{(ModBase.ExePath.StartsWithF("C:", true) ? "，例如 C 盘和桌面以外的其他位置。" : "。")}}
+                  2. 删除当前目录中的 PCL 文件夹，然后再试。
+                  3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。
+                  """,
+                MsgBoxStyle.Critical, "运行环境错误");
+            Environment.Exit((int)ModBase.ProcessReturnValues.Cancel);
         }
     }
 }
