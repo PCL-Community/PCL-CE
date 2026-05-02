@@ -742,7 +742,7 @@ public partial class PageInstanceExport : IRefreshable
         if (IncludePCL)
             Loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
             {
-                ModSecret.DownloadLatestPCL(Loader);
+                UpdateManager.DownloadLatestPCL(Loader);
                 ModBase.CopyFile(ModBase.PathTemp + "CE-Latest.exe", CacheFolder + "Plain Craft Launcher.exe");
             })
             {

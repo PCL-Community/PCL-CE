@@ -8,7 +8,7 @@ internal static class DownloadRequestFactory
     internal static RequestConfiguration Create(string url, bool useBrowserUserAgent, string customUserAgent = "")
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        ModSecret.SecretHeadersSign(url, ref request, useBrowserUserAgent, customUserAgent);
+        RequestSigning.SecretHeadersSign(url, ref request, useBrowserUserAgent, customUserAgent);
         try
         {
             var configuration = new RequestConfiguration();

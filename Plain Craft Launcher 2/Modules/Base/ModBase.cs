@@ -3850,15 +3850,15 @@ public static class ModBase
 
     public static bool CanFeedback(bool ShowHint)
     {
-        var stat = ModSecret.GetVersionStatus();
-        if (stat != ModSecret.VersionStatus.Latest)
+        var stat = UpdateManager.GetVersionStatus();
+        if (stat != UpdateEnums.VersionStatus.Latest)
         {
             if (ShowHint)
                 if (ModMain.MyMsgBox(
-                        stat == ModSecret.VersionStatus.NotLatest
+                        stat == UpdateEnums.VersionStatus.NotLatest
                             ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
                             : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
-                        "无法提交反馈", stat == ModSecret.VersionStatus.NotLatest ? "更新" : "重新检查更新", "取消") == 1)
+                        "无法提交反馈", stat == UpdateEnums.VersionStatus.NotLatest ? "更新" : "重新检查更新", "取消") == 1)
                     ModMain.FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
 
             return false;

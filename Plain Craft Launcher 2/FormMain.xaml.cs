@@ -313,7 +313,7 @@ public partial class FormMain
                 {
                     ModDownload.DlClientListMojangLoader.Start(1); // PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                     RunCountSub();
-                    ModSecret.ServerLoader.Start(1);
+                    UpdateManager.ServerLoader.Start(1);
                     ModBase.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
                 }
                 catch (Exception ex)
@@ -657,8 +657,8 @@ public partial class FormMain
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         ModBase.IsProgramEnded = true;
         ModAnimation.AniControlEnabled += 1;
-        if (ModSecret.IsUpdateWaitingRestart && !isUpdating)
-            ModSecret.UpdateRestart(false, false);
+        if (UpdateManager.IsUpdateWaitingRestart && !isUpdating)
+            UpdateManager.UpdateRestart(false, false);
         if (ReturnCode == ModBase.ProcessReturnValues.Exception)
         {
             if (!IsLogShown)
@@ -2171,12 +2171,12 @@ public partial class FormMain
     // 更新重启
     private void BtnExtraUpdateRestart_Click(object sender, MouseButtonEventArgs e)
     {
-        ModSecret.UpdateRestart(true);
+        UpdateManager.UpdateRestart(true);
     }
 
     private bool BtnExtraUpdateRestart_ShowCheck()
     {
-        return ModSecret.IsUpdateWaitingRestart;
+        return UpdateManager.IsUpdateWaitingRestart;
     }
 
     // 音乐

@@ -1690,7 +1690,7 @@ public class CrashAnalyzer
         var isLauncherLatest = false;
         try
         {
-            isLauncherLatest = ModSecret.GetVersionStatus() == ModSecret.VersionStatus.Latest;
+            isLauncherLatest = UpdateManager.GetVersionStatus() == UpdateEnums.VersionStatus.Latest;
         }
         catch (Exception ex)
         {
