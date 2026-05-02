@@ -16,15 +16,18 @@ public class DnsSrvResource : IDnsResource
     public void WriteBytes(Memory<byte> bytes, ref int offset)
     {
         // 6 Bytes for priority, weight, port and 2 bytes for length
-        var length = 8 + Target.Length;
-        var buf = new byte[length];
+        var buf = new byte[8 + Target.Length * 6];
         var span = buf.AsSpan();
         BinaryPrimitives.WriteUInt16BigEndian(span[..2], (ushort)Priority);
         BinaryPrimitives.WriteUInt16BigEndian(span[2..4], (ushort)Weight);
         BinaryPrimitives.WriteUInt16BigEndian(span[4..6], (ushort)Port);
-        BinaryPrimitives.WriteUInt16BigEndian(span[6..8], (ushort)Target.Length);
-        Encoding.UTF8.GetBytes(Target).CopyTo(span[8..]);
-        buf.CopyTo(bytes);
+        // target string
+        var targetString = Encoding.UTF8.GetBytes(Target);
+        BinaryPrimitives.WriteUInt16BigEndian(span[6..8], (ushort)targetString.Length);
+        targetString.CopyTo(span[8..]);
+
+        var length = 8 + targetString.Length;
+        span[..length].CopyTo(bytes.Span[offset..]);
         offset += length;
     }
 
