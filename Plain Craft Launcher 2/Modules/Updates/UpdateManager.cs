@@ -7,7 +7,7 @@ using PCL.Core.Utils;
 
 namespace PCL;
 
-public class UpdateManager
+public static class UpdateManager
 {
     public static bool IsCheckingUpdates = false;
     public static bool IsUpdateWaitingRestart;

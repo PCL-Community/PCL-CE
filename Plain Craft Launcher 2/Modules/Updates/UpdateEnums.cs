@@ -1,6 +1,6 @@
 namespace PCL;
 
-public class UpdateEnums
+public static class UpdateEnums
 {
     public enum VersionStatus
     {
