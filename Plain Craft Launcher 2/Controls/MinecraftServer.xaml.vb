@@ -41,10 +41,10 @@ Class MinecraftServer
 
         Try
             ' 获取可达地址（DNS解析）
-            Dim addr = Await ServerAddressResolver.GetResolvedServerAddressAsync(address)
+            Dim addr = Await ServerAddressResolver.GetReachableAddressAsync(address)
 
             ' Ping服务器
-            Using query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port)
+            Using query = McPingServiceFactory.CreateService(addr.Ip, addr.Port)
                 Dim ret = Await query.PingAsync()
 
                 If ret Is Nothing Then
