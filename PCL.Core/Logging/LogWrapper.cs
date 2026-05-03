@@ -34,6 +34,8 @@ public static class LogWrapper
     public static void Debug(string? module, string msg) => OnLog?.Invoke(LogLevel.Debug, msg, module);
     public static void Debug(string msg) => Debug(null, msg);
 
+    public static void Debug(Exception ex, string message, string module) => OnLog?.Invoke(LogLevel.Debug, message, module, ex);
+
     // Trace
     public static void Trace(string? module, string msg) => OnLog?.Invoke(LogLevel.Trace, msg, module);
     public static void Trace(string msg) => Trace(null, msg);

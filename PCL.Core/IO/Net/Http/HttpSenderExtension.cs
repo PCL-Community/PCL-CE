@@ -53,7 +53,7 @@ public static class HttpSenderExtension
                         } 
                         catch(Exception ex)
                         {
-                            LogWrapper.Error(ex, "Request", $"Try attempt failed (id = {requestId})");
+                            LogWrapper.Debug(ex,  $"Try attempt failed (id = {requestId})", "Request");
                             throw;
                         }
                     },

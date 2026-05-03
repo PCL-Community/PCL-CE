@@ -83,9 +83,10 @@ public partial class NetworkService {
                 attempt => retryPolicy.Invoke(attempt),
                 onRetry: (exception, timeSpan, retryAttempt, context) =>
                 {
-                    LogWrapper.Error(
+                    LogWrapper.Debug(
                         exception,
-                        $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。"
+                        $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。",
+                        "Network"
                         );
                 });
     }
