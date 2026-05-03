@@ -12,7 +12,7 @@ using PCL.Core.IO.Net.Dns;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
 
-namespace PCL.Core.IO.Net.Http.Client;
+namespace PCL.Core.IO.Net.Http;
 
 public class HostConnectionHandler
 {

@@ -1,11 +1,11 @@
-﻿<local:MyPageLeft x:Class="PageLaunchLeft"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:PCL"
-             mc:Ignorable="d" x:Name="PanBack"
-             d:DesignHeight="417.2" Width="300">
+﻿<local:MyPageLeft x:Class="PCL.PageLaunchLeft"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:PCL"
+                  mc:Ignorable="d" x:Name="PanBack"
+                  d:DesignHeight="417.2" Width="300">
     <Grid Name="PanInput" RenderTransformOrigin="0.5,0.5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,8 +24,11 @@
         <Grid.RenderTransform>
             <ScaleTransform />
         </Grid.RenderTransform>
-        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="实例选择" IsEnabled="False" />
-        <local:MyButton Grid.Row="3" Grid.Column="3" x:Name="BtnMore" Visibility="Collapsed" Height="35" Margin="0,10,10,0" TextPadding="36" Text="实例设置" />
+        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="实例选择"
+                        IsEnabled="False" Click="BtnInstance_Click" />
+        <local:MyButton Grid.Row="3" Grid.Column="3" x:Name="BtnMore" Visibility="Collapsed" Height="35"
+                        Click="BtnMore_Click"
+                        Margin="0,10,10,0" TextPadding="36" Text="实例设置" />
         <Grid Grid.ColumnSpan="5" Grid.Row="1" Margin="20,0" VerticalAlignment="Center" x:Name="PanLogin" />
         <Grid Grid.ColumnSpan="5" Grid.Row="2" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
@@ -34,10 +37,15 @@
                     <TranslateTransform x:Name="AprilPosTrans" />
                 </TransformGroup>
             </Grid.RenderTransform>
-            <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="正在加载" ColorType="Highlight" Padding="30,0,30,15" IsEnabled="False" />
-            <TextBlock x:Name="LabVersion" Text="正在加载版本列表，请稍候" Margin="35,0,35,10" IsHitTestVisible="False" VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="{DynamicResource ColorBrushGray3}" RenderTransformOrigin="0.5,-0.2">
+            <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="正在加载" ColorType="Highlight"
+                            Click="BtnLaunch_Click"
+                            Padding="30,0,30,15" IsEnabled="False" />
+            <TextBlock x:Name="LabVersion" Text="正在加载版本列表，请稍候" Margin="35,0,35,10" IsHitTestVisible="False"
+                       VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       FontSize="11" Foreground="{DynamicResource ColorBrushGray3}" RenderTransformOrigin="0.5,-0.2">
                 <TextBlock.RenderTransform>
-                    <ScaleTransform ScaleX="{Binding RealRenderTransform.ScaleX, ElementName=BtnLaunch, Mode=OneWay}" ScaleY="{Binding RealRenderTransform.ScaleY, ElementName=BtnLaunch, Mode=OneWay}" />
+                    <ScaleTransform ScaleX="{Binding RealRenderTransform.ScaleX, ElementName=BtnLaunch, Mode=OneWay}"
+                                    ScaleY="{Binding RealRenderTransform.ScaleY, ElementName=BtnLaunch, Mode=OneWay}" />
                 </TextBlock.RenderTransform>
             </TextBlock>
         </Grid>
@@ -55,35 +63,39 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="1" RenderTransformOrigin="0.5,0.5" Margin="0,-7,0,0">
             <StackPanel.BitmapEffect>
-                <DropShadowBitmapEffect Color="{StaticResource ColorObjectGray2}" ShadowDepth="1.5" Direction="270" Opacity="0.15" Softness="0.15" />
+                <DropShadowBitmapEffect Color="{StaticResource ColorObjectGray2}" ShadowDepth="1.5" Direction="270"
+                                        Opacity="0.15" Softness="0.15" />
             </StackPanel.BitmapEffect>
             <local:MyLoading x:Name="LoadLaunching" AutoRun="False" Height="50" Margin="0,10,0,5" />
-            <TextBlock Name="LabLaunchingTitle" Margin="15,10,15,0" Text="正在启动游戏" HorizontalAlignment="Center" FontSize="20" Foreground="{DynamicResource ColorBrush3}">
+            <TextBlock Name="LabLaunchingTitle" Margin="15,10,15,0" Text="正在启动游戏" HorizontalAlignment="Center"
+                       FontSize="20" Foreground="{DynamicResource ColorBrush3}">
                 <TextBlock.RenderTransform>
-                    <SkewTransform AngleX="-3"/>
+                    <SkewTransform AngleX="-3" />
                 </TextBlock.RenderTransform>
             </TextBlock>
-            <TextBlock Name="LabLaunchingName" Margin="40,5,40,0" FontSize="13.5" Text="Forge 1.12.2-15.8.0.1560" HorizontalAlignment="Center" Foreground="{DynamicResource ColorBrush3}" RenderTransformOrigin="0.5,0.5">
+            <TextBlock Name="LabLaunchingName" Margin="40,5,40,0" FontSize="13.5" Text="Forge 1.12.2-15.8.0.1560"
+                       HorizontalAlignment="Center" Foreground="{DynamicResource ColorBrush3}"
+                       RenderTransformOrigin="0.5,0.5">
                 <TextBlock.RenderTransform>
-                    <SkewTransform AngleX="-3"/>
+                    <SkewTransform AngleX="-3" />
                 </TextBlock.RenderTransform>
             </TextBlock>
             <Grid Height="4" Margin="30,12,30,27" SnapsToDevicePixels="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Name="ProgressLaunchingFinished" Width="69.28*"/>
-                    <ColumnDefinition Name="ProgressLaunchingUnfinished" Width="30.72*"/>
+                    <ColumnDefinition Name="ProgressLaunchingFinished" Width="69.28*" />
+                    <ColumnDefinition Name="ProgressLaunchingUnfinished" Width="30.72*" />
                 </Grid.ColumnDefinitions>
-                <Rectangle Grid.Column="0" >
+                <Rectangle Grid.Column="0">
                     <Rectangle.Fill>
                         <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
-                            <GradientStop Color="{DynamicResource ColorObject4}" Offset="0"/>
-                            <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.6"/>
+                            <GradientStop Color="{DynamicResource ColorObject4}" Offset="0" />
+                            <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.6" />
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
                 <Rectangle Grid.Column="1" Fill="{DynamicResource ColorBrush6}" Opacity="0.6" />
             </Grid>
-            <Grid HorizontalAlignment="Center" Name="PanLaunchingInfo">
+            <Grid HorizontalAlignment="Center" Name="PanLaunchingInfo" SizeChanged="PanLaunchingInfo_SizeChangedW">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto" />
@@ -97,16 +109,28 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="当前步骤" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载支持" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Left" Name="LabLaunchingStage" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="验证方式" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="正版验证" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow" Name="LabLaunchingMethod" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="启动进度" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="69.28 %" Grid.Row="2" Grid.Column="3" HorizontalAlignment="Left" Name="LabLaunchingProgress" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载速度" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft" Visibility="Collapsed" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="5.2 M/s" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Left" Name="LabLaunchingDownload" Opacity="0" Visibility="Collapsed" />
-                <Grid x:Name="PanLaunchingHint" HorizontalAlignment="Center" Grid.Row="2" Grid.ColumnSpan="5" Grid.RowSpan="2" Width="260" Visibility="Collapsed" Margin="0,16,0,2" Opacity="0">
-                    <Border Margin="0,8,0,0" BorderThickness="1" CornerRadius="3" BorderBrush="{DynamicResource ColorBrushGray1}" Opacity="0.5">
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="当前步骤" Grid.Row="0" Grid.Column="1"
+                           HorizontalAlignment="Right" Opacity="0.5" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载支持" Grid.Row="0" Grid.Column="3"
+                           HorizontalAlignment="Left" Name="LabLaunchingStage" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="验证方式" Grid.Row="1" Grid.Column="1"
+                           HorizontalAlignment="Right" Opacity="0.5" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="正版验证" Grid.Row="1" Grid.Column="3"
+                           HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow"
+                           Name="LabLaunchingMethod" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="启动进度" Grid.Row="2" Grid.Column="1"
+                           HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="69.28 %" Grid.Row="2" Grid.Column="3"
+                           HorizontalAlignment="Left" Name="LabLaunchingProgress" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载速度" Grid.Row="3" Grid.Column="1"
+                           HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft"
+                           Visibility="Collapsed" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="5.2 M/s" Grid.Row="3" Grid.Column="3"
+                           HorizontalAlignment="Left" Name="LabLaunchingDownload" Opacity="0" Visibility="Collapsed" />
+                <Grid x:Name="PanLaunchingHint" HorizontalAlignment="Center" Grid.Row="2" Grid.ColumnSpan="5"
+                      Grid.RowSpan="2" Width="260" Visibility="Collapsed" Margin="0,16,0,2" Opacity="0">
+                    <Border Margin="0,8,0,0" BorderThickness="1" CornerRadius="3"
+                            BorderBrush="{DynamicResource ColorBrushGray1}" Opacity="0.5">
                         <Border.Clip>
                             <CombinedGeometry GeometryCombineMode="Exclude">
                                 <CombinedGeometry.Geometry1>
@@ -118,12 +142,16 @@
                             </CombinedGeometry>
                         </Border.Clip>
                     </Border>
-                    <TextBlock FontSize="12.5" Text="你知道吗" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="0.5" />
-                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="这是一段测试用的小提示文本，它应该足够长以让它有两行。" Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" MaxHeight="54" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontSize="12.5" Text="你知道吗" HorizontalAlignment="Center" VerticalAlignment="Top"
+                               Opacity="0.5" />
+                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="这是一段测试用的小提示文本，它应该足够长以让它有两行。"
+                               Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" MaxHeight="54"
+                               TextTrimming="CharacterEllipsis" />
                 </Grid>
             </Grid>
         </StackPanel>
-        <local:MyButton Grid.Row="4" x:Name="BtnCancel" Height="35" Margin="20,0,20,20" VerticalAlignment="Bottom" Text="取消" />
+        <local:MyButton Grid.Row="4" x:Name="BtnCancel" Height="35" Margin="20,0,20,20" VerticalAlignment="Bottom"
+                        Click="BtnCancel_Click"
+                        Text="取消" />
     </Grid>
 </local:MyPageLeft>
-    

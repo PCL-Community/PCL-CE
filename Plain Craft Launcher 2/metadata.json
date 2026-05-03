@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.5",
+    "base": "2.14.6",
     "upstream": "2.12.1",
-    "suffix": "beta.2",
-    "code": 512
+    "suffix": "",
+    "code": 514
   },
   "licenses": [
     {
@@ -120,6 +120,12 @@
       "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/protobuf-net/protobuf-net",
       "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
+    },
+    {
+      "name": "Sentry",
+      "info": "Copyright © 2018 Sentry\nLicensed under the MIT license.",
+      "website": "https://sentry.io/",
+      "license": "https://github.com/getsentry/sentry-dotnet/blob/main/LICENSE"
     },
     {
       "name": "LWJGL Unsafe Agent",

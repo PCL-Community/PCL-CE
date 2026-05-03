@@ -1,0 +1,87 @@
+using System.Windows;
+using PCL.Core.Utils.Validate;
+
+namespace PCL;
+
+public partial class PageLoginOffline
+{
+    public PageLoginOffline()
+    {
+        // Handles
+        InitializeComponent();
+        BtnBack.Click += BtnBack_Click;
+        RadioUuidCustom.Check += RadioUuid_Checked;
+        RadioUuidStandard.Check += RadioUuid_Checked;
+        RadioUuidLegacy.Check += RadioUuid_Checked;
+        BtnLogin.Click += BtnLogin_Click;
+    }
+
+    private void BtnBack_Click(object sender, EventArgs e)
+    {
+        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+    }
+
+    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
+    {
+        if (RadioUuidCustom.Checked)
+        {
+            TextUuidTitle.Visibility = Visibility.Visible;
+            TextUuid.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TextUuidTitle.Visibility = Visibility.Collapsed;
+            TextUuid.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void BtnLogin_Click(object sender, EventArgs e)
+    {
+        // 玩家 ID 输入检查
+        var Username = TextName.Text;
+        var UsernameValidateResult = new RegexValidator("^[A-z0-9_]{3,16}$").Validate(Username);
+        if (!UsernameValidateResult.IsValid)
+            if (ModMain.MyMsgBox(
+                    $"你输入的玩家 ID 不符合标准（3 - 16 位，只可以包含英文字母、数字与下划线），可能导致部分版本的游戏无法启动或发生错误。{"\r\n"}强烈建议使用规范的玩家 ID！{"\r\n"}如果你坚持，仍然可以继续创建档案。",
+                    "玩家 ID 不符合规范", "继续", "取消", IsWarn: true, ForceWait: true) == 2)
+                return;
+        // UUID
+        string UserUuid = null;
+        if (RadioUuidCustom.Checked)
+        {
+            // 自定义输入检查
+            var UuidInput = TextUuid.Text.Replace("-", "");
+            var UuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(UuidInput);
+            if (RadioUuidCustom.Checked && !UuidValidateResult.IsValid)
+            {
+                ModMain.Hint("UUID 不符合要求：" + UuidValidateResult, ModMain.HintType.Critical);
+                return;
+            }
+
+            UserUuid = UuidInput;
+        }
+        else if (RadioUuidLegacy.Checked)
+        {
+            UserUuid = ModProfile.GetOfflineUuid(Username, isLegacy: true);
+        }
+        else
+        {
+            UserUuid = ModProfile.GetOfflineUuid(Username);
+        }
+
+        // 创建档案
+        var NewProfile = new ModProfile.McProfile
+        {
+            Type = ModLaunch.McLoginType.Legacy,
+            Uuid = UserUuid,
+            Username = Username,
+            Desc = ""
+        };
+        ModProfile.ProfileList.Add(NewProfile);
+        ModProfile.SaveProfile();
+        ModProfile.SelectedProfile = NewProfile;
+        ModProfile.IsCreatingProfile = false;
+        ModMain.Hint("档案新建成功！", ModMain.HintType.Finish);
+        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+    }
+}

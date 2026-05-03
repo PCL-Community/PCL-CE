@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -195,11 +195,11 @@ public sealed class TcpForward(
 
     public void Dispose()
     {
-        Dispose(true);
+        _Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
+    private void _Dispose(bool disposing)
     {
         if (!disposing) return;
         if (_disposed) return;
@@ -211,7 +211,7 @@ public sealed class TcpForward(
 
     ~TcpForward()
     {
-        Dispose(false);
+        _Dispose(false);
     }
 
     private class ConnectionPair(Socket clientSocket, Socket targetSocket)
