@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.App.Essentials.Announcement.Models;
 using PCL.Core.App.IoC;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 
