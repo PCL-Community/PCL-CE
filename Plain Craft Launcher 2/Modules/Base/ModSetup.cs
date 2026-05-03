@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 using PCL.Network;

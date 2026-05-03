@@ -10,13 +10,14 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
+using PCL.Core.IO.Net.Http;
+using PCL;
 
 namespace PCL;
 
@@ -2924,9 +2925,6 @@ public static class ModLaunch
         {
             if (Library.IsNatives)
                 continue;
-            if (Library.Name is not null &&
-                Library.Name.Contains("com.cleanroommc:cleanroom:0.2")) // Cleanroom 的主 Jar 必须放在 ClassPath 第一位
-                CpStrings.Insert(0, Library.LocalPath);
             if (Library.Name is not null && Library.Name == "optifine:OptiFine")
                 OptiFineCp = Library.LocalPath;
             else

@@ -4,7 +4,7 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using Polly;
 
@@ -31,7 +31,7 @@ public partial class NetworkService {
                 MaxAutomaticRedirections = 20,
                 UseCookies = false, //禁止自动 Cookie 管理
                 ConnectCallback = Config.Network.EnableDoH
-                    ? HostConnectionHandler.Instance.GetConnectionAsync
+                    ? PCL.Core.IO.Net.Http.HostConnectionHandler.Instance.GetConnectionAsync
                     : null
             }
         );
