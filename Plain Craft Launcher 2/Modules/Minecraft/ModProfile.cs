@@ -446,6 +446,7 @@ public static class ModProfile
             var HasMinecraftAccount = ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
             var Restricted = RegionUtils.IsRestrictedFeatAllowed && ProfileList.Count > 0;
             var HasNetwork = NetworkHelper.IsNetworkAvailable();
+#if !DEBUG && !DEBUGCI
             if (HasMinecraftAccount || Restricted || !HasNetwork)
                 authTypeList =
                 [
@@ -480,6 +481,32 @@ public static class ModProfile
                         Logo = ModBase.Logo.IconButtonAuth
                     }
                 ];
+#else 
+        authTypeList =
+        [
+            new MyListItem
+            {
+                Title = "正版验证",
+                Type = MyListItem.CheckType.RadioBox,
+                Logo = ModBase.Logo.IconButtonAuth
+            },
+
+            new MyListItem
+            {
+                Title = "第三方验证",
+                Type = MyListItem.CheckType.RadioBox,
+                Logo = ModBase.Logo.IconButtonThirdparty
+            },
+
+            new MyListItem
+            {
+                Title = "离线验证",
+                Type = MyListItem.CheckType.RadioBox,
+                Logo = ModBase.Logo.IconButtonOffline
+            }
+        ];
+#endif
+        
             selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");
         });
         if (selectedAuthTypeNum is null)
@@ -492,6 +519,7 @@ public static class ModProfile
         else // 离线验证
             ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
     }
+            
 
     /// <summary>
     ///     编辑当前档案的 ID
