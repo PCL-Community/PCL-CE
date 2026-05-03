@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace PCL.Network;
 
-public class RequestSigning
+public static class RequestSigning
 {
     internal static string SecretCdnSign(string UrlWithMark)
     {

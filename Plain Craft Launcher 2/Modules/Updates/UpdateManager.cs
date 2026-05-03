@@ -9,7 +9,6 @@ namespace PCL;
 
 public static class UpdateManager
 {
-    public static bool IsCheckingUpdates = false;
     public static bool IsUpdateWaitingRestart;
 
     public static UpdatesWrapperModel RemoteServer = new(new List<IUpdateSource>
@@ -37,7 +36,7 @@ public static class UpdateManager
     {
         try
         {
-            if (IsCurrentVersionBeta && !((int)Config.Update.UpdateChannel == 1))
+            if (IsCurrentVersionBeta && (int)Config.Update.UpdateChannel != 1)
             {
                 var isNewerThanStable = RemoteServer.IsLatest(UpdateChannel.stable,
                     ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
