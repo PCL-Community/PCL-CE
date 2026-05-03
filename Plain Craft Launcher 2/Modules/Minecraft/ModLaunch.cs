@@ -179,6 +179,7 @@ public static class ModLaunch
             }
             else
             {
+#if !DEBUG && !DEBUGCI
                 switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
                             Button1Action: () =>
                                 ModBase.OpenWebsite(
@@ -195,7 +196,10 @@ public static class ModLaunch
                         throw new Exception("$$");
                     }
                 }
+#endif
+
             }
+
         }
     }
 
