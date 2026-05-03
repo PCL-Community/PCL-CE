@@ -84,7 +84,6 @@ public class UpdateManager
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
-                    ModBase.Log("[Test]");
                     ModBase.RunInUi(() =>
                     {
                         if (ModMain.MyMsgBox(

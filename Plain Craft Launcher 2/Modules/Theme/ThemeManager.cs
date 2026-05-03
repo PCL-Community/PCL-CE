@@ -6,7 +6,7 @@ using PCL.Core.UI.Theme;
 
 namespace PCL;
 
-public class ThemeManager
+public static class ThemeManager
 {
     private static bool _contextMenuHandlerRegistered;
 
