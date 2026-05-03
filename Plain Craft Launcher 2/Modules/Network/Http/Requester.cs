@@ -6,15 +6,16 @@ using System.Text;
 using Downloader;
 using Newtonsoft.Json.Linq;
 using PCL.Core.IO.Net;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Network;
 
 public static class Requester
 {
-    public static void EnsureSuccess(HttpResponseMessage response)
+    public static void EnsureSuccess(HttpResponseMessage? response)
     {
-        if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException($"HTTP 响应失败: {response.ReasonPhrase} ({(int)response.StatusCode})");
+        if (!response?.IsSuccessStatusCode ?? true)
+            throw new HttpResponseException(response);
     }
 
     public static async Task<string> FetchStringAsync(string url, RequestParam param = default)
@@ -95,6 +96,7 @@ public static class Requester
 
     private static async Task<string> FetchOnceAsync(string url, FetchParam param)
     {
+        HttpResponseMessage? response = null;
         var request = new HttpRequestMessage(ParseMethod(param.Method), ModSecret.SecretCdnSign(url));
         ModSecret.SecretHeadersSign(url, ref request, param.UseBrowserUserAgent);
         try
@@ -113,12 +115,13 @@ public static class Requester
 
             using var cts = new CancellationTokenSource();
             cts.CancelAfter(param.Timeout <= 0 ? 30000 : param.Timeout);
-            using var response = await NetworkService.GetClient().SendAsync(request, cts.Token).ConfigureAwait(false);
+            response = await NetworkService.GetClient().SendAsync(request, cts.Token).ConfigureAwait(false);
             EnsureSuccess(response);
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
         finally
         {
+            if(!param.RequireContent) response?.Dispose();
             request.Dispose();
         }
     }
