@@ -2,6 +2,8 @@ namespace PCL;
 
 public abstract class DlForgelikeEntry : IComparable<DlForgelikeEntry>
 {
+    /// Forge、NeoForge、Cleanroom 等 Forge-like 加载器的版本列表条目的抽象基类。
+
     public enum ForgelikeType
     {
         Forge,

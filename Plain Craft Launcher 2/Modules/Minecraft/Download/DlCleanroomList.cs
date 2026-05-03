@@ -6,7 +6,7 @@ namespace PCL;
 
 public class DlCleanroomList
 {
-        #region DlCleanroomList | Cleanroom 版本列表
+    /// DlCleanroomList | Cleanroom 版本列表
 
     public struct DlCleanroomListResult
     {
@@ -118,6 +118,4 @@ public class DlCleanroomList
         Versions = Versions.OrderByDescending(a => a.Version).ToList();
         return Versions;
     }
-
-    #endregion
 }

@@ -8,7 +8,7 @@ namespace PCL;
 
 public class DlForgeVersion
 {
-        #region DlForgeVersion | Forge 版本列表
+    /// DlForgeVersion | Forge 版本列表
 
     public class DlForgeVersionEntry : DlForgelikeEntry
     {
@@ -258,6 +258,4 @@ public class DlForgeVersion
             throw new Exception("无可用版本");
         Loader.Output = Versions;
     }
-
-    #endregion
 }

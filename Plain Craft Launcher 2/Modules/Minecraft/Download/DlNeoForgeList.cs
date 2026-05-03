@@ -5,7 +5,7 @@ namespace PCL;
 
 public class DlNeoForgeList
 {
-        #region DlNeoForgeList | NeoForge 版本列表
+    /// DlNeoForgeList | NeoForge 版本列表
 
     public struct DlNeoForgeListResult
     {
@@ -185,6 +185,4 @@ public class DlNeoForgeList
             throw new Exception("无可用版本");
         return versions;
     }
-
-    #endregion
 }

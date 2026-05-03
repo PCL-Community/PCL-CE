@@ -6,7 +6,7 @@ namespace PCL;
 
 public class DlLegacyFabricList
 {
-        #region DlLegacyFabricList | LegacyFabric 列表
+    /// DlLegacyFabricList | LegacyFabric 列表
 
     public struct DlLegacyFabricListResult
     {
@@ -69,6 +69,4 @@ public class DlLegacyFabricList
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlLegacyFabricApiLoader =
         new("Legacy Fabric API List Loader", Task => Task.Output = ModComp.CompFilesGet("legacy-fabric-api", false));
-
-    #endregion
 }

@@ -6,7 +6,7 @@ namespace PCL;
 
 public class DlLiteLoaderList
 {
-        #region DlLiteLoaderList | LiteLoader 版本列表
+    /// DlLiteLoaderList | LiteLoader 版本列表
 
     public struct DlLiteLoaderListResult
     {
@@ -165,6 +165,4 @@ public class DlLiteLoaderList
             throw new Exception("LiteLoader BMCLAPI 版本列表解析失败（" + Result + "）", ex);
         }
     }
-
-    #endregion
 }

@@ -6,7 +6,7 @@ namespace PCL;
 
 public class DlQuiltList
 {
-        #region DlQuiltList | Quilt 列表
+    /// DlQuiltList | Quilt 列表
 
     public struct DlQuiltListResult
     {
@@ -66,26 +66,9 @@ public class DlQuiltList
         }
     }
 
-    // ''' <summary>
-    // ''' TODO: Quilt 列表，BMCLAPI。
-    // ''' </summary>
-    // Public DlQuiltListBmclapiLoader As New LoaderTask(Of Integer, DlQuiltListResult)("DlQuiltList Bmclapi", AddressOf DlQuiltListBmclapiMain)
-    // Private Sub DlQuiltListBmclapiMain(Loader As LoaderTask(Of Integer, DlQuiltListResult))
-    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions", IsJson:=True)
-    // Try
-    // Dim Output = New DlQuiltListResult With {.IsOfficial = False, .SourceName = "BMCLAPI", .Value = Result}
-    // If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
-    // Loader.Output = Output
-    // Catch ex As Exception
-    // Throw New Exception("Quilt BMCLAPI 版本列表解析失败（" & Result.ToString & "）", ex)
-    // End Try
-    // End Sub
-
     /// <summary>
     ///     QSL 列表，官方源。
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlQSLLoader = new("QSL List Loader",
         Task => Task.Output = ModComp.CompFilesGet("qsl", false));
-
-    #endregion
 }

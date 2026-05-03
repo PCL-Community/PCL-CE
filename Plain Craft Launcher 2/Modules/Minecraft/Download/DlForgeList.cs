@@ -5,7 +5,7 @@ namespace PCL;
 
 public class DlForgeList
 {
-        #region DlForgeList | Forge Minecraft 版本列表
+    /// DlForgeList | Forge Minecraft 版本列表
 
     public struct DlForgeListResult
     {
@@ -84,6 +84,4 @@ public class DlForgeList
             throw new Exception("获取到的版本数量不足（" + Result + "）");
         Loader.Output = new DlForgeListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Names };
     }
-
-    #endregion
 }

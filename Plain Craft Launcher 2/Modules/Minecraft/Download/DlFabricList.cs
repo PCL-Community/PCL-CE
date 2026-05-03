@@ -5,7 +5,7 @@ namespace PCL;
 
 public class DlFabricList
 {
-        #region DlFabricList | Fabric 列表
+    /// DlFabricList | Fabric 列表
 
     public struct DlFabricListResult
     {
@@ -93,6 +93,4 @@ public class DlFabricList
     /// </summary>
     public static ModLoader.LoaderTask<int, List<ModComp.CompFile>> DlOptiFabricLoader =
         new("OptiFabric List Loader", Task => Task.Output = ModComp.CompFilesGet("322385", true));
-
-    #endregion
 }

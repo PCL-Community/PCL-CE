@@ -5,7 +5,7 @@ namespace PCL;
 
 public class DlSource
 {
-        #region DlSource | 镜像下载源
+    /// DlSource | 镜像下载源
 
     public static bool DlPreferMojang;
 
@@ -199,6 +199,4 @@ public class DlSource
             if (Loader.Key.State == ModBase.LoadState.Loading)
                 Loader.Key.Abort();
     }
-
-    #endregion
 }

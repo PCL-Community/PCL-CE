@@ -7,7 +7,7 @@ namespace PCL;
 
 public class DlOptiFineList
 {
-        #region DlOptiFineList | OptiFine 版本列表
+    /// DlOptiFineList | OptiFine 版本列表
 
     public struct DlOptiFineListResult
     {
@@ -194,6 +194,4 @@ public class DlOptiFineList
             throw new Exception("OptiFine BMCLAPI 版本列表解析失败（" + Json + "）", ex);
         }
     }
-
-    #endregion
 }

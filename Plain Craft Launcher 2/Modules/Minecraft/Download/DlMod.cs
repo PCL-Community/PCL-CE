@@ -5,7 +5,7 @@ namespace PCL;
 
 public class DlMod
 {
-        #region DlMod | Mod 镜像源请求
+    /// DlMod | Mod 镜像源请求
 
     /// <summary>
     ///     对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JObject。
@@ -123,6 +123,4 @@ public class DlMod
 
         throw new Exception(Exs);
     }
-
-    #endregion
 }

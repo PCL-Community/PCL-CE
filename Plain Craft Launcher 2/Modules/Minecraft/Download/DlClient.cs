@@ -7,7 +7,7 @@ namespace PCL;
 
 public class DlClient
 {
-        #region DlClient* | Minecraft 客户端
+    /// DlClient* | Minecraft 客户端
 
     /// <summary>
     ///     返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
@@ -191,6 +191,4 @@ public class DlClient
         /// </summary>
         AlwaysDownload
     }
-
-    #endregion
 }

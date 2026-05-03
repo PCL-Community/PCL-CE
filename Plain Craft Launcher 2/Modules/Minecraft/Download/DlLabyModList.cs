@@ -7,7 +7,7 @@ namespace PCL;
 
 public class DlLabyModList
 {
-        #region DlLabyModList | LabyMod 列表
+    /// DlLabyModList | LabyMod 列表
 
     public struct DlLabyModListResult
     {
@@ -82,6 +82,4 @@ public class DlLabyModList
             throw new Exception("LabyMod 版本列表解析失败（" + Result + "）", ex);
         }
     }
-
-    #endregion
 }

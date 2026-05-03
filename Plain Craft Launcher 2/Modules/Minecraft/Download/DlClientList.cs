@@ -10,7 +10,7 @@ namespace PCL;
 
 public class DlClientList
 {
-        #region DlClientList | Minecraft 客户端 版本列表
+    /// DlClientList | Minecraft 客户端 版本列表
 
     /// <summary>
     ///     所有正式版的 Minecraft Drop 序数。
@@ -293,6 +293,4 @@ public class DlClientList
             return null;
         }
     }
-
-    #endregion
 }
