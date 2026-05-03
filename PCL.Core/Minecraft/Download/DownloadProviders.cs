@@ -29,17 +29,23 @@ public interface IDownloadProvider
 }
 
 /// <summary>
+///     URL categorization helpers for download providers.
+/// </summary>
+internal static class DownloadUrlHelper
+{
+    public static bool IsThirdPartyLibrary(string url)
+    {
+        return new[] { "minecraftforge", "fabricmc", "neoforged" }.Any(k => url.Contains(k));
+    }
+}
+
+/// <summary>
 ///     Official Mojang download provider. Passes URLs through unchanged for Mojang-hosted resources,
 ///     but yields nothing for third-party libraries (Forge, Fabric, NeoForge) that Mojang doesn't host.
 /// </summary>
 public class MojangDownloadProvider : IDownloadProvider
 {
     public string Name => "Mojang 官方源";
-
-    private static bool IsThirdPartyLibrary(string url)
-    {
-        return new[] { "minecraftforge", "fabricmc", "neoforged" }.Any(k => url.Contains(k));
-    }
 
     public IEnumerable<string> TransformAssetUrls(string original)
     {
@@ -49,7 +55,7 @@ public class MojangDownloadProvider : IDownloadProvider
 
     public IEnumerable<string> TransformLibraryUrls(string original)
     {
-        if (IsThirdPartyLibrary(original))
+        if (DownloadUrlHelper.IsThirdPartyLibrary(original))
             yield break;
         yield return original;
     }
@@ -149,7 +155,7 @@ public class McimirrorDownloadProvider : IDownloadProvider
         throw new NotSupportedException();
     }
 
-    public string TransformModApiUrl(string original) => BmclapiDownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
+    public string TransformModApiUrl(string original) => DownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
 
     public IEnumerable<string> TransformModDownloadUrls(string original)
     {
@@ -162,7 +168,7 @@ public class McimirrorDownloadProvider : IDownloadProvider
 /// <summary>
 ///     Registry for download provider singletons.
 /// </summary>
-public static class BmclapiDownloadProviderRegistry
+public static class DownloadProviderRegistry
 {
     public static readonly MojangDownloadProvider Mojang = new();
     public static readonly BmclapiDownloadProvider Bmclapi = new();
@@ -182,13 +188,13 @@ public class DownloadProviderChain
     {
         if (preferOfficial)
         {
-            _primary = BmclapiDownloadProviderRegistry.Mojang;
-            _fallback = BmclapiDownloadProviderRegistry.Bmclapi;
+            _primary = DownloadProviderRegistry.Mojang;
+            _fallback = DownloadProviderRegistry.Bmclapi;
         }
         else
         {
-            _primary = BmclapiDownloadProviderRegistry.Bmclapi;
-            _fallback = BmclapiDownloadProviderRegistry.Mojang;
+            _primary = DownloadProviderRegistry.Bmclapi;
+            _fallback = DownloadProviderRegistry.Mojang;
         }
     }
 
@@ -209,11 +215,9 @@ public class DownloadProviderChain
     /// </summary>
     public IEnumerable<string> GetLibraryUrls(string original)
     {
-        var isThirdParty = new[] { "minecraftforge", "fabricmc", "neoforged" }.Any(k => original.Contains(k));
-
-        if (isThirdParty)
+        if (DownloadUrlHelper.IsThirdPartyLibrary(original))
         {
-            foreach (var url in BmclapiDownloadProviderRegistry.Bmclapi.TransformLibraryUrls(original))
+            foreach (var url in DownloadProviderRegistry.Bmclapi.TransformLibraryUrls(original))
                 yield return url;
         }
         else
@@ -251,7 +255,7 @@ public static class ModDownloadSourceResolver
     /// </summary>
     public static string GetModApiUrl(string original)
     {
-        return BmclapiDownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
+        return DownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
     }
 
     /// <summary>

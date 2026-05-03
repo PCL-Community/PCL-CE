@@ -12,6 +12,9 @@ public class DlForgeVersion
 
     public class DlForgeVersionEntry : DlForgelikeEntry
     {
+        
+        public override string FileExtension => Category == "installer" ? "jar" : "zip";
+        
         /// <summary>
         ///     安装类型。有 installer、client、universal 三种。
         /// </summary>
@@ -83,10 +86,6 @@ public class DlForgeVersion
                 {
                     UseBrowserUserAgent = true
                 })?.ToString() ?? ""; // 兼容 Forge 1.7.10-pre4，#4057
-        }
-        catch (WebException)
-        {
-            throw;
         }
         catch (Exception ex)
         {

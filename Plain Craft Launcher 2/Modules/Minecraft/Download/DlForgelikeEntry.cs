@@ -46,15 +46,7 @@ public abstract class DlForgelikeEntry : IComparable<DlForgelikeEntry>
     /// <summary>
     ///     文件扩展名。不以小数点开头。
     /// </summary>
-    public string FileExtension
-    {
-        get
-        {
-            if (ForgeType == ForgelikeType.Forge) return ((DlForgeVersion.DlForgeVersionEntry)this).Category == "installer" ? "jar" : "zip";
-
-            return "jar";
-        }
-    }
+    public virtual string FileExtension => "jar";
 
     /// <summary>
     ///     Forge：MC 版本是否小于 1.13。
