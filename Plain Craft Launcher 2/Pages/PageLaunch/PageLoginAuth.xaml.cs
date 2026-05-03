@@ -3,11 +3,11 @@ using System.Windows;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 

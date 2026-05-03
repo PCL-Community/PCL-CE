@@ -1,31 +1,34 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.App.Configuration;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
 
 namespace PCL;
 
-public partial class ModSetup
+public partial class ModSetup : IConfigScope
 {
     #region Launch
 
     // 切换选择
     public void LaunchInstanceSelect(string Value)
     {
-        LauncherLogger.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
+        ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
         LauncherSerialization.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
             ModMinecraft.McInstanceSelected == null ? "" : ModMinecraft.McInstanceSelected.Name);
     }
 
     public void LaunchFolderSelect(string Value)
     {
-        LauncherLogger.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", LauncherPaths.ExecutableDirectory));
-        ModMinecraft.McFolderSelected = Value.Replace("$", LauncherPaths.ExecutableDirectory);
+        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", ModBase.ExePath));
+        ModMinecraft.McFolderSelected = Value.Replace("$", ModBase.ExePath);
     }
 
     // 游戏内存
@@ -225,7 +228,7 @@ public partial class ModSetup
         }
         catch (Exception ex)
         {
-            LauncherLogger.Log(ex, "字体加载失败", LauncherLogger.LogLevel.Hint);
+            ModBase.Log(ex, "字体加载失败", ModBase.LogLevel.Hint);
         }
     }
 
@@ -386,7 +389,7 @@ public partial class ModSetup
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
                 }
 
-                LauncherEnvironment.Setup.Load("UiLogoText", true);
+                ModBase.Setup.Load("UiLogoText", true);
                 break;
             }
             case 3: // 图片
@@ -407,12 +410,12 @@ public partial class ModSetup
 
                 try
                 {
-                    ModMain.FrmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectory + @"PCL\Logo.png";
+                    ModMain.FrmMain.ImageTitleLogo.Source = ModBase.ExePath + @"PCL\Logo.png";
                 }
                 catch (Exception ex)
                 {
                     ModMain.FrmMain.ImageTitleLogo.Source = null;
-                    LauncherLogger.Log(ex, "显示标题栏图片失败", LauncherLogger.LogLevel.Msgbox);
+                    ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogLevel.Msgbox);
                 }
 
                 break;
@@ -432,7 +435,7 @@ public partial class ModSetup
                 break;
         }
 
-        LauncherEnvironment.Setup.Load("UiLogoLeft", true);
+        ModBase.Setup.Load("UiLogoLeft", true);
         if (ModMain.FrmSetupUI != null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
@@ -596,12 +599,12 @@ public partial class ModSetup
     // 调试选项
     public void SystemDebugMode(bool Value)
     {
-        LauncherLogger.ModeDebug = Value;
+        ModBase.ModeDebug = Value;
     }
 
     public void SystemDebugAnim(int Value)
     {
-        ModAnimation.AniSpeed = Value >= 30 ? 200d : LauncherText.MathClamp(Value * 0.1d + 0.1d, 0.1d, 3d);
+        ModAnimation.AniSpeed = Value >= 30 ? 200d : ModBase.MathClamp(Value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
     public void SystemHttpProxy(string value)
@@ -613,7 +616,7 @@ public partial class ModSetup
         }
         catch (Exception ex)
         {
-            LauncherLogger.Log(ex, "HTTP 代理应用出错");
+            ModBase.Log(ex, "HTTP 代理应用出错");
         }
     }
 
@@ -649,7 +652,6 @@ public partial class ModSetup
 
     #endregion
 
-    
     #region Version
 
     // 游戏内存

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Minecraft.Yggdrasil;
 

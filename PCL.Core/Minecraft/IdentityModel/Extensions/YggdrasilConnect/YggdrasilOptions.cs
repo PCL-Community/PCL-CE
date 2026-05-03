@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils.Exts;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 
