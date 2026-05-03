@@ -58,7 +58,7 @@ public class HttpProxyManager : IWebProxy, IDisposable
         var ret = new List<ProxyItem>();
 
         // 形式：http=192.168.1.100:8080;socks=192.168.1.100:1080
-        if (proxyString.Contains('=') && proxyString.Contains(';'))
+        if (proxyString.Contains('='))
         {
             foreach (var segment in proxyString.Split(';', StringSplitOptions.RemoveEmptyEntries))
             {
