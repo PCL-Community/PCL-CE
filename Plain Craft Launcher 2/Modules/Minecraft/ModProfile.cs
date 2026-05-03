@@ -469,7 +469,7 @@ public static class ModProfile
             ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
     }
 
-    private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOfflineAndThirdPart) => includeOfflineAndThirdPart switch
+    private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOfflineAndThirdParty) => includeOfflineAndThirdParty switch
     {
         true =>
         [
