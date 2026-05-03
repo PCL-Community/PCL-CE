@@ -45,7 +45,7 @@ public partial class AnnouncementService
                 var invalid = _ignored.Except(response.Select(a => a.Id)).ToList();
                 _ignored.RemoveAll(invalid.Contains);
                 
-                var announcements = response.OrderBy(a => a.Priority).Where(a =>
+                var announcements = response.OrderByDescending(a => a.Priority).Where(a =>
                 {
                     var isNotAfterValid = DateTimeOffset.TryParse(a.SkipOn.NotAfter, out var notAfter);
                     var isNotBeforeValid = DateTimeOffset.TryParse(a.SkipOn.NotBefore, out var notBefore);
