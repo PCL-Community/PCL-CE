@@ -145,11 +145,7 @@ public sealed class ModDependencyResolver
 
         context.AddInstall(project, selectedFile);
 
-        var nestedDependencies = selectedFile.RequiredDependencies.Count > 0
-            ? selectedFile.RequiredDependencies
-            : project.RequiredDependencies;
-
-        foreach (var nestedDependency in nestedDependencies)
+        foreach (var nestedDependency in selectedFile.RequiredDependencies)
         {
             ResolveDependency(context, nestedDependency, depth + 1);
         }
