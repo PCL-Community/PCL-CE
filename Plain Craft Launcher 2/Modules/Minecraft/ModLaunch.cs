@@ -364,8 +364,8 @@ public static class ModLaunch
                 new ModLoader.LoaderTask<int, int>("获取 Java", McLaunchJava) { ProgressWeight = 4d, Block = false },
                 McLoginLoader,
                 new ModLoader.LoaderCombo<string>("补全文件",
-                        ModDownload.DlClientFix(ModMinecraft.McInstanceSelected, false,
-                            ModDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
+                        DlClient.DlClientFix(ModMinecraft.McInstanceSelected, false,
+                            DlClient.AssetsIndexExistsBehaviour.DownloadInBackground))
                     { ProgressWeight = 15d, Show = false },
                 new ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>>("获取启动参数", McLaunchArgumentMain)
                     { ProgressWeight = 2d },

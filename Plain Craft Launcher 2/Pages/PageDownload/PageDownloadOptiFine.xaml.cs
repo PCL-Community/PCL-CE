@@ -17,7 +17,7 @@ public partial class PageDownloadOptiFine
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlOptiFineListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlOptiFineList.DlOptiFineListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -31,11 +31,11 @@ public partial class PageDownloadOptiFine
         try
         {
             // 归类
-            var Dict = new Dictionary<string, List<ModDownload.DlOptiFineListEntry>>();
-            Dict.Add("快照版本", new List<ModDownload.DlOptiFineListEntry>());
+            var Dict = new Dictionary<string, List<DlOptiFineList.DlOptiFineListEntry>>();
+            Dict.Add("快照版本", new List<DlOptiFineList.DlOptiFineListEntry>());
             for (var VersionCode = 50; VersionCode >= 0; VersionCode -= 1)
-                Dict.Add("1." + VersionCode, new List<ModDownload.DlOptiFineListEntry>());
-            foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
+                Dict.Add("1." + VersionCode, new List<DlOptiFineList.DlOptiFineListEntry>());
+            foreach (var Version in DlOptiFineList.DlOptiFineListLoader.Output.Value)
                 if (Version.Inherit.StartsWith("1."))
                 {
                     var MainVersion = "1." + Version.DisplayName.Split(".")[1].Split(" ")[0];
@@ -70,11 +70,11 @@ public partial class PageDownloadOptiFine
                 NewCard.IsSwapped = true;
                 NewCard.InstallMethod = Stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
+                    Stack.Tag = ((List<DlOptiFineList.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
                         ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName) == 1);
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
-                            (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
+                            (DlOptiFineList.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
                 };
                 PanMain.Children.Add(NewCard);
             }

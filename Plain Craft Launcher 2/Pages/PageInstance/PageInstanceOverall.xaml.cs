@@ -560,8 +560,8 @@ public partial class PageInstanceOverall
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<string>(PageInstanceLeft.Instance.Name + " 文件补全",
-                ModDownload.DlClientFix(PageInstanceLeft.Instance, true,
-                    ModDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
+                DlClient.DlClientFix(PageInstanceLeft.Instance, true,
+                    DlClient.AssetsIndexExistsBehaviour.AlwaysDownload));
             Loader.OnStateChanged = _ =>
             {
                 switch (Loader.State)
@@ -627,14 +627,14 @@ public partial class PageInstanceOverall
                 TargetInstanceFolder = $@"{ModMinecraft.McFolderSelected}versions\{PageInstanceLeft.Instance.Name}\",
                 MinecraftName = CurrentVersion.VanillaName,
                 OptiFineEntry = CurrentVersion.HasOptiFine
-                    ? new ModDownload.DlOptiFineListEntry
+                    ? new DlOptiFineList.DlOptiFineListEntry
                     {
                         Inherit = CurrentVersion.VanillaName,
                         DisplayName = CurrentVersion.VanillaName + " " + CurrentVersion.OptiFine
                     }
                     : null,
                 ForgeEntry = CurrentVersion.HasForge
-                    ? new ModDownload.DlForgeVersionEntry(CurrentVersion.Forge, null, CurrentVersion.VanillaName)
+                    ? new DlForgeVersion.DlForgeVersionEntry(CurrentVersion.Forge, null, CurrentVersion.VanillaName)
                         { Category = "installer" }
                     : null,
                 ForgeVersion = CurrentVersion.HasForge ? CurrentVersion.Forge : null,
@@ -643,7 +643,7 @@ public partial class PageInstanceOverall
                 FabricVersion = CurrentVersion.HasFabric ? CurrentVersion.Fabric : null,
                 QuiltVersion = CurrentVersion.HasQuilt ? CurrentVersion.Quilt : null,
                 LiteLoaderEntry = CurrentVersion.HasLiteLoader
-                    ? new ModDownload.DlLiteLoaderListEntry { Inherit = CurrentVersion.VanillaName }
+                    ? new DlLiteLoaderList.DlLiteLoaderListEntry { Inherit = CurrentVersion.VanillaName }
                     : null,
                 LegacyFabricVersion = CurrentVersion.HasLegacyFabric ? CurrentVersion.LegacyFabric : null
             };

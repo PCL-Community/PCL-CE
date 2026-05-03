@@ -18,7 +18,7 @@ public partial class PageDownloadForge
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlForgeListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlForgeList.DlForgeListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -34,7 +34,7 @@ public partial class PageDownloadForge
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Version in ModDownload.DlForgeListLoader.Output.Value.Sort(ModMinecraft.CompareVersionGe))
+            foreach (var Version in DlForgeList.DlForgeListLoader.Output.Value.Sort(ModMinecraft.CompareVersionGe))
             {
                 // 增加卡片
                 var NewCard = new MyCard
@@ -51,8 +51,8 @@ public partial class PageDownloadForge
                 {
                     var LoadingPickaxe = new MyLoading { Text = "正在获取版本列表", Margin = new Thickness(5d) };
                     var Loader =
-                        new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>("DlForgeVersion Main",
-                            ModDownload.DlForgeVersionMain);
+                        new ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>("DlForgeVersion Main",
+                            DlForgeVersion.DlForgeVersionMain);
                     LoadingPickaxe.State = Loader;
                     Loader.Start(Stack.Tag);
                     LoadingPickaxe.StateChanged += (a, b, c) =>
@@ -82,7 +82,7 @@ public partial class PageDownloadForge
     public void Forge_Click(MyLoading sender, MouseButtonEventArgs e)
     {
         if (sender.State.LoadingState == MyLoading.MyLoadingState.Error)
-            ((ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State).Start(
+            ((ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>)sender.State).Start(
                 IsForceRestart: true);
     }
 
@@ -93,17 +93,17 @@ public partial class PageDownloadForge
             return;
 
         var Card = (MyCard)((FrameworkElement)sender.Parent).Parent;
-        var Loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State;
+        var Loader = (ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>)sender.State;
         // 载入列表
         ((StackPanel)Card.SwapControl).Children.Clear();
         ((StackPanel)Card.SwapControl).Tag = Loader.Output;
         Card.InstallMethod = Stack =>
         {
-            Stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.Version > b.Version);
-            ModDownloadLib.ForgeDownloadListItemPreload(Stack, (List<ModDownload.DlForgeVersionEntry>)Stack.Tag,
+            Stack.Tag = ((List<DlForgeVersion.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.Version > b.Version);
+            ModDownloadLib.ForgeDownloadListItemPreload(Stack, (List<DlForgeVersion.DlForgeVersionEntry>)Stack.Tag,
                 ModDownloadLib.ForgeSave_Click, true);
             foreach (var item in (IEnumerable)Stack.Tag)
-                Stack.Children.Add(ModDownloadLib.ForgeDownloadListItem((ModDownload.DlForgeVersionEntry)item,
+                Stack.Children.Add(ModDownloadLib.ForgeDownloadListItem((DlForgeVersion.DlForgeVersionEntry)item,
                     ModDownloadLib.ForgeSave_Click, true));
         };
         Card.StackInstall();

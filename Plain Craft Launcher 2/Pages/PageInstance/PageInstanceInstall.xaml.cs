@@ -29,7 +29,7 @@ public partial class PageInstanceInstall
     {
         DisabledPageAnimControls.Add(BtnSelectStart);
         // PageLoaderInit(LoadMinecraft, PanLoad, PanBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
-        PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, null, ModDownload.DlClientListLoader, _ => GetCurrentInfo());
+        PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, null, DlClientList.DlClientListLoader, _ => GetCurrentInfo());
     }
 
     private void Init()
@@ -41,18 +41,18 @@ public partial class PageInstanceInstall
         var NeedRefresh = LastVersionName is null || (LastVersionName ?? "") != (_vanillaName ?? "");
         LastVersionName = _vanillaName;
 
-        ModDownload.DlOptiFineListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlFabricListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlQuiltListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlCleanroomListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlLabyModListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlLegacyFabricListLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlFabricApiLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlQSLLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlLegacyFabricApiLoader.Start(IsForceRestart: NeedRefresh);
-        ModDownload.DlOptiFabricLoader.Start(IsForceRestart: NeedRefresh);
+        DlOptiFineList.DlOptiFineListLoader.Start(IsForceRestart: NeedRefresh);
+        DlLiteLoaderList.DlLiteLoaderListLoader.Start(IsForceRestart: NeedRefresh);
+        DlFabricList.DlFabricListLoader.Start(IsForceRestart: NeedRefresh);
+        DlQuiltList.DlQuiltListLoader.Start(IsForceRestart: NeedRefresh);
+        DlNeoForgeList.DlNeoForgeListLoader.Start(IsForceRestart: NeedRefresh);
+        DlCleanroomList.DlCleanroomListLoader.Start(IsForceRestart: NeedRefresh);
+        DlLabyModList.DlLabyModListLoader.Start(IsForceRestart: NeedRefresh);
+        DlLegacyFabricList.DlLegacyFabricListLoader.Start(IsForceRestart: NeedRefresh);
+        DlFabricList.DlFabricApiLoader.Start(IsForceRestart: NeedRefresh);
+        DlQuiltList.DlQSLLoader.Start(IsForceRestart: NeedRefresh);
+        DlLegacyFabricList.DlLegacyFabricApiLoader.Start(IsForceRestart: NeedRefresh);
+        DlFabricList.DlOptiFabricLoader.Start(IsForceRestart: NeedRefresh);
 
         // 重载预览
         ReloadSelected();
@@ -64,18 +64,18 @@ public partial class PageInstanceInstall
 
         ModDownloadLib.McDownloadForgeRecommendedRefresh();
 
-        LoadOptiFine.State = ModDownload.DlOptiFineListLoader;
-        LoadLiteLoader.State = ModDownload.DlLiteLoaderListLoader;
-        LoadFabric.State = ModDownload.DlFabricListLoader;
-        LoadFabricApi.State = ModDownload.DlFabricApiLoader;
-        LoadQuilt.State = ModDownload.DlQuiltListLoader;
-        LoadQSL.State = ModDownload.DlQSLLoader;
-        LoadNeoForge.State = ModDownload.DlNeoForgeListLoader;
-        LoadCleanroom.State = ModDownload.DlCleanroomListLoader;
-        LoadOptiFabric.State = ModDownload.DlOptiFabricLoader;
-        LoadLabyMod.State = ModDownload.DlLabyModListLoader;
-        LoadLegacyFabric.State = ModDownload.DlLegacyFabricListLoader;
-        LoadLegacyFabricApi.State = ModDownload.DlLegacyFabricApiLoader;
+        LoadOptiFine.State = DlOptiFineList.DlOptiFineListLoader;
+        LoadLiteLoader.State = DlLiteLoaderList.DlLiteLoaderListLoader;
+        LoadFabric.State = DlFabricList.DlFabricListLoader;
+        LoadFabricApi.State = DlFabricList.DlFabricApiLoader;
+        LoadQuilt.State = DlQuiltList.DlQuiltListLoader;
+        LoadQSL.State = DlQuiltList.DlQSLLoader;
+        LoadNeoForge.State = DlNeoForgeList.DlNeoForgeListLoader;
+        LoadCleanroom.State = DlCleanroomList.DlCleanroomListLoader;
+        LoadOptiFabric.State = DlFabricList.DlOptiFabricLoader;
+        LoadLabyMod.State = DlLabyModList.DlLabyModListLoader;
+        LoadLegacyFabric.State = DlLegacyFabricList.DlLegacyFabricListLoader;
+        LoadLegacyFabricApi.State = DlLegacyFabricList.DlLegacyFabricApiLoader;
     }
 
     #region 安装
@@ -246,17 +246,17 @@ public partial class PageInstanceInstall
         if (ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
         {
             var ForgeLoader =
-                new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
-                    "DlForgeVersion " + _vanillaName, ModDownload.DlForgeVersionMain);
+                new ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>(
+                    "DlForgeVersion " + _vanillaName, DlForgeVersion.DlForgeVersionMain);
             LoadForge.State = ForgeLoader;
             ForgeLoader.Start(_vanillaName);
         }
 
         // 启动 Fabric API、QSL、Legacy Fabric API、OptiFabric、LabyMod 加载
-        ModDownload.DlFabricApiLoader.Start();
-        ModDownload.DlQSLLoader.Start();
-        ModDownload.DlLegacyFabricApiLoader.Start();
-        ModDownload.DlOptiFabricLoader.Start();
+        DlFabricList.DlFabricApiLoader.Start();
+        DlQuiltList.DlQSLLoader.Start();
+        DlLegacyFabricList.DlLegacyFabricApiLoader.Start();
+        DlFabricList.DlOptiFabricLoader.Start();
 
         ModAnimation.AniStart(new[]
         {
@@ -376,7 +376,7 @@ public partial class PageInstanceInstall
     private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
-    private ModDownload.DlOptiFineListEntry? SelectedOptiFine;
+    private DlOptiFineList.DlOptiFineListEntry? SelectedOptiFine;
 
     /// <summary>
     ///     选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod
@@ -389,17 +389,17 @@ public partial class PageInstanceInstall
     private string? SelectedAPIName;
 
     // LiteLoader
-    private ModDownload.DlLiteLoaderListEntry? SelectedLiteLoader;
+    private DlLiteLoaderList.DlLiteLoaderListEntry? SelectedLiteLoader;
 
     // Forge
-    private ModDownload.DlForgeVersionEntry? SelectedForge;
+    private DlForgeVersion.DlForgeVersionEntry? SelectedForge;
 
     // Cleanroom
-    private ModDownload.DlCleanroomListEntry? SelectedCleanroom;
+    private DlCleanroomList.DlCleanroomListEntry? SelectedCleanroom;
     private string? SelectedCleanroomVersion;
 
     // NeoForge
-    private ModDownload.DlNeoForgeListEntry? SelectedNeoForge;
+    private DlNeoForgeList.DlNeoForgeListEntry? SelectedNeoForge;
     private string? SelectedNeoForgeVersion;
 
     // Fabric
@@ -846,8 +846,8 @@ public partial class PageInstanceInstall
             HintQSL.Visibility = Visibility.Visible;
         else
             HintQSL.Visibility = Visibility.Collapsed;
-        if (SelectedQuilt is not null && SelectedFabricApi is not null && ModDownload.DlQSLLoader.Output is not null)
-            foreach (var Version in ModDownload.DlQSLLoader.Output)
+        if (SelectedQuilt is not null && SelectedFabricApi is not null && DlQuiltList.DlQSLLoader.Output is not null)
+            foreach (var Version in DlQuiltList.DlQSLLoader.Output)
             {
                 if (IsSuitableQSL(Version.GameVersions, _vanillaName))
                 {
@@ -1011,7 +1011,7 @@ public partial class PageInstanceInstall
 
     private object GetCurrentFabricApi() // 进入页面和联网加载时调用
     {
-        var loaderOutput = ModDownload.DlFabricApiLoader.Output;
+        var loaderOutput = DlFabricList.DlFabricApiLoader.Output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
         var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.Instance,
@@ -1033,7 +1033,7 @@ public partial class PageInstanceInstall
 
     private object GetCurrentLegacyFabricApi() // 进入页面和联网加载时调用
     {
-        var loaderOutput = ModDownload.DlLegacyFabricApiLoader.Output;
+        var loaderOutput = DlLegacyFabricList.DlLegacyFabricApiLoader.Output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
         var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.Instance,
@@ -1055,7 +1055,7 @@ public partial class PageInstanceInstall
 
     private object GetCurrentQsl()
     {
-        var loaderOutput = ModDownload.DlQSLLoader.Output;
+        var loaderOutput = DlQuiltList.DlQSLLoader.Output;
         if (loaderOutput is null)
             return null;
         var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.Instance, "quilted_fabric_api", "qsl",
@@ -1081,7 +1081,7 @@ public partial class PageInstanceInstall
 
     private object GetCurrentOptiFabric()
     {
-        var loaderOutput = ModDownload.DlOptiFabricLoader.Output;
+        var loaderOutput = DlFabricList.DlOptiFabricLoader.Output;
         if (loaderOutput is null)
             return null;
         var localComp =
@@ -1106,9 +1106,9 @@ public partial class PageInstanceInstall
         var CurrentInstance = PageInstanceLeft.Instance.Info;
         _vanillaName = CurrentInstance.VanillaName;
         if (CurrentInstance.HasLiteLoader)
-            SelectedLiteLoader = new ModDownload.DlLiteLoaderListEntry { Inherit = CurrentInstance.VanillaName };
+            SelectedLiteLoader = new DlLiteLoaderList.DlLiteLoaderListEntry { Inherit = CurrentInstance.VanillaName };
         if (CurrentInstance.HasOptiFine)
-            SelectedOptiFine = new ModDownload.DlOptiFineListEntry
+            SelectedOptiFine = new DlOptiFineList.DlOptiFineListEntry
             {
                 DisplayName = CurrentInstance.VanillaName + " " + CurrentInstance.OptiFine.Replace("_", " "),
                 IsPreview = CurrentInstance.OptiFine.ContainsF("pre"), Inherit = CurrentInstance.VanillaName,
@@ -1123,9 +1123,9 @@ public partial class PageInstanceInstall
         {
             SelectedLoaderName = "Forge";
             SelectedForge =
-                new ModDownload.DlForgeVersionEntry(CurrentInstance.Forge, null, CurrentInstance.VanillaName)
+                new DlForgeVersion.DlForgeVersionEntry(CurrentInstance.Forge, null, CurrentInstance.VanillaName)
                 {
-                    Category = "installer", ForgeType = ModDownload.DlForgelikeEntry.ForgelikeType.Forge,
+                    Category = "installer", ForgeType = DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge,
                     Inherit = CurrentInstance.VanillaName
                 };
         }
@@ -1150,10 +1150,10 @@ public partial class PageInstanceInstall
         {
             SelectedLoaderName = "NeoForge";
             SelectedNeoForgeVersion = CurrentInstance.NeoForge;
-            SelectedNeoForge = new ModDownload.DlNeoForgeListEntry(CurrentInstance.NeoForge)
+            SelectedNeoForge = new DlNeoForgeList.DlNeoForgeListEntry(CurrentInstance.NeoForge)
             {
                 VersionName = CurrentInstance.NeoForge, Inherit = CurrentInstance.VanillaName,
-                ForgeType = ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge
+                ForgeType = DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge
             };
         }
         else if (CurrentInstance.HasQuilt)
@@ -1190,7 +1190,7 @@ public partial class PageInstanceInstall
                     { "正式版", new List<JObject>() }, { "预览版", new List<JObject>() }, { "远古版", new List<JObject>() },
                     { "愚人节版", new List<JObject>() }
                 };
-                var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
+                var Versions = (JArray)DlClientList.DlClientListLoader.Output.Value["versions"];
                 foreach (JObject Version in Versions)
                 {
                     // 确定分类
@@ -1408,7 +1408,7 @@ public partial class PageInstanceInstall
         // 检查 Forge 版本
         var HasAny = false;
         var HasRequiredVersion = false;
-        foreach (var OptiFineVersion in ModDownload.DlOptiFineListLoader.Output.Value)
+        foreach (var OptiFineVersion in DlOptiFineList.DlOptiFineListLoader.Output.Value)
         {
             if (!OptiFineVersion.DisplayName.StartsWith(_vanillaName + " "))
                 continue; // 不是同一个大版本
@@ -1429,8 +1429,8 @@ public partial class PageInstanceInstall
     }
 
     // 检查某个 OptiFine 是否与某个 Forge 兼容
-    private object IsOptiFineSuitForForge(ModDownload.DlOptiFineListEntry OptiFine,
-        ModDownload.DlForgeVersionEntry Forge)
+    private object IsOptiFineSuitForForge(DlOptiFineList.DlOptiFineListEntry OptiFine,
+        DlForgeVersion.DlForgeVersionEntry Forge)
     {
         if ((Forge.Inherit ?? "") != (OptiFine.Inherit ?? ""))
             return false; // 不是同一个大版本
@@ -1459,12 +1459,12 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlOptiFineListLoader.State != ModBase.LoadState.Finished)
+            if (DlOptiFineList.DlOptiFineListLoader.State != ModBase.LoadState.Finished)
                 return;
 
             // 获取版本列表
-            var Versions = new List<ModDownload.DlOptiFineListEntry>();
-            foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
+            var Versions = new List<DlOptiFineList.DlOptiFineListEntry>();
+            foreach (var Version in DlOptiFineList.DlOptiFineListLoader.Output.Value)
             {
                 if (Conversions.ToBoolean(SelectedForge is not null &&
                                           !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
@@ -1500,7 +1500,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void OptiFine_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedOptiFine = (ModDownload.DlOptiFineListEntry)sender.Tag;
+        SelectedOptiFine = (DlOptiFineList.DlOptiFineListEntry)sender.Tag;
         if (Conversions.ToBoolean(SelectedForge is not null &&
                                   !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
             SelectedForge = null;
@@ -1536,7 +1536,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadLiteLoader) is not null)
             return GetLoaderError(LoadLiteLoader);
         // 检查版本
-        return ModDownload.DlLiteLoaderListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
+        return DlLiteLoaderList.DlLiteLoaderListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
             ? null
             : "无可用版本";
     }
@@ -1555,11 +1555,11 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlLiteLoaderListLoader.State != ModBase.LoadState.Finished)
+            if (DlLiteLoaderList.DlLiteLoaderListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = new List<ModDownload.DlLiteLoaderListEntry>();
-            foreach (var Version in ModDownload.DlLiteLoaderListLoader.Output.Value)
+            var Versions = new List<DlLiteLoaderList.DlLiteLoaderListEntry>();
+            foreach (var Version in DlLiteLoaderList.DlLiteLoaderListLoader.Output.Value)
                 if ((Version.Inherit ?? "") == (_vanillaName ?? ""))
                     Versions.Add(Version);
             if (!Versions.Any())
@@ -1579,7 +1579,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void LiteLoader_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedLiteLoader = (ModDownload.DlLiteLoaderListEntry)sender.Tag;
+        SelectedLiteLoader = (DlLiteLoaderList.DlLiteLoaderListEntry)sender.Tag;
         CardLiteLoader.IsSwapped = true;
         ReloadSelected();
     }
@@ -1610,7 +1610,7 @@ public partial class PageInstanceInstall
         // 检查 Loader
         if (GetLoaderError(LoadForge) is not null)
             return GetLoaderError(LoadForge);
-        var loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)LoadForge.State;
+        var loader = (ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>)LoadForge.State;
         if ((_vanillaName ?? "") != (loader.Input ?? ""))
             return "获取中……";
         // 检查版本
@@ -1650,7 +1650,7 @@ public partial class PageInstanceInstall
         {
             if (!LoadForge.State.IsLoader)
                 return;
-            var loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)LoadForge.State;
+            var loader = (ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>)LoadForge.State;
             if ((_vanillaName ?? "") != (loader.Input ?? ""))
                 return;
             if (loader.State != ModBase.LoadState.Finished)
@@ -1684,7 +1684,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void Forge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedForge = (ModDownload.DlForgeVersionEntry)sender.Tag;
+        SelectedForge = (DlForgeVersion.DlForgeVersionEntry)sender.Tag;
         SelectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
         if (Conversions.ToBoolean(SelectedOptiFine is not null &&
@@ -1721,7 +1721,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadNeoForge) is not null)
             return GetLoaderError(LoadNeoForge);
         // 检查版本
-        return ModDownload.DlNeoForgeListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
+        return DlNeoForgeList.DlNeoForgeListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
             ? null
             : "无可用版本";
     }
@@ -1741,9 +1741,9 @@ public partial class PageInstanceInstall
         try
         {
             // 获取版本列表
-            if (ModDownload.DlNeoForgeListLoader.State != ModBase.LoadState.Finished)
+            if (DlNeoForgeList.DlNeoForgeListLoader.State != ModBase.LoadState.Finished)
                 return;
-            var Versions = ModDownload.DlNeoForgeListLoader.Output.Value
+            var Versions = DlNeoForgeList.DlNeoForgeListLoader.Output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
             if (!Versions.Any())
                 return;
@@ -1766,7 +1766,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void NeoForge_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedNeoForge = (ModDownload.DlNeoForgeListEntry)sender.Tag;
+        SelectedNeoForge = (DlNeoForgeList.DlNeoForgeListEntry)sender.Tag;
         SelectedLoaderName = "NeoForge";
         CardNeoForge.IsSwapped = true;
         OptiFine_Loaded();
@@ -1802,7 +1802,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadCleanroom) is not null)
             return GetLoaderError(LoadCleanroom);
         // 检查版本
-        return ModDownload.DlCleanroomListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
+        return DlCleanroomList.DlCleanroomListLoader.Output.Value.Any(v => (v.Inherit ?? "") == (_vanillaName ?? ""))
             ? null
             : "无可用版本";
     }
@@ -1822,9 +1822,9 @@ public partial class PageInstanceInstall
         try
         {
             // 获取版本列表
-            if (ModDownload.DlCleanroomListLoader.State != ModBase.LoadState.Finished)
+            if (DlCleanroomList.DlCleanroomListLoader.State != ModBase.LoadState.Finished)
                 return;
-            var Versions = ModDownload.DlCleanroomListLoader.Output.Value
+            var Versions = DlCleanroomList.DlCleanroomListLoader.Output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
             if (!Versions.Any())
                 return;
@@ -1846,7 +1846,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void Cleanroom_Selected(MyListItem sender, EventArgs e)
     {
-        SelectedCleanroom = (ModDownload.DlCleanroomListEntry)sender.Tag;
+        SelectedCleanroom = (DlCleanroomList.DlCleanroomListEntry)sender.Tag;
         SelectedLoaderName = "Cleanroom";
         CardCleanroom.IsSwapped = true;
         OptiFine_Loaded();
@@ -1879,7 +1879,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadFabric) is not null)
             return GetLoaderError(LoadFabric);
         // 检查版本
-        foreach (JObject version in ModDownload.DlFabricListLoader.Output.Value["game"])
+        foreach (JObject version in DlFabricList.DlFabricListLoader.Output.Value["game"])
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -1905,10 +1905,10 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlFabricListLoader.State != ModBase.LoadState.Finished)
+            if (DlFabricList.DlFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
+            var versions = (JArray)DlFabricList.DlFabricListLoader.Output.Value["loader"];
             if (!versions.Any())
                 return;
             // 可视化
@@ -2022,10 +2022,10 @@ public partial class PageInstanceInstall
         // 检查 Loader
         if (GetLoaderError(LoadFabricApi) is not null)
             return GetLoaderError(LoadFabricApi);
-        if (ModDownload.DlFabricApiLoader.Output is null)
+        if (DlFabricList.DlFabricApiLoader.Output is null)
             return SelectedFabric is null ? "需要安装 Fabric" : "获取中……";
         // 检查版本
-        if (ModDownload.DlFabricApiLoader.Output.Any(f => IsFabricApiCompatible(f)))
+        if (DlFabricList.DlFabricApiLoader.Output.Any(f => IsFabricApiCompatible(f)))
             return SelectedFabric is null ? "需要安装 Fabric" : null;
 
         return "无可用版本";
@@ -2047,13 +2047,13 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlFabricApiLoader.State != ModBase.LoadState.Finished)
+            if (DlFabricList.DlFabricApiLoader.State != ModBase.LoadState.Finished)
                 return;
             if (_vanillaName is null || (SelectedFabric is null && SelectedQuilt is null))
                 return;
             // 获取版本列表
             var versions = new List<ModComp.CompFile>();
-            foreach (var version in ModDownload.DlFabricApiLoader.Output)
+            foreach (var version in DlFabricList.DlFabricApiLoader.Output)
                 if (IsFabricApiCompatible(version))
                 {
                     if (!version.DisplayName.StartsWith("["))
@@ -2126,7 +2126,7 @@ public partial class PageInstanceInstall
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
                 ((dynamic)LoadLegacyFabric.State).Error.Message));
-        foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
+        foreach (JObject Version in DlLegacyFabricList.DlLegacyFabricListLoader.Output.Value["game"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
                 if (SelectedLiteLoader is not null)
@@ -2153,10 +2153,10 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
+            if (DlLegacyFabricList.DlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
+            var Versions = (JArray)DlLegacyFabricList.DlLegacyFabricListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -2232,14 +2232,14 @@ public partial class PageInstanceInstall
                 ((dynamic)LoadLegacyFabricApi.State).Error.Message));
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "Legacy Fabric API"))
             return $"与 {SelectedAPIName} 不兼容";
-        if (ModDownload.DlLegacyFabricApiLoader.Output is null)
+        if (DlLegacyFabricList.DlLegacyFabricApiLoader.Output is null)
         {
             if (SelectedLegacyFabric is null)
                 return "需要安装 LegacyFabric";
             return "加载中……";
         }
 
-        foreach (var Version in ModDownload.DlLegacyFabricApiLoader.Output)
+        foreach (var Version in DlLegacyFabricList.DlLegacyFabricApiLoader.Output)
         {
             if (!IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName))
                 continue;
@@ -2267,13 +2267,13 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlLegacyFabricApiLoader.State != ModBase.LoadState.Finished)
+            if (DlLegacyFabricList.DlLegacyFabricApiLoader.State != ModBase.LoadState.Finished)
                 return;
             if (_vanillaName is null || (SelectedLegacyFabric is null && SelectedQuilt is null))
                 return;
             // 获取版本列表
             var Versions = new List<ModComp.CompFile>();
-            foreach (var Version in ModDownload.DlLegacyFabricApiLoader.Output)
+            foreach (var Version in DlLegacyFabricList.DlLegacyFabricApiLoader.Output)
                 if (IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName))
                     Versions.Add(Version);
 
@@ -2341,7 +2341,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadQuilt) is not null)
             return GetLoaderError(LoadQuilt);
         // 检查版本
-        foreach (JObject version in ModDownload.DlFabricListLoader.Output.Value["game"])
+        foreach (JObject version in DlFabricList.DlFabricListLoader.Output.Value["game"])
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -2367,10 +2367,10 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlQuiltListLoader.State != ModBase.LoadState.Finished)
+            if (DlQuiltList.DlQuiltListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
+            var Versions = (JArray)DlQuiltList.DlQuiltListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -2448,14 +2448,14 @@ public partial class PageInstanceInstall
                 ((dynamic)LoadQSL.State).Error.Message));
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
             return $"与 {SelectedAPIName} 不兼容";
-        if (ModDownload.DlQSLLoader.Output is null)
+        if (DlQuiltList.DlQSLLoader.Output is null)
         {
             if (SelectedQuilt is null)
                 return "需要安装 Quilt";
             return "正在获取版本列表……";
         }
 
-        foreach (var Version in ModDownload.DlQSLLoader.Output)
+        foreach (var Version in DlQuiltList.DlQSLLoader.Output)
         {
             if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
                 continue;
@@ -2483,13 +2483,13 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlQSLLoader.State != ModBase.LoadState.Finished)
+            if (DlQuiltList.DlQSLLoader.State != ModBase.LoadState.Finished)
                 return;
             if (_vanillaName is null || SelectedQuilt is null)
                 return;
             // 获取版本列表
             var Versions = new List<ModComp.CompFile>();
-            foreach (var Version in ModDownload.DlQSLLoader.Output)
+            foreach (var Version in DlQuiltList.DlQSLLoader.Output)
                 if (IsSuitableQSL(Version.GameVersions, _vanillaName))
                 {
                     if (!Version.DisplayName.StartsWith("["))
@@ -2581,7 +2581,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadOptiFabric) is not null)
             return GetLoaderError(LoadOptiFabric);
         // 检查版本
-        if (ModDownload.DlOptiFabricLoader.Output is null)
+        if (DlFabricList.DlOptiFabricLoader.Output is null)
         {
             if (SelectedFabric is null && SelectedOptiFine is null)
                 return "需要安装 OptiFine 与 Fabric";
@@ -2592,7 +2592,7 @@ public partial class PageInstanceInstall
             return "获取中……";
         }
 
-        foreach (var version in ModDownload.DlOptiFabricLoader.Output)
+        foreach (var version in DlFabricList.DlOptiFabricLoader.Output)
         {
             if (!IsOptiFabricCompatible(version))
                 continue; // 2135#
@@ -2622,13 +2622,13 @@ public partial class PageInstanceInstall
     {
         try
         {
-            if (ModDownload.DlOptiFabricLoader.State != ModBase.LoadState.Finished)
+            if (DlFabricList.DlOptiFabricLoader.State != ModBase.LoadState.Finished)
                 return;
             if (_vanillaName is null || SelectedFabric is null || SelectedOptiFine is null)
                 return;
             // 获取版本列表
             var versions = new List<ModComp.CompFile>();
-            foreach (var Version in ModDownload.DlOptiFabricLoader.Output)
+            foreach (var Version in DlFabricList.DlOptiFabricLoader.Output)
                 if (IsOptiFabricCompatible(Version))
                     versions.Add(Version);
             if (!versions.Any())
@@ -2696,10 +2696,10 @@ public partial class PageInstanceInstall
             return "与 OptiFine 不兼容";
         if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "LabyMod"))
             return $"与 {SelectedLoaderName} 不兼容";
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"])
+        foreach (JObject Version in DlLabyModList.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"])
+        foreach (JObject Version in DlLabyModList.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
         return "无可用版本";
@@ -2722,7 +2722,7 @@ public partial class PageInstanceInstall
             if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
                 return;
             // 获取版本列表
-            var Versions = ModDownload.DlLabyModListLoader.Output.Value;
+            var Versions = DlLabyModList.DlLabyModListLoader.Output.Value;
             if (Versions is null || Versions["production"] is null || Versions["snapshot"] is null)
                 return;
             // 可视化

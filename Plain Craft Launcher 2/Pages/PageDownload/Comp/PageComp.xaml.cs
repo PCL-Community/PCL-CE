@@ -290,9 +290,9 @@ public partial class PageComp
         ((MyPageRight)Parent).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, Loader, _ => Load_OnFinish(),
             LoaderInput);
         // 将最高 Drop 加入筛选
-        if (ModDownload.AllDrops is not null && ModDownload.AllDrops.Count != 0 && ModDownload.AllDrops.First() > 250)
+        if (DlClientList.AllDrops is not null && DlClientList.AllDrops.Count != 0 && DlClientList.AllDrops.First() > 250)
         {
-            var HighestVersion = ModMinecraft.McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
+            var HighestVersion = ModMinecraft.McInstanceInfo.DropToVersion(DlClientList.AllDrops.First());
             if ((((MyComboBoxItem)TextSearchVersion.Items[1]).Content.ToString() ?? "") !=
                 (HighestVersion ?? "")) // 0 是全部
                 TextSearchVersion.Items.Insert(1, new MyComboBoxItem { Content = HighestVersion });

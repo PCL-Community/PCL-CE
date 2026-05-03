@@ -467,7 +467,7 @@ public static class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    ret = (JArray)((JObject)ModBase.GetJson(DlMod.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
                         "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json",
                         allowMirror)))["data"];
@@ -771,7 +771,7 @@ public static class ModModpack
                 .Select(x => ModComp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
                 .ToList();
             // 镜像源
-            Urls = Urls.SelectMany(x => ModDownload.DlSourceModDownloadGet(x)).ToList();
+            Urls = Urls.SelectMany(x => DlSource.DlSourceModDownloadGet(x)).ToList();
             var TargetPath = $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\{File["path"]}";
             if (!Path.GetFullPath(TargetPath)
                     .StartsWithF($@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\", true))

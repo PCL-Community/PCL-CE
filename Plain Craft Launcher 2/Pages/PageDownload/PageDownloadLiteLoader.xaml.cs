@@ -17,7 +17,7 @@ public partial class PageDownloadLiteLoader
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlLiteLoaderListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlLiteLoaderList.DlLiteLoaderListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -31,11 +31,11 @@ public partial class PageDownloadLiteLoader
         try
         {
             // 归类
-            var Dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
+            var Dict = new Dictionary<string, List<DlLiteLoaderList.DlLiteLoaderListEntry>>();
             for (var VersionCode = 30; VersionCode >= 0; VersionCode -= 1)
-                Dict.Add("1." + VersionCode, new List<ModDownload.DlLiteLoaderListEntry>());
-            Dict.Add("未知版本", new List<ModDownload.DlLiteLoaderListEntry>());
-            foreach (var Version in ModDownload.DlLiteLoaderListLoader.Output.Value)
+                Dict.Add("1." + VersionCode, new List<DlLiteLoaderList.DlLiteLoaderListEntry>());
+            Dict.Add("未知版本", new List<DlLiteLoaderList.DlLiteLoaderListEntry>());
+            foreach (var Version in DlLiteLoaderList.DlLiteLoaderListLoader.Output.Value)
             {
                 var MainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (Dict.ContainsKey(MainVersion))
@@ -65,11 +65,11 @@ public partial class PageDownloadLiteLoader
                 NewCard.IsSwapped = true;
                 NewCard.InstallMethod = Stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
+                    Stack.Tag = ((List<DlLiteLoaderList.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
                         ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
-                            (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
+                            (DlLiteLoaderList.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
                 };
                 PanMain.Children.Add(NewCard);
             }
@@ -82,7 +82,7 @@ public partial class PageDownloadLiteLoader
 
     public void DownloadStart(MyListItem sender, object e)
     {
-        ModDownloadLib.McDownloadLiteLoader((ModDownload.DlLiteLoaderListEntry)sender.Tag);
+        ModDownloadLib.McDownloadLiteLoader((DlLiteLoaderList.DlLiteLoaderListEntry)sender.Tag);
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)

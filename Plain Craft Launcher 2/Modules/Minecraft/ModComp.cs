@@ -454,7 +454,7 @@ public static class ModComp
                 await Task.Run(() =>
                 {
                     var RawProjectsData =
-                        ModDownload.DlModRequest($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]",
+                        DlMod.DlModRequest($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]",
                             true);
                     foreach (var RawData in (IEnumerable)RawProjectsData)
                         Res.Add(new CompProject((JObject)RawData));
@@ -485,7 +485,7 @@ public static class ModComp
                     var jsonBody = "{\"modIds\": [" + string.Join(",", ids) + "]}";
 
                     // DlModRequest 返回 object，先强转 JObject，再获取 "data" 并强转为 JArray
-                    var response = (JObject)ModDownload.DlModRequest(
+                    var response = (JObject)DlMod.DlModRequest(
                         "https://api.curseforge.com/v1/mods",
                         "POST",
                         jsonBody,
@@ -582,7 +582,7 @@ public static class ModComp
                         slug = parts[3];
 
                         // 获取资源信息
-                        var json = (JObject)ModDownload.DlModRequest(
+                        var json = (JObject)DlMod.DlModRequest(
                             $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}", true);
                         var dataArray = (JArray)json["data"];
 
@@ -604,7 +604,7 @@ public static class ModComp
                                 receivedClassId != targetClassId)
                             {
                                 // 如果分类不匹配，带上 classId 重新搜索
-                                json = (JObject)ModDownload.DlModRequest(
+                                json = (JObject)DlMod.DlModRequest(
                                     $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}",
                                     true);
                                 dataArray = (JArray)json["data"];
@@ -620,7 +620,7 @@ public static class ModComp
                         if (parts.Length < 3) return;
 
                         slug = parts[2];
-                        var json = (JObject)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{slug}",
+                        var json = (JObject)DlMod.DlModRequest($"https://api.modrinth.com/v2/project/{slug}",
                             true);
                         projectId = json["id"]?.ToString();
                     }
@@ -1944,8 +1944,8 @@ public static class ModComp
                     // 查找连续的版本段
                     for (var ii = i + 1; ii < Drops.Count; ii++)
                     {
-                        if (ModDownload.AllDrops == null || ModDownload.AllDrops.IndexOf(Drops[ii]) !=
-                            ModDownload.AllDrops.IndexOf(endDrop) + 1) break;
+                        if (DlClientList.AllDrops == null || DlClientList.AllDrops.IndexOf(Drops[ii]) !=
+                            DlClientList.AllDrops.IndexOf(endDrop) + 1) break;
                         endDrop = Drops[ii];
                         i = ii;
                     }
@@ -1958,7 +1958,7 @@ public static class ModComp
                     {
                         segments.Add(startName);
                     }
-                    else if (ModDownload.AllDrops?.Any() == true && startDrop >= ModDownload.AllDrops.First())
+                    else if (DlClientList.AllDrops?.Any() == true && startDrop >= DlClientList.AllDrops.First())
                     {
                         if (endDrop < 100)
                         {
@@ -1974,8 +1974,8 @@ public static class ModComp
                         segments.Add(startName + "-");
                         break;
                     }
-                    else if (ModDownload.AllDrops == null ||
-                             ModDownload.AllDrops.IndexOf(endDrop) - ModDownload.AllDrops.IndexOf(startDrop) == 1)
+                    else if (DlClientList.AllDrops == null ||
+                             DlClientList.AllDrops.IndexOf(endDrop) - DlClientList.AllDrops.IndexOf(startDrop) == 1)
                     {
                         segments.Add($"{startName}, {endName}");
                     }
@@ -2098,7 +2098,7 @@ public static class ModComp
             else
             {
                 img.Source = LogoUrl;
-                img.FallbackSource = ModDownload.DlSourceModGet(LogoUrl);
+                img.FallbackSource = DlSource.DlSourceModGet(LogoUrl);
             }
         }
 
@@ -2769,7 +2769,7 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
-                        var json = (JObject)ModDownload.DlModRequest(curseForgeUrl, true);
+                        var json = (JObject)DlMod.DlModRequest(curseForgeUrl, true);
                         var projects = json["data"].Select(j => new CompProject((JObject)j))
                             .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains("数据包")))
                             .ToList();
@@ -2795,7 +2795,7 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 Modrinth 获取列表：" + modrinthUrl);
-                        var json = (JObject)ModDownload.DlModRequest(modrinthUrl, true);
+                        var json = (JObject)DlMod.DlModRequest(modrinthUrl, true);
                         var projects = json["hits"].Select(j => new CompProject((JObject)j)).ToList();
                         lock (resultsLock)
                         {
@@ -3095,7 +3095,7 @@ public static class ModComp
                             $"https://edge.forgecdn.net/files/{int.Parse(Id[..4])}/{int.Parse(Id[4..])}/{FileName}";
                     Url = Url.Replace(FileName, WebUtility.UrlEncode(FileName)); // 对文件名进行编码
                     Url = Url.Replace("+", "%20"); // 修正被编码成 + 的空格，CurseForge 会对 + 号也进行编码
-                    DownloadUrls = ModDownload.DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)); // 添加镜像源
+                    DownloadUrls = DlSource.DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)); // 添加镜像源
                     // Dependencies
                     if (Data.ContainsKey("dependencies"))
                     {
@@ -3161,7 +3161,7 @@ public static class ModComp
                     {
                         var File = Data["files"][0];
                         FileName = (string)File["filename"];
-                        DownloadUrls = ModDownload.DlSourceModDownloadGet(File["url"].ToString()); // 同时添加了镜像源
+                        DownloadUrls = DlSource.DlSourceModDownloadGet(File["url"].ToString()); // 同时添加了镜像源
                         Hash = (string)File["hashes"]["sha1"];
                     }
 
@@ -3458,12 +3458,12 @@ public static class ModComp
                 : $"https://api.modrinth.com/v2/project/{ProjectId}";
             if (FromCurseForge)
             {
-                var json = (JObject)ModDownload.DlModRequest(url, true);
+                var json = (JObject)DlMod.DlModRequest(url, true);
                 TargetProject = new CompProject((JObject)json["data"]);
             }
             else
             {
-                TargetProject = new CompProject((JObject)ModDownload.DlModRequest(url, true));
+                TargetProject = new CompProject((JObject)DlMod.DlModRequest(url, true));
             }
             // 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         }
@@ -3476,7 +3476,7 @@ public static class ModComp
             if (FromCurseForge)
             {
                 // 注意：若 pageSize=10000 失效，需考虑分页逻辑
-                var response = (JObject)ModDownload.DlModRequest(
+                var response = (JObject)DlMod.DlModRequest(
                     $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000",
                     true
                 );
@@ -3486,7 +3486,7 @@ public static class ModComp
             else
             {
                 ResultJsonArray =
-                    (JArray)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false", true);
+                    (JArray)DlMod.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false", true);
             }
 
             CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JObject)a, TargetProject.Type))
@@ -3509,7 +3509,7 @@ public static class ModComp
             if (FromCurseForge)
             {
                 // 1. 获取响应并转为 JObject
-                var response = (JObject)ModDownload.DlModRequest(
+                var response = (JObject)DlMod.DlModRequest(
                     "https://api.curseforge.com/v1/mods",
                     "POST",
                     "{\"modIds\": [" + string.Join(",", UndoneDeps) + "]}",
@@ -3521,7 +3521,7 @@ public static class ModComp
             }
             else
             {
-                Projects = (JArray)ModDownload.DlModRequest(
+                Projects = (JArray)DlMod.DlModRequest(
                     $"https://api.modrinth.com/v2/projects?ids=[\"{UndoneDeps.Join("\",\"")}\"]", true);
             }
 

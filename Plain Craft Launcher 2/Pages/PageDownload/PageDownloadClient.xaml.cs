@@ -18,7 +18,7 @@ public partial class PageDownloadClient
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanBack, null, ModDownload.DlClientListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanBack, null, DlClientList.DlClientListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -37,7 +37,7 @@ public partial class PageDownloadClient
                 { "正式版", new List<JObject>() }, { "预览版", new List<JObject>() }, { "远古版", new List<JObject>() },
                 { "愚人节版", new List<JObject>() }
             };
-            var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
+            var Versions = (JArray)DlClientList.DlClientListLoader.Output.Value["versions"];
             foreach (JObject Version in Versions)
             {
                 // 确定分类

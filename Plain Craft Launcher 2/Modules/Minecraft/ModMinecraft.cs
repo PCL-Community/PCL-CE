@@ -2987,7 +2987,7 @@ public static class ModMinecraft
         // 主 Jar 文件
         try
         {
-            var mainJar = ModDownload.DlClientJarGet(instance, true);
+            var mainJar = DlClient.DlClientJarGet(instance, true);
             if (mainJar is not null)
                 result.Add(mainJar);
         }
@@ -3147,14 +3147,14 @@ public static class ModMinecraft
                 urls.Add(token.Url);
                 if (token.Url.Contains("launcher.mojang.com/v1/objects") || token.Url.Contains("client.txt") ||
                     token.Url.Contains(".tsrg"))
-                    urls.AddRange(ModDownload.DlSourceLauncherOrMetaGet(token.Url)); // Mappings（#4425）
+                    urls.AddRange(DlSource.DlSourceLauncherOrMetaGet(token.Url)); // Mappings（#4425）
                 if (token.Url.Contains("maven"))
                 {
                     var bmclapiUrl = token.Url
                         .Replace(Strings.Mid(token.Url, 1, token.Url.IndexOfF("maven")),
                             "https://bmclapi2.bangbang93.com/").Replace("maven.fabricmc.net", "maven")
                         .Replace("maven.minecraftforge.net", "maven").Replace("maven.neoforged.net/releases", "maven");
-                    if (ModDownload.DlSourcePreferMojang)
+                    if (DlSource.DlSourcePreferMojang)
                         urls.Add(bmclapiUrl); // 官方源优先
                     else
                         urls.Insert(0, bmclapiUrl); // 镜像源优先
@@ -3192,9 +3192,9 @@ public static class ModMinecraft
             else if (urls.Count <= 2)
             {
                 // 普通文件
-                urls.AddRange(ModDownload.DlSourceLibraryGet("https://libraries.minecraft.net" +
-                                                             token.LocalPath.Replace(customMcFolder + "libraries", "")
-                                                                 .Replace(@"\", "/")));
+                urls.AddRange(DlSource.DlSourceLibraryGet("https://libraries.minecraft.net" +
+                                                          token.LocalPath.Replace(customMcFolder + "libraries", "")
+                                                              .Replace(@"\", "/")));
             }
 
             result.Add(new DownloadFile(urls.Distinct(), token.LocalPath, checker));
@@ -3413,7 +3413,7 @@ public static class ModMinecraft
         // 如果需要检查 Hash，则留到下载时处理，以借助多线程加快检查速度
         if (checkHash)
             return McAssetsListGet(instance).Select(token => new DownloadFile(
-                ModDownload.DlSourceAssetsGet(
+                DlSource.DlSourceAssetsGet(
                     $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                 token.LocalPath,
                 new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
@@ -3439,7 +3439,7 @@ public static class ModMinecraft
                     continue;
                 // 文件不存在，添加下载
                 result.Add(new DownloadFile(
-                    ModDownload.DlSourceAssetsGet(
+                    DlSource.DlSourceAssetsGet(
                         $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                     token.LocalPath,
                     new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));

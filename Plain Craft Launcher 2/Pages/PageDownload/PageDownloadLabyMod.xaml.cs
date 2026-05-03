@@ -14,7 +14,7 @@ public partial class PageDownloadLabyMod
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlLabyModListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlLabyModList.DlLabyModListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,7 +27,7 @@ public partial class PageDownloadLabyMod
         // 结果数据化
         try
         {
-            var Versions = ModDownload.DlLabyModListLoader.Output.Value;
+            var Versions = DlLabyModList.DlLabyModListLoader.Output.Value;
             if (Versions is null)
                 return;
             var ProductionEntry = new JObject();

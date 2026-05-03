@@ -2168,7 +2168,7 @@ public static class ModLocalComp
             {
                 // 步骤 1：获取 Hash 与对应的工程 ID
                 var ModrinthHashes = Mods.Select(m => m.ModrinthHash).ToList();
-                var ModrinthVersion = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                var ModrinthVersion = (JObject)ModBase.GetJson(DlMod.DlModRequest(
                     "https://api.modrinth.com/v2/version_files", "POST",
                     $"{{\"hashes\": [\"{string.Join("\",\"", ModrinthHashes)}\"], \"algorithm\": \"sha1\"}}",
                     "application/json"));
@@ -2202,7 +2202,7 @@ public static class ModLocalComp
 
                 // 步骤 3：获取工程信息
                 if (!ModrinthMapping.Any()) return;
-                var ModrinthProject = (JArray)ModBase.GetJson(ModDownload.DlModRequest(
+                var ModrinthProject = (JArray)ModBase.GetJson(DlMod.DlModRequest(
                     $"https://api.modrinth.com/v2/projects?ids=[\"{string.Join("\",\"", ModrinthMapping.Keys)}\"]",
                     "GET", "", "application/json"));
 
@@ -2218,7 +2218,7 @@ public static class ModLocalComp
                 var targetLoaders = CompType == CompType.DataPack
                     ? "datapack"
                     : string.Join("\",\"", ModLoaders).ToLower();
-                var ModrinthUpdate = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                var ModrinthUpdate = (JObject)ModBase.GetJson(DlMod.DlModRequest(
                     "https://api.modrinth.com/v2/version_files/update", "POST",
                     $"{{\"hashes\": [\"{string.Join("\",\"", ModrinthMapping.SelectMany(l => l.Value.Select(m => m.ModrinthHash)))}\"], \"algorithm\": \"sha1\", " +
                     $"\"loaders\": [\"{targetLoaders}\"],\"game_versions\": [\"{McInstance}\"]}}", "application/json"));
@@ -2272,7 +2272,7 @@ public static class ModLocalComp
             {
                 // 步骤 1：获取 Hash 与对应的工程 ID
                 var CurseForgeHashes = Mods.Select(m => m.CurseForgeHash).ToList();
-                var CurseForgeResponse = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                var CurseForgeResponse = (JObject)ModBase.GetJson(DlMod.DlModRequest(
                     "https://api.curseforge.com/v1/fingerprints/432", "POST",
                     $"{{\"fingerprints\": [{string.Join(",", CurseForgeHashes)}]}}", "application/json"));
                 var CurseForgeRaw = (JArray)CurseForgeResponse["data"]["exactMatches"];

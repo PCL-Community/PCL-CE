@@ -360,7 +360,7 @@ public static class ModJava
     {
         ModBase.Log("[Java] 开始获取 Java 下载信息");
         var IndexFileStr = ModNet.NetGetCodeByLoader(
-            ModDownload.DlVersionListOrder(
+            DlSource.DlVersionListOrder(
                 new[]
                 {
                     "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
@@ -392,7 +392,7 @@ public static class ModJava
         var Address = (string)TargetComponent["manifest"]["url"];
         ModLaunch.McLaunchLog($"准备下载 Java {TargetComponent["version"]["name"]}（{TargetEntry.Name}）：{Address}");
         var ListFileStr = (JObject)Requester.FetchJson(
-            ModDownload.DlSourceOrder(new[] { Address },
+            DlSource.DlSourceOrder(new[] { Address },
                 new[] { Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
         LastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             ".minecraft", "runtime", TargetEntry.Name);
@@ -416,7 +416,7 @@ public static class ModJava
                 continue; // 跳过已存在的文件
             var Url = (string)Info["url"];
             Results.Add(new DownloadFile(
-                ModDownload.DlSourceOrder(new[] { Url },
+                DlSource.DlSourceOrder(new[] { Url },
                     new[] { Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, Checker));
         }
 

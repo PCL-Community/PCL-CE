@@ -125,7 +125,7 @@ public static class ModDownloadLib
             Loaders.Add(new LoaderDownload("下载实例 Json 文件",
                 new List<DownloadFile>
                 {
-                    new(ModDownload.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
+                    new(DlSource.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
                         new ModBase.FileChecker(CanUseExistsFile: false, IsJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
@@ -167,10 +167,10 @@ public static class ModDownloadLib
         if (jsonUrl is null)
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("获取原版 Json 文件下载地址", task =>
             {
-                var jsonAddress = Conversions.ToString(ModDownload.DlClientListGet(id));
+                var jsonAddress = Conversions.ToString(DlClientList.DlClientListGet(id));
                 task.Output = new List<DownloadFile>
                 {
-                    new(ModDownload.DlSourceLauncherOrMetaGet(jsonAddress), instanceFolder + instanceName + ".json")
+                    new(DlSource.DlSourceLauncherOrMetaGet(jsonAddress), instanceFolder + instanceName + ".json")
                 };
             })
             {
@@ -180,7 +180,7 @@ public static class ModDownloadLib
         loaders.Add(new LoaderDownload(McDownloadClientJsonName,
             new List<DownloadFile>
             {
-                new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl ?? ""), instanceFolder + instanceName + ".json",
+                new(DlSource.DlSourceLauncherOrMetaGet(jsonUrl ?? ""), instanceFolder + instanceName + ".json",
                     new ModBase.FileChecker(CanUseExistsFile: false, IsJson: true))
             }) { ProgressWeight = 3d });
 
@@ -224,7 +224,7 @@ public static class ModDownloadLib
             try
             {
                 var assetIndex = new ModMinecraft.McInstance(instanceFolder);
-                task.Output = new List<DownloadFile> { ModDownload.DlClientAssetIndexGet(assetIndex) };
+                task.Output = new List<DownloadFile> { DlClient.DlClientAssetIndexGet(assetIndex) };
             }
             catch (Exception ex)
             {
@@ -402,7 +402,7 @@ public static class ModDownloadLib
             Loaders.Add(new LoaderDownload("下载实例 JSON 文件",
                 new List<DownloadFile>
                 {
-                    new(ModDownload.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
+                    new(DlSource.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
                         new ModBase.FileChecker(CanUseExistsFile: false, IsJson: true))
                 }) { ProgressWeight = 2d });
             // 构建服务端
@@ -429,7 +429,7 @@ public static class ModDownloadLib
                     (long)(McInstance.JsonObject["downloads"]["server"]["size"] ?? -1),
                     (string)McInstance.JsonObject["downloads"]["server"]["sha1"]);
                 Task.Output = new List<DownloadFile>
-                    { new(ModDownload.DlSourceLauncherOrMetaGet(JarUrl), VersionFolder + Id + "-server.jar", Checker) };
+                    { new(DlSource.DlSourceLauncherOrMetaGet(JarUrl), VersionFolder + Id + "-server.jar", Checker) };
                 // 添加启动脚本
                 var Bat = $@"@echo off
 title {Id} 原版服务端
@@ -498,13 +498,13 @@ pause";
             Loaders.Add(new LoaderDownload("下载实例 JSON 文件",
                 new List<DownloadFile>
                 {
-                    new(ModDownload.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
+                    new(DlSource.DlSourceLauncherOrMetaGet(JsonUrl), VersionFolder + Id + ".json",
                         new ModBase.FileChecker(CanUseExistsFile: false, IsJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             Loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析核心 JAR 文件下载地址",
                     Task => Task.Output = new List<DownloadFile>
-                        { ModDownload.DlClientJarGet(new ModMinecraft.McInstance(VersionFolder), false) })
+                        { DlClient.DlClientJarGet(new ModMinecraft.McInstance(VersionFolder), false) })
                 { ProgressWeight = 0.5d, Show = false });
             // 下载支持库文件
             Loaders.Add(new LoaderDownload("下载核心 JAR 文件", new List<DownloadFile>()) { ProgressWeight = 5d });
@@ -537,7 +537,7 @@ pause";
 
     #region OptiFine 下载
 
-    public static void McDownloadOptiFine(ModDownload.DlOptiFineListEntry DownloadInfo)
+    public static void McDownloadOptiFine(DlOptiFineList.DlOptiFineListEntry DownloadInfo)
     {
         try
         {
@@ -591,7 +591,7 @@ pause";
         }
     }
 
-    private static void McDownloadOptiFineSave(ModDownload.DlOptiFineListEntry DownloadInfo)
+    private static void McDownloadOptiFineSave(DlOptiFineList.DlOptiFineListEntry DownloadInfo)
     {
         try
         {
@@ -610,7 +610,7 @@ pause";
             }
 
             var Loader =
-                new ModLoader.LoaderCombo<ModDownload.DlOptiFineListEntry>(
+                new ModLoader.LoaderCombo<DlOptiFineList.DlOptiFineListEntry>(
                         "OptiFine " + DownloadInfo.DisplayName + " 下载",
                         McDownloadOptiFineSaveLoader(DownloadInfo, Target))
                     { OnStateChanged = LoaderStateChangedHintOnly };
@@ -789,7 +789,7 @@ pause";
     /// <summary>
     ///     获取下载某个 OptiFine 实例的加载器列表。
     /// </summary>
-    private static List<ModLoader.LoaderBase> McDownloadOptiFineLoader(ModDownload.DlOptiFineListEntry DownloadInfo,
+    private static List<ModLoader.LoaderBase> McDownloadOptiFineLoader(DlOptiFineList.DlOptiFineListEntry DownloadInfo,
         string McFolder = null, ModLoader.LoaderCombo<string> ClientDownloadLoader = null, string ClientFolder = null,
         bool FixLibrary = true)
     {
@@ -1043,12 +1043,12 @@ pause";
     /// <summary>
     ///     获取保存某个 OptiFine 版本的加载器列表。
     /// </summary>
-    private static List<ModLoader.LoaderBase> McDownloadOptiFineSaveLoader(ModDownload.DlOptiFineListEntry downloadInfo,
+    private static List<ModLoader.LoaderBase> McDownloadOptiFineSaveLoader(DlOptiFineList.DlOptiFineListEntry downloadInfo,
         string targetFolder)
     {
         var loaders = new List<ModLoader.LoaderBase>();
         // 获取下载地址
-        loaders.Add(new ModLoader.LoaderTask<ModDownload.DlOptiFineListEntry, List<DownloadFile>>("获取 OptiFine 下载地址",
+        loaders.Add(new ModLoader.LoaderTask<DlOptiFineList.DlOptiFineListEntry, List<DownloadFile>>("获取 OptiFine 下载地址",
             Task =>
             {
                 var sources = new List<string>();
@@ -1103,7 +1103,7 @@ pause";
 
     #region OptiFine 下载菜单
 
-    public static MyListItem OptiFineDownloadListItem(ModDownload.DlOptiFineListEntry Entry,
+    public static MyListItem OptiFineDownloadListItem(DlOptiFineList.DlOptiFineListEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 建立控件
@@ -1158,25 +1158,25 @@ pause";
 
     private static void OptiFineLog_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlOptiFineListEntry Version;
+        DlOptiFineList.DlOptiFineListEntry Version;
         if (((dynamic)sender).Tag is not null)
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
         else
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
         ModBase.OpenWebsite("https://optifine.net/changelog?f=" + Version.NameFile);
     }
 
     public static void OptiFineSave_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlOptiFineListEntry Version;
+        DlOptiFineList.DlOptiFineListEntry Version;
         if (((dynamic)sender).Tag is not null)
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
         else
-            Version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Version = (DlOptiFineList.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
         McDownloadOptiFineSave(Version);
     }
 
@@ -1184,7 +1184,7 @@ pause";
 
     #region LiteLoader 下载
 
-    public static void McDownloadLiteLoader(ModDownload.DlLiteLoaderListEntry DownloadInfo)
+    public static void McDownloadLiteLoader(DlLiteLoaderList.DlLiteLoaderListEntry DownloadInfo)
     {
         try
         {
@@ -1234,7 +1234,7 @@ pause";
         }
     }
 
-    private static void McDownloadLiteLoaderSave(ModDownload.DlLiteLoaderListEntry DownloadInfo)
+    private static void McDownloadLiteLoaderSave(DlLiteLoaderList.DlLiteLoaderListEntry DownloadInfo)
     {
         try
         {
@@ -1303,7 +1303,7 @@ pause";
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<ModDownload.DlLiteLoaderListEntry>("LiteLoader " + Id + " 安装器下载", Loaders)
+                new ModLoader.LoaderCombo<DlLiteLoaderList.DlLiteLoaderListEntry>("LiteLoader " + Id + " 安装器下载", Loaders)
                     { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start(DownloadInfo);
             ModLoader.LoaderTaskbarAdd(Loader);
@@ -1320,7 +1320,7 @@ pause";
     /// <summary>
     ///     获取下载某个 LiteLoader 实例的加载器列表。
     /// </summary>
-    private static List<ModLoader.LoaderBase> McDownloadLiteLoaderLoader(ModDownload.DlLiteLoaderListEntry DownloadInfo,
+    private static List<ModLoader.LoaderBase> McDownloadLiteLoaderLoader(DlLiteLoaderList.DlLiteLoaderListEntry DownloadInfo,
         string McFolder = null, ModLoader.LoaderCombo<string> ClientDownloadLoader = null, bool FixLibrary = true)
     {
         // 参数初始化
@@ -1398,7 +1398,7 @@ pause";
 
     #region LiteLoader 下载菜单
 
-    public static MyListItem LiteLoaderDownloadListItem(ModDownload.DlLiteLoaderListEntry Entry,
+    public static MyListItem LiteLoaderDownloadListItem(DlLiteLoaderList.DlLiteLoaderListEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 建立控件
@@ -1464,22 +1464,22 @@ pause";
 
     private static void LiteLoaderAll_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlLiteLoaderListEntry Version;
-        if (((dynamic)sender).Tag is ModDownload.DlLiteLoaderListEntry)
-            Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag;
+        DlLiteLoaderList.DlLiteLoaderListEntry Version;
+        if (((dynamic)sender).Tag is DlLiteLoaderList.DlLiteLoaderListEntry)
+            Version = (DlLiteLoaderList.DlLiteLoaderListEntry)((dynamic)sender).Tag;
         else
-            Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
+            Version = (DlLiteLoaderList.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
         ModBase.OpenWebsite("https://jenkins.liteloader.com/view/" + Version.Inherit);
     }
 
     public static void LiteLoaderSave_Click(object sender, RoutedEventArgs e)
     {
         // ListItem 与小按钮都会调用这个方法
-        ModDownload.DlLiteLoaderListEntry Version;
-        if (((dynamic)sender).Tag is ModDownload.DlLiteLoaderListEntry)
-            Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag;
+        DlLiteLoaderList.DlLiteLoaderListEntry Version;
+        if (((dynamic)sender).Tag is DlLiteLoaderList.DlLiteLoaderListEntry)
+            Version = (DlLiteLoaderList.DlLiteLoaderListEntry)((dynamic)sender).Tag;
         else
-            Version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
+            Version = (DlLiteLoaderList.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
         McDownloadLiteLoaderSave(Version);
     }
 
@@ -1487,7 +1487,7 @@ pause";
 
     #region Forgelike 下载
 
-    public static void McDownloadForgelikeSave(ModDownload.DlForgelikeEntry Info)
+    public static void McDownloadForgelikeSave(DlForgeVersion.DlForgelikeEntry Info)
     {
         try
         {
@@ -1509,26 +1509,26 @@ pause";
 
             // 获取下载地址
             var Files = new List<DownloadFile>();
-            if (Info.ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge)
+            if (Info.ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge)
             {
                 // NeoForge
-                var Neo = (ModDownload.DlNeoForgeListEntry)Info;
+                var Neo = (DlNeoForgeList.DlNeoForgeListEntry)Info;
                 var Url = Neo.UrlBase + "-installer.jar";
                 Files.Add(new DownloadFile(
                     new[] { Url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), Url }, Target,
                     new ModBase.FileChecker(64 * 1024)));
             }
-            else if (Info.ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
+            else if (Info.ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
-                var Clr = (ModDownload.DlCleanroomListEntry)Info;
+                var Clr = (DlCleanroomList.DlCleanroomListEntry)Info;
                 var Url = Clr.UrlBase + "-installer.jar";
                 Files.Add(new DownloadFile(new[] { Url }, Target, new ModBase.FileChecker(64 * 1024)));
             }
             else
             {
                 // Forge
-                var Forge = (ModDownload.DlForgeVersionEntry)Info;
+                var Forge = (DlForgeVersion.DlForgeVersionEntry)Info;
                 Files.Add(new DownloadFile(
                     new[]
                     {
@@ -1542,7 +1542,7 @@ pause";
             Loaders.Add(new LoaderDownload("下载主文件", Files) { ProgressWeight = 6d });
 
             // 启动
-            var Loader = new ModLoader.LoaderCombo<ModDownload.DlForgelikeEntry>(DisplayName + " 下载", Loaders)
+            var Loader = new ModLoader.LoaderCombo<DlForgeVersion.DlForgelikeEntry>(DisplayName + " 下载", Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start(Info);
             ModLoader.LoaderTaskbarAdd(Loader);
@@ -1557,7 +1557,7 @@ pause";
     }
 
     private static void ForgelikeInjector(string Target, ModLoader.LoaderTask<bool, bool> Task, string McFolder,
-        bool UseJavaWrapper, ModDownload.DlForgelikeEntry.ForgelikeType ForgeType)
+        bool UseJavaWrapper, DlForgeVersion.DlForgelikeEntry.ForgelikeType ForgeType)
     {
         // 选择 Java
         JavaEntry Java;
@@ -1815,23 +1815,23 @@ pause";
     /// <summary>
     ///     获取下载某个 Forgelike 实例的加载器列表。
     /// </summary>
-    private static List<ModLoader.LoaderBase> McDownloadForgelikeLoader(ModDownload.DlForgelikeEntry.ForgelikeType ForgeType, string LoaderVersion,
-        string TargetVersion, string Inherit, ModDownload.DlForgelikeEntry Info = null, string McFolder = null,
+    private static List<ModLoader.LoaderBase> McDownloadForgelikeLoader(DlForgeVersion.DlForgelikeEntry.ForgelikeType ForgeType, string LoaderVersion,
+        string TargetVersion, string Inherit, DlForgeVersion.DlForgelikeEntry Info = null, string McFolder = null,
         ModLoader.LoaderCombo<string> ClientDownloadLoader = null, string ClientFolder = null)
     {
         // 参数初始化
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
-        if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge && Info is null)
+        if (ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge && Info is null)
         {
             // 需要传入 API Name，但整合包版本可能不以 1.20.1- 开头，所以需要进行特别处理
             if (Inherit == "1.20.1" && !LoaderVersion.StartsWithF("1.20.1-"))
-                Info = new ModDownload.DlNeoForgeListEntry("1.20.1-" + LoaderVersion);
+                Info = new DlNeoForgeList.DlNeoForgeListEntry("1.20.1-" + LoaderVersion);
             else
-                Info = new ModDownload.DlNeoForgeListEntry(LoaderVersion);
+                Info = new DlNeoForgeList.DlNeoForgeListEntry(LoaderVersion);
         }
 
-        if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom && Info is null) Info = new ModDownload.DlCleanroomListEntry(LoaderVersion);
-        if (!(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge) && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
+        if (ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Cleanroom && Info is null) Info = new DlCleanroomList.DlCleanroomListEntry(LoaderVersion);
+        if (!(ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge) && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
         {
             // 类似 1.19.3-41.2.8 格式，优先使用 Version 中要求的版本而非 Inherit（例如 1.19.3 却使用了 1.19 的 Forge）
             Inherit = LoaderVersion.BeforeFirst("-");
@@ -1852,8 +1852,8 @@ pause";
             {
                 // 获取 Forge 对应 MC 版本列表
                 var ForgeLoader =
-                    new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
-                        "McDownloadForgeLoader " + Inherit, ModDownload.DlForgeVersionMain);
+                    new ModLoader.LoaderTask<string, List<DlForgeVersion.DlForgeVersionEntry>>(
+                        "McDownloadForgeLoader " + Inherit, DlForgeVersion.DlForgeVersionMain);
                 ForgeLoader.WaitForExit(Inherit);
                 Task.Progress = 0.8d;
                 // 查找对应版本
@@ -1883,26 +1883,26 @@ pause";
 
             // 添加主文件下载
             var Files = new List<DownloadFile>();
-            if (Info.ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge)
+            if (Info.ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge)
             {
                 // NeoForge
-                var Neo = (ModDownload.DlNeoForgeListEntry)Info;
+                var Neo = (DlNeoForgeList.DlNeoForgeListEntry)Info;
                 var Url = Neo.UrlBase + "-installer.jar";
                 Files.Add(new DownloadFile(
                     new[] { Url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), Url },
                     InstallerAddress, new ModBase.FileChecker(64 * 1024)));
             }
-            else if (Info.ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
+            else if (Info.ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
-                var Clr = (ModDownload.DlCleanroomListEntry)Info;
+                var Clr = (DlCleanroomList.DlCleanroomListEntry)Info;
                 var Url = Clr.UrlBase + "-installer.jar";
                 Files.Add(new DownloadFile(new[] { Url }, InstallerAddress, new ModBase.FileChecker(64 * 1024)));
             }
             else
             {
                 // Forge
-                var Forge = (ModDownload.DlForgeVersionEntry)Info;
+                var Forge = (DlForgeVersion.DlForgeVersionEntry)Info;
                 var FileName =
                     $"{Forge.Inherit.Replace("-", "_")}-{Forge.FileVersion}/forge-{Forge.Inherit.Replace("-", "_")}-{Forge.FileVersion}-{Forge.Category}.{Forge.FileExtension}";
                 Files.Add(new DownloadFile(
@@ -1923,9 +1923,9 @@ pause";
             { ProgressWeight = 9d });
 
         // 安装（仅在新版安装时需要原版 Jar）
-        if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge || Conversions.ToDouble(LoaderVersion.BeforeFirst(".")) >= 20d)
+        if (ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge || Conversions.ToDouble(LoaderVersion.BeforeFirst(".")) >= 20d)
         {
-            ModBase.Log($"[Download] 检测为{(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + ForgeType)}：" + LoaderVersion);
+            ModBase.Log($"[Download] 检测为{(ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + ForgeType)}：" + LoaderVersion);
             List<ModMinecraft.McLibToken> Libs = null;
             Loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>($"分析 {LoaderName} 支持库文件", Task =>
             {
@@ -1955,8 +1955,8 @@ pause";
                         // 下载原版 Json 文件
                         Task.Progress = 0.4d;
                         var RawJson = (JObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
-                            ModDownload.DlSourceLauncherOrMetaGet(
-                                Conversions.ToString(ModDownload.DlClientListGet(Inherit))), IsJson: true));
+                            DlSource.DlSourceLauncherOrMetaGet(
+                                Conversions.ToString(DlClientList.DlClientListGet(Inherit))), IsJson: true));
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
                         var OriginalName = Json["data"]["MOJMAPS"]["client"].ToString().Trim("[]".ToCharArray())
                             .BeforeFirst("@");
@@ -1993,7 +1993,7 @@ pause";
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"获取{(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + ForgeType)} 支持库列表失败", ex);
+                    throw new Exception($"获取{(ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + ForgeType)} 支持库列表失败", ex);
                 }
                 finally
                 {
@@ -2067,7 +2067,7 @@ pause";
                 Show = false
             });
             Loaders.Add(new ModLoader.LoaderTask<bool, bool>(
-                ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "安装 Forge（方式 A）" : "安装 " + ForgeType, Task =>
+                ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge ? "安装 Forge（方式 A）" : "安装 " + ForgeType, Task =>
                 {
                     var Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     try
@@ -2173,7 +2173,7 @@ pause";
         {
             ModBase.Log("[Download] 检测为非新版 Forge：" + LoaderVersion);
             Loaders.Add(new ModLoader.LoaderTask<List<DownloadFile>, bool>(
-                $"安装 {(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "Forge（方式 B）" : ForgeType)}", Task =>
+                $"安装 {(ForgeType == DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge ? "Forge（方式 B）" : ForgeType)}", Task =>
                 {
                     ZipArchive Installer = null;
                     try
@@ -2256,19 +2256,19 @@ pause";
 
     #region Forge 下载菜单
 
-    public static void ForgeDownloadListItemPreload(StackPanel Stack, List<ModDownload.DlForgeVersionEntry> Entries,
+    public static void ForgeDownloadListItemPreload(StackPanel Stack, List<DlForgeVersion.DlForgeVersionEntry> Entries,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 如果只有一个版本，则不特别列出
         if (Entries.Count == 1)
             return;
         // 获取推荐版本与最新版本
-        ModDownload.DlForgeVersionEntry FreshVersion = null;
+        DlForgeVersion.DlForgeVersionEntry FreshVersion = null;
         if (Entries.Any())
             FreshVersion = Entries[0];
         else
             ModBase.Log("[System] 未找到可用的 Forge 版本", ModBase.LogLevel.Debug);
-        ModDownload.DlForgeVersionEntry RecommendedVersion = null;
+        DlForgeVersion.DlForgeVersionEntry RecommendedVersion = null;
         foreach (var Entry in Entries)
             if (Entry.IsRecommended)
                 RecommendedVersion = Entry;
@@ -2298,7 +2298,7 @@ pause";
         });
     }
 
-    public static MyListItem ForgeDownloadListItem(ModDownload.DlForgeVersionEntry Entry,
+    public static MyListItem ForgeDownloadListItem(DlForgeVersion.DlForgeVersionEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 建立控件
@@ -2353,26 +2353,26 @@ pause";
 
     private static void ForgeLog_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlForgeVersionEntry Version;
+        DlForgeVersion.DlForgeVersionEntry Version;
         if (((dynamic)sender).Tag is not null)
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
         else
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
         ModBase.OpenWebsite(
             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{Version.Inherit}-{Version.VersionName}/forge-{Version.Inherit}-{Version.VersionName}-changelog.txt");
     }
 
     public static void ForgeSave_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlForgeVersionEntry Version;
+        DlForgeVersion.DlForgeVersionEntry Version;
         if (((dynamic)sender).Tag is not null)
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
         else
-            Version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
+            Version = (DlForgeVersion.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
         McDownloadForgelikeSave(Version);
     }
 
@@ -2455,15 +2455,15 @@ pause";
 
     #region NeoForge 下载菜单
 
-    public static void NeoForgeDownloadListItemPreload(StackPanel Stack, List<ModDownload.DlNeoForgeListEntry> Entries,
+    public static void NeoForgeDownloadListItemPreload(StackPanel Stack, List<DlNeoForgeList.DlNeoForgeListEntry> Entries,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 如果只有一个版本，则不特别列出
         if (Entries.Count == 1)
             return;
         // 获取最新稳定版和测试版
-        ModDownload.DlNeoForgeListEntry FreshStableVersion = null;
-        ModDownload.DlNeoForgeListEntry FreshBetaVersion = null;
+        DlNeoForgeList.DlNeoForgeListEntry FreshStableVersion = null;
+        DlNeoForgeList.DlNeoForgeListEntry FreshBetaVersion = null;
         if (Entries.Any())
             foreach (var Entry in Entries.ToList())
                 if (Entry.IsBeta)
@@ -2502,7 +2502,7 @@ pause";
         });
     }
 
-    public static MyListItem NeoForgeDownloadListItem(ModDownload.DlNeoForgeListEntry Info,
+    public static MyListItem NeoForgeDownloadListItem(DlNeoForgeList.DlNeoForgeListEntry Info,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 建立控件
@@ -2553,25 +2553,25 @@ pause";
 
     private static void NeoForgeLog_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlNeoForgeListEntry Info;
+        DlNeoForgeList.DlNeoForgeListEntry Info;
         if (((dynamic)sender).Tag is not null)
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
         else
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
         ModBase.OpenWebsite(Info.UrlBase + "-changelog.txt");
     }
 
     public static void NeoForgeSave_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlNeoForgeListEntry Info;
+        DlNeoForgeList.DlNeoForgeListEntry Info;
         if (((dynamic)sender).Tag is not null)
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
         else
-            Info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Info = (DlNeoForgeList.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
         McDownloadForgelikeSave(Info);
     }
 
@@ -2580,11 +2580,11 @@ pause";
     #region Cleanroom 下载菜单
 
     public static void CleanroomDownloadListItemPreload(StackPanel Stack,
-        List<ModDownload.DlCleanroomListEntry> Entries, MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
+        List<DlCleanroomList.DlCleanroomListEntry> Entries, MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 获取最新稳定版和测试版
         // Dim FreshStableVersion As DlCleanroomListEntry = Nothing
-        ModDownload.DlCleanroomListEntry FreshBetaVersion = null;
+        DlCleanroomList.DlCleanroomListEntry FreshBetaVersion = null;
         if (Entries.Any())
             FreshBetaVersion = Entries[0];
         else
@@ -2610,7 +2610,7 @@ pause";
         });
     }
 
-    public static MyListItem CleanroomDownloadListItem(ModDownload.DlCleanroomListEntry Info,
+    public static MyListItem CleanroomDownloadListItem(DlCleanroomList.DlCleanroomListEntry Info,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 建立控件
@@ -2661,25 +2661,25 @@ pause";
 
     private static void CleanroomLog_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlCleanroomListEntry Info;
+        DlCleanroomList.DlCleanroomListEntry Info;
         if (((dynamic)sender).Tag is not null)
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
         else
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
         ModBase.OpenWebsite(Info.UrlBase + "-changelog.txt");
     }
 
     public static void CleanroomSave_Click(object sender, RoutedEventArgs e)
     {
-        ModDownload.DlCleanroomListEntry Info;
+        DlCleanroomList.DlCleanroomListEntry Info;
         if (((dynamic)sender).Tag is not null)
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
         else
-            Info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
+            Info = (DlCleanroomList.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
         McDownloadForgelikeSave(Info);
     }
 
@@ -3343,7 +3343,7 @@ pause";
             try
             {
                 var Version = new ModMinecraft.McInstance(VersionFolder);
-                Task.Output = new List<DownloadFile> { ModDownload.DlClientAssetIndexGet(Version) };
+                Task.Output = new List<DownloadFile> { DlClient.DlClientAssetIndexGet(Version) };
             }
             catch (Exception ex)
             {
@@ -3457,7 +3457,7 @@ pause";
         /// <summary>
         ///     欲下载的 Cleanroom。
         /// </summary>
-        public ModDownload.DlCleanroomListEntry CleanroomEntry = null;
+        public DlCleanroomList.DlCleanroomListEntry CleanroomEntry = null;
 
         // 若要下载 Cleanroom，则需要在下面两项中完成至少一项
         /// <summary>
@@ -3478,7 +3478,7 @@ pause";
         /// <summary>
         ///     欲下载的 Forge。
         /// </summary>
-        public ModDownload.DlForgeVersionEntry ForgeEntry = null;
+        public DlForgeVersion.DlForgeVersionEntry ForgeEntry = null;
 
         // 若要下载 Forge，则需要在下面两项中完成至少一项
         /// <summary>
@@ -3509,7 +3509,7 @@ pause";
         /// <summary>
         ///     欲下载的 LiteLoader 详细信息。
         /// </summary>
-        public ModDownload.DlLiteLoaderListEntry LiteLoaderEntry = null;
+        public DlLiteLoaderList.DlLiteLoaderListEntry LiteLoaderEntry = null;
 
         /// <summary>
         ///     可选。欲下载的 Minecraft Json 地址。
@@ -3529,7 +3529,7 @@ pause";
         /// <summary>
         ///     欲下载的 NeoForge。
         /// </summary>
-        public ModDownload.DlNeoForgeListEntry NeoForgeEntry = null;
+        public DlNeoForgeList.DlNeoForgeListEntry NeoForgeEntry = null;
 
         // 若要下载 NeoForge，则需要在下面两项中完成至少一项
         /// <summary>
@@ -3545,7 +3545,7 @@ pause";
         /// <summary>
         ///     欲下载的 OptiFine 详细信息。
         /// </summary>
-        public ModDownload.DlOptiFineListEntry OptiFineEntry;
+        public DlOptiFineList.DlOptiFineListEntry OptiFineEntry;
 
         // 若要下载 OptiFine，则需要在下面两项中完成至少一项
         /// <summary>
@@ -3763,7 +3763,7 @@ pause";
         {
             if (Request.OptiFineVersion.Contains("_HD_U_"))
                 Request.OptiFineVersion = "HD_U_" + Request.OptiFineVersion.AfterLast("_HD_U_"); // #735
-            Request.OptiFineEntry = new ModDownload.DlOptiFineListEntry
+            Request.OptiFineEntry = new DlOptiFineList.DlOptiFineListEntry
             {
                 DisplayName = Request.MinecraftName + " " + Request.OptiFineVersion.Replace("HD_U_", "")
                     .Replace("_", "").Replace("pre", " pre"),
@@ -3928,7 +3928,7 @@ pause";
         // Forge
         if (Request.ForgeVersion is not null)
             LoaderList.Add(new ModLoader.LoaderCombo<string>("下载 Forge " + Request.ForgeVersion,
-                McDownloadForgelikeLoader(ModDownload.DlForgelikeEntry.ForgelikeType.Forge, Request.ForgeVersion, "forge-" + Request.ForgeVersion,
+                McDownloadForgelikeLoader(DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge, Request.ForgeVersion, "forge-" + Request.ForgeVersion,
                     Request.MinecraftName, Request.ForgeEntry, TempMcFolder, ClientLoader,
                     Request.TargetInstanceFolder))
             {
@@ -3939,7 +3939,7 @@ pause";
         // NeoForge
         if (Request.NeoForgeVersion is not null)
             LoaderList.Add(new ModLoader.LoaderCombo<string>("下载 NeoForge " + Request.NeoForgeVersion,
-                McDownloadForgelikeLoader(ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge, Request.NeoForgeVersion, "neoforge-" + Request.NeoForgeVersion,
+                McDownloadForgelikeLoader(DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge, Request.NeoForgeVersion, "neoforge-" + Request.NeoForgeVersion,
                     Request.MinecraftName, Request.NeoForgeEntry, TempMcFolder, ClientLoader,
                     Request.TargetInstanceFolder))
             {
@@ -3949,7 +3949,7 @@ pause";
         // Cleanroom
         if (Request.CleanroomVersion is not null)
             LoaderList.Add(new ModLoader.LoaderCombo<string>("下载 Cleanroom " + Request.CleanroomVersion,
-                McDownloadForgelikeLoader(ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom, Request.CleanroomVersion,
+                McDownloadForgelikeLoader(DlForgeVersion.DlForgelikeEntry.ForgelikeType.Cleanroom, Request.CleanroomVersion,
                     "cleanroom-" + Request.CleanroomVersion, Request.MinecraftName, Request.CleanroomEntry,
                     TempMcFolder, ClientLoader, Request.TargetInstanceFolder))
             {

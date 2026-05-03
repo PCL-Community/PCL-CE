@@ -16,7 +16,7 @@ public partial class PageDownloadNeoForge
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlNeoForgeListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, DlNeoForgeList.DlNeoForgeListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -30,7 +30,7 @@ public partial class PageDownloadNeoForge
         try
         {
             // 归类
-            var Dict = ModDownload.DlNeoForgeListLoader.Output.Value.GroupBy(d => d.Inherit)
+            var Dict = DlNeoForgeList.DlNeoForgeListLoader.Output.Value.GroupBy(d => d.Inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();
@@ -55,7 +55,7 @@ public partial class PageDownloadNeoForge
                 {
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.NeoForgeDownloadListItem(
-                            (ModDownload.DlNeoForgeListEntry)item, ModDownloadLib.NeoForgeSave_Click, true));
+                            (DlNeoForgeList.DlNeoForgeListEntry)item, ModDownloadLib.NeoForgeSave_Click, true));
                 };
                 PanMain.Children.Add(NewCard);
             }

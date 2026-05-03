@@ -14,7 +14,7 @@ public partial class PageDownloadFabric
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlFabricListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlFabricList.DlFabricListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,7 +27,7 @@ public partial class PageDownloadFabric
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["installer"];
+            var Versions = (JArray)DlFabricList.DlFabricListLoader.Output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(

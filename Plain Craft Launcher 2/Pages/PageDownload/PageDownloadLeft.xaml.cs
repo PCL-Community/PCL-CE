@@ -22,20 +22,20 @@ public partial class PageDownloadLeft : IRefreshable
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                ModDownload.DlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.DlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlCleanroomListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLegacyFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlLegacyFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.DlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.DlLabyModListLoader.Start(IsForceRestart: true);
+                DlClientList.DlClientListLoader.Start(IsForceRestart: true);
+                DlOptiFineList.DlOptiFineListLoader.Start(IsForceRestart: true);
+                DlForgeList.DlForgeListLoader.Start(IsForceRestart: true);
+                DlNeoForgeList.DlNeoForgeListLoader.Start(IsForceRestart: true);
+                DlCleanroomList.DlCleanroomListLoader.Start(IsForceRestart: true);
+                DlLiteLoaderList.DlLiteLoaderListLoader.Start(IsForceRestart: true);
+                DlFabricList.DlFabricListLoader.Start(IsForceRestart: true);
+                DlLegacyFabricList.DlLegacyFabricListLoader.Start(IsForceRestart: true);
+                DlFabricList.DlFabricApiLoader.Start(IsForceRestart: true);
+                DlLegacyFabricList.DlLegacyFabricApiLoader.Start(IsForceRestart: true);
+                DlQuiltList.DlQuiltListLoader.Start(IsForceRestart: true);
+                DlQuiltList.DlQSLLoader.Start(IsForceRestart: true);
+                DlFabricList.DlOptiFabricLoader.Start(IsForceRestart: true);
+                DlLabyModList.DlLabyModListLoader.Start(IsForceRestart: true);
                 ItemInstall.Checked = true;
                 break;
             }
@@ -125,61 +125,61 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadClient:
             {
-                ModDownload.DlClientListLoader.Start(IsForceRestart: true);
+                DlClientList.DlClientListLoader.Start(IsForceRestart: true);
                 ItemClient.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadOptiFine:
             {
-                ModDownload.DlOptiFineListLoader.Start(IsForceRestart: true);
+                DlOptiFineList.DlOptiFineListLoader.Start(IsForceRestart: true);
                 ItemOptiFine.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadForge:
             {
-                ModDownload.DlForgeListLoader.Start(IsForceRestart: true);
+                DlForgeList.DlForgeListLoader.Start(IsForceRestart: true);
                 ItemForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadNeoForge:
             {
-                ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: true);
+                DlNeoForgeList.DlNeoForgeListLoader.Start(IsForceRestart: true);
                 ItemNeoForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadCleanroom:
             {
-                ModDownload.DlCleanroomListLoader.Start(IsForceRestart: true);
+                DlCleanroomList.DlCleanroomListLoader.Start(IsForceRestart: true);
                 ItemCleanroom.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLiteLoader:
             {
-                ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: true);
+                DlLiteLoaderList.DlLiteLoaderListLoader.Start(IsForceRestart: true);
                 ItemLiteLoader.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadFabric:
             {
-                ModDownload.DlFabricListLoader.Start(IsForceRestart: true);
+                DlFabricList.DlFabricListLoader.Start(IsForceRestart: true);
                 ItemFabric.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadQuilt:
             {
-                ModDownload.DlQuiltListLoader.Start(IsForceRestart: true);
+                DlQuiltList.DlQuiltListLoader.Start(IsForceRestart: true);
                 ItemQuilt.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLabyMod:
             {
-                ModDownload.DlLabyModListLoader.Start(IsForceRestart: true);
+                DlLabyModList.DlLabyModListLoader.Start(IsForceRestart: true);
                 ItemLabyMod.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLegacyFabric:
             {
-                ModDownload.DlLegacyFabricListLoader.Start(IsForceRestart: true);
+                DlLegacyFabricList.DlLegacyFabricListLoader.Start(IsForceRestart: true);
                 ItemLegacyFabric.Checked = true;
                 break;
             }

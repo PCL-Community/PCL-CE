@@ -903,7 +903,7 @@ public partial class PageInstanceExport : IRefreshable
                     try
                     {
                         var ModrinthHashes = Loader.Input.Select(m => m.ModrinthHash);
-                        var ModrinthRaw = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                        var ModrinthRaw = (JObject)ModBase.GetJson(DlMod.DlModRequest(
                             "https://api.modrinth.com/v2/version_files", "POST",
                             $"{{\"hashes\": [\"{ModrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
                             "application/json"));
@@ -940,7 +940,7 @@ public partial class PageInstanceExport : IRefreshable
                         if (ModrinthUploadMode) return;
                         var CurseForgeHashes = Loader.Input.Select(m => m.CurseForgeHash);
                         var CurseForgeRaw = (JContainer)((JObject)ModBase.GetJson(
-                            ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
+                            DlMod.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
                                 $"{{\"fingerprints\": [{CurseForgeHashes.Join(",")}]}}", "application/json")))["data"][
                             "exactMatches"];
                         foreach (JObject ResultJson in CurseForgeRaw)

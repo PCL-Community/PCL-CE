@@ -14,7 +14,7 @@ public partial class PageDownloadQuilt
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlQuiltListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlQuiltList.DlQuiltListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,7 +27,7 @@ public partial class PageDownloadQuilt
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["installer"];
+            var Versions = (JArray)DlQuiltList.DlQuiltListLoader.Output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(

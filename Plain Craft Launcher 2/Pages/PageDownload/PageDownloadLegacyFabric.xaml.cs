@@ -14,7 +14,7 @@ public partial class PageDownloadLegacyFabric
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlLegacyFabricListLoader,
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, DlLegacyFabricList.DlLegacyFabricListLoader,
             _ => Load_OnFinish());
     }
 
@@ -28,7 +28,7 @@ public partial class PageDownloadLegacyFabric
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["installer"];
+            var Versions = (JArray)DlLegacyFabricList.DlLegacyFabricListLoader.Output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)Version,

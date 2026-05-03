@@ -136,17 +136,17 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionInstall:
             {
-                ModDownload.DlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.DlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.DlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.DlLabyModListLoader.Start(IsForceRestart: true);
+                DlClientList.DlClientListLoader.Start(IsForceRestart: true);
+                DlOptiFineList.DlOptiFineListLoader.Start(IsForceRestart: true);
+                DlForgeList.DlForgeListLoader.Start(IsForceRestart: true);
+                DlNeoForgeList.DlNeoForgeListLoader.Start(IsForceRestart: true);
+                DlLiteLoaderList.DlLiteLoaderListLoader.Start(IsForceRestart: true);
+                DlFabricList.DlFabricListLoader.Start(IsForceRestart: true);
+                DlFabricList.DlFabricApiLoader.Start(IsForceRestart: true);
+                DlQuiltList.DlQuiltListLoader.Start(IsForceRestart: true);
+                DlQuiltList.DlQSLLoader.Start(IsForceRestart: true);
+                DlFabricList.DlOptiFabricLoader.Start(IsForceRestart: true);
+                DlLabyModList.DlLabyModListLoader.Start(IsForceRestart: true);
                 ItemInstall.Checked = true;
                 ModMain.FrmInstanceInstall.GetCurrentInfo();
                 break;
