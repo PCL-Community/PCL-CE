@@ -25,7 +25,7 @@ public class DlNeoForgeList
         public List<DlNeoForgeListEntry> Value;
     }
 
-    public class DlNeoForgeListEntry : DlForgeVersion.DlForgelikeEntry
+    public class DlNeoForgeListEntry : DlForgelikeEntry
     {
         /// <summary>
         ///     API 使用的原始版本字符串，如 “20.4.30-beta”、“1.20.1-47.1.99”（Legacy）。

@@ -1125,7 +1125,7 @@ public partial class PageInstanceInstall
             SelectedForge =
                 new DlForgeVersion.DlForgeVersionEntry(CurrentInstance.Forge, null, CurrentInstance.VanillaName)
                 {
-                    Category = "installer", ForgeType = DlForgeVersion.DlForgelikeEntry.ForgelikeType.Forge,
+                    Category = "installer", ForgeType = DlForgelikeEntry.ForgelikeType.Forge,
                     Inherit = CurrentInstance.VanillaName
                 };
         }
@@ -1153,7 +1153,7 @@ public partial class PageInstanceInstall
             SelectedNeoForge = new DlNeoForgeList.DlNeoForgeListEntry(CurrentInstance.NeoForge)
             {
                 VersionName = CurrentInstance.NeoForge, Inherit = CurrentInstance.VanillaName,
-                ForgeType = DlForgeVersion.DlForgelikeEntry.ForgelikeType.NeoForge
+                ForgeType = DlForgelikeEntry.ForgelikeType.NeoForge
             };
         }
         else if (CurrentInstance.HasQuilt)

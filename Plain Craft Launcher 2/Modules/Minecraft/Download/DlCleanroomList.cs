@@ -26,7 +26,7 @@ public class DlCleanroomList
         public List<DlCleanroomListEntry> Value;
     }
 
-    public class DlCleanroomListEntry : DlForgeVersion.DlForgelikeEntry
+    public class DlCleanroomListEntry : DlForgelikeEntry
     {
         /// <summary>
         ///     API 使用的原始版本字符串，如 “0.2.4-alpha”。
@@ -112,7 +112,7 @@ public class DlCleanroomList
         var Json = JArray.Parse(LatestJson);
         foreach (JObject Token in Json)
             Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
-                { ForgeType = (DlForgeVersion.DlForgelikeEntry.ForgelikeType)2 });
+                { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
         if (!Versions.Any())
             throw new Exception("没有可用版本");
         Versions = Versions.OrderByDescending(a => a.Version).ToList();
