@@ -37,6 +37,11 @@ public static partial class Config
         /// 动画帧率上限。
         /// </summary>
         [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
+        
+        /// <summary>
+        /// 隐藏的公告
+        /// </summary>
+        [ConfigItem<string>("HiddenAnnouncementList", "[]")] public partial string HiddenAnnouncement { get; set; }
     }
 
     /// <summary>
