@@ -443,46 +443,35 @@ public static class ModProfile
         ModBase.RunInUiWait(() =>
         {
             List<IMyRadio> authTypeList;
+#if DEBUG || DEBUGCI
+            authTypeList = _GetAvailableProfileSelection(true);
+#else
             var HasMinecraftAccount = ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
             var Restricted = RegionUtils.IsRestrictedFeatAllowed && ProfileList.Count > 0;
             var HasNetwork = NetworkHelper.IsNetworkAvailable();
-#if !DEBUG && !DEBUGCI
             if (HasMinecraftAccount || Restricted || !HasNetwork)
-                authTypeList =
-                [
-                    new MyListItem
-                    {
-                        Title = "正版验证",
-                        Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonAuth
-                    },
-
-                    new MyListItem
-                    {
-                        Title = "第三方验证",
-                        Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonThirdparty
-                    },
-
-                    new MyListItem
-                    {
-                        Title = "离线验证",
-                        Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonOffline
-                    }
-                ];
+                authTypeList = _GetAvailableProfileSelection(true);
             else
-                authTypeList =
-                [
-                    new MyListItem
-                    {
-                        Title = "正版验证",
-                        Type = MyListItem.CheckType.RadioBox,
-                        Logo = ModBase.Logo.IconButtonAuth
-                    }
-                ];
-#else 
-        authTypeList =
+                authTypeList = _GetAvailableProfileSelection(false);
+            
+#endif
+        
+            selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");
+        });
+        if (selectedAuthTypeNum is null)
+            return;
+        IsCreatingProfile = true;
+        if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 0) // 正版验证
+            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Ms));
+        else if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 1) // 第三方验证
+            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+        else // 离线验证
+            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
+    }
+
+    private static List<IMyRadio> _GetAvailableProfileSelection(bool allowUnlockRestrict) => allowUnlockRestrict switch
+    {
+        true =>
         [
             new MyListItem
             {
@@ -504,21 +493,17 @@ public static class ModProfile
                 Type = MyListItem.CheckType.RadioBox,
                 Logo = ModBase.Logo.IconButtonOffline
             }
-        ];
-#endif
-        
-            selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");
-        });
-        if (selectedAuthTypeNum is null)
-            return;
-        IsCreatingProfile = true;
-        if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 0) // 正版验证
-            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Ms));
-        else if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 1) // 第三方验证
-            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
-        else // 离线验证
-            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
-    }
+        ],
+        _ =>
+        [
+            new MyListItem
+            {
+                Title = "正版验证",
+                Type = MyListItem.CheckType.RadioBox,
+                Logo = ModBase.Logo.IconButtonAuth
+            }
+        ]
+    };
             
 
     /// <summary>
