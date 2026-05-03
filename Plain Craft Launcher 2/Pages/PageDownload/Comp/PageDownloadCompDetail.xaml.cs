@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
+using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -267,6 +268,7 @@ public partial class PageDownloadCompDetail
 
                 // 确认默认保存位置
                 string DefaultFolder = null;
+                var AllowedLoaders = new List<ModComp.CompLoaderType>();
                 if (File.Type != ModComp.CompType.ModPack)
                 {
                     var SubFolder = "";
@@ -280,7 +282,6 @@ public partial class PageDownloadCompDetail
                     }
 
                     // 获取资源所需的加载器
-                    var AllowedLoaders = new List<ModComp.CompLoaderType>();
                     if (File.ModLoaders.Any())
                         AllowedLoaders = File.ModLoaders;
                     else if (_project.ModLoaders.Any()) AllowedLoaders = _project.ModLoaders;
@@ -377,21 +378,97 @@ public partial class PageDownloadCompDetail
 
                     if (!Target.Contains("\\")) return;
 
-                    // 记录缓存路径
-                    var targetDir = ModBase.GetPathFromFullPath(Target);
-                    if (Target != DefaultFolder)
+                     // 记录缓存路径
+                     var targetDir = ModBase.GetPathFromFullPath(Target);
+                     if (Target != DefaultFolder)
                     {
                         if (CachedFolder.ContainsKey(File.Type))
                             CachedFolder[File.Type] = targetDir;
                         else
-                            CachedFolder.Add(File.Type, targetDir);
-                    }
+                             CachedFolder.Add(File.Type, targetDir);
+                     }
 
-                    // 构造下载任务
-                    var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
-                    var Loaders = new List<ModLoader.LoaderBase>
-                    {
-                        new LoaderDownload("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
+                     var downloadFiles = new List<DownloadFile> { File.ToNetFile(Target) };
+                     if (File.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
+                         File.Dependencies.Any())
+                     {
+                         try
+                         {
+                             ModMinecraft.McInstance? targetInstance = null;
+                             var knownInstances = new List<ModMinecraft.McInstance>();
+                             if (ModMinecraft.McInstanceSelected is not null)
+                             {
+                                 knownInstances.Add(ModMinecraft.McInstanceSelected);
+                             }
+
+                             knownInstances.AddRange(ModMinecraft.McInstanceList.Values.SelectMany(list => list)
+                                 .Where(instance => instance is not null));
+                             targetInstance = knownInstances
+                                 .Distinct()
+                                 .FirstOrDefault(instance =>
+                                     targetDir.StartsWith(instance.PathIndie, StringComparison.OrdinalIgnoreCase));
+                             if (targetInstance is not null && !targetInstance.IsLoaded)
+                             {
+                                 targetInstance.Load();
+                             }
+
+                             var mcVersion = targetInstance?.Info?.VanillaName
+                                             ?? File.GameVersions.FirstOrDefault(version => version.Contains("."))
+                                             ?? string.Empty;
+                             var targetLoaders = new List<ModComp.CompLoaderType>();
+                             if (targetInstance is not null)
+                             {
+                                 if (targetInstance.Info.HasForge)
+                                     targetLoaders.Add(ModComp.CompLoaderType.Forge);
+                                 if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
+                                     targetLoaders.Add(ModComp.CompLoaderType.Fabric);
+                                 if (targetInstance.Info.HasQuilt)
+                                     targetLoaders.Add(ModComp.CompLoaderType.Quilt);
+                                 if (targetInstance.Info.HasNeoForge)
+                                     targetLoaders.Add(ModComp.CompLoaderType.NeoForge);
+                                 if (targetInstance.Info.HasLiteLoader)
+                                     targetLoaders.Add(ModComp.CompLoaderType.LiteLoader);
+                             }
+
+                             if (!targetLoaders.Any())
+                             {
+                                 targetLoaders = AllowedLoaders.ToList();
+                             }
+
+                              ModBase.Log($"[CompDeps] 开始解析必需前置: {File.Dependencies.Count} 个依赖");
+                              var request = ModCompDependency.BuildRequest(File, _project, mcVersion, targetLoaders,
+                                  targetDir);
+                             var resolver = new ModDependencyResolver();
+                             var result = resolver.Resolve(request);
+
+                              if (result.Unresolved.Any() || result.ToInstall.Any())
+                              {
+                                  if (!ModCompDependency.ConfirmDependencyInstall(result))
+                                  {
+                                      return;
+                                  }
+
+                                  ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
+                                  var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                  downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                              }
+                              else
+                              {
+                                  ModBase.Log("[CompDeps] 已满足: 所有必需前置已安装");
+                              }
+                         }
+                         catch (Exception depEx)
+                         {
+                             ModBase.Log(depEx, "[CompDeps] 依赖解析失败");
+                             return;
+                         }
+                     }
+
+                     // 构造下载任务
+                     var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
+                     var Loaders = new List<ModLoader.LoaderBase>
+                     {
+                        new LoaderDownload("下载文件", downloadFiles)
                         {
                             ProgressWeight = 6,
                             Block = true

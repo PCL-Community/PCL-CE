@@ -45,6 +45,7 @@ public partial class PageSetupGameManage
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
         CheckDownloadIgnoreQuilt.Checked = (bool?)Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadAutoInstallDependencies.Checked = (bool?)Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = (bool?)Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示

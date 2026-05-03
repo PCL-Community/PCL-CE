@@ -3058,9 +3058,9 @@ public static class ModComp
                 if (Data.ContainsKey("Dependencies"))
                     Dependencies = Data["Dependencies"].ToObject<List<string>>();
                 if (Data.ContainsKey("RawOptionalDependencies"))
-                    RawDependencies = Data["RawOptionalDependencies"].ToObject<List<string>>();
+                    RawOptionalDependencies = Data["RawOptionalDependencies"].ToObject<List<string>>();
                 if (Data.ContainsKey("OptionalDependencies"))
-                    Dependencies = Data["OptionalDependencies"].ToObject<List<string>>();
+                    OptionalDependencies = Data["OptionalDependencies"].ToObject<List<string>>();
             }
 
             #endregion
