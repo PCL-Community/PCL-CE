@@ -418,8 +418,8 @@ public partial class PageInstanceServer : MyPageRight
     {
         try
         {
-            var addr = await ServerAddressResolver.GetReachableAddressAsync(server.Address, token);
-            using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
+            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(server.Address, token);
+            using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
                 McPingResult? result;
                 ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);
