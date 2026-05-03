@@ -76,12 +76,12 @@ public struct NScaleTransform :
     
     #region 运算符重载
 
-    public static NScaleTransform operator +(NScaleTransform a, NScaleTransform b) => new(a.ScaleX + b.ScaleX, a.ScaleY + b.ScaleY);
-    public static NScaleTransform operator -(NScaleTransform a, NScaleTransform b) => new(a.ScaleX - b.ScaleX, a.ScaleY - b.ScaleY);
-    public static NScaleTransform operator *(NScaleTransform a, float b) => new(a.ScaleX * b, a.ScaleY * b);
+    public static NScaleTransform operator +(NScaleTransform a, NScaleTransform b) => new(a.ScaleX + b.ScaleX, a.ScaleY + b.ScaleY, a.CenterX + b.CenterX, a.CenterY + b.CenterY);
+    public static NScaleTransform operator -(NScaleTransform a, NScaleTransform b) => new(a.ScaleX - b.ScaleX, a.ScaleY - b.ScaleY, a.CenterX - b.CenterX, a.CenterY - b.CenterY);
+    public static NScaleTransform operator *(NScaleTransform a, float b) => new(a.ScaleX * b, a.ScaleY * b, a.CenterX * b, a.CenterY * b);
 
     public static NScaleTransform operator /(NScaleTransform a, float b) =>
-        b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NScaleTransform(a.ScaleX / b, a.ScaleY / b);
+        b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NScaleTransform(a.ScaleX / b, a.ScaleY / b, a.CenterX / b, a.CenterY / b);
 
     public static bool operator ==(NScaleTransform a, NScaleTransform b) => a._scale == b._scale;
     public static bool operator !=(NScaleTransform a, NScaleTransform b) => a._scale != b._scale;
