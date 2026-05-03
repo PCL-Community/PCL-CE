@@ -6,7 +6,7 @@ public class AnnouncementSkipCondition
 {
     [JsonPropertyName("min")]
     public string? MinVersion { get; init; }
-    [JsonPropertyName("Max")]
+    [JsonPropertyName("max")]
     public string? MaxVersion { get; init; }
     [JsonPropertyName("notAfter")]
     public string? NotAfter { get; init; }
