@@ -40,4 +40,10 @@ public static class Secrets
     /// 当前版本的 Git 提交 SHA
     /// </summary>
     public static string CommitHash { get; } = EnvironmentInterop.GetSecret("GITHUB_SHA", readEnvDebugOnly: true).ReplaceNullOrEmpty();
+
+    /// <summary>
+    /// 公告服务器地址
+    /// </summary>
+    public static string[] AnnouncementServerList { get; } = EnvironmentInterop
+        .GetSecret("ANNOUNCEMENT_SERVER", readEnvDebugOnly: true).ReplaceNullOrEmpty().Split("|");
 }
