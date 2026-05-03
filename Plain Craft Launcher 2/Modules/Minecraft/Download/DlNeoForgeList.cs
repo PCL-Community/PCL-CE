@@ -163,7 +163,7 @@ public class DlNeoForgeList
         {
             loader.Output = new DlNeoForgeListResult
             {
-                IsOfficial = true,
+                IsOfficial = false,
                 SourceName = "BMCLAPI",
                 Value = GetNeoForgeEntries(resultLatest, resultLegacy)
             };

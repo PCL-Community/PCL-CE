@@ -104,7 +104,7 @@ public class DlForgeVersion
             var VersionCodes = Strings.Mid(Result, 1, Result.LastIndexOfF("</table>"))
                 .Split("<td class=\"download-version");
             // 获取所有版本信息
-            for (int i = 1, loopTo = VersionCodes.Count() - 1; i <= loopTo; i++)
+            for (int i = 1; i < VersionCodes.Count(); i++)
             {
                 var VersionCode = VersionCodes[i];
                 try
@@ -119,7 +119,6 @@ public class DlForgeVersion
                         Branch = null;
                     // 发布时间获取
                     var ReleaseTimeOriginal = VersionCode.RegexSeek("(?<=\"download-time\" title=\")[^\"]+");
-                    // Dim ReleaseTimeSplit = ReleaseTimeOriginal.Split(" -:".ToCharArray) '原格式："2021-02-15 03:24:02"
                     var ReleaseDate =
                         DateTime.Parse(ReleaseTimeOriginal, null, DateTimeStyles.AssumeUniversal); // 以 UTC 时间作为标准
                     var ReleaseTime = ReleaseDate.ToLocalTime().ToString("yyyy'/'MM'/'dd HH':'mm"); // 时区与格式转换
@@ -242,7 +241,6 @@ public class DlForgeVersion
                 // 基础信息获取
                 var Entry = new DlForgeVersionEntry(Name, Branch, Loader.Input)
                     { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
-                var TimeSplit = Token["modified"].ToString().Split('-', 'T', ':', '.', ' ', '/');
                 Entry.ReleaseTime = Token["modified"].ToObject<DateTime>().ToLocalTime()
                     .ToString("yyyy'/'MM'/'dd HH':'mm");
                 // 添加项

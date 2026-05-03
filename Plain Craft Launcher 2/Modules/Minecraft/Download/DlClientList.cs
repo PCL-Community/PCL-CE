@@ -65,10 +65,6 @@ public class DlClientList
         ///     获取到的 Json 数据。
         /// </summary>
         public JObject Value;
-        // ''' <summary>
-        // ''' 官方源的失败原因。若没有则为 Nothing。
-        // ''' </summary>
-        // Public OfficialError As Exception
     }
 
     /// <summary>
@@ -97,9 +93,6 @@ public class DlClientList
     public static ModLoader.LoaderTask<string, DlClientListResult> DlClientListMojangLoader =
         new("DlClientList Mojang", DlClientListMojangMain);
 
-    private static bool IsNewClientVersionHinted = false;
-
-    // MC 更新提示
     private static bool _DlClientListMojangMain_IsHinted;
 
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
@@ -111,29 +104,7 @@ public class DlClientList
             var Versions = (JArray)Json["versions"];
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
-            // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
-            if (!File.Exists(CacheFilePath))
-                try
-                {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
-                    File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log("[Download] 未列出的版本官方源下载失败: " + ex.Message);
-                }
-
-            try
-            {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
-                Versions.Merge(CachedJson["versions"]);
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
-            }
+            MergeUvmcVersions(Versions, "官方源");
 
             // 确定官方源是否可用
             if (!DlSource.DlPreferMojang)
@@ -199,29 +170,7 @@ public class DlClientList
             var Versions = (JArray)Json["versions"];
             if (Versions.Count < 200)
                 throw new Exception("获取到的版本列表长度不足（" + Json + "）");
-            // 添加 UVMC 项
-            var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
-            if (!File.Exists(CacheFilePath))
-                try
-                {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
-                    File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log("[Download] 未列出的版本镜像源下载失败: " + ex.Message);
-                }
-
-            try
-            {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
-                Versions.Merge(CachedJson["versions"]);
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
-            }
+            MergeUvmcVersions(Versions, "镜像源");
 
             // 检查是否有要求的版本（#5195）
             if (!string.IsNullOrEmpty(Loader.Input))
@@ -238,6 +187,32 @@ public class DlClientList
         catch (Exception ex)
         {
             throw new Exception("Minecraft BMCLAPI 版本列表解析失败（" + Json + "）", ex);
+        }
+    }
+
+    private static void MergeUvmcVersions(JArray versions, string sourceDesc)
+    {
+        var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
+        if (!File.Exists(CacheFilePath))
+            try
+            {
+                var UnlistedJson = (JObject)Requester.FetchJson(
+                    "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
+                File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log($"[Download] 未列出的版本{sourceDesc}下载失败: " + ex.Message);
+            }
+
+        try
+        {
+            var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+            versions.Merge(CachedJson["versions"]);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Download] UVMC 列表加载失败，忽略列表内容");
         }
     }
 

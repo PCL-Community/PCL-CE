@@ -16,32 +16,7 @@ public class DlMod
         var Urls = new List<KeyValuePair<string, int>>();
         var McimUrl = DlSource.DlSourceModGet(Url);
         if ((McimUrl ?? "") != (Url ?? ""))
-            switch (Config.Download.Comp.CompSourceSolution)
-            {
-                case 0:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    break;
-                }
-                case 1:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
-
-                default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
-            }
+            Urls = BuildModRequestUrls(Url, McimUrl, Config.Download.Comp.CompSourceSolution);
 
         var Exs = "";
         foreach (var Source in Urls)
@@ -77,32 +52,7 @@ public class DlMod
         var Urls = new List<KeyValuePair<string, int>>();
         var McimUrl = DlSource.DlSourceModGet(Url);
         if ((McimUrl ?? "") != (Url ?? ""))
-            switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
-            {
-                case 0:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    break;
-                }
-                case 1:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
-
-                default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
-            }
+            Urls = BuildModRequestUrls(Url, McimUrl, allowMirror ? Config.Download.Comp.CompSourceSolution : 2);
 
         var Exs = "";
         foreach (var Source in Urls)
@@ -122,5 +72,30 @@ public class DlMod
             }
 
         throw new Exception(Exs);
+    }
+
+    private static List<KeyValuePair<string, int>> BuildModRequestUrls(string url, string mcimUrl, int sourceSolution)
+    {
+        var urls = new List<KeyValuePair<string, int>>();
+        switch (sourceSolution)
+        {
+            case 0:
+                urls.Add(new KeyValuePair<string, int>(mcimUrl, 5));
+                urls.Add(new KeyValuePair<string, int>(mcimUrl, 10));
+                urls.Add(new KeyValuePair<string, int>(url, 15));
+                break;
+            case 1:
+                urls.Add(new KeyValuePair<string, int>(url, 5));
+                urls.Add(new KeyValuePair<string, int>(mcimUrl, 5));
+                urls.Add(new KeyValuePair<string, int>(url, 15));
+                urls.Add(new KeyValuePair<string, int>(mcimUrl, 10));
+                break;
+            default:
+                urls.Add(new KeyValuePair<string, int>(url, 5));
+                urls.Add(new KeyValuePair<string, int>(url, 15));
+                urls.Add(new KeyValuePair<string, int>(mcimUrl, 10));
+                break;
+        }
+        return urls;
     }
 }

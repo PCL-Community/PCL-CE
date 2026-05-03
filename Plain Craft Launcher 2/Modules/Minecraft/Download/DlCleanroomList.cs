@@ -111,8 +111,7 @@ public class DlCleanroomList
         var Versions = new List<DlCleanroomListEntry>();
         var Json = JArray.Parse(LatestJson);
         foreach (JObject Token in Json)
-            Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
-                { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
+            Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString()));
         if (!Versions.Any())
             throw new Exception("没有可用版本");
         Versions = Versions.OrderByDescending(a => a.Version).ToList();

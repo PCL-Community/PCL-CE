@@ -50,7 +50,7 @@ public abstract class DlForgelikeEntry : IComparable<DlForgelikeEntry>
     {
         get
         {
-            if (ForgeType == 0) return ((DlForgeVersion.DlForgeVersionEntry)this).Category == "installer" ? "jar" : "zip";
+            if (ForgeType == ForgelikeType.Forge) return ((DlForgeVersion.DlForgeVersionEntry)this).Category == "installer" ? "jar" : "zip";
 
             return "jar";
         }
@@ -66,7 +66,7 @@ public abstract class DlForgelikeEntry : IComparable<DlForgelikeEntry>
         get
         {
             // Cleanroom 始终为 False
-            if ((int)ForgeType == 2)
+            if (ForgeType == ForgelikeType.Cleanroom)
                 return false;
             // 虽然很抽象，但确实可以这样判断
             // Forge：1.13+ 的版本号首位都大于 20

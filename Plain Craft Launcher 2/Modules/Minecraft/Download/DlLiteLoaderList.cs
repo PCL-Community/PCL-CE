@@ -24,11 +24,6 @@ public class DlLiteLoaderList
         ///     获取到的数据。
         /// </summary>
         public List<DlLiteLoaderListEntry> Value;
-
-        /// <summary>
-        ///     官方源的失败原因。若没有则为 Nothing。
-        /// </summary>
-        public Exception OfficialError;
     }
 
     public class DlLiteLoaderListEntry
@@ -94,29 +89,8 @@ public class DlLiteLoaderList
             (JObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
-            var Versions = new List<DlLiteLoaderListEntry>();
-            foreach (var Pair in Json)
-            {
-                if (Pair.Key.StartsWithF("1.6") || Pair.Key.StartsWithF("1.5"))
-                    continue;
-                var RealEntry =
-                    (Pair.Value["artefacts"] ?? Pair.Value["snapshots"])["com.mumfrey:liteloader"]["latest"];
-                Versions.Add(new DlLiteLoaderListEntry
-                {
-                    Inherit = Pair.Key,
-                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8,
-                    IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
-                    FileName = "liteloader-installer-" + Pair.Key +
-                               (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
-                    MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
-                    JsonToken = RealEntry
-                });
-            }
-
             Loader.Output = new DlLiteLoaderListResult
-                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
+                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = ParseLiteLoaderVersions((JObject)Result["versions"]) };
         }
         catch (Exception ex)
         {
@@ -137,32 +111,35 @@ public class DlLiteLoaderList
                 "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
-            var Versions = new List<DlLiteLoaderListEntry>();
-            foreach (var Pair in Json)
-            {
-                if (Pair.Key.StartsWithF("1.6") || Pair.Key.StartsWithF("1.5"))
-                    continue;
-                var RealEntry =
-                    (Pair.Value["artefacts"] ?? Pair.Value["snapshots"])["com.mumfrey:liteloader"]["latest"];
-                Versions.Add(new DlLiteLoaderListEntry
-                {
-                    Inherit = Pair.Key,
-                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8,
-                    IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
-                    FileName = "liteloader-installer-" + Pair.Key +
-                               (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
-                    MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
-                    JsonToken = RealEntry
-                });
-            }
-
-            Loader.Output = new DlLiteLoaderListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Versions };
+            Loader.Output = new DlLiteLoaderListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = ParseLiteLoaderVersions((JObject)Result["versions"]) };
         }
         catch (Exception ex)
         {
             throw new Exception("LiteLoader BMCLAPI 版本列表解析失败（" + Result + "）", ex);
         }
+    }
+
+    private static List<DlLiteLoaderListEntry> ParseLiteLoaderVersions(JObject versions)
+    {
+        var entries = new List<DlLiteLoaderListEntry>();
+        foreach (var Pair in versions)
+        {
+            if (Pair.Key.StartsWithF("1.6") || Pair.Key.StartsWithF("1.5"))
+                continue;
+            var RealEntry =
+                (Pair.Value["artefacts"] ?? Pair.Value["snapshots"])["com.mumfrey:liteloader"]["latest"];
+            entries.Add(new DlLiteLoaderListEntry
+            {
+                Inherit = Pair.Key,
+                IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8,
+                IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
+                FileName = "liteloader-installer-" + Pair.Key +
+                           (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
+                MD5 = (string)RealEntry["md5"],
+                ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
+                JsonToken = RealEntry
+            });
+        }
+        return entries;
     }
 }

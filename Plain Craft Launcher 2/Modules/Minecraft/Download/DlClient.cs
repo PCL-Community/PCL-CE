@@ -105,7 +105,6 @@ public class DlClient
                 try
                 {
                     var IndexFile = DlClientAssetIndexGet(Version);
-                    var IndexFileInfo = new FileInfo(IndexFile.LocalPath);
                     if (AssetsIndexBehaviour != AssetsIndexExistsBehaviour.AlwaysDownload &&
                         IndexFile.Check.Check(IndexFile.LocalPath) is null)
                         Task.Output = new List<DownloadFile>();

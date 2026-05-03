@@ -154,7 +154,7 @@ public class DlSource
             }
 
             // 检查加载器失败或超时
-            for (int i = 0, loopTo = LoaderList.Count - 1; i <= loopTo; i++)
+            for (int i = 0; i < LoaderList.Count; i++)
             {
                 if (WaitCycle != LoaderList[i].Value * 100)
                     continue;
@@ -165,7 +165,7 @@ public class DlSource
                 else
                 {
                     Exception ErrorInfo = null;
-                    for (int ii = 0, loopTo1 = LoaderList.Count - 1; ii <= loopTo1; ii++)
+                    for (int ii = 0; ii < LoaderList.Count; ii++)
                     {
                         LoaderList[ii].Key.Input = default;
                         if (LoaderList[ii].Key.Error is not null)
