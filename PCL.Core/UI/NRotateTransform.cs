@@ -70,12 +70,12 @@ public struct NRotateTransform :
     
     #region 运算符重载
 
-    public static NRotateTransform operator +(NRotateTransform a, NRotateTransform b) => new(a.Angle + b.Angle);
-    public static NRotateTransform operator -(NRotateTransform a, NRotateTransform b) => new(a.Angle - b.Angle);
-    public static NRotateTransform operator *(NRotateTransform a, float b) => new(a.Angle * b);
+    public static NRotateTransform operator +(NRotateTransform a, NRotateTransform b) => new(a.Angle + b.Angle, a.CenterX + b.CenterX, a.CenterY + b.CenterY);
+    public static NRotateTransform operator -(NRotateTransform a, NRotateTransform b) => new(a.Angle - b.Angle, a.CenterX - b.CenterX, a.CenterY - b.CenterY);
+    public static NRotateTransform operator *(NRotateTransform a, float b) => new(a.Angle * b, a.CenterX * b, a.CenterY * b);
 
     public static NRotateTransform operator /(NRotateTransform a, float b) =>
-        b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NRotateTransform(a.Angle / b);
+        b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NRotateTransform(a.Angle / b, a.CenterX / b, a.CenterY / b);
 
     public static bool operator ==(NRotateTransform a, NRotateTransform b) => a._rotate == b._rotate;
     public static bool operator !=(NRotateTransform a, NRotateTransform b) => a._rotate != b._rotate;
