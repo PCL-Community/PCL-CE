@@ -8,6 +8,8 @@ namespace PCL.Core.Utils.OS;
 
 public static class SystemInfo
 {
+    private static readonly object _lock = new();
+
     public static string CPUName = null!;
 
     /// <summary>
@@ -42,43 +44,47 @@ public static class SystemInfo
     /// </summary>
     public static void GetSystemInfo()
     {
-        // CPU
-        try
+        lock (_lock)
         {
-            using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
-            foreach (ManagementObject queryObj in searcher.Get())
+            // CPU
+            try
             {
-                CPUName = queryObj["Name"].ToString().Trim();
-                break; // 通常只需要第一个CPU的信息
+                using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
+                foreach (ManagementObject queryObj in searcher.Get())
+                {
+                    CPUName = queryObj["Name"].ToString().Trim();
+                    break; // 通常只需要第一个CPU的信息
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "获取 CPU 信息时出错");
-        }
-
-        // GPU
-        try
-        {
-            using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
-            foreach (ManagementObject queryObj in searcher.Get())
+            catch (Exception ex)
             {
-                var gpuInfo = new GPUInfo();
-
-                if (queryObj["Name"] is not null)
-                    gpuInfo.Name = queryObj["Name"].ToString();
-                if (queryObj["AdapterRAM"] is not null and not DBNull)
-                    gpuInfo.Memory = Convert.ToInt64(queryObj["AdapterRAM"]) / (1024 * 1024);
-                if (queryObj["DriverVersion"] is not null)
-                    gpuInfo.DriverVersion = queryObj["DriverVersion"].ToString();
-
-                GPUs.Add(gpuInfo);
+                LogWrapper.Warn(ex, "获取 CPU 信息时出错");
             }
-            LogWrapper.Info("已获取系统环境信息");
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "获取 GPU 信息时出错");
+
+            // GPU
+            try
+            {
+                GPUs.Clear();
+                using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
+                foreach (ManagementObject queryObj in searcher.Get())
+                {
+                    var gpuInfo = new GPUInfo();
+
+                    if (queryObj["Name"] is not null)
+                        gpuInfo.Name = queryObj["Name"].ToString();
+                    if (queryObj["AdapterRAM"] is not null and not DBNull)
+                        gpuInfo.Memory = Convert.ToInt64(queryObj["AdapterRAM"]) / (1024 * 1024);
+                    if (queryObj["DriverVersion"] is not null)
+                        gpuInfo.DriverVersion = queryObj["DriverVersion"].ToString();
+
+                    GPUs.Add(gpuInfo);
+                }
+                LogWrapper.Info("已获取系统环境信息");
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "获取 GPU 信息时出错");
+            }
         }
     }
 }
