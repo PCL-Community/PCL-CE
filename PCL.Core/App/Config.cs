@@ -227,6 +227,27 @@ public static partial class Config
         [ConfigItem<bool>("DetailedInstanceClassification", false, ConfigSource.Local)] public partial bool DetailedInstanceClassification {  get; set; }
 
         /// <summary>
+        /// 本地化配置。
+        /// </summary>
+        [ConfigGroup("Localization", ConfigSource.Local)] partial class LocalizationConfigGroup
+        {
+            /// <summary>
+            /// UI 语言。auto 表示跟随系统语言。
+            /// </summary>
+            [ConfigItem<string>("UiLanguage", "auto")] public partial string Language { get; set; }
+
+            /// <summary>
+            /// UI 展示格式所使用的区域性。auto 表示跟随系统区域格式。
+            /// </summary>
+            [ConfigItem<string>("UiFormatCulture", "auto")] public partial string FormatCulture { get; set; }
+
+            /// <summary>
+            /// 区域覆盖。auto 表示自动判断。
+            /// </summary>
+            [ConfigItem<string>("UiRegion", "auto")] public partial string Region { get; set; }
+        }
+
+        /// <summary>
         /// 界面主题配置。
         /// </summary>
         [ConfigGroup("Theme")] partial class ThemeConfigGroup

@@ -1,0 +1,19 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:String x:Key="Localization.Meta.Code">en-US</sys:String>
+    <sys:String x:Key="Localization.Meta.Name">English (US)</sys:String>
+    <sys:String x:Key="Localization.Meta.EnglishName">English (US)</sys:String>
+
+    <sys:String x:Key="Localization.Language.Auto">Follow system</sys:String>
+    <sys:String x:Key="Localization.FormatCulture.Auto">Follow system regional format</sys:String>
+
+    <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
+    <sys:String x:Key="Common.Action.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Common.Action.Close">Close</sys:String>
+    <sys:String x:Key="Common.Action.Search">Search</sys:String>
+    <sys:String x:Key="Common.Action.Refresh">Refresh</sys:String>
+    <sys:String x:Key="Common.Action.Reset">Reset</sys:String>
+</ResourceDictionary>
