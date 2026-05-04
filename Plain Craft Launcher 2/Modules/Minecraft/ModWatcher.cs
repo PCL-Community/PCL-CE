@@ -120,7 +120,7 @@ public static class ModWatcher
             }
             case GameLogLevel.Info:
             {
-                GetColorBrush(ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
+                GetColorBrush(ThemeManager.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
                 break;
             }
             case GameLogLevel.Warn:
@@ -137,7 +137,7 @@ public static class ModWatcher
             }
         }
 
-        return GetColorBrush(ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
+        return GetColorBrush(ThemeManager.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo");
     }
 
     // 实时日志处理

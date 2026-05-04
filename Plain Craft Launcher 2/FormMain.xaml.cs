@@ -59,8 +59,8 @@ public partial class FormMain
         // 刷新主题
         // ThemeCheckAll(False)
         // ThemeRefreshColor()
-        ThemeService.ColorModeChanged += (_, _) => ModSecret.ThemeRefresh();
-        ThemeService.ColorThemeChanged += theme => ModSecret.ThemeRefresh((int)theme);
+        ThemeService.ColorModeChanged += (_, _) => ThemeManager.ThemeRefresh();
+        ThemeService.ColorThemeChanged += theme => ThemeManager.ThemeRefresh((int)theme);
         // 窗体参数初始化
         ModMain.FrmMain = this;
         ModMain.FrmLaunchLeft = new PageLaunchLeft();
@@ -195,7 +195,7 @@ public partial class FormMain
                 "M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5");
         // 加载窗口
 
-        ModSecret.ThemeRefresh();
+        ThemeManager.ThemeRefresh();
 
         Lifecycle.CurrentApplication.Resources["BlurSamplingRate"] = Config.Preference.Blur.SamplingRate * 0.01d;
         Lifecycle.CurrentApplication.Resources["BlurType"] = Config.Preference.Blur.KernelType;
@@ -313,15 +313,15 @@ public partial class FormMain
                 {
                     ModDownload.DlClientListMojangLoader.Start(1); // PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                     RunCountSub();
-                    ModSecret.ServerLoader.Start(1);
-                    LauncherDispatcher.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
+                    UpdateManager.ServerLoader.Start(1);
+                    ModBase.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
                 }
                 catch (Exception ex)
                 {
                     LauncherLogger.Log(ex, "初始化加载池运行失败", LauncherLogger.LogLevel.Feedback);
                 }
 
-                ModSecret.GetSystemInfo();
+                SystemInfo.GetSystemInfo();
             }
             catch (Exception ex)
             {
@@ -336,9 +336,6 @@ public partial class FormMain
     private void RunCountSub()
     {
         States.System.StartupCount += 1;
-        if (States.System.StartupCount < 99) return;
-        if (ModSecret.ThemeUnlock(6, false))
-            ModMain.MyMsgBox("你已经打开了 99 次 PCL 社区版啦，感谢你长期以来的支持！" + "\r\n" + "隐藏主题 铁杆粉 未解锁！社区版不包含隐藏主题！");
     }
 
     // 升级与降级事件
@@ -366,32 +363,6 @@ public partial class FormMain
         // 被移除的窗口设置选项
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
-        // 修改主题设置项名称
-        if (LowerVersionCode <= 207)
-        {
-            var UnlockedTheme = new List<string> { "2" };
-            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV1.ToString().Split("|")));
-            UnlockedTheme.AddRange(new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|")));
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Distinct().ToList().Join("|");
-        }
-
-        // 重置欧皇彩
-        if (LastVersionCode <= 115 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("13"))
-        {
-            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
-            UnlockedTheme.Remove("13");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
-            ModMain.MyMsgBox("由于新版 PCL 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
-        }
-
-        // 重置滑稽彩
-        if (LastVersionCode <= 152 && States.UI.ThemeHiddenV2.ToString().Split("|").Contains("12"))
-        {
-            var UnlockedTheme = new List<string>(States.UI.ThemeHiddenV2.ToString().Split("|"));
-            UnlockedTheme.Remove("12");
-            States.UI.ThemeHiddenV2 = UnlockedTheme.Join("|");
-            ModMain.MyMsgBox("由于新版 PCL 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" + "\r\n" + "多谢各位的理解啦！", "重新解锁提醒");
-        }
 
         // 移动自定义皮肤
         if (LastVersionCode <= 161 && File.Exists(LauncherPaths.ExecutableDirectory + @"PCL\CustomSkin.png") &&
@@ -425,7 +396,7 @@ public partial class FormMain
         }
 
         // 更新后展示社区版提示
-        ModSecret.ShowCEAnnounce();
+        UpdateManager.ShowCEAnnounce();
         // 输出更新日志
         if (LastVersionCode <= 0)
             return;
@@ -660,8 +631,8 @@ public partial class FormMain
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         LauncherEnvironment.IsProgramEnded = true;
         ModAnimation.AniControlEnabled += 1;
-        if (ModSecret.IsUpdateWaitingRestart && !isUpdating)
-            ModSecret.UpdateRestart(false, false);
+        if (UpdateManager.IsUpdateWaitingRestart && !isUpdating)
+            UpdateManager.UpdateRestart(false, false);
         if (ReturnCode == ProcessReturnValues.Exception)
         {
             if (!IsLogShown)
@@ -1298,7 +1269,7 @@ public partial class FormMain
             {
                 LauncherLogger.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
                 if (Config.Preference.Theme.ColorMode == ColorMode.System &
-                    (ModSecret.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
+                    (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }
 
@@ -2174,12 +2145,12 @@ public partial class FormMain
     // 更新重启
     private void BtnExtraUpdateRestart_Click(object sender, MouseButtonEventArgs e)
     {
-        ModSecret.UpdateRestart(true);
+        UpdateManager.UpdateRestart(true);
     }
 
     private bool BtnExtraUpdateRestart_ShowCheck()
     {
-        return ModSecret.IsUpdateWaitingRestart;
+        return UpdateManager.IsUpdateWaitingRestart;
     }
 
     // 音乐

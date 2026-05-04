@@ -194,7 +194,6 @@ public partial class PageLaunchLeft
         // 愚人节处理
         if (ModMain.IsAprilEnabled && !ModMain.IsAprilGiveup)
         {
-            ModSecret.ThemeUnlock(12, false, "隐藏主题 滑稽彩 已解锁！");
             ModMain.IsAprilGiveup = true;
             ModMain.FrmLaunchLeft.AprilScaleTrans.ScaleX = 1d;
             ModMain.FrmLaunchLeft.AprilScaleTrans.ScaleY = 1d;

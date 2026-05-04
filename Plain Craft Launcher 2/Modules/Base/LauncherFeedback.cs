@@ -36,8 +36,8 @@ public static class LauncherFeedback
 
     public static bool CanFeedback(bool showHint)
     {
-        var stat = ModSecret.GetVersionStatus();
-        if (stat != ModSecret.VersionStatus.Latest)
+        var stat = UpdateManager.GetVersionStatus();
+        if (stat != UpdateEnums.VersionStatus.Latest)
         {
             if (showHint)
                 Execute(sink => sink.CanFeedback(true), false, "show feedback unavailable message");

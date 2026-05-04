@@ -47,7 +47,7 @@ public static class FileDownloader
     private static async Task DownloadCoreAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
-        var urlList = urls.Select(url => ModSecret.SecretCdnSign(url.Trim())).Where(url => !string.IsNullOrWhiteSpace(url))
+        var urlList = urls.Select(url => RequestSigning.SecretCdnSign(url.Trim())).Where(url => !string.IsNullOrWhiteSpace(url))
             .Distinct().ToList();
         if (urlList.Count == 0)
             throw new ArgumentException("未提供可用的下载地址", nameof(urls));

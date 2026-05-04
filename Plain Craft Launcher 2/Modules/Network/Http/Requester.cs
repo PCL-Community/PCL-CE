@@ -97,8 +97,8 @@ public static class Requester
     private static async Task<string> FetchOnceAsync(string url, FetchParam param)
     {
         HttpResponseMessage? response = null;
-        var request = new HttpRequestMessage(ParseMethod(param.Method), ModSecret.SecretCdnSign(url));
-        ModSecret.SecretHeadersSign(url, ref request, param.UseBrowserUserAgent);
+        var request = new HttpRequestMessage(ParseMethod(param.Method), RequestSigning.SecretCdnSign(url));
+        RequestSigning.SecretHeadersSign(url, ref request, param.UseBrowserUserAgent);
         try
         {
             if (!string.IsNullOrWhiteSpace(param.Accept))

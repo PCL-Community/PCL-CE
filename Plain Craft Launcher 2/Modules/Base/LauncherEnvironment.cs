@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -35,7 +36,7 @@ public static class LauncherEnvironment
     public static string Lang = "zh_CN";
     public static long ApplicationStartTick = TimeUtils.GetTimeTick();
     public static DateTime ApplicationOpenTime = DateTime.Now;
-    public static string UniqueAddress = ModSecret.SecretGetUniqueAddress();
+    public static string UniqueAddress = Identify.LauncherId;
     public static bool IsProgramEnded;
     public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
     public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;

@@ -72,7 +72,7 @@ public static class LauncherFileSystem
         }
     }
 
-    public static void WriteFile(string filePath, string text, bool append = false, Encoding? encoding = null)
+    public static bool WriteFile(string filePath, string text, bool append = false, Encoding? encoding = null)
     {
         filePath = ResolveLauncherRelativePath(filePath);
         Directory.CreateDirectory(LauncherPaths.GetDirectoryFromPath(filePath));
@@ -85,13 +85,16 @@ public static class LauncherFileSystem
         {
             File.WriteAllBytes(filePath, encoding is null ? new UTF8Encoding(false).GetBytes(text) : encoding.GetBytes(text));
         }
+
+        return true;
     }
 
-    public static void WriteFile(string filePath, byte[] content, bool append = false)
+    public static bool WriteFile(string filePath, byte[] content, bool append = false)
     {
         filePath = ResolveLauncherRelativePath(filePath);
         Directory.CreateDirectory(LauncherPaths.GetDirectoryFromPath(filePath));
         File.WriteAllBytes(filePath, content);
+        return true;
     }
 
     public static bool WriteFile(string filePath, Stream stream)

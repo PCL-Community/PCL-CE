@@ -367,7 +367,7 @@ public class MyTextBox : TextBox
 
     private void RefreshTextColor()
     {
-        var NewColor = IsEnabled ? ModSecret.ColorGray1 : ModSecret.ColorGray4;
+        var NewColor = IsEnabled ? ThemeManager.ColorGray1 : ThemeManager.ColorGray4;
         if (((SolidColorBrush)Foreground).Color.R == NewColor.R)
             return;
         if (IsLoaded && ModAnimation.AniControlEnabled == 0 && !string.IsNullOrEmpty(Text))

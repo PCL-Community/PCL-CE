@@ -72,12 +72,12 @@ public partial class ModSetup : IConfigScope
 
     public void UiLauncherTheme(int Value)
     {
-        ModSecret.ThemeRefresh(Value);
+        ThemeManager.ThemeRefresh(Value);
     }
 
     public void UiBackgroundColorful(bool Value)
     {
-        ModSecret.ThemeRefresh();
+        ThemeManager.ThemeRefresh();
     }
 
     public void UiLockWindowSize(bool Value)

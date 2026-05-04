@@ -312,11 +312,11 @@ public partial class MyRadioBox : IMyRadio
             {
                 // 不可用
                 ModAnimation.AniStart(
-                    ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty, ModSecret.ColorGray4 - ShapeBorder.Stroke,
+                    ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty, ThemeManager.ColorGray4 - ShapeBorder.Stroke,
                         AnimationTimeOfMouseOut), "MyRadioBox BorderColor " + Uuid);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
-                        ModSecret.ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut),
+                        ThemeManager.ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut),
                     "MyRadioBox TextColor " + Uuid);
             }
         }

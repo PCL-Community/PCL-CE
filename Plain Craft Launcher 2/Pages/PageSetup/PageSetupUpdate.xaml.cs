@@ -34,12 +34,13 @@ public partial class PageSetupUpdate
         try
         {
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(LauncherEnvironment.VersionBaseName)
-            if (await ModSecret.RemoteServer.IsLatestAsync(
-                    ModSecret.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
+            if (await UpdateManager.RemoteServer.IsLatestAsync(
+                    UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                     LauncherEnvironment.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
-                    SemVer.Parse(LauncherEnvironment.VersionBaseName),
-                    LauncherEnvironment.VersionCode))
+                    SemVer.Parse(ModBase.VersionBaseName),
+                    ModBase.VersionCode))
             {
                 LauncherLogger.Log("[Update] 已是最新版本");
                 return UpdateStatus.Latest;
@@ -69,8 +70,8 @@ public partial class PageSetupUpdate
                 Exception checkUpdateEx = null;
                 try
                 {
-                    UpdateInfo = ModSecret.RemoteServer.GetLatestVersion(
-                        ModSecret.IsCurrentVersionBeta
+                    UpdateInfo = UpdateManager.RemoteServer.GetLatestVersion(
+                        UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, LauncherEnvironment.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
                     TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
@@ -96,12 +97,13 @@ public partial class PageSetupUpdate
                     return;
                 }
 
-                if (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == LoadState.Loading)
+
+                if (UpdateManager.UpdateLoader is not null && UpdateManager.UpdateLoader.State == LoadState.Loading)
                 {
                     BtnUpdate_Timer();
                     BtnUpdate.IsEnabled = false;
                 }
-                else if (ModSecret.IsUpdateWaitingRestart)
+                else if (UpdateManager.IsUpdateWaitingRestart)
                 {
                     BtnUpdate.Text = "重启安装";
                     BtnUpdate.IsEnabled = true;
@@ -137,9 +139,10 @@ public partial class PageSetupUpdate
 
     public void BtnUpdate_Timer()
     {
-        while (ModSecret.UpdateLoader is not null && ModSecret.UpdateLoader.State == LoadState.Loading)
+
+        while (UpdateManager.UpdateLoader is not null && UpdateManager.UpdateLoader.State == LoadState.Loading)
         {
-            LauncherDispatcher.RunInUi(() => BtnUpdate.Text = $"{Math.Round(ModSecret.UpdateLoader.Progress, 2)}%");
+            ModBase.RunInUi(() => BtnUpdate.Text = $"{Math.Round(UpdateManager.UpdateLoader.Progress, 2)}%");
             Thread.Sleep(200);
         }
     }
@@ -157,9 +160,9 @@ public partial class PageSetupUpdate
             return;
         }
 
-        if (ModSecret.IsUpdateWaitingRestart) ModSecret.UpdateRestart(true);
+        if (UpdateManager.IsUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
         // 开始更新流程
-        ModSecret.UpdateStart(ModSecret.UpdateType.UpdateNow);
+        UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
     }
 
     private void BtnChangelogDetail_Click(object sender, EventArgs e)

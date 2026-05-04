@@ -29,6 +29,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
