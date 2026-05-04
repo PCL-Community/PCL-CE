@@ -95,85 +95,32 @@ public class DlNeoForgeList
             loader.IsForceRestarting);
     }
 
-    /// <summary>
-    ///     NeoForge 版本列表，官方源。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlNeoForgeListResult> DlNeoForgeListOfficialLoader =
-        new("DlNeoForgeList Official", DlNeoForgeListOfficialMain);
+        new("DlNeoForgeList Official",
+            l => l.Output = FetchNeoForgeList(
+                DownloadRegistry.NeoForgeVersionsLatest, DownloadRegistry.NeoForgeVersionsLegacy,
+                "NeoForge 官方源", true));
 
-    private static void DlNeoForgeListOfficialMain(ModLoader.LoaderTask<int, DlNeoForgeListResult> loader)
-    {
-        // 获取版本列表 JSON
-        var resultLatest = Requester.FetchJson(
-            DownloadRegistry.NeoForgeVersionsLatest,
-            new RequestParam
-            {
-                UseBrowserUserAgent = true
-            }).ToString();
-        var resultLegacy = Requester.FetchJson(
-            DownloadRegistry.NeoForgeVersionsLegacy,
-            new RequestParam
-            {
-                UseBrowserUserAgent = true
-            }).ToString();
-        if (resultLatest.Length < 100 || resultLegacy.Length < 100)
-            throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
-        // 解析
-        try
-        {
-            loader.Output = new DlNeoForgeListResult
-            {
-                IsOfficial = true,
-                SourceName = "NeoForge 官方源",
-                Value = GetNeoForgeEntries(resultLatest, resultLegacy)
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(
-                "NeoForge 官方源版本列表解析失败（" + resultLatest + "\r\n" + "\r\n" + resultLegacy + "）", ex);
-        }
-    }
-
-    /// <summary>
-    ///     NeoForge 版本列表，BMCLAPI。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlNeoForgeListResult> DlNeoForgeListBmclapiLoader =
-        new("DlNeoForgeList Bmclapi", DlNeoForgeListBmclapiMain);
+        new("DlNeoForgeList Bmclapi",
+            l => l.Output = FetchNeoForgeList(
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLatest),
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLegacy),
+                "BMCLAPI", false));
 
-    public static void DlNeoForgeListBmclapiMain(ModLoader.LoaderTask<int, DlNeoForgeListResult> loader)
+    private static DlNeoForgeListResult FetchNeoForgeList(string latestUrl, string legacyUrl,
+        string sourceName, bool isOfficial)
     {
-        // 获取版本列表 JSON
-        var resultLatest = Requester.FetchJson(
-            DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLatest),
-            new RequestParam
-            {
-                UseBrowserUserAgent = true
-            }).ToString();
-        var resultLegacy = Requester.FetchJson(
-            DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLegacy),
-            new RequestParam
-            {
-                UseBrowserUserAgent = true
-            }).ToString();
+        var param = new RequestParam { UseBrowserUserAgent = true };
+        var resultLatest = Requester.FetchJson(latestUrl, param).ToString();
+        var resultLegacy = Requester.FetchJson(legacyUrl, param).ToString();
         if (resultLatest.Length < 100 || resultLegacy.Length < 100)
             throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
-        // 解析
-        try
+        return new DlNeoForgeListResult
         {
-            loader.Output = new DlNeoForgeListResult
-            {
-                IsOfficial = false,
-                SourceName = "BMCLAPI",
-                Value = GetNeoForgeEntries(resultLatest, resultLegacy)
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(
-                "NeoForge BMCLAPI 版本列表解析失败（" + resultLatest + "\r\n" + "\r\n" + resultLegacy + "）",
-                ex);
-        }
+            IsOfficial = isOfficial, SourceName = sourceName,
+            Value = GetNeoForgeEntries(resultLatest, resultLegacy)
+        };
     }
 
     private static List<DlNeoForgeListEntry> GetNeoForgeEntries(string latestJson, string latestLegacyJson)

@@ -39,50 +39,31 @@ public class DlForgeList
             Loader.IsForceRestarting);
     }
 
-    /// <summary>
-    ///     Forge 版本列表，官方源。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlForgeListResult> DlForgeListOfficialLoader =
-        new("DlForgeList Official", DlForgeListOfficialMain);
+        new("DlForgeList Official",
+            l => l.Output = FetchForgeList(
+                DownloadRegistry.ForgeKnownVersions, "Forge 官方源", true,
+                "(?<=a href=\"index_)[0-9.]+(_pre[0-9]?)?(?=.html)", "1.2.4",
+                new RequestParam { Encoding = Encoding.Default, UseBrowserUserAgent = true }));
 
-    private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
-    {
-        var Result = Requester.FetchJson(
-            DownloadRegistry.ForgeKnownVersions, new RequestParam
-            {
-                Encoding = Encoding.Default,
-                UseBrowserUserAgent = true
-            })?.ToString() ?? "";
-        if (Result.Length < 200)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
-        // 获取所有版本信息
-        var Names = Result.RegexSearch("(?<=a href=\"index_)[0-9.]+(_pre[0-9]?)?(?=.html)");
-        Names.Add("1.2.4"); // 1.2.4 不会被匹配上
-        if (Names.Count < 10)
-            throw new Exception("获取到的版本数量不足（" + Result + "）");
-        Loader.Output = new DlForgeListResult { IsOfficial = true, SourceName = "Forge 官方源", Value = Names };
-    }
-
-    /// <summary>
-    ///     Forge 版本列表，BMCLAPI。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlForgeListResult> DlForgeListBmclapiLoader =
-        new("DlForgeList Bmclapi", DlForgeListBmclapiMain);
+        new("DlForgeList Bmclapi",
+            l => l.Output = FetchForgeList(
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.ForgeKnownVersions), "BMCLAPI", false,
+                "[0-9.]+(_pre[0-9]?)?", null,
+                new RequestParam { Encoding = Encoding.Default }));
 
-    private static void DlForgeListBmclapiMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
+    private static DlForgeListResult FetchForgeList(string url, string sourceName, bool isOfficial,
+        string versionRegex, string missingVersion, RequestParam param)
     {
-        var Result =
-                Requester.FetchJson(DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.ForgeKnownVersions),
-                new RequestParam
-                {
-                    Encoding = Encoding.Default,
-                })?.ToString() ?? "";
-        if (Result.Length < 200)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
-        // 获取所有版本信息
-        var Names = Result.RegexSearch("[0-9.]+(_pre[0-9]?)?");
-        if (Names.Count < 10)
-            throw new Exception("获取到的版本数量不足（" + Result + "）");
-        Loader.Output = new DlForgeListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Names };
+        var result = Requester.FetchJson(url, param)?.ToString() ?? "";
+        if (result.Length < 200)
+            throw new Exception("获取到的版本列表长度不足（" + result + "）");
+        var names = result.RegexSearch(versionRegex);
+        if (missingVersion is not null)
+            names.Add(missingVersion);
+        if (names.Count < 10)
+            throw new Exception("获取到的版本数量不足（" + result + "）");
+        return new DlForgeListResult { IsOfficial = isOfficial, SourceName = sourceName, Value = names };
     }
 }

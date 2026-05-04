@@ -39,48 +39,21 @@ public class DlFabricList
             Loader.IsForceRestarting);
     }
 
-    /// <summary>
-    ///     Fabric 列表，官方源。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlFabricListResult> DlFabricListOfficialLoader =
-        new("DlFabricList Official", DlFabricListOfficialMain);
+        new("DlFabricList Official", l => l.Output = FetchFabricList(DownloadRegistry.FabricMeta, "Fabric 官方源", true));
 
-    private static void DlFabricListOfficialMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
-    {
-        var Result = (JObject)Requester.FetchJson(DownloadRegistry.FabricMeta);
-        try
-        {
-            var Output = new DlFabricListResult { IsOfficial = true, SourceName = "Fabric 官方源", Value = Result };
-            if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
-            Loader.Output = Output;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Fabric 官方源版本列表解析失败（" + Result + "）", ex);
-        }
-    }
-
-    /// <summary>
-    ///     Fabric 列表，BMCLAPI。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlFabricListResult> DlFabricListBmclapiLoader =
-        new("DlFabricList Bmclapi", DlFabricListBmclapiMain);
+        new("DlFabricList Bmclapi",
+            l => l.Output = FetchFabricList(
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.FabricMeta), "BMCLAPI", false));
 
-    private static void DlFabricListBmclapiMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
+    private static DlFabricListResult FetchFabricList(string url, string sourceName, bool isOfficial)
     {
-        var Result = (JObject)Requester.FetchJson(DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.FabricMeta));
-        try
-        {
-            var Output = new DlFabricListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Result };
-            if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
-            Loader.Output = Output;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Fabric BMCLAPI 版本列表解析失败（" + Result + "）", ex);
-        }
+        var result = (JObject)Requester.FetchJson(url);
+        var output = new DlFabricListResult { IsOfficial = isOfficial, SourceName = sourceName, Value = result };
+        if (output.Value["game"] is null || output.Value["loader"] is null || output.Value["installer"] is null)
+            throw new Exception("获取到的列表缺乏必要项");
+        return output;
     }
 
     /// <summary>

@@ -78,46 +78,23 @@ public class DlLiteLoaderList
             Loader.IsForceRestarting);
     }
 
-    /// <summary>
-    ///     LiteLoader 版本列表，官方源。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlLiteLoaderListResult> DlLiteLoaderListOfficialLoader =
-        new("DlLiteLoaderList Official", DlLiteLoaderListOfficialMain);
+        new("DlLiteLoaderList Official",
+            l => l.Output = FetchLiteLoaderList(DownloadRegistry.LiteLoaderVersions, "LiteLoader 官方源", true));
 
-    private static void DlLiteLoaderListOfficialMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
-    {
-        var Result =
-            (JObject)Requester.FetchJson(DownloadRegistry.LiteLoaderVersions);
-        try
-        {
-            Loader.Output = new DlLiteLoaderListResult
-                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = ParseLiteLoaderVersions((JObject)Result["versions"]) };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("LiteLoader 官方源版本列表解析失败（" + Result + "）", ex);
-        }
-    }
-
-    /// <summary>
-    ///     LiteLoader 版本列表，BMCLAPI。
-    /// </summary>
     public static ModLoader.LoaderTask<int, DlLiteLoaderListResult> DlLiteLoaderListBmclapiLoader =
-        new("DlLiteLoaderList Bmclapi", DlLiteLoaderListBmclapiMain);
+        new("DlLiteLoaderList Bmclapi",
+            l => l.Output = FetchLiteLoaderList(
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.LiteLoaderVersions), "BMCLAPI", false));
 
-    private static void DlLiteLoaderListBmclapiMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
+    private static DlLiteLoaderListResult FetchLiteLoaderList(string url, string sourceName, bool isOfficial)
     {
-        var Result =
-            (JObject)Requester.FetchJson(
-                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.LiteLoaderVersions));
-        try
+        var result = (JObject)Requester.FetchJson(url);
+        return new DlLiteLoaderListResult
         {
-            Loader.Output = new DlLiteLoaderListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = ParseLiteLoaderVersions((JObject)Result["versions"]) };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("LiteLoader BMCLAPI 版本列表解析失败（" + Result + "）", ex);
-        }
+            IsOfficial = isOfficial, SourceName = sourceName,
+            Value = ParseLiteLoaderVersions((JObject)result["versions"])
+        };
     }
 
     private static List<DlLiteLoaderListEntry> ParseLiteLoaderVersions(JObject versions)
