@@ -612,6 +612,11 @@ public class ModSetup : IConfigScope
         PageSetupUI.HiddenRefresh();
     }
 
+    public void UiHiddenSetupLauncherLanguage(bool Value)
+    {
+        PageSetupUI.HiddenRefresh();
+    }
+
     public void UiHiddenSetupLauncherMisc(bool Value)
     {
         PageSetupUI.HiddenRefresh();

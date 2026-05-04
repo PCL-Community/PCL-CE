@@ -4,10 +4,18 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <sys:String x:Key="Localization.Meta.Code">zh-CN</sys:String>
-    <sys:String x:Key="Localization.Meta.Name">简体中文</sys:String>
-    <sys:String x:Key="Localization.Meta.EnglishName">Chinese Simplified</sys:String>
+    <sys:String x:Key="Localization.Meta.Name">简体中文（中国大陆）</sys:String>
 
-    <sys:String x:Key="Localization.Language.Auto">跟随系统</sys:String>
+    <sys:String x:Key="Localization.Language.Auto">跟随系统（{0}）</sys:String>
+
+    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">同步界面语言</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Title">语言</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.CardTitle">语言</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">界面语言</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">区域格式</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持即时语言切换，后续迁移现有页面文字后将逐步完整生效。</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Changed">语言设置已更新</sys:String>
+
     <sys:String x:Key="Localization.FormatCulture.Auto">跟随系统区域格式</sys:String>
 
     <sys:String x:Key="Common.Action.Confirm">确定</sys:String>
@@ -16,4 +24,9 @@
     <sys:String x:Key="Common.Action.Search">搜索</sys:String>
     <sys:String x:Key="Common.Action.Refresh">刷新</sys:String>
     <sys:String x:Key="Common.Action.Reset">重置</sys:String>
+
+    <sys:String x:Key="Main.Title.Launch">启动</sys:String>
+    <sys:String x:Key="Main.Title.Download">下载</sys:String>
+    <sys:String x:Key="Main.Title.Settings">设置</sys:String>
+    <sys:String x:Key="Main.Title.Tools">工具</sys:String>
 </ResourceDictionary>

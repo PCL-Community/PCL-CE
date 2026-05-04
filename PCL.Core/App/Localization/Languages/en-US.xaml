@@ -5,9 +5,17 @@
 
     <sys:String x:Key="Localization.Meta.Code">en-US</sys:String>
     <sys:String x:Key="Localization.Meta.Name">English (US)</sys:String>
-    <sys:String x:Key="Localization.Meta.EnglishName">English (US)</sys:String>
 
-    <sys:String x:Key="Localization.Language.Auto">Follow system</sys:String>
+    <sys:String x:Key="Localization.Language.Auto">Follow system ({0})</sys:String>
+
+    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">Follow UI language</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Title">Language</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.CardTitle">Language</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">Display language</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">Regional format</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">Only newly migrated interfaces can switch language immediately for now. Existing page text will take effect gradually after migration.</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
+
     <sys:String x:Key="Localization.FormatCulture.Auto">Follow system regional format</sys:String>
 
     <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
@@ -16,4 +24,9 @@
     <sys:String x:Key="Common.Action.Search">Search</sys:String>
     <sys:String x:Key="Common.Action.Refresh">Refresh</sys:String>
     <sys:String x:Key="Common.Action.Reset">Reset</sys:String>
+    
+    <sys:String x:Key="Main.Title.Launch">Launch</sys:String>
+    <sys:String x:Key="Main.Title.Download">Download</sys:String>
+    <sys:String x:Key="Main.Title.Settings">Settings</sys:String>
+    <sys:String x:Key="Main.Title.Tools">Tools</sys:String>
 </ResourceDictionary>

@@ -389,6 +389,7 @@
                             <ColumnDefinition Width="0.8*" />
                             <ColumnDefinition Width="0.8*" />
                             <ColumnDefinition Width="1.0*" />
+                            <ColumnDefinition Width="1.0*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="4" />
@@ -425,19 +426,22 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="6"
                                           Text="个性化" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="杂项"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="语言"
+                                          x:Name="CheckHiddenSetupLauncherLanguage" Tag="UiHiddenSetupLauncherLanguage"
+                                          Change="CheckBoxChange" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="杂项"
                                           x:Name="CheckHiddenLauncherMisc" Tag="UiHiddenSetupLauncherMisc"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4"
                                           Text="软件更新" x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4" Text="关于"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="关于"
                                           x:Name="CheckHiddenSetupAbout" Tag="UiHiddenSetupAbout"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="反馈"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="反馈"
                                           x:Name="CheckHiddenSetupFeedback" Tag="UiHiddenSetupFeedback"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="7"
                                           Text="查看日志" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
                                           Change="CheckBoxChange" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 工具" />

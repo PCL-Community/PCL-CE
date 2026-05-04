@@ -22,6 +22,11 @@ public sealed partial class LocalizationService
     public const string Auto = "auto";
 
     /// <summary>
+    ///     展示格式同步 UI 语言的配置值。
+    /// </summary>
+    public const string FormatCultureFollowLanguage = "ui-language";
+
+    /// <summary>
     ///     默认语言，也是语言资源的完整兜底。
     /// </summary>
     public const string DefaultLanguageCode = "zh-CN";
@@ -31,7 +36,6 @@ public sealed partial class LocalizationService
     private static readonly LocalizationLanguage _DefaultLanguage = new(
         DefaultLanguageCode,
         "简体中文",
-        "Chinese Simplified",
         "zh-CN");
 
     private static ResourceDictionary? _baseLanguageDictionary;
@@ -55,8 +59,8 @@ public sealed partial class LocalizationService
     public static IReadOnlyList<LocalizationLanguage> SupportedLanguages { get; } =
     [
         _DefaultLanguage,
-        new("en-US", "English (US)", "English (US)", "en-US"),
-        new("zh-TW", "繁體中文（台灣）", "Chinese Traditional Taiwan", "zh-TW")
+        new("en-US", "English (US)", "en-US"),
+        new("zh-TW", "繁體中文（台灣）", "zh-TW")
     ];
 
     [RegisterConfigEvent]
@@ -110,7 +114,7 @@ public sealed partial class LocalizationService
         var normalizedLanguageCode = _NormalizeConfigValue(languageCode);
         var language = ResolveLanguage(normalizedLanguageCode);
         var uiCulture = CultureInfo.GetCultureInfo(language.CultureName);
-        var formatCulture = _ResolveFormatCulture(formatCultureCode, out var normalizedFormatCultureCode);
+        var formatCulture = _ResolveFormatCulture(formatCultureCode, uiCulture, out var normalizedFormatCultureCode);
 
         _ApplyCultures(uiCulture, formatCulture);
         _ApplyLanguageResources(language.Code, uiCulture, formatCulture);
@@ -170,13 +174,20 @@ public sealed partial class LocalizationService
                ?? _DefaultLanguage;
     }
 
-    private static CultureInfo _ResolveFormatCulture(string? formatCultureCode, out string normalizedCode)
+    private static CultureInfo _ResolveFormatCulture(string? formatCultureCode, CultureInfo uiCulture,
+        out string normalizedCode)
     {
         if (string.IsNullOrWhiteSpace(formatCultureCode) ||
             string.Equals(formatCultureCode, Auto, StringComparison.OrdinalIgnoreCase))
         {
             normalizedCode = Auto;
             return _systemFormatCulture;
+        }
+
+        if (string.Equals(formatCultureCode, FormatCultureFollowLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedCode = FormatCultureFollowLanguage;
+            return uiCulture;
         }
 
         try

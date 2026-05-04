@@ -21,6 +21,7 @@ public partial class PageSetupLeft
         if (ItemGameManage.Checked && hide.SetupGameManage)  IsHiddenPage = true;
         if (ItemGameLink.Checked && hide.SetupGameLink) IsHiddenPage = true;
         if (ItemUI.Checked && hide.SetupUi) IsHiddenPage = true;
+        if (ItemLauncherLanguage.Checked && hide.SetupLauncherLanguage) IsHiddenPage = true;
         if (ItemLauncherMisc.Checked && hide.SetupLauncherMisc) IsHiddenPage = true;
         if (ItemAbout.Checked && hide.SetupAbout) IsHiddenPage = true;
         if (ItemUpdate.Checked && hide.SetupUpdate) IsHiddenPage = true;
@@ -48,6 +49,8 @@ public partial class PageSetupLeft
             ItemGameLink.SetChecked(true, false, false);    
         else if (!hideCfg.SetupUi) 
             ItemUI.SetChecked(true, false, false);
+        else if (!hideCfg.SetupLauncherLanguage)
+            ItemLauncherLanguage.SetChecked(true, false, false);
         else if (!hideCfg.SetupLauncherMisc) 
             ItemLauncherMisc.SetChecked(true, false, false);
         else if (!hideCfg.SetupAbout) 
@@ -119,6 +122,18 @@ public partial class PageSetupLeft
                         ModMain.FrmSetupGameLink = new PageSetupGameLink();
                     ModMain.FrmSetupGameLink.Reset();
                     ItemGameLink.Checked = true;
+                }
+
+                break;
+            }
+            case (double)FormMain.PageSubType.SetupLauncherLanguage:
+            {
+                if (ModMain.MyMsgBox("是否要初始化 启动器-语言 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                {
+                    if (ModMain.FrmSetupLauncherLanguage is null)
+                        ModMain.FrmSetupLauncherLanguage = new PageSetupLauncherLanguage();
+                    ModMain.FrmSetupLauncherLanguage.Reset();
+                    ItemLauncherLanguage.Checked = true;
                 }
 
                 break;
@@ -207,6 +222,8 @@ public partial class PageSetupLeft
             PageID = FormMain.PageSubType.SetupGameLink;    
         else if (!hideCfg.SetupUi)
             PageID = FormMain.PageSubType.SetupUI;
+        else if (!hideCfg.SetupLauncherLanguage)
+            PageID = FormMain.PageSubType.SetupLauncherLanguage;
         else if (!hideCfg.SetupLauncherMisc)
             PageID = FormMain.PageSubType.SetupLauncherMisc;
         else if (!hideCfg.SetupAbout)
@@ -291,6 +308,12 @@ public partial class PageSetupLeft
                 if (ModMain.FrmSetupGameLink is null)
                     ModMain.FrmSetupGameLink = new PageSetupGameLink();
                 return ModMain.FrmSetupGameLink;
+            }
+            case FormMain.PageSubType.SetupLauncherLanguage:
+            {
+                if (ModMain.FrmSetupLauncherLanguage is null)
+                    ModMain.FrmSetupLauncherLanguage = new PageSetupLauncherLanguage();
+                return ModMain.FrmSetupLauncherLanguage;
             }
             case FormMain.PageSubType.SetupLauncherMisc:
             {
