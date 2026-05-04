@@ -35,7 +35,7 @@ public record YggdrasilAuthenticateResult
     /// <summary>
     /// 可用档案
     /// </summary>
-    [JsonPropertyName("availableProfiles")] public required Profile[]? AvailableProfiles { get; init; }
+    [JsonPropertyName("availableProfiles")] public Profile[]? AvailableProfiles { get; init; }
     /// <summary>
     /// 用户信息
     /// </summary>

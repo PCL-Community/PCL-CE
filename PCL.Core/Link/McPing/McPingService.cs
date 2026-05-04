@@ -1,9 +1,9 @@
+using System.Buffers.Binary;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -49,6 +49,13 @@ public class McPingService : IMcPingService
         _timeout = timeout;
     }
 
+    public McPingService(string host, IPEndPoint endpoint, int timeout = DefaultTimeout)
+    {
+        _endpoint = endpoint;
+        _host = host;
+        _timeout = timeout;
+    }
+
     /// <summary>
     /// 执行现代Minecraft协议的服务器探测
     /// </summary>
@@ -82,8 +89,8 @@ public class McPingService : IMcPingService
         var handshakePacket = _BuildHandshakePacket(_host, _endpoint.Port);
         var statusPacket = _BuildStatusRequestPacket();
 
-        using var res = new MemoryStream();
-        var watcher = new Stopwatch();
+        byte[]? statusPayload;
+        long latency = 0;
         try
         {
             await stream.WriteAsync(handshakePacket, linkedCts.Token);
@@ -92,20 +99,13 @@ public class McPingService : IMcPingService
             await stream.WriteAsync(statusPacket, linkedCts.Token);
             LogWrapper.Debug(ModuleName, $"Status sent, packet length: {statusPacket.Length}");
 
-            var buffer = new byte[4096];
-            watcher.Start();
+            var pingTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var pingPacket = _BuildPingRequestPacket(pingTimestamp);
+            
+            await stream.WriteAsync(pingPacket, linkedCts.Token);
+            LogWrapper.Debug(ModuleName, $"Ping sent, packet length: {pingPacket.Length}");
 
-            var totalLength = Convert.ToInt64(await VarIntHelper.ReadFromStreamAsync(stream, linkedCts.Token));
-            watcher.Stop();
-            LogWrapper.Debug(ModuleName, $"Total length: {totalLength}");
-
-            long readLength = 0;
-            while (readLength < totalLength)
-            {
-                var curReaded = await stream.ReadAsync(buffer, linkedCts.Token);
-                readLength += curReaded;
-                await res.WriteAsync(buffer, 0, curReaded, linkedCts.Token);
-            }
+            (statusPayload, latency) = await _ReadStatusPayloadAsync(stream, linkedCts.Token);
         }
         catch (OperationCanceledException)
         {
@@ -124,12 +124,8 @@ public class McPingService : IMcPingService
 
         so.Close();
 
-        var retBinary = res.ToArray();
-        var dataLength =
-            Convert.ToInt32(VarIntHelper.Decode(retBinary.Skip(1).ToArray(), out var packDataHeaderLength));
-        LogWrapper.Debug(ModuleName, $"ServerDataLength: {dataLength}");
-        if (dataLength > retBinary.Length) throw new Exception("The server data is too large");
-        var retCtx = Encoding.UTF8.GetString(retBinary.Skip(1 + packDataHeaderLength).Take(dataLength).ToArray());
+        if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException("未返回服务器信息");
+        var retCtx = Encoding.UTF8.GetString(statusPayload);
 
         var retJson = JsonNode.Parse(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
 #if DEBUG
@@ -153,7 +149,7 @@ public class McPingService : IMcPingService
 
         response = response with
         {
-            Latency = watcher.ElapsedMilliseconds
+            Latency = latency
         };
 
         return response;
@@ -194,6 +190,85 @@ public class McPingService : IMcPingService
         statusRequest.AddRange(VarIntHelper.Encode(1)); //包长度
         statusRequest.AddRange(VarIntHelper.Encode(0)); //包 ID
         return statusRequest.ToArray();
+    }
+
+    private byte[] _BuildPingRequestPacket(long timestamp)
+    {
+        List<byte> pingRequest = [];
+        // Packet ID 使用值为 1 的 VarInt 编码和 8 字节的 long 时间戳
+        pingRequest.AddRange(VarIntHelper.Encode(9));
+        pingRequest.AddRange(VarIntHelper.Encode(1));
+        pingRequest.AddRange(BitConverter.GetBytes(timestamp).AsEnumerable().Reverse());
+        return pingRequest.ToArray();
+    }
+
+    private async Task<(byte[] StatusPayload, long Latency)> _ReadStatusPayloadAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        byte[]? statusPayload = null;
+        long? latency = null;
+
+        try
+        {
+            while (statusPayload is null || latency is null)
+            {
+                var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
+                if (packetLength <= 0) throw new InvalidDataException("服务器返回了空数据包");
+
+                var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
+                using var packetStream = new MemoryStream(packetData, writable: false);
+                var packetId = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet id: {packetId}");
+
+                switch (packetId)
+                {
+                    case 0:
+                        var jsonLength = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                        statusPayload = await _ReadExactAsync(packetStream, jsonLength, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Status packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        break;
+
+                    case 1:
+                        var pongData = await _ReadExactAsync(packetStream, 8, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Pong packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _ReadInt64BigEndian(pongData);
+                        break;
+
+                    default:
+                        LogWrapper.Warn(ModuleName, $"Ignore unexpected packet type: {packetId}");
+                        break;
+                }
+            }
+        }
+        catch (EndOfStreamException ex)
+        {
+            if (statusPayload is not null && latency is null)
+                throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
+
+            if (statusPayload is null)
+                throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
+
+            throw;
+        }
+
+        return (statusPayload, latency.Value);
+    }
+
+    private static long _ReadInt64BigEndian(byte[] data)
+    {
+        if (data.Length != 8)
+            throw new ArgumentException("Pong 数据长度必须为 8 字节", nameof(data));
+
+        return BinaryPrimitives.ReadInt64BigEndian(data);
+    }
+
+    private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[length];
+        await stream.ReadExactlyAsync(buffer, cancellationToken);
+        return buffer;
     }
 
     private static string _ConvertJNodeToMcString(JsonNode? jsonNode)

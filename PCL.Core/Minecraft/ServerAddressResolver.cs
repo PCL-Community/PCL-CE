@@ -17,6 +17,8 @@ namespace PCL.Core.Minecraft;
 
 public static class ServerAddressResolver
 {
+    public readonly record struct ResolvedServerAddress(string Host, string? Ip, int Port);
+
     // Minecraft Java 默认端口
     private const int DefaultPort = 25565;
     // Happy Eyeballs 族间启动间隔（降低首包时延）
@@ -32,15 +34,7 @@ public static class ServerAddressResolver
     private static readonly Regex _TrailingPort =
         new(@":(?<port>\d{1,5})$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    /// <summary>
-    /// 解析服务器地址并获取可达的 IP 与端口。
-    /// </summary>
-    /// <param name="address">服务器地址，支持 IP / IP:port / [IPv6]:port / domain / domain:port</param>
-    /// <param name="cancelToken">取消令牌</param>
-    /// <returns>包含 IP 与端口的元组</returns>
-    /// <exception cref="ArgumentException">地址为空</exception>
-    /// <exception cref="FormatException">端口无效或地址格式无效</exception>
-    public static async Task<(string Ip, int Port)> GetReachableAddressAsync(string address, CancellationToken cancelToken = default)
+    public static async Task<ResolvedServerAddress> GetResolvedServerAddressAsync(string address, CancellationToken cancelToken = default)
     {
         if (string.IsNullOrWhiteSpace(address))
             throw new ArgumentException("服务器地址不能为空", nameof(address));
@@ -58,11 +52,11 @@ public static class ServerAddressResolver
             LogWrapper.Info($"使用显式端口，跳过 SRV：{hostOrIp}:{explicitPort}");
             var target = await _ResolveReachableAsync(hostOrIp, explicitPort, cancelToken).ConfigureAwait(false);
             if (target is not null)
-                return target.Value;
+                return new ResolvedServerAddress(hostOrIp, target.Value.Ip, target.Value.Port);
 
             // 回退策略：无法连接则仍返回解析到的首个 IP
             var fallbackIp = await _ResolveFirstIpAsync(hostOrIp, cancelToken).ConfigureAwait(false);
-            return (fallbackIp ?? hostOrIp, explicitPort);
+            return new ResolvedServerAddress(hostOrIp, fallbackIp, explicitPort);
         }
 
         // 3) 未指定端口
@@ -71,9 +65,9 @@ public static class ServerAddressResolver
         {
             var target = await _ResolveReachableAsync(hostOrIp, DefaultPort, cancelToken).ConfigureAwait(false);
             if (target is not null)
-                return target.Value;
+                return new ResolvedServerAddress(hostOrIp, target.Value.Ip, target.Value.Port);
 
-            return (hostOrIp, DefaultPort);
+            return new ResolvedServerAddress(hostOrIp, hostOrIp, DefaultPort);
         }
 
         // 3.2 域名 => 先尝试 SRV（_minecraft._tcp.），成功则按 SRV 顺序与加权尝试
@@ -92,14 +86,14 @@ public static class ServerAddressResolver
                 if (reachable is not null)
                 {
                     LogWrapper.Info($"SRV 命中：{targetHost}:{port} -> {reachable.Value.Ip}:{port}");
-                    return reachable.Value;
+                    return new ResolvedServerAddress(idnHost, reachable.Value.Ip, reachable.Value.Port);
                 }
             }
 
             // SRV 全部不可达则回退到 SRV 第一条的解析 IP 或域名默认端口
             var first = srvOrdered[0];
             var firstIp = await _ResolveFirstIpAsync(_TrimTrailingDot(first.Target), cancelToken).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(firstIp)) return (firstIp, first.Port);
+            if (!string.IsNullOrEmpty(firstIp)) return new ResolvedServerAddress(idnHost, firstIp, first.Port);
         }
         else
         {
@@ -108,7 +102,7 @@ public static class ServerAddressResolver
 
         // 3.3 最终回退：域名 + 默认端口
         var ip = await _ResolveFirstIpAsync(idnHost, cancelToken).ConfigureAwait(false);
-        return (ip ?? idnHost, DefaultPort);
+        return new ResolvedServerAddress(idnHost, ip, DefaultPort);
     }
 
     // 规范化地址输入：去掉 scheme、空白、尾随 '/'
