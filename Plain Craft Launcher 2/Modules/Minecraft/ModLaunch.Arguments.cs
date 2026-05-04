@@ -163,10 +163,18 @@ public static partial class ModLaunch
         // Cleanroom 检测
         if (ModMinecraft.McInstanceSelected.Info.HasCleanroom)
         {
-            // 需要至少 Java 21
-            if (LauncherLogger.ModeDebug)
-                LauncherLogger.Log("[Launch] [Debug] Cleanroom 要求至少 Java 21");
-            minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+            if (!Version.TryParse(ModMinecraft.McInstanceSelected.Info.Cleanroom.Split('-')[0], out Version cleanroomVersion))
+                throw new FormatException("无法解析 Cleanroom 版本号：" + ModMinecraft.McInstanceSelected.Info.Cleanroom);
+            if (cleanroomVersion < new Version(0, 5, 0, 0))
+            {
+                if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");
+                minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
+            }
+            else
+            {
+                if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本高于 0.5，要求至少 Java 25");
+                minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
+            }
         }
 
         // Fabric 检测
@@ -308,6 +316,39 @@ public static partial class ModLaunch
     #endregion
 
     #region 启动参数
+    
+    internal static void SecretLaunchJvmArgs(ref List<string> DataList)
+    {
+        var DataJvmCustom =
+            Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", ModMinecraft.McInstanceSelected));
+        DataList.Insert(0,
+            Conversions.ToString(string.IsNullOrEmpty(DataJvmCustom)
+                ? Config.Launch.JvmArgs
+                : DataJvmCustom)); // 可变 JVM 参数
+        switch (Config.Launch.PreferredIpStack)
+        {
+            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            {
+                DataList.Add("-Djava.net.preferIPv4Stack=true");
+                DataList.Add("-Djava.net.preferIPv4Addresses=true");
+                break;
+            }
+            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
+            {
+                DataList.Add("-Djava.net.preferIPv6Stack=true");
+                DataList.Add("-Djava.net.preferIPv6Addresses=true");
+                break;
+            }
+        }
+
+        double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
+        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb:N1}G");
+        double totalRamMb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d;
+        DataList.Add($"-Xmn{Math.Floor(totalRamMb * 0.15)}m");
+        DataList.Add($"-Xmx{Math.Floor(totalRamMb)}m");
+        if (!DataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
+            DataList.Add("-Dlog4j2.formatMsgNoLookups=true");
+    }
 
     public partial class LaunchArgument
     {
@@ -755,7 +796,7 @@ public static partial class ModLaunch
         }
 
         // 内存、Log4j 防御参数等
-        ModSecret.SecretLaunchJvmArgs(ref DataList);
+        SecretLaunchJvmArgs(ref DataList);
 
         // Authlib-Injector
         if (McLoginLoader.Output.Type == "Auth")
@@ -1127,6 +1168,12 @@ public static partial class ModLaunch
         foreach (var Library in LibList)
         {
             if (Library.IsNatives)
+                continue;
+            if (ModMinecraft.McInstanceSelected.Info.HasCleanroom 
+                && Library.OriginalName is not null 
+                && (Library.OriginalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
+                    || Library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0")
+                    || Library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
                 continue;
             if (Library.Name is not null && Library.Name == "optifine:OptiFine")
                 OptiFineCp = Library.LocalPath;

@@ -1740,7 +1740,7 @@ public static partial class ModDownload
     // ''' </summary>
     // Public DlQuiltListBmclapiLoader As New LoaderTask(Of Integer, DlQuiltListResult)("DlQuiltList Bmclapi", AddressOf DlQuiltListBmclapiMain)
     // Private Sub DlQuiltListBmclapiMain(Loader As LoaderTask(Of Integer, DlQuiltListResult))
-    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions", isJson:=True)
+    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions")
     // Try
     // Dim Output = New DlQuiltListResult With {.IsOfficial = False, .SourceName = "BMCLAPI", .Value = Result}
     // If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
@@ -1859,120 +1859,128 @@ public static partial class ModDownload
     #region DlMod | Mod 镜像源请求
 
     /// <summary>
-    ///     对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JObject。
+    ///     对可能涉及 Mod 镜像源的请求进行处理，返回字符串。
     ///     调用 NetGetCodeByRequest，会进行重试。
     /// </summary>
-    public static object DlModRequest(string Url, bool IsJson = false)
+    public static string DlModRequest(string url) => DlModRequest<string>(url);
+
+    /// <summary>
+    ///     对可能涉及 Mod 镜像源的请求进行处理，返回字符串或 JSON 对象。
+    ///     调用 NetGetCodeByRequest，会进行重试。
+    /// </summary>
+    public static T DlModRequest<T>(string url)
     {
         var Urls = new List<KeyValuePair<string, int>>();
-        var McimUrl = DlSourceModGet(Url);
-        if ((McimUrl ?? "") != (Url ?? ""))
+        var McimUrl = DlSourceModGet(url);
+        if ((McimUrl ?? "") != (url ?? ""))
             switch (Config.Download.Comp.CompSourceSolution)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
                 {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                    Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     break;
                 }
 
                 default:
                 {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 5));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     break;
                 }
             }
-
         var Exs = "";
         foreach (var Source in Urls)
             try
             {
-                return IsJson
-                    ? Requester.FetchJson(Source.Key, new RequestParam
-                    {
-                        Timeout = Source.Value * 1000,
-                        UseBrowserUserAgent = true
-                    })
-                    : Requester.FetchString(Source.Key, new RequestParam
-                    {
-                        Timeout = Source.Value * 1000,
-                        UseBrowserUserAgent = true
-                    });
+                var json = Requester.FetchString(Source.Key, new RequestParam
+                {
+                    Timeout = Source.Value * 1000,
+                    UseBrowserUserAgent = true
+                });
+                if (typeof(T) == typeof(string)) return (T)(object)json;
+                return (T)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
                 // 镜像源可能随机爆炸，忽略就好
                 if (!ex.Message.ContainsF("mcimirror")) Exs += ex.Message + "\r\n";
             }
-
         throw new Exception(Exs);
     }
+
+    /// <summary>
+    ///     非泛型版本的 DlModRequest，返回 string
+    ///     对可能涉及 Mod 镜像源的请求进行处理。
+    ///     调用 NetRequest，会进行重试。
+    /// </summary>
+    public static string DlModRequest(string url, string method, string data, string contentType,
+        bool allowMirror = false) => DlModRequest<string>(url, method, data, contentType, allowMirror);
 
     /// <summary>
     ///     对可能涉及 Mod 镜像源的请求进行处理。
     ///     调用 NetRequest，会进行重试。
     /// </summary>
-    public static string DlModRequest(string Url, string Method, string Data, string ContentType,
+    public static T DlModRequest<T>(string url, string method, string data, string contentType,
         bool allowMirror = false)
     {
         var Urls = new List<KeyValuePair<string, int>>();
-        var McimUrl = DlSourceModGet(Url);
-        if ((McimUrl ?? "") != (Url ?? ""))
+        var McimUrl = DlSourceModGet(url);
+        if ((McimUrl ?? "") != (url ?? ""))
             switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
                 {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
+                    Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     break;
                 }
 
                 default:
                 {
-                    Urls.Add(new KeyValuePair<string, int>(Url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(Url, 15));
+                    Urls.Add(new KeyValuePair<string, int>(url, 5));
+                    Urls.Add(new KeyValuePair<string, int>(url, 15));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     break;
                 }
             }
-
         var Exs = "";
         foreach (var Source in Urls)
             try
             {
-                return Requester.Fetch(Source.Key, new FetchParam
+                string json = Requester.Fetch(Source.Key, new FetchParam
                 {
-                    Method = Method,
-                    Content = Data, 
-                    ContentType = ContentType,
+                    Method = method,
+                    Content = data, 
+                    ContentType = contentType,
                     Timeout = Source.Value * 1000
                 });
+                if (typeof(T) == typeof(string)) return (T)(object)json; // 沟槽的，为什么不能写 T is string
+                return (T)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
                 if (!ex.Message.ContainsF("mcimirror")) Exs += ex.Message + "\r\n";
             }
-
         throw new Exception(Exs);
     }
 

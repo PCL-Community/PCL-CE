@@ -49,10 +49,10 @@ public partial class MinecraftServer : Grid
         try
         {
             // 获取可达地址（DNS解析）
-            var addr = await ServerAddressResolver.GetReachableAddressAsync(address);
+            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(address);
 
             // Ping服务器
-            using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
+            using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
                 var ret = await query.PingAsync();
 

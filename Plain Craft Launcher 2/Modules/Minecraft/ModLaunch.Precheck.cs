@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
 using Microsoft.VisualBasic;
@@ -12,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -141,6 +144,10 @@ public static partial class ModLaunch
             }
 #endif
 
+        #if DEBUG || DEBUGCI
+                return;
+        #endif
+        
         // 正版购买提示
         if (!ModProfile.ProfileList.Any(x => x.Type == McLoginType.Ms))
         {
@@ -154,8 +161,12 @@ public static partial class ModLaunch
                         "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
             }
             else
-            {
-                switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
+            {                
+                switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", 
+                            "正版验证", 
+                            "购买正版", 
+                            "试玩", 
+                            "返回",
                             Button1Action: () =>
                                 LauncherShell.OpenWebsite(
                                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
@@ -171,7 +182,9 @@ public static partial class ModLaunch
                         throw new Exception("$$");
                     }
                 }
+                
             }
+            
         }
     }
 
@@ -1153,7 +1166,7 @@ public static partial class ModLaunch
         }
         catch (Exception ex)
         {
-            HandleException(ex, "第三方验证登录失败");
+            HandleException(ex, "第三方登录失败");
         }
 
         // 如果需要刷新，循环刷新一次
@@ -1259,39 +1272,50 @@ public static partial class ModLaunch
     private static void McLoginRequestRefresh(ref ModLoader.LoaderTask<McLoginServer, McLoginResult> Data,
         bool RequestUser)
     {
-        var RefreshInfo = new JObject();
-        var SelectProfile = new JObject
-            { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
-        RefreshInfo.Add("selectedProfile", SelectProfile);
-        RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
-        RefreshInfo.Add(new JProperty("requestUser", true));
-        ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-        var LoginJson = (JObject)LauncherSerialization.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
-            new FetchParam
-            {
-                Method = "POST",
-                Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
-                Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-                ContentType = "application/json"
-            }
-        ));
-        // 将登录结果输出
-        if (LoginJson["selectedProfile"] is null)
-            throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
-        Data.Output.AccessToken = LoginJson["accessToken"].ToString();
-        Data.Output.ClientToken = LoginJson["clientToken"].ToString();
-        Data.Output.Uuid = LoginJson["selectedProfile"]["id"].ToString();
-        Data.Output.Name = LoginJson["selectedProfile"]["name"].ToString();
-        Data.Output.Type = "Auth";
-        // 保存缓存
-        var ProfileIndex = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
-        ModProfile.ProfileList[ProfileIndex].Username = Data.Output.Name;
-        ModProfile.ProfileList[ProfileIndex].AccessToken = Data.Output.AccessToken;
-        ModProfile.ProfileList[ProfileIndex].ClientToken = Data.Output.ClientToken;
-        ModProfile.ProfileList[ProfileIndex].Uuid = Data.Output.Uuid;
-        ModProfile.ProfileList[ProfileIndex].Name = Data.Input.UserName;
-        ModProfile.ProfileList[ProfileIndex].Password = Data.Input.Password;
-        ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
+        try
+        {
+
+            var RefreshInfo = new JObject();
+            var SelectProfile = new JObject
+                { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
+            RefreshInfo.Add("selectedProfile", SelectProfile);
+            RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
+            RefreshInfo.Add(new JProperty("requestUser", true));
+            ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
+            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
+                new FetchParam
+                {
+                    Method = "POST",
+                    Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
+                    Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
+                    ContentType = "application/json",
+                    RequireContent = true
+                }
+            ));
+            // 将登录结果输出
+            if (LoginJson["selectedProfile"] is null)
+                throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
+            Data.Output.AccessToken = LoginJson["accessToken"].ToString();
+            Data.Output.ClientToken = LoginJson["clientToken"].ToString();
+            Data.Output.Uuid = LoginJson["selectedProfile"]["id"].ToString();
+            Data.Output.Name = LoginJson["selectedProfile"]["name"].ToString();
+            Data.Output.Type = "Auth";
+            // 保存缓存
+            var ProfileIndex = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
+            ModProfile.ProfileList[ProfileIndex].Username = Data.Output.Name;
+            ModProfile.ProfileList[ProfileIndex].AccessToken = Data.Output.AccessToken;
+            ModProfile.ProfileList[ProfileIndex].ClientToken = Data.Output.ClientToken;
+            ModProfile.ProfileList[ProfileIndex].Uuid = Data.Output.Uuid;
+            ModProfile.ProfileList[ProfileIndex].Name = Data.Input.UserName;
+            ModProfile.ProfileList[ProfileIndex].Password = Data.Input.Password;
+            ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
+        }
+        catch (HttpResponseException ex)
+        {
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            ex.Dispose();
+            return;
+        }
     }
 
     private static bool McLoginRequestLogin(ref ModLoader.LoaderTask<McLoginServer, McLoginResult> Data)
@@ -1310,7 +1334,8 @@ public static partial class ModLaunch
                     Method = "POST",
                     Content = RequestData.ToString(0),
                     Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-                    ContentType = "application/json"
+                    ContentType = "application/json",
+                    RequireContent = true
                 }));
             // 检查登录结果
             if (LoginJson["availableProfiles"].Count() == 0)
@@ -1411,18 +1436,41 @@ public static partial class ModLaunch
             ModProfile.ProfileLog("登录成功（Login, Authlib）");
             return NeedRefresh;
         }
-        catch (WebException ex)
+        catch (HttpResponseException ex)
         {
-            throw;
+
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            ex.Dispose();
+            return false;
         }
         catch (Exception ex)
         {
-            var AllMessage = ex.ToString();
-            ModProfile.ProfileLog("第三方验证失败: " + ex);
+
+            ModProfile.ProfileLog($"第三方验证失败: {ex}");
             if (ex.Message.StartsWithF("$")) throw;
 
             throw new Exception("登录失败：" + ex.Message, ex);
         }
+    }
+    
+    private static bool _TryGetLastError(HttpResponseException ex, [NotNullWhen(true)] out string? message)
+    {
+        message = null;
+        try
+        {
+            using var responseStream = ex.Response?.Content.ReadAsStream();
+            if (responseStream is null) return false;
+            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream);
+            if (result?.ErrorMessage is null) return false;
+            message = result.ErrorMessage;
+            return true;
+        }
+        catch (Exception)
+        {
+            // Suppress Exception
+        }
+
+        return false;
     }
 
     #endregion
