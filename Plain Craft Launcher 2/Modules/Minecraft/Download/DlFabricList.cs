@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -46,7 +47,7 @@ public class DlFabricList
 
     private static void DlFabricListOfficialMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
+        var Result = (JObject)Requester.FetchJson(DownloadRegistry.FabricMeta);
         try
         {
             var Output = new DlFabricListResult { IsOfficial = true, SourceName = "Fabric 官方源", Value = Result };
@@ -68,7 +69,7 @@ public class DlFabricList
 
     private static void DlFabricListBmclapiMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
+        var Result = (JObject)Requester.FetchJson(DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.FabricMeta));
         try
         {
             var Output = new DlFabricListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Result };

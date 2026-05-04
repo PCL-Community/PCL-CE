@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -99,7 +100,7 @@ public class DlOptiFineList
     {
         string Result = "";
         using var resp = HttpRequest
-            .Create("https://optifine.net/downloads")
+            .Create(DownloadRegistry.OptiFineList)
             .WithHeader("Accept", "application/json, text/javascript, */*; q=0.01")
             .WithHeader("Accept-Language", "en-US,en;q=0.5")
             .WithHeader("X-Requested-With", "XMLHttpRequest")
@@ -163,7 +164,7 @@ public class DlOptiFineList
 
     private static void DlOptiFineListBmclapiMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        var Json = (JArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
+        var Json = (JArray)Requester.FetchJson(DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.OptiFineList));
         try
         {
             var Versions = new List<DlOptiFineListEntry>();

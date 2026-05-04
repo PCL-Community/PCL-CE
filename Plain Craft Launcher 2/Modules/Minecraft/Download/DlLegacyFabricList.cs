@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -49,7 +50,7 @@ public class DlLegacyFabricList
     private static void DlLegacyFabricListOfficialMain(ModLoader.LoaderTask<int, DlLegacyFabricListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
+            (JObject)Requester.FetchJson(DownloadRegistry.LegacyFabricMeta);
         try
         {
             var Output = new DlLegacyFabricListResult

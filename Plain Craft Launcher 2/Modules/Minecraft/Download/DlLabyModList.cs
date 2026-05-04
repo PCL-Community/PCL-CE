@@ -2,6 +2,7 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Minecraft.Download;
 
 namespace PCL;
 
@@ -45,7 +46,7 @@ public class DlLabyModList
     {
         JObject ResultProduction;
         using (var productionResponse = HttpRequest
-                   .Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json")
+                   .Create(DownloadRegistry.LabyModProduction)
                    .WithHttpVersionOption(HttpVersion.Version20)
                    .SendAsync()
                    .GetAwaiter()
@@ -56,7 +57,7 @@ public class DlLabyModList
 
         JObject ResultSnapshot;
         using (var snapshotResponse = HttpRequest
-                   .Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json")
+                   .Create(DownloadRegistry.LabyModSnapshot)
                    .WithHttpVersionOption(HttpVersion.Version20)
                    .SendAsync()
                    .GetAwaiter()

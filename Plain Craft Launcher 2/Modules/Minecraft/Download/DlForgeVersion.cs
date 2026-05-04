@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -81,8 +82,7 @@ public class DlForgeVersion
         try
         {
             Result = Requester.FetchJson(
-                "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" +
-                Loader.Input.Replace("-", "_") + ".html", new RequestParam
+                DownloadRegistry.ForgeVersionList(Loader.Input.Replace("-", "_")), new RequestParam
                 {
                     UseBrowserUserAgent = true
                 })?.ToString() ?? ""; // 兼容 Forge 1.7.10-pre4，#4057
@@ -181,8 +181,7 @@ public class DlForgeVersion
     public static void DlForgeVersionBmclapiMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
         var Json = (JArray)Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/forge/minecraft/" +
-            Loader.Input.Replace("-", "_")); // 兼容 Forge 1.7.10-pre4，#4057
+            DownloadProvider.VersionList.ForgeVersionListBmclapiUrl(Loader.Input.Replace("-", "_"))); // 兼容 Forge 1.7.10-pre4，#4057
         var Versions = new List<DlForgeVersionEntry>();
         try
         {

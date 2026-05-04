@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -52,7 +53,7 @@ public class DlQuiltList
 
     private static void DlQuiltListOfficialMain(ModLoader.LoaderTask<int, DlQuiltListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
+        var Result = (JObject)Requester.FetchJson(DownloadRegistry.QuiltMeta);
         try
         {
             var Output = new DlQuiltListResult { IsOfficial = true, SourceName = "Quilt 官方源", Value = Result };

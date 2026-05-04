@@ -17,12 +17,6 @@ public class DlSource
         (Config.Download.FileSource == 1 && DlPreferMojang);
 
     /// <summary>
-    ///     获取下载文件用的 Provider 链。
-    /// </summary>
-    private static DownloadProviderChain GetFileProviderChain() =>
-        new(DlSourcePreferMojang);
-
-    /// <summary>
     ///     下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
     /// </summary>
     public static IEnumerable<string> DlSourceOrder(IEnumerable<string> OfficialUrls, IEnumerable<string> MirrorUrls)
@@ -51,7 +45,7 @@ public class DlSource
     /// </summary>
     public static IEnumerable<string> DlSourceAssetsGet(string original)
     {
-        return GetFileProviderChain().GetAssetUrls(original);
+        return DownloadProvider.File.GetAssetUrls(original, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -59,7 +53,7 @@ public class DlSource
     /// </summary>
     public static IEnumerable<string> DlSourceLibraryGet(string original)
     {
-        return GetFileProviderChain().GetLibraryUrls(original);
+        return DownloadProvider.File.GetLibraryUrls(original, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -70,7 +64,7 @@ public class DlSource
     {
         if (original is null)
             throw new Exception("无对应的 json 下载地址");
-        return GetFileProviderChain().GetLauncherMetaUrls(original);
+        return DownloadProvider.File.GetLauncherMetaUrls(original, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -78,7 +72,7 @@ public class DlSource
     /// </summary>
     public static string DlSourceModGet(string original)
     {
-        return ModDownloadSourceResolver.GetModApiUrl(original);
+        return DownloadProvider.Mod.GetModApiUrl(original);
     }
 
     /// <summary>
@@ -86,7 +80,7 @@ public class DlSource
     /// </summary>
     public static List<string> DlSourceModDownloadGet(string original)
     {
-        return ModDownloadSourceResolver.GetModDownloadUrls(original, Config.Download.Comp.CompSourceSolution);
+        return DownloadProvider.Mod.GetModDownloadUrls(original, Config.Download.Comp.CompSourceSolution);
     }
 
     /// <summary>

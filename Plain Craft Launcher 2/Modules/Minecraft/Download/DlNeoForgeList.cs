@@ -1,3 +1,4 @@
+using PCL.Core.Minecraft.Download;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -76,8 +77,7 @@ public class DlNeoForgeList
             get
             {
                 var PackageName = IsLegacy ? "forge" : "neoforge";
-                return
-                    $"https://maven.neoforged.net/releases/net/neoforged/{PackageName}/{ApiName}/{PackageName}-{ApiName}";
+                return DownloadRegistry.NeoForgeDownloadUrl(PackageName, ApiName);
             }
         }
     }
@@ -105,13 +105,13 @@ public class DlNeoForgeList
     {
         // 获取版本列表 JSON
         var resultLatest = Requester.FetchJson(
-            "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
+            DownloadRegistry.NeoForgeVersionsLatest,
             new RequestParam
             {
                 UseBrowserUserAgent = true
             }).ToString();
         var resultLegacy = Requester.FetchJson(
-            "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge",
+            DownloadRegistry.NeoForgeVersionsLegacy,
             new RequestParam
             {
                 UseBrowserUserAgent = true
@@ -145,13 +145,13 @@ public class DlNeoForgeList
     {
         // 获取版本列表 JSON
         var resultLatest = Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
+            DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLatest),
             new RequestParam
             {
                 UseBrowserUserAgent = true
             }).ToString();
         var resultLegacy = Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
+            DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.NeoForgeVersionsLegacy),
             new RequestParam
             {
                 UseBrowserUserAgent = true

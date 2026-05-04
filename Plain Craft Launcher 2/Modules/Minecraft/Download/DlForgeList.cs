@@ -1,4 +1,5 @@
 using System.Text;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -47,7 +48,7 @@ public class DlForgeList
     private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
         var Result = Requester.FetchJson(
-            "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", new RequestParam
+            DownloadRegistry.ForgeKnownVersions, new RequestParam
             {
                 Encoding = Encoding.Default,
                 UseBrowserUserAgent = true
@@ -71,7 +72,7 @@ public class DlForgeList
     private static void DlForgeListBmclapiMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
         var Result =
-                Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
+                Requester.FetchJson(DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.ForgeKnownVersions),
                 new RequestParam
                 {
                     Encoding = Encoding.Default,

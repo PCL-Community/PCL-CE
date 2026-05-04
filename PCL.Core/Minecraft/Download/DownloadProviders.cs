@@ -4,33 +4,21 @@ using System.Linq;
 
 namespace PCL.Core.Minecraft.Download;
 
-/// <summary>
-///     A download provider transforms URLs between official sources and mirrors.
-///     Based on HMCL's DownloadProvider architecture.
-/// </summary>
+// ─── URL 转换接口 ────
+
+/// <summary>将官方源 URL 转换为镜像 URL。</summary>
 public interface IDownloadProvider
 {
     string Name { get; }
-
-    /// <summary>Transform asset download URLs (resources.download.minecraft.net).</summary>
     IEnumerable<string> TransformAssetUrls(string original);
-
-    /// <summary>Transform library download URLs (libraries.minecraft.net, maven repos).</summary>
     IEnumerable<string> TransformLibraryUrls(string original);
-
-    /// <summary>Transform launcher/meta download URLs (launchermeta.mojang.com, piston-data.mojang.com).</summary>
     IEnumerable<string> TransformLauncherMetaUrls(string original);
-
-    /// <summary>Transform mod API URLs (api.modrinth.com, api.curseforge.com). Returns a single URL.</summary>
     string TransformModApiUrl(string original);
-
-    /// <summary>Transform mod file download URLs (cdn.modrinth.com, edge.forgecdn.net).</summary>
     IEnumerable<string> TransformModDownloadUrls(string original);
 }
 
-/// <summary>
-///     URL categorization helpers for download providers.
-/// </summary>
+// ─── 辅助方法 ──────────────────────────────────────────────────
+
 internal static class DownloadUrlHelper
 {
     public static bool IsThirdPartyLibrary(string url)
@@ -39,18 +27,15 @@ internal static class DownloadUrlHelper
     }
 }
 
-/// <summary>
-///     Official Mojang download provider. Passes URLs through unchanged for Mojang-hosted resources,
-///     but yields nothing for third-party libraries (Forge, Fabric, NeoForge) that Mojang doesn't host.
-/// </summary>
+// ─── 具体实现：Mojang、BMCLAPI、MCIMirror ──────────────────────
+
 public class MojangDownloadProvider : IDownloadProvider
 {
     public string Name => "Mojang 官方源";
 
     public IEnumerable<string> TransformAssetUrls(string original)
     {
-        yield return original.Replace("http://resources.download.minecraft.net",
-            "https://resources.download.minecraft.net");
+        yield return original.Replace(DownloadRegistry.ResourcesLegacy, DownloadRegistry.Resources);
     }
 
     public IEnumerable<string> TransformLibraryUrls(string original)
@@ -66,108 +51,87 @@ public class MojangDownloadProvider : IDownloadProvider
     }
 
     public string TransformModApiUrl(string original) => original;
-
-    public IEnumerable<string> TransformModDownloadUrls(string original)
-    {
-        yield return original;
-    }
+    public IEnumerable<string> TransformModDownloadUrls(string original) { yield return original; }
 }
 
-/// <summary>
-///     BMCLAPI mirror download provider. Transforms Mojang URLs to BMCLAPI equivalents.
-/// </summary>
 public class BmclapiDownloadProvider : IDownloadProvider
 {
     public string Name => "BMCLAPI";
 
+    private const string Base = "https://bmclapi2.bangbang93.com";
+    private const string Assets = "https://bmclapi2.bangbang93.com/assets";
+    private const string Maven = "https://bmclapi2.bangbang93.com/maven";
+    private const string Libraries = "https://bmclapi2.bangbang93.com/libraries";
+    private const string McimirrorMod = "https://mod.mcimirror.top";
+    private const string UnlistedMirror = "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto";
+
     public IEnumerable<string> TransformAssetUrls(string original)
     {
-        original = original.Replace("http://resources.download.minecraft.net",
-            "https://resources.download.minecraft.net");
+        original = original.Replace(DownloadRegistry.ResourcesLegacy, DownloadRegistry.Resources);
         yield return original
-            .Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/assets")
-            .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/assets")
-            .Replace("https://resources.download.minecraft.net", "https://bmclapi2.bangbang93.com/assets");
+            .Replace(DownloadRegistry.PistonData, Assets)
+            .Replace(DownloadRegistry.PistonMeta, Assets)
+            .Replace(DownloadRegistry.Resources, Assets);
     }
 
     public IEnumerable<string> TransformLibraryUrls(string original)
     {
         yield return original
-            .Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-            .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-            .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven")
-            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto");
+            .Replace(DownloadRegistry.PistonData, Maven)
+            .Replace(DownloadRegistry.PistonMeta, Maven)
+            .Replace(DownloadRegistry.Libraries, Maven)
+            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", UnlistedMirror);
 
         yield return original
-            .Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-            .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-            .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries")
-            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto");
+            .Replace(DownloadRegistry.PistonData, Libraries)
+            .Replace(DownloadRegistry.PistonMeta, Libraries)
+            .Replace(DownloadRegistry.Libraries, Libraries)
+            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", UnlistedMirror);
     }
 
     public IEnumerable<string> TransformLauncherMetaUrls(string original)
     {
         yield return original
-            .Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com")
-            .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com")
-            .Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com")
-            .Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com")
-            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto");
+            .Replace(DownloadRegistry.PistonData, Base)
+            .Replace(DownloadRegistry.PistonMeta, Base)
+            .Replace(DownloadRegistry.Launcher, Base)
+            .Replace(DownloadRegistry.LauncherMeta, Base)
+            .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft", UnlistedMirror);
     }
 
     public string TransformModApiUrl(string original)
     {
         return original
-            .Replace("https://api.modrinth.com", "https://mod.mcimirror.top/modrinth")
-            .Replace("https://api.curseforge.com", "https://mod.mcimirror.top/curseforge");
+            .Replace(DownloadRegistry.ModrinthApi, McimirrorMod + "/modrinth")
+            .Replace(DownloadRegistry.CurseForgeApi, McimirrorMod + "/curseforge");
     }
 
     public IEnumerable<string> TransformModDownloadUrls(string original)
     {
         yield return original
-            .Replace("https://cdn.modrinth.com", "https://mod.mcimirror.top")
-            .Replace("https://edge.forgecdn.net", "https://mod.mcimirror.top");
+            .Replace(DownloadRegistry.ModrinthCdn, McimirrorMod)
+            .Replace(DownloadRegistry.CurseForgeCdn, McimirrorMod);
     }
 }
 
-/// <summary>
-///     A Mcimirror download provider for mod file downloads. Transforms mod CDN URLs to mcimirror.top equivalents.
-/// </summary>
 public class McimirrorDownloadProvider : IDownloadProvider
 {
     public string Name => "MCIMirror";
+    private const string McimirrorMod = "https://mod.mcimirror.top";
 
-    public IEnumerable<string> TransformAssetUrls(string original)
-    {
-        throw new NotSupportedException();
-    }
-
-    public IEnumerable<string> TransformLibraryUrls(string original)
-    {
-        throw new NotSupportedException();
-    }
-
-    public IEnumerable<string> TransformLauncherMetaUrls(string original)
-    {
-        throw new NotSupportedException();
-    }
-
+    public IEnumerable<string> TransformAssetUrls(string original) => throw new NotSupportedException();
+    public IEnumerable<string> TransformLibraryUrls(string original) => throw new NotSupportedException();
+    public IEnumerable<string> TransformLauncherMetaUrls(string original) => throw new NotSupportedException();
     public string TransformModApiUrl(string original) => DownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
 
     public IEnumerable<string> TransformModDownloadUrls(string original)
     {
         yield return original
-            .Replace("https://cdn.modrinth.com", "https://mod.mcimirror.top")
-            .Replace("https://edge.forgecdn.net", "https://mod.mcimirror.top");
+            .Replace(DownloadRegistry.ModrinthCdn, McimirrorMod)
+            .Replace(DownloadRegistry.CurseForgeCdn, McimirrorMod);
     }
 }
 
-/// <summary>
-///     Registry for download provider singletons.
-/// </summary>
 public static class DownloadProviderRegistry
 {
     public static readonly MojangDownloadProvider Mojang = new();
@@ -175,10 +139,8 @@ public static class DownloadProviderRegistry
     public static readonly McimirrorDownloadProvider Mcimirror = new();
 }
 
-/// <summary>
-///     Manages the download provider chain based on user source preferences.
-///     Handles source ordering (official-first vs mirror-first) and URL transformation.
-/// </summary>
+// ─── 主备链 ────────────────────────────────────────────────────
+
 public class DownloadProviderChain
 {
     private readonly IDownloadProvider _primary;
@@ -186,33 +148,16 @@ public class DownloadProviderChain
 
     public DownloadProviderChain(bool preferOfficial)
     {
-        if (preferOfficial)
-        {
-            _primary = DownloadProviderRegistry.Mojang;
-            _fallback = DownloadProviderRegistry.Bmclapi;
-        }
-        else
-        {
-            _primary = DownloadProviderRegistry.Bmclapi;
-            _fallback = DownloadProviderRegistry.Mojang;
-        }
+        if (preferOfficial) { _primary = DownloadProviderRegistry.Mojang; _fallback = DownloadProviderRegistry.Bmclapi; }
+        else { _primary = DownloadProviderRegistry.Bmclapi; _fallback = DownloadProviderRegistry.Mojang; }
     }
 
-    /// <summary>
-    ///     Get asset download URLs in the preferred order.
-    /// </summary>
     public IEnumerable<string> GetAssetUrls(string original)
     {
-        foreach (var url in _primary.TransformAssetUrls(original))
-            yield return url;
-        foreach (var url in _fallback.TransformAssetUrls(original))
-            yield return url;
+        foreach (var url in _primary.TransformAssetUrls(original)) yield return url;
+        foreach (var url in _fallback.TransformAssetUrls(original)) yield return url;
     }
 
-    /// <summary>
-    ///     Get library download URLs in the preferred order.
-    ///     For third-party libraries (Forge, Fabric, NeoForge), only the mirror is returned.
-    /// </summary>
     public IEnumerable<string> GetLibraryUrls(string original)
     {
         if (DownloadUrlHelper.IsThirdPartyLibrary(original))
@@ -222,61 +167,138 @@ public class DownloadProviderChain
         }
         else
         {
-            foreach (var url in _primary.TransformLibraryUrls(original))
-                yield return url;
-            foreach (var url in _fallback.TransformLibraryUrls(original))
-                yield return url;
-            yield return original; // Always include the original as final fallback
+            foreach (var url in _primary.TransformLibraryUrls(original)) yield return url;
+            foreach (var url in _fallback.TransformLibraryUrls(original)) yield return url;
+            yield return original;
         }
     }
 
-    /// <summary>
-    ///     Get launcher/meta download URLs in the preferred order.
-    /// </summary>
     public IEnumerable<string> GetLauncherMetaUrls(string original)
     {
-        foreach (var url in _primary.TransformLauncherMetaUrls(original))
-            yield return url;
-        foreach (var url in _fallback.TransformLauncherMetaUrls(original))
-            yield return url;
-        yield return original; // Always include original as fallback
+        foreach (var url in _primary.TransformLauncherMetaUrls(original)) yield return url;
+        foreach (var url in _fallback.TransformLauncherMetaUrls(original)) yield return url;
+        yield return original;
     }
 }
 
-/// <summary>
-///     Helps resolve mod download sources based on user preferences.
-///     This is separate from DownloadProviderChain because mod downloads have their own
-///     source preference setting (CompSourceSolution).
-/// </summary>
-public static class ModDownloadSourceResolver
-{
-    /// <summary>
-    ///     Resolve mod API URL based on CompSourceSolution config.
-    /// </summary>
-    public static string GetModApiUrl(string original)
-    {
-        return DownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
-    }
+// ════════════════════════════════════════════════════════════════
+// 按领域拆分的接口与实现
+// ════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    ///     Resolve mod file download URLs based on CompSourceSolution config.
-    ///     Returns URLs in the order that download attempts should be made.
-    /// </summary>
-    public static List<string> GetModDownloadUrls(string original, int compSourceSolution)
+// ─── 文件下载（资源、库、启动器元数据）─────────────────────────
+
+/// <summary>将 Mojang 文件下载 URL 转换为镜像地址。</summary>
+public interface IFileDownloadUrlProvider
+{
+    IEnumerable<string> GetAssetUrls(string original, bool preferOfficial);
+    IEnumerable<string> GetLibraryUrls(string original, bool preferOfficial);
+    IEnumerable<string> GetLauncherMetaUrls(string original, bool preferOfficial);
+}
+
+/// <summary>通过主备链转换 Minecraft 文件下载 URL。</summary>
+public class FileDownloadUrlProvider : IFileDownloadUrlProvider
+{
+    public IEnumerable<string> GetAssetUrls(string original, bool preferOfficial) =>
+        new DownloadProviderChain(preferOfficial).GetAssetUrls(original);
+
+    public IEnumerable<string> GetLibraryUrls(string original, bool preferOfficial) =>
+        new DownloadProviderChain(preferOfficial).GetLibraryUrls(original);
+
+    public IEnumerable<string> GetLauncherMetaUrls(string original, bool preferOfficial) =>
+        new DownloadProviderChain(preferOfficial).GetLauncherMetaUrls(original);
+}
+
+// ─── Mod（API 与文件下载）─────────────────────────────────────
+
+/// <summary>将 Mod API 和 CDN 下载 URL 转换为镜像地址。</summary>
+public interface IModDownloadUrlProvider
+{
+    string GetModApiUrl(string original);
+    List<string> GetModDownloadUrls(string original, int compSourceSolution);
+}
+
+/// <summary>通过 Mod 专用镜像转换 Mod 相关 URL。</summary>
+public class ModDownloadUrlProvider : IModDownloadUrlProvider
+{
+    public string GetModApiUrl(string original) =>
+        DownloadProviderRegistry.Bmclapi.TransformModApiUrl(original);
+
+    public List<string> GetModDownloadUrls(string original, int compSourceSolution)
     {
         var mirror = original
-            .Replace("https://cdn.modrinth.com", "https://mod.mcimirror.top")
-            .Replace("https://edge.forgecdn.net", "https://mod.mcimirror.top");
+            .Replace(DownloadRegistry.ModrinthCdn, "https://mod.mcimirror.top")
+            .Replace(DownloadRegistry.CurseForgeCdn, "https://mod.mcimirror.top");
 
         var result = compSourceSolution switch
         {
-            0 => new List<string> { mirror, mirror }, // Mirror
-            1 => new List<string> { original, mirror }, // Balanced
-            2 => new List<string> { original, original }, // Official
-            _ => new List<string> { original } // Fallback
+            0 => new List<string> { mirror, mirror },
+            1 => new List<string> { original, mirror },
+            2 => new List<string> { original, original },
+            _ => new List<string> { original },
         };
-
-        result.Add(original); // Always include original as final fallback
+        result.Add(original);
         return result;
     }
+}
+
+// ─── 版本列表 ─────────────────────────────────────────────────
+
+/// <summary>将版本列表源 URL 映射到 BMCLAPI 镜像。</summary>
+public interface IVersionListUrlProvider
+{
+    string ToBmclapiUrl(string sourceUrl);
+    string ForgeVersionListBmclapiUrl(string mcVersion);
+    string UnlistedVersionsMirrorUrl();
+}
+
+/// <summary>提供版本列表接口的 BMCLAPI 镜像 URL。</summary>
+public class VersionListUrlProvider : IVersionListUrlProvider
+{
+    private const string Bmclapi = "https://bmclapi2.bangbang93.com";
+    private const string Unlisted = "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto";
+
+    public string ToBmclapiUrl(string sourceUrl)
+    {
+        return sourceUrl switch
+        {
+            _ when sourceUrl == DownloadRegistry.VersionManifest =>
+                $"{Bmclapi}/mc/game/version_manifest.json",
+            _ when sourceUrl == DownloadRegistry.FabricMeta =>
+                $"{Bmclapi}/fabric-meta/v2/versions",
+            _ when sourceUrl == DownloadRegistry.ForgeKnownVersions =>
+                $"{Bmclapi}/forge/minecraft",
+            _ when sourceUrl == DownloadRegistry.NeoForgeVersionsLatest =>
+                $"{Bmclapi}/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
+            _ when sourceUrl == DownloadRegistry.NeoForgeVersionsLegacy =>
+                $"{Bmclapi}/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
+            _ when sourceUrl == DownloadRegistry.OptiFineList =>
+                $"{Bmclapi}/optifine/versionList",
+            _ when sourceUrl == DownloadRegistry.LiteLoaderVersions =>
+                $"{Bmclapi}/maven/com/mumfrey/liteloader/versions.json",
+            _ when sourceUrl == DownloadRegistry.UnlistedVersionsJson =>
+                $"{Unlisted}/version_manifest.json",
+            _ => null,
+        };
+    }
+
+    public string ForgeVersionListBmclapiUrl(string mcVersion) =>
+        $"{Bmclapi}/forge/minecraft/{mcVersion}";
+
+    public string UnlistedVersionsMirrorUrl() =>
+        $"{Unlisted}/version_manifest.json";
+}
+
+// ─── 统一入口 ───────────────────────────────────────────────────
+
+/// <summary>
+///     下载 URL 的统一入口，按领域暴露子提供者。
+///     <br/>• <see cref="File"/> — 资源、库、启动器元数据
+///     <br/>• <see cref="Mod"/> — Mod API 与下载
+///     <br/>• <see cref="VersionList"/> — 版本列表镜像
+/// </summary>
+public static class DownloadProvider
+{
+    public static readonly IFileDownloadUrlProvider File = new FileDownloadUrlProvider();
+    public static readonly IModDownloadUrlProvider Mod = new ModDownloadUrlProvider();
+    public static readonly IVersionListUrlProvider VersionList = new VersionListUrlProvider();
 }

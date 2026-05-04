@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.Minecraft.Download;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -86,7 +87,7 @@ public class DlLiteLoaderList
     private static void DlLiteLoaderListOfficialMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
+            (JObject)Requester.FetchJson(DownloadRegistry.LiteLoaderVersions);
         try
         {
             Loader.Output = new DlLiteLoaderListResult
@@ -108,7 +109,7 @@ public class DlLiteLoaderList
     {
         var Result =
             (JObject)Requester.FetchJson(
-                "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
+                DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.LiteLoaderVersions));
         try
         {
             Loader.Output = new DlLiteLoaderListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = ParseLiteLoaderVersions((JObject)Result["versions"]) };

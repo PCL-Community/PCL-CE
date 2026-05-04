@@ -3,6 +3,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Download;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -98,7 +99,7 @@ public class DlClientList
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
         var StartTime = TimeUtils.GetTimeTick();
-        var Json = (JObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
+        var Json = (JObject)Requester.FetchJson(DownloadRegistry.VersionManifest);
         try
         {
             var Versions = (JArray)Json["versions"];
@@ -164,7 +165,7 @@ public class DlClientList
     private static void DlClientListBmclapiMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
         var Json = (JObject)Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
+            DownloadProvider.VersionList.ToBmclapiUrl(DownloadRegistry.VersionManifest));
         try
         {
             var Versions = (JArray)Json["versions"];
@@ -197,7 +198,7 @@ public class DlClientList
             try
             {
                 var UnlistedJson = (JObject)Requester.FetchJson(
-                    "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
+                    DownloadProvider.VersionList.UnlistedVersionsMirrorUrl());
                 File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
             }
             catch (Exception ex)

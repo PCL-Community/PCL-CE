@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Download;
 using PCL.Network;
 
 namespace PCL;
@@ -51,8 +52,7 @@ public class DlCleanroomList
         /// <summary>
         ///     文件在官网的基础地址，不包含后缀。
         /// </summary>
-        public string UrlBase =>
-            $"https://github.com/CleanroomMC/Cleanroom/releases/download/{ApiName}/cleanroom-{ApiName}";
+        public string UrlBase => DownloadRegistry.CleanroomDownloadUrl(ApiName);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class DlCleanroomList
     {
         // 获取版本列表 JSON
         var ResultLatest = Requester.FetchJson(
-            "https://api.github.com/repos/CleanroomMC/Cleanroom/releases", new RequestParam
+            DownloadRegistry.CleanroomReleases, new RequestParam
             {
                 UseBrowserUserAgent = true
             }).ToString();
