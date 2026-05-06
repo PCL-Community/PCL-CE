@@ -14,7 +14,6 @@ public partial class PageSetupLauncherLanguage
     {
         InitializeComponent();
         Loaded += PageSetupLauncherLanguage_Loaded;
-        Loaded += (_, _) => Reload();
     }
 
     private void PageSetupLauncherLanguage_Loaded(object sender, RoutedEventArgs e)

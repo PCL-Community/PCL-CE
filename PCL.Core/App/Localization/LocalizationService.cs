@@ -121,6 +121,15 @@ public sealed partial class LocalizationService
         var uiCulture = CultureInfo.GetCultureInfo(language.CultureName);
         var formatCulture = _ResolveFormatCulture(formatCultureCode, uiCulture, out var normalizedFormatCultureCode);
 
+        var isLanguageChanged = !string.Equals(CurrentLanguage.Code, language.Code, StringComparison.OrdinalIgnoreCase);
+        var isFormatCultureChanged = !string.Equals(CurrentFormatCulture.Name, formatCulture.Name,
+            StringComparison.OrdinalIgnoreCase);
+        if (_baseLanguageDictionary is not null && !isLanguageChanged && !isFormatCultureChanged)
+        {
+            _SaveConfigIfNeeded(save, normalizedLanguageCode, language, normalizedFormatCultureCode);
+            return;
+        }
+
         _ApplyCultures(uiCulture, formatCulture);
         _ApplyLanguageResources(language.Code, uiCulture, formatCulture);
 
@@ -130,16 +139,7 @@ public sealed partial class LocalizationService
             language);
         CurrentFormatCulture = formatCulture;
 
-        if (save && ConfigService.IsInitialized)
-        {
-            var configLanguageCode = string.Equals(normalizedLanguageCode, Auto, StringComparison.OrdinalIgnoreCase)
-                ? Auto
-                : language.Code;
-            if (Config.Preference.Localization.Language != configLanguageCode)
-                Config.Preference.Localization.Language = configLanguageCode;
-            if (Config.Preference.Localization.FormatCulture != normalizedFormatCultureCode)
-                Config.Preference.Localization.FormatCulture = normalizedFormatCultureCode;
-        }
+        _SaveConfigIfNeeded(save, normalizedLanguageCode, language, normalizedFormatCultureCode);
 
         _LogInfo($"当前 UI 语言: {language.Code}, 展示格式: {formatCulture.Name}");
         LanguageChanged?.Invoke();
@@ -169,6 +169,20 @@ public sealed partial class LocalizationService
         return SupportedLanguages.FirstOrDefault(language =>
                    string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase))
                ?? _DefaultLanguage;
+    }
+
+    private static void _SaveConfigIfNeeded(bool save, string normalizedLanguageCode, LocalizationLanguage language,
+        string normalizedFormatCultureCode)
+    {
+        if (!save || !ConfigService.IsInitialized) return;
+
+        var configLanguageCode = string.Equals(normalizedLanguageCode, Auto, StringComparison.OrdinalIgnoreCase)
+            ? Auto
+            : language.Code;
+        if (Config.Preference.Localization.Language != configLanguageCode)
+            Config.Preference.Localization.Language = configLanguageCode;
+        if (Config.Preference.Localization.FormatCulture != normalizedFormatCultureCode)
+            Config.Preference.Localization.FormatCulture = normalizedFormatCultureCode;
     }
 
     private static LocalizationLanguage _ResolveSystemLanguage()

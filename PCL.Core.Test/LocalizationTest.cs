@@ -43,7 +43,7 @@ public class LocalizationTest
                 .Select(group => group.Key)
                 .ToArray();
 
-            Assert.AreEqual(0, duplicated.Length, $"{language} 存在重复语言键：{string.Join(", ", duplicated)}");
+            Assert.IsEmpty(duplicated, $"{language} 存在重复语言键：{string.Join(", ", duplicated)}");
         }
     }
 
