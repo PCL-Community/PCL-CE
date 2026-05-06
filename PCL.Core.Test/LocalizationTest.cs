@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.Test;
 
 [TestClass]
 public class LocalizationTest
 {
-    private static readonly string[] LanguageFiles = ["zh-CN", "en-US", "zh-TW"];
+    private static readonly string[] LanguageFiles = LocalizationService.SupportedLanguages
+        .Select(language => language.Code)
+        .ToArray();
 
     [TestMethod]
     public void AllLanguageDictionariesShouldContainBaseKeys()
@@ -22,7 +26,7 @@ public class LocalizationTest
             var keys = LoadKeys(language);
             var missing = baseKeys.Except(keys).ToArray();
 
-            Assert.AreEqual(0, missing.Length, $"{language} 缺少语言键：{string.Join(", ", missing)}");
+            Assert.IsEmpty(missing, $"{language} 缺少语言键：{string.Join(", ", missing)}");
         }
     }
 
@@ -53,6 +57,57 @@ public class LocalizationTest
             Assert.IsTrue(key.Contains('.'), $"{language} 的语言键缺少分组分隔符：{key}");
             Assert.IsFalse(key.Contains(' '), $"{language} 的语言键不应包含空格：{key}");
         }
+    }
+
+
+    [TestMethod]
+    public void SupportedLanguagesShouldHaveValidCultureAndResourceDictionary()
+    {
+        foreach (var language in LocalizationService.SupportedLanguages)
+        {
+            CultureInfo.GetCultureInfo(language.CultureName);
+
+            var filePath = Path.Combine(GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages",
+                language.Code + ".xaml");
+            Assert.IsTrue(File.Exists(filePath), $"{language.Code} 缺少语言资源文件");
+        }
+    }
+
+
+    [TestMethod]
+    public void FontProfileShouldFollowCultureGlyphStandard()
+    {
+        Assert.AreEqual(LocalizationFontProfile.SimplifiedChinese,
+            LocalizationFontService.ResolveProfileFromCultureName("zh-CN"));
+        Assert.AreEqual(LocalizationFontProfile.SimplifiedChinese,
+            LocalizationFontService.ResolveProfileFromCultureName("zh-Hans"));
+        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
+            LocalizationFontService.ResolveProfileFromCultureName("zh-TW"));
+        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
+            LocalizationFontService.ResolveProfileFromCultureName("zh_HK"));
+        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
+            LocalizationFontService.ResolveProfileFromCultureName("zh-Hant-HK"));
+        Assert.AreEqual(LocalizationFontProfile.Japanese,
+            LocalizationFontService.ResolveProfileFromCultureName("ja-JP"));
+        Assert.AreEqual(LocalizationFontProfile.Korean,
+            LocalizationFontService.ResolveProfileFromCultureName("ko-KR"));
+        Assert.AreEqual(LocalizationFontProfile.English,
+            LocalizationFontService.ResolveProfileFromCultureName("en-US"));
+        Assert.AreEqual(LocalizationFontProfile.English,
+            LocalizationFontService.ResolveProfileFromCultureName("en-GB"));
+        Assert.AreEqual(LocalizationFontProfile.Other,
+            LocalizationFontService.ResolveProfileFromCultureName("fr-FR"));
+        Assert.AreEqual(LocalizationFontProfile.Other,
+            LocalizationFontService.ResolveProfileFromCultureName("es-ES"));
+        Assert.AreEqual(LocalizationFontProfile.Other,
+            LocalizationFontService.ResolveProfileFromCultureName("pt-BR"));
+    }
+
+    [TestMethod]
+    public void FontProfileAliasesShouldNotMakeLanguageResourceSupported()
+    {
+        Assert.IsFalse(LocalizationService.IsLanguageSupported("zh-HK"));
+        Assert.AreEqual(LocalizationService.DefaultLanguageCode, LocalizationService.ResolveLanguage("zh-HK").Code);
     }
 
     private static HashSet<string> LoadKeys(string language)

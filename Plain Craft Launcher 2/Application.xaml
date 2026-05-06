@@ -25,7 +25,7 @@
             <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 
             <!--字体-->
-            <FontFamily x:Key="LaunchFontFamily">Resources/#PCL English, Microsoft YaHei UI</FontFamily>
+            <FontFamily x:Key="LaunchFontFamily">Resources/#PCL English, Microsoft YaHei UI, Segoe UI</FontFamily>
 
             <!-- 颜色表 -->
             <SolidColorBrush x:Key="ColorBrush1">#343d4a</SolidColorBrush>

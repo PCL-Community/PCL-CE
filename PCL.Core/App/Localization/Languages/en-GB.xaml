@@ -3,8 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <sys:String x:Key="Localization.Meta.Code">en-US</sys:String>
-    <sys:String x:Key="Localization.Meta.Name">English (US)</sys:String>
+    <sys:String x:Key="Localization.Meta.Code">en-GB</sys:String>
+    <sys:String x:Key="Localization.Meta.Name">English (United Kingdom)</sys:String>
 
     <sys:String x:Key="Localization.Language.Auto">Follow system ({0})</sys:String>
 
@@ -24,7 +24,7 @@
     <sys:String x:Key="Common.Action.Search">Search</sys:String>
     <sys:String x:Key="Common.Action.Refresh">Refresh</sys:String>
     <sys:String x:Key="Common.Action.Reset">Reset</sys:String>
-    
+
     <sys:String x:Key="Main.Title.Launch">Launch</sys:String>
     <sys:String x:Key="Main.Title.Download">Download</sys:String>
     <sys:String x:Key="Main.Title.Settings">Settings</sys:String>

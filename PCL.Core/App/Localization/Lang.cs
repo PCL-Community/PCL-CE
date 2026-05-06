@@ -19,7 +19,7 @@ public static class Lang
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         if (Application.Current?.TryFindResource(key) is string text) return text;
-        if (LifecycleSafeFindResource(key) is string fallbackText) return fallbackText;
+        if (_LifecycleSafeFindResource(key) is string fallbackText) return fallbackText;
 
 #if DEBUG
         return $"!{key}!";
@@ -54,11 +54,11 @@ public static class Lang
         return value.ToString(format, CultureInfo.CurrentCulture);
     }
 
-    private static object? LifecycleSafeFindResource(string key)
+    private static object? _LifecycleSafeFindResource(string key)
     {
         try
         {
-            return Lifecycle.CurrentApplication?.TryFindResource(key);
+            return Lifecycle.CurrentApplication.TryFindResource(key);
         }
         catch (InvalidOperationException)
         {

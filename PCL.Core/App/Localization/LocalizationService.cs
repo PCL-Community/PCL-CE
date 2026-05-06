@@ -35,8 +35,9 @@ public sealed partial class LocalizationService
 
     private static readonly LocalizationLanguage _DefaultLanguage = new(
         DefaultLanguageCode,
-        "简体中文",
-        "zh-CN");
+        "简体中文（中国大陆）",
+        "zh-CN",
+        LocalizationFontProfile.SimplifiedChinese);
 
     private static ResourceDictionary? _baseLanguageDictionary;
     private static ResourceDictionary? _currentLanguageDictionary;
@@ -59,8 +60,12 @@ public sealed partial class LocalizationService
     public static IReadOnlyList<LocalizationLanguage> SupportedLanguages { get; } =
     [
         _DefaultLanguage,
-        new("en-US", "English (US)", "en-US"),
-        new("zh-TW", "繁體中文（台灣）", "zh-TW")
+        new("zh-TW", "繁體中文（台灣）", "zh-TW", LocalizationFontProfile.TraditionalChinese),
+        new("en-US", "English (US)", "en-US", LocalizationFontProfile.English),
+        new("en-GB", "English (United Kingdom)", "en-GB", LocalizationFontProfile.English),
+        new("ja-JP", "日本語（日本）", "ja-JP", LocalizationFontProfile.Japanese),
+        new("fr-FR", "Français (France)", "fr-FR", LocalizationFontProfile.Other),
+        new("es-ES", "Español (España)", "es-ES", LocalizationFontProfile.Other)
     ];
 
     [RegisterConfigEvent]
@@ -120,6 +125,9 @@ public sealed partial class LocalizationService
         _ApplyLanguageResources(language.Code, uiCulture, formatCulture);
 
         CurrentLanguage = language;
+        LocalizationFontService.ApplyLaunchFont(
+            ConfigService.IsInitialized ? Config.Preference.Font : null,
+            language);
         CurrentFormatCulture = formatCulture;
 
         if (save && ConfigService.IsInitialized)
@@ -144,8 +152,9 @@ public sealed partial class LocalizationService
     {
         if (string.IsNullOrWhiteSpace(languageCode)) return true;
         if (string.Equals(languageCode, Auto, StringComparison.OrdinalIgnoreCase)) return true;
+        var normalizedCode = _NormalizeCultureCode(languageCode);
         return SupportedLanguages.Any(language =>
-            string.Equals(language.Code, languageCode, StringComparison.OrdinalIgnoreCase));
+            string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -156,14 +165,15 @@ public sealed partial class LocalizationService
         if (string.IsNullOrWhiteSpace(languageCode) ||
             string.Equals(languageCode, Auto, StringComparison.OrdinalIgnoreCase)) return _ResolveSystemLanguage();
 
+        var normalizedCode = _NormalizeCultureCode(languageCode);
         return SupportedLanguages.FirstOrDefault(language =>
-                   string.Equals(language.Code, languageCode, StringComparison.OrdinalIgnoreCase))
+                   string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase))
                ?? _DefaultLanguage;
     }
 
     private static LocalizationLanguage _ResolveSystemLanguage()
     {
-        var systemLanguage = _systemUiCulture.Name;
+        var systemLanguage = _NormalizeCultureCode(_systemUiCulture.Name);
         var exact = SupportedLanguages.FirstOrDefault(language =>
             string.Equals(language.Code, systemLanguage, StringComparison.OrdinalIgnoreCase));
         if (exact is not null) return exact;
@@ -263,7 +273,12 @@ public sealed partial class LocalizationService
 
     private static string _NormalizeConfigValue(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? Auto : value;
+        return string.IsNullOrWhiteSpace(value) ? Auto : _NormalizeCultureCode(value);
+    }
+
+    private static string _NormalizeCultureCode(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? Auto : value.Replace('_', '-').Trim();
     }
 
     private static void _LogInfo(string message)

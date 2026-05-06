@@ -8,7 +8,7 @@ namespace PCL;
 
 public partial class PageSetupLauncherLanguage
 {
-    private new bool IsLoaded;
+    private bool _isLoaded;
 
     public PageSetupLauncherLanguage()
     {
@@ -23,9 +23,9 @@ public partial class PageSetupLauncherLanguage
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (_isLoaded)
             return;
-        IsLoaded = true;
+        _isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -66,25 +66,26 @@ public partial class PageSetupLauncherLanguage
     private void ReloadLanguageCombo()
     {
         ComboUiLanguage.Items.Clear();
-        ComboUiLanguage.Items.Add(new MyComboBoxItem
-        {
-            Content = Lang.Text("Localization.Language.Auto",
-                GetLanguageDisplay(LocalizationService.ResolveLanguage(LocalizationService.Auto))),
-            Tag = LocalizationService.Auto
-        });
+        var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
+        ComboUiLanguage.Items.Add(CreateLanguageComboItem(
+            Lang.Text("Localization.Language.Auto", GetLanguageDisplay(autoLanguage)),
+            LocalizationService.Auto,
+            autoLanguage));
 
         foreach (var language in LocalizationService.SupportedLanguages)
-            ComboUiLanguage.Items.Add(new MyComboBoxItem
-            {
-                Content = GetLanguageDisplay(language),
-                Tag = language.Code
-            });
+            ComboUiLanguage.Items.Add(CreateLanguageComboItem(
+                GetLanguageDisplay(language),
+                language.Code,
+                language));
 
-        var configValue = Config.Preference.Localization.Language;
-        SelectComboItem(ComboUiLanguage,
-            LocalizationService.IsLanguageSupported(configValue)
-                ? NormalizeConfigValue(configValue)
-                : LocalizationService.Auto);
+        var configValue = NormalizeConfigValue(Config.Preference.Localization.Language);
+        var selectedLanguageTag = LocalizationService.Auto;
+        if (LocalizationService.IsLanguageSupported(configValue))
+            selectedLanguageTag =
+                string.Equals(configValue, LocalizationService.Auto, StringComparison.OrdinalIgnoreCase)
+                    ? LocalizationService.Auto
+                    : LocalizationService.ResolveLanguage(configValue).Code;
+        SelectComboItem(ComboUiLanguage, selectedLanguageTag);
     }
 
     private void ReloadFormatCultureCombo()
@@ -160,6 +161,16 @@ public partial class PageSetupLauncherLanguage
             var culture = CultureInfo.GetCultureInfo(language.CultureName);
             if (used.Add(culture.Name)) yield return culture;
         }
+    }
+
+    private static MyComboBoxItem CreateLanguageComboItem(string content, string tag, LocalizationLanguage language)
+    {
+        return new MyComboBoxItem
+        {
+            Content = content,
+            Tag = tag,
+            FontFamily = LocalizationFontService.BuildRepresentativeFontFamily(language)
+        };
     }
 
     private static string GetLanguageDisplay(LocalizationLanguage language)

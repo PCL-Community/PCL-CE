@@ -13,7 +13,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">語言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">介面語言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">地區格式</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前僅部分新增介面支援即時語言切換，既有頁面文字將於後續遷移後逐步完整生效。</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前僅部分新增介面支援多語言功能，其餘介面將在後續遷移中逐步完成生效。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">語言設定已更新</sys:String>
 
     <sys:String x:Key="Localization.FormatCulture.Auto">跟隨系統地區格式</sys:String>

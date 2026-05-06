@@ -23,6 +23,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -33,7 +34,6 @@ using PCL.Core.Utils.Secret;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
-using FontFamily = System.Windows.Media.FontFamily;
 using Size = System.Windows.Size;
 
 namespace PCL;
@@ -3304,13 +3304,7 @@ public static class ModBase
     {
         try
         {
-            FontFamily TargetFont;
-            if (string.IsNullOrEmpty(FontName))
-                TargetFont = new FontFamily(new Uri("pack://application:,,,/"),
-                    "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI");
-            else
-                TargetFont = new FontFamily($"{FontName}, Segoe UI, Microsoft YaHei UI");
-            System.Windows.Application.Current.Resources["LaunchFontFamily"] = TargetFont;
+            LocalizationFontService.ApplyLaunchFont(FontName, LocalizationService.CurrentLanguage);
         }
         catch (Exception ex)
         {
