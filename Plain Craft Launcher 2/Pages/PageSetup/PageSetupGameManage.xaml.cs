@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 
@@ -52,7 +52,7 @@ public partial class PageSetupGameManage
         CheckUpdateSnapshot.Checked = (bool?)Config.Tool.SnapshotNotification;
 
         // 辅助设置
-        CheckHelpChinese.Checked = (bool?)Config.Tool.AutoChangeLanguage;
+        CheckHelpLauncherLanguage.Checked = Config.Tool.AutoChangeLanguage;
     }
 
     // 初始化

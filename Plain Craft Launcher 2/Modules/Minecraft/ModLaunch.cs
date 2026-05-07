@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -12,6 +12,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
@@ -3254,61 +3255,29 @@ public static class ModLaunch
                 // 1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
                 // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
                 // 1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-                var CurrentLang = ModBase.ReadIni(SetupFileAddress, "lang", "none");
-                string RequiredLang; // 需要的语言
+                var currentLang = ModBase.ReadIni(SetupFileAddress, "lang", "none");
+                var isLanguageUnconfigured = string.Equals(currentLang, "none", StringComparison.OrdinalIgnoreCase);
                 var hasExistingSaves = Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves");
-                var shouldUseDefault = CurrentLang == "none" || !hasExistingSaves;
+                var shouldUseDefault = isLanguageUnconfigured || !hasExistingSaves;
+                var requiredLang = _ResolveMinecraftLanguage(currentLang, shouldUseDefault,
+                    ModMinecraft.McInstanceSelected.ReleaseTime);
 
-                // 获取 Minecraft 版本信息
-                DateTime? mcReleaseTime = ModMinecraft.McInstanceSelected.ReleaseTime;
-                var isUnder1dot1 =
-                    (bool)((new DateTime(2000, 1, 1) is var arg3 && mcReleaseTime.HasValue
-                            ? mcReleaseTime.Value > arg3
-                            : (bool?)null) is var arg5 && arg5.HasValue && !arg5.Value ? false :
-                        !((new DateTime(2011, 11, 18) is var arg4 && mcReleaseTime.HasValue
-                            ? mcReleaseTime.Value <= arg4
-                            : (bool?)null) is { } arg6) ? null :
-                        arg6 ? arg5 : false); // 1.11 发布日期
-
-                // 对于 1.0 及以下版本，没有语言选项，返回 "none"
-                if (isUnder1dot1)
+                if (currentLang == requiredLang)
                 {
-                    RequiredLang = "none";
-                }
-                else
-                {
-                    // 根据配置确定默认语言
-                    var defaultLang = "zh_cn";
-                    RequiredLang = shouldUseDefault ? defaultLang : CurrentLang.ToLower();
-
-                    // 应用版本特定的语言格式规则
-                    if (((new DateTime(2012, 1, 12) is var arg7 && mcReleaseTime.HasValue
-                                ? mcReleaseTime.Value >= arg7
-                                : (bool?)null) is var arg9 && arg9.HasValue && !arg9.Value ? false :
-                            !((new DateTime(2016, 6, 8) is var arg8 && mcReleaseTime.HasValue
-                                ? mcReleaseTime.Value <= arg8
-                                : (bool?)null) is { } arg10) ? null :
-                            arg10 ? arg9 : false) == true)
-                        // 1.1~1.10：最后两位字母必须大写（zh_CN）
-                        RequiredLang = "zh_CN";
-                }
-
-                if ((CurrentLang ?? "") == (RequiredLang ?? ""))
-                {
-                    McLaunchLog($"需要的语言为 {RequiredLang}，当前语言为 {CurrentLang}，无需修改");
+                    McLaunchLog($"需要的语言为 {requiredLang}，当前语言为 {currentLang}，无需修改");
                 }
                 else
                 {
                     ModBase.WriteIni(SetupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
-                    ModBase.WriteIni(SetupFileAddress, "lang", RequiredLang);
-                    McLaunchLog($"已将语言从 {CurrentLang} 修改为 {RequiredLang}");
+                    ModBase.WriteIni(SetupFileAddress, "lang", requiredLang);
+                    McLaunchLog($"已将语言从 {currentLang} 修改为 {requiredLang}");
                 }
 
-                // 如果是初次设置，一并修改 forceUnicodeFont，确保中文能正常显示
-                if (CurrentLang == "none" || !Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves"))
+                // 如果是初次设置，一并按启动器语言需要修改 forceUnicodeFont，确保 CJK 字符正常显示
+                if ((isLanguageUnconfigured || !hasExistingSaves) && _ShouldEnableForceUnicodeFont())
                 {
                     ModBase.WriteIni(SetupFileAddress, "forceUnicodeFont", "true");
-                    McLaunchLog("已开启 forceUnicodeFont，确保中文字体正常显示");
+                    McLaunchLog("已开启 forceUnicodeFont，确保当前启动器语言字体正常显示");
                 }
             }
             catch (Exception ex)
@@ -3337,6 +3306,55 @@ public static class ModLaunch
                 break;
             }
         }
+    }
+
+    private static string _ResolveMinecraftLanguage(string? currentLanguage, bool shouldUseLauncherLanguage,
+        DateTime? mcReleaseTime)
+    {
+        if (_IsMinecraftVersionUnder1Dot1(mcReleaseTime)) return "none";
+
+        var useLegacyRegionCase = _ShouldUseLegacyMinecraftLanguageCode(mcReleaseTime);
+        var languageCode = shouldUseLauncherLanguage
+            ? LocalizationService.CurrentLanguage.Code
+            : currentLanguage;
+        return _NormalizeMinecraftLanguageCode(languageCode, useLegacyRegionCase);
+    }
+
+    private static string _NormalizeMinecraftLanguageCode(string? languageCode, bool useLegacyRegionCase)
+    {
+        var normalizedCode = string.IsNullOrWhiteSpace(languageCode)
+            ? "none"
+            : languageCode.Replace('-', '_').Trim();
+        if (string.Equals(normalizedCode, "none", StringComparison.OrdinalIgnoreCase)) return "none";
+
+        var segments = normalizedCode.Split('_', 2, StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length < 2) return normalizedCode.ToLowerInvariant();
+
+        var language = segments[0].ToLowerInvariant();
+        var region = useLegacyRegionCase ? segments[1].ToUpperInvariant() : segments[1].ToLowerInvariant();
+        return $"{language}_{region}";
+    }
+
+    private static bool _IsMinecraftVersionUnder1Dot1(DateTime? releaseTime)
+    {
+        return releaseTime.HasValue &&
+               releaseTime.Value > new DateTime(2000, 1, 1) &&
+               releaseTime.Value <= new DateTime(2011, 11, 18);
+    }
+
+    private static bool _ShouldUseLegacyMinecraftLanguageCode(DateTime? releaseTime)
+    {
+        return releaseTime.HasValue &&
+               releaseTime.Value >= new DateTime(2012, 1, 12) &&
+               releaseTime.Value <= new DateTime(2016, 6, 8);
+    }
+
+    private static bool _ShouldEnableForceUnicodeFont()
+    {
+        return LocalizationService.CurrentLanguage.FontProfile is LocalizationFontProfile.SimplifiedChinese
+            or LocalizationFontProfile.TraditionalChinese
+            or LocalizationFontProfile.Japanese
+            or LocalizationFontProfile.Korean;
     }
 
     private static void McLaunchCustom(ModLoader.LoaderTask<int, int> Loader)
