@@ -748,7 +748,17 @@ public partial class FormMain
         {
             if (e.Key == Key.Enter)
             {
-                ((MyMsgInput)PanMsg.Children[0]).Btn1_Click(sender, null);
+                var msg = PanMsg.Children[0];
+                Action? enterAction = msg switch
+                {
+                    MyMsgInput input => () => input.Btn1_Click(sender, null),
+                    MyMsgSelect select => () => select.Btn1_Click(sender, null),
+                    MyMsgText text => () => text.Btn1_Click(sender, null),
+                    MyMsgMarkdown markdown => () => markdown.Btn1_Click(sender, null),
+                    MyMsgLogin login => () => login.Btn1_Click(sender, null),
+                    _ => null
+                };
+                enterAction?.Invoke();
                 return;
             }
 
