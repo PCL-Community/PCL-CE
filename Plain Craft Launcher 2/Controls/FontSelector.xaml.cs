@@ -87,11 +87,7 @@ public partial class FontSelector
 
     private void FontSelector_Loaded(object sender, RoutedEventArgs e)
     {
-        if (!_isListeningLanguageChanged)
-        {
-            LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
-            _isListeningLanguageChanged = true;
-        }
+        StartListeningLanguageChanged();
 
         if (CustomFontCollection.Count == 0)
             LoadFonts();
@@ -100,6 +96,18 @@ public partial class FontSelector
     }
 
     private void FontSelector_Unloaded(object sender, RoutedEventArgs e)
+    {
+        StopListeningLanguageChanged();
+    }
+
+    private void StartListeningLanguageChanged()
+    {
+        if (_isListeningLanguageChanged) return;
+        LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
+        _isListeningLanguageChanged = true;
+    }
+
+    private void StopListeningLanguageChanged()
     {
         if (!_isListeningLanguageChanged) return;
         LocalizationService.LanguageChanged -= LocalizationService_LanguageChanged;
