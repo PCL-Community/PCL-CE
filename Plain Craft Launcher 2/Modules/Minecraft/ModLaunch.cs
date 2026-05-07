@@ -2506,12 +2506,6 @@ public static class ModLaunch
             }
         }
 
-        // LWJGL Unsafe Agent
-        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
-        {
-            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
-        }
-
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
@@ -2628,6 +2622,13 @@ public static class ModLaunch
             {
                 throw new Exception("无法连接到第三方登录服务器（" + (Server ?? null) + "）", ex);
             }
+        }
+        
+        // LWJGL Unsafe Agent
+        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
+        {
+            ModBase.Log($"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(ModMinecraft.McInstanceSelected)}");
+            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
