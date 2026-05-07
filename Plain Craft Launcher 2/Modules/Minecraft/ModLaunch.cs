@@ -2047,7 +2047,7 @@ public static class ModLaunch
                 return;
             if (McLaunchJavaSelected is not null)
             {
-                McLaunchLog("选择的 Java：" + McLaunchJavaSelected.ToString);
+                McLaunchLog("选择的 Java：" + McLaunchJavaSelected);
                 return;
             }
 
