@@ -2014,7 +2014,7 @@ public static class ModMinecraft
                         if (!instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance))
                             instance.Logo = instanceCfg.LogoPath[instance.PathInstance];
                         if (!instanceCfg.ReleaseTimeConfig.IsDefault(instance.PathInstance))
-                            instance.ReleaseTime = (dynamic)instanceCfg.ReleaseTime[instance.PathInstance];
+                            instance.ReleaseTime = DateTime.Parse(instanceCfg.ReleaseTime[instance.PathInstance]);
                         if (!instanceCfg.StateConfig.IsDefault(instance.PathInstance))
                             instance.State =
                                 (McInstanceState)Conversions.ToInteger(instanceCfg.State[instance.PathInstance]);
