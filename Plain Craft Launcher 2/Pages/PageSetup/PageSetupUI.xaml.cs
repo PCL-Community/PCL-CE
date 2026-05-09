@@ -29,50 +29,7 @@ public partial class PageSetupUI
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        ModSecret.ThemeCheckAll(true);
 
-        if (ModSecret.ThemeDontClick != 0)
-        {
-            string NewText;
-            switch (ModSecret.ThemeDontClick)
-            {
-                case 1:
-                {
-                    NewText = "眼瞎白";
-                    break;
-                }
-                case 2:
-                {
-                    NewText = "真·滑稽彩";
-                    break;
-                }
-
-                default:
-                {
-                    NewText = "？？？";
-                    break;
-                }
-            }
-
-            foreach (var Control in PanLauncherTheme.Children)
-                if (Control is MyRadioBox && ((MyRadioBox)Control).IsEnabled)
-                    ((MyRadioBox)Control).Text = NewText;
-        }
-
-        /* TODO ERROR: Skipped IfDirectiveTrivia
-        #If DEBUG Then
-        */
-        if (ModSecret.EnableCustomTheme)
-        {
-            LabLauncherDelta.Visibility = Visibility.Visible;
-            SliderLauncherDelta.Visibility = Visibility.Visible;
-            LabLauncherLight.Visibility = Visibility.Visible;
-            SliderLauncherLight.Visibility = Visibility.Visible;
-        }
-
-        /* TODO ERROR: Skipped EndIfDirectiveTrivia
-        #End If
-        */
         ModAnimation.AniControlEnabled += 1;
         Reload(); // #4826，在每次进入页面时都刷新一下
         ModAnimation.AniControlEnabled -= 1;
@@ -85,16 +42,6 @@ public partial class PageSetupUI
         SliderLoad();
 
         PanLauncherHide.Visibility = Visibility.Visible;
-
-        // 设置解锁
-
-        if (!RadioLauncherTheme8.IsEnabled)
-            LabLauncherTheme8Copy.ToolTip = "社区版不包含主题功能，请使用官方快照版";
-        RadioLauncherTheme8.ToolTip = "社区版不包含主题功能，请使用官方快照版";
-        if (!RadioLauncherTheme9.IsEnabled)
-            LabLauncherTheme9Copy.ToolTip = "社区版不包含主题功能，请使用官方快照版";
-        RadioLauncherTheme9.ToolTip = "社区版不包含主题功能，请使用官方快照版";
-        // 极客蓝的处理在 ThemeCheck 中
     }
 
     public void Reload()
@@ -103,11 +50,6 @@ public partial class PageSetupUI
         {
             // 启动器
             SliderLauncherOpacity.Value = Conversions.ToInteger(Config.Preference.Theme.WindowOpacity);
-            SliderLauncherHue.Value = Conversions.ToInteger(Config.Preference.Theme.WindowHue);
-            SliderLauncherSat.Value = Conversions.ToInteger(Config.Preference.Theme.WindowSat);
-            SliderLauncherDelta.Value = Conversions.ToInteger(Config.Preference.Theme.WindowDelta);
-            SliderLauncherLight.Value = Conversions.ToInteger(Config.Preference.Theme.WindowLight);
-            // If Setup.Get("UiLauncherTheme") <= 14 Then CType(FindName("RadioLauncherTheme" & Setup.Get("UiLauncherTheme")), MyRadioBox).Checked = True
             CheckLauncherLogo.Checked = (bool?)Config.Preference.ShowStartupLogo;
             ComboDarkMode.SelectedIndex = Conversions.ToInteger(Config.Preference.Theme.ColorMode);
             ComboDarkColor.SelectedIndex = Conversions.ToInteger(Config.Preference.Theme.DarkColor);
@@ -692,49 +634,7 @@ public partial class PageSetupUI
     {
         var sender = (MyComboBox)senderRaw;
         ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
-        ModSecret.ThemeRefresh();
-    }
-
-    // 主题自定义
-    private void RadioLauncherTheme14_Change(object sender, ModBase.RouteEventArgs e)
-    {
-        // If RadioLauncherTheme14.Checked Then
-        // If LabLauncherHue.Visibility = Visibility.Visible Then Exit Sub
-        // LabLauncherHue.Visibility = Visibility.Visible
-        // SliderLauncherHue.Visibility = Visibility.Visible
-        // LabLauncherSat.Visibility = Visibility.Visible
-        // SliderLauncherSat.Visibility = Visibility.Visible
-        // LabLauncherDelta.Visibility = Visibility.Visible
-        // SliderLauncherDelta.Visibility = Visibility.Visible
-        // LabLauncherLight.Visibility = Visibility.Visible
-        // SliderLauncherLight.Visibility = Visibility.Visible
-        // Else
-        if (LabLauncherHue.Visibility == Visibility.Collapsed)
-            return;
-        LabLauncherHue.Visibility = Visibility.Collapsed;
-        SliderLauncherHue.Visibility = Visibility.Collapsed;
-        LabLauncherSat.Visibility = Visibility.Collapsed;
-        SliderLauncherSat.Visibility = Visibility.Collapsed;
-        LabLauncherDelta.Visibility = Visibility.Collapsed;
-        SliderLauncherDelta.Visibility = Visibility.Collapsed;
-        LabLauncherLight.Visibility = Visibility.Collapsed;
-        SliderLauncherLight.Visibility = Visibility.Collapsed;
-        // End If
-        CardLauncher.TriggerForceResize();
-    }
-
-    private void HSL_Change(object senderRaw, bool user)
-    {
-        if (ModAnimation.AniControlEnabled != 0 || SliderLauncherSat is null || !SliderLauncherSat.IsLoaded)
-            return;
-#if False
-                if (EnableCustomTheme) 
-                {
-                    ColorHueTopbarDelta = SliderLauncherDelta.Value - 90
-                    ColorLightAdjust = SliderLauncherLight.Value - 20
-                }
-#endif
-        ModSecret.ThemeRefresh();
+        ThemeManager.ThemeRefresh();
     }
 
     // 赞助
@@ -750,24 +650,6 @@ public partial class PageSetupUI
             Operators.ConcatenateObject(Math.Ceiling(Convert.ToDouble(v) * 0.1d), "%"));
         SliderLauncherOpacity.GetHintText = new Func<object, object>(v =>
             Operators.ConcatenateObject(Math.Round(40 + Convert.ToDouble(v) * 0.1d), "%"));
-        SliderLauncherHue.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "°"));
-        SliderLauncherSat.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
-        SliderLauncherDelta.GetHintText = new Func<int, string>(Value =>
-        {
-            if (Value > 90) return "+" + (Value - 90);
-
-            if (Value == 90) return 0.ToString();
-
-            return (Value - 90).ToString();
-        });
-        SliderLauncherLight.GetHintText = new Func<int, string>(Value =>
-        {
-            if (Value > 20) return "+" + (Value - 20);
-
-            if (Value == 20) return 0.ToString();
-
-            return (Value - 20).ToString();
-        });
         SliderBackgroundOpacity.GetHintText = new Func<object, object>(v =>
             Operators.ConcatenateObject(Math.Round(Convert.ToDouble(v) * 0.1d), "%"));
         SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, " 像素"));

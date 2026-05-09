@@ -454,8 +454,7 @@ public static class ModComp
                 await Task.Run(() =>
                 {
                     var RawProjectsData =
-                        ModDownload.DlModRequest($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]",
-                            true);
+                        ModDownload.DlModRequest<JArray>($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]");
                     foreach (var RawData in (IEnumerable)RawProjectsData)
                         Res.Add(new CompProject((JObject)RawData));
                 });
@@ -485,7 +484,7 @@ public static class ModComp
                     var jsonBody = "{\"modIds\": [" + string.Join(",", ids) + "]}";
 
                     // DlModRequest 返回 object，先强转 JObject，再获取 "data" 并强转为 JArray
-                    var response = (JObject)ModDownload.DlModRequest(
+                    var response = ModDownload.DlModRequest<JObject>(
                         "https://api.curseforge.com/v1/mods",
                         "POST",
                         jsonBody,
@@ -582,8 +581,8 @@ public static class ModComp
                         slug = parts[3];
 
                         // 获取资源信息
-                        var json = (JObject)ModDownload.DlModRequest(
-                            $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}", true);
+                        var json = ModDownload.DlModRequest<JObject>(
+                            $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}");
                         var dataArray = (JArray)json["data"];
 
                         if (dataArray.Any())
@@ -604,9 +603,8 @@ public static class ModComp
                                 receivedClassId != targetClassId)
                             {
                                 // 如果分类不匹配，带上 classId 重新搜索
-                                json = (JObject)ModDownload.DlModRequest(
-                                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}",
-                                    true);
+                                json = ModDownload.DlModRequest<JObject>(
+                                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}");
                                 dataArray = (JArray)json["data"];
                             }
 
@@ -620,8 +618,7 @@ public static class ModComp
                         if (parts.Length < 3) return;
 
                         slug = parts[2];
-                        var json = (JObject)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{slug}",
-                            true);
+                        var json = ModDownload.DlModRequest<JObject>($"https://api.modrinth.com/v2/project/{slug}");
                         projectId = json["id"]?.ToString();
                     }
                     else
@@ -2769,7 +2766,7 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
-                        var json = (JObject)ModDownload.DlModRequest(curseForgeUrl, true);
+                        var json = ModDownload.DlModRequest<JObject>(curseForgeUrl);
                         var projects = json["data"].Select(j => new CompProject((JObject)j))
                             .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains("数据包")))
                             .ToList();
@@ -2795,7 +2792,7 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 Modrinth 获取列表：" + modrinthUrl);
-                        var json = (JObject)ModDownload.DlModRequest(modrinthUrl, true);
+                        var json = ModDownload.DlModRequest<JObject>(modrinthUrl);
                         var projects = json["hits"].Select(j => new CompProject((JObject)j)).ToList();
                         lock (resultsLock)
                         {
@@ -3458,12 +3455,12 @@ public static class ModComp
                 : $"https://api.modrinth.com/v2/project/{ProjectId}";
             if (FromCurseForge)
             {
-                var json = (JObject)ModDownload.DlModRequest(url, true);
+                var json = ModDownload.DlModRequest<JObject>(url);
                 TargetProject = new CompProject((JObject)json["data"]);
             }
             else
             {
-                TargetProject = new CompProject((JObject)ModDownload.DlModRequest(url, true));
+                TargetProject = new CompProject(ModDownload.DlModRequest<JObject>(url));
             }
             // 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         }
@@ -3476,9 +3473,8 @@ public static class ModComp
             if (FromCurseForge)
             {
                 // 注意：若 pageSize=10000 失效，需考虑分页逻辑
-                var response = (JObject)ModDownload.DlModRequest(
-                    $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000",
-                    true
+                var response = ModDownload.DlModRequest<JObject>(
+                    $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000"
                 );
 
                 ResultJsonArray = (JArray)response["data"];
@@ -3486,7 +3482,7 @@ public static class ModComp
             else
             {
                 ResultJsonArray =
-                    (JArray)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false", true);
+                    ModDownload.DlModRequest<JArray>($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false");
             }
 
             CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JObject)a, TargetProject.Type))
@@ -3509,7 +3505,7 @@ public static class ModComp
             if (FromCurseForge)
             {
                 // 1. 获取响应并转为 JObject
-                var response = (JObject)ModDownload.DlModRequest(
+                var response = ModDownload.DlModRequest<JObject>(
                     "https://api.curseforge.com/v1/mods",
                     "POST",
                     "{\"modIds\": [" + string.Join(",", UndoneDeps) + "]}",
@@ -3521,8 +3517,8 @@ public static class ModComp
             }
             else
             {
-                Projects = (JArray)ModDownload.DlModRequest(
-                    $"https://api.modrinth.com/v2/projects?ids=[\"{UndoneDeps.Join("\",\"")}\"]", true);
+                Projects = ModDownload.DlModRequest<JArray>(
+                    $"https://api.modrinth.com/v2/projects?ids=[\"{UndoneDeps.Join("\",\"")}\"]");
             }
 
             foreach (var Project in Projects)

@@ -8,6 +8,7 @@ using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -1300,14 +1301,14 @@ public class CrashAnalyzer
                     EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
                     EnvInfo +=
-                        $"操作系统：{ModSecret.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
-                    EnvInfo += $"CPU：{ModSecret.CPUName}{"\r\n"}";
+                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
+                    EnvInfo += $"CPU：{SystemInfo.CPUName}{"\r\n"}";
                     EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(ModSecret.SystemMemorySize / 1024d, 2)} GB ({ModSecret.SystemMemorySize} MB){"\r\n"}";
-                    foreach (var GPU in ModSecret.GPUs)
+                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(SystemInfo.SystemMemorySize / 1024d, 2)} GB ({SystemInfo.SystemMemorySize} MB){"\r\n"}";
+                    foreach (var GPU in SystemInfo.GPUs)
                     {
                         EnvInfo +=
-                            $"显卡 {ModSecret.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
+                            $"显卡 {SystemInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
                         EnvInfo += "\r\n";
                     }
 
@@ -1689,7 +1690,7 @@ public class CrashAnalyzer
         var isLauncherLatest = false;
         try
         {
-            isLauncherLatest = ModSecret.GetVersionStatus() == ModSecret.VersionStatus.Latest;
+            isLauncherLatest = UpdateManager.GetVersionStatus() == UpdateEnums.VersionStatus.Latest;
         }
         catch (Exception ex)
         {

@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
 using Microsoft.VisualBasic;
@@ -18,6 +20,7 @@ using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
 using PCL;
+using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 
 namespace PCL;
 
@@ -183,7 +186,11 @@ public static class ModLaunch
             }
             else
             {                
-                switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", "正版验证", "购买正版", "试玩", "返回",
+                switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", 
+                            "正版验证", 
+                            "购买正版", 
+                            "试玩", 
+                            "返回",
                             Button1Action: () =>
                                 ModBase.OpenWebsite(
                                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
@@ -1465,7 +1472,7 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            HandleException(ex, "第三方验证登录失败");
+            HandleException(ex, "第三方登录失败");
         }
 
         // 如果需要刷新，循环刷新一次
@@ -1603,39 +1610,50 @@ public static class ModLaunch
     private static void McLoginRequestRefresh(ref ModLoader.LoaderTask<McLoginServer, McLoginResult> Data,
         bool RequestUser)
     {
-        var RefreshInfo = new JObject();
-        var SelectProfile = new JObject
-            { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
-        RefreshInfo.Add("selectedProfile", SelectProfile);
-        RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
-        RefreshInfo.Add(new JProperty("requestUser", true));
-        ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-        var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
-            new FetchParam
-            {
-                Method = "POST",
-                Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
-                Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-                ContentType = "application/json"
-            }
-        ));
-        // 将登录结果输出
-        if (LoginJson["selectedProfile"] is null)
-            throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
-        Data.Output.AccessToken = LoginJson["accessToken"].ToString();
-        Data.Output.ClientToken = LoginJson["clientToken"].ToString();
-        Data.Output.Uuid = LoginJson["selectedProfile"]["id"].ToString();
-        Data.Output.Name = LoginJson["selectedProfile"]["name"].ToString();
-        Data.Output.Type = "Auth";
-        // 保存缓存
-        var ProfileIndex = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
-        ModProfile.ProfileList[ProfileIndex].Username = Data.Output.Name;
-        ModProfile.ProfileList[ProfileIndex].AccessToken = Data.Output.AccessToken;
-        ModProfile.ProfileList[ProfileIndex].ClientToken = Data.Output.ClientToken;
-        ModProfile.ProfileList[ProfileIndex].Uuid = Data.Output.Uuid;
-        ModProfile.ProfileList[ProfileIndex].Name = Data.Input.UserName;
-        ModProfile.ProfileList[ProfileIndex].Password = Data.Input.Password;
-        ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
+        try
+        {
+
+            var RefreshInfo = new JObject();
+            var SelectProfile = new JObject
+                { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
+            RefreshInfo.Add("selectedProfile", SelectProfile);
+            RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
+            RefreshInfo.Add(new JProperty("requestUser", true));
+            ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
+            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
+                new FetchParam
+                {
+                    Method = "POST",
+                    Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
+                    Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
+                    ContentType = "application/json",
+                    RequireContent = true
+                }
+            ));
+            // 将登录结果输出
+            if (LoginJson["selectedProfile"] is null)
+                throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
+            Data.Output.AccessToken = LoginJson["accessToken"].ToString();
+            Data.Output.ClientToken = LoginJson["clientToken"].ToString();
+            Data.Output.Uuid = LoginJson["selectedProfile"]["id"].ToString();
+            Data.Output.Name = LoginJson["selectedProfile"]["name"].ToString();
+            Data.Output.Type = "Auth";
+            // 保存缓存
+            var ProfileIndex = ModProfile.ProfileList.IndexOf(ModProfile.SelectedProfile);
+            ModProfile.ProfileList[ProfileIndex].Username = Data.Output.Name;
+            ModProfile.ProfileList[ProfileIndex].AccessToken = Data.Output.AccessToken;
+            ModProfile.ProfileList[ProfileIndex].ClientToken = Data.Output.ClientToken;
+            ModProfile.ProfileList[ProfileIndex].Uuid = Data.Output.Uuid;
+            ModProfile.ProfileList[ProfileIndex].Name = Data.Input.UserName;
+            ModProfile.ProfileList[ProfileIndex].Password = Data.Input.Password;
+            ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
+        }
+        catch (HttpResponseException ex)
+        {
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            ex.Dispose();
+            return;
+        }
     }
 
     private static bool McLoginRequestLogin(ref ModLoader.LoaderTask<McLoginServer, McLoginResult> Data)
@@ -1654,7 +1672,8 @@ public static class ModLaunch
                     Method = "POST",
                     Content = RequestData.ToString(0),
                     Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-                    ContentType = "application/json"
+                    ContentType = "application/json",
+                    RequireContent = true
                 }));
             // 检查登录结果
             if (LoginJson["availableProfiles"].Count() == 0)
@@ -1755,18 +1774,41 @@ public static class ModLaunch
             ModProfile.ProfileLog("登录成功（Login, Authlib）");
             return NeedRefresh;
         }
-        catch (WebException ex)
+        catch (HttpResponseException ex)
         {
-            throw;
+            
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            ex.Dispose();
+            return false;
         }
         catch (Exception ex)
         {
-            var AllMessage = ex.ToString();
-            ModProfile.ProfileLog("第三方验证失败: " + ex);
+            
+            ModProfile.ProfileLog($"第三方验证失败: {ex}");
             if (ex.Message.StartsWithF("$")) throw;
 
             throw new Exception("登录失败：" + ex.Message, ex);
         }
+    }
+
+    private static bool _TryGetLastError(HttpResponseException ex,[NotNullWhen(true)] out string? message)
+    {
+        message = null;
+        try
+        {
+            using var responseStream = ex.Response?.Content.ReadAsStream();
+            if (responseStream is null) return false;
+            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream);
+            if (result?.ErrorMessage is null) return false;
+            message = result.ErrorMessage;
+            return true;
+        }
+        catch (Exception)
+        {
+            // Suppress Exception
+        }
+
+        return false;
     }
 
     #endregion
@@ -2005,7 +2047,7 @@ public static class ModLaunch
                 return;
             if (McLaunchJavaSelected is not null)
             {
-                McLaunchLog("选择的 Java：" + McLaunchJavaSelected.ToString);
+                McLaunchLog("选择的 Java：" + McLaunchJavaSelected);
                 return;
             }
 
@@ -2086,6 +2128,39 @@ public static class ModLaunch
     #endregion
 
     #region 启动参数
+
+    internal static void SecretLaunchJvmArgs(ref List<string> DataList)
+    {
+        var DataJvmCustom =
+            Conversions.ToString(ModBase.Setup.Get("VersionAdvanceJvm", ModMinecraft.McInstanceSelected));
+        DataList.Insert(0,
+            Conversions.ToString(string.IsNullOrEmpty(DataJvmCustom)
+                ? Config.Launch.JvmArgs
+                : DataJvmCustom)); // 可变 JVM 参数
+        switch (Config.Launch.PreferredIpStack)
+        {
+            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            {
+                DataList.Add("-Djava.net.preferIPv4Stack=true");
+                DataList.Add("-Djava.net.preferIPv4Addresses=true");
+                break;
+            }
+            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 2, false):
+            {
+                DataList.Add("-Djava.net.preferIPv6Stack=true");
+                DataList.Add("-Djava.net.preferIPv6Addresses=true");
+                break;
+            }
+        }
+
+        double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
+        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb:N1}G");
+        double totalRamMb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d;
+        DataList.Add($"-Xmn{Math.Floor(totalRamMb * 0.15)}m");
+        DataList.Add($"-Xmx{Math.Floor(totalRamMb)}m");
+        if (!DataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
+            DataList.Add("-Dlog4j2.formatMsgNoLookups=true");
+    }
 
     public class LaunchArgument
     {
@@ -2431,12 +2506,6 @@ public static class ModLaunch
             }
         }
 
-        // LWJGL Unsafe Agent
-        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
-        {
-            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
-        }
-
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
@@ -2533,7 +2602,7 @@ public static class ModLaunch
         }
 
         // 内存、Log4j 防御参数等
-        ModSecret.SecretLaunchJvmArgs(ref DataList);
+        SecretLaunchJvmArgs(ref DataList);
 
         // Authlib-Injector
         if (McLoginLoader.Output.Type == "Auth")
@@ -2553,6 +2622,13 @@ public static class ModLaunch
             {
                 throw new Exception("无法连接到第三方登录服务器（" + (Server ?? null) + "）", ex);
             }
+        }
+        
+        // LWJGL Unsafe Agent
+        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
+        {
+            ModBase.Log($"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(ModMinecraft.McInstanceSelected)}");
+            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])

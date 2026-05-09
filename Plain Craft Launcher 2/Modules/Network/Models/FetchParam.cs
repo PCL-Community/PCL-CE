@@ -15,4 +15,5 @@ public struct FetchParam
     public bool MakeLog { get; set; }
     public bool DontRetryOnRefused { get; set; }
     public int Timeout { get; set; }
+    public bool RequireContent { get; set; }
 }

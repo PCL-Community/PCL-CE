@@ -5,6 +5,8 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.App;
+using PCL.Core.UI.Theme;
 
 namespace PCL;
 
@@ -52,6 +54,15 @@ public partial class MyRadioButton
         {
             if (LabText != null)
                 LabText.Text = (string)GetValue(TextProperty);
+            
+            ThemeService.ColorModeChanged += OnColorModeChanged;
+            ThemeService.ColorThemeChanged += OnColorThemeChanged;
+        };
+
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ColorModeChanged -= OnColorModeChanged;
+            ThemeService.ColorThemeChanged -= OnColorThemeChanged;
         };
 
         MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();
@@ -62,6 +73,15 @@ public partial class MyRadioButton
         Loaded += RefreshColor;
     }
 
+    private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
+    {
+        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+    }
+    private void OnColorThemeChanged(ColorTheme theme)
+    {
+        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+    }
+    
     // 自定义属性
 
     public string Logo
@@ -245,7 +265,7 @@ public partial class MyRadioButton
                         if (Checked)
                         {
                             // 勾选
-                            var color3 = new ModBase.MyColor(ModSecret.AppResources["ColorObject3"]);
+                            var color3 = new ModBase.MyColor(ThemeManager.AppResources["ColorObject3"]);
                             ModAnimation.AniStart(
                                 new[]
                                 {
@@ -265,7 +285,7 @@ public partial class MyRadioButton
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(120d,
-                                        new ModBase.MyColor(ModSecret.AppResources["ColorObject8"])) - Background, 60),
+                                        new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background, 60),
                                 "MyRadioButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
@@ -283,7 +303,7 @@ public partial class MyRadioButton
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(50d,
-                                        new ModBase.MyColor(ModSecret.AppResources["ColorObject8"])) - Background,
+                                        new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background,
                                     AnimationTimeOfMouseIn), "MyRadioButton Color " + Uuid);
                         }
                         else
@@ -301,7 +321,7 @@ public partial class MyRadioButton
                                 }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    new ModBase.MyColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                    new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
                                     Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
@@ -360,7 +380,7 @@ public partial class MyRadioButton
                                 }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
-                                    new ModBase.MyColor(ModSecret.AppResources["ColorBrushSemiTransparent"]) -
+                                    new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
                                     Background, AnimationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
@@ -386,7 +406,7 @@ public partial class MyRadioButton
                         }
                         else
                         {
-                            Background = (Brush)ModSecret.AppResources["ColorBrushSemiTransparent"];
+                            Background = (Brush)ThemeManager.AppResources["ColorBrushSemiTransparent"];
                             ShapeLogo.Fill = new ModBase.MyColor(255d, 255d, 255d);
                             LabText.Foreground = new ModBase.MyColor(255d, 255d, 255d);
                         }
@@ -403,7 +423,7 @@ public partial class MyRadioButton
                         }
                         else
                         {
-                            Background = (Brush)ModSecret.AppResources["ColorBrushSemiTransparent"];
+                            Background = (Brush)ThemeManager.AppResources["ColorBrushSemiTransparent"];
                             ShapeLogo.SetResourceReference(Shape.FillProperty, "ColorBrush3");
                             LabText.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush3");
                         }

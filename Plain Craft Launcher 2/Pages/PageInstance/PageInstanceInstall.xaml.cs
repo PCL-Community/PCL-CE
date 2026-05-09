@@ -459,7 +459,7 @@ public partial class PageInstanceInstall
         // Minecraft
         ImgMinecraft.Source = new MyBitmap(_vanillaIcon);
         LabMinecraft.Text = _vanillaName;
-        LabMinecraft.Foreground = ModSecret.ColorGray1;
+        LabMinecraft.Foreground = ThemeManager.ColorGray1;
         // OptiFine
         var OptiFineError = LoadOptiFineGetError();
         CardOptiFine.MainSwap.Visibility = OptiFineError is null ? Visibility.Visible : Visibility.Collapsed;
@@ -471,14 +471,14 @@ public partial class PageInstanceInstall
             BtnOptiFineClear.Visibility = Visibility.Collapsed;
             ImgOptiFine.Visibility = Visibility.Collapsed;
             LabOptiFine.Text = OptiFineError ?? "可以添加";
-            LabOptiFine.Foreground = ModSecret.ColorGray4;
+            LabOptiFine.Foreground = ThemeManager.ColorGray4;
         }
         else
         {
             BtnOptiFineClear.Visibility = Visibility.Visible;
             ImgOptiFine.Visibility = Visibility.Visible;
             LabOptiFine.Text = SelectedOptiFine.DisplayName.Replace(_vanillaName + " ", "");
-            LabOptiFine.Foreground = ModSecret.ColorGray1;
+            LabOptiFine.Foreground = ThemeManager.ColorGray1;
         }
 
         // LiteLoader
@@ -499,14 +499,14 @@ public partial class PageInstanceInstall
                 BtnLiteLoaderClear.Visibility = Visibility.Collapsed;
                 ImgLiteLoader.Visibility = Visibility.Collapsed;
                 LabLiteLoader.Text = LiteLoaderError ?? "可以添加";
-                LabLiteLoader.Foreground = ModSecret.ColorGray4;
+                LabLiteLoader.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnLiteLoaderClear.Visibility = Visibility.Visible;
                 ImgLiteLoader.Visibility = Visibility.Visible;
                 LabLiteLoader.Text = SelectedLiteLoader.Inherit;
-                LabLiteLoader.Foreground = ModSecret.ColorGray1;
+                LabLiteLoader.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -528,14 +528,14 @@ public partial class PageInstanceInstall
                 BtnForgeClear.Visibility = Visibility.Collapsed;
                 ImgForge.Visibility = Visibility.Collapsed;
                 LabForge.Text = forgeError ?? "可以添加";
-                LabForge.Foreground = ModSecret.ColorGray4;
+                LabForge.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnForgeClear.Visibility = Visibility.Visible;
                 ImgForge.Visibility = Visibility.Visible;
                 LabForge.Text = SelectedForge.VersionName;
-                LabForge.Foreground = ModSecret.ColorGray1;
+                LabForge.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -553,14 +553,14 @@ public partial class PageInstanceInstall
                 BtnCleanroomClear.Visibility = Visibility.Collapsed;
                 ImgCleanroom.Visibility = Visibility.Collapsed;
                 LabCleanroom.Text = cleanroomError ?? "可以添加";
-                LabCleanroom.Foreground = ModSecret.ColorGray4;
+                LabCleanroom.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnCleanroomClear.Visibility = Visibility.Visible;
                 ImgCleanroom.Visibility = Visibility.Visible;
                 LabCleanroom.Text = SelectedCleanroom.VersionName;
-                LabCleanroom.Foreground = ModSecret.ColorGray1;
+                LabCleanroom.Foreground = ThemeManager.ColorGray1;
             }
         }
         else
@@ -586,14 +586,14 @@ public partial class PageInstanceInstall
                 BtnNeoForgeClear.Visibility = Visibility.Collapsed;
                 ImgNeoForge.Visibility = Visibility.Collapsed;
                 LabNeoForge.Text = neoForgeError ?? "可以添加";
-                LabNeoForge.Foreground = ModSecret.ColorGray4;
+                LabNeoForge.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnNeoForgeClear.Visibility = Visibility.Visible;
                 ImgNeoForge.Visibility = Visibility.Visible;
                 LabNeoForge.Text = SelectedNeoForge.VersionName;
-                LabNeoForge.Foreground = ModSecret.ColorGray1;
+                LabNeoForge.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -615,14 +615,14 @@ public partial class PageInstanceInstall
                 BtnFabricClear.Visibility = Visibility.Collapsed;
                 ImgFabric.Visibility = Visibility.Collapsed;
                 LabFabric.Text = fabricError ?? "可以添加";
-                LabFabric.Foreground = ModSecret.ColorGray4;
+                LabFabric.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnFabricClear.Visibility = Visibility.Visible;
                 ImgFabric.Visibility = Visibility.Visible;
                 LabFabric.Text = SelectedFabric.Replace("+build", "");
-                LabFabric.Foreground = ModSecret.ColorGray1;
+                LabFabric.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -644,7 +644,7 @@ public partial class PageInstanceInstall
                 BtnFabricApiClear.Visibility = Visibility.Collapsed;
                 ImgFabricApi.Visibility = Visibility.Collapsed;
                 LabFabricApi.Text = fabricApiError ?? "可以添加";
-                LabFabricApi.Foreground = ModSecret.ColorGray4;
+                LabFabricApi.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
@@ -652,7 +652,7 @@ public partial class PageInstanceInstall
                 ImgFabricApi.Visibility = Visibility.Visible;
                 LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")[1].Replace("Fabric API ", "")
                     .Replace(" build ", ".").Split("+").First().Trim();
-                LabFabricApi.Foreground = ModSecret.ColorGray1;
+                LabFabricApi.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -675,14 +675,14 @@ public partial class PageInstanceInstall
                 BtnLegacyFabricClear.Visibility = Visibility.Collapsed;
                 ImgLegacyFabric.Visibility = Visibility.Collapsed;
                 LabLegacyFabric.Text = legacyFabricError ?? "可以添加";
-                LabLegacyFabric.Foreground = ModSecret.ColorGray4;
+                LabLegacyFabric.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnLegacyFabricClear.Visibility = Visibility.Visible;
                 ImgLegacyFabric.Visibility = Visibility.Visible;
                 LabLegacyFabric.Text = SelectedLegacyFabric.Replace("+build", "");
-                LabLegacyFabric.Foreground = ModSecret.ColorGray1;
+                LabLegacyFabric.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -705,14 +705,14 @@ public partial class PageInstanceInstall
                 BtnLegacyFabricApiClear.Visibility = Visibility.Collapsed;
                 ImgLegacyFabricApi.Visibility = Visibility.Collapsed;
                 LabLegacyFabricApi.Text = legacyFabricApiError ?? "可以添加";
-                LabLegacyFabricApi.Foreground = ModSecret.ColorGray4;
+                LabLegacyFabricApi.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnLegacyFabricApiClear.Visibility = Visibility.Visible;
                 ImgLegacyFabricApi.Visibility = Visibility.Visible;
                 LabLegacyFabricApi.Text = SelectedLegacyFabricApi.DisplayName.Replace("Legacy Fabric API ", "");
-                LabLegacyFabricApi.Foreground = ModSecret.ColorGray1;
+                LabLegacyFabricApi.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -734,14 +734,14 @@ public partial class PageInstanceInstall
                 BtnQuiltClear.Visibility = Visibility.Collapsed;
                 ImgQuilt.Visibility = Visibility.Collapsed;
                 LabQuilt.Text = quiltError ?? "可以添加";
-                LabQuilt.Foreground = ModSecret.ColorGray4;
+                LabQuilt.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnQuiltClear.Visibility = Visibility.Visible;
                 ImgQuilt.Visibility = Visibility.Visible;
                 LabQuilt.Text = SelectedQuilt.Replace("+build", "");
-                LabQuilt.Foreground = ModSecret.ColorGray1;
+                LabQuilt.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -763,14 +763,14 @@ public partial class PageInstanceInstall
                 BtnQSLClear.Visibility = Visibility.Collapsed;
                 ImgQSL.Visibility = Visibility.Collapsed;
                 LabQSL.Text = qslError ?? "可以添加";
-                LabQSL.Foreground = ModSecret.ColorGray4;
+                LabQSL.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnQSLClear.Visibility = Visibility.Visible;
                 ImgQSL.Visibility = Visibility.Visible;
                 LabQSL.Text = SelectedQSL.DisplayName.Split("]")[1].Trim();
-                LabQSL.Foreground = ModSecret.ColorGray1;
+                LabQSL.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -792,14 +792,14 @@ public partial class PageInstanceInstall
                 BtnLabyModClear.Visibility = Visibility.Collapsed;
                 ImgLabyMod.Visibility = Visibility.Collapsed;
                 LabLabyMod.Text = labyModError ?? "可以添加";
-                LabLabyMod.Foreground = ModSecret.ColorGray4;
+                LabLabyMod.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
                 BtnLabyModClear.Visibility = Visibility.Visible;
                 ImgLabyMod.Visibility = Visibility.Visible;
                 LabLabyMod.Text = SelectedLabyModVersion;
-                LabLabyMod.Foreground = ModSecret.ColorGray1;
+                LabLabyMod.Foreground = ThemeManager.ColorGray1;
             }
         }
 
@@ -821,7 +821,7 @@ public partial class PageInstanceInstall
                 BtnOptiFabricClear.Visibility = Visibility.Collapsed;
                 ImgOptiFabric.Visibility = Visibility.Collapsed;
                 LabOptiFabric.Text = optiFabricError ?? "可以添加";
-                LabOptiFabric.Foreground = ModSecret.ColorGray4;
+                LabOptiFabric.Foreground = ThemeManager.ColorGray4;
             }
             else
             {
@@ -829,7 +829,7 @@ public partial class PageInstanceInstall
                 ImgOptiFabric.Visibility = Visibility.Visible;
                 LabOptiFabric.Text = SelectedOptiFabric.DisplayName.ToLower().Replace("optifabric-", "")
                     .Replace(".jar", "").Trim().TrimStart('v');
-                LabOptiFabric.Foreground = ModSecret.ColorGray1;
+                LabOptiFabric.Foreground = ThemeManager.ColorGray1;
             }
         }
 

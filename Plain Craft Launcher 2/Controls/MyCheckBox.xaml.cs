@@ -345,13 +345,13 @@ public partial class MyCheckBox
                     new[]
                     {
                         ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty,
-                            ModSecret.ColorGray4 - ShapeBorder.BorderBrush, AnimationTimeOfMouseOut)
+                            ThemeManager.ColorGray4 - ShapeBorder.BorderBrush, AnimationTimeOfMouseOut)
                     }, "MyCheckBox BorderColor " + Uuid);
                 ModAnimation.AniStart(
                     new[]
                     {
                         ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
-                            ModSecret.ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut)
+                            ThemeManager.ColorGray4 - LabText.Foreground, AnimationTimeOfMouseOut)
                     }, "MyCheckBox TextColor " + Uuid);
             }
         }

@@ -36,7 +36,7 @@ public partial class PageLogRight
         {
             Foreground =
                 (Brush)System.Windows.Application.Current.Resources[
-                    ModSecret.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo"]
+                    ThemeManager.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo"]
         };
         PanLogCard.Inlines.Add(LabInfo);
         PanLogCard.Inlines.Add(new Run(" | "));

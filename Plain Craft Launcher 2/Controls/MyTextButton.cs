@@ -40,7 +40,7 @@ public class MyTextButton : Label
     public MyTextButton()
     {
         SetResourceReference(ForegroundProperty, "ColorBrush1");
-        Background = ModSecret.ColorSemiTransparent;
+        Background = ThemeManager.ColorSemiTransparent;
         PreviewMouseLeftButtonDown += MyTextButton_MouseLeftButtonDown;
         MouseLeave += (_, _) => MyTextButton_MouseLeave();
         PreviewMouseLeftButtonUp += MyTextButton_MouseLeftButtonUp;

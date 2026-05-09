@@ -274,7 +274,7 @@ public partial class PageInstanceExport : IRefreshable
             CheckBox.Inlines.Clear();
             CheckBox.Inlines.Add(new Run(TargetOption.Title));
             if (!string.IsNullOrEmpty(TargetOption.Description))
-                CheckBox.Inlines.Add(new Run("   " + TargetOption.Description) { Foreground = ModSecret.ColorGray5 });
+                CheckBox.Inlines.Add(new Run("   " + TargetOption.Description) { Foreground = ThemeManager.ColorGray5 });
             // 可见性、默认勾选
             if (string.IsNullOrEmpty(TargetOption.Rules) && string.IsNullOrEmpty(TargetOption.ShowRules))
             {
@@ -742,7 +742,7 @@ public partial class PageInstanceExport : IRefreshable
         if (IncludePCL)
             Loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
             {
-                ModSecret.DownloadLatestPCL(Loader);
+                UpdateManager.DownloadLatestPCL(Loader);
                 ModBase.CopyFile(ModBase.PathTemp + "CE-Latest.exe", CacheFolder + "Plain Craft Launcher.exe");
             })
             {

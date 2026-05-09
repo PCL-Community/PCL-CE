@@ -505,7 +505,7 @@ public partial class MyLocalCompItem
                 var TagTextBlock = new TextBlock
                 {
                     Text = TagText,
-                    Foreground = new SolidColorBrush(ModSecret.IsDarkMode
+                    Foreground = new SolidColorBrush(ThemeManager.IsDarkMode
                         ? Color.FromArgb(88, 255, 255, 255)
                         : Color.FromArgb(88, 136, 136, 136)),
                     FontSize = 11d

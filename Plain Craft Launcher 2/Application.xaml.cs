@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -34,7 +35,8 @@ public partial class Application
             // 创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(new BindingErrorTraceListener());
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
-            ModSecret.SecretOnApplicationStart();
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            StartupValidation.EnsureWpfFont();
             // 检查参数调用
             var args = Basics.CommandLineArguments;
             if (args.Length > 0)
