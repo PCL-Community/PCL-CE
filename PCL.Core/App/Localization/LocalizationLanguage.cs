@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Localization;
+namespace PCL.Core.App.Localization;
 
 /// <summary>
 ///     表示一个受支持的 UI 语言。
