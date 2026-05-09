@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   issues: write
 
 jobs:
@@ -15,26 +15,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout PR code
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
-
       - name: Check BOM in changed files
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
             const path = require('path');
 
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pull_number = context.payload.pull_request.number;
-            const workspace = process.env.GITHUB_WORKSPACE;
-
             const marker = '<!-- check-bom-action-comment -->';
+
+            const headRepoOwner = context.payload.pull_request.head.repo.owner.login;
+            const headRepoName = context.payload.pull_request.head.repo.name;
 
             const changedFiles = await github.paginate(
               github.rest.pulls.listFiles,
@@ -49,7 +42,7 @@ jobs:
             const bomTypes = [
               { name: 'UTF-32 BE BOM', bytes: [0x00, 0x00, 0xfe, 0xff] },
               { name: 'UTF-32 LE BOM', bytes: [0xff, 0xfe, 0x00, 0x00] },
-              { name: 'UTF-8 BOM',    bytes: [0xef, 0xbb, 0xbf] },
+              { name: 'UTF-8 BOM', bytes: [0xef, 0xbb, 0xbf] },
               { name: 'UTF-16 BE BOM', bytes: [0xfe, 0xff] },
               { name: 'UTF-16 LE BOM', bytes: [0xff, 0xfe] },
             ];
@@ -66,26 +59,87 @@ jobs:
               return null;
             }
 
+            function shouldCheckFile(file) {
+              if (file.status === 'removed') {
+                return false;
+              }
+
+              if (file.additions === 0 && file.changes === 0) {
+                return false;
+              }
+
+              const filename = file.filename;
+              const basename = path.basename(filename);
+              const ext = path.extname(filename).toLowerCase();
+
+              if (
+                basename === '.editorconfig' ||
+                basename === '.gitattributes' ||
+                basename === '.gitignore' ||
+                basename === 'Dockerfile'
+              ) {
+                return true;
+              }
+
+              return [
+                '.vb',
+                '.cs',
+                '.xaml',
+                '.resx',
+                '.sln',
+                '.slnx',
+                '.vbproj',
+                '.csproj',
+                '.props',
+                '.targets',
+                '.config',
+                '.json',
+                '.xml',
+                '.yml',
+                '.yaml',
+                '.md',
+                '.txt',
+                '.ps1',
+                '.sh'
+              ].includes(ext);
+            }
+
+            async function readFirstBytes(file) {
+              const response = await github.rest.git.getBlob({
+                owner: headRepoOwner,
+                repo: headRepoName,
+                file_sha: file.sha,
+              });
+
+              if (response.data.encoding !== 'base64') {
+                core.warning(`Skip ${file.filename}: unsupported blob encoding ${response.data.encoding}`);
+                return null;
+              }
+
+              return Buffer.from(response.data.content, 'base64').subarray(0, 4);
+            }
+
             const found = [];
 
             for (const file of changedFiles) {
-              // 删除的文件无需检查
-              if (file.status === 'removed') {
+              if (!shouldCheckFile(file)) {
+                core.info(`Skip ${file.filename}`);
                 continue;
               }
 
-              const absolutePath = path.join(workspace, file.filename);
-
-              if (!fs.existsSync(absolutePath)) {
+              let buffer;
+              try {
+                buffer = await readFirstBytes(file);
+              } catch (error) {
+                core.warning(`Failed to read ${file.filename}: ${error.message}`);
                 continue;
               }
 
-              const fd = fs.openSync(absolutePath, 'r');
-              const buffer = Buffer.alloc(4);
-              const bytesRead = fs.readSync(fd, buffer, 0, 4, 0);
-              fs.closeSync(fd);
+              if (!buffer) {
+                continue;
+              }
 
-              const bom = detectBom(buffer.subarray(0, bytesRead));
+              const bom = detectBom(buffer);
 
               if (bom) {
                 found.push({
@@ -101,14 +155,15 @@ jobs:
             }
 
             const fileList = found
-              .map(item => `- \`${item.filename}\`：${item.bom}`)
+              .map(item => `- \`${item.filename}\`: ${item.bom}`)
               .join('\n');
 
-            const body = `${marker}
+            const body = `
+            ${marker}
             发现以下 PR 变更文件存在 BOM，请移除后重新提交：
 
             ${fileList}
-            `;
+            `.trim();
 
             const comments = await github.paginate(
               github.rest.issues.listComments,
