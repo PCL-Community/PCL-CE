@@ -1,0 +1,144 @@
+name: Check BOM in PR files
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-bom:
+    name: Check BOM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Check BOM in changed files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const workspace = process.env.GITHUB_WORKSPACE;
+
+            const marker = '<!-- check-bom-action-comment -->';
+
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number,
+                per_page: 100,
+              }
+            );
+
+            const bomTypes = [
+              { name: 'UTF-32 BE BOM', bytes: [0x00, 0x00, 0xfe, 0xff] },
+              { name: 'UTF-32 LE BOM', bytes: [0xff, 0xfe, 0x00, 0x00] },
+              { name: 'UTF-8 BOM',    bytes: [0xef, 0xbb, 0xbf] },
+              { name: 'UTF-16 BE BOM', bytes: [0xfe, 0xff] },
+              { name: 'UTF-16 LE BOM', bytes: [0xff, 0xfe] },
+            ];
+
+            function detectBom(buffer) {
+              for (const bom of bomTypes) {
+                if (
+                  buffer.length >= bom.bytes.length &&
+                  bom.bytes.every((byte, index) => buffer[index] === byte)
+                ) {
+                  return bom.name;
+                }
+              }
+              return null;
+            }
+
+            const found = [];
+
+            for (const file of changedFiles) {
+              // 删除的文件无需检查
+              if (file.status === 'removed') {
+                continue;
+              }
+
+              const absolutePath = path.join(workspace, file.filename);
+
+              if (!fs.existsSync(absolutePath)) {
+                continue;
+              }
+
+              const fd = fs.openSync(absolutePath, 'r');
+              const buffer = Buffer.alloc(4);
+              const bytesRead = fs.readSync(fd, buffer, 0, 4, 0);
+              fs.closeSync(fd);
+
+              const bom = detectBom(buffer.subarray(0, bytesRead));
+
+              if (bom) {
+                found.push({
+                  filename: file.filename,
+                  bom,
+                });
+              }
+            }
+
+            if (found.length === 0) {
+              core.info('No BOM found in changed PR files.');
+              return;
+            }
+
+            const fileList = found
+              .map(item => `- \`${item.filename}\`：${item.bom}`)
+              .join('\n');
+
+            const body = `${marker}
+            发现以下 PR 变更文件存在 BOM，请移除后重新提交：
+
+            ${fileList}
+            `;
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner,
+                repo,
+                issue_number: pull_number,
+                per_page: 100,
+              }
+            );
+
+            const existingComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes(marker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pull_number,
+                body,
+              });
+            }
+
+            core.setFailed('BOM found in changed PR files.');
