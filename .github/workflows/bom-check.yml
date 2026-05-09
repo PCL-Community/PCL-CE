@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
   issues: write
 
 jobs:
@@ -158,42 +158,68 @@ jobs:
               .map(item => `- \`${item.filename}\`: ${item.bom}`)
               .join('\n');
 
-            const body = `
-            ${marker}
-            发现以下 PR 变更文件存在 BOM，请移除后重新提交：
+            const body = [
+              marker,
+              '发现以下 PR 变更文件存在 BOM，请移除后重新提交：',
+              '',
+              fileList,
+            ].join('\n');
 
-            ${fileList}
-            `.trim();
+            for (const item of found) {
+              core.error(`${item.bom} found. Please remove BOM.`, {
+                file: item.filename,
+                startLine: 1,
+                endLine: 1,
+              });
+            }
 
-            const comments = await github.paginate(
-              github.rest.issues.listComments,
-              {
-                owner,
-                repo,
-                issue_number: pull_number,
-                per_page: 100,
+            await core.summary
+              .addHeading('BOM found in changed PR files')
+              .addRaw('发现以下 PR 变更文件存在 BOM，请移除后重新提交：')
+              .addRaw('\n\n')
+              .addRaw(fileList)
+              .write();
+
+            try {
+              const comments = await github.paginate(
+                github.rest.issues.listComments,
+                {
+                  owner,
+                  repo,
+                  issue_number: pull_number,
+                  per_page: 100,
+                }
+              );
+
+              const existingComment = comments.find(comment =>
+                comment.user.type === 'Bot' &&
+                comment.body.includes(marker)
+              );
+
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existingComment.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pull_number,
+                  body,
+                });
               }
-            );
-
-            const existingComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes(marker)
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existingComment.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: pull_number,
-                body,
-              });
+            } catch (error) {
+              if (error.status === 403) {
+                core.warning(
+                  'BOM was found, but this workflow token cannot comment on the PR. ' +
+                  'This usually happens when testing from a fork or when repository Actions permissions are read-only.'
+                );
+              } else {
+                throw error;
+              }
             }
 
             core.setFailed('BOM found in changed PR files.');
