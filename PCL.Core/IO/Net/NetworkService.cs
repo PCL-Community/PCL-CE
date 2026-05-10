@@ -85,8 +85,8 @@ public partial class NetworkService {
                 {
                     LogWrapper.Debug(
                         exception,
-                        $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。",
-                        "Network"
+                        "Network",
+                        $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。"
                         );
                 });
     }
