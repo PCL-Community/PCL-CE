@@ -50,7 +50,11 @@ public static class HttpSenderExtension
                             return await httpClient
                                 .SendAsync(requestCopy, httpCompletionOption, token)
                                 .ConfigureAwait(false);
-                                            }
+                        }catch(Exception ex)
+                        {
+                            LogWrapper.Debug(ex, "Request", $"Try attempt failed (id = {requestId})");
+                            throw;
+                        }
                     },
                     
                 .ConfigureAwait(false);
