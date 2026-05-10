@@ -55,8 +55,8 @@ public static class HttpSenderExtension
                             LogWrapper.Debug(ex, "Request", $"Try attempt failed (id = {requestId})");
                             throw;
                         }
-                    },
-                    
+                    },cancellationToken
+                    )
                 .ConfigureAwait(false);
 
             if (enableLogging)
