@@ -1152,7 +1152,7 @@ public static class ModModpack
                 ModBase.OpenExplorer(TargetFolder);
                 // 加入文件夹列表
                 var InstanceName = ModBase.GetFolderNameFromPath(TargetFolder);
-                Directory.CreateDirectory(Path.Combine(TargetFolder, ".minecraft") + @"\");
+                Directory.CreateDirectory(Path.Combine(TargetFolder, ".minecraft"));
                 PageSelectLeft.AddFolder(
                     Path.Combine(TargetFolder, ".minecraft", ArchiveBaseFolder.Replace("/", @"\").TrimStart('\\')), InstanceName,
                     false); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）

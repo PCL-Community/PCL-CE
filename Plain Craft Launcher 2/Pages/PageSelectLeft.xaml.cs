@@ -418,7 +418,7 @@ public partial class PageSelectLeft : IRefreshable
 
                 if (!ModBase.CheckPermission(FolderPath + @"versions\"))
                     foreach (var Folder in new DirectoryInfo(FolderPath).GetDirectories())
-                        if (ModBase.CheckPermission(Path.Combine(Folder.FullName, "versions") + @"\"))
+                        if (ModBase.CheckPermission(Path.Combine(Folder.FullName, "versions")))
                         {
                             FolderPath = Folder.FullName + @"\";
                             break;
@@ -521,8 +521,8 @@ public partial class PageSelectLeft : IRefreshable
                     if (Directory.Exists(Folder.Location + @"versions\"))
                         foreach (var Version in new DirectoryInfo(Folder.Location + @"versions\")
                                      .EnumerateDirectories())
-                            if (Directory.Exists(Path.Combine(Version.FullName, "PCL") + @"\"))
-                                Directory.Delete(Path.Combine(Version.FullName, "PCL") + @"\", true);
+                            if (Directory.Exists(Path.Combine(Version.FullName, "PCL")))
+                                Directory.Delete(Path.Combine(Version.FullName, "PCL"), true);
 
                     break;
                 }

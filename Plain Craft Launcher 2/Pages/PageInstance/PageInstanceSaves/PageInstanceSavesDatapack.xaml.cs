@@ -96,7 +96,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         res.GameVersion = PageInstanceLeft.Instance;
         res.Frm = null;
         res.Loaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
-        res.CompPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks") + @"\";
+        res.CompPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
         res.CompType = ModComp.CompType.DataPack;
         return res;
     }
@@ -176,7 +176,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     public bool LoaderRun(ModLoader.LoaderFolderRunType Type)
     {
-        var LoadPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks") + @"\";
+        var LoadPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
         return ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, LoadPath, Type,
             LoaderInput: GetRequireLoaderData());
     }
@@ -544,7 +544,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     {
         try
         {
-            var DatapackPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks") + @"\";
+            var DatapackPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
             Directory.CreateDirectory(DatapackPath);
             ModBase.OpenExplorer(DatapackPath);
         }
@@ -610,7 +610,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 执行安装
         try
         {
-            var DatapackFolder = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks") + @"\";
+            var DatapackFolder = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
             Directory.CreateDirectory(DatapackFolder);
 
             foreach (var FilePath in FilePathList)
@@ -1229,7 +1229,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 结束处理
             var Loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
                 $"数据包更新：{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)}", InstallLoaders);
-            var PathDatapacks = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks") + @"\";
+            var PathDatapacks = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
 
             Loader.OnStateChanged = _ =>
             {

@@ -45,7 +45,7 @@ public static class ModDownloadLib
     {
         try
         {
-            var versionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", id) + @"\";
+            var versionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", id);
 
             // 重复任务检查
             foreach (var ongoingLoader in ModLoader.LoaderTaskbar.ToList())
@@ -107,7 +107,7 @@ public static class ModDownloadLib
             var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
-            VersionFolder = Path.Combine(VersionFolder, Id) + @"\";
+            VersionFolder = Path.Combine(VersionFolder, Id);
 
             // 重复任务检查
             foreach (var OngoingLoader in ModLoader.LoaderTaskbar)
@@ -159,7 +159,7 @@ public static class ModDownloadLib
         string instanceName = null)
     {
         instanceName = instanceName ?? id;
-        var instanceFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", instanceName) + @"\";
+        var instanceFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", instanceName);
 
         var loaders = new List<ModLoader.LoaderBase>();
 
@@ -386,7 +386,7 @@ public static class ModDownloadLib
             var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
-            VersionFolder = Path.Combine(VersionFolder, Id) + @"\";
+            VersionFolder = Path.Combine(VersionFolder, Id);
 
             // 重复任务检查
             foreach (var OngoingLoader in ModLoader.LoaderTaskbar.ToList())
@@ -482,7 +482,7 @@ pause";
             var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
-            VersionFolder = Path.Combine(VersionFolder, Id) + @"\";
+            VersionFolder = Path.Combine(VersionFolder, Id);
 
             // 重复任务检查
             foreach (var OngoingLoader in ModLoader.LoaderTaskbar.ToList())
@@ -542,7 +542,7 @@ pause";
         try
         {
             var Id = DownloadInfo.NameVersion;
-            var VersionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", Id) + @"\";
+            var VersionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", Id);
             var IsNewVersion = ModBase.Val(DownloadInfo.Inherit.Split(".")[1]) >= 14d;
             var Target = IsNewVersion
                 ? Path.Combine(ModBase.PathTemp, "Cache", "Code", DownloadInfo.NameVersion + "_" + ModBase.GetUuid())
@@ -797,7 +797,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = DownloadInfo.NameVersion;
-        var VersionFolder = Path.Combine(McFolder, "versions", Id) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", Id);
         var IsNewVersion = DownloadInfo.Inherit.Contains("w") || ModBase.Val(DownloadInfo.Inherit.Split(".")[1]) >= 14d;
         var Target = IsNewVersion
             ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
@@ -906,13 +906,13 @@ pause";
             Loaders.Add(new ModLoader.LoaderTask<List<DownloadFile>, bool>("安装 OptiFine（方式 A）", Task =>
             {
                 var BaseMcFolderHome = ModMain.RequestTaskTempFolder();
-                var BaseMcFolder = Path.Combine(BaseMcFolderHome, ".minecraft") + @"\";
+                var BaseMcFolder = Path.Combine(BaseMcFolderHome, ".minecraft");
                 try
                 {
                     // 准备安装环境
                     if (Directory.Exists(Path.Combine(BaseMcFolder, "versions", DownloadInfo.Inherit)))
                         ModBase.DeleteDirectory(Path.Combine(BaseMcFolder, "versions", DownloadInfo.Inherit));
-                    Directory.CreateDirectory(Path.Combine(BaseMcFolder, "versions", DownloadInfo.Inherit) + @"\");
+                    Directory.CreateDirectory(Path.Combine(BaseMcFolder, "versions", DownloadInfo.Inherit));
                     ModMinecraft.McFolderLauncherProfilesJsonCreate(BaseMcFolder);
                     ModBase.CopyFile(
                         Path.Combine(McFolder, "versions", DownloadInfo.Inherit, DownloadInfo.Inherit + ".json"),
@@ -1190,7 +1190,7 @@ pause";
             var Id = DownloadInfo.Inherit;
             var Target = Path.Combine(ModBase.PathTemp, "Download", Id + "-Liteloader.jar");
             var VersionName = DownloadInfo.Inherit + "-LiteLoader";
-            var VersionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", VersionName) + @"\";
+            var VersionFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", VersionName);
 
             // 重复任务检查
             foreach (var OngoingLoader in ModLoader.LoaderTaskbar.ToList())
@@ -1328,7 +1328,7 @@ pause";
         var Id = DownloadInfo.Inherit;
         var Target = Path.Combine(ModBase.PathTemp, "Download", Id + "-Liteloader.jar");
         var VersionName = DownloadInfo.Inherit + "-LiteLoader";
-        var VersionFolder = Path.Combine(McFolder, "versions", VersionName) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", VersionName);
         var Loaders = new List<ModLoader.LoaderBase>();
 
         // 启动依赖实例的下载
@@ -2198,9 +2198,9 @@ pause";
                             Task.Progress = 0.6d;
                             // 解压支持库文件
                             Installer.Dispose();
-                            ModBase.ExtractFile(InstallerAddress, Path.Combine(InstallerAddress, "_unrar") + @"\");
-                            ModBase.CopyDirectory(Path.Combine(InstallerAddress, "_unrar", "maven") + @"\", Path.Combine(McFolder, "libraries") + @"\");
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar") + @"\");
+                            ModBase.ExtractFile(InstallerAddress, Path.Combine(InstallerAddress, "_unrar"));
+                            ModBase.CopyDirectory(Path.Combine(InstallerAddress, "_unrar", "maven"), Path.Combine(McFolder, "libraries"));
+                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
                         }
                         else
                         {
@@ -2234,8 +2234,8 @@ pause";
                                 Installer.Dispose();
                             if (File.Exists(InstallerAddress))
                                 File.Delete(InstallerAddress);
-                            if (Directory.Exists(Path.Combine(InstallerAddress, "_unrar") + @"\"))
-                                ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar") + @"\");
+                            if (Directory.Exists(Path.Combine(InstallerAddress, "_unrar")))
+                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
                         }
                         catch (Exception ex)
                         {
@@ -2740,7 +2740,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = "fabric-loader-" + FabricVersion + "-" + MinecraftName;
-        var VersionFolder = Path.Combine(McFolder, "versions", Id) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", Id);
         var Loaders = new List<ModLoader.LoaderBase>();
 
         // 下载 Json
@@ -2853,7 +2853,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = "legacy-fabric-loader-" + LegacyFabricVersion + "-" + MinecraftName;
-        var VersionFolder = Path.Combine(McFolder, "versions", Id) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", Id);
         var Loaders = new List<ModLoader.LoaderBase>();
 
         // 下载 Json
@@ -3067,7 +3067,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = "quilt-loader-" + QuiltVersion + "-" + MinecraftName;
-        var VersionFolder = Path.Combine(McFolder, "versions", Id) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", Id);
         var Loaders = new List<ModLoader.LoaderBase>();
 
         // 下载 Json
@@ -3264,7 +3264,7 @@ pause";
         McFolder = McFolder ?? ModMinecraft.McFolderSelected;
         var IsCustomFolder = (McFolder ?? "") != (ModMinecraft.McFolderSelected ?? "");
         var Id = "labymod-" + LabyModCommitRef + "-" + MinecraftName;
-        var VersionFolder = Path.Combine(McFolder, "versions", Id) + @"\";
+        var VersionFolder = Path.Combine(McFolder, "versions", Id);
         var Loaders = new List<ModLoader.LoaderBase>();
 
         // 下载 Json
@@ -3754,7 +3754,7 @@ pause";
                                                          Request.NeoForgeEntry is not null);
 
         // 获取参数
-        var InstanceFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", Request.TargetInstanceName) + @"\";
+        var InstanceFolder = Path.Combine(ModMinecraft.McFolderSelected, "versions", Request.TargetInstanceName);
         if (Directory.Exists(TempMcFolder))
             ModBase.DeleteDirectory(TempMcFolder);
         string OptiFineFolder = null;
@@ -3814,13 +3814,13 @@ pause";
         var Modable = Request.FabricVersion is not null || Request.LegacyFabricVersion is not null ||
                       Request.ForgeEntry is not null || Request.NeoForgeEntry is not null ||
                       Request.LiteLoaderEntry is not null;
-        var ModsTempFolder = Path.Combine(TempMcFolder, "mods") + @"\";
+        var ModsTempFolder = Path.Combine(TempMcFolder, "mods");
         var OptiFineAsMod = Request.OptiFineEntry is not null && Modable; // 选择了 OptiFine 与任意 Mod 加载器
         if (OptiFineAsMod)
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
             if (Request.LiteLoaderEntry != null)
-                OptiFineFolder = Path.Combine(ModsTempFolder, Request.MinecraftName) + @"\";
+                OptiFineFolder = Path.Combine(ModsTempFolder, Request.MinecraftName);
             else
                 OptiFineFolder = ModsTempFolder;
         }
@@ -4004,7 +4004,7 @@ pause";
                 ModBase.CopyDirectory(Path.Combine(TempMcFolder, "libraries"), Path.Combine(ModMinecraft.McFolderSelected, "libraries"));
             Task.Progress = 0.8d;
             // 创建 Mod 和资源包文件夹
-            var ModsFolder = Path.Combine(new ModMinecraft.McInstance(InstanceFolder).PathIndie, "mods") + @"\"; // 版本隔离信息在此时被决定
+            var ModsFolder = Path.Combine(new ModMinecraft.McInstance(InstanceFolder).PathIndie, "mods"); // 版本隔离信息在此时被决定
             if (Directory.Exists(ModsTempFolder))
             {
                 ModBase.CopyDirectory(ModsTempFolder, ModsFolder);
@@ -4015,7 +4015,7 @@ pause";
                 ModBase.Log("[Download] 自动创建 Mod 文件夹：" + ModsFolder);
             }
 
-            var ResourcepacksFolder = Path.Combine(new ModMinecraft.McInstance(InstanceFolder).PathIndie, "resourcepacks") + @"\";
+            var ResourcepacksFolder = Path.Combine(new ModMinecraft.McInstance(InstanceFolder).PathIndie, "resourcepacks");
             Directory.CreateDirectory(ResourcepacksFolder);
             ModBase.Log("[Download] 自动创建资源包文件夹：" + ResourcepacksFolder);
         })

@@ -296,7 +296,7 @@ public static class ModMinecraft
                     originalMcFolderList.Add(new McFolder
                         { Name = "当前文件夹", Location = ModBase.ExePath, Type = McFolder.Types.Original });
                 foreach (var folder in new DirectoryInfo(ModBase.ExePath).GetDirectories())
-                    if (Directory.Exists(Path.Combine(folder.FullName, "versions") + @"\") || folder.Name == ".minecraft")
+                    if (Directory.Exists(Path.Combine(folder.FullName, "versions")) || folder.Name == ".minecraft")
                     {
                         var newCurrentFolder = new McFolder
                             { Name = folder.Name, Location = folder.FullName + @"\", Type = McFolder.Types.Original };
@@ -312,7 +312,7 @@ public static class ModMinecraft
             // 扫描官启文件夹
             var MojangPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft") + @"\";
             if ((!currentMcFolderList.Any() || (MojangPath ?? "") != (currentMcFolderList[0].Location ?? "")) &&
-                Directory.Exists(Path.Combine(MojangPath, "versions") + @"\")) // 当前文件夹不是官启文件夹
+                Directory.Exists(Path.Combine(MojangPath, "versions"))) // 当前文件夹不是官启文件夹
                 // 具有权限且存在 versions 文件夹
                 originalMcFolderList.Add(new McFolder
                     { Name = "官方启动器文件夹", Location = MojangPath, Type = McFolder.Types.Original });
@@ -479,9 +479,7 @@ public static class ModMinecraft
         /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
         public McInstance(string name)
         {
-            PathInstance = (name.Contains(":") ? "" : Path.Combine(McFolderSelected, "versions") + @"\") + name +
-                           (name.EndsWithF(@"\") ? "" : @"\"); // 补全完整路径
-            // 补全右划线
+            PathInstance = (name.Contains(":") ? name : Path.Combine(McFolderSelected, "versions", name)) + (name.EndsWithF(@"\") ? "" : @"\");
         }
 
         /// <summary>
@@ -2758,7 +2756,7 @@ public static class ModMinecraft
                     {
                         if ((OriginalInstance.InheritInstanceName ?? "") == (OriginalInstance.Name ?? ""))
                             break;
-                        OriginalInstance = new McInstance(Path.Combine(McFolderSelected, "versions", OriginalInstance.InheritInstanceName) + @"\");
+                        OriginalInstance = new McInstance(Path.Combine(McFolderSelected, "versions", OriginalInstance.InheritInstanceName));
                     }
 
                 // 需要新建对象，否则后面的 Check 会导致 McInstanceCurrent 的 State 变回 Original
@@ -3269,7 +3267,7 @@ public static class ModMinecraft
                 // 下一个实例
                 if (string.IsNullOrEmpty(instance.InheritInstanceName))
                     break;
-                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName) + @"\");
+                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName));
             }
         }
         catch
@@ -3313,7 +3311,7 @@ public static class ModMinecraft
                 if (instance.JsonObject["assets"] is not null) return instance.JsonObject["assets"].ToString();
                 if (string.IsNullOrEmpty(instance.InheritInstanceName))
                     break;
-                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName) + @"\");
+                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName));
             }
         }
         catch (Exception ex)

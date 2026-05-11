@@ -42,8 +42,8 @@ public class CrashAnalyzer
     {
         // 构建文件结构
         TempFolder = ModMain.RequestTaskTempFolder();
-        Directory.CreateDirectory(Path.Combine(TempFolder, "Temp") + @"\");
-        Directory.CreateDirectory(Path.Combine(TempFolder, "Report") + @"\");
+        Directory.CreateDirectory(Path.Combine(TempFolder, "Temp"));
+        Directory.CreateDirectory(Path.Combine(TempFolder, "Report"));
         ModBase.Log("[Crash] 崩溃分析暂存文件夹：" + TempFolder);
     }
 
@@ -163,7 +163,7 @@ public class CrashAnalyzer
             var Info = new FileInfo(FilePath);
             if (Info.Exists && Info.Length > 0L && !FilePath.EndsWithF(".jar", true))
             {
-                ModBase.ExtractFile(FilePath, Path.Combine(TempFolder, "Temp") + @"\");
+                ModBase.ExtractFile(FilePath, Path.Combine(TempFolder, "Temp"));
                 ModBase.Log("[Crash] 已解压导入的日志文件：" + FilePath);
                 goto Extracted;
             }

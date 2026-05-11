@@ -316,10 +316,10 @@ public partial class PageInstanceOverall
                 [new FolderNameValidator(ModMinecraft.McFolderSelected + "versions", ignoreCase: false)]);
             if (string.IsNullOrWhiteSpace(NewName))
                 return;
-            var NewPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", NewName) + @"\";
+            var NewPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", NewName);
             // 获取临时中间名，以防止仅修改大小写的重命名失败
             var TempName = NewName + "_temp";
-            var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName) + @"\";
+            var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName);
             var IsCaseChangedOnly = (NewName.ToLower() ?? "") == (OldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
             JObject JsonObject;
