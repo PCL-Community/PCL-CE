@@ -71,10 +71,10 @@ public partial class PageLaunchLeft
         {
             // 自动整合包安装：准备
             string PackInstallPath = null;
-            if (File.Exists(ModBase.ExePath + "modpack.zip"))
-                PackInstallPath = ModBase.ExePath + "modpack.zip";
-            if (File.Exists(ModBase.ExePath + "modpack.mrpack"))
-                PackInstallPath = ModBase.ExePath + "modpack.mrpack";
+            if (File.Exists(Path.Combine(ModBase.ExePath, "modpack.zip")))
+                PackInstallPath = Path.Combine(ModBase.ExePath, "modpack.zip");
+            if (File.Exists(Path.Combine(ModBase.ExePath, "modpack.mrpack")))
+                PackInstallPath = Path.Combine(ModBase.ExePath, "modpack.mrpack");
             if (PackInstallPath is not null)
             {
                 ModBase.Log("[Launch] 需自动安装整合包：" + PackInstallPath, ModBase.LogLevel.Debug);

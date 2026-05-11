@@ -88,7 +88,7 @@ public partial class PageInstanceServer : MyPageRight
 
         // Write back to NBT file
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                PageInstanceLeft.Instance.PathIndie + "servers.dat"))
+                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
         {
             ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
             return;
@@ -110,7 +110,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(PageInstanceLeft.Instance.PathIndie + "servers.dat",
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
@@ -136,7 +136,7 @@ public partial class PageInstanceServer : MyPageRight
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                PageInstanceLeft.Instance.PathIndie + "servers.dat"))
+                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
         {
             ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
             return;
@@ -268,7 +268,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         ServerList.Clear();
 
-        var serversFile = PageInstanceLeft.Instance.PathIndie + "servers.dat";
+        var serversFile = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 

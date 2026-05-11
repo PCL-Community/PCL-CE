@@ -195,7 +195,7 @@ public static class UpdateManager
     internal static void DownloadLatestPCL(ModLoader.LoaderBase LoaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
-        var LatestPCLPath = ModBase.PathTemp + "CE-Latest.exe";
+        var LatestPCLPath = Path.Combine(ModBase.PathTemp, "CE-Latest.exe");
         var target = RemoteServer.GetLatestVersion(UpdateChannel.stable,
             ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)

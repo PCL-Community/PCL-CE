@@ -59,8 +59,8 @@ public partial class Application
             // 初始化文件结构
             Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures");
             Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
-            Directory.CreateDirectory(ModBase.PathTemp + "Cache");
-            Directory.CreateDirectory(ModBase.PathTemp + "Download");
+            Directory.CreateDirectory(Path.Combine(ModBase.PathTemp, "Cache"));
+            Directory.CreateDirectory(Path.Combine(ModBase.PathTemp, "Download"));
             Directory.CreateDirectory(ModBase.PathAppdata);
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),

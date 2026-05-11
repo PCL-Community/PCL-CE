@@ -183,7 +183,7 @@ public partial class PageInstanceSaves : IRefreshable
                     // 检查文件夹是否仍然存在
                     if (!Directory.Exists(curFolder)) continue;
 
-                    var saveLogo = curFolder + @"\icon.png";
+                    var saveLogo = Path.Combine(curFolder, "icon.png");
                     var tmpCurFolder = curFolder;
                     if (File.Exists(saveLogo))
                     {

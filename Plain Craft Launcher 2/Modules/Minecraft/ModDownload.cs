@@ -62,7 +62,7 @@ public static class ModDownload
             Version = new ModMinecraft.McInstance(Version.InheritInstanceName);
         // 获取信息
         var IndexInfo = ModMinecraft.McAssetsGetIndex(Version, true, true);
-        var IndexAddress = ModMinecraft.McFolderSelected + @"assets\indexes\" + IndexInfo["id"] + ".json";
+        var IndexAddress = Path.Combine(ModMinecraft.McFolderSelected, "assets", "indexes", IndexInfo["id"] + ".json");
         ModBase.Log("[Download] 实例 " + Version.Name + " 对应的资源文件索引为 " + IndexInfo["id"]);
         var IndexUrl = (string)(IndexInfo["url"] ?? "");
         if (string.IsNullOrEmpty(IndexUrl)) return null;

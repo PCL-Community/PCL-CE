@@ -142,7 +142,7 @@ public static class ModBase
     /// <summary>
     ///     AppData 中的 PCL 文件夹路径，以 \ 结尾。
     /// </summary>
-    public static string PathAppdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\PCL\";
+    public static string PathAppdata = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL") + @"\";
 
     /// <summary>
     ///     AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
