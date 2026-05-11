@@ -3649,9 +3649,6 @@ public static class ModBase
                     ModMain.Hint("[调试模式] " + Text, ModMain.HintType.Info, false);
                 break;
             }
-            /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
             case LogLevel.Hint:
             {
                 ModMain.Hint(Text, ModMain.HintType.Critical, false);
@@ -3756,9 +3753,6 @@ public static class ModBase
                     ModMain.Hint("[调试模式] " + ExLine, ModMain.HintType.Info, false);
                 break;
             }
-            /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
             case LogLevel.Hint:
             {
                 var ExLine = Desc + "：" + Ex;

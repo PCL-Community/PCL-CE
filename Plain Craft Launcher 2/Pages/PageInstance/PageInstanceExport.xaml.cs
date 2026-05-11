@@ -735,10 +735,8 @@ public partial class PageInstanceExport : IRefreshable
         var Loaders = new List<ModLoader.LoaderBase>();
 
         #region 准备 PCL 文件
-
-        /* TODO ERROR: Skipped IfDirectiveTrivia
-        #If Not RELEASE Then
-        */
+        
+        #if !RELEASE
         if (IncludePCL)
             Loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
             {
@@ -749,9 +747,7 @@ public partial class PageInstanceExport : IRefreshable
                 ProgressWeight = 0.5d,
                 Block = false
             });
-        /* TODO ERROR: Skipped EndIfDirectiveTrivia
-        #End If
-        */
+        #endif
 
         #endregion
 
@@ -840,14 +836,11 @@ public partial class PageInstanceExport : IRefreshable
             Loader.Progress = 0.97d;
             // 复制 PCL 实例设置
             ModBase.CopyDirectory(McInstance.PathInstance + @"PCL\", OverridesFolder + @"PCL\");
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If RELEASE Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
+            #if RELEASE
                         '复制 PCL 本体
                         If IncludePCL Then CopyFile(ExePathWithName, CacheFolder & "Plain Craft Launcher.exe")
-            */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */ // 复制 PCL 个性化内容
+            #endif
+            // 复制 PCL 个性化内容
             if (IncludePCLCustom)
             {
                 if (Directory.Exists(ModBase.ExePath + @"PCL\Pictures\"))

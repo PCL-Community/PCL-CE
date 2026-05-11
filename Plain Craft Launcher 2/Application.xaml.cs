@@ -54,19 +54,6 @@ public partial class Application
                         Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
                     }
                 }
-                    /* TODO ERROR: Skipped IfDirectiveTrivia
-                    #If DEBUGRESERVED Then
-                    */ /* TODO ERROR: Skipped DisabledTextTrivia
-                                        '制作更新包
-                                    ElseIf args(0) = "--edit1" Then
-                                        ExeEdit(args(1), True)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                                    ElseIf args(0) = "--edit2" Then
-                                        ExeEdit(args(1), False)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                    #End If
-                    */
             }
 
             // 初始化文件结构
@@ -75,30 +62,7 @@ public partial class Application
             Directory.CreateDirectory(ModBase.PathTemp + "Cache");
             Directory.CreateDirectory(ModBase.PathTemp + "Download");
             Directory.CreateDirectory(ModBase.PathAppdata);
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If False Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        '检测单例
-                        Dim ShouldWaitForExit As Boolean = args.Length > 0 AndAlso args(0) = "--wait" '要求等待已有的 PCL 退出
-                        Dim WaitRetryCount As Integer = 0
-            WaitRetry:
-                        Dim WindowHwnd As IntPtr = FindWindow(Nothing, "Plain Craft Launcher Community Edition ")
-                        If WindowHwnd = IntPtr.Zero Then FindWindow(Nothing, "Plain Craft Launcher 2 Community Edition ")
-                        If WindowHwnd <> IntPtr.Zero Then
-                            If ShouldWaitForExit AndAlso WaitRetryCount < 20 Then '至多等待 10 秒
-                                WaitRetryCount += 1
-                                Thread.Sleep(500)
-                                GoTo WaitRetry
-                            End If
-                            '将已有的 PCL 窗口拖出来
-                            ShowWindowToTop(WindowHwnd)
-                            '播放提示音并退出
-                            Beep()
-                            Environment.[Exit](ProcessReturnValues.Cancel)
-                        End If
-            */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */ // 设置 ToolTipService 默认值
+            // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
                 new FrameworkPropertyMetadata(300));
             ToolTipService.BetweenShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
@@ -159,14 +123,6 @@ public partial class Application
             // 计时
             ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
             ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
-            // 执行测试
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If DEBUGRESERVED Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        Test()
-            */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
             ModAnimation.AniControlEnabled += 1;
         }
         catch (Exception ex)
