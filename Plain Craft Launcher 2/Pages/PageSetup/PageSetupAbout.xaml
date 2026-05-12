@@ -113,7 +113,6 @@
                         <RowDefinition Height="45" />
                         <RowDefinition Height="45" />
                         <RowDefinition Height="45" />
-                        <RowDefinition Height="45" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="40" />
@@ -207,16 +206,9 @@
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了 Java Launch Wrapper 和一些重要服务支持！"
+                        Info="设计并制作了 PCLCE 的图标"
                         IsHitTestVisible="False"
-                        Title="00ll00" />
-                    <local:MyListItem
-                        Grid.Row="7"
-                        Grid.Column="1"
-                        Margin="-5,0,15,0"
-                        Info="虽然已经关站了，但感谢此前提供了 MCBBS 镜像源……"
-                        IsHitTestVisible="False"
-                        Title="Minecraft 中文论坛" />
+                        Title="Emperormummy" />
                     <Image
                         Grid.Row="0"
                         Margin="3"
@@ -286,18 +278,7 @@
                     <Image
                         Grid.Row="6"
                         Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/00ll00.png">
-                        <Image.Clip>
-                            <EllipseGeometry
-                                Center="17 17"
-                                RadiusX="17"
-                                RadiusY="17" />
-                        </Image.Clip>
-                    </Image>
-                    <Image
-                        Grid.Row="7"
-                        Margin="3"
-                        Source="/Plain Craft Launcher 2;component/Images/Heads/MCBBS.png">
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/Emperormummy.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
