@@ -837,8 +837,9 @@ public partial class PageInstanceExport : IRefreshable
             // 复制 PCL 实例设置
             ModBase.CopyDirectory(Path.Combine(McInstance.PathInstance, "PCL"), Path.Combine(OverridesFolder, "PCL"));
             #if RELEASE
-                        '复制 PCL 本体
-                        If IncludePCL Then CopyFile(ExePathWithName, CacheFolder & "Plain Craft Launcher.exe")
+            // 复制 PCL 本体
+            if (IncludePCL)
+                ModBase.CopyFile(ModBase.ExePathWithName, Path.Combine(CacheFolder, "Plain Craft Launcher.exe"));
             #endif
             // 复制 PCL 个性化内容
             if (IncludePCLCustom)

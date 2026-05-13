@@ -46,6 +46,8 @@ public partial class PageSetupLeft
             ItemGameManage.SetChecked(true, false, false);
         else if (!hideCfg.SetupGameLink) 
             ItemGameLink.SetChecked(true, false, false);    
+        else if (ItemAI.Visibility == Visibility.Visible)
+            ItemAI.SetChecked(true, false, false);
         else if (!hideCfg.SetupUi) 
             ItemUI.SetChecked(true, false, false);
         else if (!hideCfg.SetupLauncherMisc) 
@@ -119,6 +121,18 @@ public partial class PageSetupLeft
                         ModMain.FrmSetupGameLink = new PageSetupGameLink();
                     ModMain.FrmSetupGameLink.Reset();
                     ItemGameLink.Checked = true;
+                }
+
+                break;
+            }
+            case (double)FormMain.PageSubType.SetupAI:
+            {
+                if (ModMain.MyMsgBox("是否要初始化 工具-AI 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+                {
+                    if (ModMain.FrmSetupAI is null)
+                        ModMain.FrmSetupAI = new PageSetupAI();
+                    ModMain.FrmSetupAI.Reset();
+                    ItemAI.Checked = true;
                 }
 
                 break;
@@ -205,7 +219,16 @@ public partial class PageSetupLeft
             PageID = FormMain.PageSubType.SetupGameManage;
         else if (!hideCfg.SetupGameLink)
             PageID = FormMain.PageSubType.SetupGameLink;    
-        else if (!hideCfg.SetupUi)
+        else
+            PageID = FormMain.PageSubType.SetupAI;
+        if (PageID == FormMain.PageSubType.SetupAI)
+        {
+            AnimatedControl = PanItem;
+            Loaded += PageSetupLeft_Loaded;
+            Unloaded += PageOtherLeft_Unloaded;
+            return;
+        }
+        if (!hideCfg.SetupUi)
             PageID = FormMain.PageSubType.SetupUI;
         else if (!hideCfg.SetupLauncherMisc)
             PageID = FormMain.PageSubType.SetupLauncherMisc;
@@ -291,6 +314,12 @@ public partial class PageSetupLeft
                 if (ModMain.FrmSetupGameLink is null)
                     ModMain.FrmSetupGameLink = new PageSetupGameLink();
                 return ModMain.FrmSetupGameLink;
+            }
+            case FormMain.PageSubType.SetupAI:
+            {
+                if (ModMain.FrmSetupAI is null)
+                    ModMain.FrmSetupAI = new PageSetupAI();
+                return ModMain.FrmSetupAI;
             }
             case FormMain.PageSubType.SetupLauncherMisc:
             {

@@ -1186,21 +1186,71 @@ public class CrashAnalyzer
         return AnalyzeModName(Keywords) ?? Keywords;
     }
 
+    private string BuildAiAnalysisText(string resultText)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("PCL 已完成的本地崩溃分析：");
+        builder.AppendLine(resultText);
+        builder.AppendLine();
+        if (_version is not null)
+        {
+            builder.AppendLine("实例信息：");
+            builder.AppendLine("Name: " + _version.Name);
+            builder.AppendLine("PathIndie: " + _version.PathIndie);
+            builder.AppendLine();
+        }
+
+        AppendAiLogPart(builder, "Minecraft 日志", LogMc);
+        AppendAiLogPart(builder, "Minecraft Debug 日志", LogMcDebug);
+        AppendAiLogPart(builder, "崩溃报告", LogCrash);
+        AppendAiLogPart(builder, "JVM hs_err 日志", LogHs);
+        return FilterAiLog(builder.ToString());
+    }
+
+    private static void AppendAiLogPart(StringBuilder builder, string title, string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return;
+        builder.AppendLine("===== " + title + " =====");
+        builder.AppendLine(content);
+        builder.AppendLine();
+    }
+
+    private static string FilterAiLog(string raw)
+    {
+        try
+        {
+            raw = ModMinecraft.FilterAccessToken(raw, '*');
+            raw = ModMinecraft.FilterUserName(raw, '*');
+        }
+        catch
+        {
+        }
+
+        raw = Regex.Replace(raw, @"(?i)(authorization\s*:\s*bearer\s+)[^\s]+", "$1********");
+        raw = Regex.Replace(raw, @"(?i)((access[_-]?token|refresh[_-]?token)\s*[:=]\s*)[^\s,;]+", "$1********");
+        return raw;
+    }
+
     /// <summary>
-    ///     弹出崩溃弹窗，并指导导出崩溃报告。
+    ///     Shows the crash dialog and guides exporting the crash report.
     /// </summary>
     public void Output(bool IsHandAnalyze, List<string> ExtraFiles = null)
     {
-        // 弹窗提示
+        // Dialog prompt
         ModMain.FrmMain.ShowWindowToTop();
         var resultText = GetAnalyzeResult(IsHandAnalyze);
-        // 确定是否是加载器版本不兼容问题
-        var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
-        // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", "确定",
-                    IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
+        var isModLoaderIncompatible = _version is not null &&
+                                      resultText.StartsWith("Mod \u52a0\u8f7d\u5668\u7248\u672c\u4e0e Mod \u4e0d\u517c\u5bb9");
+        var isAiEnabled = CrashAiAnalyzer.IsEnabled;
+        var button1 = isAiEnabled ? "AI 分析" : "确定";
+        var button2 = isAiEnabled && (IsHandAnalyze || DirectFile is null)
+            ? "确定"
+            : IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志";
+        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", button1,
+                    button2,
                     IsHandAnalyze ? "" : "导出错误报告",
-                    Button2Action: IsHandAnalyze || DirectFile is null || isModLoaderIncompatible
+                    Button2Action: button2 != "查看日志"
                         ? null
                         : new Action(() =>
                         {
@@ -1216,8 +1266,15 @@ public class CrashAnalyzer
                             }
                         })))
         {
+            case 1 when isAiEnabled:
+            {
+                CrashAiAnalyzer.Start(BuildAiAnalysisText(resultText));
+                break;
+            }
             case 2:
             {
+                if (isAiEnabled && (IsHandAnalyze || DirectFile is null))
+                    break;
                 // 弹窗选择：前往修改
                 PageInstanceLeft.Instance = _version;
                 ModBase.RunInUi(() =>

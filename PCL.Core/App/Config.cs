@@ -102,6 +102,18 @@ public static partial class Config
         // [ConfigItem<int>("ToolUpdateAlpha", 0, ConfigSource.SharedEncrypt)] public partial int Alpha { get; set; }
         [ConfigItem<bool>("ToolUpdateRelease", false)] public partial bool ReleaseNotification { get; set; }
         [ConfigItem<bool>("ToolUpdateSnapshot", false)] public partial bool SnapshotNotification { get; set; }
+
+        /// <summary>
+        /// AI 崩溃分析配置。
+        /// </summary>
+        [ConfigGroup("AI")] partial class AIConfigGroup
+        {
+            [ConfigItem<bool>("ToolAiAnalysisEnabled", false)] public partial bool Enabled { get; set; }
+            [ConfigItem<int>("ToolAiApiType", 0)] public partial int ApiType { get; set; }
+            [ConfigItem<string>("ToolAiBaseUrl", "https://api.openai.com/v1")] public partial string BaseUrl { get; set; }
+            [ConfigItem<string>("ToolAiModelId", "gpt-5.2")] public partial string ModelId { get; set; }
+            [ConfigItem<string>("ToolAiApiKey", "", ConfigSource.SharedEncrypt)] public partial string ApiKey { get; set; }
+        }
     }
 
     /// <summary>

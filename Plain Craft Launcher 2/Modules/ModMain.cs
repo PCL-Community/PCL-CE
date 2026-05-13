@@ -64,6 +64,7 @@ public static class ModMain
     public static PageSetupLog? FrmSetupLog;
     public static PageSetupFeedback? FrmSetupFeedback;
     public static PageSetupGameLink? FrmSetupGameLink;
+    public static PageSetupAI? FrmSetupAI;
     public static PageSetupLauncherMisc? FrmSetupLauncherMisc;
     public static PageLoginAuth? FrmLoginAuth;
     public static PageLoginMs? FrmLoginMs;
@@ -546,7 +547,20 @@ public static class ModMain
         Select,
         Input,
         Login,
-        Markdown
+        Markdown,
+        AiAnalysis
+    }
+
+    public static void ShowCrashAiAnalysis(string logText)
+    {
+        WaitingMyMsgBox.Add(new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.AiAnalysis,
+            Title = "AI 崩溃分析",
+            Content = logText
+        });
+        if (ModBase.RunInUi())
+            MyMsgBoxTick();
     }
 
     /// <summary>
@@ -845,6 +859,11 @@ public static class ModMain
                     case MyMsgBoxType.Markdown:
                     {
                         FrmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.AiAnalysis:
+                    {
+                        FrmMain.PanMsg.Children.Add(new MyMsgAiAnalysis(WaitingMyMsgBox[0]));
                         break;
                     }
                 }

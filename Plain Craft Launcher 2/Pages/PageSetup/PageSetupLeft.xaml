@@ -67,6 +67,22 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
 
+            <local:MyListItem x:Name="ItemAI" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="11"
+                              Check="PageCheck"
+                              MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="AI"
+                              LogoScale="0.95"
+                              Logo="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z M5.5 14l1 2.8L9.3 18l-2.8 1-1 3-1-3-2.8-1 2.8-1 1-3z M18.5 14l0.8 2.2 2.2 0.8-2.2 0.8-0.8 2.2-0.8-2.2-2.2-0.8 2.2-0.8 0.8-2.2z">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="11" ToolTip="初始化本页设置" ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            Click="Reset"
+                                            Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
+                                            LogoScale="0.9" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
+
             <TextBlock Text="启动器" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextLauncherCategory" />
 
             <local:MyListItem x:Name="ItemUI" IsScaleAnimationEnabled="False" Tag="1" MinPaddingRight="35" Height="36"
