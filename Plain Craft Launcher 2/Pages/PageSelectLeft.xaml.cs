@@ -113,7 +113,7 @@ public partial class PageSelectLeft : IRefreshable
                         AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
                         AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
-                            ModMinecraft.McFolderList.Count == 1 && folder.Location == ModBase.ExePath + ".minecraft\\"
+                            ModMinecraft.McFolderList.Count == 1 && folder.Location == Path.Combine(ModBase.ExePath, ".minecraft") + @"\"
                                 ? "清空"
                                 : "删除", ICON_DELETE, new Thickness(0, 0, 0, 2), ModMain.FrmSelectLeft.Delete_Click);
                         break;
@@ -206,7 +206,7 @@ public partial class PageSelectLeft : IRefreshable
             });
 
             // 创建新文件夹按钮
-            if (!Directory.Exists(ModBase.ExePath + ".minecraft\\"))
+            if (!Directory.Exists(Path.Combine(ModBase.ExePath, ".minecraft")))
             {
                 var itemCreate = new MyListItem
                 {
@@ -418,7 +418,7 @@ public partial class PageSelectLeft : IRefreshable
 
                 if (!ModBase.CheckPermission(FolderPath + @"versions\"))
                     foreach (var Folder in new DirectoryInfo(FolderPath).GetDirectories())
-                        if (ModBase.CheckPermission(Folder.FullName + @"\versions\"))
+                        if (ModBase.CheckPermission(Path.Combine(Folder.FullName, "versions")))
                         {
                             FolderPath = Folder.FullName + @"\";
                             break;
@@ -521,8 +521,8 @@ public partial class PageSelectLeft : IRefreshable
                     if (Directory.Exists(Folder.Location + @"versions\"))
                         foreach (var Version in new DirectoryInfo(Folder.Location + @"versions\")
                                      .EnumerateDirectories())
-                            if (Directory.Exists(Version.FullName + @"\PCL\"))
-                                Directory.Delete(Version.FullName + @"\PCL\", true);
+                            if (Directory.Exists(Path.Combine(Version.FullName, "PCL")))
+                                Directory.Delete(Path.Combine(Version.FullName, "PCL"), true);
 
                     break;
                 }
@@ -648,7 +648,7 @@ public partial class PageSelectLeft : IRefreshable
 
     public static void RefreshCurrent(string Folder)
     {
-        ModBase.WriteIni(Folder + "PCL.ini", "InstanceCache", ""); // 删除缓存以强制要求下一次加载时更新列表
+        ModBase.WriteIni(Path.Combine(Folder, "PCL.ini"), "InstanceCache", "");
         if ((Folder ?? "") == (ModMinecraft.McFolderSelected ?? ""))
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");

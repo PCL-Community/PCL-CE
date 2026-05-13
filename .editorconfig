@@ -1,4 +1,4 @@
-﻿[*.{cs,vb}]
+﻿[*.cs]
 
 # IDE0028: 简化集合初始化
 dotnet_style_collection_initializer = true:silent

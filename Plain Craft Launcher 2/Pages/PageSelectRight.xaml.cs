@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -540,7 +541,7 @@ public partial class PageSelectRight
             {
                 case 1:
                 {
-                    ModBase.IniClearCache(instance.PathIndie + "options.txt");
+                    ModBase.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instance.PathInstance);
                     if (IsShiftPressed)

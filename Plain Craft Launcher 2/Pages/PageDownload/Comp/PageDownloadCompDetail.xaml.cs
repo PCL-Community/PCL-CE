@@ -108,7 +108,7 @@ public partial class PageDownloadCompDetail
                     ModDownloadLib.McInstallFailedClearFolder(MyLoader);
                 }
             };
-            Loader.Start(ModMinecraft.McFolderSelected + @"versions\" + InstanceName + @"\");
+            Loader.Start(Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName));
             ModLoader.LoaderTaskbarAdd(Loader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();

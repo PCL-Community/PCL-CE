@@ -96,7 +96,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         res.GameVersion = PageInstanceLeft.Instance;
         res.Frm = null;
         res.Loaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
-        res.CompPath = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
+        res.CompPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
         res.CompType = ModComp.CompType.DataPack;
         return res;
     }
@@ -176,7 +176,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     public bool LoaderRun(ModLoader.LoaderFolderRunType Type)
     {
-        var LoadPath = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
+        var LoadPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
         return ModLoader.LoaderFolderRun(ModLocalComp.CompResourceListLoader, LoadPath, Type,
             LoaderInput: GetRequireLoaderData());
     }
@@ -544,7 +544,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     {
         try
         {
-            var DatapackPath = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
+            var DatapackPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
             Directory.CreateDirectory(DatapackPath);
             ModBase.OpenExplorer(DatapackPath);
         }
@@ -610,7 +610,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 执行安装
         try
         {
-            var DatapackFolder = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
+            var DatapackFolder = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
             Directory.CreateDirectory(DatapackFolder);
 
             foreach (var FilePath in FilePathList)
@@ -1178,7 +1178,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     continue;
                 // 添加到下载列表
                 var TempAddress = ModBase.PathTemp + @"DownloadedComp\" + File.FileName;
-                var RealAddress = PageInstanceSavesLeft.CurrentSave + @"\datapacks\" + File.FileName;
+                var RealAddress = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks", File.FileName);
                 FileList.Add(File.ToNetFile(TempAddress));
                 FileCopyList[TempAddress] = RealAddress;
             }
@@ -1229,7 +1229,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 结束处理
             var Loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
                 $"数据包更新：{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)}", InstallLoaders);
-            var PathDatapacks = PageInstanceSavesLeft.CurrentSave + @"\datapacks\";
+            var PathDatapacks = Path.Combine(PageInstanceSavesLeft.CurrentSave, "datapacks");
 
             Loader.OnStateChanged = _ =>
             {

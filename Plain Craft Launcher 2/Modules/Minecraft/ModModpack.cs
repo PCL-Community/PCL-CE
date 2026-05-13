@@ -362,7 +362,7 @@ public static class ModModpack
         if (InstanceName is null)
         {
             InstanceName = (string)(Json["name"] ?? "");
-            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
             if (!Validate.Validate(InstanceName).IsValid)
                 InstanceName = "";
             if (string.IsNullOrEmpty(InstanceName))
@@ -432,8 +432,8 @@ public static class ModModpack
             {
                 ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6d);
                 CopyOverrideDirectory(
-                    InstallTemp + ArchiveBaseFolder + (OverrideHome == "." || OverrideHome == "./" ? "" : OverrideHome),
-                    $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}", Task, 0.4d); // #5613
+                    Path.Combine(InstallTemp, ArchiveBaseFolder, OverrideHome == "." || OverrideHome == "./" ? "" : OverrideHome),
+                    $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}", Task, 0.4d);
             })
             {
                 ProgressWeight = new FileInfo(FileAddress).Length / 1024d / 1024d / 6d,
@@ -584,14 +584,14 @@ public static class ModModpack
             var VersionFolder = $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\";
             if (Logo is not null && File.Exists(Logo))
             {
-                File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
+                File.Copy(Logo, Path.Combine(VersionFolder, "PCL", "Logo.png"), true);
                 States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                 States.Instance.IsLogoCustom[VersionFolder] = true;
                 ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
             // 删除原始整合包文件
-            foreach (var Target in new[] { VersionFolder + "原始整合包.zip", VersionFolder + "原始整合包.mrpack" })
+            foreach (var Target in new[] { Path.Combine(VersionFolder, "原始整合包.zip"), Path.Combine(VersionFolder, "原始整合包.mrpack") })
                 if (File.Exists(Target))
                 {
                     ModBase.Log("[ModPack] 删除原始整合包文件：" + Target);
@@ -720,7 +720,7 @@ public static class ModModpack
         if (InstanceName is null)
         {
             InstanceName = (string)(Json["name"] ?? "");
-            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
             if (!Validate.Validate(InstanceName).IsValid)
                 InstanceName = "";
             if (string.IsNullOrEmpty(InstanceName))
@@ -735,10 +735,10 @@ public static class ModModpack
         InstallLoaders.Add(new LoaderTask<string, int>("解压整合包文件", Task =>
         {
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.5d);
-            CopyOverrideDirectory(InstallTemp + ArchiveBaseFolder + "overrides",
-                ModMinecraft.McFolderSelected + @"versions\" + InstanceName, Task, 0.4d);
-            CopyOverrideDirectory(InstallTemp + ArchiveBaseFolder + "client-overrides",
-                ModMinecraft.McFolderSelected + @"versions\" + InstanceName, Task, 0.1d);
+            CopyOverrideDirectory(Path.Combine(InstallTemp, ArchiveBaseFolder, "overrides"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName), Task, 0.4d);
+            CopyOverrideDirectory(Path.Combine(InstallTemp, ArchiveBaseFolder, "client-overrides"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName), Task, 0.1d);
         })
         {
             ProgressWeight = new FileInfo(FileAddress).Length / 1024d / 1024d / 6d,
@@ -814,14 +814,14 @@ public static class ModModpack
             var VersionFolder = $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\";
             if (Logo is not null && File.Exists(Logo))
             {
-                File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
+                File.Copy(Logo, Path.Combine(VersionFolder, "PCL", "Logo.png"), true);
                 States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                 States.Instance.IsLogoCustom[VersionFolder] = true;
                 ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
             // 删除原始整合包文件
-            foreach (var Target in new[] { VersionFolder + "原始整合包.zip", VersionFolder + "原始整合包.mrpack" })
+            foreach (var Target in new[] { Path.Combine(VersionFolder, "原始整合包.zip"), Path.Combine(VersionFolder, "原始整合包.mrpack") })
                 if (File.Exists(Target))
                 {
                     ModBase.Log("[ModPack] 删除原始整合包文件：" + Target);
@@ -897,7 +897,7 @@ public static class ModModpack
 
         // 获取实例名
         var InstanceName = (string)(Json["name"] ?? "");
-        var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+        var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
         if (!Validate.Validate(InstanceName).IsValid)
             InstanceName = "";
         if (string.IsNullOrEmpty(InstanceName))
@@ -910,8 +910,8 @@ public static class ModModpack
         InstallLoaders.Add(new LoaderTask<string, int>("解压整合包文件", Task =>
         {
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6d);
-            CopyOverrideDirectory(InstallTemp + ArchiveBaseFolder + "minecraft",
-                ModMinecraft.McFolderSelected + @"versions\" + InstanceName, Task, 0.4d);
+            CopyOverrideDirectory(Path.Combine(InstallTemp, ArchiveBaseFolder, "minecraft"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName), Task, 0.4d);
         })
         {
             ProgressWeight = new FileInfo(FileAddress).Length / 1024d / 1024d / 6d,
@@ -980,7 +980,7 @@ public static class ModModpack
         if (InstanceName == null)
         {
             InstanceName = Json["name"]?.ToString() ?? "";
-            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
 
             if (!Validate.Validate(InstanceName).IsValid) InstanceName = "";
 
@@ -1000,8 +1000,8 @@ public static class ModModpack
         {
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.6);
             CopyOverrideDirectory(
-                InstallTemp + ArchiveBaseFolder + "overrides",
-                ModMinecraft.McFolderSelected + "versions\\" + InstanceName,
+                Path.Combine(InstallTemp, ArchiveBaseFolder, "overrides"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName),
                 Task, 0.4);
 
             // JVM 参数处理
@@ -1152,9 +1152,9 @@ public static class ModModpack
                 ModBase.OpenExplorer(TargetFolder);
                 // 加入文件夹列表
                 var InstanceName = ModBase.GetFolderNameFromPath(TargetFolder);
-                Directory.CreateDirectory(TargetFolder + @".minecraft\");
+                Directory.CreateDirectory(Path.Combine(TargetFolder, ".minecraft"));
                 PageSelectLeft.AddFolder(
-                    TargetFolder + @".minecraft\" + ArchiveBaseFolder.Replace("/", @"\").TrimStart('\\'), InstanceName,
+                    Path.Combine(TargetFolder, ".minecraft", ArchiveBaseFolder.Replace("/", @"\").TrimStart('\\')), InstanceName,
                     false); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
                 // 调用 modpack 文件进行安装
                 var ModpackFile = Directory.GetFiles(TargetFolder, "modpack.*", SearchOption.AllDirectories).First();
@@ -1217,7 +1217,7 @@ public static class ModModpack
             {
                 ExtractModpackFiles(TargetFolder, FileAddress, Task, 0.95d);
                 // 加入文件夹列表
-                PageSelectLeft.AddFolder(TargetFolder + ArchiveBaseFolder, ModBase.GetFolderNameFromPath(TargetFolder),
+                PageSelectLeft.AddFolder(Path.Combine(TargetFolder, ArchiveBaseFolder), ModBase.GetFolderNameFromPath(TargetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
                 ModBase.RunInUi(() => ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect));
@@ -1507,7 +1507,7 @@ public static class ModModpack
 
         // 获取实例名
         var InstanceName = PackInstance.RegexSeek(@"(?<=\nname\=)[^\n]+") ?? "";
-        var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+        var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
         if (!Validate.Validate(InstanceName).IsValid)
             InstanceName = "";
         if (string.IsNullOrEmpty(InstanceName))
@@ -1521,17 +1521,17 @@ public static class ModModpack
         InstallLoaders.Add(new LoaderTask<string, int>("解压整合包文件", Task =>
         {
             ExtractModpackFiles(InstallTemp, FileAddress, Task, 0.55d);
-            CopyOverrideDirectory(InstallTemp + ArchiveBaseFolder + "libraries",
-                ModMinecraft.McFolderSelected + @"versions\" + InstanceName + @"\libraries", Task, 0.2d);
-            CopyOverrideDirectory(InstallTemp + ArchiveBaseFolder + ".minecraft",
-                ModMinecraft.McFolderSelected + @"versions\" + InstanceName, Task, 0.2d);
+            CopyOverrideDirectory(Path.Combine(InstallTemp, ArchiveBaseFolder, "libraries"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName, "libraries"), Task, 0.2d);
+            CopyOverrideDirectory(Path.Combine(InstallTemp, ArchiveBaseFolder, ".minecraft"),
+                Path.Combine(ModMinecraft.McFolderSelected, "versions", InstanceName), Task, 0.2d);
 
             #region instance.cfg
 
             // 读取 MMC 设置文件（#2655）
             try
             {
-                var MMCSetupFile = InstallTemp + ArchiveBaseFolder + "instance.cfg";
+                var MMCSetupFile = Path.Combine(InstallTemp, ArchiveBaseFolder, "instance.cfg");
                 // 将其中的等号替换为冒号，以符合 ini 文件格式
                 if (File.Exists(MMCSetupFile))
                 {

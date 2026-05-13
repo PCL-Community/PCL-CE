@@ -372,10 +372,10 @@ public partial class FormMain
             ModBase.Log("[Start] 已移动离线自定义皮肤 (162)");
         }
 
-        if (LastVersionCode <= 263 && File.Exists(ModBase.PathTemp + "CustomSkin.png") &&
-            !File.Exists(ModBase.PathAppdata + "CustomSkin.png"))
+        if (LastVersionCode <= 263 && File.Exists(Path.Combine(ModBase.PathTemp, "CustomSkin.png")) &&
+            !File.Exists(Path.Combine(ModBase.PathAppdata, "CustomSkin.png")))
         {
-            ModBase.CopyFile(ModBase.PathTemp + "CustomSkin.png", ModBase.PathAppdata + "CustomSkin.png");
+            ModBase.CopyFile(Path.Combine(ModBase.PathTemp, "CustomSkin.png"), Path.Combine(ModBase.PathAppdata, "CustomSkin.png"));
             ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
         }
 
@@ -748,7 +748,17 @@ public partial class FormMain
         {
             if (e.Key == Key.Enter)
             {
-                ((MyMsgInput)PanMsg.Children[0]).Btn1_Click(sender, null);
+                var msg = PanMsg.Children[0];
+                Action? enterAction = msg switch
+                {
+                    MyMsgInput input => () => input.Btn1_Click(sender, null),
+                    MyMsgSelect select => () => select.Btn1_Click(sender, null),
+                    MyMsgText text => () => text.Btn1_Click(sender, null),
+                    MyMsgMarkdown markdown => () => markdown.Btn1_Click(sender, null),
+                    MyMsgLogin login => () => login.Btn1_Click(sender, null),
+                    _ => null
+                };
+                enterAction?.Invoke();
                 return;
             }
 

@@ -142,7 +142,7 @@ public static class ModBase
     /// <summary>
     ///     AppData 中的 PCL 文件夹路径，以 \ 结尾。
     /// </summary>
-    public static string PathAppdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\PCL\";
+    public static string PathAppdata = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL") + @"\";
 
     /// <summary>
     ///     AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
@@ -3643,9 +3643,6 @@ public static class ModBase
                     ModMain.Hint("[调试模式] " + Text, ModMain.HintType.Info, false);
                 break;
             }
-            /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
             case LogLevel.Hint:
             {
                 ModMain.Hint(Text, ModMain.HintType.Critical, false);
@@ -3750,9 +3747,6 @@ public static class ModBase
                     ModMain.Hint("[调试模式] " + ExLine, ModMain.HintType.Info, false);
                 break;
             }
-            /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
             case LogLevel.Hint:
             {
                 var ExLine = Desc + "：" + Ex;

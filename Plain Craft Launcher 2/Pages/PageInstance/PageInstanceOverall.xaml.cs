@@ -316,10 +316,10 @@ public partial class PageInstanceOverall
                 [new FolderNameValidator(ModMinecraft.McFolderSelected + "versions", ignoreCase: false)]);
             if (string.IsNullOrWhiteSpace(NewName))
                 return;
-            var NewPath = ModMinecraft.McFolderSelected + @"versions\" + NewName + @"\";
+            var NewPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", NewName);
             // 获取临时中间名，以防止仅修改大小写的重命名失败
             var TempName = NewName + "_temp";
-            var TempPath = ModMinecraft.McFolderSelected + @"versions\" + TempName + @"\";
+            var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName);
             var IsCaseChangedOnly = (NewName.ToLower() ?? "") == (OldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
             JObject JsonObject;
@@ -338,7 +338,7 @@ public partial class PageInstanceOverall
             FileSystem.RenameDirectory(OldPath, TempName);
             FileSystem.RenameDirectory(TempPath, NewName);
             // 清理 ini 缓存
-            ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+            ModBase.IniClearCache(Path.Combine(PageInstanceLeft.Instance.PathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             if (Directory.Exists($"{NewPath}{OldName}-natives"))
@@ -691,7 +691,7 @@ public partial class PageInstanceOverall
                 {
                     var instancePath = PageInstanceLeft.Instance.PathInstance;
                     var instanceName = PageInstanceLeft.Instance.Name;
-                    ModBase.IniClearCache(PageInstanceLeft.Instance.PathIndie + "options.txt");
+                    ModBase.IniClearCache(Path.Combine(PageInstanceLeft.Instance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instancePath);
                     if (IsShiftPressed)

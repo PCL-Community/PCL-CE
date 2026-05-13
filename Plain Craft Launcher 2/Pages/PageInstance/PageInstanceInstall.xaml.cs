@@ -6,7 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -103,7 +102,7 @@ public partial class PageInstanceInstall
         // 删除 LabyMod Neo 文件
         if ((PageInstanceLeft.Instance.PathIndie ?? "") != (PageInstanceLeft.Instance.PathInstance ?? "") &&
             PageInstanceLeft.Instance.Info.HasLabyMod)
-            Directory.Delete(PageInstanceLeft.Instance.PathIndie + "labymod-neo", true);
+            Directory.Delete(System.IO.Path.Combine(PageInstanceLeft.Instance.PathIndie, "labymod-neo"), true);
         // 备份实例核心文件
         ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
             PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name + ".json");

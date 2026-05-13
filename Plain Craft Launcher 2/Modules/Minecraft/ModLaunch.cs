@@ -2048,7 +2048,7 @@ public static class ModLaunch
                 return;
             if (McLaunchJavaSelected is not null)
             {
-                McLaunchLog("选择的 Java：" + McLaunchJavaSelected.ToString);
+                McLaunchLog("选择的 Java：" + McLaunchJavaSelected);
                 return;
             }
 
@@ -2193,7 +2193,7 @@ public static class ModLaunch
     /// </summary>
     public static string ExtractJavaWrapper()
     {
-        var WrapperPath = ModBase.PathPure + "JavaWrapper.jar";
+        var WrapperPath = Path.Combine(ModBase.PathPure, "JavaWrapper.jar");
         ModBase.Log("[Java] 选定的 Java Wrapper 路径：" + WrapperPath);
         lock (ExtractJavaWrapperLock) // 避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
         {
@@ -2215,7 +2215,7 @@ public static class ModLaunch
                     catch (Exception ex2)
                     {
                         ModBase.Log(ex2, "Java Wrapper 文件重新释放失败，将尝试更换文件名重新生成", ModBase.LogLevel.Developer);
-                        WrapperPath = ModBase.PathPure + "JavaWrapper2.jar";
+                        WrapperPath = Path.Combine(ModBase.PathPure, "JavaWrapper2.jar");
                         try
                         {
                             WriteJavaWrapper(WrapperPath);
@@ -2248,7 +2248,7 @@ public static class ModLaunch
     /// </summary>
     public static string ExtractLinkD()
     {
-        var LinkDPath = ModBase.PathPure + "linkd.exe";
+        var LinkDPath = Path.Combine(ModBase.PathPure, "linkd.exe");
         lock (ExtractLinkDLock) // 避免 OptiFine 和 Forge 安装时同时释放 Java Wrapper 导致冲突
         {
             try
@@ -2492,7 +2492,7 @@ public static class ModLaunch
             {
                 var Response = Requester.FetchString(Server);
                 DataList.Insert(0,
-                    "-javaagent:\"" + ModBase.PathPure + "authlib-injector.jar\"=" + Server +
+                    "-javaagent:\"" + Path.Combine(ModBase.PathPure, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)));
             }
@@ -2505,12 +2505,6 @@ public static class ModLaunch
             {
                 throw new Exception($"无法连接到第三方登录服务器（{Server ?? null}）", ex);
             }
-        }
-
-        // LWJGL Unsafe Agent
-        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
-        {
-            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
@@ -2533,7 +2527,7 @@ public static class ModLaunch
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
         var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + MesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
         if (Renderer != 0)
             DataList.Insert(0,
@@ -2621,7 +2615,7 @@ public static class ModLaunch
             {
                 var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
                 DataList.Insert(0,
-                    "-javaagent:\"" + ModBase.PathPure + "authlib-injector.jar\"=" + Server +
+                    "-javaagent:\"" + Path.Combine(ModBase.PathPure, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)));
             }
@@ -2629,6 +2623,13 @@ public static class ModLaunch
             {
                 throw new Exception("无法连接到第三方登录服务器（" + (Server ?? null) + "）", ex);
             }
+        }
+        
+        // LWJGL Unsafe Agent
+        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
+        {
+            ModBase.Log($"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(ModMinecraft.McInstanceSelected)}");
+            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
@@ -2651,7 +2652,7 @@ public static class ModLaunch
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
         var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + MesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
         if (Renderer != 0)
             DataList.Insert(0,
@@ -2758,8 +2759,8 @@ public static class ModLaunch
                          " --tweakClass optifine.OptiFineForgeTweaker";
                 try
                 {
-                    ModBase.WriteFile(Version.PathInstance + Version.Name + ".json",
-                        ModBase.ReadFile(Version.PathInstance + Version.Name + ".json")
+                    ModBase.WriteFile(Path.Combine(Version.PathInstance, Version.Name + ".json"),
+                        ModBase.ReadFile(Path.Combine(Version.PathInstance, Version.Name + ".json"))
                             .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
                 }
                 catch (Exception ex)
@@ -2849,8 +2850,8 @@ public static class ModLaunch
                     " --tweakClass optifine.OptiFineForgeTweaker";
                 try
                 {
-                    ModBase.WriteFile(instance.PathInstance + instance.Name + ".json",
-                        ModBase.ReadFile(instance.PathInstance + instance.Name + ".json")
+                    ModBase.WriteFile(Path.Combine(instance.PathInstance, instance.Name + ".json"),
+                        ModBase.ReadFile(Path.Combine(instance.PathInstance, instance.Name + ".json"))
                             .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
                 }
                 catch (Exception ex)
@@ -2966,7 +2967,7 @@ public static class ModLaunch
         // LWJGL Unsafe Agent 释放
         if (McLaunchUsesLwjglUnsafeAgent(instance))
         {
-            string AgentPath = ModBase.PathPure + "lwjgl-unsafe-agent.jar";
+            string AgentPath = Path.Combine(ModBase.PathPure, "lwjgl-unsafe-agent.jar");
             try
             {
                 ModBase.WriteFile(AgentPath, ModBase.GetResourceStream("Resources/lwjgl-unsafe-agent.jar"));
@@ -3102,13 +3103,13 @@ public static class ModLaunch
     /// </summary>
     private static string GetNativesFolder()
     {
-        var Result = ModMinecraft.McInstanceSelected.PathInstance + ModMinecraft.McInstanceSelected.Name + "-natives";
+        var Result = Path.Combine(ModMinecraft.McInstanceSelected.PathInstance, ModMinecraft.McInstanceSelected.Name + "-natives");
         if (ModBase.IsGBKEncoding || Result.IsASCII())
             return Result;
-        Result = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\.minecraft\bin\natives";
+        Result = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "bin", "natives");
         if (Result.IsASCII())
             return Result;
-        return ModBase.OsDrive + @"ProgramData\PCL\natives";
+        return Path.Combine(ModBase.OsDrive, "ProgramData", "PCL", "natives");
     }
 
     #endregion
@@ -3230,7 +3231,7 @@ public static class ModLaunch
         } while (false);
 
         // 更新 options.txt
-        var SetupFileAddress = ModMinecraft.McInstanceSelected.PathIndie + "options.txt";
+        var SetupFileAddress = Path.Combine(ModMinecraft.McInstanceSelected.PathIndie, "options.txt");
 
         // 辅助切换游戏语言
         if (Config.Tool.AutoChangeLanguage)
@@ -3238,7 +3239,7 @@ public static class ModLaunch
             if (!File.Exists(SetupFileAddress))
             {
                 // Yosbr Mod 兼容（#2385）：https://www.curseforge.com/minecraft/mc-mods/yosbr
-                var YosbrFileAddress = ModMinecraft.McInstanceSelected.PathIndie + @"config\yosbr\options.txt";
+                var YosbrFileAddress = Path.Combine(ModMinecraft.McInstanceSelected.PathIndie, "config", "yosbr", "options.txt");
                 if (File.Exists(YosbrFileAddress))
                 {
                     McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
@@ -3257,7 +3258,7 @@ public static class ModLaunch
                 // 1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
                 var currentLang = ModBase.ReadIni(SetupFileAddress, "lang", "none");
                 var isLanguageUnconfigured = string.Equals(currentLang, "none", StringComparison.OrdinalIgnoreCase);
-                var hasExistingSaves = Directory.Exists(ModMinecraft.McInstanceSelected.PathIndie + "saves");
+                var hasExistingSaves = Directory.Exists(Path.Combine(ModMinecraft.McInstanceSelected.PathIndie, "saves"));
                 var shouldUseDefault = isLanguageUnconfigured || !hasExistingSaves;
                 var requiredLang = _ResolveMinecraftLanguage(currentLang, shouldUseDefault,
                     ModMinecraft.McInstanceSelected.ReleaseTime);
@@ -3564,7 +3565,7 @@ public static class ModLaunch
         WindowTitle = ArgumentReplace(WindowTitle, false);
 
         // JStack 路径
-        var JStackPath = McLaunchJavaSelected.Installation.JavaFolder + @"\jstack.exe";
+        var JStackPath = Path.Combine(McLaunchJavaSelected.Installation.JavaFolder, "jstack.exe");
 
         // 初始化等待
         var Watcher = new ModWatcher.Watcher(Loader, ModMinecraft.McInstanceSelected, WindowTitle,

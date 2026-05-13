@@ -1983,7 +1983,7 @@ public static class ModLocalComp
                     {
                         var DirInfo = new DirectoryInfo(SearchPath);
                         foreach (var Dir in DirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
-                            ModList.Add(new LocalCompFile(Dir.FullName + @"\__FOLDER__"));
+                            ModList.Add(new LocalCompFile(Path.Combine(Dir.FullName, "__FOLDER__")));
                         foreach (var File in DirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
                             try
                             {
@@ -2313,7 +2313,7 @@ public static class ModLocalComp
             Cache[Entry.ModrinthHash + McInstance + string.Join("", ModLoaders)] = Entry.ToJson();
         }
 
-        ModBase.WriteFile(ModBase.PathTemp + "Cache\\LocalComp.json",
+        ModBase.WriteFile(Path.Combine(ModBase.PathTemp, "Cache", "LocalComp.json"),
             Cache.ToString(ModBase.ModeDebug ? Formatting.Indented : Formatting.None));
 
         // 刷新 UI

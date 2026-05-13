@@ -296,7 +296,7 @@ public static class ModMinecraft
                     originalMcFolderList.Add(new McFolder
                         { Name = "当前文件夹", Location = ModBase.ExePath, Type = McFolder.Types.Original });
                 foreach (var folder in new DirectoryInfo(ModBase.ExePath).GetDirectories())
-                    if (Directory.Exists(folder.FullName + @"versions\") || folder.Name == ".minecraft")
+                    if (Directory.Exists(Path.Combine(folder.FullName, "versions")) || folder.Name == ".minecraft")
                     {
                         var newCurrentFolder = new McFolder
                             { Name = folder.Name, Location = folder.FullName + @"\", Type = McFolder.Types.Original };
@@ -310,9 +310,9 @@ public static class ModMinecraft
             }
 
             // 扫描官启文件夹
-            var MojangPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\.minecraft\";
+            var MojangPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft") + @"\";
             if ((!currentMcFolderList.Any() || (MojangPath ?? "") != (currentMcFolderList[0].Location ?? "")) &&
-                Directory.Exists(MojangPath + @"versions\")) // 当前文件夹不是官启文件夹
+                Directory.Exists(Path.Combine(MojangPath, "versions"))) // 当前文件夹不是官启文件夹
                 // 具有权限且存在 versions 文件夹
                 originalMcFolderList.Add(new McFolder
                     { Name = "官方启动器文件夹", Location = MojangPath, Type = McFolder.Types.Original });
@@ -379,7 +379,7 @@ public static class ModMinecraft
     {
         try
         {
-            if (File.Exists(Folder + "launcher_profiles.json"))
+            if (File.Exists(Path.Combine(Folder, "launcher_profiles.json")))
                 return;
             var ResultJson = @"{
     ""profiles"":  {
@@ -395,7 +395,7 @@ public static class ModMinecraft
     ""selectedProfile"": ""PCL"",
     ""clientToken"": ""23323323323323323323323323323333""
 }";
-            ModBase.WriteFile(Folder + "launcher_profiles.json", ResultJson, Encoding: Encoding.GetEncoding("GB18030"));
+            ModBase.WriteFile(Path.Combine(Folder, "launcher_profiles.json"), ResultJson, Encoding: Encoding.GetEncoding("GB18030"));
             ModBase.Log("[Minecraft] 已创建 launcher_profiles.json：" + Folder);
         }
         catch (Exception ex)
@@ -479,9 +479,7 @@ public static class ModMinecraft
         /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
         public McInstance(string name)
         {
-            PathInstance = (name.Contains(":") ? "" : McFolderSelected + @"versions\") + name +
-                           (name.EndsWithF(@"\") ? "" : @"\"); // 补全完整路径
-            // 补全右划线
+            PathInstance = (name.Contains(":") ? name : Path.Combine(McFolderSelected, "versions", name)) + (name.EndsWithF(@"\") ? "" : @"\");
         }
 
         /// <summary>
@@ -1090,8 +1088,7 @@ public static class ModMinecraft
             try
             {
                 if (!string.IsNullOrEmpty(InheritInstanceName))
-                    if (!File.Exists(ModBase.GetPathFromFullPath(PathInstance) + InheritInstanceName + @"\" +
-                                     InheritInstanceName + ".json"))
+                    if (!File.Exists(Path.Combine(ModBase.GetPathFromFullPath(PathInstance), InheritInstanceName, InheritInstanceName + ".json")))
                     {
                         State = McInstanceState.Error;
                         Desc = "需要安装 " + InheritInstanceName + " 作为前置实例";
@@ -2014,7 +2011,7 @@ public static class ModMinecraft
                         if (!instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance))
                             instance.Logo = instanceCfg.LogoPath[instance.PathInstance];
                         if (!instanceCfg.ReleaseTimeConfig.IsDefault(instance.PathInstance))
-                            instance.ReleaseTime = (dynamic)instanceCfg.ReleaseTime[instance.PathInstance];
+                            instance.ReleaseTime = DateTime.Parse(instanceCfg.ReleaseTime[instance.PathInstance]);
                         if (!instanceCfg.StateConfig.IsDefault(instance.PathInstance))
                             instance.State =
                                 (McInstanceState)Conversions.ToInteger(instanceCfg.State[instance.PathInstance]);
@@ -2111,7 +2108,7 @@ public static class ModMinecraft
             }
 
             if ((folder.Name == "cache" || folder.Name == "BLClient" || folder.Name == "PCL") &&
-                !File.Exists(folder.FullName + @"\" + folder.Name + ".json"))
+                !File.Exists(Path.Combine(folder.FullName, folder.Name + ".json")))
             {
                 ModBase.Log("[Minecraft] 跳过可能不是实例文件夹的项目：" + folder.FullName);
                 continue;
@@ -2759,8 +2756,7 @@ public static class ModMinecraft
                     {
                         if ((OriginalInstance.InheritInstanceName ?? "") == (OriginalInstance.Name ?? ""))
                             break;
-                        OriginalInstance = new McInstance(McFolderSelected + @"versions\" +
-                                                          OriginalInstance.InheritInstanceName + @"\");
+                        OriginalInstance = new McInstance(Path.Combine(McFolderSelected, "versions", OriginalInstance.InheritInstanceName));
                     }
 
                 // 需要新建对象，否则后面的 Check 会导致 McInstanceCurrent 的 State 变回 Original
@@ -2858,8 +2854,8 @@ public static class ModMinecraft
                             init.Url = (string)(RootUrl ?? Library["downloads"]["artifact"]["url"]),
                             init.LocalPath = Library["downloads"]["artifact"]["path"] is null
                                 ? McLibGet((string)Library["name"], customMcFolder: CustomMcFolder)
-                                : CustomMcFolder + @"libraries\" + Library["downloads"]["artifact"]["path"].ToString()
-                                    .Replace("/", @"\"),
+                                : Path.Combine(CustomMcFolder, "libraries", Library["downloads"]["artifact"]["path"].ToString()
+                                    .Replace("/", @"\")),
                             init.Size = (long)Math.Round(
                                 ModBase.Val(Library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.SHA1 = Library["downloads"]["artifact"]["sha1"]?.ToString(),
@@ -2898,9 +2894,9 @@ public static class ModMinecraft
                                 ? McLibGet((string)Library["name"], customMcFolder: CustomMcFolder)
                                     .Replace(".jar", "-" + Library["natives"]["windows"] + ".jar")
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : CustomMcFolder + @"libraries\" +
+                                : Path.Combine(CustomMcFolder, "libraries",
                                   Library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
-                                      .Replace("/", @"\"),
+                                      .Replace("/", @"\")),
                             Size = (long)Math.Round(
                                 ModBase.Val(Library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
@@ -3000,7 +2996,7 @@ public static class ModMinecraft
         result.AddRange(McLibNetFilesFromTokens(McLibListGet(instance, false)));
 
         // Authlib-Injector 文件
-        var authlibTargetFile = ModBase.PathPure + @"\authlib-injector.jar";
+        var authlibTargetFile = Path.Combine(ModBase.PathPure, "authlib-injector.jar");
         JObject authlibDownloadInfo = null;
         try
         {
@@ -3041,7 +3037,7 @@ public static class ModMinecraft
         // 修改渲染器
         var mesaLoaderWindowsVersion = "25.3.5";
         var mesaLoaderWindowsTargetFile =
-            ModBase.PathPure + @"\mesa-loader-windows\" + mesaLoaderWindowsVersion + @"\Loader.jar";
+            Path.Combine(ModBase.PathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
         if (McInstanceSelected is not null)
             renderer = Conversions.ToInteger(
@@ -3062,9 +3058,9 @@ public static class ModMinecraft
         {
             if ((instance.PathIndie ?? "") == (instance.PathInstance ?? ""))
             {
-                if (Directory.Exists(instance.PathInstance + "labymod-neo"))
-                    Directory.Delete(instance.PathInstance + "labymod-neo", true);
-                ModBase.CreateSymbolicLink(instance.PathInstance + "labymod-neo", McFolderSelected + "labymod-neo",
+                if (Directory.Exists(Path.Combine(instance.PathInstance, "labymod-neo")))
+                    Directory.Delete(Path.Combine(instance.PathInstance, "labymod-neo"), true);
+                ModBase.CreateSymbolicLink(Path.Combine(instance.PathInstance, "labymod-neo"), Path.Combine(McFolderSelected, "labymod-neo"),
                     0x2);
             }
 
@@ -3174,7 +3170,7 @@ public static class ModMinecraft
             {
                 // OptiFine 主 Jar
                 var optiFineBase =
-                    token.LocalPath.Replace(customMcFolder + @"libraries\optifine\OptiFine\", "").Split("_")[0] + "/" +
+                    token.LocalPath.Replace(Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine") + @"\", "").Split("_")[0] + "/" +
                     ModBase.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
                 optiFineBase = "/maven/com/optifine/" + optiFineBase;
                 if (optiFineBase.Contains("_pre"))
@@ -3215,8 +3211,9 @@ public static class ModMinecraft
         string McLibGetRet = default;
         customMcFolder = customMcFolder ?? McFolderSelected;
         var splited = original.Split(":");
-        McLibGetRet = (withHead ? customMcFolder + @"libraries\" : "") + splited[0].Replace(".", @"\") + @"\" +
-                      splited[1] + @"\" + splited[2] + @"\" + splited[1] + "-" + splited[2] + ".jar";
+        McLibGetRet = withHead
+            ? Path.Combine(customMcFolder, "libraries", splited[0].Replace(".", @"\"), splited[1], splited[2], splited[1] + "-" + splited[2] + ".jar")
+            : Path.Combine(splited[0].Replace(".", @"\"), splited[1], splited[2], splited[1] + "-" + splited[2] + ".jar");
         // 判断 OptiFine 是否应该使用 installer
         if (McLibGetRet.Contains(@"optifine\OptiFine\1.") && splited[2].Split(".").Count() > 1)
         {
@@ -3270,7 +3267,7 @@ public static class ModMinecraft
                 // 下一个实例
                 if (string.IsNullOrEmpty(instance.InheritInstanceName))
                     break;
-                instance = new McInstance(McFolderSelected + @"versions\" + instance.InheritInstanceName);
+                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName));
             }
         }
         catch
@@ -3314,7 +3311,7 @@ public static class ModMinecraft
                 if (instance.JsonObject["assets"] is not null) return instance.JsonObject["assets"].ToString();
                 if (string.IsNullOrEmpty(instance.InheritInstanceName))
                     break;
-                instance = new McInstance(McFolderSelected + @"versions\" + instance.InheritInstanceName);
+                instance = new McInstance(Path.Combine(McFolderSelected, "versions", instance.InheritInstanceName));
             }
         }
         catch (Exception ex)
@@ -3365,7 +3362,7 @@ public static class ModMinecraft
             // 初始化
             if (!File.Exists($@"{McFolderSelected}assets\indexes\{indexName}.json"))
                 throw new FileNotFoundException("未找到 Asset Index",
-                    McFolderSelected + @"assets\indexes\" + indexName + ".json");
+                    Path.Combine(McFolderSelected, "assets", "indexes", indexName + ".json"));
             var result = new List<McAssetsToken>();
             var json = (JsonObject)JsonNode.Parse(
                 ModBase.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
@@ -3376,14 +3373,13 @@ public static class ModMinecraft
                 string localPath;
                 if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
                     // Remap
-                    localPath = instance.PathIndie + @"resources\" + file.Key.Replace("/", @"\");
+                    localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
                 else if (json["virtual"] is not null && json["virtual"].GetValue<bool>())
                     // Virtual
-                    localPath = McFolderSelected + @"assets\virtual\legacy\" + file.Key.Replace("/", @"\");
+                    localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else
                     // 正常
-                    localPath = McFolderSelected + @"assets\objects\" + Strings.Left(file.Value["hash"].ToString(), 2) +
-                                @"\" + file.Value["hash"];
+                    localPath = Path.Combine(McFolderSelected, "assets", "objects", Strings.Left(file.Value["hash"].ToString(), 2), file.Value["hash"].ToString());
                 result.Add(new McAssetsToken
                 {
                     LocalPath = localPath,

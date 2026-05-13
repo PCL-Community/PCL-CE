@@ -42,8 +42,8 @@ public class CrashAnalyzer
     {
         // 构建文件结构
         TempFolder = ModMain.RequestTaskTempFolder();
-        Directory.CreateDirectory(TempFolder + @"Temp\");
-        Directory.CreateDirectory(TempFolder + @"Report\");
+        Directory.CreateDirectory(Path.Combine(TempFolder, "Temp"));
+        Directory.CreateDirectory(Path.Combine(TempFolder, "Report"));
         ModBase.Log("[Crash] 崩溃分析暂存文件夹：" + TempFolder);
     }
 
@@ -163,7 +163,7 @@ public class CrashAnalyzer
             var Info = new FileInfo(FilePath);
             if (Info.Exists && Info.Length > 0L && !FilePath.EndsWithF(".jar", true))
             {
-                ModBase.ExtractFile(FilePath, TempFolder + @"Temp\");
+                ModBase.ExtractFile(FilePath, Path.Combine(TempFolder, "Temp"));
                 ModBase.Log("[Crash] 已解压导入的日志文件：" + FilePath);
                 goto Extracted;
             }
@@ -173,13 +173,13 @@ public class CrashAnalyzer
         }
 
         // 并非压缩包
-        ModBase.CopyFile(FilePath, TempFolder + @"Temp\" + ModBase.GetFileNameFromPath(FilePath));
+        ModBase.CopyFile(FilePath, Path.Combine(TempFolder, "Temp", ModBase.GetFileNameFromPath(FilePath)));
         ModBase.Log("[Crash] 已复制导入的日志文件：" + FilePath);
         Extracted: ;
 
 
         // 导入其中的日志文件
-        foreach (var TargetFile in new DirectoryInfo(TempFolder + @"Temp\").EnumerateFiles().ToList())
+        foreach (var TargetFile in new DirectoryInfo(Path.Combine(TempFolder, "Temp")).EnumerateFiles().ToList())
             try
             {
                 if (!TargetFile.Exists || TargetFile.Length == 0L)
@@ -1210,7 +1210,7 @@ public class CrashAnalyzer
                             }
                             else
                             {
-                                var FilePath = ModBase.PathTemp + "Crash.txt";
+                                var FilePath = Path.Combine(ModBase.PathTemp, "Crash.txt");
                                 ModBase.WriteFile(FilePath, DirectFile.Value.Value.Join("\r\n"));
                                 ModBase.ShellOnly(FilePath);
                             }
@@ -1277,7 +1277,7 @@ public class CrashAnalyzer
                             FileContent = ModMinecraft.FilterAccessToken(FileContent,
                                 FileName == "启动脚本.bat" ? 'F' : '*');
                             FileContent = ModMinecraft.FilterUserName(FileContent, '*');
-                            ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
+                            ModBase.WriteFile(Path.Combine(TempFolder, "Report", FileName), FileContent, Encoding: FileEncoding);
                             ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");
                         }
                     }
@@ -1285,9 +1285,9 @@ public class CrashAnalyzer
                     // 输出环境与启动信息
                     string EnvInfo = null;
                     string McLauncherLog = null;
-                    McLauncherLog = ModBase.ReadFile(TempFolder + @"Report\PCL 启动器日志.txt")
+                    McLauncherLog = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "PCL 启动器日志.txt"))
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
-                    var LaunchScript = ModBase.ReadFile(TempFolder + @"Report\启动脚本.bat");
+                    var LaunchScript = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "启动脚本.bat"));
                     EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
                     EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
@@ -1312,11 +1312,11 @@ public class CrashAnalyzer
                         EnvInfo += "\r\n";
                     }
 
-                    File.CreateText(TempFolder + @"Report\环境与启动信息.txt").Close();
-                    ModBase.WriteFile(TempFolder + @"Report\环境与启动信息.txt", EnvInfo, Encoding: Encoding.UTF8);
+                    File.CreateText(Path.Combine(TempFolder, "Report", "环境与启动信息.txt")).Close();
+                    ModBase.WriteFile(Path.Combine(TempFolder, "Report", "环境与启动信息.txt"), EnvInfo, Encoding: Encoding.UTF8);
                     // 导出报告
-                    ZipFile.CreateFromDirectory(TempFolder + @"Report\", FileAddress);
-                    ModBase.DeleteDirectory(TempFolder + @"Report\");
+                    ZipFile.CreateFromDirectory(Path.Combine(TempFolder, "Report"), FileAddress);
+                    ModBase.DeleteDirectory(Path.Combine(TempFolder, "Report"));
                     ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
