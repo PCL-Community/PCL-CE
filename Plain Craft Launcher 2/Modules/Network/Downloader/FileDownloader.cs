@@ -140,6 +140,24 @@ public static class FileDownloader
         try
         {
             await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
+            var tempPath = localPath + ModNet.NetDownloadEnd;
+            if (!File.Exists(localPath) && File.Exists(tempPath))
+            {
+                for (var retry = 0; retry < 5; retry++)
+                {
+                    try
+                    {
+                        File.Move(tempPath, localPath, true);
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+            if (!File.Exists(localPath))
+                throw new IOException($"下载未产生任何文件：{localPath}");
             ModBase.Log($"[Download] 下载成功：{localPath}");
         }
         catch (TaskCanceledException ex)
