@@ -309,7 +309,7 @@ public partial class PageToolsTest
             IsWarn: true,
             Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
         );
-        return s == 3;
+        return s == 1;
     }
     public static void MemoryOptimize(bool showHint)
     {
