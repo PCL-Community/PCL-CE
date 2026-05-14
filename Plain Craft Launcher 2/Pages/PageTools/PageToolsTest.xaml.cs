@@ -303,9 +303,9 @@ public partial class PageToolsTest
             "\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。" +
             "\n\n是否仍然继续使用内存优化？",
             "功能即将废弃",
-            "取消",
+            "确定",
             "了解 Mem Reduct",
-            "确认继续",
+            "取消",
             IsWarn: true,
             Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
         );
