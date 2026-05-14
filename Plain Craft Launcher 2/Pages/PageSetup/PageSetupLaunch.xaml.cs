@@ -57,7 +57,6 @@ public partial class PageSetupLaunch
             ComboArgumentWindowType.SelectedIndex = (int)Config.Launch.GameWindowMode;
             TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
-            CheckArgumentRam.Checked = Config.Launch.OptimizeMemory;
             ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
             ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
             // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
@@ -178,12 +177,6 @@ public partial class PageSetupLaunch
     {
         ComboChange(sender, e);
         ComboArgumentIndie_SelectionChanged(sender, e);
-    }
-
-    private void CheckArgumentRam_OnChange(object sender, bool user)
-    {
-        CheckBoxChange(sender, user);
-        CheckArgumentRam_Change();
     }
 
     #region 游戏内存
@@ -516,23 +509,6 @@ public partial class PageSetupLaunch
                     """,
                     "提醒", "继续", "取消") == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
-    }
-
-    // 开启自动内存优化的警告
-    private void CheckArgumentRam_Change()
-    {
-        if (ModAnimation.AniControlEnabled != 0)
-            return;
-        if (CheckArgumentRam.Checked == false)
-            return;
-        if (ModMain.MyMsgBox(
-                $"""
-                 内存优化会显著延长启动耗时，建议仅在内存不足时开启。
-                 如果你在使用机械硬盘，这还可能导致一小段时间的严重卡顿。{(ProcessInterop.IsAdmin()
-                     ? ""
-                     : $"\r\n\r\n每次启动游戏，PCL 都需要申请管理员权限以进行内存优化。\r\n若想自动授予权限，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")}
-                 """,
-                "提醒", "确定", "取消") == 2) CheckArgumentRam.Checked = false;
     }
 
     // 实例隔离提示

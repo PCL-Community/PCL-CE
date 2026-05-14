@@ -34,7 +34,6 @@ public partial class PageInstanceSetup
         RadioRamType0.Check += RadioBoxChange;
         RadioRamType1.Check += RadioBoxChange;
         SliderRamCustom.Change += SliderChange;
-        ComboRamOptimize.SelectionChanged += ComboRamOptimize_SelectionChanged;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
         TextServerAuthServer.TextChanged += TextBoxChange;
@@ -108,7 +107,6 @@ public partial class PageInstanceSetup
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
                 ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
-            ComboRamOptimize.SelectedIndex = Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance];
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance];
@@ -260,12 +258,6 @@ public partial class PageInstanceSetup
     }
 
     #region 游戏内存
-    private void ComboRamOptimize_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (ModAnimation.AniControlEnabled != 0) return;
-        Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance] = ComboRamOptimize.SelectedIndex;
-    }
-    
     public void RamType(int Type)
     {
         if (SliderRamCustom is null)
