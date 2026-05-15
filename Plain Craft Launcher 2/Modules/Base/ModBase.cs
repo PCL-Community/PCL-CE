@@ -1294,7 +1294,7 @@ public static class ModBase
             {
                 // 直接写入字节
                 var bytes = Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text);
-                var tempPath = FilePath + ".pcltmp." + Environment.TickCount.ToString("X8");
+                var tempPath = FilePath + ".pcltmp." + Guid.NewGuid().ToString("N");
                 File.WriteAllBytes(tempPath, bytes);
                 File.Move(tempPath, FilePath, true);
             }
