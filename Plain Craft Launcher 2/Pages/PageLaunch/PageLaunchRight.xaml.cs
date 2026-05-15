@@ -1,9 +1,11 @@
 using System.IO;
+using System.Globalization;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
@@ -469,7 +471,7 @@ public partial class PageLaunchRight : IRefreshable
     private const string HomepageLivePatchFileName = "CustomLive.json";
     private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
     private FileSystemWatcher? HomepageLiveWatcher;
-    private int HomepageLivePatchQueued;
+    private DispatcherTimer? HomepageLivePatchTimer;
 
     private void EnsureHomepageLiveWatcher()
     {
@@ -503,30 +505,50 @@ public partial class PageLaunchRight : IRefreshable
         try
         {
             HomepageLiveWatcher?.Dispose();
-            HomepageLiveWatcher = null;
-            DeleteHomepageLiveSupportMarker();
         }
-        catch
+        catch (Exception ex)
         {
+            ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch watcher", ModBase.LogLevel.Developer);
         }
+
+        HomepageLiveWatcher = null;
+
+        try
+        {
+            if (HomepageLivePatchTimer != null)
+            {
+                HomepageLivePatchTimer.Stop();
+                HomepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
+                HomepageLivePatchTimer = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch debounce timer", ModBase.LogLevel.Developer);
+        }
+
+        DeleteHomepageLiveSupportMarker();
     }
 
     private void QueueHomepageLivePatchApply()
     {
-        if (Interlocked.Exchange(ref HomepageLivePatchQueued, 1) == 1) return;
-
-        ModBase.RunInNewThread(() =>
+        ModBase.RunInUi(() =>
         {
-            try
+            HomepageLivePatchTimer ??= new DispatcherTimer
             {
-                Thread.Sleep(120);
-                ModBase.RunInUi(ApplyHomepageLivePatchesFromFile);
-            }
-            finally
-            {
-                Interlocked.Exchange(ref HomepageLivePatchQueued, 0);
-            }
-        }, "Apply custom homepage live patches");
+                Interval = TimeSpan.FromMilliseconds(120)
+            };
+            HomepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
+            HomepageLivePatchTimer.Tick += HomepageLivePatchTimer_Tick;
+            HomepageLivePatchTimer.Stop();
+            HomepageLivePatchTimer.Start();
+        });
+    }
+
+    private void HomepageLivePatchTimer_Tick(object? sender, EventArgs e)
+    {
+        HomepageLivePatchTimer?.Stop();
+        ApplyHomepageLivePatchesFromFile();
     }
 
     private void ApplyHomepageLivePatchesFromFile()
@@ -584,7 +606,7 @@ public partial class PageLaunchRight : IRefreshable
                 ["processId"] = Environment.ProcessId,
                 ["processPath"] = Environment.ProcessPath ?? "",
                 ["patchFile"] = HomepageLivePatchFileName,
-                ["startedAt"] = DateTime.Now.ToString("O")
+                ["startedAt"] = DateTime.Now.ToString("O", CultureInfo.InvariantCulture)
             };
             File.WriteAllText(Path.Combine(directory, HomepageLiveSupportFileName), marker.ToString(Newtonsoft.Json.Formatting.None));
         }
@@ -605,8 +627,9 @@ public partial class PageLaunchRight : IRefreshable
             if (marker["processId"]?.Value<int?>() == Environment.ProcessId)
                 File.Delete(file);
         }
-        catch
+        catch (Exception ex)
         {
+            ModBase.Log(ex, "[Page] Failed to delete custom homepage live patch support marker", ModBase.LogLevel.Developer);
         }
     }
 
@@ -687,21 +710,26 @@ public partial class PageLaunchRight : IRefreshable
         try
         {
             var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            var trimmedValue = value.Trim();
             object convertedValue;
             if (propertyType == typeof(string))
                 convertedValue = value;
             else if (propertyType == typeof(object))
                 convertedValue = value;
-            else if (propertyType == typeof(bool))
-                convertedValue = bool.Parse(value);
-            else if (propertyType == typeof(int))
-                convertedValue = int.Parse(value);
-            else if (propertyType == typeof(double))
-                convertedValue = double.Parse(value);
+            else if (propertyType == typeof(bool) && bool.TryParse(trimmedValue, out var boolValue))
+                convertedValue = boolValue;
+            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                convertedValue = intValue;
+            else if (propertyType == typeof(double) && double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var doubleValue))
+                convertedValue = doubleValue;
             else if (propertyType == typeof(Visibility))
-                convertedValue = Enum.Parse<Visibility>(value, true);
-            else if (propertyType.IsEnum)
-                convertedValue = Enum.Parse(propertyType, value, true);
+            {
+                if (!Enum.TryParse(trimmedValue, true, out Visibility visibilityValue))
+                    return false;
+                convertedValue = visibilityValue;
+            }
+            else if (propertyType.IsEnum && Enum.TryParse(propertyType, trimmedValue, true, out var enumValue))
+                convertedValue = enumValue;
             else
                 return false;
 
