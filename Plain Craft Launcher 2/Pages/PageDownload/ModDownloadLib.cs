@@ -189,7 +189,7 @@ public static class ModDownloadLib
         loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析原版支持库文件（副加载器）", task =>
         {
             var jsonPath = Path.Combine(instanceFolder, instanceName + ".json");
-            ModBase.WaitForFileReady(jsonPath, 2000);
+            ModBase.WaitForFileReady(jsonPath);
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
             if (Conversions.ToBoolean(id == "1.16.5" && Config.Download.FixAuthLib != null)) // 1.16.5 Authlib 修复
                 try
@@ -221,7 +221,7 @@ public static class ModDownloadLib
         var loadersAssets = new List<ModLoader.LoaderBase>();
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析资源文件索引地址（副加载器）", task =>
         {
-            ModBase.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"), 2000);
+            ModBase.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
             try
             {
                 var assetIndex = new ModMinecraft.McInstance(instanceFolder);
@@ -1934,7 +1934,7 @@ pause";
                 try
                 {
                     // 解压并获取、合并两个 Json 的信息
-                    ModBase.WaitForFileReady(InstallerAddress, 3000);
+                    ModBase.WaitForFileReady(InstallerAddress);
                     Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     Task.Progress = 0.2d;
                     var Json = (JObject)ModBase.GetJson(
@@ -2070,7 +2070,7 @@ pause";
             Loaders.Add(new ModLoader.LoaderTask<bool, bool>(
                 ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "安装 Forge（方式 A）" : "安装 " + ForgeType, Task =>
                 {
-                    ModBase.WaitForFileReady(InstallerAddress, 3000);
+                    ModBase.WaitForFileReady(InstallerAddress);
                     var Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     try
                     {
@@ -2181,7 +2181,7 @@ pause";
                     try
                     {
                         // 解压并获取信息
-                        ModBase.WaitForFileReady(InstallerAddress, 3000);
+                        ModBase.WaitForFileReady(InstallerAddress);
                         Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                         Task.Progress = 0.2d;
                         var Json = (JObject)ModBase.GetJson(
@@ -3326,7 +3326,7 @@ pause";
         var LoadersLib = new List<ModLoader.LoaderBase>();
         LoadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析原版与 LabyMod 支持库文件（副加载器）", Task =>
         {
-            ModBase.WaitForFileReady(Path.Combine(VersionFolder, VersionName + ".json"), 2000);
+            ModBase.WaitForFileReady(Path.Combine(VersionFolder, VersionName + ".json"));
             ModBase.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + VersionFolder);
             Task.Output = ModMinecraft.McLibNetFilesFromInstance(new ModMinecraft.McInstance(VersionFolder));
         })
