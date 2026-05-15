@@ -1,5 +1,10 @@
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
@@ -16,6 +21,7 @@ public partial class PageLaunchRight : IRefreshable
             { ReloadTimeout = 10 * 60 * 1000 };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
+        Unloaded += (_, _) => DisposeHomepageLiveWatcher();
     }
 
     private void Init()
@@ -30,6 +36,7 @@ public partial class PageLaunchRight : IRefreshable
         LabHint1.Text =
             $"你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。{"\r\n"}{"\r\n"}如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{"\r\n"}此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！{"\r\n"}";
         LabHint2.Text = "若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。";
+        EnsureHomepageLiveWatcher();
     }
 
     // 暂时关闭快照版提示
@@ -400,7 +407,10 @@ public partial class PageLaunchRight : IRefreshable
             // 如果加载目标内容一致则不加载
             var Hash = Content.GetHashCode();
             if (Hash == LoadedContentHash)
+            {
+                ApplyHomepageLivePatchesFromFile();
                 return;
+            }
             LoadedContentHash = Hash;
             // 实际加载内容
             PanCustom.Children.Clear();
@@ -421,6 +431,7 @@ public partial class PageLaunchRight : IRefreshable
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{Content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
                 PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
+                ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
             {
@@ -455,6 +466,306 @@ public partial class PageLaunchRight : IRefreshable
 
     private int LoadedContentHash = -1;
     private readonly object LoadContentLock = new();
+    private const string HomepageLivePatchFileName = "CustomLive.json";
+    private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
+    private FileSystemWatcher? HomepageLiveWatcher;
+    private int HomepageLivePatchQueued;
+
+    private void EnsureHomepageLiveWatcher()
+    {
+        if (HomepageLiveWatcher != null) return;
+        if ((int)Config.Preference.Homepage.Type != 1) return;
+
+        try
+        {
+            var directory = GetHomepageLiveDirectory();
+            Directory.CreateDirectory(directory);
+            WriteHomepageLiveSupportMarker(directory);
+
+            HomepageLiveWatcher = new FileSystemWatcher(directory, HomepageLivePatchFileName)
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
+            };
+            HomepageLiveWatcher.Changed += (_, _) => QueueHomepageLivePatchApply();
+            HomepageLiveWatcher.Created += (_, _) => QueueHomepageLivePatchApply();
+            HomepageLiveWatcher.Renamed += (_, _) => QueueHomepageLivePatchApply();
+            HomepageLiveWatcher.EnableRaisingEvents = true;
+            QueueHomepageLivePatchApply();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Page] Failed to start custom homepage live patch watcher", ModBase.LogLevel.Developer);
+        }
+    }
+
+    private void DisposeHomepageLiveWatcher()
+    {
+        try
+        {
+            HomepageLiveWatcher?.Dispose();
+            HomepageLiveWatcher = null;
+            DeleteHomepageLiveSupportMarker();
+        }
+        catch
+        {
+        }
+    }
+
+    private void QueueHomepageLivePatchApply()
+    {
+        if (Interlocked.Exchange(ref HomepageLivePatchQueued, 1) == 1) return;
+
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                Thread.Sleep(120);
+                ModBase.RunInUi(ApplyHomepageLivePatchesFromFile);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref HomepageLivePatchQueued, 0);
+            }
+        }, "Apply custom homepage live patches");
+    }
+
+    private void ApplyHomepageLivePatchesFromFile()
+    {
+        if (PanCustom.Children.Count == 0) return;
+        if ((int)Config.Preference.Homepage.Type != 1) return;
+
+        var file = Path.Combine(GetHomepageLiveDirectory(), HomepageLivePatchFileName);
+        if (!File.Exists(file)) return;
+
+        try
+        {
+            var token = JToken.Parse(ReadHomepageLivePatchFile(file));
+            foreach (var patch in EnumerateHomepageLivePatches(token))
+                ApplyHomepageLivePatch(patch);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Page] Failed to apply custom homepage live patches", ModBase.LogLevel.Developer);
+        }
+    }
+
+    private static string ReadHomepageLivePatchFile(string file)
+    {
+        Exception? lastException = null;
+        for (var i = 0; i < 3; i++)
+        {
+            try
+            {
+                using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Thread.Sleep(50);
+            }
+        }
+
+        throw lastException ?? new IOException("Unable to read custom homepage live patch file.");
+    }
+
+    private static string GetHomepageLiveDirectory()
+    {
+        return Path.Combine(ModBase.ExePath, "PCL");
+    }
+
+    private static void WriteHomepageLiveSupportMarker(string directory)
+    {
+        try
+        {
+            var marker = new JObject
+            {
+                ["processId"] = Environment.ProcessId,
+                ["processPath"] = Environment.ProcessPath ?? "",
+                ["patchFile"] = HomepageLivePatchFileName,
+                ["startedAt"] = DateTime.Now.ToString("O")
+            };
+            File.WriteAllText(Path.Combine(directory, HomepageLiveSupportFileName), marker.ToString(Newtonsoft.Json.Formatting.None));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Page] Failed to write custom homepage live patch support marker", ModBase.LogLevel.Developer);
+        }
+    }
+
+    private static void DeleteHomepageLiveSupportMarker()
+    {
+        try
+        {
+            var file = Path.Combine(GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
+            if (!File.Exists(file)) return;
+
+            var marker = JObject.Parse(ReadHomepageLivePatchFile(file));
+            if (marker["processId"]?.Value<int?>() == Environment.ProcessId)
+                File.Delete(file);
+        }
+        catch
+        {
+        }
+    }
+
+    private static IEnumerable<JObject> EnumerateHomepageLivePatches(JToken token)
+    {
+        if (token is JObject obj)
+        {
+            if (obj["patches"] is JArray patches)
+            {
+                foreach (var patch in patches.OfType<JObject>())
+                    yield return patch;
+                yield break;
+            }
+
+            if (TryGetString(obj, "target", "tag", "name") != null)
+            {
+                yield return obj;
+                yield break;
+            }
+
+            foreach (var property in obj.Properties())
+            {
+                if (property.Value is not JObject patch) continue;
+                patch = (JObject)patch.DeepClone();
+                patch["target"] ??= property.Name;
+                yield return patch;
+            }
+        }
+        else if (token is JArray array)
+        {
+            foreach (var patch in array.OfType<JObject>())
+                yield return patch;
+        }
+    }
+
+    private void ApplyHomepageLivePatch(JObject patch)
+    {
+        var target = TryGetString(patch, "target", "tag", "name");
+        if (string.IsNullOrWhiteSpace(target)) return;
+
+        foreach (var element in FindElementsByTag(PanCustom, target))
+            ApplyHomepageLivePatchToElement(element, patch);
+    }
+
+    private void ApplyHomepageLivePatchToElement(FrameworkElement element, JObject patch)
+    {
+        SetPropertyIfPresent(element, patch, "text", "Text");
+        SetPropertyIfPresent(element, patch, "title", "Title");
+        SetPropertyIfPresent(element, patch, "info", "Info");
+        SetPropertyIfPresent(element, patch, "tooltip", "ToolTip");
+        SetPropertyIfPresent(element, patch, "toolTip", "ToolTip");
+        SetPropertyIfPresent(element, patch, "visibility", "Visibility");
+        SetPropertyIfPresent(element, patch, "isEnabled", "IsEnabled");
+        SetPropertyIfPresent(element, patch, "opacity", "Opacity");
+
+        if (patch["properties"] is JObject properties)
+        {
+            foreach (var property in properties.Properties())
+                TrySetElementProperty(element, property.Name, property.Value?.ToString() ?? "");
+        }
+
+        var childrenXaml = TryGetString(patch, "childrenXaml", "ChildrenXaml");
+        if (!string.IsNullOrEmpty(childrenXaml) && element is Panel panel)
+            ReplacePanelChildren(panel, childrenXaml);
+    }
+
+    private static void SetPropertyIfPresent(FrameworkElement element, JObject patch, string jsonName, string propertyName)
+    {
+        if (patch.TryGetValue(jsonName, StringComparison.OrdinalIgnoreCase, out var value))
+            TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
+    }
+
+    private static bool TrySetElementProperty(FrameworkElement element, string propertyName, string value)
+    {
+        var property = element.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        if (property == null || !property.CanWrite) return false;
+
+        try
+        {
+            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            object convertedValue;
+            if (propertyType == typeof(string))
+                convertedValue = value;
+            else if (propertyType == typeof(object))
+                convertedValue = value;
+            else if (propertyType == typeof(bool))
+                convertedValue = bool.Parse(value);
+            else if (propertyType == typeof(int))
+                convertedValue = int.Parse(value);
+            else if (propertyType == typeof(double))
+                convertedValue = double.Parse(value);
+            else if (propertyType == typeof(Visibility))
+                convertedValue = Enum.Parse<Visibility>(value, true);
+            else if (propertyType.IsEnum)
+                convertedValue = Enum.Parse(propertyType, value, true);
+            else
+                return false;
+
+            property.SetValue(element, convertedValue);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"[Page] Failed to set live patch property {propertyName}", ModBase.LogLevel.Developer);
+            return false;
+        }
+    }
+
+    private static void ReplacePanelChildren(Panel panel, string childrenXaml)
+    {
+        var content = ModMain.ArgumentReplace(childrenXaml);
+        while (content.Contains("xmlns"))
+            content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
+
+        var wrapped =
+            $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
+
+        if (ModBase.GetObjectFromXML(wrapped) is not Panel parsedPanel) return;
+
+        var children = parsedPanel.Children.OfType<UIElement>().ToList();
+        parsedPanel.Children.Clear();
+        panel.Children.Clear();
+        foreach (var child in children)
+            panel.Children.Add(child);
+    }
+
+    private static IEnumerable<FrameworkElement> FindElementsByTag(DependencyObject root, string tag)
+    {
+        if (root is FrameworkElement element &&
+            string.Equals(element.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase))
+            yield return element;
+
+        int count;
+        try
+        {
+            count = VisualTreeHelper.GetChildrenCount(root);
+        }
+        catch
+        {
+            yield break;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            foreach (var child in FindElementsByTag(VisualTreeHelper.GetChild(root, i), tag))
+                yield return child;
+        }
+    }
+
+    private static string? TryGetString(JObject obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (obj.TryGetValue(name, StringComparison.OrdinalIgnoreCase, out var value))
+                return value?.ToString();
+        }
+
+        return null;
+    }
 
     #endregion
 }
