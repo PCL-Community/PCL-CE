@@ -826,9 +826,18 @@ public static class ModMinecraft
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                     if (!FastJsonCheck(_jsonText))
                     {
-                        ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
-                        Thread.Sleep(2000);
-                        _jsonText = ModBase.ReadFile(JsonPath);
+                        if (ModBase.RunInUi())
+                        {
+                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{JsonPath}）", ModBase.LogLevel.Debug);
+                            Thread.Sleep(200);
+                            _jsonText = ModBase.ReadFile(JsonPath);
+                        }
+                        else
+                        {
+                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
+                            Thread.Sleep(2000);
+                            _jsonText = ModBase.ReadFile(JsonPath);
+                        }
                         if (!FastJsonCheck(_jsonText))
                             ModBase.GetJson(_jsonText);
                     }
