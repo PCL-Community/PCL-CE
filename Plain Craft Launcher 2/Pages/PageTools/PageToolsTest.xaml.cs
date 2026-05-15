@@ -294,33 +294,21 @@ public partial class PageToolsTest
         int SystemInformationLength);
     public static bool AskTrulyWantMemoryOptimize()
     {
-        var memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024.0 / 1024.0 / 1024.0; // GB
         var memLoad = KernelInterop.GetMemoryLoadPercent();
         if (memLoad > 90) return true; // 情况不太妙啊，先别问了
 
-        string prompt = string.Empty;
-        if (memTotal >= 32)
-        {
-            prompt = "当前总内存充足，建议关闭不必要的程序来腾出内存而不是尝试使用内存优化。";
-        }
-        else if (memTotal >= 16 && memTotal < 32)
-        {
-            prompt = "当前内存比较充足，建议优先考虑让系统自动管理内存。";
-        }
-        else if (memTotal >= 6 && memTotal < 16)
-        {
-            prompt = "建议在使用后静置一分钟等待系统响应完毕。";
-        }
-        else if (memTotal >= 2 && memTotal < 6)
-        {
-            prompt = "内存资源比较紧张，建议通过加装内存以避免频繁使用内存优化功能，防止内存优化对硬盘造成过大压力。";
-        }
-        else if (memTotal < 2)
-        {
-            prompt = "嗯……？";
-        }
-
-        var s = ModMain.MyMsgBox(prompt, "确认内存优化？", "继续", "取消");
+        var s = ModMain.MyMsgBox(
+            "内存优化功能即将被废弃。" +
+            "\n\n该功能依赖未文档化的 Windows NT 内核函数调用，可能在未来版本中不可用，且存在引发未定义行为的可能。" +
+            "\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。" +
+            "\n\n是否仍然继续使用内存优化？",
+            "功能即将废弃",
+            "确定",
+            "了解 Mem Reduct",
+            "取消",
+            IsWarn: true,
+            Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
+        );
         return s == 1;
     }
     public static void MemoryOptimize(bool showHint)

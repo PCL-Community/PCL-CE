@@ -618,7 +618,6 @@ public static partial class Config
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }
-        [ConfigItem<int>("VersionRamOptimize", 0)] public partial ArgConfig<int> OptimizeMemoryResolution { get; }
         [ConfigItem<string>("VersionArgumentTitle", "")] public partial ArgConfig<string> Title { get; }
         [ConfigItem<bool>("VersionArgumentTitleEmpty", false)] public partial ArgConfig<bool> UseGlobalTitle { get; }
         [ConfigItem<string>("VersionArgumentInfo", "")] public partial ArgConfig<string> TypeInfo { get; }

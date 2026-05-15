@@ -27,29 +27,6 @@ namespace PCL;
 
 public static class ModLaunch
 {
-    #region 内存优化
-
-    private static void McLaunchMemoryOptimize(ModLoader.LoaderTask<int, int> Loader)
-    {
-        McLaunchLog("内存优化开始");
-        var Finished = false;
-        ModBase.RunInNewThread(() =>
-        {
-            PageToolsTest.MemoryOptimize(false);
-            Finished = true;
-        }, "Launch Memory Optimize");
-        while (!Finished && !Loader.IsAborted)
-        {
-            if (Loader.Progress < 0.7d)
-                Loader.Progress += 0.007d; // 10s
-            else
-                Loader.Progress += (0.95d - Loader.Progress) * 0.02d; // 最快 += 0.005
-
-            Thread.Sleep(100);
-        }
-    }
-
-    #endregion
 
     #region 预检测
 
@@ -391,33 +368,6 @@ public static class ModLaunch
                 new ModLoader.LoaderTask<Process, int>("等待游戏窗口出现", McLaunchWait) { ProgressWeight = 1d },
                 new ModLoader.LoaderTask<int, int>("结束处理", _ => McLaunchEnd()) { ProgressWeight = 1d }
             }; // .ProgressWeight = 15, .Block = False
-            // 内存优化
-            switch (ModBase.Setup.Get("VersionRamOptimize", ModMinecraft.McInstanceSelected))
-            {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 全局
-                {
-                    if (Conversions.ToBoolean(Config.Launch.OptimizeMemory)) // 使用全局设置
-                    {
-                        ((ModLoader.LoaderCombo<string>)Loaders[2]).Block = false;
-                        Loaders.Insert(3,
-                            new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize)
-                                { ProgressWeight = 30d });
-                    }
-
-                    break;
-                }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 开启
-                {
-                    ((ModLoader.LoaderCombo<string>)Loaders[2]).Block = false;
-                    Loaders.Insert(3,
-                        new ModLoader.LoaderTask<int, int>("内存优化", McLaunchMemoryOptimize) { ProgressWeight = 30d });
-                    break;
-                }
-                case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 关闭
-                {
-                    break;
-                }
-            }
 
             var LaunchLoader = new ModLoader.LoaderCombo<object>("Minecraft 启动", Loaders) { Show = false };
             if (McLoginLoader.State == ModBase.LoadState.Finished)
