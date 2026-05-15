@@ -23,7 +23,7 @@ public partial class PageLaunchRight : IRefreshable
             { ReloadTimeout = 10 * 60 * 1000 };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
-        Unloaded += (_, _) => DisposeHomepageLiveWatcher();
+        Unloaded += (_, _) => _DisposeHomepageLiveWatcher();
     }
 
     private void Init()
@@ -38,7 +38,7 @@ public partial class PageLaunchRight : IRefreshable
         LabHint1.Text =
             $"你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。{"\r\n"}{"\r\n"}如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{"\r\n"}此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！{"\r\n"}";
         LabHint2.Text = "若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。";
-        EnsureHomepageLiveWatcher();
+        _EnsureHomepageLiveWatcher();
     }
 
     // 暂时关闭快照版提示
@@ -410,7 +410,7 @@ public partial class PageLaunchRight : IRefreshable
             var Hash = Content.GetHashCode();
             if (Hash == LoadedContentHash)
             {
-                ApplyHomepageLivePatchesFromFile();
+                _ApplyHomepageLivePatchesFromFile();
                 return;
             }
             LoadedContentHash = Hash;
@@ -433,7 +433,7 @@ public partial class PageLaunchRight : IRefreshable
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{Content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
                 PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
-                ApplyHomepageLivePatchesFromFile();
+                _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
             {
@@ -470,29 +470,29 @@ public partial class PageLaunchRight : IRefreshable
     private readonly object LoadContentLock = new();
     private const string HomepageLivePatchFileName = "CustomLive.json";
     private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
-    private FileSystemWatcher? HomepageLiveWatcher;
-    private DispatcherTimer? HomepageLivePatchTimer;
+    private FileSystemWatcher? _homepageLiveWatcher;
+    private DispatcherTimer? _homepageLivePatchTimer;
 
-    private void EnsureHomepageLiveWatcher()
+    private void _EnsureHomepageLiveWatcher()
     {
-        if (HomepageLiveWatcher != null) return;
+        if (_homepageLiveWatcher != null) return;
         if ((int)Config.Preference.Homepage.Type != 1) return;
 
         try
         {
-            var directory = GetHomepageLiveDirectory();
+            var directory = _GetHomepageLiveDirectory();
             Directory.CreateDirectory(directory);
-            WriteHomepageLiveSupportMarker(directory);
+            _WriteHomepageLiveSupportMarker(directory);
 
-            HomepageLiveWatcher = new FileSystemWatcher(directory, HomepageLivePatchFileName)
+            _homepageLiveWatcher = new FileSystemWatcher(directory, HomepageLivePatchFileName)
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
             };
-            HomepageLiveWatcher.Changed += (_, _) => QueueHomepageLivePatchApply();
-            HomepageLiveWatcher.Created += (_, _) => QueueHomepageLivePatchApply();
-            HomepageLiveWatcher.Renamed += (_, _) => QueueHomepageLivePatchApply();
-            HomepageLiveWatcher.EnableRaisingEvents = true;
-            QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.Changed += (_, _) => _QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.Created += (_, _) => _QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.Renamed += (_, _) => _QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.EnableRaisingEvents = true;
+            _QueueHomepageLivePatchApply();
         }
         catch (Exception ex)
         {
@@ -500,26 +500,26 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private void DisposeHomepageLiveWatcher()
+    private void _DisposeHomepageLiveWatcher()
     {
         try
         {
-            HomepageLiveWatcher?.Dispose();
+            _homepageLiveWatcher?.Dispose();
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch watcher", ModBase.LogLevel.Developer);
         }
 
-        HomepageLiveWatcher = null;
+        _homepageLiveWatcher = null;
 
         try
         {
-            if (HomepageLivePatchTimer != null)
+            if (_homepageLivePatchTimer != null)
             {
-                HomepageLivePatchTimer.Stop();
-                HomepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
-                HomepageLivePatchTimer = null;
+                _homepageLivePatchTimer.Stop();
+                _homepageLivePatchTimer.Tick -= _HomepageLivePatchTimerTick;
+                _homepageLivePatchTimer = null;
             }
         }
         catch (Exception ex)
@@ -527,43 +527,43 @@ public partial class PageLaunchRight : IRefreshable
             ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch debounce timer", ModBase.LogLevel.Developer);
         }
 
-        DeleteHomepageLiveSupportMarker();
+        _DeleteHomepageLiveSupportMarker();
     }
 
-    private void QueueHomepageLivePatchApply()
+    private void _QueueHomepageLivePatchApply()
     {
         ModBase.RunInUi(() =>
         {
-            HomepageLivePatchTimer ??= new DispatcherTimer
+            _homepageLivePatchTimer ??= new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(120)
             };
-            HomepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
-            HomepageLivePatchTimer.Tick += HomepageLivePatchTimer_Tick;
-            HomepageLivePatchTimer.Stop();
-            HomepageLivePatchTimer.Start();
+            _homepageLivePatchTimer.Tick -= _HomepageLivePatchTimerTick;
+            _homepageLivePatchTimer.Tick += _HomepageLivePatchTimerTick;
+            _homepageLivePatchTimer.Stop();
+            _homepageLivePatchTimer.Start();
         });
     }
 
-    private void HomepageLivePatchTimer_Tick(object? sender, EventArgs e)
+    private void _HomepageLivePatchTimerTick(object? sender, EventArgs e)
     {
-        HomepageLivePatchTimer?.Stop();
-        ApplyHomepageLivePatchesFromFile();
+        _homepageLivePatchTimer?.Stop();
+        _ApplyHomepageLivePatchesFromFile();
     }
 
-    private void ApplyHomepageLivePatchesFromFile()
+    private void _ApplyHomepageLivePatchesFromFile()
     {
         if (PanCustom.Children.Count == 0) return;
         if ((int)Config.Preference.Homepage.Type != 1) return;
 
-        var file = Path.Combine(GetHomepageLiveDirectory(), HomepageLivePatchFileName);
+        var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLivePatchFileName);
         if (!File.Exists(file)) return;
 
         try
         {
-            var token = JToken.Parse(ReadHomepageLivePatchFile(file));
-            foreach (var patch in EnumerateHomepageLivePatches(token))
-                ApplyHomepageLivePatch(patch);
+            var token = JToken.Parse(_ReadHomepageLivePatchFile(file));
+            foreach (var patch in _EnumerateHomepageLivePatches(token))
+                _ApplyHomepageLivePatch(patch);
         }
         catch (Exception ex)
         {
@@ -571,7 +571,7 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static string ReadHomepageLivePatchFile(string file)
+    private static string _ReadHomepageLivePatchFile(string file)
     {
         Exception? lastException = null;
         for (var i = 0; i < 3; i++)
@@ -592,12 +592,12 @@ public partial class PageLaunchRight : IRefreshable
         throw lastException ?? new IOException("Unable to read custom homepage live patch file.");
     }
 
-    private static string GetHomepageLiveDirectory()
+    private static string _GetHomepageLiveDirectory()
     {
         return Path.Combine(ModBase.ExePath, "PCL");
     }
 
-    private static void WriteHomepageLiveSupportMarker(string directory)
+    private static void _WriteHomepageLiveSupportMarker(string directory)
     {
         try
         {
@@ -616,14 +616,14 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static void DeleteHomepageLiveSupportMarker()
+    private static void _DeleteHomepageLiveSupportMarker()
     {
         try
         {
-            var file = Path.Combine(GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
+            var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
             if (!File.Exists(file)) return;
 
-            var marker = JObject.Parse(ReadHomepageLivePatchFile(file));
+            var marker = JObject.Parse(_ReadHomepageLivePatchFile(file));
             if (marker["processId"]?.Value<int?>() == Environment.ProcessId)
                 File.Delete(file);
         }
@@ -633,7 +633,7 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static IEnumerable<JObject> EnumerateHomepageLivePatches(JToken token)
+    private static IEnumerable<JObject> _EnumerateHomepageLivePatches(JToken token)
     {
         if (token is JObject obj)
         {
@@ -644,7 +644,7 @@ public partial class PageLaunchRight : IRefreshable
                 yield break;
             }
 
-            if (TryGetString(obj, "target", "tag", "name") != null)
+            if (_TryGetString(obj, "target", "tag", "name") != null)
             {
                 yield return obj;
                 yield break;
@@ -665,44 +665,44 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private void ApplyHomepageLivePatch(JObject patch)
+    private void _ApplyHomepageLivePatch(JObject patch)
     {
-        var target = TryGetString(patch, "target", "tag", "name");
+        var target = _TryGetString(patch, "target", "tag", "name");
         if (string.IsNullOrWhiteSpace(target)) return;
 
-        foreach (var element in FindElementsByTag(PanCustom, target))
-            ApplyHomepageLivePatchToElement(element, patch);
+        foreach (var element in _FindElementsByTag(PanCustom, target))
+            _ApplyHomepageLivePatchToElement(element, patch);
     }
 
-    private void ApplyHomepageLivePatchToElement(FrameworkElement element, JObject patch)
+    private void _ApplyHomepageLivePatchToElement(FrameworkElement element, JObject patch)
     {
-        SetPropertyIfPresent(element, patch, "text", "Text");
-        SetPropertyIfPresent(element, patch, "title", "Title");
-        SetPropertyIfPresent(element, patch, "info", "Info");
-        SetPropertyIfPresent(element, patch, "tooltip", "ToolTip");
-        SetPropertyIfPresent(element, patch, "toolTip", "ToolTip");
-        SetPropertyIfPresent(element, patch, "visibility", "Visibility");
-        SetPropertyIfPresent(element, patch, "isEnabled", "IsEnabled");
-        SetPropertyIfPresent(element, patch, "opacity", "Opacity");
+        _SetPropertyIfPresent(element, patch, "text", "Text");
+        _SetPropertyIfPresent(element, patch, "title", "Title");
+        _SetPropertyIfPresent(element, patch, "info", "Info");
+        _SetPropertyIfPresent(element, patch, "tooltip", "ToolTip");
+        _SetPropertyIfPresent(element, patch, "toolTip", "ToolTip");
+        _SetPropertyIfPresent(element, patch, "visibility", "Visibility");
+        _SetPropertyIfPresent(element, patch, "isEnabled", "IsEnabled");
+        _SetPropertyIfPresent(element, patch, "opacity", "Opacity");
 
         if (patch["properties"] is JObject properties)
         {
             foreach (var property in properties.Properties())
-                TrySetElementProperty(element, property.Name, property.Value?.ToString() ?? "");
+                _TrySetElementProperty(element, property.Name, property.Value?.ToString() ?? "");
         }
 
-        var childrenXaml = TryGetString(patch, "childrenXaml", "ChildrenXaml");
+        var childrenXaml = _TryGetString(patch, "childrenXaml", "ChildrenXaml");
         if (!string.IsNullOrEmpty(childrenXaml) && element is Panel panel)
-            ReplacePanelChildren(panel, childrenXaml);
+            _ReplacePanelChildren(panel, childrenXaml);
     }
 
-    private static void SetPropertyIfPresent(FrameworkElement element, JObject patch, string jsonName, string propertyName)
+    private static void _SetPropertyIfPresent(FrameworkElement element, JObject patch, string jsonName, string propertyName)
     {
         if (patch.TryGetValue(jsonName, StringComparison.OrdinalIgnoreCase, out var value))
-            TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
+            _TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
     }
 
-    private static bool TrySetElementProperty(FrameworkElement element, string propertyName, string value)
+    private static bool _TrySetElementProperty(FrameworkElement element, string propertyName, string value)
     {
         var property = element.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
         if (property == null || !property.CanWrite) return false;
@@ -743,7 +743,7 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static void ReplacePanelChildren(Panel panel, string childrenXaml)
+    private static void _ReplacePanelChildren(Panel panel, string childrenXaml)
     {
         var content = ModMain.ArgumentReplace(childrenXaml);
         while (content.Contains("xmlns"))
@@ -761,7 +761,7 @@ public partial class PageLaunchRight : IRefreshable
             panel.Children.Add(child);
     }
 
-    private static IEnumerable<FrameworkElement> FindElementsByTag(DependencyObject root, string tag)
+    private static IEnumerable<FrameworkElement> _FindElementsByTag(DependencyObject root, string tag)
     {
         if (root is FrameworkElement element &&
             string.Equals(element.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase))
@@ -779,12 +779,12 @@ public partial class PageLaunchRight : IRefreshable
 
         for (var i = 0; i < count; i++)
         {
-            foreach (var child in FindElementsByTag(VisualTreeHelper.GetChild(root, i), tag))
+            foreach (var child in _FindElementsByTag(VisualTreeHelper.GetChild(root, i), tag))
                 yield return child;
         }
     }
 
-    private static string? TryGetString(JObject obj, params string[] names)
+    private static string? _TryGetString(JObject obj, params string[] names)
     {
         foreach (var name in names)
         {
