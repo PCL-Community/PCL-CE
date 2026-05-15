@@ -428,7 +428,10 @@ namespace PCL
 
         private static bool EventSafetyConfirm(string message)
         {
-            if (ModBase.Setup.Get("HintCustomCommand") == "True")
+            var skipConfirm = ModBase.Setup.Get("HintCustomCommand");
+            if (skipConfirm is bool skipConfirmBool && skipConfirmBool)
+                return true;
+            if (skipConfirm is string skipConfirmString && string.Equals(skipConfirmString, "True", StringComparison.OrdinalIgnoreCase))
                 return true;
 
             switch (ModMain.MyMsgBox(
@@ -441,7 +444,7 @@ namespace PCL
                 case 1:
                     return true;
                 case 2:
-                    ModBase.Setup.Set("HintCustomCommand", "True");
+                    ModBase.Setup.Set("HintCustomCommand", true);
                     return true;
                 default:
                     return false;
