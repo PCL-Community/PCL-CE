@@ -1569,7 +1569,6 @@ public static class ModLaunch
                 { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
             RefreshInfo.Add("selectedProfile", SelectProfile);
             RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
-            RefreshInfo.Add(new JProperty("clientToken", ModProfile.SelectedProfile.ClientToken));
             RefreshInfo.Add(new JProperty("requestUser", true));
             ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
             var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
@@ -1617,7 +1616,6 @@ public static class ModLaunch
             var RequestData = new JObject(
                 new JProperty("agent", new JObject(new JProperty("name", "Minecraft"), new JProperty("version", 1))),
                 new JProperty("username", Data.Input.UserName), new JProperty("password", Data.Input.Password),
-                new JProperty("clientToken", ModProfile.SelectedProfile?.ClientToken ?? ""),
                 new JProperty("requestUser", true));
             var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
                 new FetchParam
