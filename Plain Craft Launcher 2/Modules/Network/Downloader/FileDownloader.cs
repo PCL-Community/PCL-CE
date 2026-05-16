@@ -100,7 +100,8 @@ public static class FileDownloader
             CustomHttpMessageHandlerFactory = () => SharedHandler
         };
 
-        var downloader = new DownloadService(configuration);
+        using var downloader = new DownloadService(configuration);
+        var tcs = new TaskCompletionSource<bool>();
         void UpdateDownloadStat(DownloadProgressChangedEventArgs args)
         {
             if (trackedFile is null)
@@ -128,18 +129,26 @@ public static class FileDownloader
         };
         downloader.DownloadProgressChanged += (_, args) => UpdateDownloadStat(args);
         downloader.ChunkDownloadProgressChanged += (_, args) => UpdateDownloadStat(args);
-        downloader.DownloadFileCompleted += (_, _) =>
+        downloader.DownloadFileCompleted += (_, args) =>
         {
-            if (trackedFile is null)
-                return;
+            if (trackedFile is not null)
+            {
+                trackedFile.Speed = 0;
+                trackedFile.ActiveThreads = 0;
+                trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, trackedFile.TotalSize);
+            }
 
-            trackedFile.Speed = 0;
-            trackedFile.ActiveThreads = 0;
-            trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, trackedFile.TotalSize);
+            if (args.Cancelled)
+                tcs.TrySetCanceled();
+            else if (args.Error != null)
+                tcs.TrySetException(args.Error);
+            else
+                tcs.TrySetResult(true);
         };
         try
         {
             await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
+            await tcs.Task.ConfigureAwait(false);
             var tempPath = localPath + ModNet.NetDownloadEnd;
             if (!File.Exists(localPath) && File.Exists(tempPath))
             {
