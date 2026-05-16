@@ -83,7 +83,7 @@
                                 <local:ExportOption
                                     Title="Mod"
                                     Description="模组"
-                                    Rules="mods/|!mods/*.disabled|!mods/*.old|!mods/.connector/|coremods/|lib/"
+                                    Rules="mods/|!mods/*.disabled|!mods/*.old|!mods/.connector/|coremods/|lib/|!mods/mcef-libraries/|!mods/mcef-cache/"
                                     DefaultChecked="True"
                                     RequireModLoader="True" />
                             </local:MyCheckBox.Tag>
