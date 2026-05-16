@@ -76,9 +76,11 @@ public class LoaderDownload : ModLoader.LoaderBase
             using var semaphore = new SemaphoreSlim(GetMaxParallelFiles());
             var tasks = Files.Select(async file =>
             {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                var entered = false;
                 try
                 {
+                    await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    entered = true;
                     await ProcessFileAsync(file, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -93,7 +95,8 @@ public class LoaderDownload : ModLoader.LoaderBase
                 }
                 finally
                 {
-                    semaphore.Release();
+                    if (entered)
+                        semaphore.Release();
                     RefreshStat();
                 }
             }).ToList();

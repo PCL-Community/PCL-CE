@@ -378,7 +378,7 @@ public static class ModModpack
         string QuiltVersion = null;
         foreach (var Entry in (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
         {
-            var Id = (Entry["id"] ?? "").ToString().ToLower();
+            string Id = (Entry["id"] ?? "").ToString().ToLower();
             if (Id.StartsWithF("forge-"))
             {
                 // Forge 指定
