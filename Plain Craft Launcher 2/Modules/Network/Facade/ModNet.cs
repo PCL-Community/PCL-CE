@@ -53,11 +53,31 @@ public static class ModNet
     public static string NetGetCodeByLoader(IEnumerable<string> urls, int Timeout = 45000, bool IsJson = false,
         bool UseBrowserUserAgent = false)
     {
-        var temp = ModMain.RequestTaskTempFolder() + "download.txt";
-        FileDownloader.Download(urls, temp, UseBrowserUserAgent).GetAwaiter().GetResult();
-        var content = ModBase.ReadFile(temp);
-        File.Delete(temp);
-        return IsJson ? ModBase.GetJson(content).ToString() : content;
+        Exception? lastException = null;
+
+        foreach (var url in urls)
+        {
+            try
+            {
+                // 使用原生的 Requester.Fetch，它支持 HttpClient 的自动解压功能，并直接返回字符。
+                var content = Requester.Fetch(url, new FetchParam
+                {
+                    Method = "GET",
+                    Timeout = Timeout,
+                    UseBrowserUserAgent = UseBrowserUserAgent
+                });
+                
+                return IsJson ? ModBase.GetJson(content).ToString() : content;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                // 如果是多个链接用于重试，这里捕获异常并继续尝试下一个源
+                ModBase.Log(ex, $"[Fetch] 获取文本/JSON失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+            }
+        }
+
+        throw new Exception("所有的获取源均已失败，无法拿到文本数据。", lastException);
     }
 
     public static string NetRequestRetry(string url, string method, string data = "", string? contentType = null,
