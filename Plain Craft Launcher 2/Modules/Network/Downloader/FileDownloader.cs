@@ -175,9 +175,24 @@ public static class FileDownloader
     private static void CleanupTempFiles(string localPath)
     {
         var tempPath = localPath + ModNet.NetDownloadEnd;
-        if (File.Exists(localPath))
-            File.Delete(localPath);
-        if (File.Exists(tempPath))
-            File.Delete(tempPath);
+        TryDeleteFile(localPath);
+        TryDeleteFile(tempPath);
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        for (var retry = 0; retry < 5; retry++)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+                return;
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(100);
+            }
+        }
     }
 }

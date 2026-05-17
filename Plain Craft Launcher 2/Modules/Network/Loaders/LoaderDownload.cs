@@ -117,7 +117,7 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     private int GetMaxParallelFiles()
     {
-        return Math.Max(1, Math.Min(Files.Count, Math.Clamp(ModNet.NetTaskThreadLimit, 1, 64)));
+        return Math.Max(1, Math.Min(Files.Count, Math.Clamp(ModNet.NetTaskThreadLimit, 1, 8)));
     }
 
     private async Task ProcessFileAsync(PCL.Network.DownloadFile file, CancellationToken cancellationToken)
