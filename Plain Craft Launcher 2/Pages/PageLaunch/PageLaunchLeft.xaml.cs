@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -544,7 +545,7 @@ public partial class PageLaunchLeft
 
         // 初始化页面
         LabLaunchingName.Text = ModMinecraft.McInstanceSelected.Name;
-        LabLaunchingStage.Text = "初始化";
+        LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
         LabLaunchingTitle.Text = ModLaunch.CurrentLaunchOptions?.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
         LabLaunchingProgress.Text = "0.00 %";
         LabLaunchingProgress.Opacity = 1d;

@@ -42,7 +42,7 @@
                                           Tag="LaunchArgumentIndieV2" Grid.Column="1"
                                           SelectionChanged="ComboArgumentIndie_OnSelectionChanged"
                                           ToolTip="当安装新实例时，据此自动设置新实例的隔离选项。&#xa;若想调整已有实例的隔离策略，请前往它的实例设置。">
-                            <local:MyComboBoxItem Content="关闭"
+                            <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
                                                   ToolTip="所有实例均使用同一档案，存档、Mod、资源包等均为公用。&#xa;若存在多个安装了 Mod 的实例，可能会导致 Mod 冲突。" />
                             <local:MyComboBoxItem Content="隔离可安装 Mod 的实例" IsSelected="True"
                                                   ToolTip="可安装 Mod 的实例（例如 Forge、Fabric）均互相独立以避免 Mod 冲突，其他实例（例如原版）则不会被隔离。" />
@@ -57,7 +57,7 @@
                                           Tag="LaunchArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False" TextChanged="TextArgumentTitle_OnTextChanged"
                                           ToolTip="自定义游戏窗口的标题，若留空则不进行更改。&#xa;支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号&#xa;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效"
-                                          HintText="默认">
+                                          HintText="{DynamicResource Common.Option.Default}">
                             <local:MyComboBoxItem Content="{}{name} | 玩家 : {user} | 使用 {login} 登录" />
                         </local:MyComboBox>
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义信息"
@@ -110,7 +110,7 @@
                                               SelectionChanged="ComboChange"
                                               ToolTip="注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效">
                                 <local:MyComboBoxItem Content="全屏" />
-                                <local:MyComboBoxItem Content="默认" IsSelected="True" />
+                                <local:MyComboBoxItem Content="{DynamicResource Common.Option.Default}" IsSelected="True" />
                                 <local:MyComboBoxItem Content="与启动器尺寸一致" />
                                 <local:MyComboBoxItem Content="自定义尺寸" ToolTip="Forge 1.12.2 等个别版本存在 Bug，会导致高度设定无效" />
                                 <local:MyComboBoxItem Content="最大化" />
@@ -182,7 +182,7 @@
                                           Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange"
                                           ToolTip="根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存" ToolTipService.Placement="Right"
                                           ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
-                        <local:MyRadioBox Grid.Row="2" Text="自定义" x:Name="RadioRamType1" Tag="LaunchRamType/1"
+                        <local:MyRadioBox Grid.Row="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
                                           Margin="0,0,20,0" Check="RadioBoxChange" />
                         <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
                                         Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" />

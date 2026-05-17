@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -17,7 +18,7 @@ public partial class PageLoginAuth
 
     // 预设服务器
     private static readonly Dictionary<string, string> PredefinedAuthServers = new()
-        { { "预设 - LittleSkin", "https://littleskin.cn/api/yggdrasil" }, { "自定义", "" } };
+        { { "预设 - LittleSkin", "https://littleskin.cn/api/yggdrasil" }, { Lang.Text("Common.Option.Customize"), "" } };
 
     public PageLoginAuth()
     {

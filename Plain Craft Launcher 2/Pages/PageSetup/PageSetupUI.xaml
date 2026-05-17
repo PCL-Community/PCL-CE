@@ -188,7 +188,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="打开文件夹" Padding="13,0"
+                        <local:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnUIBgOpen_Click"
                                         ToolTip="将背景图片和视频放到该文件夹，PCL 将会在每次打开时随机加载其中的一张图片或视频&#xa;为提高播放时的流畅度，视频推荐使用H264格式编码" />
                         <local:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="刷新背景内容" Padding="13,0"
@@ -231,7 +231,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnMusicOpen" Text="打开文件夹" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnMusicOpen" Text="{DynamicResource Common.Action.OpenFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnMusicOpen_Click"
                                         ToolTip="将背景音乐放到该文件夹，PCL 将会播放其中的所有音乐" />
                         <local:MyButton x:Name="BtnMusicRefresh" Text="刷新背景音乐" MinWidth="140" Padding="13,0"
@@ -255,7 +255,7 @@
                         </Grid.ColumnDefinitions>
                         <local:MyRadioBox Text="无" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0"
                                           Grid.Column="0" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="默认" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1"
+                        <local:MyRadioBox Text="{DynamicResource Common.Option.Default}" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1"
                                           Grid.Column="1" Check="RadioBoxChange" />
                         <local:MyRadioBox Text="文本" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2"
                                           Grid.Column="2" Check="RadioBoxChange" />

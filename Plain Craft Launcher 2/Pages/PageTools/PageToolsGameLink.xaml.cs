@@ -14,6 +14,7 @@ using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -22,7 +23,7 @@ public partial class PageToolsGameLink
     static PageToolsGameLink()
     {
         InitLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
-            new[] { new ModLoader.LoaderTask<int, int>("初始化", InitTask) { ProgressWeight = 0.5d } });
+            new[] { new ModLoader.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask) { ProgressWeight = 0.5d } });
     }
 
     public PageToolsGameLink()
@@ -113,7 +114,7 @@ public partial class PageToolsGameLink
 
     private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn: true) == 1)
+        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.LinkEulaConfig.Reset();
@@ -652,7 +653,7 @@ public partial class PageToolsGameLink
         if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
         {
             // 当前未登录，显示登录选项
-            if (ModMain.MyMsgBox("PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。", "登录至 Natayark Network", "继续", "取消") == 1)
+            if (ModMain.MyMsgBox("PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。", "登录至 Natayark Network", "继续", Lang.Text("Common.Action.Cancel")) == 1)
             {
                 LabNatayarkUserName.Text = "请在浏览器中继续...";
                 LabNatayarkUserName.Opacity = 0.6d;
@@ -666,7 +667,7 @@ public partial class PageToolsGameLink
             }
         }
         // 当前已登录，显示登出选项
-        else if (ModMain.MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") == 1)
+        else if (ModMain.MyMsgBox("你确定要退出登录吗？", "退出登录", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.NaidRefreshToken = "";
@@ -947,7 +948,7 @@ public partial class PageToolsGameLink
     private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
-        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
+        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             CurrentSubpage = Subpages.PanSelect;
             BtnFinishExit.Text = "退出大厅";
@@ -967,7 +968,7 @@ public partial class PageToolsGameLink
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-            "复制", "返回", Button1Action: () => ModBase.ClipboardSet(ip));
+            Lang.Text("Common.Action.Copy"), "返回", Button1Action: () => ModBase.ClipboardSet(ip));
     }
 
     #endregion

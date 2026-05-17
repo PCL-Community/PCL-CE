@@ -13,6 +13,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -100,7 +101,7 @@ public partial class PageInstanceSetup
             var _unused = PageInstanceLeft.Instance.PathIndie; // 触发自动判定
             ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] ? 0 : 1;
             CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
-            TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
+            TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : "跟随全局设置";
             RefreshJavaComboBox();
 
             // 游戏内存
@@ -682,7 +683,7 @@ public partial class PageInstanceSetup
                 除非你是服主，或者服主要求你这样做，否则请不要继续。
 
                 是否确实需要覆盖当前设置？
-                """, "设置覆盖确认", "继续", "取消") == 2)
+                """, "设置覆盖确认", "继续", Lang.Text("Common.Action.Cancel")) == 2)
             return;
         TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
         TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
@@ -694,7 +695,7 @@ public partial class PageInstanceSetup
     {
         if (ModMain.MyMsgBox(
                 $"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{"\r\n"}此功能可能会帮助一些服主吧。{"\r\n"}是否继续？",
-                "锁定验证方式确认", "确定", "取消", IsWarn: true) == 1)
+                "锁定验证方式确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance] = true;
             Reload();
@@ -981,7 +982,7 @@ public partial class PageInstanceSetup
                 调整版本隔离后，你可能得把游戏存档、Mod 等文件手动迁移到新的游戏文件夹中。
                 如果修改后发现存档消失，把这项设置改回来就能恢复。
                 如果你不会迁移存档，不建议修改这项设置！
-                """, "警告", "我知道我在做什么", "取消", IsWarn: true) == 2)
+                """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
         {
             IsReverting = true;
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -997,7 +998,7 @@ public partial class PageInstanceSetup
     // 游戏窗口
     private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
-        TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
+        TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : "跟随全局设置";
         CheckBoxChange(sender,e);
     }
 
@@ -1030,7 +1031,7 @@ public partial class PageInstanceSetup
                                  修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！
                                  你确定要继续修改吗？
                                  """, "警告",
-                    "我知道我在做什么", "取消", IsWarn: true) == 2)
+                    "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
             }
@@ -1059,7 +1060,7 @@ public partial class PageInstanceSetup
                     """
                     本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！
                     你确定要继续修改吗？
-                    """, "警告", "我知道我在做什么", "取消", IsWarn: true) == 2)
+                    """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 checkBox.Checked = false;
             }

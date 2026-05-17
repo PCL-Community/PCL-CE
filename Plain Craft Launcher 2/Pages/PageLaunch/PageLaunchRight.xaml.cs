@@ -4,6 +4,7 @@ using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -430,7 +431,7 @@ public partial class PageLaunchRight : IRefreshable
                     if (ModMain.MyMsgBox(
                             ex is UnauthorizedAccessException
                                 ? ex.Message
-                                : $"主页内容编写有误，请根据下列错误信息进行检查：\r\n{ex}", "加载主页界面失败", "重试", "取消") ==
+                                : $"主页内容编写有误，请根据下列错误信息进行检查：\r\n{ex}", "加载主页界面失败", "重试", Lang.Text("Common.Action.Cancel")) ==
                         1) goto Refresh; // 防止 SyncLock 死锁
                 }
                 else

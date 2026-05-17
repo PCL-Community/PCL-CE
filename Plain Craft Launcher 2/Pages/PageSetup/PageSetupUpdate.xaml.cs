@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -153,7 +154,7 @@ public partial class PageSetupUpdate
         {
             ModMain.MyMsgBox(
                 $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。{"\r\n"}你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(ModBase.IsArm64System ? "Arm64" : "x64")} 选项下载。",
-                "启动器更新 - 缺少运行环境", "下载 .NET 8 运行时", "取消",
+                "启动器更新 - 缺少运行环境", "下载 .NET 8 运行时", Lang.Text("Common.Action.Cancel"),
                 Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
             return;
         }
@@ -199,7 +200,7 @@ public partial class PageSetupUpdate
                                           该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！
                                           """;
 
-                if (ModMain.MyMsgBox(warningMsg, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(warningMsg, "继续之前...", "我已知晓", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                     IsCancelled = true;
                 else
                     CheckUpdate();
@@ -215,7 +216,7 @@ public partial class PageSetupUpdate
                                           该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！
                                           """;
 
-                if (ModMain.MyMsgBox(devWarning, "继续之前...", "我已知晓", "取消", IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(devWarning, "继续之前...", "我已知晓", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                 {
                     IsCancelled = true;
                     break;
@@ -232,7 +233,7 @@ public partial class PageSetupUpdate
                                                    请输入 '{confirmText}' 以确认。
                                                    """;
 
-                var ret = ModMain.MyMsgBoxInput("最终确认", finalConfirmPrompt, Button1: "提交", Button2: "取消", IsWarn: true);
+                var ret = ModMain.MyMsgBoxInput("最终确认", finalConfirmPrompt, Button1: "提交", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true);
     
                 if (ret == confirmText)
                 {

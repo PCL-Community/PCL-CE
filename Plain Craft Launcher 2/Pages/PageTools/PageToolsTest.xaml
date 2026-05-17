@@ -88,7 +88,7 @@
                         <local:MyButton x:Name="BtnDownloadStart" Grid.Column="0" Width="140" Text="开始下载"
                                         ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right"
                                         Click="BtnDownloadStart_Click" />
-                        <local:MyButton x:Name="BtnDownloadOpen" Grid.Column="1" Width="140" Text="打开文件夹"
+                        <local:MyButton x:Name="BtnDownloadOpen" Grid.Column="1" Width="140" Text="{DynamicResource Common.Action.OpenFolder}"
                                         Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnDownloadOpen_Click" />
                     </Grid>
                 </StackPanel>

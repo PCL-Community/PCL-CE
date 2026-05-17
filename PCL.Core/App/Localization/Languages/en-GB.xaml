@@ -6,9 +6,9 @@
     <sys:String x:Key="Localization.Meta.Code">en-GB</sys:String>
     <sys:String x:Key="Localization.Meta.Name">English (United Kingdom)</sys:String>
 
-    <sys:String x:Key="Localization.Language.Auto">Follow system ({0})</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage.Auto">Follow system ({0})</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">Follow UI language</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Follow UI language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Title">Language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">Language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">Display language</sys:String>
@@ -16,7 +16,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.Auto">Follow system regional format</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">Follow system regional format</sys:String>
 
     <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
     <sys:String x:Key="Common.Action.Cancel">Cancel</sys:String>

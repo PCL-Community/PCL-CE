@@ -6,9 +6,9 @@
     <sys:String x:Key="Localization.Meta.Code">zh-TW</sys:String>
     <sys:String x:Key="Localization.Meta.Name">繁體中文（台灣）</sys:String>
 
-    <sys:String x:Key="Localization.Language.Auto">跟隨系統（{0}）</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage.Auto">跟隨系統（{0}）</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">同步介面語言</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">同步介面語言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Title">語言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">語言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">介面語言</sys:String>
@@ -16,7 +16,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.Hint">目前僅部分新增介面支援多語言功能，其餘介面將在後續遷移中逐步完成生效。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">語言設定已更新</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.Auto">跟隨系統地區格式</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">跟隨系統地區格式</sys:String>
 
     <sys:String x:Key="Common.Action.Confirm">確定</sys:String>
     <sys:String x:Key="Common.Action.Cancel">取消</sys:String>

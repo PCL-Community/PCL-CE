@@ -47,7 +47,7 @@
                     <TextBlock x:Name="LabSort" VerticalAlignment="Center" Grid.Row="0" Grid.Column="4"
                                HorizontalAlignment="Left" Text="排序方式" Margin="5,0,5,0" />
                     <local:MyComboBox x:Name="ComboSearchSort" Grid.Row="0" Grid.Column="5" MaxDropDownHeight="320">
-                        <local:MyComboBoxItem Content="默认" Tag="1" IsSelected="True" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Option.Default}" Tag="1" IsSelected="True" />
                         <local:MyComboBoxItem Content="相关性" Tag="2" />
                         <local:MyComboBoxItem Content="下载量" Tag="3" />
                         <local:MyComboBoxItem Content="关注量" Tag="4" />

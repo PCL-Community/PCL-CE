@@ -36,7 +36,7 @@
         <local:MyRadioBox Grid.Column="1" Text="旧版" x:Name="RadioUuidLegacy" Height="22" HorizontalAlignment="Center"
                           VerticalAlignment="Center" Check="RadioUuid_Checked"
                           ToolTip="使用旧版 PCL 的 UUID 生成规则&#xa;若从旧版 PCL 升级，且单人存档的部分信息丢失，可尝试此项" />
-        <local:MyRadioBox Grid.Column="2" Text="自定义" x:Name="RadioUuidCustom" Height="22" HorizontalAlignment="Center"
+        <local:MyRadioBox Grid.Column="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioUuidCustom" Height="22" HorizontalAlignment="Center"
                           VerticalAlignment="Center" Check="RadioUuid_Checked"
                           ToolTip="适用于高级用户，如果你不知道这是什么，请不要选择此项" />
     </Grid>

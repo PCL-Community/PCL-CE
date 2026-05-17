@@ -48,7 +48,7 @@ public partial class FontSelector
         {
             // 如果字体还在加载中，延迟设置
             if (CustomFontCollection.Count == 0 ||
-                CustomFontCollection is [{ Name: "加载中..." }])
+                (CustomFontCollection is [{ Name: var name }] && name == Lang.Text("Common.State.Loading")))
             {
                 _pendingFontTag = value;
                 return;
@@ -137,7 +137,7 @@ public partial class FontSelector
         {
             ComboFont.IsEnabled = false;
             _isInitializing = true;
-            CustomFontCollection.Add(new CustomFontProperties { Name = "加载中..." });
+            CustomFontCollection.Add(new CustomFontProperties { Name = Lang.Text("Common.State.Loading") });
             ComboFont.SelectedIndex = 0;
 
             var availableFonts = new List<(string Name, FontFamily Font)>();
@@ -171,7 +171,7 @@ public partial class FontSelector
             CustomFontCollection.Clear();
             CustomFontCollection.Add(new CustomFontProperties
             {
-                Name = "默认",
+                Name = Lang.Text("Common.Option.Default"),
                 Font = LocalizationFontService.BuildLaunchFontFamily(),
                 Tag = ""
             });

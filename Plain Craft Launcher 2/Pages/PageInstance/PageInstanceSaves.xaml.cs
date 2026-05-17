@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -211,13 +212,13 @@ public partial class PageInstanceSaves : IRefreshable
                     var BtnOpen = new MyIconButton
                     {
                         Logo = ModBase.Logo.IconButtonOpen,
-                        ToolTip = "打开"
+                        ToolTip = Lang.Text("Common.Action.Open")
                     };
                     BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
                         Logo = ModBase.Logo.IconButtonDelete,
-                        ToolTip = "删除"
+                        ToolTip = Lang.Text("Common.Action.Delete")
                     };
                     BtnDelete.Click += (_, _) =>
                     {
@@ -242,7 +243,7 @@ public partial class PageInstanceSaves : IRefreshable
                     var BtnCopy = new MyIconButton
                     {
                         Logo = ModBase.Logo.IconButtonCopy,
-                        ToolTip = "复制"
+                        ToolTip = Lang.Text("Common.Action.Copy")
                     };
                     BtnCopy.Click += (_, _) =>
                     {

@@ -152,6 +152,6 @@
         </StackPanel>
         <local:MyButton Grid.Row="4" x:Name="BtnCancel" Height="35" Margin="20,0,20,20" VerticalAlignment="Bottom"
                         Click="BtnCancel_Click"
-                        Text="取消" />
+                        Text="{DynamicResource Common.Action.Cancel}" />
     </Grid>
 </local:MyPageLeft>

@@ -9,6 +9,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -1197,7 +1198,7 @@ public class CrashAnalyzer
         // 确定是否是加载器版本不兼容问题
         var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
         // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", "确定",
+        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
                     IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
                     IsHandAnalyze ? "" : "导出错误报告",
                     Button2Action: IsHandAnalyze || DirectFile is null || isModLoaderIncompatible

@@ -14,6 +14,7 @@ using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -42,7 +43,7 @@ public static class ModMinecraft
             var msgBoxText = $"新版本：{versionName}{"\r\n"}" + ((DateTime.Now - time).TotalDays > 1d
                 ? "更新时间：" + time
                 : "更新于：" + TimeUtils.GetTimeSpanString(time - DateTime.Now, false));
-            var msgResult = ModMain.MyMsgBox(msgBoxText, "Minecraft 更新提示", "确定", "下载",
+            var msgResult = ModMain.MyMsgBox(msgBoxText, "Minecraft 更新提示", Lang.Text("Common.Action.Confirm"), "下载",
                 (DateTime.Now - time).TotalHours > 3d ? "更新日志" : "",
                 Button3Action: () => ModDownloadLib.McUpdateLogShow(version));
             // 弹窗结果

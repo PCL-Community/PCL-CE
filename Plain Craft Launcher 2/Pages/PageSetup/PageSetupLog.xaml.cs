@@ -8,6 +8,7 @@ using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -133,7 +134,7 @@ public partial class PageSetupLog
 
     private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var r = ModMain.MyMsgBox("是否删除所有历史日志？", "清理历史日志", "确定", "取消", IsWarn: true);
+        var r = ModMain.MyMsgBox("是否删除所有历史日志？", "清理历史日志", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true);
         if (r != 1)
             return;
         var currentSet = new HashSet<string>(CurrentLogs);

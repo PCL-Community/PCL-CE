@@ -6,9 +6,9 @@
     <sys:String x:Key="Localization.Meta.Code">es-ES</sys:String>
     <sys:String x:Key="Localization.Meta.Name">Español (España)</sys:String>
 
-    <sys:String x:Key="Localization.Language.Auto">Seguir sistema ({0})</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage.Auto">Seguir sistema ({0})</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">Seguir idioma de la interfaz</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Seguir idioma de la interfaz</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Title">Idioma</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">Idioma</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">Idioma de interfaz</sys:String>
@@ -16,7 +16,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.Hint">El soporte multiidioma está limitado actualmente a ciertas interfaces nuevas. El resto se actualizará en las próximas migraciones.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Configuración de idioma actualizada</sys:String>
 
-    <sys:String x:Key="Localization.FormatCulture.Auto">Seguir formato regional del sistema</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">Seguir formato regional del sistema</sys:String>
 
     <sys:String x:Key="Common.Action.Confirm">Aceptar</sys:String>
     <sys:String x:Key="Common.Action.Cancel">Cancelar</sys:String>

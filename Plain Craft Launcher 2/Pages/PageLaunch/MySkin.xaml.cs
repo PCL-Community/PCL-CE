@@ -8,6 +8,7 @@ using System.Windows.Media;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -43,7 +44,7 @@ public partial class MySkin
         set
         {
             _Address = value;
-            ToolTip = string.IsNullOrEmpty(_Address) ? "加载中" : "点击更换皮肤（右键查看更多选项）";
+            ToolTip = string.IsNullOrEmpty(_Address) ? Lang.Text("Common.State.Loading") : "点击更换皮肤（右键查看更多选项）";
         }
     }
 
@@ -448,7 +449,7 @@ public partial class MySkin
                             });
                         }
 
-                        SelId = ModMain.MyMsgBoxSelect(SelectionControl, "选择披风", "确定", "取消");
+                        SelId = ModMain.MyMsgBoxSelect(SelectionControl, "选择披风", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
                     }
                     catch (Exception ex)
                     {

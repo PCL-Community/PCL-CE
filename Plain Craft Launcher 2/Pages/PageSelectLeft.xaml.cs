@@ -10,6 +10,7 @@ using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -110,12 +111,12 @@ public partial class PageSelectLeft : IRefreshable
                             ModMain.FrmSelectLeft.Rename_Click);
                         AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
                         AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
                             ModMinecraft.McFolderList.Count == 1 && folder.Location == Path.Combine(ModBase.ExePath, ".minecraft") + @"\"
                                 ? "清空"
-                                : "删除", ICON_DELETE, new Thickness(0, 0, 0, 2), ModMain.FrmSelectLeft.Delete_Click);
+                                : Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2), ModMain.FrmSelectLeft.Delete_Click);
                         break;
 
                     case ModMinecraft.McFolder.Types.RenamedOriginal:
@@ -124,9 +125,9 @@ public partial class PageSelectLeft : IRefreshable
                         AddMenuItem("Rename", "重命名", ICON_RENAME, null, ModMain.FrmSelectLeft.Rename_Click);
                         AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
                         AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
-                        AddMenuItem("Delete", "删除", ICON_DELETE, new Thickness(0, 0, 0, 2),
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2),
                             ModMain.FrmSelectLeft.Delete_Click);
                         break;
 
@@ -135,12 +136,12 @@ public partial class PageSelectLeft : IRefreshable
                             ModMain.FrmSelectLeft.Rename_Click);
                         AddMenuItem("MoveUp", "上移", ICON_MOVEUP, null, ModMain.FrmSelectLeft.MoveUp_Click);
                         AddMenuItem("MoveDown", "下移", ICON_MOVEDOWN, null, ModMain.FrmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", "打开", ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", "刷新", ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null, ModMain.FrmSelectLeft.Open_Click);
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null, ModMain.FrmSelectLeft.Refresh_Click);
                         AddMenuItem("Remove", "移出列表",
                             "F1 M 23.3428,25.205L 23.3805,25.4461C 23.9229,27.177 30.261,29.0992 38,29.0992C 45.7386,29.0992 52.0765,27.1771 52.6194,25.4463L 52.6571,25.205C 52.6571,23.3616 46.0949,21.3109 38,21.3109C 29.9051,21.3109 23.3428,23.3616 23.3428,25.205 Z M 23.3428,53.0204L 19.1571,26.2111C 19.0534,25.8817 19,25.5459 19,25.205C 19,20.9036 27.5066,17.4167 38,17.4167C 48.4934,17.4167 57,20.9036 57,25.205C 57,25.5459 56.9466,25.8818 56.8429,26.2112L 52.6571,53.0204L 52.5974,53.0204C 51.9241,56.1393 45.6457,58.5833 38,58.5833C 30.3543,58.5833 24.076,56.1393 23.4026,53.0204L 23.3428,53.0204 Z M 51.8228,30.5485C 48.3585,32.0537 43.4469,32.9933 38,32.9933C 32.5531,32.9933 27.6415,32.0537 24.1771,30.5484L 27.5988,52.464L 27.6857,52.464C 27.6857,53.3857 32.3036,54.6892 38,54.6892C 43.6964,54.6892 48.3143,53.3857 48.3143,52.464L 48.4011,52.464L 51.8228,30.5485 Z ",
                             null, ModMain.FrmSelectLeft.Remove_Click);
-                        AddMenuItem("Delete", "删除", ICON_DELETE, new Thickness(0, 0, 0, 2),
+                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2),
                             ModMain.FrmSelectLeft.Delete_Click);
                         break;
                 }
@@ -511,7 +512,7 @@ public partial class PageSelectLeft : IRefreshable
                         是否需要清理 PCL 在该文件夹中的配置文件？
                         这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。
                         """,
-                        "配置文件清理", "删除", "保留", "取消"))
+                        "配置文件清理", Lang.Text("Common.Action.Delete"), "保留", Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                 {
@@ -577,14 +578,14 @@ public partial class PageSelectLeft : IRefreshable
              Folder.Type == ModMinecraft.McFolder.Types.RenamedOriginal) &&
             (Folder.Location ?? "") == (ModBase.ExePath + @".minecraft\" ?? "") && ModMinecraft.McFolderList.Count == 1
                 ? "清空"
-                : "删除";
+                : Lang.Text("Common.Action.Delete");
         if (ModMain.MyMsgBox(
                 $"""
                  你确定要{DeleteText}这个文件夹吗？
                  目标文件夹：{Folder.Location}
 
                  这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！
-                 """, "删除警告", "取消", "确认", "取消") != 2)
+                 """, "删除警告", Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) != 2)
             return;
         if (ModMain.MyMsgBox(
                 $"""
@@ -594,7 +595,7 @@ public partial class PageSelectLeft : IRefreshable
 
                  这是最后一次警告！
                  """,
-                "删除警告", $"确认{DeleteText}", "取消", IsWarn: true) != 1)
+                "删除警告", $"确认{DeleteText}", Lang.Text("Common.Action.Cancel"), IsWarn: true) != 1)
             return;
         // 移出列表
         var Folders = new List<string>(States.Game.Folders.ToString().Split("|"));

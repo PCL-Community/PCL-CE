@@ -7,6 +7,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -274,7 +275,7 @@ public partial class PageSetupUI
         if (ModMain.MyMsgBox("""
                              即将删除背景内容文件夹中的所有文件。
                              此操作不可撤销，是否确定？
-                             """, "警告", Button2: "取消",
+                             """, "警告", Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
         {
             ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Pictures");
@@ -542,7 +543,7 @@ public partial class PageSetupUI
         if (ModMain.MyMsgBox("""
                              即将删除背景音乐文件夹中的所有文件。
                              此操作不可撤销，是否确定？
-                             """, "警告", Button2: "取消",
+                             """, "警告", Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
             ModBase.RunInThread(() =>
             {
@@ -599,7 +600,7 @@ public partial class PageSetupUI
         try
         {
             if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", "取消", IsWarn: true) == 2)
+                if (ModMain.MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                     return;
             ModBase.WriteFile(ModBase.ExePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
             ModMain.Hint("教学文件已生成！", ModMain.HintType.Finish);

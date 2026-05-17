@@ -17,6 +17,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.IO.Net.Http;
 using PCL;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -66,7 +67,7 @@ public static class ModDownloadLib
                     return null;
                 if (ModMain.MyMsgBox(
                         "实例 " + id + " 已存在，是否重新下载？" + "\r\n" + "这会覆盖实例的 Json 与 Jar 文件，但不会影响版本隔离的文件。", "实例已存在",
-                        "继续", "取消") == 1)
+                        "继续", Lang.Text("Common.Action.Cancel")) == 1)
                 {
                     File.Delete(Path.Combine(versionFolder, id + ".jar"));
                     File.Delete(Path.Combine(versionFolder, id + ".json"));
@@ -564,7 +565,7 @@ pause";
             {
                 if (ModMain.MyMsgBox(
                         "实例 " + Id + " 已存在，是否重新下载？" + "\r\n" + "这会覆盖实例的 Json 和 Jar 文件，但不会影响版本隔离的文件。", "实例已存在",
-                        "继续", "取消") == 1)
+                        "继续", Lang.Text("Common.Action.Cancel")) == 1)
                 {
                     File.Delete(Path.Combine(VersionFolder, Id + ".jar"));
                     File.Delete(Path.Combine(VersionFolder, Id + ".json"));
@@ -1206,7 +1207,7 @@ pause";
             {
                 if (ModMain.MyMsgBox(
                         "实例 " + VersionName + " 已存在，是否重新下载？" + "\r\n" + "这会覆盖实例的 Json 和 Jar 文件，但不会影响版本隔离的文件。",
-                        "实例已存在", "继续", "取消") == 1)
+                        "实例已存在", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                 {
                     File.Delete(Path.Combine(VersionFolder, VersionName + ".jar"));
                     File.Delete(Path.Combine(VersionFolder, VersionName + ".json"));

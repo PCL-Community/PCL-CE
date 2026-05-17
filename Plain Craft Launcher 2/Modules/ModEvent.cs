@@ -13,6 +13,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL
 {
@@ -255,7 +256,7 @@ namespace PCL
                         ModMain.MyMsgBox(
                             args[1].Replace("\\n", "\r\n"),
                             args[0].Replace("\\n", "\r\n"),
-                            args.Length > 2 ? args[2] : "确定");
+                            args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
                         break;
 
                     case EventType.弹出提示:
@@ -309,7 +310,7 @@ namespace PCL
                         }
                         catch
                         {
-                            PageToolsTest.StartCustomDownload(args[0], "未知");
+                            PageToolsTest.StartCustomDownload(args[0], Lang.Text("Common.State.Unknown"));
                         }
                         break;
 
@@ -436,7 +437,7 @@ namespace PCL
                 "执行确认",
                 "继续",
                 "继续且今后不再要求确认",
-                "取消"))
+                Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                     return true;

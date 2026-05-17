@@ -7,6 +7,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -313,7 +314,7 @@ public static class ModJava
 
         return ModMain.MyMsgBox(
             $"PCL 未找到 {VersionDescription}，是否需要 PCL 自动下载？" + "\r\n" +
-            $"如果你已经安装了 {VersionDescription}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。", "自动下载 Java？", "自动下载", "取消") == 1;
+            $"如果你已经安装了 {VersionDescription}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。", "自动下载 Java？", "自动下载", Lang.Text("Common.Action.Cancel")) == 1;
     }
 
     /// <summary>

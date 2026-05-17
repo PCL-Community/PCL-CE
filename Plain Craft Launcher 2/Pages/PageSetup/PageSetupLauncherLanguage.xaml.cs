@@ -67,7 +67,7 @@ public partial class PageSetupLauncherLanguage
         ComboUiLanguage.Items.Clear();
         var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
         ComboUiLanguage.Items.Add(CreateLanguageComboItem(
-            Lang.Text("Localization.Language.Auto", GetLanguageDisplay(autoLanguage)),
+            Lang.Text("Setup.LauncherLanguage.UiLanguage.Auto", GetLanguageDisplay(autoLanguage)),
             LocalizationService.Auto,
             autoLanguage));
 
@@ -92,12 +92,12 @@ public partial class PageSetupLauncherLanguage
         ComboUiFormatCulture.Items.Clear();
         ComboUiFormatCulture.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Localization.FormatCulture.Auto"),
+            Content = Lang.Text("Setup.LauncherLanguage.FormatCulture.Auto"),
             Tag = LocalizationService.Auto
         });
         ComboUiFormatCulture.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Localization.FormatCulture.FollowLanguage"),
+            Content = Lang.Text("Setup.LauncherLanguage.FormatCulture.FollowLanguage"),
             Tag = LocalizationService.FormatCultureFollowLanguage
         });
 

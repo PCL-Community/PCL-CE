@@ -16,6 +16,7 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -456,7 +457,7 @@ public static class ModProfile
             
 #endif
         
-            selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", "取消");
+            selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, "新建档案 - 选择验证类型", "继续", Lang.Text("Common.Action.Cancel"));
         });
         if (selectedAuthTypeNum is null)
             return;
@@ -517,7 +518,7 @@ public static class ModProfile
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！",
                 SelectedProfile.Username,
                 [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                "3 - 16 个字符，只可以包含大小写字母、数字、下划线", "确认"));
+                "3 - 16 个字符，只可以包含大小写字母、数字、下划线", Lang.Text("Common.Action.Confirm")));
             if (string.IsNullOrEmpty(newUsername))
                 return;
             if (string.IsNullOrWhiteSpace(newUsername))
@@ -526,7 +527,7 @@ public static class ModProfile
                 return;
             }
 
-            if (ModMain.MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", "取消", IsWarn: true) == 2)
+            if (ModMain.MyMsgBox("注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！", "确认修改", "继续修改", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                 return;
             // 更新档案信息
             // 刷新页面信息
@@ -543,13 +544,13 @@ public static class ModProfile
                         }));
                     if ((string)checkResult["status"] == "DUPLICATE")
                     {
-                        ModMain.MyMsgBox("此 ID 已被使用，请换一个 ID。", "ID 修改失败", "确认", IsWarn: true);
+                        ModMain.MyMsgBox("此 ID 已被使用，请换一个 ID。", "ID 修改失败", Lang.Text("Common.Action.Confirm"), IsWarn: true);
                         return;
                     }
 
                     if ((string)checkResult["status"] == "NOT_ALLOWED")
                     {
-                        ModMain.MyMsgBox("此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。", "ID 修改失败", "确认", IsWarn: true);
+                        ModMain.MyMsgBox("此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。", "ID 修改失败", Lang.Text("Common.Action.Confirm"), IsWarn: true);
                         return;
                     }
 
@@ -595,7 +596,7 @@ public static class ModProfile
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput("输入新的玩家 ID",
                 DefaultInput: SelectedProfile.Username,
                 ValidateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                HintText: "3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1: "确认", Button2: "取消"));
+                HintText: "3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1: Lang.Text("Common.Action.Confirm"), Button2: Lang.Text("Common.Action.Cancel")));
             if (string.IsNullOrEmpty(newUsername))
                 return;
             EditOfflineUuid(SelectedProfile, GetOfflineUuid(newUsername));
@@ -623,9 +624,9 @@ public static class ModProfile
             var uuidTypeList = new List<IMyRadio>
             {
                 new MyRadioBox { Text = "行业规范 UUID（推荐）" }, new MyRadioBox { Text = "官方版 PCL UUID（若单人存档的部分信息丢失，可尝试此项）" },
-                new MyRadioBox { Text = "自定义" }
+                new MyRadioBox { Text = Lang.Text("Common.Option.Customize") }
             };
-            uuidTypeInput = ModMain.MyMsgBoxSelect(uuidTypeList, "新建档案 - 选择 UUID 类型", "继续", "取消");
+            uuidTypeInput = ModMain.MyMsgBoxSelect(uuidTypeList, "新建档案 - 选择 UUID 类型", "继续", Lang.Text("Common.Action.Cancel"));
         });
         if (uuidTypeInput is null)
             return;
@@ -639,7 +640,7 @@ public static class ModProfile
                 HintText: "32 位，不含连字符",
                 ValidateRules:
                 [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！")],
-                Button1: "继续", Button2: "取消");
+                Button1: "继续", Button2: Lang.Text("Common.Action.Cancel"));
         if (string.IsNullOrEmpty(newUuid))
             return;
         Write: ;
@@ -691,11 +692,11 @@ public static class ModProfile
             if (hasProfiles)
             {
                 opType = ModMain.MyMsgBox($"PCL CE 支持与 HMCL 相互同步全局档案列表。{"\r\n"}请选择操作：", "档案迁移", "导入", "导出",
-                    "取消", ForceWait: true);
+                    Lang.Text("Common.Action.Cancel"), ForceWait: true);
             }
             else
             {
-                opType = ModMain.MyMsgBox("由于当前档案列表为空，仅支持从 HMCL 导入档案。", "档案迁移", "导入", "取消", ForceWait: true);
+                opType = ModMain.MyMsgBox("由于当前档案列表为空，仅支持从 HMCL 导入档案。", "档案迁移", "导入", Lang.Text("Common.Action.Cancel"), ForceWait: true);
                 if (opType == 2) opType = 3;
             }
         });

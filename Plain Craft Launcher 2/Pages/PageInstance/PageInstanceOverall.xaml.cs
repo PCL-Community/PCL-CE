@@ -13,6 +13,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -260,7 +261,7 @@ public partial class PageInstanceOverall
                 {
                     if (ModMain.MyMsgBox(
                             "确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。" + "\r\n" +
-                            "此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。", "隐藏实例提示", Button2: "取消") != 1)
+                            "此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。", "隐藏实例提示", Button2: Lang.Text("Common.Action.Cancel")) != 1)
                     {
                         ComboDisplayType.SelectedIndex = 0;
                         return;
@@ -610,7 +611,7 @@ public partial class PageInstanceOverall
             // 确认操作
             if (ModMain.MyMsgBox(
                     "你确定要重置实例 " + PageInstanceLeft.Instance.Name + " 吗？" + "\r\n" +
-                    "PCL 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。", "实例重置确认", "确认", "取消") == 2)
+                    "PCL 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。", "实例重置确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                 return;
 
             // 备份实例核心文件
@@ -648,7 +649,7 @@ public partial class PageInstanceOverall
                 LegacyFabricVersion = CurrentVersion.HasLegacyFabric ? CurrentVersion.LegacyFabric : null
             };
             // .MinecraftJson = CurrentVersion.McName,
-            if (!ModDownloadLib.McInstall(Request, "重置"))
+            if (!ModDownloadLib.McInstall(Request, Lang.Text("Common.Action.Reset")))
                 return;
             ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
         }
@@ -685,7 +686,7 @@ public partial class PageInstanceOverall
             switch (ModMain.MyMsgBox(
                         $"你确定要{(IsShiftPressed ? "永久" : "")}删除实例 {PageInstanceLeft.Instance.Name} 吗？" + (IsHintIndie
                             ? "\r\n" + "由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！"
-                            : ""), "实例删除确认", Button2: "取消", IsWarn: IsHintIndie || IsShiftPressed))
+                            : ""), "实例删除确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: IsHintIndie || IsShiftPressed))
             {
                 case 1:
                 {
@@ -733,7 +734,7 @@ public partial class PageInstanceOverall
     {
         switch (ModMain.MyMsgBox(
                     $"你确定要对 {PageInstanceLeft.Instance.Name} 的核心文件进行修补吗？ {"\r\n"}修补游戏核心可能导致游戏崩溃等问题。{"\r\n"}在修补核心后，文件校验会自动关闭。",
-                    "修补提示", Button2: "取消"))
+                    "修补提示", Button2: Lang.Text("Common.Action.Cancel")))
         {
             case 1:
             {

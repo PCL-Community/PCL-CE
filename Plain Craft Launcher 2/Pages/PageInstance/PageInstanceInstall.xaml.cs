@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -96,7 +97,7 @@ public partial class PageInstanceInstall
         if (BtnSelectStart.Text == "开始重置")
             if (ModMain.MyMsgBox(
                     "你正在重置当前实例。" + "\r\n" + "PCL 将会重新联网下载该实例所需的文件，并重新安装 Mod 加载器（如有）。" + "\r\n" +
-                    "此操作不会丢失你的存档、Mod、资源包等。", "重置此实例", "继续", "取消") == 2)
+                    "此操作不会丢失你的存档、Mod、资源包等。", "重置此实例", "继续", Lang.Text("Common.Action.Cancel")) == 2)
                 return;
 
         // 删除 LabyMod Neo 文件

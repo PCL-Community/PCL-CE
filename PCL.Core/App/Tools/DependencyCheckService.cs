@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.App.Tools;
 
@@ -33,7 +34,7 @@ public sealed partial class DependencyCheckService
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
                 $"当前系统环境缺失软件运行所需依赖“{packageName}”\n\n点击确定打开微软应用商店安装",
-                buttons: ["确定", "稍后"]);
+                buttons: [Lang.Text("Common.Action.Confirm"), "稍后"]);
             if (selection == 1) _LaunchMsStore(storeId);
         }
     }

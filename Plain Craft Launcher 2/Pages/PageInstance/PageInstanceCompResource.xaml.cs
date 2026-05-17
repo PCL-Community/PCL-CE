@@ -14,6 +14,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -642,7 +643,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
         var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
-        BtnDelete.ToolTip = "删除";
+        BtnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
         ToolTipService.SetHorizontalOffset(BtnDelete, 2d);
@@ -1043,7 +1044,7 @@ public partial class PageInstanceCompResource : IRefreshable
         if (!isModPage)
         {
             var countSuffix = filePathList.Count() == 1 ? "个" : "些";
-            if (ModMain.MyMsgBox($"是否要将这{countSuffix}文件作为 Mod 安装到 {targetInstance.Name}？", "Mod 安装确认", "确定", "取消") !=
+            if (ModMain.MyMsgBox($"是否要将这{countSuffix}文件作为 Mod 安装到 {targetInstance.Name}？", "Mod 安装确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) !=
                 1) return true;
         }
 
@@ -1227,7 +1228,7 @@ public partial class PageInstanceCompResource : IRefreshable
               ModMain.FrmMain.PageCurrentSub == CurrentPage))
             if (ModMain.MyMsgBox(
                     $"是否要将这{(FilePathList.Count() == 1 ? "个" : "些")}文件作为{CompTypeName}安装到 {targetInstance.Name}？",
-                    $"{CompTypeName}安装确认", "确定", "取消") != 1)
+                    $"{CompTypeName}安装确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) != 1)
                 return;
 
         // 执行安装
@@ -1246,7 +1247,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
                 var DestFile = CompFolder + NewFileName;
                 if (File.Exists(DestFile))
-                    if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", "覆盖", "取消") != 1)
+                    if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
                         continue;
 
                 ModBase.CopyFile(FilePath, DestFile);
@@ -1325,7 +1326,7 @@ public partial class PageInstanceCompResource : IRefreshable
         var Choice =
             ModMain.MyMsgBox(
                 "TXT 格式：仅导出当前的资源文件名称信息，通常足够他人获取已安装的资源信息" + "\r\n" +
-                "CSV 格式：导出详细的资源信息，包括其文件名，工程的 ID，文件内版本信息等详细信息", "选择导出模式", "TXT 格式", "CSV 格式", "取消");
+                "CSV 格式：导出详细的资源信息，包括其文件名，工程的 ID，文件内版本信息等详细信息", "选择导出模式", "TXT 格式", "CSV 格式", Lang.Text("Common.Action.Cancel"));
 
         void ExportText(string Content, string FileName)
         {
@@ -1973,7 +1974,7 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             if (ModMain.MyMsgBox(
                     $"新版本 Mod 可能不兼容旧存档或者其他 Mod，这可能导致游戏崩溃，甚至永久损坏存档！{"\r\n"}如果你在游玩整合包，请千万不要自行更新 Mod！{"\r\n"}{"\r\n"}在更新前，请先备份存档，并检查 Mod 的更新日志。{"\r\n"}如果更新后出现问题，你也可以在回收站找回更新前的 Mod。",
-                    "Mod 更新警告", "我已了解风险，继续更新", "取消", IsWarn: true) == 1)
+                    "Mod 更新警告", "我已了解风险，继续更新", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 States.Hint.UpdateMod = true;
             else
                 return;

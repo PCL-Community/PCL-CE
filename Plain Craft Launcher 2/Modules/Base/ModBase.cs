@@ -86,7 +86,7 @@ public static class ModBase
     /// <summary>
     ///     当前程序的语言。
     /// </summary>
-    public static string Lang = "zh_CN";
+    public static string CurrentLang = "zh_CN";
 
     /// <summary>
     ///     设置对象。
@@ -3658,7 +3658,7 @@ public static class ModBase
                 if (CanFeedback(false))
                 {
                     if (ModMain.MyMsgBox(Text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            Title, "反馈", "取消", IsWarn: true) == 1)
+                            Title, "反馈", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
@@ -3763,7 +3763,7 @@ public static class ModBase
                 if (CanFeedback(false))
                 {
                     if (ModMain.MyMsgBox(ExFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            Title, "反馈", "取消", IsWarn: true) == 1)
+                            Title, "反馈", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
@@ -3832,7 +3832,7 @@ public static class ModBase
         if (ForceOpenLog || (ShowMsgbox &&
                              ModMain.MyMsgBox(
                                  "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
-                                 "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", "打开文件夹", "不需要") ==
+                                 "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", Lang.Text("Common.Action.OpenFolder"), "不需要") ==
                              1)) OpenExplorer(ExePath + @"PCL\Log\");
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
     }
@@ -3847,7 +3847,7 @@ public static class ModBase
                         stat == UpdateEnums.VersionStatus.NotLatest
                             ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
                             : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
-                        "无法提交反馈", stat == UpdateEnums.VersionStatus.NotLatest ? "更新" : "重新检查更新", "取消") == 1)
+                        "无法提交反馈", stat == UpdateEnums.VersionStatus.NotLatest ? "更新" : "重新检查更新", Lang.Text("Common.Action.Cancel")) == 1)
                     ModMain.FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
 
             return false;

@@ -5,6 +5,7 @@ using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -95,7 +96,7 @@ public partial class PageSetupJava
         };
         var btnOpenFolder = new MyIconButton();
         btnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
-        btnOpenFolder.ToolTip = "打开";
+        btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)

@@ -7,6 +7,7 @@ using System.Windows.Media;
 using PCL.Core.UI;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -552,7 +553,7 @@ public partial class PageDownloadCompFavorites
                     var MSelection = new List<IMyRadio>();
                     foreach (var i in SupportedModLoader)
                         MSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, "选择期望的加载器", Button2: "取消");
+                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, "选择期望的加载器", Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedModLoaderStr is null)
                         return;
                     DesiredModLoader = SupportedModLoader[(int)SelectedModLoaderStr];
@@ -626,7 +627,7 @@ public partial class PageDownloadCompFavorites
                     List<IMyRadio> Selection = [];
                     foreach (var i in SuitVersion)
                         Selection.Add(new MyRadioBox { Text = i });
-                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: "取消");
+                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedVersion is null) Ts.Abort();
                 });
                 string SelectedVersionStr = SuitVersion[(int)SelectedVersion];

@@ -9,6 +9,7 @@ using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -86,18 +87,20 @@ public partial class Application
             var problemList = new List<string>();
             var currentOSVersion = NtInterop.GetCurrentOsVersion();
             if (currentOSVersion.Build < 17763)
-                problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统");
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
             if (ModBase.Is32BitSystem)
-                problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏");
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
             if (ModBase.ExePath.Contains(Path.GetTempPath()) || ModBase.ExePath.Contains(@"AppData\Local\Temp\"))
-                problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失");
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
             if (ModBase.ExePath.ContainsF("wechat_files", true) || ModBase.ExePath.ContainsF("WeChat Files", true) ||
                 ModBase.ExePath.ContainsF("Tencent Files", true))
-                problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失");
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
             if (problemList.Count != 0)
                 ModMain.MyMsgBox(
-                    "PCL CE 在启动时检测到环境问题：" + "\r\n" + "\r\n" + problemList.Join("\r\n") +
-                    "\r\n" + "\r\n" + "不解决这些问题可能会导致部分功能无法正常工作……", "环境警告", "我知道了", IsWarn: true);
+                    Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
+                    Lang.Text("Application.EnvironmentWarning.Title"),
+                    Lang.Text("Application.EnvironmentWarning.IKnow"),
+                    IsWarn: true);
             // 设置初始化
             ModBase.Setup.Load("SystemDebugMode");
             ModBase.Setup.Load("SystemDebugAnim");
@@ -128,8 +131,9 @@ public partial class Application
         catch (Exception ex)
         {
             var FilePath = ModBase.ExePathWithName;
-            MessageBox.Show(ex + "\r\n" + "PCL 所在路径：" + (string.IsNullOrEmpty(FilePath) ? "获取失败" : FilePath),
-                "PCL 初始化错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
+                    string.IsNullOrEmpty(FilePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : FilePath),
+                Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);
             FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
         }
     }

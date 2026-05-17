@@ -6,6 +6,7 @@ using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -299,7 +300,7 @@ public partial class MyLocalCompItem
     {
         switch (ModMain.MyMsgBox(
                     $"是否要更新 {Entry.Name}？{"\r\n"}{"\r\n"}{GetUpdateCompareDescription()}", "更新确认",
-                    "更新", "查看更新日志", "取消"))
+                    "更新", "查看更新日志", Lang.Text("Common.Action.Cancel")))
         {
             case 1: // 更新
             {

@@ -46,7 +46,7 @@ public static class ModLaunch
         {
             var userChoice = ModMain.MyMsgBox(
                 $"欲启动实例 \"{ModMinecraft.McInstanceSelected.Name}\" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{"\r\n"}{"\r\n"}如果不清楚具体作用，你可以先选择 \"继续\"，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
-                "游戏路径检查", "继续", "返回处理", "不再提示");
+                "游戏路径检查", "继续", "返回处理", Lang.Text("Common.Hint.DoNotShowAgain"));
             if (userChoice == 2) throw new Exception("$$");
             if (userChoice == 3) States.Hint.NonAsciiGamePath = true;
         }
@@ -909,7 +909,7 @@ public static class ModLaunch
         {
             if (ModMain.MyMsgBox(
                     $"请在登录时选择 {ModBase.vbLQ}其他登录方法{ModBase.vbRQ}，然后选择 {ModBase.vbLQ}使用我的密码{ModBase.vbRQ}。{"\r\n"}如果没有该选项，请选择 {ModBase.vbLQ}设置密码{ModBase.vbRQ}，设置完毕后再登录。",
-                    "需要使用密码登录", "重新登录", "设置密码", "取消",
+                    "需要使用密码登录", "重新登录", "设置密码", Lang.Text("Common.Action.Cancel"),
                     Button2Action: () => ModBase.OpenWebsite("https://account.live.com/password/Change")) ==
                 1) goto Retry;
 
@@ -971,7 +971,7 @@ public static class ModLaunch
                     return;
                 if (ModMain.MyMsgBox(
                         $"启动器在尝试刷新账号信息时遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", "取消") == 1)
+                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore) return new[] { "Ignore", "" };
@@ -1043,7 +1043,7 @@ public static class ModLaunch
                     return;
                 if (ModMain.MyMsgBox(
                         $"启动器在尝试刷新账号信息时(Step 2)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", "取消") == 1)
+                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore) return "Ignore";
@@ -1108,7 +1108,7 @@ public static class ModLaunch
 
                 if (result.Contains("2148916233"))
                 {
-                    if (ModMain.MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", "取消") == 1)
+                    if (ModMain.MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", Lang.Text("Common.Action.Cancel")) == 1)
                         ModBase.OpenWebsite("https://signup.live.com/signup");
                     throw new Exception("$$");
                 }
@@ -1149,7 +1149,7 @@ public static class ModLaunch
                         return;
                     if (ModMain.MyMsgBox(
                             $"启动器在尝试刷新账号信息时(Step 3)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                            "账号信息获取失败", "继续", "取消") == 1)
+                            "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                         IsIgnore = true;
                 });
                 if (IsIgnore)
@@ -1216,7 +1216,7 @@ public static class ModLaunch
                     return;
                 if (ModMain.MyMsgBox(
                         $"启动器在尝试刷新账号信息时(Step 4)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", "取消") == 1)
+                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore)
@@ -1263,7 +1263,7 @@ public static class ModLaunch
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
                 switch (ModMain.MyMsgBox("暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期",
-                            "登录失败", "购买 Minecraft", "取消"))
+                            "登录失败", "购买 Minecraft", Lang.Text("Common.Action.Cancel")))
                 {
                     case 1:
                     {
@@ -1321,7 +1321,7 @@ public static class ModLaunch
                 ModBase.Log(ex, "正版验证 Step 6 汇报 404");
                 ModBase.RunInNewThread(() =>
                 {
-                    switch (ModMain.MyMsgBox("请先创建 Minecraft 玩家档案，然后再重新登录。", "登录失败", "创建档案", "取消"))
+                    switch (ModMain.MyMsgBox("请先创建 Minecraft 玩家档案，然后再重新登录。", "登录失败", "创建档案", Lang.Text("Common.Action.Cancel")))
                     {
                         case 1:
                         {
@@ -1341,7 +1341,7 @@ public static class ModLaunch
                     return;
                 if (ModMain.MyMsgBox(
                         $"启动器在尝试刷新账号信息时(Step 6)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", "取消") == 1)
+                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore)

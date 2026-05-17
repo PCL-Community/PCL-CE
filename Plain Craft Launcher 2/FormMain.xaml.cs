@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
@@ -42,9 +43,9 @@ public partial class FormMain
             if (File.Exists(ChangelogFile))
                 Changelog = ModBase.ReadFile(ChangelogFile);
             else
-                Changelog = "欢迎使用呀~";
+                Changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(Changelog,
-                    "PCL CE 已更新至 " + ModBase.VersionBranchName + " " + ModBase.VersionBaseName, "确定", "完整更新日志") ==
+                    Lang.Text("Main.UpdateLog.Title", ModBase.VersionBranchName, ModBase.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
                 2) ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
         }, "UpdateLog Output");
     }
@@ -152,7 +153,7 @@ public partial class FormMain
         ModMain.FrmLaunchRight.PageState = MyPageRight.PageStates.ContentStay;
         // 调试模式提醒
         if (ModBase.ModeDebug)
-            ModMain.Hint("[调试模式] PCL 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！");
+            ModMain.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
         ModMinecraft.McFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
@@ -251,25 +252,14 @@ public partial class FormMain
                 {
 
 #if DEBUG
-                    const string hint = """
-                                        当前运行的 PCL 社区版为 Debug 版本。
-                                        该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。
-
-                                        非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。
-                                        除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。
-                                        """;
+                    var hint = Lang.Text("Main.SpecialVersion.DebugHint");
 #else
-                    const string hint = """
-                                        当前运行的 PCL 社区版为 CI 自动构建版本。
-                                        该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。
-                
-                                        除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。
-                                        """;
+                    var hint = Lang.Text("Main.SpecialVersion.CiHint");
 #endif
 
                     ModMain.MyMsgBox(
-                        $"{hint}{"\r\n"}{"\r\n"}可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。",
-                        "特殊版本提示", "我清楚我在做什么", "打开最新版下载页并退出", IsWarn: true, Button2Action: () =>
+                        $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
+                        Lang.Text("Main.SpecialVersion.Title"), Lang.Text("Main.SpecialVersion.IUnderstand"), Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), IsWarn: true, Button2Action: () =>
                         {
                             ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
                             EndProgram(false);
@@ -280,7 +270,7 @@ public partial class FormMain
 #endif
                 // EULA 提示
                 if (!States.System.LauncherEula)
-                    switch (ModMain.MyMsgBox("在使用 PCL 前，请同意 PCL 的用户协议与免责声明。", "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
+                    switch (ModMain.MyMsgBox(Lang.Text("Main.Eula.Message"), Lang.Text("Main.Eula.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"), Lang.Text("Main.Eula.View"),
                                 Button3Action: () => ModBase.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
                     {
                         case 1:
@@ -299,13 +289,8 @@ public partial class FormMain
                 if (Config.System.TelemetryConfig.IsDefault())
                 {
                     var selection = ModMain.MyMsgBox(
-                                "启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。" + "\r\n" +
-                                "若启用此功能，我们将会收集以下信息：" + "\r\n" + "\r\n" + "- 启动器内出现的错误" + "\r\n" + "- 启动器版本信息与识别码" +
-                                "\r\n" + "- Windows 系统版本与架构" + "\r\n" + "- 已安装的物理内存大小" +
-                                "\r\n" + "- NAT 与 IPv6 支持情况" + "\r\n" + "- 是否使用过官方版 PCL、HMCL 或 BakaXL" +
-                                "\r\n" + "\r\n" + "这些数据均不与你关联，我们也绝不会向第三方出售数据。" + "\r\n" +
-                                "如果不希望启用遥测，可以选择拒绝。这不会影响其他功能的正常使用，但可能会影响开发者修复潜在 Bug。" + "\r\n" + "你可以随时在启动器设置中调整这项设置。",
-                                "启用遥测数据收集", "同意", "拒绝");
+                                Lang.Text("Main.Telemetry.Message"),
+                                Lang.Text("Main.Telemetry.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"));
                     Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
                 }
                 // 启动加载器池
@@ -555,7 +540,7 @@ public partial class FormMain
         // 发出警告
         if (SendWarning && ModNet.HasDownloadingTask())
         {
-            if (ModMain.MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") == 1)
+            if (ModMain.MyMsgBox(Lang.Text("Main.Exit.HasDownloadingTask"), Lang.Text("Common.Dialog.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
                 // 强行结束下载任务
                 ModBase.RunInNewThread(() =>
                 {
@@ -810,9 +795,9 @@ public partial class FormMain
         {
             PageSetupUI.HiddenForceShow = !PageSetupUI.HiddenForceShow;
             if (PageSetupUI.HiddenForceShow)
-                ModMain.Hint("功能隐藏设置已暂时关闭！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Main.HiddenFeature.Disabled"), ModMain.HintType.Finish);
             else
-                ModMain.Hint("功能隐藏设置已重新开启！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Main.HiddenFeature.Enabled"), ModMain.HintType.Finish);
             PageSetupUI.HiddenRefresh();
             return;
         }
@@ -831,7 +816,7 @@ public partial class FormMain
         if (e.Key == Key.Enter && PageCurrent == PageType.Launch)
         {
             if (ModMain.IsAprilEnabled && !ModMain.IsAprilGiveup)
-                ModMain.Hint("木大！");
+                ModMain.Hint(Lang.Text("Main.April.Nope"));
             else
                 ModMain.FrmLaunchLeft.LaunchButtonClick();
         }
@@ -975,12 +960,12 @@ public partial class FormMain
                         ModBase.Log("[System] Authlib 拖拽：" + AuthlibServer);
                         if (!new HttpValidator().Validate(AuthlibServer).IsValid)
                         {
-                            ModMain.Hint($"输入的 Authlib 验证服务器不符合网址格式（{AuthlibServer}）！", ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.AuthlibInvalid", AuthlibServer), ModMain.HintType.Critical);
                             return;
                         }
 
-                        if (ModMain.MyMsgBox($"是否要创建新的第三方验证档案？{"\r\n"}验证服务器地址：{AuthlibServer}", "创建新的第三方验证档案",
-                                "确定", "取消") == 2)
+                        if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", AuthlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
+                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
                         ModProfile.SelectedProfile = null;
                         ModBase.RunInUi(() =>
@@ -1012,7 +997,7 @@ public partial class FormMain
                 var FilePathRaw = e.Data.GetData(DataFormats.FileDrop);
                 if (FilePathRaw is null) // #2690
                 {
-                    ModMain.Hint("请将文件解压后再拖入！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), ModMain.HintType.Critical);
                     return;
                 }
 
@@ -1037,13 +1022,13 @@ public partial class FormMain
             // 基础检查
             if (Directory.Exists(FilePathList.First()) && !File.Exists(FilePathList.First()))
             {
-                ModMain.Hint("请拖入一个文件，而非文件夹！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Main.FileDrag.FileOnly"), ModMain.HintType.Critical);
                 return;
             }
 
             if (!File.Exists(FilePathList.First()))
             {
-                ModMain.Hint("拖入的文件不存在：" + FilePathList.First(), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Main.FileDrag.FileNotFound", FilePathList.First()), ModMain.HintType.Critical);
                 return;
             }
 
@@ -1062,7 +1047,7 @@ public partial class FormMain
                 // 允许同类型的 Mod 文件或投影文件批量拖拽
                 else
                 {
-                    ModMain.Hint("一次请只拖入相同类型的文件！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Main.FileDrag.SameTypeOnly"), ModMain.HintType.Critical);
                     return;
                 }
             }
@@ -1073,7 +1058,7 @@ public partial class FormMain
             {
                 ModBase.Log("[System] 文件后缀为 XAML，作为主页加载");
                 if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
-                    if (ModMain.MyMsgBox("已存在一个主页文件，是否要将它覆盖？", "覆盖确认", "覆盖", "取消") == 2)
+                    if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.HomepageExists"), Lang.Text("Main.FileDrag.OverwriteTitle"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) == 2)
                         return;
 
                 ModBase.CopyFile(FilePath, ModBase.ExePath + @"PCL\Custom.xaml");
@@ -1081,7 +1066,7 @@ public partial class FormMain
                 {
                     Config.Preference.Homepage.Type = 1;
                     ModMain.FrmLaunchRight.ForceRefresh();
-                    ModMain.Hint("已加载主页自定义文件！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Main.FileDrag.HomepageLoaded"), ModMain.HintType.Finish);
                 });
                 return;
             }
@@ -1113,12 +1098,12 @@ public partial class FormMain
                                          ModBase.GetFileNameWithoutExtentionFromPath(FilePath);
                         if (Directory.Exists(DestFolder))
                         {
-                            ModMain.Hint("发现同名文件夹，无法粘贴：" + DestFolder, ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFolderExists", DestFolder), ModMain.HintType.Critical);
                             return;
                         }
 
                         ModBase.ExtractFile(FilePath, DestFolder);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameWithoutExtentionFromPath(FilePath)}",
+                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(FilePath)),
                             ModMain.HintType.Finish);
                         if (ModMain.FrmInstanceSaves is not null)
                             ModBase.RunInUi(() => ModMain.FrmInstanceSaves.Reload());
@@ -1130,12 +1115,12 @@ public partial class FormMain
                                        ModBase.GetFileNameFromPath(FilePath);
                         if (File.Exists(DestFile))
                         {
-                            ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", DestFile), ModMain.HintType.Critical);
                             return;
                         }
 
                         ModBase.CopyFile(FilePath, DestFile);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(FilePath)), ModMain.HintType.Finish);
                         if (ModMain.FrmInstanceResourcePack is not null)
                             ModBase.RunInUi(() => ModMain.FrmInstanceResourcePack.ReloadCompFileList());
                         return;
@@ -1146,12 +1131,12 @@ public partial class FormMain
                                        ModBase.GetFileNameFromPath(FilePath);
                         if (File.Exists(DestFile))
                         {
-                            ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", DestFile), ModMain.HintType.Critical);
                             return;
                         }
 
                         ModBase.CopyFile(FilePath, DestFile);
-                        ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(FilePath)), ModMain.HintType.Finish);
                         if (ModMain.FrmInstanceShader is not null)
                             ModBase.RunInUi(() => ModMain.FrmInstanceShader.ReloadCompFileList());
                         return;
@@ -1167,13 +1152,13 @@ public partial class FormMain
                                ModBase.GetFileNameFromPath(FilePath);
                 if (File.Exists(DestFile))
                 {
-                    ModMain.Hint("已存在同名文件：" + DestFile, ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", DestFile), ModMain.HintType.Critical);
                     return;
                 }
 
                 Directory.CreateDirectory(PageInstanceLeft.Instance.PathIndie + @"schematics\");
                 ModBase.CopyFile(FilePath, DestFile);
-                ModMain.Hint($"已导入 {ModBase.GetFileNameFromPath(FilePath)}", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(FilePath)), ModMain.HintType.Finish);
                 if (ModMain.FrmInstanceSchematic is not null)
                     ModBase.RunInUi(() => ModMain.FrmInstanceSchematic.ReloadCompFileList());
                 return;
@@ -1238,7 +1223,7 @@ public partial class FormMain
             } while (false);
 
             // 未知操作
-            ModMain.Hint("PCL 无法确定应当执行的文件拖拽操作……");
+            ModMain.Hint(Lang.Text("Main.FileDrag.UnknownOperation"));
         }, "文件拖拽");
     }
 
@@ -1510,23 +1495,23 @@ public partial class FormMain
         {
             case PageType.InstanceSelect:
             {
-                return "实例选择";
+                return Lang.Text("Main.Title.InstanceSelect");
             }
             case PageType.TaskManager:
             {
-                return "任务管理";
+                return Lang.Text("Main.Title.TaskManager");
             }
             case PageType.GameLog:
             {
-                return "实时日志";
+                return Lang.Text("Main.Title.GameLog");
             }
             case PageType.InstanceSetup:
             {
-                return $"实例设置 - {(PageInstanceLeft.Instance is null ? "未知实例" : PageInstanceLeft.Instance.Name)}";
+                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.Instance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.Instance.Name);
             }
             case PageType.CompDetail:
             {
-                return $"资源下载 - {Stack.Additional.Value.CompProject.TranslatedName}";
+                return Lang.Text("Main.Title.ResourceDownload", Stack.Additional.Value.CompProject.TranslatedName);
             }
             case PageType.HelpDetail:
             {
@@ -1534,11 +1519,11 @@ public partial class FormMain
             }
             case PageType.VersionSaves:
             {
-                return $"存档管理 - {ModBase.GetFolderNameFromPath(Stack.Additional.Value.SavePath)}";
+                return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(Stack.Additional.Value.SavePath));
             }
             case PageType.HomePageMarket:
             {
-                return "主页市场";
+                return Lang.Text("Main.Title.HomePageMarket");
             }
 
             default:
@@ -2218,7 +2203,7 @@ public partial class FormMain
                 ModLaunch.McLaunchLoaderReal.Abort();
             foreach (var Watcher in ModWatcher.McWatcherList)
                 Watcher.Kill();
-            ModMain.Hint("已关闭运行中的 Minecraft！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Main.ShutdownMinecraft.Success"), ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {

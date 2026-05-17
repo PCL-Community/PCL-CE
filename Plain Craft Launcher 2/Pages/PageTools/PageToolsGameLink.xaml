@@ -42,7 +42,7 @@
                                         Click="CancelLoad"
                                         VerticalAlignment="Top"
                                         Theme="Black" Opacity="0.5"
-                                        ToolTip="取消" ToolTipService.Placement="Right"
+                                        ToolTip="{DynamicResource Common.Action.Cancel}" ToolTipService.Placement="Right"
                                         ToolTipService.InitialShowDelay="100"
                                         LogoScale="0.72"
                                         Logo="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
@@ -138,7 +138,7 @@
                                 <local:MyButton x:Name="BtnCreate" DockPanel.Dock="Right" Text="创建"
                                                 ColorType="Highlight" Width="50" Margin="10,0,0,0"
                                                 Click="BtnCreate_Click" />
-                                <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right" Text="刷新" ColorType="Normal"
+                                <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right" Text="{DynamicResource Common.Action.Refresh}" ColorType="Normal"
                                                 Width="50" Margin="10,0,0,0" Click="BtnRefresh_Click" />
                                 <local:MyButton x:Name="BtnInputPort" DockPanel.Dock="Right" Text="手动输入"
                                                 ColorType="Normal" Width="80" Margin="10,0,0,0"

@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using SearchOption = System.IO.SearchOption;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -207,7 +208,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 var btnOpen = new MyIconTextButton
                 {
                     Name = "BtnOpen",
-                    Text = "打开",
+                    Text = Lang.Text("Common.Action.Open"),
                     LogoScale = 0.8d,
                     Logo = ModBase.Logo.IconButtonOpen,
                     Tag = i
@@ -217,7 +218,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 var btnDelete = new MyIconTextButton
                 {
                     Name = "BtnDelete",
-                    Text = "删除",
+                    Text = Lang.Text("Common.Action.Delete"),
                     LogoScale = 0.8d,
                     Logo = ModBase.Logo.IconButtonDelete,
                     Tag = i
@@ -227,7 +228,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 var btnCopy = new MyIconTextButton
                 {
                     Name = "BtnCopy",
-                    Text = "复制",
+                    Text = Lang.Text("Common.Action.Copy"),
                     LogoScale = 0.8d,
                     Logo = ModBase.Logo.IconButtonCopy,
                     Tag = i

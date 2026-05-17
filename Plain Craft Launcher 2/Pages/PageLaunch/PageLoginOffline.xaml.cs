@@ -1,5 +1,6 @@
 using System.Windows;
 using PCL.Core.Utils.Validate;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -43,7 +44,7 @@ public partial class PageLoginOffline
         if (!UsernameValidateResult.IsValid)
             if (ModMain.MyMsgBox(
                     $"你输入的玩家 ID 不符合标准（3 - 16 位，只可以包含英文字母、数字与下划线），可能导致部分版本的游戏无法启动或发生错误。{"\r\n"}强烈建议使用规范的玩家 ID！{"\r\n"}如果你坚持，仍然可以继续创建档案。",
-                    "玩家 ID 不符合规范", "继续", "取消", IsWarn: true, ForceWait: true) == 2)
+                    "玩家 ID 不符合规范", "继续", Lang.Text("Common.Action.Cancel"), IsWarn: true, ForceWait: true) == 2)
                 return;
         // UUID
         string UserUuid = null;

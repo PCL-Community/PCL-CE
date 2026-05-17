@@ -6,6 +6,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.UI;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -123,7 +124,7 @@ public partial class PageSetupLauncherMisc
     {
         SliderDebugAnim.GetHintText = new Func<object, object>(v =>
             (int)v > 29
-                ? "关闭"
+                ? Lang.Text("Common.Action.Close")
                 : Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1) + "x");
         SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Convert.ToInt32(v) + 1} FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
@@ -169,7 +170,7 @@ public partial class PageSetupLauncherMisc
 
                 一般选择 仅在有重要通知时显示公告 就可以让你尽量不受打扰了。
                 除非你在制作服务器整合包，或时常手动更新启动器，否则极度不推荐选择此项！
-                """, "警告", "我知道我在做什么", "取消", IsWarn: true) ==
+                """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
