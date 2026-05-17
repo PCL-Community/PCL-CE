@@ -3035,7 +3035,7 @@ public static class ModMinecraft
         }
 
         // 修改渲染器
-        var mesaLoaderWindowsVersion = "25.3.5";
+        var mesaLoaderWindowsVersion = "26.0.4";
         var mesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
