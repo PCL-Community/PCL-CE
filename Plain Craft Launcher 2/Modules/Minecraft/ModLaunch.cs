@@ -2475,7 +2475,7 @@ public static class ModLaunch
                     1));
         else
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
-        var MesaLoaderWindowsVersion = "25.3.5";
+        var MesaLoaderWindowsVersion = "26.0.4";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
@@ -2600,7 +2600,7 @@ public static class ModLaunch
                     1));
         else
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
-        var MesaLoaderWindowsVersion = "25.3.5";
+        var MesaLoaderWindowsVersion = "26.0.4";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
