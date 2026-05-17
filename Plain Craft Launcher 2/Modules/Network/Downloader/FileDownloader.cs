@@ -90,7 +90,8 @@ public static class FileDownloader
             DownloadFileExtension = ModNet.NetDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
-            CustomHttpClientFactory = () => NetworkService.GetClient()
+            CustomHttpClientFactory = () => NetworkService.GetClient(),
+            MinimumSizeOfChunking = 1024 * 1024,
         };
 
         using var downloader = new DownloadService(configuration);
