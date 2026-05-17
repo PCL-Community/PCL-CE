@@ -93,6 +93,7 @@ public static class FileDownloader
             ParallelDownload = perFileThreadLimit > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
             MaxTryAgainOnFailure = 2,
+            BlockTimeout = 30000,
             DownloadFileExtension = ModNet.NetDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
