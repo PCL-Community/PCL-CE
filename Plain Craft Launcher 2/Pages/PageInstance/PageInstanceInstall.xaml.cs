@@ -1303,13 +1303,13 @@ public partial class PageInstanceInstall
                 var TopestVersions = new List<JObject>();
                 var Release = (JObject)Dict["正式版"][0].DeepClone();
                 Release["lore"] = "最新正式版，发布于 " +
-                                  Release["releaseTime"].Value<DateTime>().ToString("yyyy'/'MM'/'dd HH':'mm");
+                                  Lang.Date(Release["releaseTime"].Value<DateTime>(), "g");
                 TopestVersions.Add(Release);
                 if (Dict["正式版"][0]["releaseTime"].Value<DateTime>() < Dict["预览版"][0]["releaseTime"].Value<DateTime>())
                 {
                     var Snapshot = (JObject)Dict["预览版"][0].DeepClone();
                     Snapshot["lore"] = "最新预览版，发布于 " +
-                                       Snapshot["releaseTime"].Value<DateTime>().ToString("yyyy'/'MM'/'dd HH':'mm");
+                                       Lang.Date(Snapshot["releaseTime"].Value<DateTime>(), "g");
                     TopestVersions.Add(Snapshot);
                 }
 

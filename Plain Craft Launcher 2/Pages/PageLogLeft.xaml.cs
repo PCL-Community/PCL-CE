@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -59,7 +60,7 @@ public partial class PageLogLeft
                 var NewItem = new MyListItem
                 {
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = Version.Name, Info = $"{Version.Info} - {Proc.StartTime:HH:mm:ss}", Height = 40d, Tag = Uuid
+                    Title = Version.Name, Info = $"{Version.Info} - {Lang.Date(Proc.StartTime, "T")}", Height = 40d, Tag = Uuid
                 };
                 NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -59,10 +60,10 @@ public partial class PageSpeedLeft
             if (!ModLoader.LoaderTaskbar.Any())
             {
                 // 无任务
-                LabProgress.Text = "100 %";
-                LabSpeed.Text = "0 B/s";
-                LabFile.Text = "0";
-                LabThread.Text = "0 / " + ModNet.NetTaskThreadLimit;
+                LabProgress.Text = Lang.Number(1d, "P0");
+                LabSpeed.Text = ModBase.GetString(0) + "/s";
+                LabFile.Text = Lang.Number(0, "N0");
+                LabThread.Text = Lang.Number(0, "N0") + " / " + Lang.Number(ModNet.NetTaskThreadLimit, "N0");
             }
             else
             {
@@ -73,14 +74,12 @@ public partial class PageSpeedLeft
                         Tasks.Average(l => l.Progress),
                         0, 1)
                     : 1d;
-                var PredictText = Math.Floor(RawPercent * 100d) + "." +
-                                  ModBase.StrFill(
-                                      Math.Floor((RawPercent * 100d - Math.Floor(RawPercent * 100d)) * 100d).ToString(),
-                                      "0", 2) + " %";
-                LabProgress.Text = RawPercent > 0.999999d ? "100 %" : PredictText;
+                var PredictText = Lang.Number(RawPercent, "P2");
+                LabProgress.Text = RawPercent > 0.999999d ? Lang.Number(1d, "P0") : PredictText;
                 LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
-                LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : ModNet.NetManager.FileRemain.ToString();
-                LabThread.Text = ModNet.NetManager.ThreadCount + " / " + ModNet.NetTaskThreadLimit;
+                LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : Lang.Number(ModNet.NetManager.FileRemain, "N0");
+                LabThread.Text = Lang.Number(ModNet.NetManager.ThreadCount, "N0") + " / " +
+                                 Lang.Number(ModNet.NetTaskThreadLimit, "N0");
             }
         }
 
@@ -206,12 +205,12 @@ public partial class PageSpeedLeft
                                                     Card.Children.RemoveAt(Row * 2);
                                                     Card.Children.Insert(Row * 2,
                                                         (UIElement)ModBase.GetObjectFromXML(
-                                                            $"<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Text=\"{Math.Floor(SubTask.Progress * 100d)}%\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\"/>"));
+                                                            $"<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\"/>"));
                                                 }
                                                 else
                                                 {
                                                     ((TextBlock)Card.Children[Row * 2]).Text =
-                                                        $"{Math.Floor(SubTask.Progress * 100d)}%";
+                                                        $"{Lang.Number(SubTask.Progress, "P0")}";
                                                 }
 
                                                 break;
@@ -281,7 +280,7 @@ public partial class PageSpeedLeft
                             }
                             case ModBase.LoadState.Loading:
                             {
-                                CardXAML += $"<TextBlock Text=\"{Math.Floor(SubTask.Progress * 100d)}%\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
+                                CardXAML += $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
                                 break;
                             }
                             case ModBase.LoadState.Finished:

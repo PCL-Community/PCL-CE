@@ -57,7 +57,7 @@ public partial class PageSetupLog
                 var r = DateTime.TryParseExact(title, "yyyy-M-d-HHmmssfff", CultureInfo.InvariantCulture,
                     DateTimeStyles.None, out dt);
                 if (r)
-                    title = dt.ToString("yyyy 年 M 月 d 日 HH:mm:ss.fff");
+                    title = Lang.Date(dt, "G");
                 if (current.Any(log => log.Equals(fullPath)))
                     title = title + " (当前)";
             }
@@ -91,7 +91,7 @@ public partial class PageSetupLog
     {
         const string filter = "PCL CE 日志压缩包|*.zip";
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+        var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         var tempDirName = baseName + ".tmp";
         var fileName = baseName + ".zip";
         var selectedPath = SystemDialogs.SelectSaveFile("导出日志文件", fileName, filter, desktopPath);

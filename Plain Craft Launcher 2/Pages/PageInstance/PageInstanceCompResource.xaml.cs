@@ -2639,10 +2639,10 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 显示方块和体积统计
         if (ModEntry.LitematicTotalBlocks.HasValue)
-            ContentLines.Add("总方块数：" + ModEntry.LitematicTotalBlocks.Value.ToString("N0"));
+            ContentLines.Add("总方块数：" + Lang.Number(ModEntry.LitematicTotalBlocks.Value, "N0"));
 
         if (ModEntry.LitematicTotalVolume.HasValue)
-            ContentLines.Add("总体积：" + ModEntry.LitematicTotalVolume.Value.ToString("N0"));
+            ContentLines.Add("总体积：" + Lang.Number(ModEntry.LitematicTotalVolume.Value, "N0"));
 
         // 显示区域数量
         if (ModEntry.LitematicRegionCount.HasValue) ContentLines.Add("区域数量：" + ModEntry.LitematicRegionCount.Value);
@@ -2653,7 +2653,7 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 var createdTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeCreated.Value)
                     .ToLocalTime().DateTime;
-                ContentLines.Add("创建时间：" + createdTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                ContentLines.Add("创建时间：" + Lang.Date(createdTime, "G"));
             }
             catch
             {
@@ -2665,7 +2665,7 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 var modifiedTime = DateTimeOffset.FromUnixTimeMilliseconds(ModEntry.LitematicTimeModified.Value)
                     .ToLocalTime().DateTime;
-                ContentLines.Add("修改时间：" + modifiedTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                ContentLines.Add("修改时间：" + Lang.Date(modifiedTime, "G"));
             }
             catch
             {
@@ -2696,10 +2696,10 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 显示方块和体积统计
         if (ModEntry.LitematicTotalBlocks.HasValue)
-            ContentLines.Add("总方块数：" + ModEntry.LitematicTotalBlocks.Value.ToString("N0"));
+            ContentLines.Add("总方块数：" + Lang.Number(ModEntry.LitematicTotalBlocks.Value, "N0"));
 
         if (ModEntry.LitematicTotalVolume.HasValue)
-            ContentLines.Add("总体积：" + ModEntry.LitematicTotalVolume.Value.ToString("N0"));
+            ContentLines.Add("总体积：" + Lang.Number(ModEntry.LitematicTotalVolume.Value, "N0"));
 
         // 显示区域数量
         if (ModEntry.LitematicRegionCount.HasValue) ContentLines.Add("区域数量：" + ModEntry.LitematicRegionCount.Value);
@@ -2720,10 +2720,10 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 显示方块和体积统计
         if (ModEntry.LitematicTotalBlocks.HasValue)
-            ContentLines.Add("总方块数：" + ModEntry.LitematicTotalBlocks.Value.ToString("N0"));
+            ContentLines.Add("总方块数：" + Lang.Number(ModEntry.LitematicTotalBlocks.Value, "N0"));
 
         if (ModEntry.LitematicTotalVolume.HasValue)
-            ContentLines.Add("总体积：" + ModEntry.LitematicTotalVolume.Value.ToString("N0"));
+            ContentLines.Add("总体积：" + Lang.Number(ModEntry.LitematicTotalVolume.Value, "N0"));
 
         ContentLines.Add("文件类型：MCEdit/WorldEdit Schematic");
     }
@@ -2749,10 +2749,10 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 显示方块和体积统计
         if (ModEntry.LitematicTotalBlocks.HasValue)
-            ContentLines.Add("总方块数：" + ModEntry.LitematicTotalBlocks.Value.ToString("N0"));
+            ContentLines.Add("总方块数：" + Lang.Number(ModEntry.LitematicTotalBlocks.Value, "N0"));
 
         if (ModEntry.LitematicTotalVolume.HasValue)
-            ContentLines.Add("总体积：" + ModEntry.LitematicTotalVolume.Value.ToString("N0"));
+            ContentLines.Add("总体积：" + Lang.Number(ModEntry.LitematicTotalVolume.Value, "N0"));
 
         // 显示区域数量
         if (ModEntry.LitematicRegionCount.HasValue) ContentLines.Add("区域数量：" + ModEntry.LitematicRegionCount.Value);

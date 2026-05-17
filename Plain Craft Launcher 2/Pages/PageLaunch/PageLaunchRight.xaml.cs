@@ -445,7 +445,7 @@ public partial class PageLaunchRight : IRefreshable
             var LoadCostTime = (DateTime.Now - LoadStartTime).Milliseconds;
             ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {LoadCostTime}ms");
             if (LoadCostTime > 3000)
-                ModMain.Hint($"主页加载过于缓慢（花费了 {Math.Round(LoadCostTime / 1000d, 1)} 秒），请向主页作者反馈此问题，或暂时停止使用该主页");
+                ModMain.Hint($"主页加载过于缓慢（花费了 {Lang.Number(Math.Round(LoadCostTime / 1000d, 1), "N1")} 秒），请向主页作者反馈此问题，或暂时停止使用该主页");
         }
 
         return;

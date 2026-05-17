@@ -203,7 +203,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = saveLogo,
                         Title = GetFolderNameFromPath(curFolder),
                         Info =
-                            $"创建时间：{Directory.GetCreationTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}",
+                            $"创建时间：{Lang.Date(Directory.GetCreationTime(curFolder), "d")}，最后修改时间：{Lang.Date(Directory.GetLastWriteTime(curFolder), "d")}",
                         Type = MyListItem.CheckType.Clickable
                     };
                     worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData

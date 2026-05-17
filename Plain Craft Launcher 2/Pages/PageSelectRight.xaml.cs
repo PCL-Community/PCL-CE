@@ -253,7 +253,7 @@ public partial class PageSelectRight
                 #endregion
 
                 // 建立控件
-                var CardTitle = $"{CardName}{(CardName == "收藏夹" ? "" : $" ({filteredInstances.Count})")}";
+                var CardTitle = $"{CardName}{(CardName == "收藏夹" ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
                 var NewCard = new MyCard { Title = CardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
@@ -574,8 +574,8 @@ public partial class PageSelectRight
                 {
                     // 删除后还有剩
                     var Card = (MyCard)Parent.Parent;
-                    Card.Title = Card.Title.Replace((Parent.Children.Count - 1).ToString(),
-                        (Parent.Children.Count - 2).ToString()); // 有一个占位符
+                    Card.Title = Card.Title.Replace(Lang.Number(Parent.Children.Count - 1, "N0"),
+                        Lang.Number(Parent.Children.Count - 2, "N0")); // 有一个占位符
                     Parent.Children.Remove(item);
                     if (ModMinecraft.McInstanceSelected is not null && (instance.PathInstance ?? "") ==
                         (ModMinecraft.McInstanceSelected.PathInstance ?? ""))

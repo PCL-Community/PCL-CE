@@ -22,6 +22,7 @@ using PCL.Network;
 using PCL.Core.IO.Net.Http;
 using PCL;
 using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
+using System.Globalization;
 
 namespace PCL;
 
@@ -2105,10 +2106,10 @@ public static class ModLaunch
         }
 
         double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
-        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb:N1}G");
+        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
         double totalRamMb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected) * 1024d;
-        DataList.Add($"-Xmn{Math.Floor(totalRamMb * 0.15)}m");
-        DataList.Add($"-Xmx{Math.Floor(totalRamMb)}m");
+        DataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
+        DataList.Add("-Xmx" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
         if (!DataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
             DataList.Add("-Dlog4j2.formatMsgNoLookups=true");
     }
@@ -2884,8 +2885,8 @@ public static class ModLaunch
             GameSize.Height /= ModBase.DPI / 96d;
         }
 
-        GameArguments.Add("${resolution_width}", Math.Round(GameSize.Width).ToString());
-        GameArguments.Add("${resolution_height}", Math.Round(GameSize.Height).ToString());
+        GameArguments.Add("${resolution_width}", Math.Round(GameSize.Width).ToString(CultureInfo.InvariantCulture));
+        GameArguments.Add("${resolution_height}", Math.Round(GameSize.Height).ToString(CultureInfo.InvariantCulture));
 
         // Assets 相关参数
         GameArguments.Add("${game_assets}",
@@ -3485,11 +3486,11 @@ public static class ModLaunch
         McLaunchLog("实例继承：" + (string.IsNullOrEmpty(ModMinecraft.McInstanceSelected.InheritInstanceName)
             ? "无"
             : ModMinecraft.McInstanceSelected.InheritInstanceName));
+        var launchRamGb = PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected,
+            !McLaunchJavaSelected.Installation.Is64Bit);
         McLaunchLog("分配的内存：" +
-                    PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected,
-                        !McLaunchJavaSelected.Installation.Is64Bit) + " GB（" +
-                    Math.Round(PageInstanceSetup.GetRam(ModMinecraft.McInstanceSelected,
-                        !McLaunchJavaSelected.Installation.Is64Bit) * 1024d) + " MB）");
+                    launchRamGb.ToString("N1", CultureInfo.InvariantCulture) + " GB（" +
+                    Math.Round(launchRamGb * 1024d).ToString("N0", CultureInfo.InvariantCulture) + " MB）");
         McLaunchLog("MC 文件夹：" + ModMinecraft.McFolderSelected);
         McLaunchLog("实例文件夹：" + ModMinecraft.McInstanceSelected.PathInstance);
         McLaunchLog("版本隔离：" + ((ModMinecraft.McInstanceSelected.PathIndie ?? "") ==
@@ -3636,8 +3637,8 @@ public static class ModLaunch
         // 时间
         if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
         {
-            text = text.Replace("{date}", replacer(DateTime.Now.ToString("yyyy'/'M'/'d")));
-            text = text.Replace("{time}", replacer(DateTime.Now.ToString("HH':'mm':'ss")));
+            text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
+            text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
         }
 
         // Minecraft

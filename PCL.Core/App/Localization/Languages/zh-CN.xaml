@@ -27,7 +27,13 @@
     <sys:String x:Key="Common.Option.Auto">自动</sys:String>
     <sys:String x:Key="Common.Option.Customize">自定义</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">不再提示</sys:String>
-    
+    <sys:String x:Key="Common.Format.TimeSpan.Past">{0}前</sys:String>
+    <sys:String x:Key="Common.Format.TimeSpan.Future">{0}后</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit1">{0} 万</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit2">{0} 亿</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit3">{0} 兆</sys:String>
+    <sys:String x:Key="Common.Format.DownloadCount">下载 {0} 次</sys:String>
+
     <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失</sys:String>
@@ -91,7 +97,7 @@
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">是否要创建新的第三方验证档案？&#x0a;验证服务器地址：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfileTitle">创建新的第三方验证档案</sys:String>
     <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL 无法确定应当执行的文件拖拽操作……</sys:String>
-    
+
     <sys:String x:Key="Setup.LauncherLanguage.Title">语言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">语言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">界面语言</sys:String>

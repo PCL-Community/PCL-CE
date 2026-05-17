@@ -393,7 +393,7 @@ public partial class PageLaunchLeft
             // 文本
             LabLaunchingTitle.Text = IsLaunched ? "已启动游戏" :
                 ModLaunch.CurrentLaunchOptions.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
-            LabLaunchingProgress.Text = ModBase.StrFillNum(ShowProgress * 100d, 2) + " %";
+            LabLaunchingProgress.Text = Lang.Number(ShowProgress, "P2");
             var HasLaunchDownloader = false;
             try
             {
@@ -547,12 +547,12 @@ public partial class PageLaunchLeft
         LabLaunchingName.Text = ModMinecraft.McInstanceSelected.Name;
         LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
         LabLaunchingTitle.Text = ModLaunch.CurrentLaunchOptions?.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
-        LabLaunchingProgress.Text = "0.00 %";
+        LabLaunchingProgress.Text = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
-        LabLaunchingDownload.Text = "0 B/s";
+        LabLaunchingDownload.Text = ModBase.GetString(0) + "/s";
         LabLaunchingDownload.Opacity = 0d;
         LabLaunchingDownload.Visibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;

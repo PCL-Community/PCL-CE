@@ -27,6 +27,12 @@
     <sys:String x:Key="Common.Option.Auto">Auto</sys:String>
     <sys:String x:Key="Common.Option.Customize">Customize</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">Do not show again</sys:String>
+    <sys:String x:Key="Common.Format.TimeSpan.Past">{0} ago</sys:String>
+    <sys:String x:Key="Common.Format.TimeSpan.Future">in {0}</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit1">{0}k</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit2">{0}M</sys:String>
+    <sys:String x:Key="Common.Format.Number.Digit3">{0}B</sys:String>
+    <sys:String x:Key="Common.Format.DownloadCount">{0} downloads</sys:String>
 
     <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- The Windows version does not meet the recommended requirement. Windows 10 1809 or later is recommended. Consider upgrading Windows.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>

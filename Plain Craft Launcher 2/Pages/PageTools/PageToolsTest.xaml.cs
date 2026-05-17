@@ -20,6 +20,7 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
+using System.Globalization;
 
 namespace PCL;
 
@@ -164,7 +165,7 @@ public partial class PageToolsTest
         var random = new Random(GenerateDailySeed());
         var luckValue = random.Next(0, 101);
         var rating = GetRating(luckValue);
-        var currentDate = DateTime.Now.ToString("yyyy/MM/dd");
+        var currentDate = Lang.Date(DateTime.Now, "d");
         var title = $"今日人品 - {currentDate}";
 
         if (luckValue >= 60)
@@ -453,7 +454,7 @@ public partial class PageToolsTest
 
     public static int GenerateDailySeed()
     {
-        var datePart = DateTime.Today.ToString("yyyyMMdd");
+        var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
         return DJB2Hash(datePart + Identify.LauncherId);
     }

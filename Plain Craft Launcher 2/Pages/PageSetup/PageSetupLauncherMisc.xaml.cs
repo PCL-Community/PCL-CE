@@ -125,8 +125,8 @@ public partial class PageSetupLauncherMisc
         SliderDebugAnim.GetHintText = new Func<object, object>(v =>
             (int)v > 29
                 ? Lang.Text("Common.Action.Close")
-                : Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1) + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Convert.ToInt32(v) + 1} FPS");
+                : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
+        SliderAniFPS.GetHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)

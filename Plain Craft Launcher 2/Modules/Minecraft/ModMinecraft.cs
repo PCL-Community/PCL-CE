@@ -41,8 +41,8 @@ public static class ModMinecraft
                 return;
             var time = (DateTime)version["releaseTime"];
             var msgBoxText = $"新版本：{versionName}{"\r\n"}" + ((DateTime.Now - time).TotalDays > 1d
-                ? "更新时间：" + time
-                : "更新于：" + TimeUtils.GetTimeSpanString(time - DateTime.Now, false));
+                ? "更新时间：" + Lang.Date(time, "G")
+                : "更新于：" + Lang.TimeSpan(time - DateTime.Now));
             var msgResult = ModMain.MyMsgBox(msgBoxText, "Minecraft 更新提示", Lang.Text("Common.Action.Confirm"), "下载",
                 (DateTime.Now - time).TotalHours > 3d ? "更新日志" : "",
                 Button3Action: () => ModDownloadLib.McUpdateLogShow(version));
@@ -382,6 +382,7 @@ public static class ModMinecraft
         {
             if (File.Exists(Path.Combine(Folder, "launcher_profiles.json")))
                 return;
+            var now = DateTime.Now;
             var ResultJson = @"{
     ""profiles"":  {
         ""PCL"": {
@@ -389,8 +390,8 @@ public static class ModMinecraft
             ""name"": ""PCL"",
             ""lastVersionId"": ""latest-release"",
             ""type"": ""latest-release"",
-            ""lastUsed"": """ + DateTime.Now.ToString("yyyy'-'MM'-'dd") + "T" + DateTime.Now.ToString("HH':'mm':'ss") +
-                             @".0000Z""
+            ""lastUsed"": """ + now.ToString("yyyy'-'MM'-'dd", CultureInfo.InvariantCulture) + "T" +
+                             now.ToString("HH':'mm':'ss", CultureInfo.InvariantCulture) + @".0000Z""
         }
     },
     ""selectedProfile"": ""PCL"",
@@ -1322,7 +1323,7 @@ public static class ModMinecraft
 
                 if (State != McInstanceState.Error)
                 {
-                    States.Instance.ReleaseTime[PathInstance] = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm");
+                    States.Instance.ReleaseTime[PathInstance] = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm", CultureInfo.InvariantCulture);
                     States.Instance.FabricVersion[PathInstance] = Info.Fabric;
                     States.Instance.LegacyFabricVersion[PathInstance] = Info.LegacyFabric;
                     States.Instance.QuiltVersion[PathInstance] = Info.Quilt;
@@ -2453,7 +2454,7 @@ public static class ModMinecraft
             var FileInfo = new FileInfo(FileName);
             if (FileInfo.Length > 24 * 1024)
             {
-                ModMain.Hint("皮肤文件大小需小于 24 KB，而所选文件大小为 " + Math.Round(FileInfo.Length / 1024d, 2) + " KB",
+                ModMain.Hint("皮肤文件大小需小于 24 KB，而所选文件大小为 " + Lang.Number(FileInfo.Length / 1024d, "N2") + " KB",
                     ModMain.HintType.Critical);
                 return new McSkinInfo { IsVaild = false };
             }

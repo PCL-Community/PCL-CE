@@ -37,7 +37,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - DateTime.Now, false)}）{"\r\n"}最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - DateTime.Now, false)}）";
+            $"当前版本：{CurrentName}（{Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now)}）{"\r\n"}最新版本：{NewestName}（{Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now)}）";
     }
 
     public void Refresh()

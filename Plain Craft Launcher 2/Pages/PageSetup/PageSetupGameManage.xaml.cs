@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -105,11 +106,11 @@ public partial class PageSetupGameManage
             switch (value)
             {
                 case <= 14:
-                    return $"{(value + 1) * 0.1:F1} M/s";
+                    return Lang.Number((value + 1) * 0.1d, "N1") + " M/s";
                 case <= 31:
-                    return $"{(value - 11) * 0.5:F1} M/s";
+                    return Lang.Number((value - 11) * 0.5d, "N1") + " M/s";
                 case <= 41:
-                    return $"{value - 21} M/s";
+                    return Lang.Number(value - 21, "N0") + " M/s";
                 default:
                     return "无限制";
             }

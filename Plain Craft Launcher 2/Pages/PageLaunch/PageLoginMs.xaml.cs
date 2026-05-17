@@ -1,6 +1,7 @@
 using System.Security.Authentication;
 using System.Windows;
 using Microsoft.VisualBasic;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -23,7 +24,7 @@ public partial class PageLoginMs
     {
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
-        BtnLogin.Text = "0%";
+        BtnLogin.Text = Lang.Number(0d, "P0");
         ModBase.RunInNewThread(() =>
         {
             try
@@ -32,7 +33,7 @@ public partial class PageLoginMs
                 ModLaunch.McLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
                 while (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginMsLoader.Progress * 100d)}%");
+                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.McLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 

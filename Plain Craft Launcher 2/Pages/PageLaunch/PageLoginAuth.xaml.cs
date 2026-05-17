@@ -84,7 +84,7 @@ public partial class PageLoginAuth
                 ModLaunch.McLoginAuthLoader.Start(LoginData, true);
                 while (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Loading)
                 {
-                    BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginAuthLoader.Progress * 100d)}%";
+                    BtnLogin.Text = Lang.Number(ModLaunch.McLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
                 }
 

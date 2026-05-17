@@ -2,6 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -204,8 +205,8 @@ public partial class PageToolsHelp : IRefreshable
                 {
                     var Item = Result.Item.ToListItem();
                     if (ModBase.ModeDebug)
-                        Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" + Math.Round(Result.Similarity, 3) +
-                                    "，" + Item.Info;
+                        Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" +
+                                    Lang.Number(Math.Round(Result.Similarity, 3), "N3") + "，" + Item.Info;
                     PanSearchList.Children.Add(Item);
                 }
 

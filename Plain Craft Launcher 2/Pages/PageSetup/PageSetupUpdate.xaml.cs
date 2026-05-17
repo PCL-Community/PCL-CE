@@ -140,7 +140,7 @@ public partial class PageSetupUpdate
     {
         while (UpdateManager.UpdateLoader is not null && UpdateManager.UpdateLoader.State == ModBase.LoadState.Loading)
         {
-            ModBase.RunInUi(() => BtnUpdate.Text = $"{Math.Round(UpdateManager.UpdateLoader.Progress, 2)}%");
+            ModBase.RunInUi(() => BtnUpdate.Text = Lang.Number(UpdateManager.UpdateLoader.Progress, "P2"));
             Thread.Sleep(200);
         }
     }

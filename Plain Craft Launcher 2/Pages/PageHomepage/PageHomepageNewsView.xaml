@@ -83,7 +83,7 @@
                                 <TextBlock
                                     Grid.Column="1"
                                     Foreground="{DynamicResource ColorBrushGray2}"
-                                    Text="{Binding PublishDate, StringFormat='yyyy-MM-dd HH:mm'}" />
+                                    Text="{Binding PublishDate, Converter={StaticResource LocalizationFormatConverter}, ConverterParameter=g}" />
                             </Grid>
 
                             <!-- 简介 -->

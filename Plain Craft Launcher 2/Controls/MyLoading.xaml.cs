@@ -126,7 +126,7 @@ public partial class MyLoading
             }
             else if (ShowProgress && State.IsLoader)
             {
-                LabText.Text = Text + " - " + Math.Floor(State.Progress * 100) + "%";
+                LabText.Text = Text + " - " + Lang.Number(State.Progress, "P0");
             }
             else
             {

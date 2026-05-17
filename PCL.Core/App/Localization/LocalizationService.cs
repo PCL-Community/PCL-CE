@@ -237,6 +237,7 @@ public sealed partial class LocalizationService
         CultureInfo.CurrentCulture = formatCulture;
         CultureInfo.DefaultThreadCurrentCulture = formatCulture;
         Thread.CurrentThread.CurrentCulture = formatCulture;
+        Lang.SyncCulture(formatCulture);
     }
 
     private static void _ApplyLanguageResources(string languageCode, CultureInfo uiCulture, CultureInfo formatCulture)

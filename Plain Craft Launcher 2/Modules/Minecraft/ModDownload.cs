@@ -12,6 +12,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.IO.Net.Http;
 using PCL;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -661,12 +662,13 @@ public static class ModDownload
             for (int i = 0, loopTo = ReleaseTime.Count - 1; i <= loopTo; i++)
             {
                 Name[i] = Name[i].Replace("_", " ");
+                var releaseDate = DateTime.ParseExact(ReleaseTime[i],
+                    ["d.M.yyyy", "dd.M.yyyy", "d.MM.yyyy", "dd.MM.yyyy"],
+                    CultureInfo.InvariantCulture, DateTimeStyles.None);
                 var Entry = new DlOptiFineListEntry
                 {
                     DisplayName = Name[i].Replace("HD U ", "").Replace(".0 ", " "),
-                    ReleaseTime = new[]
-                            { ReleaseTime[i].Split(".")[2], ReleaseTime[i].Split(".")[1], ReleaseTime[i].Split(".")[0] }
-                        .Join("/"),
+                    ReleaseTime = Lang.Date(releaseDate, "d"),
                     IsPreview = Name[i].ContainsF("pre", true),
                     Inherit = Name[i].Split(" ")[0],
                     NameFile = (Name[i].ContainsF("pre", true) ? "preview_" : "") + "OptiFine_" +
@@ -1058,7 +1060,7 @@ public static class ModDownload
                     // Dim ReleaseTimeSplit = ReleaseTimeOriginal.Split(" -:".ToCharArray) '原格式："2021-02-15 03:24:02"
                     var ReleaseDate =
                         DateTime.Parse(ReleaseTimeOriginal, null, DateTimeStyles.AssumeUniversal); // 以 UTC 时间作为标准
-                    var ReleaseTime = ReleaseDate.ToLocalTime().ToString("yyyy'/'MM'/'dd HH':'mm"); // 时区与格式转换
+                    var ReleaseTime = Lang.Date(ReleaseDate.ToLocalTime(), "g"); // 时区与格式转换
                     // 分类与 MD5 获取
                     string MD5;
                     string Category;
@@ -1179,8 +1181,7 @@ public static class ModDownload
                 var Entry = new DlForgeVersionEntry(Name, Branch, Loader.Input)
                     { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
                 var TimeSplit = Token["modified"].ToString().Split('-', 'T', ':', '.', ' ', '/');
-                Entry.ReleaseTime = Token["modified"].ToObject<DateTime>().ToLocalTime()
-                    .ToString("yyyy'/'MM'/'dd HH':'mm");
+                Entry.ReleaseTime = Lang.Date(Token["modified"].ToObject<DateTime>().ToLocalTime(), "g");
                 // 添加项
                 Versions.Add(Entry);
             }

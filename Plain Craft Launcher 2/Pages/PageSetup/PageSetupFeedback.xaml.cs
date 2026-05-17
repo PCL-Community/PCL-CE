@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using PCL.Core.Utils;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -95,7 +96,7 @@ public partial class PageSetupFeedback
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
     {
-        var commonInfo = $"{item.User} | {item.Time:yyyy-MM-dd HH:mm:ss}";
+        var commonInfo = $"{item.User} | {Lang.Date(item.Time, "G")}";
 
         var li = new MyListItem();
         li.Title = item.Title;
@@ -111,7 +112,7 @@ public partial class PageSetupFeedback
 
     private void ShowFeedbackDetail(Feedback item)
     {
-        var timeSpanText = TimeUtils.GetTimeSpanString(item.Time - DateTime.Now, false);
+        var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
         switch (ModMain.MyMsgBoxMarkdown(
                     $"""
                      提交者：{item.User}（{timeSpanText}）

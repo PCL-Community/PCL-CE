@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows;
 using Microsoft.VisualBasic;
 using PCL.Core.IO;
@@ -212,7 +213,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
     {
         try
         {
-            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: $"{DateTime.Now:yyyy/MM/dd-HH:mm:ss}");
+            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: DateTime.Now.ToString("yyyy/MM/dd-HH:mm:ss", CultureInfo.InvariantCulture));
             if (input is null)
                 return;
             if (string.IsNullOrWhiteSpace(input))

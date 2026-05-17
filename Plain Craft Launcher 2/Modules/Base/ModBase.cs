@@ -1926,12 +1926,7 @@ public static class ModBase
     /// </summary>
     public static string StrFillNum(double Num, int Length)
     {
-        string StrFillNumRet = default;
-        Num = Math.Round(Num, Length, MidpointRounding.AwayFromZero);
-        StrFillNumRet = Num.ToString();
-        if (!StrFillNumRet.Contains("."))
-            return (StrFillNumRet + ".").PadRight(StrFillNumRet.Length + 1 + Length, '0');
-        return StrFillNumRet.PadRight(StrFillNumRet.Split(".")[0].Length + 1 + Length, '0');
+        return Lang.Number(Num, $"F{Length}");
     }
 
     /// <summary>
@@ -3827,7 +3822,7 @@ public static class ModBase
         // On Error Resume Next
         FeedbackInfo();
         string currentDate;
-        currentDate = Strings.Format(DateTime.Now, "yyyy-M-dd");
+        currentDate = DateTime.Now.ToString("yyyy-M-dd", CultureInfo.InvariantCulture);
 
         if (ForceOpenLog || (ShowMsgbox &&
                              ModMain.MyMsgBox(

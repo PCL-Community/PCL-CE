@@ -178,7 +178,7 @@ public partial class PageInstanceExport : IRefreshable
                     };
                     if (ReferenceEquals(Panel, PanOptionsSaves))
                         GetExportOption(NewCheckBox).Description =
-                            SubFolder.LastWriteTime.ToString("yyyy'/'MM'/'dd HH':'mm");
+                            Lang.Date(SubFolder.LastWriteTime, "g");
                     Panel.Children.Add(NewCheckBox);
                 }
         }

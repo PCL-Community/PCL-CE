@@ -1478,8 +1478,8 @@ public static class ModMain
     // 时间
     if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
     {
-        text = text.Replace("{date}", replacer(DateTime.Now.ToString("yyyy/M/d")));
-        text = text.Replace("{time}", replacer(DateTime.Now.ToString("HH:mm:ss")));
+        text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
+        text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
     }
     
     // Minecraft

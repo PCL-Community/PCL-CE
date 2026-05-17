@@ -68,8 +68,8 @@ public sealed class LocalizationFormatConverter : IValueConverter
         if (parameter is not string format || string.IsNullOrWhiteSpace(format)) return value;
         return value switch
         {
-            IFormattable formattable => formattable.ToString(format, CultureInfo.CurrentCulture),
-            _ => string.Format(CultureInfo.CurrentCulture, "{0}", value)
+            IFormattable formattable => formattable.ToString(format, Lang.Culture),
+            _ => string.Format(Lang.Culture, "{0}", value)
         };
     }
 

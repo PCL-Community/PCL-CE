@@ -649,14 +649,14 @@ public partial class PageSetupUI
     private void SliderLoad()
     {
         SliderMusicVolume.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Ceiling(Convert.ToDouble(v) * 0.1d), "%"));
+            Lang.Number(Math.Ceiling(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
         SliderLauncherOpacity.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Round(40 + Convert.ToDouble(v) * 0.1d), "%"));
+            Lang.Number(Math.Round(40 + Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
         SliderBackgroundOpacity.GetHintText = new Func<object, object>(v =>
-            Operators.ConcatenateObject(Math.Round(Convert.ToDouble(v) * 0.1d), "%"));
-        SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, " 像素"));
-        SliderBlurValue.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, " 像素"));
-        SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Operators.ConcatenateObject(v, "%"));
+            Lang.Number(Math.Round(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
+        SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v), "N0") + " 像素");
+        SliderBlurValue.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v), "N0") + " 像素");
+        SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
     }
 
     private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)

@@ -4,6 +4,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.UI;
+using System.Globalization;
 
 namespace PCL;
 
@@ -166,7 +167,7 @@ public partial class PageLogRight
     private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
     {
         var SavePath = SystemDialogs.SelectSaveFile("选择导出位置",
-            $"游戏运行栈 - {DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log",
+            $"游戏运行栈 - {DateTime.Now.ToString("G", CultureInfo.InvariantCulture).Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log",
             "游戏运行栈(*.log)|*.log");
         if (SavePath.Length < 3)
             return;

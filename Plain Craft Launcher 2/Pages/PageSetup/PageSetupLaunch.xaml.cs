@@ -215,9 +215,9 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{(ramGame == Math.Floor(ramGame) ? $"{ramGame}.0" : ramGame.ToString())} GB{(ramGame != ramGameActual ? $" (可用 {(ramGameActual == Math.Floor(ramGameActual) ? $"{ramGameActual}.0" : ramGameActual.ToString())} GB)" : "")}";
-        LabRamUsed.Text = $"{(ramUsed == Math.Floor(ramUsed) ? $"{ramUsed}.0" : ramUsed.ToString())} GB";
-        LabRamTotal.Text = $" / {(ramTotal == Math.Floor(ramTotal) ? $"{ramTotal}.0" : ramTotal.ToString())} GB";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" (可用 {Lang.Number(ramGameActual, "N1")} GB)" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
+        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
         LabRamWarn.Visibility =
             ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
