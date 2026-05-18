@@ -1,6 +1,6 @@
 using System;
+using System.Globalization;
 using System.IO;
-using PCL.Core.App.Localization;
 
 namespace PCL.Core.IO;
 
@@ -19,9 +19,10 @@ public class ByteStream(Stream stream)
     /// </summary>
     /// <param name="length">字节</param>
     /// <param name="startUnit">开始单位</param>
+    /// <param name="provider">格式化区域提供程序，默认使用 <see cref="CultureInfo.InvariantCulture" /></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public static string GetReadableLength(long length, int startUnit = 0)
+    public static string GetReadableLength(long length, int startUnit = 0, IFormatProvider? provider = null)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startUnit, _Units.Length);
         ArgumentOutOfRangeException.ThrowIfLessThan(startUnit, 0);
@@ -46,6 +47,6 @@ public class ByteStream(Stream stream)
                 "Value too large for predefined units.");
 
         var sign = isNegative ? "-" : "";
-        return $"{sign}{Lang.Number(value, "0.##")} {_Units[unitIndex]}";
+        return $"{sign}{value.ToString("0.##", provider ?? CultureInfo.InvariantCulture)} {_Units[unitIndex]}";
     }
 }

@@ -1878,7 +1878,7 @@ public static class ModBase
     /// <param name="FileSize">以字节为单位的大小表示。</param>
     public static string GetString(long FileSize)
     {
-        return ByteStream.GetReadableLength(FileSize);
+        return ByteStream.GetReadableLength(FileSize, provider: Lang.Culture);
     }
 
     /// <summary>

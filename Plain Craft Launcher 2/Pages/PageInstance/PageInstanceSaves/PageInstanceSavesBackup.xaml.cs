@@ -191,7 +191,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                         var totalSize = data.Select(x => x.Length).Sum();
                         ModMain.MyMsgBox($@"描述: {item.Desc}
                             创建时间: {item.Created}
-                            存档大小: {ByteStream.GetReadableLength(totalSize)} ({data.Count} 个对象)", item.Name);
+                            存档大小: {ByteStream.GetReadableLength(totalSize, provider: Lang.Culture)} ({data.Count} 个对象)", item.Name);
                     }
                     catch (Exception ex)
                     {

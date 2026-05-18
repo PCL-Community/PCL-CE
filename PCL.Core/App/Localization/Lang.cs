@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using Humanizer;
 using PCL.Core.App.IoC;
+using PCL.Core.IO;
 
 namespace PCL.Core.App.Localization;
 
@@ -177,14 +178,14 @@ public static class Lang
     ///     要格式化的整数。
     /// </param>
     /// <returns>
-    ///     按当前展示区域性格式化后的紧凑数值文本，例如 <c>11 Million</c>、<c>2 万</c>。
+    ///     按当前展示区域性格式化后的紧凑数值文本，例如 <c>11M</c>、<c>2 万</c>。
     /// </returns>
     public static string CompactNumber(long value)
     {
         var absValue = Math.Abs((double)value);
         var sign = value < 0 ? -1 : 1;
 
-        // 4 为一位
+        // 使用 4 位进位
         if (_IsEastAsianCulture(Culture.Name))
             return absValue switch
             {
@@ -197,7 +198,7 @@ public static class Lang
                 _ => Number(value, "N0")
             };
 
-        // 3 为一位
+        // 使用 3 位进位
         return absValue switch
         {
             > 1_000_000_000d => Text("Common.Format.Number.Digit3",
@@ -208,6 +209,17 @@ public static class Lang
                 Number(sign * Math.Round(absValue / 1_000d), "N0")),
             _ => Number(value, "N0")
         };
+    }
+
+    /// <summary>
+    ///     使用当前展示区域性格式化文件大小，例如 <c>1.28 MB</c>。
+    /// </summary>
+    /// <param name="length">字节数</param>
+    /// <param name="startUnit">起始单位索引，0 为 B</param>
+    /// <returns>格式化后的文件大小文本。</returns>
+    public static string FileSize(long length, int startUnit = 0)
+    {
+        return ByteStream.GetReadableLength(length, startUnit, Culture);
     }
 
     private static bool _IsEastAsianCulture(string cultureName)
