@@ -743,7 +743,7 @@ public partial class PageToolsGameLink
             BtnInputPort.IsEnabled = false;
             if (!ModLink.LobbyPrecheck()) return;
             var input = ModMain.MyMsgBoxInput("请输入端口",
-                ValidateRules: [new IntValidator(1024, 65535)]);
+                ValidateRules: [new IntValidator(65535,1024)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
