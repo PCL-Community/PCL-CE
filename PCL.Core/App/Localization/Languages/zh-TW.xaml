@@ -6,7 +6,7 @@
     <sys:String x:Key="Localization.Meta.Code">zh-TW</sys:String>
     <sys:String x:Key="Localization.Meta.Name">繁體中文（台灣）</sys:String>
 
-    <sys:String x:Key="Common.Action.Confirm">確定</sys:String>
+    <sys:String x:Key="Common.Action.Confirm">確認</sys:String>
     <sys:String x:Key="Common.Action.Cancel">取消</sys:String>
     <sys:String x:Key="Common.Action.Close">關閉</sys:String>
     <sys:String x:Key="Common.Action.Search">搜尋</sys:String>
@@ -23,7 +23,7 @@
     <sys:String x:Key="Common.Dialog.Title">提示</sys:String>
     <sys:String x:Key="Common.State.Loading">載入中...</sys:String>
     <sys:String x:Key="Common.State.Unknown">未知</sys:String>
-    <sys:String x:Key="Common.Option.Default">默認</sys:String>
+    <sys:String x:Key="Common.Option.Default">預設</sys:String>
     <sys:String x:Key="Common.Option.Auto">自動</sys:String>
     <sys:String x:Key="Common.Option.Customize">自訂</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">不再提示</sys:String>
@@ -55,7 +55,7 @@
     <sys:String x:Key="Main.Title.InstanceSetup">實例設定 - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">資源下載 - {0}</sys:String>
     <sys:String x:Key="Main.Title.SaveManagement">存檔管理 - {0}</sys:String>
-    <sys:String x:Key="Main.Title.HomePageMarket">主頁市場</sys:String>
+    <sys:String x:Key="Main.Title.HomePageMarket">首頁市場</sys:String>
     <sys:String x:Key="Main.Extra.BackToTop.ToolTip">返回頂部</sys:String>
     <sys:String x:Key="Main.Extra.TaskManager.ToolTip">任務管理</sys:String>
     <sys:String x:Key="Main.Extra.GiveUp.ToolTip">投降</sys:String>
@@ -66,7 +66,7 @@
     <sys:String x:Key="Main.UpdateLog.Empty">歡迎使用呀~</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE 已更新至 {0} {1}</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">完整更新日誌</sys:String>
-    <sys:String x:Key="Main.DebugMode.Hint">[偵錯模式] PCL 正以偵錯模式執行，這可能會導致效能下降，若無必要請不要開啟！</sys:String>
+    <sys:String x:Key="Main.DebugMode.Hint">[除錯模式] PCL 正以除錯模式執行，這可能會導致效能下降，若無必要請不要開啟！</sys:String>
     <sys:String x:Key="Main.SpecialVersion.DebugHint">目前執行的 PCL 社群版為 Debug 版本。&#x0a;該版本僅適合開發者偵錯執行，可能會有嚴重的效能下降以及各種奇怪的網路問題。&#x0a;&#x0a;非開發者使用者使用該版本造成的一切問題均不被社群支援，相關 issue 可能會被直接關閉。&#x0a;除非您是開發者，否則請立即刪除該版本，並下載最新穩定版使用。</sys:String>
     <sys:String x:Key="Main.SpecialVersion.CiHint">目前執行的 PCL 社群版為 CI 自動建置版本。&#x0a;該版本包含最新的漏洞修復、最佳化和新功能，但效能和穩定性較差，不適合日常使用和製作整合包。&#x0a;&#x0a;除非社群開發者要求或您自己想要這麼做，否則請下載最新穩定版使用。</sys:String>
     <sys:String x:Key="Main.SpecialVersion.HideHintNotice">可以新增 PCL_DISABLE_DEBUG_HINT 環境變數 (任意值) 來隱藏這個提示。</sys:String>
@@ -87,9 +87,9 @@
     <sys:String x:Key="Main.FileDrag.FileOnly">請拖入一個檔案，而非資料夾！</sys:String>
     <sys:String x:Key="Main.FileDrag.FileNotFound">拖入的檔案不存在：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.SameTypeOnly">一次請只拖入相同類型的檔案！</sys:String>
-    <sys:String x:Key="Main.FileDrag.HomepageExists">已存在一個主頁檔案，是否要將它覆蓋？</sys:String>
+    <sys:String x:Key="Main.FileDrag.HomepageExists">已存在一個首頁檔案，是否要將它覆蓋？</sys:String>
     <sys:String x:Key="Main.FileDrag.OverwriteTitle">覆蓋確認</sys:String>
-    <sys:String x:Key="Main.FileDrag.HomepageLoaded">已載入主頁自訂檔案！</sys:String>
+    <sys:String x:Key="Main.FileDrag.HomepageLoaded">已載入首頁自訂檔案！</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFolderExists">發現同名資料夾，無法貼上：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.Imported">已匯入 {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFileExists">已存在同名檔案：{0}</sys:String>
