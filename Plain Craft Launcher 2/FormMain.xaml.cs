@@ -346,17 +346,18 @@ public partial class FormMain
         // 检查有记录的最高版本号
         int LowerVersionCode;
 #if BETA
-                LowerVersionCode = Setup.Get("SystemHighestBetaVersionReg")
-                If LowerVersionCode < VersionCode Then
-                    Setup.Set("SystemHighestBetaVersionReg", VersionCode)
-                    Log("[Start] 最高版本号从 " & LowerVersionCode & " 升高到 " & VersionCode)
-                End If
+        LowerVersionCode = States.System.LastBetaVersion;
+        if (LowerVersionCode < ModBase.VersionCode)
+        {
+            States.System.LastBetaVersion = ModBase.VersionCode;
+            ModBase.Log($"[Start] 最高版本号从 {LowerVersionCode} 升高到 {ModBase.VersionCode}");
+        }
 #else
         LowerVersionCode = States.System.LastAlphaVersion;
         if (LowerVersionCode < ModBase.VersionCode)
         {
             States.System.LastAlphaVersion = ModBase.VersionCode;
-            ModBase.Log("[Start] 最高版本号从 " + LowerVersionCode + " 升高到 " + ModBase.VersionCode);
+            ModBase.Log($"[Start] 最高版本号从 {LowerVersionCode} 升高到 {ModBase.VersionCode}");
         }
 #endif
 

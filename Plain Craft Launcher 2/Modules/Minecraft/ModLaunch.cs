@@ -101,49 +101,49 @@ public static class ModLaunch
 
 #if BETA
         if (CurrentLaunchOptions?.SaveBatch == null) // 保存脚本时不提示
+        {
+            ModBase.RunInNewThread(() =>
             {
-                RunInNewThread(() =>
+                switch (States.System.LaunchCount)
                 {
-                    switch ((int)States.System.LaunchCount)
-                    {
-                        case 10:
-                        case 20:
-                        case 40:
-                        case 60:
-                        case 80:
-                        case 100:
-                        case 120:
-                        case 150:
-                        case 200:
-                        case 250:
-                        case 300:
-                        case 350:
-                        case 400:
-                        case 500:
-                        case 600:
-                        case 700:
-                        case 800:
-                        case 900:
-                        case 1000:
-                        case 1200:
-                        case 1400:
-                        case 1600:
-                        case 1800:
-                        case 2000:
-                            if (ModMain.MyMsgBox(
-                                    "PCL 已经为你启动了 " + Setup.Get("SystemLaunchCount") + " 次游戏啦！\n" +
-                                    "如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……\n" +
-                                    "如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！",
-                                    Setup.Get("SystemLaunchCount") + " 次启动！",
-                                    "支持一下！",
-                                    "但是我拒绝") == 1)
-                            {
-                                OpenWebsite("https://afdian.com/a/LTCat");
-                            }
-                            break;
-                    }
-                }, "Donate");
-            }
+                    case 10:
+                    case 20:
+                    case 40:
+                    case 60:
+                    case 80:
+                    case 100:
+                    case 120:
+                    case 150:
+                    case 200:
+                    case 250:
+                    case 300:
+                    case 350:
+                    case 400:
+                    case 500:
+                    case 600:
+                    case 700:
+                    case 800:
+                    case 900:
+                    case 1000:
+                    case 1200:
+                    case 1400:
+                    case 1600:
+                    case 1800:
+                    case 2000:
+                        if (ModMain.MyMsgBox(
+                                $"PCL 已经为你启动了 {States.System.LaunchCount} 次游戏啦！\n" +
+                                "如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……\n" +
+                                "如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！",
+                                $"{States.System.LaunchCount} 次启动！",
+                                "支持一下！",
+                                "但是我拒绝") == 1)
+                        {
+                            ModBase.OpenWebsite("https://afdian.com/a/LTCat");
+                        }
+                        break;
+                }
+            }, "Donate");
+        }
 #endif
         
         #if DEBUG || DEBUGCI
