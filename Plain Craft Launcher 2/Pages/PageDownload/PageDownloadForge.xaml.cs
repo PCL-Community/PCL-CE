@@ -64,14 +64,6 @@ public partial class PageDownloadForge
                 PanMain.Children.Add(NewCard);
             }
         }
-        // '非官方源警示
-        // If Setup.Get("ToolDownloadOutOfDate") AndAlso Not DlForgeListLoader.Output.IsOfficial Then
-        // Dim CardWarn As New MyCard With {.Title = "过期提示", .Margin = New Thickness(0, 0, 0, 15)}
-        // CardWarn.Children.Add(New TextBlock With {
-        // .Margin = New Thickness(25, MyCard.SwapedHeight, 15, 15), .VerticalAlignment = VerticalAlignment.Top, .HorizontalAlignment = HorizontalAlignment.Left, .TextTrimming = TextTrimming.None, .TextWrapping = TextWrapping.Wrap,
-        // .Text = "获取官方源失败，正在使用 " & DlForgeListLoader.Output.SourceName & " 镜像源，版本列表可能并非最新。" & vbCrLf & "官方源错误原因：" & If(DlForgeListLoader.Output.OfficialError, New Exception("连接服务器超时")).Message})
-        // PanMain.Children.Insert(0, CardWarn)
-        // End If
         catch (Exception ex)
         {
             ModBase.Log(ex, "可视化 Forge 版本列表出错", ModBase.LogLevel.Feedback);

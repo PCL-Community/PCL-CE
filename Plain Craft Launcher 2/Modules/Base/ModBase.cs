@@ -3397,15 +3397,6 @@ public static class ModBase
                     break;
                 }
             }
-
-        // If Double.IsNaN(newValue) OrElse Double.IsInfinity(newValue) Then Return '安全性检查
-        // Select Case control.VerticalAlignment
-        // Case VerticalAlignment.Top, VerticalAlignment.Stretch, VerticalAlignment.Center
-        // control.Margin = New Thickness(control.Margin.Left, newValue, control.Margin.Right, control.Margin.Bottom)
-        // Case VerticalAlignment.Bottom
-        // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right, -newValue)
-        // 'control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right, CType(control.Parent, Object).ActualHeight - control.ActualHeight - newValue)
-        // End Select
     }
 
     /// <summary>

@@ -205,18 +205,4 @@ public partial class PageDownloadClient
             ModBase.Log(ex, "可视化 MC 版本列表出错", ModBase.LogLevel.Feedback);
         }
     }
-
-    public void DownloadStart(MyListItem sender, object e)
-    {
-        ModDownloadLib.McDownloadClient(NetPreDownloadBehaviour.HintWhileExists, sender.Title,
-            ((JObject)sender.Tag)["url"].ToString());
-    }
-
-    // '介绍栏
-    // Private Sub BtnWeb_Click(sender As Object, e As EventArgs) Handles BtnWeb.Click
-    // OpenWebsite("https://www.minecraft.net/zh-hans")
-    // End Sub
-    // Private Sub BtnInstall_Click(sender As Object, e As EventArgs) Handles BtnInstall.Click
-    // FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall)
-    // End Sub
 }

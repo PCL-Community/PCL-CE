@@ -193,34 +193,6 @@ public partial class MyCheckBox
                     break;
             }
         }
-
-        // If Checked Then
-        // '由无变有
-        // AniStart({
-        // AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
-        // AaScaleTransform(ShapeCheck, 1 - CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack(AniEasePower.Weak)),
-        // AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
-        // }, "MyCheckBox Scale " & Uuid)
-        // AniStart({
-        // AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush2"), "ColorBrushGray4"), AnimationTimeOfCheck)
-        // }, "MyCheckBox BorderColor " & Uuid)
-        // AniStart({
-        // AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
-        // }, "MyCheckBox AllowMouseDown " & Uuid)
-        // Else
-        // '由有变无
-        // AniStart({
-        // AaScale(ShapeBorder, 12 - ShapeBorder.Width, AnimationTimeOfCheck, , New AniEaseOutFluent, , True),
-        // AaScaleTransform(ShapeCheck, -CType(ShapeCheck.RenderTransform, ScaleTransform).ScaleX, AnimationTimeOfCheck * 0.9, , New AniEaseInFluent(AniEasePower.Weak)),
-        // AaScale(ShapeBorder, 6, AnimationTimeOfCheck * 2, AnimationTimeOfCheck * 0.7, New AniEaseOutBack, , True)
-        // }, "MyCheckBox Scale " & Uuid)
-        // AniStart({
-        // AaColor(ShapeBorder, Border.BorderBrushProperty, If(IsEnabled, If(IsMouseOver, "ColorBrush3", "ColorBrush1"), "ColorBrushGray4"), AnimationTimeOfCheck)
-        // }, "MyCheckBox BorderColor " & Uuid)
-        // AniStart({
-        // AaCode(Sub() AllowMouseDown = True, AnimationTimeOfCheck * 2)
-        // }, "MyCheckBox AllowMouseDown " & Uuid)
-        // End If
         else
         {
             // 不使用动画

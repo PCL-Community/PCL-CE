@@ -275,22 +275,6 @@ public partial class PageDownloadCompFavorites
                 CardNoContent.Visibility = Visibility.Visible;
             }
 
-            // If SomeGetFail Then
-            // Dim FailList As New List(Of MyListItem)
-            // Dim FailIds = Loader.Input.Except(Loader.Output.Select(Function(e) e.Id))
-            // For Each Id In FailIds
-            // Dim FailItem As New MyListItem
-            // FailItem.Title = $"{Id}"
-            // FailItem.Info = "此资源获取失败，可能在线资源被删除或者未获取成功"
-            // FailItem.Tag = Id
-
-            // ListItemBuild(FailItem)
-
-            // FailList.Add(FailItem)
-            // Next
-            // CompItemList.AddRange(FailList)
-            // End If
-
             RefreshContent();
             RefreshCardTitle();
         }

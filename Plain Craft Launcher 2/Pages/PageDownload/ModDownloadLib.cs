@@ -2588,12 +2588,6 @@ pause";
             FreshBetaVersion = Entries[0];
         else
             ModBase.Log("[System] 未找到可用的 Cleanroom 版本", ModBase.LogLevel.Debug);
-        // 显示各个版本
-        // If FreshStableVersion IsNot Nothing Then
-        // Dim Fresh = NeoForgeDownloadListItem(FreshStableVersion, OnClick, IsSaveOnly)
-        // Fresh.Info = If(Fresh.Info = "", "最新稳定版", "最新" & Fresh.Info)
-        // Stack.Children.Add(Fresh)
-        // End If
         if (FreshBetaVersion is not null)
         {
             var Fresh = CleanroomDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);

@@ -204,14 +204,6 @@ public partial class PageLogLeft
         ModMain.FrmMain.BtnExtraLog.ShowRefresh();
     }
 
-    // Public Sub Kill_Click(sender As Object, e As RoutedEventArgs)
-    // Dim Uuid As Integer = (CType(CType(sender, MyIconButton).Parent, MyListItem).Tag)
-    // For Each item In ShownLogs
-    // If item.Key = Uuid Then
-    // item.Value.proc.Kill()
-    // End If
-    // Next
-    // End Sub
     public void Remove_Click(object sender, RoutedEventArgs e)
     {
         RemoveItem((int)((MyListItem)((MyIconButton)sender).Parent).Tag);

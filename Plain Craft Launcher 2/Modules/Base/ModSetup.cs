@@ -422,25 +422,6 @@ public class ModSetup : IConfigScope
         ModMain.FrmSetupUI.CardCustom.TriggerForceResize();
     }
 
-
-#if False
-    public static UiDarkMode(int value)
-    {
-        switch (value)
-        {
-            case 0:
-                IsDarkMode = false;
-                break;
-            case 1:
-                IsDarkMode = true;
-                break;
-            default:
-                IsDarkMode = SystemTheme.IsSystemInDarkMode();
-        }
-        ThemeRefresh();
-    }
-#endif
-
     // 高级材质
     public void UiBlur(bool Value)
     {
