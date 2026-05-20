@@ -1,11 +1,14 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
+    <!-- Meta -->
     <sys:String x:Key="Localization.Meta.Code">en-US</sys:String>
     <sys:String x:Key="Localization.Meta.Name">English (US)</sys:String>
 
+    <!-- Common -->
     <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
     <sys:String x:Key="Common.Action.Cancel">Cancel</sys:String>
     <sys:String x:Key="Common.Action.Close">Close</sys:String>
@@ -34,6 +37,7 @@
     <sys:String x:Key="Common.Format.Number.Digit3">{0}B</sys:String>
     <sys:String x:Key="Common.Format.DownloadCount">{0} downloads</sys:String>
 
+    <!-- Application -->
     <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- The Windows version does not meet the recommended requirement. Windows 10 1809 or later is recommended. Consider upgrading Windows.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL is running from a temporary folder. Please extract PCL from the compressed file before using it, otherwise game saves or settings may be lost.</sys:String>
@@ -45,10 +49,12 @@
     <sys:String x:Key="Application.InitializationError.PathUnavailable">Failed to obtain</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL initialization error</sys:String>
 
-    <sys:String x:Key="Main.Title.Launch">Launch</sys:String>
-    <sys:String x:Key="Main.Title.Download">Download</sys:String>
-    <sys:String x:Key="Main.Title.Settings">Settings</sys:String>
-    <sys:String x:Key="Main.Title.Tools">Tools</sys:String>
+    <!-- Main.TopTitle -->
+    <sys:String x:Key="Main.TopTitle.Launch">Launch</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">Download</sys:String>
+    <sys:String x:Key="Main.TopTitle.Settings">Settings</sys:String>
+    <sys:String x:Key="Main.TopTitle.Tools">Tools</sys:String>
+
     <sys:String x:Key="Main.Title.InstanceSelect">Selection</sys:String>
     <sys:String x:Key="Main.Title.TaskManager">Task Manager</sys:String>
     <sys:String x:Key="Main.Title.GameLog">Launch log</sys:String>
@@ -98,6 +104,7 @@
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfileTitle">Create New Third-Party Authentication Profile</sys:String>
     <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL cannot determine which file drag operation to perform...</sys:String>
 
+    <!-- Setup.LauncherLanguage -->
     <sys:String x:Key="Setup.LauncherLanguage.Title">Language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.CardTitle">Language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">Display language</sys:String>
@@ -107,4 +114,150 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Follow UI language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
+
+    <!-- Setup.Left -->
+    <sys:String x:Key="Setup.Left.Category.Game">Game</sys:String>
+    <sys:String x:Key="Setup.Left.Category.Tools">Tools</sys:String>
+    <sys:String x:Key="Setup.Left.Category.Launcher">Launcher</sys:String>
+    <sys:String x:Key="Setup.Left.Category.About">About</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Launch">Launch</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
+    <sys:String x:Key="Setup.Left.Item.GameManage">Management</sys:String>
+    <sys:String x:Key="Setup.Left.Item.GameLink">Multiplayer</sys:String>
+    <sys:String x:Key="Setup.Left.Item.UI">Personalization</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Misc">Miscellaneous</sys:String>
+    <sys:String x:Key="Setup.Left.Item.About">About</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Update">Update</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Feedback">Feedback</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Log">Logs</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Title">Confirm Reset</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Launch.Message">Do you want to reset all settings on the Game - Launch page? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.UI.Message">Do you want to reset all settings on the Launcher - Personalization page? This action cannot be undone.&#x0a;(Background images, music, homepage and other external files will not be deleted)</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.GameManage.Message">Do you want to reset all settings on the Game - Management page? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.GameLink.Message">Do you want to reset all settings on the Tools - Online page? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Language.Message">Do you want to reset all settings on the Launcher - Language page? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Misc.Message">Do you want to reset all settings on the Launcher - Miscellaneous page? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.Title">Feedback</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.Message">Before submitting new feedback, it is recommended to search the feedback list to avoid duplicate submissions.&#x0a;If the page cannot be opened, please try using an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.SubmitNew">Submit New Feedback</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.ViewList">View Feedback List</sys:String>
+    <sys:String x:Key="Setup.Left.Refreshing">Refreshing...</sys:String>
+
+    <!-- Setup.Launch.Options -->
+    <sys:String x:Key="Setup.Launch.Options.Title">Launch Options</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.Label">Default Version Isolation</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.None.ToolTip">All instances share the same profile, saves, Mods, resource packs, etc.&#x0a;If multiple instances have Mods installed, this may cause Mod conflicts.</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ToolTip">When installing a new instance, automatically set its isolation option accordingly.&#x0a;To adjust the isolation policy of existing instances, go to their instance settings.</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly">Isolate moddable instances</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip">Moddable instances (e.g. Forge, Fabric) are isolated from each other to avoid Mod conflicts. Other instances (e.g. vanilla) will not be isolated.</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease">Isolate non-release versions</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease.ToolTip">Isolate Minecraft snapshots, pre-releases, old versions, and April Fools versions from other instances</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedAndNonRelease">Isolate moddable instances and non-release versions</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.All">Isolate all instances</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.All.ToolTip">Saves, Mods, resource packs, etc. are not shared between different instances.&#x0a;This means saves cannot be shared between different vanilla instances, so it is generally not recommended.</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.DefaultPolicyHint">The default policy only applies to newly installed instances.&#x0a;Existing instances' isolation policy needs to be adjusted in their settings.</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.Label">Game Window Title</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.SampleFormat">{name} | Player: {user} | Logged in as {login}</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.ToolTip">Customize the game window title. Leave blank to keep default.&#x0a;Supports the following replacement tokens:&#x0a; · {user}: Player name&#x0a; · {login}: Player authentication method&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: The vanilla version of the game&#x0a;Note: If your instance has the Modern UI mod installed, this setting will not take effect.</sys:String>
+    <sys:String x:Key="Setup.Launch.CustomInfo.Label">Custom Info</sys:String>
+    <sys:String x:Key="Setup.Launch.CustomInfo.ToolTip">This information will be displayed in the bottom-left corner of the game's main menu and the top-left corner of the F3 debug screen.</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.Label">Launcher Visibility</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately">Close immediately after game starts</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.HideAndCloseOnExit">Hide after game starts, close automatically after game exits</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.HideAndReopenOnExit">Hide after game starts, reopen after game exits</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.Minimize">Minimize after game starts</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.KeepUnchanged">Keep unchanged after game starts</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Message">If the launcher is closed immediately after the game starts, features such as crash detection and changing the game title will be unavailable.&#x0a;To keep these features, you can choose to hide the launcher after the game starts and close it automatically after the game exits.</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">Reminder</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">Continue</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Label">Process Priority</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">High (prioritizes game performance, but may cause other programs to lag)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Normal">Normal (balanced)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Low">Low (prioritizes other programs, but may cause the game to lag, suitable for running in background)</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Label">Window Size</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">Note: If your instance has the Modern UI mod installed, this setting will not take effect</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">Fullscreen</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.SameAsLauncher">Same as launcher size</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Custom">Custom size</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.CustomHeightBug.ToolTip">Some versions such as Forge 1.12.2 have a bug that causes the height setting to not take effect</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Maximized">Maximized</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.Label">Microsoft Authentication</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.ToolTip">The Web Account Manager offers a simpler authentication flow, while the Device Code flow allows you to authenticate on any device with a web browser.&#x0a;If you encounter issues with the Web Account Manager, try using the Device Code flow.&#x0a;If you are temporarily signing in on a public computer, Device Code flow is recommended.&#x0a;&#x0a;Due to issues with some dependencies, this option is temporarily forced to Device Code flow.</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.WebManager">Web Account Manager (temporarily forced to Device Code flow)</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.DeviceCode">Device Code flow</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Label">IP Protocol Preference</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.ToolTip">Set the MC IP protocol version preference via Java VM arguments.&#x0a;It is generally recommended to set to "IPv4 Only", which ensures the PCL CE lobby works properly.&#x0a;If you need manual IPv6 networking, you can choose other options.&#x0a;&#x0a;IPv4 Only: -Djava.net.preferIPv4Stack=true&#x0a;Default: No extra arguments&#x0a;IPv6 Only: -Djava.net.preferIPv6Stack=true</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Ipv4">IPv4 Only</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.JavaDefault">Java Default</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Ipv6">IPv6 Only</sys:String>
+
+    <!-- Setup.Launch.Memory -->
+    <sys:String x:Key="Setup.Launch.Memory.Title">Game Memory</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">You have allocated too much memory to the game, which may cause crashes. We recommend using the "Auto" option!</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Auto">Auto</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">Dynamically adjust memory allocated to the game based on installed mods and available system memory</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.UsedTotal">Used / Total Memory</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.GameAllocation">Game Allocation</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available {0} GB</sys:String>
+
+    <!-- Setup.Launch.Advanced -->
+    <sys:String x:Key="Setup.Launch.Advanced.Title">Advanced Launch Options</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Label">Renderer</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.GameDefault">Game Default</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Software">Software (llvmpipe)</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX12 (d3d12)</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Vulkan">Vulkan (zink)</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">Changing this setting will severely affect game stability and performance. If you don't know what you are doing, do not change this option!&#x0a;Are you sure you want to continue?</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Title">Warning</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Confirm">I know what I am doing</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead">JVM Arguments Head</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead.Restore">Restore</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead.ToolTip">Extra JVM arguments used when launching Minecraft. Do not change unless you are absolutely sure.&#x0a;Supports string replacement tokens from Minecraft instance JSON, e.g. ${library_directory}.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GameTail">Game Arguments Tail</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GameTail.ToolTip">The content in the text box will be directly appended to the end of launch arguments.&#x0a;For example, entering --demo will start the game in demo mode.&#x0a;Supports string replacement tokens from Minecraft instance JSON, e.g. ${library_directory}.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand">Pre-Launch Command</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">Execute a specific command or program before MC launches. Syntax is consistent with Windows Command Prompt.&#x0a;&#x0a;The following replacement tokens can be used for relative paths (paths end with \):&#x0a; · {path}: The folder containing PCL's exe file&#x0a; · {minecraft}: The .minecraft folder&#x0a; · {verpath}: Instance folder (.minecraft\versions\instance_name\)&#x0a; · {verindie}: Same as instance folder when version isolation is enabled, otherwise same as .minecraft folder&#x0a; · {java}: The Java folder used by the game&#x0a;&#x0a;Additionally, the following replacement tokens are supported:&#x0a; · {user}: Player name&#x0a; · {login}: Player authentication method&#x0a; · {uuid}: Player UUID&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: The vanilla version of the game&#x0a;&#x0a;Examples:&#x0a; · "{verpath}test.exe": Run test.exe in the instance folder&#x0a; · "{java}java.exe" -jar "{verpath}test.jar": Use Java to run test.jar in the instance folder&#x0a; · notepad "{verindie}options.txt": Open the instance settings file with Notepad&#x0a;&#x0a;It is recommended to use double quotes around paths to avoid failures caused by spaces in the path.&#x0a;When executing the command, the working directory is the current .minecraft folder.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.Wait">Wait for command completion before continuing launch</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#x0a;If this is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">Disable RetroWrapper</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL uses RetroWrapper when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">Require Java to use high-performance GPU</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">Automatically set Java to use high-performance GPU in Windows Settings → System → Display → Graphics.&#x0a;If the computer has both integrated and dedicated graphics, this ensures MC uses the dedicated GPU for rendering, greatly improving performance.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL will use java.exe to run the game, giving the game process standard input/output streams to avoid potential issues when printing logs.&#x0a;&#x0a;Depending on the behavior of different Java distributions, java.exe may not support features that depend on OS support such as HDR colors. Therefore, do not enable this option if everything works normally.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this can cause severe performance issues in some cases.&#x0a;PCL uses LWJGL Unsafe Agent to fix this issue.&#x0a;There is generally no need to disable this option, but if you encounter additional issues, you can try temporarily disabling it to troubleshoot.&#x0a;&#x0a;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">You can find more advanced launch options in the instance settings.</sys:String>
+
+    <!-- Setup.Launch.Misc -->
+    <sys:String x:Key="Setup.Launch.SwitchToInstanceSetup">Instance Settings</sys:String>
+    <sys:String x:Key="Setup.Launch.Initialized">Launch settings initialized!</sys:String>
+
+    <!-- Setup.Launch.Error -->
+    <sys:String x:Key="Setup.Launch.Error.ConfigReset">Launch settings have been automatically reset due to an exception</sys:String>
+    <sys:String x:Key="Setup.Launch.Error.LoadFailed">Failed to reload launch settings</sys:String>
+    <sys:String x:Key="Setup.Launch.Error.InitFailed">Failed to initialize launch settings</sys:String>
+
+    <!-- Setup.Launch.Java -->
+    <sys:String x:Key="Setup.Launch.Java.Add">Add</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Loading">Loading Java list</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AutoSelect.Title">Auto Select</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AutoSelect.Info">Java auto mode — automatically selects the appropriate Java based on game requirements</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Unavailable">This Java is unavailable, please refresh the list</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.EnableBeforeSelect">Please enable this Java before selecting it as default</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.DeselectBeforeDisable">Please deselect this Java as default before disabling it</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Detail.ToolTip">Details</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Info.Title">Java Information</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Info.Format">Type: {0}&#x0a;Version: {1}&#x0a;Architecture: {2} ({3})&#x0a;Vendor: {4}&#x0a;Location: {5}</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Disable">Disable this Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Enable">Enable this Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.SelectFile.Title">Select Java Program</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.SelectFile.Filter">Java Program(java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AlreadyExists">Java already exists, no need to add again...</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Added">Java added!</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AddFailed">Failed to add Java to the list</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.EnableFailed">Failed to change Java enabled state</sys:String>
 </ResourceDictionary>

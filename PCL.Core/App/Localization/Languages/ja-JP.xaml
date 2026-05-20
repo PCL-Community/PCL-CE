@@ -1,7 +1,8 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">ja-JP</sys:String>
     <sys:String x:Key="Localization.Meta.Name">日本語（日本）</sys:String>
@@ -25,8 +26,8 @@
     <sys:String x:Key="Common.Action.Refresh">更新</sys:String>
     <sys:String x:Key="Common.Action.Reset">リセット</sys:String>
 
-    <sys:String x:Key="Main.Title.Launch">起動</sys:String>
-    <sys:String x:Key="Main.Title.Download">ダウンロード</sys:String>
-    <sys:String x:Key="Main.Title.Settings">設定</sys:String>
-    <sys:String x:Key="Main.Title.Tools">ツール</sys:String>
+    <sys:String x:Key="Main.TopTitle.Launch">起動</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">ダウンロード</sys:String>
+    <sys:String x:Key="Main.TopTitle.Settings">設定</sys:String>
+    <sys:String x:Key="Main.TopTitle.Tools">ツール</sys:String>
 </ResourceDictionary>

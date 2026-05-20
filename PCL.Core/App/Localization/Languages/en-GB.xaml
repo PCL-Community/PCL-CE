@@ -1,7 +1,8 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">en-GB</sys:String>
     <sys:String x:Key="Localization.Meta.Name">English (United Kingdom)</sys:String>
@@ -25,8 +26,8 @@
     <sys:String x:Key="Common.Action.Refresh">Refresh</sys:String>
     <sys:String x:Key="Common.Action.Reset">Reset</sys:String>
 
-    <sys:String x:Key="Main.Title.Launch">Launch</sys:String>
-    <sys:String x:Key="Main.Title.Download">Download</sys:String>
-    <sys:String x:Key="Main.Title.Settings">Settings</sys:String>
-    <sys:String x:Key="Main.Title.Tools">Tools</sys:String>
+    <sys:String x:Key="Main.TopTitle.Launch">Launch</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">Download</sys:String>
+    <sys:String x:Key="Main.TopTitle.Settings">Settings</sys:String>
+    <sys:String x:Key="Main.TopTitle.Tools">Tools</sys:String>
 </ResourceDictionary>

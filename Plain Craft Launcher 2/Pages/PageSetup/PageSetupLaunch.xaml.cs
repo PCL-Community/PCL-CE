@@ -80,7 +80,7 @@ public partial class PageSetupLaunch
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
-                CheckAdvanceDisableJLW.ToolTip = "在启动游戏时不使用 Java Wrapper 进行包装。&#xa;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。";
+                CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64Notice");
             }
             else
             {
@@ -90,12 +90,12 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.LoadFailed"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -106,11 +106,11 @@ public partial class PageSetupLaunch
         {
             Config.Launch.Reset();
             ModBase.Log("[Setup] 已初始化启动设置");
-            ModMain.Hint("已初始化启动设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.Launch.Initialized"), ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -215,7 +215,7 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" (可用 {Lang.Number(ramGameActual, "N1")} GB)" : "")}";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
         LabRamWarn.Visibility =
@@ -504,11 +504,10 @@ public partial class PageSetupLaunch
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
-                    """
-                    若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。
-                    如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。
-                    """,
-                    "提醒", "继续", Lang.Text("Common.Action.Cancel")) == 2)
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Message"),
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Title"),
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Continue"),
+                    Lang.Text("Common.Action.Cancel")) == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
     }
 
@@ -517,10 +516,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        ModMain.MyMsgBox("""
-                         默认策略只会对今后新安装的实例生效。
-                         已有实例的隔离策略需要在它的设置中调整。
-                         """);
+        ModMain.MyMsgBox(Lang.Text("Setup.Launch.InstanceIsolation.DefaultPolicyHint"));
     }
 
     #endregion
@@ -554,11 +550,10 @@ public partial class PageSetupLaunch
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
-            if (ModMain.MyMsgBox("""
-                                 修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！
-                                 你确定要继续修改吗？
-                                 """, "警告",
-                    "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+            if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Title"),
+                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
+                    Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
             }

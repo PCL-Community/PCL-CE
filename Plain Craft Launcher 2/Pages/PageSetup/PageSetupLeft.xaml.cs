@@ -77,7 +77,7 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupLaunch:
             {
-                if (ModMain.MyMsgBox("是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Launch.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupLaunch is null)
                         ModMain.FrmSetupLaunch = new PageSetupLaunch();
@@ -89,11 +89,8 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupUI:
             {
-                if (ModMain.MyMsgBox("""
-                                     是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。
-                                     （背景图片与音乐、主页等外部文件不会被删除）
-                                     """,
-                        "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.UI.Message"),
+                        Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupUI is null)
                         ModMain.FrmSetupUI = new PageSetupUI();
@@ -105,7 +102,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupGameManage:
             {
-                if (ModMain.MyMsgBox("是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameManage.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupGameManage is null)
                         ModMain.FrmSetupGameManage = new PageSetupGameManage();
@@ -117,7 +114,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupGameLink:
             {
-                if (ModMain.MyMsgBox("是否要初始化 工具-联机 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameLink.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupGameLink is null)
                         ModMain.FrmSetupGameLink = new PageSetupGameLink();
@@ -129,7 +126,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupLauncherLanguage:
             {
-                if (ModMain.MyMsgBox("是否要初始化 启动器-语言 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Language.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupLauncherLanguage is null)
                         ModMain.FrmSetupLauncherLanguage = new PageSetupLauncherLanguage();
@@ -141,7 +138,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupLauncherMisc:
             {
-                if (ModMain.MyMsgBox("是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Misc.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupLauncherMisc is null)
                         ModMain.FrmSetupLauncherMisc = new PageSetupLauncherMisc();
@@ -160,11 +157,8 @@ public partial class PageSetupLeft
         {
             if (!ModBase.CanFeedback(true))
                 return;
-            switch (ModMain.MyMsgBox("""
-                                     在提交新反馈前，建议先搜索反馈列表，以避免重复提交。
-                                     如果无法打开该网页，请尝试使用加速器或 VPN。
-                                     """, "反馈",
-                        "提交新反馈", "查看反馈列表", Lang.Text("Common.Action.Cancel")))
+            switch (ModMain.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
+                        Lang.Text("Setup.Left.Feedback.SubmitNew"), Lang.Text("Setup.Left.Feedback.ViewList"), Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                 {
@@ -198,7 +192,7 @@ public partial class PageSetupLeft
             }
         }
 
-        ModMain.Hint("正在刷新……", Log: false);
+        ModMain.Hint(Lang.Text("Setup.Left.Refreshing"), Log: false);
     }
 
     #region 页面切换

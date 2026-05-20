@@ -1,7 +1,8 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">zh-CN</sys:String>
     <sys:String x:Key="Localization.Meta.Name">简体中文（中国大陆）</sys:String>
@@ -45,10 +46,10 @@
     <sys:String x:Key="Application.InitializationError.PathUnavailable">获取失败</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL 初始化错误</sys:String>
 
-    <sys:String x:Key="Main.Title.Launch">启动</sys:String>
-    <sys:String x:Key="Main.Title.Download">下载</sys:String>
-    <sys:String x:Key="Main.Title.Settings">设置</sys:String>
-    <sys:String x:Key="Main.Title.Tools">工具</sys:String>
+    <sys:String x:Key="Main.TopTitle.Launch">启动</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">下载</sys:String>
+    <sys:String x:Key="Main.TopTitle.Settings">设置</sys:String>
+    <sys:String x:Key="Main.TopTitle.Tools">工具</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">实例选择</sys:String>
     <sys:String x:Key="Main.Title.TaskManager">任务管理</sys:String>
     <sys:String x:Key="Main.Title.GameLog">实时日志</sys:String>
@@ -107,4 +108,150 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">同步界面语言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">语言设置已更新</sys:String>
+
+    <!-- Setup.Left -->
+    <sys:String x:Key="Setup.Left.Category.Game">游戏</sys:String>
+    <sys:String x:Key="Setup.Left.Category.Tools">工具</sys:String>
+    <sys:String x:Key="Setup.Left.Category.Launcher">启动器</sys:String>
+    <sys:String x:Key="Setup.Left.Category.About">关于</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Launch">启动</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
+    <sys:String x:Key="Setup.Left.Item.GameManage">管理</sys:String>
+    <sys:String x:Key="Setup.Left.Item.GameLink">联机</sys:String>
+    <sys:String x:Key="Setup.Left.Item.UI">个性化</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Misc">杂项</sys:String>
+    <sys:String x:Key="Setup.Left.Item.About">软件信息</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Update">软件更新</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Feedback">反馈</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Log">查看日志</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Title">初始化确认</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Launch.Message">是否要初始化 游戏-启动 页面的所有设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.UI.Message">是否要初始化 启动器-个性化 页面的所有设置？该操作不可撤销。&#x0a;（背景图片与音乐、主页等外部文件不会被删除）</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.GameManage.Message">是否要初始化 游戏-管理 页面的所有设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.GameLink.Message">是否要初始化 工具-联机 页面的所有设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Language.Message">是否要初始化 启动器-语言 页面的所有设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Misc.Message">是否要初始化 启动器-杂项 页面的所有设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.Title">反馈</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.Message">在提交新反馈前，建议先搜索反馈列表，以避免重复提交。&#x0a;如果无法打开该网页，请尝试使用加速器或 VPN。</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.SubmitNew">提交新反馈</sys:String>
+    <sys:String x:Key="Setup.Left.Feedback.ViewList">查看反馈列表</sys:String>
+    <sys:String x:Key="Setup.Left.Refreshing">正在刷新……</sys:String>
+
+    <!-- Setup.Launch.Options -->
+    <sys:String x:Key="Setup.Launch.Options.Title">启动选项</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.Label">默认版本隔离</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.None.ToolTip">所有实例均使用同一档案，存档、Mod、资源包等均为公用。&#x0a;若存在多个安装了 Mod 的实例，可能会导致 Mod 冲突。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ToolTip">当安装新实例时，据此自动设置新实例的隔离选项。&#x0a;若想调整已有实例的隔离策略，请前往它的实例设置。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly">隔离可安装 Mod 的实例</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip">可安装 Mod 的实例（例如 Forge、Fabric）均互相独立以避免 Mod 冲突，其他实例（例如原版）则不会被隔离。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease">隔离非正式版</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease.ToolTip">将 Minecraft 快照、预发布版、远古版本、愚人节版本与其他实例进行隔离</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedAndNonRelease">隔离可安装 Mod 的实例与非正式版</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.All">隔离所有实例</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.All.ToolTip">不同实例之间的存档、Mod、资源包等均不互通。&#x0a;这会导致不同原版实例间的存档不能共用，所以一般不推荐。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.DefaultPolicyHint">默认策略只会对今后新安装的实例生效。&#x0a;已有实例的隔离策略需要在它的设置中调整。</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.Label">游戏窗口标题</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.SampleFormat">{name} | 玩家 : {user} | 使用 {login} 登录</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowTitle.ToolTip">自定义游戏窗口的标题，若留空则不进行更改。&#x0a;支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
+    <sys:String x:Key="Setup.Launch.CustomInfo.Label">自定义信息</sys:String>
+    <sys:String x:Key="Setup.Launch.CustomInfo.ToolTip">该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.Label">启动器可见性</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately">游戏启动后立即关闭</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.HideAndCloseOnExit">游戏启动后隐藏，游戏退出后自动关闭</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.HideAndReopenOnExit">游戏启动后隐藏，游戏退出后重新打开</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.Minimize">游戏启动后最小化</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.KeepUnchanged">游戏启动后仍保持不变</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Message">若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。&#x0a;如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">提醒</sys:String>
+    <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">继续</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Label">进程优先级</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Normal">中（平衡）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.Low">低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Label">窗口大小</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">全屏</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.SameAsLauncher">与启动器尺寸一致</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Custom">自定义尺寸</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.CustomHeightBug.ToolTip">Forge 1.12.2 等个别版本存在 Bug，会导致高度设定无效</sys:String>
+    <sys:String x:Key="Setup.Launch.WindowSize.Maximized">最大化</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.Label">正版验证方式</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.ToolTip">Web 账户管理器的正版验证流程更为简单，而设备代码流允许你在任意设备上打开网页进行验证。&#x0a;如果使用 Web 账户管理器登录遇到问题，可以尝试使用设备代码流。&#x0a;如果正在公共计算机上临时登录账号，推荐使用设备代码流。&#x0a;&#x0a;由于部分依赖组件存在较多问题，该选项暂时强制指定为设备代码流。</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.WebManager">Web 账户管理器（暂时强制设备代码流）</sys:String>
+    <sys:String x:Key="Setup.Launch.MsAuth.DeviceCode">设备代码流</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Label">IP 协议偏好</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.ToolTip">通过设置 Java 虚拟机参数来设置 MC 的 IP 协议版本偏好。&#x0a;一般建议设置为 "IPv4 优先"，这能确保 PCL CE 大厅正常工作。&#x0a;如果有手动 IPv6 联机等需要，可以选择其他选项。&#x0a;&#x0a;IPv4 优先：-Djava.net.preferIPv4Stack=true&#x0a;默认：不添加额外参数&#x0a;IPv6 优先：-Djava.net.preferIPv6Stack=true</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Ipv4">IPv4 优先</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.JavaDefault">Java 默认</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.Ipv6">IPv6 优先</sys:String>
+
+    <!-- Setup.Launch.Memory -->
+    <sys:String x:Key="Setup.Launch.Memory.Title">游戏内存</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Auto">自动配置</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GB</sys:String>
+
+    <!-- Setup.Launch.Advanced -->
+    <sys:String x:Key="Setup.Launch.Advanced.Title">高级启动选项</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Label">渲染器</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.GameDefault">游戏默认</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Software">软渲染（llvmpipe）</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX12（d3d12）</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Vulkan">Vulkan（zink）</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Title">警告</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Confirm">我知道我在做什么</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead">JVM 参数头部</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead.Restore">还原</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.JvmHead.ToolTip">启动 Minecraft 时使用的额外 JVM 参数，除非有确定把握，否则请不要修改。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GameTail">游戏参数尾部</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GameTail.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#x0a;例如，输入 --demo 则会以试玩模式启动游戏。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand">启动前执行命令</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启版本隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · "{verpath}test.exe" ：运行实例文件夹下的 test.exe 程序&#x0a; · "{java}java.exe" -jar "{verpath}test.jar" ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad "{verindie}options.txt" ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.Wait">等待命令执行完成后再继续启动</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">禁用 Java Launch Wrapper</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#x0a;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在启动游戏时不使用 Java Wrapper 进行包装。&#x0a;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">禁用 RetroWrapper</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">要求 Java 使用高性能显卡</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 Java 改为使用高性能显卡。&#x0a;如果电脑同时有集显和独显，这能确保 MC 使用独显进行渲染，以大幅提高性能。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">使用 java.exe 而不是 javaw.exe</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#x0a;&#x0a;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">禁用 LWJGL Unsafe Agent</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#x0a;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#x0a;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#x0a;&#x0a;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">你还可以在实例独立设置中找到更多高级启动选项。</sys:String>
+
+    <!-- Setup.Launch.Misc -->
+    <sys:String x:Key="Setup.Launch.SwitchToInstanceSetup">实例独立设置</sys:String>
+    <sys:String x:Key="Setup.Launch.Initialized">已初始化启动设置！</sys:String>
+
+    <!-- Setup.Launch.Error -->
+    <sys:String x:Key="Setup.Launch.Error.ConfigReset">启动设置项存在异常，已被自动重置</sys:String>
+    <sys:String x:Key="Setup.Launch.Error.LoadFailed">重载启动设置时出错</sys:String>
+    <sys:String x:Key="Setup.Launch.Error.InitFailed">初始化启动设置失败</sys:String>
+
+    <!-- Setup.Launch.Java -->
+    <sys:String x:Key="Setup.Launch.Java.Add">添加</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Loading">正在加载 Java 列表</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AutoSelect.Title">自动选择</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AutoSelect.Info">Java 选择自动挡，依据游戏需要自动选择合适的 Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Unavailable">此 Java 不可用，请刷新列表</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.EnableBeforeSelect">请先启用此 Java 后再选择其作为默认 Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.DeselectBeforeDisable">请先取消选择此 Java 作为默认 Java 后再禁用</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Detail.ToolTip">详细信息</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Info.Title">Java 信息</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Info.Format">类型: {0}&#x0d;&#x0a;版本: {1}&#x0d;&#x0a;架构: {2} ({3})&#x0d;&#x0a;发行商: {4}&#x0d;&#x0a;位置: {5}</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Disable">禁用此 Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Enable">启用此 Java</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.SelectFile.Title">选择 Java 程序</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.SelectFile.Filter">Java 程序(java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AlreadyExists">Java 已经存在，不用再次添加……</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Added">已添加 Java！</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.AddFailed">未能成功将 Java 加入列表中</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.EnableFailed">调整 Java 启用状态失败</sys:String>
 </ResourceDictionary>
