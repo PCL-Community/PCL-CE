@@ -64,11 +64,11 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             ModBase.Log("[Setup] 已初始化其他页设置");
-            ModMain.Hint("已初始化其他页设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化其他页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.GameManage.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -112,7 +112,7 @@ public partial class PageSetupGameManage
                 case <= 41:
                     return Lang.Number(value - 21, "N0") + " M/s";
                 default:
-                    return "无限制";
+                    return Lang.Text("Setup.GameManage.Download.Unlimited");
             }
         });
     }
@@ -125,11 +125,9 @@ public partial class PageSetupGameManage
         {
             States.Hint.LargeDownloadThread = true;
             ModMain.MyMsgBox(
-                """
-                如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。
-                一般设置 64 线程即可满足大多数下载需求，除非你知道你在干什么，否则不建议设置更多的线程数！
-                """,
-                "警告", "我知道了", IsWarn: true);
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Title"),
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
         }
     }
 }
