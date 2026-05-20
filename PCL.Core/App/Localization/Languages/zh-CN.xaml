@@ -362,9 +362,9 @@
     <sys:String x:Key="Setup.Update.Auto.NotifyOnly.ToolTip">启动器将会自动检查可用更新，然后提示你下载并安装更新。</sys:String>
     <sys:String x:Key="Setup.Update.Auto.Disabled">不自动检查更新（不推荐）</sys:String>
     <sys:String x:Key="Setup.Update.Auto.Disabled.ToolTip">关闭自动更新检查。这可能导致你无法及时获得更新。</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorCdk.Label">Mirror 酱 CDK</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorCdk.ToolTip">Mirror 酱 (mirrorchyan.com) 是一个付费的第三方应用分发平台，用于提供国内有偿高速下载源。&#x0a;这是一项可选服务，不填入 CDK 不影响正常使用与更新。&#x0a;如果你有 Mirror 酱的 CDK，可以提供给 PCL CE，启动器会优先使用他们的高速下载源下载软件更新，也能缓解社区公益更新服务器的一些压力……</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorCdk.Get">获取 CDK</sys:String>
+    <sys:String x:Key="Setup.Update.MirrorChyanCdk.Label">Mirror 酱 CDK</sys:String>
+    <sys:String x:Key="Setup.Update.MirrorChyanCdk.ToolTip">Mirror 酱 (mirrorchyan.com) 是一个付费的第三方应用分发平台，用于提供国内有偿高速下载源。&#x0a;这是一项可选服务，不填入 CDK 不影响正常使用与更新。&#x0a;如果你有 Mirror 酱的 CDK，可以提供给 PCL CE，启动器会优先使用他们的高速下载源下载软件更新，也能缓解社区公益更新服务器的一些压力……</sys:String>
+    <sys:String x:Key="Setup.Update.MirrorChyanCdk.Get">获取 CDK</sys:String>
     <sys:String x:Key="Setup.Update.Install">下载并安装</sys:String>
     <sys:String x:Key="Setup.Update.RestartInstall">重启安装</sys:String>
     <sys:String x:Key="Setup.Update.Checking">正在检查更新...</sys:String>
@@ -469,7 +469,7 @@
     <sys:String x:Key="Setup.Ui.Theme.DarkColor.ToolTip">在深色模式下默认的主题配色</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowLogo">打开启动器时显示 PCL 图标</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">锁定启动器大小</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.ShowKnowHint">在启动游戏时显示"你知道吗"</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">在启动游戏时显示"你知道吗"</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高级材质</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">启用此功能后会在部分透明区域（例如卡片）实现模糊效果。&#x0a;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlurRadius">模糊半径</sys:String>
@@ -640,7 +640,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE 公告栏</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方信息流</sys:String>
-    <sys:String x:Key="Setup.UI.Homepage.HintReferToModSetup">内容见 ModSetup</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">内容见 ModSetup</sys:String>
 
     <!-- Setup.About -->
     <sys:String x:Key="Setup.About.Title">关于</sys:String>
