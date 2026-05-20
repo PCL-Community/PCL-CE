@@ -302,7 +302,7 @@
                         <local:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.NetUpdate}" x:Name="RadioCustomType2" Height="22" Tag="UiCustomType/2"
                                           Grid.Column="3" Check="RadioBoxChange" />
                     </Grid>
-                    <local:MyHint Margin="0,15,0,-4" Text="内容见 ModSetup" Theme="Blue" x:Name="HintCustom" />
+                    <local:MyHint Margin="0,15,0,-4" Text="{DynamicResource Setup.UI.Homepage.HintReferToModSetup}" Theme="Blue" x:Name="HintCustom" />
                     <local:MyHint Margin="0,15,0,6" Text="{DynamicResource Setup.Ui.Homepage.NetWarning}" Theme="Yellow"
                                   x:Name="HintCustomWarn"
                                   CanClose="True" RelativeSetup="HintCustomWarn" />
