@@ -10,6 +10,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -447,13 +448,13 @@ public partial class PageInstanceInstall
         {
             ItemSelect.Info = selectedInfo;
             BtnSelectStart.Text = "开始重置";
-            BtnSelectStart.Logo = ModBase.Logo.IconButtonReset;
+            BtnSelectStart.Logo = Icon.IconButtonReset;
         }
         else
         {
             ItemSelect.Info = CurrentInfo + " → " + selectedInfo;
             BtnSelectStart.Text = "开始修改";
-            BtnSelectStart.Logo = ModBase.Logo.IconButtonEdit;
+            BtnSelectStart.Logo = Icon.IconButtonEdit;
         }
 
         // Minecraft

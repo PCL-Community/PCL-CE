@@ -17,6 +17,7 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -478,21 +479,21 @@ public static class ModProfile
             {
                 Title = "正版验证",
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = ModBase.Logo.IconButtonAuth
+                Logo = Icon.IconButtonAuth
             },
 
             new MyListItem
             {
                 Title = "第三方验证",
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = ModBase.Logo.IconButtonThirdparty
+                Logo = Icon.IconButtonThirdparty
             },
 
             new MyListItem
             {
                 Title = "离线验证",
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = ModBase.Logo.IconButtonOffline
+                Logo = Icon.IconButtonOffline
             }
         ],
         _ =>
@@ -501,7 +502,7 @@ public static class ModProfile
             {
                 Title = "正版验证",
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = ModBase.Logo.IconButtonAuth
+                Logo = Icon.IconButtonAuth
             }
         ]
     };

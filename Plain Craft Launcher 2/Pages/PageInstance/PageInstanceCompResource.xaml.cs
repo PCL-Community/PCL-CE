@@ -629,20 +629,20 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
         ToolTipService.SetHorizontalOffset(BtnCont, 2d);
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
         BtnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
@@ -659,8 +659,8 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 LogoScale = 1d,
                 Logo = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? ModBase.Logo.IconButtonStop
-                    : ModBase.Logo.IconButtonCheck,
+                    ? Icon.IconButtonStop
+                    : Icon.IconButtonCheck,
                 Tag = sender
             };
             BtnED.ToolTip = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? "禁用" : "启用";

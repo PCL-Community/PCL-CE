@@ -13,6 +13,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -435,7 +436,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeFill;
+            BtnStar.Logo = Icon.IconButtonLikeFill;
         }
         else
         {
@@ -444,7 +445,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
             BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = ModBase.Logo.IconButtonLikeLine;
+            BtnStar.Logo = Icon.IconButtonLikeLine;
         }
 
         BtnStar.Click += (_, _) =>
@@ -454,13 +455,13 @@ public partial class PageSelectRight
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
-        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonOpen };
+        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonOpen };
         BtnOpenFolder.ToolTip = "打开实例目录";
         ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
         BtnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonDelete };
+        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonDelete };
         BtnDel.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(BtnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDel, 30d);
@@ -468,7 +469,7 @@ public partial class PageSelectRight
         BtnDel.Click += (_, _) => DeleteVersion(sender, Version);
         if (Version.State != ModMinecraft.McInstanceState.Error)
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = ModBase.Logo.IconButtonSetup };
+            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonSetup };
             BtnCont.ToolTip = "设置";
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -487,7 +488,7 @@ public partial class PageSelectRight
         }
         else
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = ModBase.Logo.IconButtonOpen };
+            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = Icon.IconButtonOpen };
             BtnCont.ToolTip = Lang.Text("Common.Action.OpenFolder");
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);

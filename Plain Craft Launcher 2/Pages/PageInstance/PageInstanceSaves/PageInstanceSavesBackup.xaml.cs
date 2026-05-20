@@ -79,7 +79,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnApply = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconPlayGame,
+                    Logo = Icon.IconPlayGame,
                     ToolTip = "回到到此快照"
                 };
 
@@ -111,7 +111,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnExport = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSave,
+                    Logo = Icon.IconButtonSave,
                     ToolTip = "导出到压缩包"
                 };
 
@@ -146,7 +146,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnDelete = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonDelete,
+                    Logo = Icon.IconButtonDelete,
                     ToolTip = Lang.Text("Common.Action.Delete")
                 };
 
@@ -173,7 +173,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnInfo = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonInfo,
+                    Logo = Icon.IconButtonInfo,
                     ToolTip = "信息"
                 };
 

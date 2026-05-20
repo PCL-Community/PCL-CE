@@ -95,7 +95,7 @@ public partial class PageSetupJava
             }
         };
         var btnOpenFolder = new MyIconButton();
-        btnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
+        btnOpenFolder.Logo = Icon.IconButtonOpen;
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
@@ -108,7 +108,7 @@ public partial class PageSetupJava
             ModBase.OpenExplorer(J.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
-        btnInfo.Logo = ModBase.Logo.IconButtonInfo;
+        btnInfo.Logo = Icon.IconButtonInfo;
         btnInfo.ToolTip = "详细信息";
         btnInfo.Click += (sender, e) =>
         {
@@ -144,14 +144,14 @@ public partial class PageSetupJava
             {
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonDisable;
+                btnEnableSwitch.Logo = Icon.IconButtonDisable;
                 btnEnableSwitch.ToolTip = "禁用此 Java";
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
-                btnEnableSwitch.Logo = ModBase.Logo.IconButtonEnable;
+                btnEnableSwitch.Logo = Icon.IconButtonEnable;
                 btnEnableSwitch.ToolTip = "启用此 Java";
             }
         }
