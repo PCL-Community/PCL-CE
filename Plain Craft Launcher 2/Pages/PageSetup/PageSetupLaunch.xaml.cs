@@ -551,7 +551,7 @@ public partial class PageSetupLaunch
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
             if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Title"),
+                    Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
                     Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {

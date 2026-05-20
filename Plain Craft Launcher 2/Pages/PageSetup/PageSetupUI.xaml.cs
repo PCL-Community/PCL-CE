@@ -273,7 +273,7 @@ public partial class PageSetupUI
     private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Lang.Text("Setup.Ui.Background.Clear.Confirm.Title"), Button2: Lang.Text("Common.Action.Cancel"),
+                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
         {
             ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Pictures");
@@ -539,7 +539,7 @@ public partial class PageSetupUI
     private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Lang.Text("Setup.Ui.Background.Clear.Confirm.Title"), Button2: Lang.Text("Common.Action.Cancel"),
+                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
             ModBase.RunInThread(() =>
             {

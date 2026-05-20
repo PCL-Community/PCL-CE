@@ -126,7 +126,7 @@ public partial class PageSetupGameManage
             States.Hint.LargeDownloadThread = true;
             ModMain.MyMsgBox(
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Title"),
+                Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
         }
     }

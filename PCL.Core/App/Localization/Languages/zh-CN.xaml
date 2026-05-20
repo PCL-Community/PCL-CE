@@ -22,6 +22,7 @@
     <sys:String x:Key="Common.Action.Overwrite">覆盖</sys:String>
     <sys:String x:Key="Common.Action.OpenFolder">打开文件夹</sys:String>
     <sys:String x:Key="Common.Dialog.Title">提示</sys:String>
+    <sys:String x:Key="Common.Dialog.Warning">警告</sys:String>
     <sys:String x:Key="Common.State.Loading">加载中...</sys:String>
     <sys:String x:Key="Common.State.Unknown">未知</sys:String>
     <sys:String x:Key="Common.Option.Default">默认</sys:String>
@@ -203,7 +204,6 @@
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX12（d3d12）</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Vulkan">Vulkan（zink）</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Title">警告</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Confirm">我知道我在做什么</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead">JVM 参数头部</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead.Restore">还原</sys:String>
@@ -275,7 +275,6 @@
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">部分 MC 版本（如 1.16.5）存在 Bug，可能导致使用离线验证时多人游戏被禁用。&#x0a;PCL 可尝试升级这些版本的 Authlib 支持库以解决问题。&#x0a;此设置仅对新安装的实例有效。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">无限制</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。&#x0a;一般设置 64 线程即可满足大多数下载需求，除非你知道你在干什么，否则不建议设置更多的线程数！</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Title">警告</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">我知道了</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Title">社区资源获取行为</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Source">下载源</sys:String>
@@ -345,8 +344,8 @@
     <sys:String x:Key="Setup.Update.Channel.Dev">开发版 / Dev</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.ToolTip">可能极不稳定的开发版本，直接从最新源代码构建，适合高度技术性用户。&#x0a;可能需要具备较好的互联网连接质量才能顺利获取此通道更新。</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Message">你正在切换启动器更新通道到测试版。&#x0a;测试版可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。&#x0a;&#x0a;在升级到测试版后，你需要等待下一个正式版发布，或是手动重新下载启动器来切换到正式版。&#x0a;该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！</sys:String>
-    <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Title">继续之前...</sys:String>
-    <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Confirm">我已知晓</sys:String>
+    <sys:String x:Key="Setup.Update.Channel.Common.Warning.Title">继续之前...</sys:String>
+    <sys:String x:Key="Setup.Update.Channel.Common.Warning.Confirm">我已知晓</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.Warning.Message">你正在切换启动器更新通道到开发版。&#x0a;该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。&#x0a;&#x0a;在升级到开发版后，只能手动重新下载启动器来切换回正式版或测试版。&#x0a;该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.FinalConfirm.Title">最终确认</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.FinalConfirm.Message">你确定要切换到开发版通道吗？&#x0a;开发版可能存在严重问题，甚至无法启动！&#x0a;&#x0a;在升级到开发版后，将无法切换回其他任何更新通道，只能手动重新下载启动器来切换回正式版或测试版。&#x0a;&#x0a;该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！&#x0a;请输入 '{0}' 以确认。</sys:String>
@@ -392,7 +391,6 @@
     <sys:String x:Key="Setup.Misc.System.Announcement.ImportantOnly">仅在有重要通知时显示公告</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled">关闭所有公告</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Message">若选择此项，即使在将来出现严重问题时，你也无法获取相关通知。&#x0a;例如，如果发现某个版本游戏存在严重 Bug，你可能就会因为无法得到通知而导致无法预知的后果。&#x0a;&#x0a;一般选择 仅在有重要通知时显示公告 就可以让你尽量不受打扰了。&#x0a;除非你在制作服务器整合包，或时常手动更新启动器，否则极度不推荐选择此项！</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Title">警告</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Confirm">我知道我在做什么</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps">最高动画帧率</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用</sys:String>
@@ -513,7 +511,6 @@
     <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一张背景图片或视频&#x0a;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear">清空背景内容</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Confirm.Message">即将删除背景内容文件夹中的所有文件。&#x0a;此操作不可撤销，是否确定？</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Clear.Confirm.Title">警告</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Success">背景内容已清空！</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">背景内容已刷新：{0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">未检测到可用背景内容！</sys:String>
@@ -703,10 +700,9 @@
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title1">温馨提示</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Exhausted">累死了</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.NotTired">真的不累</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking1">那你就别点了喂……后面真的真的真的什么都没有了！</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking">那你就别点了喂……后面真的真的真的什么都没有了！</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message2">你真的真的不累么？</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title2">超温馨的温馨提示</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking2">那你就别点了喂……后面真的真的真的什么都没有了！</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message3">你真的真的真的不累么？</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title3">超超超温馨的温馨提示</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.ReallyNotTired">真的真的真的不累</sys:String>

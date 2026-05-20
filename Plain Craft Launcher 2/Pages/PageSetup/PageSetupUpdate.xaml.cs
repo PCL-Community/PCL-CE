@@ -195,8 +195,8 @@ public partial class PageSetupUpdate
             case 1:
             {
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Beta.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Beta.Warning.Confirm"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
                         Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                     IsCancelled = true;
                 else
@@ -206,8 +206,8 @@ public partial class PageSetupUpdate
             case 2:
             {
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Beta.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Beta.Warning.Confirm"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
                         Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                 {
                     IsCancelled = true;

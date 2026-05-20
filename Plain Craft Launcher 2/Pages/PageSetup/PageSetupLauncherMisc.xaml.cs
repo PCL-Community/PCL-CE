@@ -165,7 +165,7 @@ public partial class PageSetupLauncherMisc
             return;
         if (ModMain.MyMsgBox(
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Title"),
+                Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
                 Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];

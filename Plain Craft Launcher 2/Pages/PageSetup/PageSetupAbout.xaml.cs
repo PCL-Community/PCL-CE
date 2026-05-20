@@ -119,7 +119,7 @@ public partial class PageSetupAbout
                     {
                         case 1:
                         {
-                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking1"));
+                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                             break;
                         }
                         case 2:
@@ -128,7 +128,7 @@ public partial class PageSetupAbout
                             {
                                 case 1:
                                 {
-                                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking2"));
+                                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                     break;
                                 }
                                 case 2:
@@ -137,7 +137,7 @@ public partial class PageSetupAbout
                                     {
                                         case 1:
                                         {
-                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking3"));
+                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                             break;
                                         }
                                         case 2:

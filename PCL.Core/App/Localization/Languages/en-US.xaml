@@ -24,6 +24,7 @@
     <sys:String x:Key="Common.Action.Overwrite">Override</sys:String>
     <sys:String x:Key="Common.Action.OpenFolder">Open folder</sys:String>
     <sys:String x:Key="Common.Dialog.Title">Hint</sys:String>
+    <sys:String x:Key="Common.Dialog.Warning">Warning</sys:String>
     <sys:String x:Key="Common.State.Loading">Loading...</sys:String>
     <sys:String x:Key="Common.State.Unknown">Unknown</sys:String>
     <sys:String x:Key="Common.Option.Default">Default</sys:String>
@@ -209,7 +210,6 @@
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX 12 (d3d12)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Vulkan">Vulkan (zink)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">Changing this setting will seriously affect game stability and performance. If you do not know what you are doing, do not change this option!&#x0a;Are you sure you want to continue?</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Title">Warning</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Confirm">I know what I am doing</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead">JVM arguments head</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead.Restore">Restore</sys:String>
@@ -281,7 +281,6 @@
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">Some Minecraft versions, such as 1.16.5, have a bug that may cause multiplayer to be disabled when using offline login.&#x0a;PCL can try to upgrade the Authlib support library for these versions to fix the issue.&#x0a;This setting only applies to newly installed instances.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">Unlimited</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">Setting too many download threads may cause serious lag during downloads.&#x0a;64 threads are generally enough for most download needs. Unless you know what you are doing, it is not recommended to set a higher value!</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Title">Warning</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">I see</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Title">Community resources</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Source">Download source</sys:String>
@@ -351,8 +350,8 @@
     <sys:String x:Key="Setup.Update.Channel.Dev">Dev</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.ToolTip">Potentially highly unstable development versions built directly from the latest source code. Suitable for highly technical users.&#x0a;Good internet connectivity may be required to download updates from this channel.</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Message">You are switching the launcher update channel to Beta.&#x0a;Beta versions provide previews of upcoming updates, but may include insufficiently tested features and have reduced stability.&#x0a;&#x0a;After upgrading to Beta, you will need to wait for the next Release version or manually re-download the launcher to switch back to Release.&#x0a;This option is only recommended for users with some basic knowledge and ability. If you are creating a modpack, please use the Release version!</sys:String>
-    <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Title">Before continuing...</sys:String>
-    <sys:String x:Key="Setup.Update.Channel.Beta.Warning.Confirm">I understand</sys:String>
+    <sys:String x:Key="Setup.Update.Channel.Common.Warning.Title">Before continuing...</sys:String>
+    <sys:String x:Key="Setup.Update.Channel.Common.Warning.Confirm">I understand</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.Warning.Message">You are switching the launcher update channel to Dev.&#x0a;This channel provides early access to development builds from the latest code, but may be extremely unstable or even fail to launch.&#x0a;&#x0a;After upgrading to Dev, you can only manually re-download the launcher to switch back to Release or Beta.&#x0a;This option is only recommended for advanced users. If you are creating a modpack, please use the Release version!</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.FinalConfirm.Title">Final confirmation</sys:String>
     <sys:String x:Key="Setup.Update.Channel.Dev.FinalConfirm.Message">Are you sure you want to switch to the Dev channel?&#x0a;Dev versions may have serious issues or even fail to launch!&#x0a;&#x0a;After upgrading to Dev, you will not be able to switch back to any other update channel without manually re-downloading the launcher.&#x0a;&#x0a;This option is only recommended for advanced users. If you are creating a modpack, please use the Release version!&#x0a;Please enter &quot;{0}&quot; to confirm.</sys:String>
@@ -398,7 +397,6 @@
     <sys:String x:Key="Setup.Misc.System.Announcement.ImportantOnly">Show announcements only when important</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled">Disable all announcements</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Message">If you choose this option, you will not receive relevant notifications even when serious issues occur in the future.&#x0a;For example, if a critical bug is found in a certain game version, you may miss the notification and face unpredictable consequences.&#x0a;&#x0a;In general, choosing &quot;Show announcements only when important&quot; should keep you mostly undisturbed.&#x0a;Unless you are creating a server modpack or frequently update the launcher manually, this option is strongly discouraged!</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Title">Warning</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Confirm">I know what I am doing</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps">Maximum animation FPS</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">If you have disabled hardware acceleration, it is recommended to lower the max animation FPS to prevent excessive resource usage</sys:String>
@@ -519,7 +517,6 @@
     <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">Randomly load a background image or video from the folder.&#x0a;For smoother playback, videos are recommended to use H.264 encoding.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear">Clear all</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Confirm.Message">All files in the background folder are about to be deleted. This operation is irrevocable. Are you sure?</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Clear.Confirm.Title">Warning</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Success">The background has been cleared!</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">The background has been refreshed: {0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">No available background detected!</sys:String>
@@ -709,10 +706,9 @@
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title1">Friendly reminder</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Exhausted">I'm exhausted</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.NotTired">Not really tired</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking1">Then stop clicking... There's really, really, really nothing behind this!</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking">Then stop clicking... There's really, really, really nothing behind this!</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message2">Aren't you really, really tired?</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title2">Super Friendly Reminder</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking2">Then stop clicking... There's really, really, really nothing behind this!</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message3">Aren't you really, really, really tired?</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title3">SUPER SUPER FRIENDLY REMINDER</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.ReallyNotTired">Really really really not tired</sys:String>
