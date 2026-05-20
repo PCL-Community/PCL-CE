@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 
 namespace PCL
@@ -12,6 +13,7 @@ namespace PCL
         public PageHomePageMarket()
         {
             InitializeComponent();
+            Load.Text = Lang.Text("Setup.Ui.HomepageMarket.Loading");
             Loaded += Page_Loaded;
         }
 
@@ -49,7 +51,7 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                throw new Exception("加载主页市场失败", ex);
+                throw new Exception(Lang.Text("Setup.Ui.HomepageMarket.LoadFailed"), ex);
             }
         }
     }
