@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
@@ -108,11 +109,11 @@ public partial class PageSetupUI
             }
             catch
             {
-                ModBase.Setup.Reset("UiCustomPreset");
+                Config.Preference.Homepage.SelectedPresetConfig.Reset();
             }
 
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioCustomType",
-                ModBase.Setup.Load("UiCustomType", true))))).Checked = true;
+                Conversions.ToInteger(Config.Preference.Homepage.Type))))).Checked = true;
             TextCustomNet.Text = Conversions.ToString(Config.Preference.Homepage.CustomUrl);
 
             // 功能隐藏
@@ -191,28 +192,45 @@ public partial class PageSetupUI
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+        {
+            var key = Conversions.ToString(sender.Tag);
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Value);
+        }
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var key = Conversions.ToString(sender.Tag);
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         // 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        if (ModAnimation.AniControlEnabled == 0)
+        {
+            var key = Conversions.ToString(sender.Tag);
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Checked);
+        }
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+        {
+            var key = Conversions.ToString(sender.Tag);
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Text);
+        }
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -220,7 +238,10 @@ public partial class PageSetupUI
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+        {
+            if (ConfigService.TryGetConfigItemNoType(gotCfg[0], out var item))
+                item.SetValueNoType(int.Parse(gotCfg[1]));
+        }
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
@@ -361,7 +382,7 @@ public partial class PageSetupUI
                         ModVideoBack.VideoStop();
                         ModBase.Log("[UI] 加载背景内容：" + Address);
                         ModMain.FrmMain.ImgBack.Background = new MyBitmap(Address);
-                        ModBase.Setup.Load("UiBackgroundSuit", true);
+                        _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                         if (IsHint)
                             ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
@@ -635,7 +656,9 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        var key = Conversions.ToString(sender.Tag);
+        if (ConfigService.TryGetConfigItemNoType(key, out var item))
+            item.SetValueNoType(sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
     }
 

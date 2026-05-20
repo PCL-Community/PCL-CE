@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -79,21 +80,33 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Checked);
+        }
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Value);
+        }
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
+        }
     }
 
     // 滑动条

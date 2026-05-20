@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Link.Scaffolding.EasyTier;
 
 namespace PCL;
@@ -92,7 +93,11 @@ public partial class PageSetupGameLink
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Text);
+        }
     }
 
     private static void
@@ -100,14 +105,22 @@ public partial class PageSetupGameLink
             object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Checked);
+        }
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)

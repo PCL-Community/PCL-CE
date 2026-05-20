@@ -13,6 +13,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -902,38 +903,6 @@ public static class ModMain
 
     #endregion
 
-    #region 页面声明
-
-    // 在最后进行页面声明，避免颜色尚未加载完毕
-
-    // 窗体声明
-
-
-    // 页面声明（出于单元测试考虑，初始化页面已转入 FormMain 中）
-
-
-    // 工具页面声明
-
-
-    // 下载页面声明
-
-
-    // 设置页面声明
-
-
-    // 登录页面声明
-
-
-    // 实例设置页面声明
-
-
-    // 实例存档页面
-
-
-    // 资源信息分页声明
-    
-    #endregion
-
     #region 帮助
 
     public class HelpEntry
@@ -1542,7 +1511,7 @@ public static class ModMain
     // 高级
     text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
     text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
+    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(GetSetupValue(m.Groups[1].Value)?.ToString() ?? ""));
     text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     
@@ -1639,5 +1608,16 @@ public static class ModMain
                 foreach (var e in events)
                     e.Raise();
             }, $"执行自定义事件 {ModBase.GetUuid()}");
+    }
+
+    private static object? GetSetupValue(string key)
+    {
+        if (ConfigService.TryGetConfigItemNoType(key, out var item))
+        {
+            if (item.Source == ConfigSource.SharedEncrypt)
+                throw new InvalidOperationException("禁止读取加密设置项：" + key);
+            return item.GetValueNoType(ModMinecraft.McInstanceSelected?.PathInstance);
+        }
+        return null;
     }
 }

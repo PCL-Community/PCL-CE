@@ -505,7 +505,7 @@ public class ModSetup : IConfigScope
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
                 }
 
-                ModBase.Setup.Load("UiLogoText", true);
+                UiLogoText(Config.Preference.WindowTitleCustomText);
                 break;
             }
             case 3: // 图片
@@ -551,7 +551,7 @@ public class ModSetup : IConfigScope
                 break;
         }
 
-        ModBase.Setup.Load("UiLogoLeft", true);
+        UiLogoLeft(Config.Preference.TopBarLeftAlign);
         if (ModMain.FrmSetupUI != null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }

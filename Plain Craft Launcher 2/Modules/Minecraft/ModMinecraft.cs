@@ -3042,8 +3042,7 @@ public static class ModMinecraft
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
         if (McInstanceSelected is not null)
-            renderer = Conversions.ToInteger(
-                Operators.SubtractObject(ModBase.Setup.Get("VersionAdvanceRenderer", McInstanceSelected), 1));
+            renderer = Config.Instance.Renderer[McInstanceSelected.PathInstance] - 1;
         if (renderer == -1) renderer = Conversions.ToInteger(Config.Launch.Renderer);
 
         if (renderer != 0 && !File.Exists(mesaLoaderWindowsTargetFile))
@@ -3239,8 +3238,8 @@ public static class ModMinecraft
     /// </summary>
     public static object ShouldIgnoreFileCheck(McInstance Version)
     {
-        return (bool)ModBase.Setup.Get("VersionAdvanceAssetsV2", Version) ||
-               Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionAdvanceAssets", Version), 2, false);
+        return Config.Instance.DisableAssetVerifyV2[Version.PathInstance] ||
+               Config.Instance.AssetVerifySolutionV1[Version.PathInstance] == 2;
     }
 
     #endregion

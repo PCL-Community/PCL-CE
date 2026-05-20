@@ -86,7 +86,11 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
+        }
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -94,21 +98,32 @@ public partial class PageSetupLauncherMisc
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+        {
+            if (ConfigService.TryGetConfigItemNoType(gotCfg[0], out var item))
+                item.SetValueNoType(int.Parse(gotCfg[1]));
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Checked);
+        }
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Value);
+        }
     }
 
     // 网络

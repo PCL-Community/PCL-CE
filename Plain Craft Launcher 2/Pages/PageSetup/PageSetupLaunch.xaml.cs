@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
 
@@ -63,7 +64,7 @@ public partial class PageSetupLaunch
             // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
-            ((MyRadioBox)FindName("RadioRamType" + ModBase.Setup.Load("LaunchRamType"))).Checked = true;
+            ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
 
             // 高级设置
@@ -122,42 +123,65 @@ public partial class PageSetupLaunch
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+        {
+            if (ConfigService.TryGetConfigItemNoType(gotCfg[0], out var item))
+                item.SetValueNoType(int.Parse(gotCfg[1]));
+        }
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Text);
+        }
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Text);
+        }
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Value);
+        }
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+        {
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.Checked);
+        }
     }
 
     // 切换到实例独立设置
@@ -537,14 +561,14 @@ public partial class PageSetupLaunch
     private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnAdvanceJvmReset.Visibility =
-            TextAdvanceJvm.Text == (string)ModBase.Setup.GetDefault("LaunchAdvanceJvm")
+            TextAdvanceJvm.Text == (string)Config.Launch.JvmArgsConfig.DefaultValue
                 ? Visibility.Hidden
                 : Visibility.Visible;
     }
 
     private void BtnAdvanceJvmReset_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Reset("LaunchAdvanceJvm");
+        Config.Launch.JvmArgsConfig.Reset();
         Reload();
     }
 
@@ -564,13 +588,17 @@ public partial class PageSetupLaunch
             }
             else
             {
-                ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+                var key = (string)sender.Tag;
+                if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                    item.SetValueNoType(sender.SelectedIndex);
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+            var key = (string)sender.Tag;
+            if (ConfigService.TryGetConfigItemNoType(key, out var item))
+                item.SetValueNoType(sender.SelectedIndex);
         }
     }
 

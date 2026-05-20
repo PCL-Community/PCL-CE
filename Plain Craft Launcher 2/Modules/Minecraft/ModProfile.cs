@@ -77,7 +77,7 @@ public static class ModProfile
 
             SaveProfile();
             ProfileLog("旧版正版档案迁移完成");
-            ModBase.Setup.Reset("LoginMsJson");
+            States.Game.LegacyProfile.LoginMsJsonConfig.Reset();
         }
         else
         {
@@ -102,7 +102,7 @@ public static class ModProfile
 
             SaveProfile();
             ProfileLog("旧版离线档案迁移完成");
-            ModBase.Setup.Reset("LoginLegacyName");
+            States.Game.LegacyProfile.LoginLegacyNameConfig.Reset();
         }
         else
         {
@@ -131,11 +131,11 @@ public static class ModProfile
             SaveProfile();
             ProfileLog("旧版第三方验证档案迁移完成");
             profileCount += 1;
-            ModBase.Setup.Reset("CacheAuthName");
-            ModBase.Setup.Reset("CacheAuthUuid");
-            ModBase.Setup.Reset("CacheAuthServerServer");
-            ModBase.Setup.Reset("CacheAuthUsername");
-            ModBase.Setup.Reset("CacheAuthPass");
+            States.Game.LegacyProfile.AuthUserNameConfig.Reset();
+            States.Game.LegacyProfile.AuthUuidConfig.Reset();
+            States.Game.LegacyProfile.AuthServerAddressConfig.Reset();
+            States.Game.LegacyProfile.AuthThirdPartyUserNameConfig.Reset();
+            States.Game.LegacyProfile.AuthPasswordConfig.Reset();
         }
         else
         {

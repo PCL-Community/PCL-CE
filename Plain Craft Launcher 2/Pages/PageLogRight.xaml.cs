@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using System.Globalization;
 
@@ -126,7 +127,9 @@ public partial class PageLogRight
     private void SliderMaxLog_ValueChanged(object o, bool user)
     {
         var sender = (MySlider)o;
-        ModBase.Setup.Set(sender.Tag.ToString(), sender.Value);
+        var key = (string)sender.Tag;
+        if (ConfigService.TryGetConfigItemNoType(key, out var item))
+            item.SetValueNoType(sender.Value);
         if (ModMain.FrmSetupLauncherMisc is null)
             return;
         ModMain.FrmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;

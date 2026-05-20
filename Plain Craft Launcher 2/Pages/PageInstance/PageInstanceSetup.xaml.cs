@@ -106,7 +106,7 @@ public partial class PageInstanceSetup
 
             // 游戏内存
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
-                ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
+                Config.Instance.MemorySolution[PageInstanceLeft.Instance.PathInstance])))).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
 
             // 服务器
@@ -128,10 +128,10 @@ public partial class PageInstanceSetup
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
             if (Conversions.ToBoolean(
                     Operators.ConditionalCompareObjectEqual(
-                        ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
+                        Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.Instance.PathInstance], 2, false)))
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
-                ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
+                Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.Instance.PathInstance);
                 Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
             }
 
@@ -185,7 +185,10 @@ public partial class PageInstanceSetup
         var sender = (MyRadioBox)o;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
+        {
+            if (ConfigService.TryGetConfigItemNoType(gotCfg[0], out var item))
+                item.SetValueNoType(int.Parse(gotCfg[1]), PageInstanceLeft.Instance.PathInstance);
+        }
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -218,14 +221,19 @@ public partial class PageInstanceSetup
     {
         var sender = (MySlider)o;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
+        {
+            if (ConfigService.TryGetConfigItemNoType(Conversions.ToString(sender.Tag), out var item))
+                item.SetValueNoType(sender.Value, PageInstanceLeft.Instance.PathInstance);
+        }
     }
 
     private static void ComboChange(MyComboBox sender, object e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
-                instance: PageInstanceLeft.Instance);
+        {
+            if (ConfigService.TryGetConfigItemNoType(Conversions.ToString(sender.Tag), out var item))
+                item.SetValueNoType(sender.SelectedIndex, PageInstanceLeft.Instance.PathInstance);
+        }
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -457,8 +465,7 @@ public partial class PageInstanceSetup
     public static double GetRam(ModMinecraft.McInstance Version, bool? Is32BitJava = default)
     {
         // 跟随全局设置
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 2, false)))
+        if (Config.Instance.MemorySolution[Version.PathInstance] == 2)
             return PageSetupLaunch.GetRam(Version, true, Is32BitJava);
 
         // ------------------------------------------
@@ -467,8 +474,7 @@ public partial class PageInstanceSetup
 
         // 使用当前实例的设置
         var RamGive = default(double);
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 0, false)))
+        if (Config.Instance.MemorySolution[Version.PathInstance] == 0)
         {
             // 自动配置
             var RamAvailable =
@@ -540,7 +546,7 @@ public partial class PageInstanceSetup
         else
         {
             // 手动配置
-            var Value = Conversions.ToInteger(ModBase.Setup.Get("VersionRamCustom", Version));
+            var Value = Config.Instance.CustomMemorySize[Version.PathInstance];
             if (Value <= 12)
                 RamGive = Value * 0.1d + 0.3d;
             else if (Value <= 25)
@@ -625,7 +631,7 @@ public partial class PageInstanceSetup
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Conversions.ToBoolean(ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
+        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
         {
             HintServerLoginLock.Visibility = Visibility.Visible;
             ComboServerLoginRequire.IsEnabled = false;

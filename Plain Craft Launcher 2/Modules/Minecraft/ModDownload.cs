@@ -2335,7 +2335,7 @@ public static class ModDownload
 
             default:
             {
-                ModBase.Setup.Reset("ToolDownloadMod");
+                Config.Download.Comp.CompSourceSolutionConfig.Reset();
                 res.Add(original);
                 break;
             }
