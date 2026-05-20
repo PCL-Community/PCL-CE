@@ -277,14 +277,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         };
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -292,7 +292,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
         BtnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
@@ -301,7 +301,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonStop, Tag = sender };
+            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonStop, Tag = sender };
             BtnDisable.ToolTip = "禁用";
             ToolTipService.SetPlacement(BtnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnDisable, 30d);
@@ -311,7 +311,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonCheck, Tag = sender };
+            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonCheck, Tag = sender };
             BtnEnable.ToolTip = "启用";
             ToolTipService.SetPlacement(BtnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnEnable, 30d);

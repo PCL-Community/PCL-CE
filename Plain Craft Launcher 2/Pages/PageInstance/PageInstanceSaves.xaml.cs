@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -211,13 +212,13 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnOpen = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonOpen,
+                        Logo = Icon.IconButtonOpen,
                         ToolTip = Lang.Text("Common.Action.Open")
                     };
                     BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonDelete,
+                        Logo = Icon.IconButtonDelete,
                         ToolTip = Lang.Text("Common.Action.Delete")
                     };
                     BtnDelete.Click += (_, _) =>
@@ -242,7 +243,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnCopy = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonCopy,
+                        Logo = Icon.IconButtonCopy,
                         ToolTip = Lang.Text("Common.Action.Copy")
                     };
                     BtnCopy.Click += (_, _) =>
@@ -267,7 +268,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnInfo = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonInfo,
+                        Logo = Icon.IconButtonInfo,
                         ToolTip = "详情"
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -275,7 +276,7 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnLaunch = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconPlayGame,
+                        Logo = Icon.IconPlayGame,
                         ToolTip = "快捷启动"
                     };
                     BtnLaunch.Click += (_, _) =>

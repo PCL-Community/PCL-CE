@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -64,7 +65,7 @@ public partial class PageLogLeft
                 };
                 NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var RemoveButton = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, LogoScale = 1.1d };
+                var RemoveButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
                 RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 NewItem.Buttons = new[] { RemoveButton };

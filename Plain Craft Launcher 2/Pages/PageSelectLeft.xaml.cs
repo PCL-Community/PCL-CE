@@ -182,7 +182,7 @@ public partial class PageSelectLeft : IRefreshable
                 // 图标按钮
                 var newIconButton = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSetup,
+                    Logo = Icon.IconButtonSetup,
                     LogoScale = 1.1
                 };
                 newIconButton.Click += (_, _) =>
@@ -217,7 +217,7 @@ public partial class PageSelectLeft : IRefreshable
                     Height = 34,
                     ToolTip = "在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹",
                     LogoScale = 0.9,
-                    Logo = ModBase.Logo.IconButtonCreate
+                    Logo = Icon.IconButtonCreate
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
                 ToolTipService.SetHorizontalOffset(itemCreate, -50);
@@ -234,7 +234,7 @@ public partial class PageSelectLeft : IRefreshable
                 Title = "添加已有文件夹",
                 Height = 34,
                 ToolTip = "将一个已有的 Minecraft 文件夹添加到列表",
-                Logo = ModBase.Logo.IconButtonAdd
+                Logo = Icon.IconButtonAdd
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemAdd, -50);

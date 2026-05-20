@@ -20,6 +20,7 @@ using PCL.Core.Utils.Hash;
 using PCL.Network;
 using ProtoBuf;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -280,12 +281,12 @@ public static class ModComp
                 if (HasFavs)
                 {
                     Item.Header = $"取消收藏 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeFill;
+                    Item.Icon = Icon.IconButtonLikeFill;
                 }
                 else
                 {
                     Item.Header = $"收藏到 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeLine;
+                    Item.Icon = Icon.IconButtonLikeLine;
                 }
 
                 Item.Click += (_, _) =>
@@ -3408,7 +3409,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
