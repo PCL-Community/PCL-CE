@@ -1,6 +1,6 @@
 ﻿namespace PCL.Core.UI;
 
-public class Icon
+public static class Icon
 {
     /// <summary>
     ///     图标按钮，心（空心），1.1x
