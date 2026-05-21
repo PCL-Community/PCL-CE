@@ -67,7 +67,7 @@ public class LogService : ILifecycleLogService
         // message box
         else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
         {
-            var caption = (ex == null) ? "提示" : "出现异常";
+            var caption = (ex == null) ? null : "出现异常";
             var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
             var message = plain;
             if (ex != null)

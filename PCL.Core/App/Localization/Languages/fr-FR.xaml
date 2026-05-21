@@ -1,32 +1,9 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">fr-FR</sys:String>
     <sys:String x:Key="Localization.Meta.Name">Français (France)</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage.Auto">Suivre le système ({0})</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Suivre la langue de l’interface</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Title">Langue</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.CardTitle">Langue</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">Langue d’affichage</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">Format régional</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">Le support multilingue est actuellement limité à certaines nouvelles interfaces. Les autres seront mises à jour lors des prochaines migrations.</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Changed">Paramètres de langue mis à jour</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">Suivre le format régional du système</sys:String>
-
-    <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
-    <sys:String x:Key="Common.Action.Cancel">Annuler</sys:String>
-    <sys:String x:Key="Common.Action.Close">Fermer</sys:String>
-    <sys:String x:Key="Common.Action.Search">Rechercher</sys:String>
-    <sys:String x:Key="Common.Action.Refresh">Actualiser</sys:String>
-    <sys:String x:Key="Common.Action.Reset">Réinitialiser</sys:String>
-
-    <sys:String x:Key="Main.Title.Launch">Lancer</sys:String>
-    <sys:String x:Key="Main.Title.Download">Télécharger</sys:String>
-    <sys:String x:Key="Main.Title.Settings">Paramètres</sys:String>
-    <sys:String x:Key="Main.Title.Tools">Outils</sys:String>
 </ResourceDictionary>

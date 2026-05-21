@@ -12,8 +12,8 @@ namespace PCL;
 public partial class PageSetupUI
 {
     public string[] ThemeColors => Basics.IsAprilFool 
-        ? ["天空蓝", "龙猫蓝", "死机蓝", "HMCL"]
-        : ["天空蓝", "龙猫蓝", "死机蓝"];
+        ? [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue"), Lang.Text("Setup.Ui.ThemeColor.Hmcl")]
+        : [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue")];
     
     public new bool IsLoaded;
 
@@ -156,12 +156,12 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "个性化设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载个性化设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.LoadFailed"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -172,11 +172,11 @@ public partial class PageSetupUI
         {
             Config.Preference.Reset();
             ModBase.Log("[Setup] 已初始化个性化设置！");
-            ModMain.Hint("已初始化个性化设置", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.Ui.Initialized"), ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化个性化设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -317,7 +317,7 @@ public partial class PageSetupUI
             PanBackgroundSuit.Visibility = Visibility.Visible;
             BtnBackgroundClear.Visibility = Visibility.Visible;
             CheckAutoPauseVideo.Visibility = Visibility.Visible;
-            CardBackground.Title = $"背景图片/视频（{Count} 张）";
+            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleWithCount", Count);
         }
         else
         {
@@ -326,7 +326,7 @@ public partial class PageSetupUI
             PanBackgroundSuit.Visibility = Visibility.Collapsed;
             BtnBackgroundClear.Visibility = Visibility.Collapsed;
             CheckAutoPauseVideo.Visibility = Visibility.Collapsed;
-            CardBackground.Title = "背景图片/视频";
+            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleDefault");
         }
 
         CardBackground.TriggerForceResize();
@@ -334,15 +334,13 @@ public partial class PageSetupUI
 
     private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox("""
-                             即将删除背景内容文件夹中的所有文件。
-                             此操作不可撤销，是否确定？
-                             """, "警告", Button2: Lang.Text("Common.Action.Cancel"),
+        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
+                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
         {
             ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            ModMain.Hint("背景内容已清空！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), ModMain.HintType.Finish);
         }
     }
 
@@ -398,13 +396,13 @@ public partial class PageSetupUI
                     if (ModMain.FrmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (IsHint)
-                            ModMain.Hint("未检测到可用背景内容！", ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), ModMain.HintType.Critical);
                     }
                     else
                     {
                         ModMain.FrmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (IsHint)
-                            ModMain.Hint("背景内容已清除！", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Setup.Ui.Background.Cleared"), ModMain.HintType.Finish);
                     }
                 }
 
@@ -425,7 +423,7 @@ public partial class PageSetupUI
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                         if (IsHint)
-                            ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                                ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(Address)), ModMain.HintType.Finish,
                                 false);
                     }
                     catch (Exception ex)
@@ -435,12 +433,12 @@ public partial class PageSetupUI
                             ModMain.FrmMain.VideoBack.MediaFailed += videoHandler;
                             ModBase.Log(ex, "[UI] 加载背景图片失败" + Address);
                             if (ModBase.ModeDebug)
-                                ModMain.Hint("图片加载失败，尝试将文件作为视频播放：" + Address);
+                                ModMain.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", Address));
                             ModMain.FrmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.FrmMain.VideoBack.Source = new Uri(Address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (IsHint)
-                                ModMain.Hint("背景内容已刷新：" + ModBase.GetFileNameFromPath(Address), ModMain.HintType.Finish,
+                            ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(Address)), ModMain.HintType.Finish,
                                     false);
                         }
                         catch (Exception playEx)
@@ -530,7 +528,7 @@ public partial class PageSetupUI
         }
 
         // 没有图片则要求选择
-        var FileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var FileName = SystemDialogs.SelectFile(Lang.Text("Setup.Ui.ImageFile.Filter"), Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(FileName))
         {
             ModMain.FrmMain.ImageTitleLogo.Source = null;
@@ -558,7 +556,7 @@ public partial class PageSetupUI
         {
             File.Delete(ModBase.ExePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            ModMain.Hint("标题栏图片已清空！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
@@ -586,14 +584,14 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = $"背景音乐（{ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Musics\").Count()} 首）";
+            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", ModBase.EnumerateFiles(ModBase.ExePath + @"PCL\Musics\").Count());
         }
         else
         {
             PanMusicVolume.Visibility = Visibility.Collapsed;
             PanMusicDetail.Visibility = Visibility.Collapsed;
             BtnMusicClear.Visibility = Visibility.Collapsed;
-            CardMusic.Title = "背景音乐";
+            CardMusic.Title = Lang.Text("Setup.Ui.Music.Title");
         }
 
         CardMusic.TriggerForceResize();
@@ -601,14 +599,12 @@ public partial class PageSetupUI
 
     private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox("""
-                             即将删除背景音乐文件夹中的所有文件。
-                             此操作不可撤销，是否确定？
-                             """, "警告", Button2: Lang.Text("Common.Action.Cancel"),
+        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
+                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: true) == 1)
             ModBase.RunInThread(() =>
             {
-                ModMain.Hint("正在删除背景音乐……");
+                ModMain.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
                 // 停止播放音乐
                 ModMusic.MusicNAudio = null;
                 ModMusic.MusicWaitingList = new List<string>();
@@ -619,7 +615,7 @@ public partial class PageSetupUI
                 {
                     ModBase.DeleteDirectory(ModBase.ExePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    ModMain.Hint("背景音乐已删除！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
                 {
@@ -661,10 +657,10 @@ public partial class PageSetupUI
         try
         {
             if (File.Exists(ModBase.ExePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox("当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！", "覆盖确认", "继续", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                     return;
             ModBase.WriteFile(ModBase.ExePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
-            ModMain.Hint("教学文件已生成！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Docs.Generated"), ModMain.HintType.Finish);
             ModBase.OpenExplorer(ModBase.ExePath + @"PCL\Custom.xaml");
         }
         catch (Exception ex)
@@ -676,20 +672,14 @@ public partial class PageSetupUI
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.FrmLaunchRight.ForceRefresh();
-        ModMain.Hint("已刷新主页！", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), ModMain.HintType.Finish);
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.MyMsgBox(
-            """
-            1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。
-            2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。
-            3. 点击 刷新主页 按钮，查看主页现在长啥样了。
-
-            你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。
-            直接将主页文件拖进 PCL 窗口也可以快捷加载。
-            """, "主页自定义教程");
+            Lang.Text("Setup.Ui.Homepage.Tutorial.Message"),
+            Lang.Text("Setup.Ui.Homepage.Tutorial.Title"));
     }
 
     // 主题
@@ -715,8 +705,8 @@ public partial class PageSetupUI
             Lang.Number(Math.Round(40 + Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
         SliderBackgroundOpacity.GetHintText = new Func<object, object>(v =>
             Lang.Number(Math.Round(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v), "N0") + " 像素");
-        SliderBlurValue.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v), "N0") + " 像素");
+        SliderBackgroundBlur.GetHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
+        SliderBlurValue.GetHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
         SliderBlurSamplingRate.GetHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
     }
 
@@ -791,7 +781,7 @@ public partial class PageSetupUI
                 ModMain.FrmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.FrmSetupUI.CardSwitch.Title = HiddenForceShow ? "功能隐藏（已暂时关闭，按 F12 以重新启用）" : "功能隐藏";
+                ModMain.FrmSetupUI.CardSwitch.Title = HiddenForceShow ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled") : Lang.Text("Setup.Ui.FeatureHide.Title");
             }
 
             // 设置子页面 (FrmSetupLeft)
@@ -991,7 +981,7 @@ public partial class PageSetupUI
     private void HiddenHint(object sender, bool user)
     {
         if (ModAnimation.AniControlEnabled == 0 && sender is MyCheckBox checkBox && checkBox.Checked == true)
-            ModMain.Hint("按 F12 即可暂时关闭功能隐藏设置。千万别忘了，要不然设置就改不回来了……");
+            ModMain.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
     }
 
     #endregion

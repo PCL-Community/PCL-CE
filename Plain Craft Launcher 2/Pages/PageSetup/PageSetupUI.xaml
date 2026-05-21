@@ -10,7 +10,7 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
-            <local:MyCard Margin="0,15" Title="基础" x:Name="CardLauncher">
+            <local:MyCard Margin="0,15" Title="{DynamicResource Setup.Ui.Basic.Title}" x:Name="CardLauncher">
                 <Grid Margin="25,40,25,10">
                     <StackPanel>
                         <Grid Margin="0,0,0,6">
@@ -26,7 +26,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="不透明度"
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.Opacity}"
                                        Margin="0,0,20,0" />
                             <local:MySlider Grid.ColumnSpan="5" x:Name="SliderLauncherOpacity"
                                             Tag="UiLauncherTransparent" MaxValue="600" ValueByKey="10" Grid.Column="1"
@@ -35,9 +35,9 @@
                         <Border Background="{DynamicResource ColorBrushToolTip}" Margin="0,5,0,12" CornerRadius="4"
                                 Name="PanLauncherHide" Visibility="Collapsed">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-                                <TextBlock Text="蓝色，蓝色，还是蓝色！想要逃离蓝色困境？请使用官方快照版！" FontSize="13" Margin="0,0,0,0"
+                                <TextBlock Text="{DynamicResource Setup.Ui.Basic.BlueHint}" FontSize="13" Margin="0,0,0,0"
                                            TextWrapping="Wrap" />
-                                <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="获取官方快照版"
+                                <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="{DynamicResource Setup.Ui.Basic.GetSnapshot}"
                                                 Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0"
                                                 ColorType="Highlight" Click="BtnLauncherDonate_Click" />
                             </StackPanel>
@@ -51,31 +51,29 @@
                                 <ColumnDefinition SharedSizeGroup="SubName" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主题" />
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Theme.Title}" />
                             <local:MyComboBox Grid.Column="1" x:Name="ComboDarkMode" Tag="UiDarkMode"
                                               SelectionChanged="ComboChange">
-                                <local:MyComboBoxItem Content="浅色" />
-                                <local:MyComboBoxItem Content="深色" />
-                                <local:MyComboBoxItem Content="跟随系统" /> <!-- default -->
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Light}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Dark}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.FollowSystem}" /> <!-- default -->
                             </local:MyComboBox>
-
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="浅色配色"/>
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.LightColor}"/>
                             <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
-
-                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="深色配色"/>
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.DarkColor}"/>
                             <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
 
                         </Grid>
-                        <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowLogo}" Margin="-1,0,0,7" Height="22"
                                           x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" Change="CheckBoxChange" />
-                        <local:MyCheckBox Text="锁定启动器大小" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.LockWindow}" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize"
                                           Tag="UiLockWindowSize" Change="CheckBoxChange" />
-                        <local:MyCheckBox Text="在启动游戏时显示“你知道吗”" Margin="-1,0,0,7" Height="22"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowTriviaHint}" Margin="-1,0,0,7" Height="22"
                                           x:Name="CheckShowLaunchingHint" Tag="UiShowLaunchingHint"
                                           Change="CheckBoxChange" />
                         <StackPanel x:Name="PanelBlur" Margin="0,0,0,10">
-                            <local:MyCheckBox Text="高级材质" Height="22" x:Name="CheckBlur" Tag="UiBlur"
-                                              ToolTip="启用此功能后会在部分透明区域（例如卡片）实现模糊效果。&#xa;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！"
+                            <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.AdvancedMaterial}" Height="22" x:Name="CheckBlur" Tag="UiBlur"
+                                              ToolTip="{DynamicResource Setup.Ui.Basic.AdvancedMaterial.ToolTip}"
                                               Change="CheckBoxChange" />
                             <Grid x:Name="PanBlurValue" Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
@@ -90,33 +88,33 @@
                                     <RowDefinition />
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
-                                           HorizontalAlignment="Left" Text="模糊半径" />
+                                           HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.BlurRadius}" />
                                 <local:MySlider Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
                                                 x:Name="SliderBlurValue" Tag="UiBlurValue" MaxValue="40"
                                                 ValueByKey="10" Change="SliderChange"
-                                                ToolTip="设定模糊效果的采样半径，值越大模糊效果越强。" />
+                                                ToolTip="{DynamicResource Setup.Ui.Basic.BlurRadius.ToolTip}" />
                                 <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"
-                                           HorizontalAlignment="Center" Text="采样率" />
+                                           HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Basic.BlurSamplingRate}" />
                                 <local:MySlider Grid.Row="2" Grid.Column="3" x:Name="SliderBlurSamplingRate"
                                                 Tag="UiBlurSamplingRate" MaxValue="100" ValueByKey="5"
                                                 Change="SliderChange"
-                                                ToolTip="设定模糊效果的采样率，值越大模糊效果越细致。&#xa;若设备性能不佳，可尝试降低该值以获得更好的性能。" />
+                                                ToolTip="{DynamicResource Setup.Ui.Basic.BlurSamplingRate.ToolTip}" />
                                 <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"
-                                           HorizontalAlignment="Left" Text="模糊方法" />
+                                           HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.BlurMethod}" />
                                 <local:MyComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboBlurType" Tag="UiBlurType"
-                                                  Height="28" MinWidth="100" ToolTip="设定模糊方法。"
+                                                  Height="28" MinWidth="100" ToolTip="{DynamicResource Setup.Ui.Basic.BlurMethod.ToolTip}"
                                                   SelectionChanged="ComboChange">
-                                    <local:MyComboBoxItem Content="高斯模糊"
-                                                          ToolTip="对每个像素周围较大范围的像素使用高斯卷积算法的带权重均值采样，速度较慢。&#xa;该模糊质量较高，对细节的处理较为细致，推荐性能较好的设备使用。" />
-                                    <local:MyComboBoxItem Content="方框模糊"
-                                                          ToolTip="对每个像素周围较小范围的像素使用线性均值采样，速度较快，但容易产生色块。&#xa;该模糊容易丢失细节信息，但性能较好，若设备性能不佳可选择使用。" />
+                                    <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian}"
+                                                          ToolTip="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip}" />
+                                    <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Box}"
+                                                          ToolTip="{DynamicResource Setup.Ui.Basic.BlurMethod.Box.ToolTip}" />
                                 </local:MyComboBox>
                             </Grid>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardFont" Margin="0,0,0,15" Title="字体">
+            <local:MyCard x:Name="CardFont" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Font.Title}">
                 <Grid Margin="25,40,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -128,34 +126,34 @@
                         <RowDefinition Height="10" />
                         <RowDefinition SharedSizeGroup="FontSelector" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="全局" />
-                    <local:FontSelector Grid.Row="0" Grid.Column="2" x:Name="ComboUiFont" Tooltip="全局默认字体"
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{DynamicResource Setup.Ui.Font.Global}" />
+                    <local:FontSelector Grid.Row="0" Grid.Column="2" x:Name="ComboUiFont" Tooltip="{DynamicResource Setup.Ui.Font.Global.ToolTip}"
                                         SelectionChanged="ComboFontChange" />
-                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="MOTD" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="{DynamicResource Setup.Ui.Font.Motd}" />
                     <local:FontSelector Grid.Row="2" Grid.Column="2" x:Name="ComboUiMotdFont"
-                                        Tooltip="格式化代码文本字体，用于服务器状态信息等内容" SelectionChanged="ComboMotdFontChange" />
+                                        Tooltip="{DynamicResource Setup.Ui.Font.Motd.ToolTip}" SelectionChanged="ComboMotdFontChange" />
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="背景内容">
+            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Background.TitleDefault}">
                 <StackPanel Margin="25,40,25,20">
                     <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="内容自适应方式"
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Background.ContentAdapt}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1"
                                           SelectionChanged="ComboChange">
-                            <local:MyComboBoxItem Content="智能" IsSelected="True" ToolTip="当内容较小时选择平铺，较大时选择适应" />
-                            <local:MyComboBoxItem Content="居中" />
-                            <local:MyComboBoxItem Content="适应" ToolTip="拉伸内容并保持长宽比不变，直至填满整个窗口" />
-                            <local:MyComboBoxItem Content="拉伸" ToolTip="拉伸内容使其恰好填满整个窗口，很可能会导致长宽比的改变" />
-                            <local:MyComboBoxItem Content="平铺" />
-                            <local:MyComboBoxItem Content="居于左上" />
-                            <local:MyComboBoxItem Content="居于右上" />
-                            <local:MyComboBoxItem Content="居于左下" />
-                            <local:MyComboBoxItem Content="居于右下" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Smart}" IsSelected="True" ToolTip="{DynamicResource Setup.Ui.Background.Suit.Smart.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Center}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Fit}" ToolTip="{DynamicResource Setup.Ui.Background.Suit.Fit.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Stretch}" ToolTip="{DynamicResource Setup.Ui.Background.Suit.Stretch.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Tile}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.TopLeft}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.TopRight}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.BottomLeft}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.BottomRight}" />
                         </local:MyComboBox>
                     </Grid>
                     <Grid x:Name="PanBackgroundOpacity" Height="22" Margin="0,0,0,7" Visibility="Collapsed">
@@ -163,7 +161,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="不透明度" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.Opacity2}" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderBackgroundOpacity" Tag="UiBackgroundOpacity" MaxValue="1000"
                                         ValueByKey="10" Grid.Column="1" Change="SliderChange" />
                     </Grid>
@@ -172,15 +170,15 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="背景模糊" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Background.Blur}" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderBackgroundBlur" Tag="UiBackgroundBlur" MaxValue="40"
                                         Grid.Column="1" Change="SliderChange"
-                                        ToolTip="较强的模糊会导致启动器严重掉帧，请谨慎使用。&#13;不建议在制作整合包时开启模糊，以确保 PCL 在低性能电脑上可以流畅运行。" />
+                                         ToolTip="{DynamicResource Setup.Ui.Background.Blur.ToolTip}" />
                     </Grid>
-                    <local:MyCheckBox Text="游戏启动后暂停视频背景，游戏退出后重新播放" Margin="-1,0,0,8" Height="22"
+                    <local:MyCheckBox Text="{DynamicResource Setup.Ui.Background.PauseVideo}" Margin="-1,0,0,8" Height="22"
                                       x:Name="CheckAutoPauseVideo" Tag="UiAutoPauseVideo" Change="CheckBoxChange"
-                                      ToolTip="若启用此项设置，游戏时将无法刷新背景" IsEnabled="True" />
-                    <local:MyCheckBox Text="叠加彩色背景" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful"
+                                      ToolTip="{DynamicResource Setup.Ui.Background.PauseVideo.ToolTip}" IsEnabled="True" />
+                    <local:MyCheckBox Text="{DynamicResource Setup.Ui.Background.ColorOverlay}" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful"
                                       Tag="UiBackgroundColorful" Change="CheckBoxChange" />
                     <Grid Height="35" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>
@@ -190,40 +188,40 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnUIBgOpen_Click"
-                                        ToolTip="将背景图片和视频放到该文件夹，PCL 将会在每次打开时随机加载其中的一张图片或视频&#xa;为提高播放时的流畅度，视频推荐使用H264格式编码" />
-                        <local:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="刷新背景内容" Padding="13,0"
+                                        ToolTip="{DynamicResource Setup.Ui.Background.OpenFolder.ToolTip}" />
+                        <local:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Refresh}" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnBackgroundRefresh_Click"
-                                        ToolTip="随机加载文件夹内的一张背景图片或视频&#xa;为提高播放时的流畅度，视频推荐使用H264格式编码"
+                                        ToolTip="{DynamicResource Setup.Ui.Background.Refresh.ToolTip}"
                                         Grid.Column="1" />
-                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="清空背景内容" Visibility="Collapsed"
+                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Clear}" Visibility="Collapsed"
                                         Padding="13,0" Margin="0,0,20,0" ColorType="Red"
                                         Click="BtnBackgroundClear_Click" Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardMusic" Margin="0,0,0,15" Title="背景音乐">
+            <local:MyCard x:Name="CardMusic" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Music.Title}">
                 <StackPanel Margin="25,42,25,20">
                     <Grid x:Name="PanMusicVolume" Visibility="Collapsed" Height="22" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="音量" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Music.Volume}" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderMusicVolume" Tag="UiMusicVolume" MaxValue="1000" ValueByKey="10"
                                         Grid.Column="1" Change="SliderChange" />
                     </Grid>
                     <StackPanel x:Name="PanMusicDetail" Visibility="Collapsed" Margin="-1,0,0,3">
-                        <local:MyCheckBox Text="随机播放" Margin="0,0,0,5" Height="22" x:Name="CheckMusicRandom"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.Shuffle}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicRandom"
                                           Tag="UiMusicRandom" Change="CheckBoxChange" />
-                        <local:MyCheckBox Text="打开启动器自动开始播放" Margin="0,0,0,5" Height="22" x:Name="CheckMusicAuto"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.AutoStart}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicAuto"
                                           Tag="UiMusicAuto" Change="CheckBoxChange" />
-                        <local:MyCheckBox Text="游戏启动后自动开始播放，游戏退出后自动暂停播放" Margin="0,0,0,5" Height="22"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.StartInGame}" Margin="0,0,0,5" Height="22"
                                           x:Name="CheckMusicStart" Tag="UiMusicStart" Change="CheckMusicStart_OnChange" />
-                        <local:MyCheckBox Text="游戏启动后自动暂停播放，游戏退出后自动开始播放" Margin="0,0,0,5" Height="22"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.StopInGame}" Margin="0,0,0,5" Height="22"
                                           x:Name="CheckMusicStop" Tag="UiMusicStop" Change="CheckMusicStop_OnChange" />
-                        <local:MyCheckBox Text="接入系统媒体传输控制 (SMTC) 控件" Margin="0,0,0,5" Height="22"
+                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.Smtc}" Margin="0,0,0,5" Height="22"
                                           x:Name="CheckMusicSMTC" Tag="UiMusicSMTC" Change="CheckBoxChange"
-                                          ToolTip="启用此选项后，可以使用系统控制中心和快捷键等控制 PCL 的媒体播放。&#xa;可以与 Lyricify Lite 或 FluentFlyout 等软件搭配使用。" />
+                                          ToolTip="{DynamicResource Setup.Ui.Music.Smtc.ToolTip}" />
                     </StackPanel>
                     <Grid Height="35">
                         <Grid.ColumnDefinitions>
@@ -233,17 +231,17 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnMusicOpen" Text="{DynamicResource Common.Action.OpenFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnMusicOpen_Click"
-                                        ToolTip="将背景音乐放到该文件夹，PCL 将会播放其中的所有音乐" />
-                        <local:MyButton x:Name="BtnMusicRefresh" Text="刷新背景音乐" MinWidth="140" Padding="13,0"
+                                        ToolTip="{DynamicResource Setup.Ui.Music.OpenFolder.ToolTip}" />
+                        <local:MyButton x:Name="BtnMusicRefresh" Text="{DynamicResource Setup.Ui.Music.Refresh}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnMusicRefresh_Click"
-                                        ToolTip="刷新播放列表，并播放列表中的音乐" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnMusicClear" Text="清空背景音乐" MinWidth="140" Visibility="Collapsed"
+                                        ToolTip="{DynamicResource Setup.Ui.Music.Refresh.ToolTip}" Grid.Column="1" />
+                        <local:MyButton x:Name="BtnMusicClear" Text="{DynamicResource Setup.Ui.Music.Clear}" MinWidth="140" Visibility="Collapsed"
                                         Padding="13,0" Margin="0,0,20,0" ColorType="Red" Click="BtnMusicClear_Click"
                                         Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardLogo" Margin="0,0,0,15" Title="标题栏">
+            <local:MyCard x:Name="CardLogo" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Logo.Title}">
                 <StackPanel Margin="25,40,25,15">
                     <Grid Margin="-1,0,0,0">
                         <Grid.ColumnDefinitions>
@@ -253,23 +251,23 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="0.2*" />
                         </Grid.ColumnDefinitions>
-                        <local:MyRadioBox Text="无" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.None}" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0"
                                           Grid.Column="0" Check="RadioBoxChange" />
                         <local:MyRadioBox Text="{DynamicResource Common.Option.Default}" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1"
                                           Grid.Column="1" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="文本" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.Text}" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2"
                                           Grid.Column="2" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="图片" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.Image}" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3"
                                           Grid.Column="3" Check="RadioBoxChange" PreviewCheck="RadioLogoType3_Check" />
                     </Grid>
-                    <local:MyCheckBox Text="标题栏居左" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft"
+                    <local:MyCheckBox Text="{DynamicResource Setup.Ui.Logo.LeftAlign}" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft"
                                       Tag="UiLogoLeft" Visibility="Collapsed" Change="CheckBoxChange" />
                     <Grid x:Name="PanLogoText" Margin="0,14,0,5" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="标题栏文本" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Logo.TextLabel}" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLogoText" Tag="UiLogoText" Grid.Column="1" MaxLength="100"
                                          ValidatedTextChanged="TextBoxChange" />
                     </Grid>
@@ -278,14 +276,14 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnLogoChange" Text="更改图片" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnLogoChange" Text="{DynamicResource Setup.Ui.Logo.ChangeImage}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnLogoChange_Click" />
-                        <local:MyButton x:Name="BtnLogoDelete" Text="清空图片" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnLogoDelete" Text="{DynamicResource Setup.Ui.Logo.ClearImage}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" ColorType="Red" Click="BtnLogoDelete_Click" Grid.Column="1" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="主页" x:Name="CardCustom">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Homepage.Title}" x:Name="CardCustom">
                 <StackPanel Margin="25,40,25,15">
                     <Grid Margin="-1,0,0,0">
                         <Grid.ColumnDefinitions>
@@ -295,17 +293,17 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="0.2*" />
                         </Grid.ColumnDefinitions>
-                        <local:MyRadioBox Text="空白" x:Name="RadioCustomType0" Height="22" Tag="UiCustomType/0"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Blank}" x:Name="RadioCustomType0" Height="22" Tag="UiCustomType/0"
                                           Grid.Column="0" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="预设" x:Name="RadioCustomType3" Height="22" Tag="UiCustomType/3"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Preset}" x:Name="RadioCustomType3" Height="22" Tag="UiCustomType/3"
                                           Grid.Column="1" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="读取本地文件" x:Name="RadioCustomType1" Height="22" Tag="UiCustomType/1"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.LocalFile}" x:Name="RadioCustomType1" Height="22" Tag="UiCustomType/1"
                                           Grid.Column="2" Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="联网更新" x:Name="RadioCustomType2" Height="22" Tag="UiCustomType/2"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.NetUpdate}" x:Name="RadioCustomType2" Height="22" Tag="UiCustomType/2"
                                           Grid.Column="3" Check="RadioBoxChange" />
                     </Grid>
-                    <local:MyHint Margin="0,15,0,-4" Text="内容见 ModSetup" Theme="Blue" x:Name="HintCustom" />
-                    <local:MyHint Margin="0,15,0,6" Text="请谨慎使用陌生人提供的主页，恶意代码可能会造成损害！" Theme="Yellow"
+                    <local:MyHint Margin="0,15,0,-4" Text="{DynamicResource Setup.Ui.Homepage.HintReferToModSetup}" Theme="Blue" x:Name="HintCustom" />
+                    <local:MyHint Margin="0,15,0,6" Text="{DynamicResource Setup.Ui.Homepage.NetWarning}" Theme="Yellow"
                                   x:Name="HintCustomWarn"
                                   CanClose="True" RelativeSetup="HintCustomWarn" />
                     <Grid Height="35" x:Name="PanCustomLocal" Visibility="Collapsed" Margin="0,10,0,5">
@@ -314,13 +312,13 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnCustomRefresh" Grid.Column="0" MinWidth="140" Text="刷新主页"
+                        <local:MyButton x:Name="BtnCustomRefresh" Grid.Column="0" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Refresh}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         ColorType="Highlight" Click="BtnCustomRefresh_Click" />
-                        <local:MyButton x:Name="BtnCustomFile" Grid.Column="1" MinWidth="140" Text="生成教学文件"
+                        <local:MyButton x:Name="BtnCustomFile" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.GenerateDocs}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         Click="BtnCustomFile_Click" />
-                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="2" MinWidth="140" Text="查看教程"
+                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="2" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         Click="BtnCustomTutorial_Click" />
                     </Grid>
@@ -329,7 +327,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="下载地址" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.DownloadUrl}" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextCustomNet" Tag="UiCustomNet" Grid.Column="1" MaxHeight="28"
                                          ValidatedTextChanged="TextBoxChange">
                             <local:MyTextBox.ValidateRules>
@@ -342,25 +340,25 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页预设" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.PresetLabel}" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset"
                                           Grid.Column="1" SelectionChanged="ComboChange">
-                            <local:MyComboBoxItem Content="你知道吗？" />
-                            <local:MyComboBoxItem Content="回声洞 (已移除)" Visibility="Collapsed" />
-                            <local:MyComboBoxItem Content="Minecraft 新闻（作者：最亮的信标）" />
-                            <local:MyComboBoxItem Content="简单主页（作者：MFn233）" />
-                            <local:MyComboBoxItem Content="每日整合包推荐（作者：wkea）" />
-                            <local:MyComboBoxItem Content="Minecraft 皮肤推荐（作者：wkea）" />
-                            <local:MyComboBoxItem Content="OpenBMCLAPI 仪表盘 Lite（作者：Silverteal、Mxmilu666）" />
-                            <local:MyComboBoxItem Content="PCL 主页市场（作者：凌云）" />
-                            <local:MyComboBoxItem Content="PCL 新闻速报（作者：Joker2184）" />
-                            <local:MyComboBoxItem Content="PCL 新功能说明书（作者：WForst-Breeze）" />
-                            <local:MyComboBoxItem Content="OpenMCIM 仪表盘（作者：SALTWOOD）" Visibility="Collapsed" />
-                            <local:MyComboBoxItem Content="杂志主页（作者：CreeperIsASpy）" />
-                            <local:MyComboBoxItem Content="PCL GitHub 仪表盘（作者：Deep-Dark-Forest）" />
-                            <local:MyComboBoxItem Content="Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）" />
-                            <local:MyComboBoxItem Content="PCL CE 公告栏"/>
-                            <local:MyComboBoxItem Content="Minecraft 官方信息流"/>
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Trivia}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.EchoCave}" Visibility="Collapsed" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McNews}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.SimpleHomepage}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.DailyModpack}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McSkin}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenBmclapi}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclMarket}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclNews}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclManual}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenMcim}" Visibility="Collapsed" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Magazine}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.GitHub}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McUpdateSummary}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
                         </local:MyComboBox>
                     </Grid>
                     <Grid>
@@ -369,17 +367,17 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Grid.Column="0" Margin="0,10,0,0"
-                                   HorizontalAlignment="Left" Text="获取更多主页" />
+                                    HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GetMore}" />
                         <local:MyIconTextButton x:Name="BtnGotoHomepageMarket" Grid.Column="1" Margin="10,10,0,0"
-                                                HorizontalAlignment="Left" Text="前往主页市场"
+                                                HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GoToMarket}"
                                                 Logo="M857.856 0H55.296a53.248 53.248 0 0 0-51.2 53.248V230.4a51.2 51.2 0 0 0 102.4 0V106.496h708.352a102.4 102.4 0 0 1 102.4 102.4v606.464a102.4 102.4 0 0 1-102.4 102.4H105.984v-120.32a51.2 51.2 0 0 0-102.4 0V972.8a53.248 53.248 0 0 0 51.2 51.2h803.072A166.4 166.4 0 0 0 1024 858.368v-691.2A166.4 166.4 0 0 0 857.856 0z M91.136 512a57.344 57.344 0 0 0 57.088 57.088h380.672l-103.68 103.68a53.248 53.248 0 0 0 75.264 75.264l198.144-198.4a52.992 52.992 0 0 0 0-75.264l-198.4-198.4a53.248 53.248 0 1 0-75.264 75.264l103.68 103.68H148.224A57.344 57.344 0 0 0 91.136 512z"
                                                 Click="BtnHomepageMarket_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="功能隐藏">
+            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
                 <StackPanel Margin="25,38,15,15">
-                    <TextBlock Margin="0,1,0,1" Text="你可以隐藏不需要的页面或关闭特定功能。在任意界面按 F12 可以暂时显示被隐藏的功能。" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,1,0,1" Text="{DynamicResource Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -402,91 +400,91 @@
                             <RowDefinition Height="30" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页面" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Text="下载"
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.MainPage}" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Download}"
                                           x:Name="CheckHiddenPageDownload" Tag="UiHiddenPageDownload"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="设置"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Settings}"
                                           x:Name="CheckHiddenPageSetup" Tag="UiHiddenPageSetup" Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="工具"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Tools}"
                                           x:Name="CheckHiddenPageTools" Tag="UiHiddenPageTools" Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 设置" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Text="启动"
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubSetup}" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Launch}"
                                           x:Name="CheckHiddenSetupLaunch" Tag="UiHiddenSetupLaunch"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="3"
                                           Text="Java" x:Name="CheckHiddenSetupJava" Tag="UiHiddenSetupJava"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="管理"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.GameManage}"
                                           x:Name="CheckHiddenSetupGameManage" Tag="UiHiddenSetupGameManage"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5" Text="联机"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.GameLink}"
                                           x:Name="CheckHiddenSetupGameLink" Tag="UiHiddenSetupGameLink"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="6"
-                                          Text="个性化" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Ui}" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="语言"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Language}"
                                           x:Name="CheckHiddenSetupLauncherLanguage" Tag="UiHiddenSetupLauncherLanguage"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="杂项"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Misc}"
                                           x:Name="CheckHiddenLauncherMisc" Tag="UiHiddenSetupLauncherMisc"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4"
-                                          Text="软件更新" x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Update}" x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="关于"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.About}"
                                           x:Name="CheckHiddenSetupAbout" Tag="UiHiddenSetupAbout"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="反馈"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Feedback}"
                                           x:Name="CheckHiddenSetupFeedback" Tag="UiHiddenSetupFeedback"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="7"
-                                          Text="查看日志" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Log}" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
                                           Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 工具" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="联机" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="帮助" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
-                        <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 实例设置 " />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="修改"
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubTools}" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Lobby}" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange"/>
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Help}" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
+                        <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubInstance}" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Edit}"
                                           x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="3" Text="导出"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Export}"
                                           x:Name="CheckHiddenVersionExport" Tag="UiHiddenVersionExport"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="4" Text="存档"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Save}"
                                           x:Name="CheckHiddenVersionSave" Tag="UiHiddenVersionSave"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="5" Text="截图"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Screenshot}"
                                           x:Name="CheckHiddenVersionScreenshot" Tag="UiHiddenVersionScreenshot"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="6"
                                           Text="Mod" x:Name="CheckHiddenVersionMod" Tag="UiHiddenVersionMod"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2"
-                                          Text="资源包" x:Name="CheckHiddenVersionResourcePack"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.ResourcePack}" x:Name="CheckHiddenVersionResourcePack"
                                           Tag="UiHiddenVersionResourcePack" Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="3"
-                                          Text="光影包" x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Shader}" x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="4"
-                                          Grid.ColumnSpan="2" Text="投影原理图" x:Name="CheckHiddenVersionSchematic"
+                                          Grid.ColumnSpan="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Schematic}" x:Name="CheckHiddenVersionSchematic"
                                           Tag="UiHiddenVersionSchematic" Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="6"
-                                          Text="服务器" x:Name="CheckHiddenVersionServer" Tag="UiHiddenVersionServer"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Server}" x:Name="CheckHiddenVersionServer" Tag="UiHiddenVersionServer"
                                           Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="7" VerticalAlignment="Center" HorizontalAlignment="Left" Text="特定功能" />
+                        <TextBlock Grid.Row="7" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SpecificFeature}" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="2"
-                                          Text="实例管理" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
-                                          ToolTip="隐藏启动按钮下方的实例选择与实例设置入口。" Change="CheckBoxChange" />
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.InstanceSelect}" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
+                                          ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip}" Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="3"
-                                          Text="Mod 更新" x:Name="CheckHiddenFunctionModUpdate"
-                                          Tag="UiHiddenFunctionModUpdate" ToolTip="禁止在 Mod 管理页面更新 Mod。"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate}" x:Name="CheckHiddenFunctionModUpdate"
+                                          Tag="UiHiddenFunctionModUpdate" ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="4"
-                                          Text="功能隐藏" x:Name="CheckHiddenFunctionHidden" Tag="UiHiddenFunctionHidden"
-                                          ToolTip="仅隐藏本选项卡，设置的禁用内容依然有效。&#xa;可以在保留个性化设置页面的情况下避免隐藏设置被修改。"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.FeatureHide}" x:Name="CheckHiddenFunctionHidden" Tag="UiHiddenFunctionHidden"
+                                          ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip}"
                                           Change="CheckBoxChange" />
                     </Grid>
                 </StackPanel>

@@ -156,19 +156,19 @@
                         </Grid>
                         <StackPanel Grid.Column="1" x:Name="PanTitleSelect" HorizontalAlignment="Left" Height="27"
                                     VerticalAlignment="Center" Orientation="Horizontal" Margin="13,0">
-                            <local:MyRadioButton x:Name="BtnTitleSelect0" Text="{DynamicResource Main.Title.Launch}" Tag="0" Margin="5,0" Checked="True"
+                            <local:MyRadioButton x:Name="BtnTitleSelect0" Text="{DynamicResource Main.TopTitle.Launch}" Tag="0" Margin="5,0" Checked="True"
                                                  Padding="2,0" Check="BtnTitleSelect_Click"
                                                  LogoScale="0.9"
                                                  Logo="M52.1,164.5c-1.4,0-3.1-0.5-4.2-1.3c-2.6-1.7-4-4.2-4-7V43.8c0-2.9,1.6-5.8,4.1-7c1.2-0.8,2.7-1.2,4.1-1.2c1.5,0,2.9,0.4,4.2,1.2L153.1,93c0,0,0.1,0,0.1,0.1c2.6,1.7,4,4.2,4,7c0,3-1.7,5.8-4.2,7.1l-96.8,56.2C55.1,164,53.5,164.5,52.1,164.5z M60.4,142.1l72.1-42.1L60.4,58.2V142.1z" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect1" Text="{DynamicResource Main.Title.Download}" Tag="1" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect1" Text="{DynamicResource Main.TopTitle.Download}" Tag="1" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="0.9"
                                                  Logo="M955 610h-59c-15 0-29 13-29 29v196c0 15-13 29-29 29h-649c-15 0-29-13-29-29v-196c0-15-13-29-29-29h-59c-15 0-29 13-29 29V905c0 43 35 78 78 78h787c43 0 78-35 78-78V640c0-15-13-29-29-29zM492 740c11 11 29 11 41 0l265-265c11-11 11-29 0-41l-41-41c-11-11-29-11-41 0l-110 110c-11 11-33 3-33-13V68C571 53 555 39 541 39h-59c-15 0-29 13-29 29v417c0 17-21 25-33 13l-110-110c-11-11-29-11-41 0L226 433c-11 11-11 29 0 41L492 740z" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect2" Text="{DynamicResource Main.Title.Settings}" Tag="2" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect2" Text="{DynamicResource Main.TopTitle.Settings}" Tag="2" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="1.1"
                                                  Logo="M940.4 463.7L773.3 174.2c-17.3-30-49.2-48.4-83.8-48.4H340.2c-34.6 0-66.5 18.5-83.8 48.4L89.2 463.7c-17.3 30-17.3 66.9 0 96.8L256.4 850c17.3 30 49.2 48.4 83.8 48.4h349.2c34.6 0 66.5-18.5 83.8-48.4l167.2-289.5c17.3-29.9 17.3-66.8 0-96.8z m-94.6 96.8L725.9 768.1c-17.3 30-49.2 48.4-83.8 48.4H387.5c-34.6 0-66.5-18.5-83.8-48.4L183.9 560.5c-17.3-30-17.3-66.9 0-96.8l119.8-207.5c17.3-30 49.2-48.4 83.8-48.4h254.6c34.6 0 66.5 18.5 83.8 48.4l119.8 207.5c17.3 30 17.3 66.9 0.1 96.8z M522.3 321.2c-2.5-0.1-5-0.2-7.5-0.2-119.9 0-214 110.3-186.3 235 15.8 70.9 71.5 126.6 142.4 142.4 17.5 3.9 34.7 5.4 51.4 4.7 102.1-3.9 183.6-87.9 183.6-191 0.1-103-81.5-187-183.6-190.9z m68.6 269.1c-18.5 18-43 28.9-68.6 30.7l-6 0.3c-30.2 0.4-58.6-11.4-79.7-33-19.5-20.1-30.7-47-30.9-75-0.3-29.6 11.1-57.4 32-78.3 20.6-20.6 48-32 77.2-32 2.5 0 5 0.1 7.5 0.3 26.7 1.8 51.5 13.2 70.5 32.5 19.6 20 30.8 46.9 31.2 74.9 0.2 30.2-11.5 58.6-33.2 79.6z" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect3" Text="{DynamicResource Main.Title.Tools}" Tag="3" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect3" Text="{DynamicResource Main.TopTitle.Tools}" Tag="3" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="1"
                                                  Logo="M623.0016 208.5376c-103.6288-103.6288-269.4144-103.6288-352.256-20.736L415.744 332.8512 332.8 415.7952 187.8016 270.6944c-82.944 82.944-82.944 248.6784 20.736 352.3072 66.56 66.6112 158.9248 88.32 276.8896 64.9728l13.2608-2.7648 198.656 198.656a41.472 41.472 0 0 0 54.7328 3.4304l3.8912-3.4304 127.8976-127.8976a41.472 41.472 0 0 0 3.4304-54.7328l-3.4304-3.8912-198.656-198.656c27.648-124.3648 6.912-221.0816-62.208-290.1504z m-253.2352-9.6256l1.1776-0.4096c64.9728-20.736 150.6304-3.4816 208.0768 54.016 50.6368 50.5344 67.4816 121.7024 48.128 220.16l-2.56 12.4928-7.4752 33.28 208.1792 208.1792-98.6624 98.6112-208.128-208.128-33.28 7.3728c-105.0624 23.3472-180.0192 7.2704-232.704-45.4656-55.04-54.9376-73.216-135.68-56.5248-199.5264l2.9696-9.728L332.8 503.6544 503.7056 332.8 369.7664 198.912z" />

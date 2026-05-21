@@ -18,6 +18,7 @@ public partial class PageSetupJava
     public PageSetupJava()
     {
         InitializeComponent();
+        PanLoad.Text = Lang.Text("Setup.Launch.Java.Loading");
         Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }
@@ -44,8 +45,8 @@ public partial class PageSetupJava
         var itemAuto = new MyListItem
         {
             Type = MyListItem.CheckType.RadioBox,
-            Title = "自动选择",
-            Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
+            Title = Lang.Text("Setup.Launch.Java.AutoSelect.Title"),
+            Info = Lang.Text("Setup.Launch.Java.AutoSelect.Info")
         };
         itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
@@ -82,7 +83,7 @@ public partial class PageSetupJava
         {
             if (!J.Installation.IsStillAvailable)
             {
-                ModMain.Hint("此 Java 不可用，请刷新列表");
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -90,7 +91,7 @@ public partial class PageSetupJava
                 Config.Launch.SelectedJava = J.Installation.JavaExePath;
             else
             {
-                ModMain.Hint("请先启用此 Java 后再选择其作为默认 Java");
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
                 e.Handled = true;
             }
         };
@@ -101,7 +102,7 @@ public partial class PageSetupJava
         {
             if (!J.Installation.IsStillAvailable)
             {
-                ModMain.Hint("此 Java 不可用，请刷新列表");
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -109,24 +110,24 @@ public partial class PageSetupJava
         };
         var btnInfo = new MyIconButton();
         btnInfo.Logo = Icon.IconButtonInfo;
-        btnInfo.ToolTip = "详细信息";
+        btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
         btnInfo.Click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
-                ModMain.Hint("此 Java 不可用，请刷新列表");
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
             ModMain.MyMsgBox(
-                $"""
-                 类型: {versionTypeDesc}
-                 版本: {J.Installation.Version.ToString()}
-                 架构: {J.Installation.Architecture.ToString()} ({displayBits})
-                 品牌: {DisplayBrand}
-                 位置: {J.Installation.JavaFolder}
-                 """,
-                "Java 信息");
+                Lang.Text("Setup.Launch.Java.Info.Format",
+                    versionTypeDesc,
+                    J.Installation.Version.ToString(),
+                    J.Installation.Architecture.ToString(),
+                    displayBits,
+                    DisplayBrand,
+                    J.Installation.JavaFolder),
+                Lang.Text("Setup.Launch.Java.Info.Title"));
         };
         var btnEnableSwitch = new MyIconButton();
         
@@ -136,7 +137,7 @@ public partial class PageSetupJava
         {
             if (!J.Installation.IsStillAvailable)
             {
-                ModMain.Hint("此 Java 不可用，请刷新列表");
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -145,14 +146,14 @@ public partial class PageSetupJava
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
                 btnEnableSwitch.Logo = Icon.IconButtonDisable;
-                btnEnableSwitch.ToolTip = "禁用此 Java";
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Disable");
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
                 btnEnableSwitch.Logo = Icon.IconButtonEnable;
-                btnEnableSwitch.ToolTip = "启用此 Java";
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Enable");
             }
         }
         
@@ -163,13 +164,13 @@ public partial class PageSetupJava
                 var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
                 if (target == null)
                 {
-                    ModMain.Hint("此 Java 不可用，请刷新列表");
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                     return;
                 }
 
                 if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
                 {
-                    ModMain.Hint("请先取消选择此 Java 作为默认 Java 后再禁用");
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.DeselectBeforeDisable"));
                     return;
                 }
 
@@ -179,7 +180,7 @@ public partial class PageSetupJava
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Setup.Launch.Java.EnableFailed"), ModBase.LogLevel.Hint);
             }
         };
         UpdateEnableStyle(J.IsEnabled);
@@ -189,11 +190,11 @@ public partial class PageSetupJava
 
     private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
     {
-        var ret = SystemDialogs.SelectFile("Java 程序(java.exe)|java.exe", "选择 Java 程序");
+        var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Launch.Java.SelectFile.Filter"), Lang.Text("Setup.Launch.Java.SelectFile.Title"));
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
             return;
         if (ModJava.Javas.Exist(ret))
-            ModMain.Hint("Java 已经存在，不用再次添加……");
+            ModMain.Hint(Lang.Text("Setup.Launch.Java.AlreadyExists"));
         else
             Dispatcher.BeginInvoke(new Action(async () =>
             {
@@ -204,12 +205,12 @@ public partial class PageSetupJava
                 });
                 if (ModJava.Javas.Exist(ret))
                 {
-                    ModMain.Hint("已添加 Java！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
                     Loader.Start(true, true);
                 }
                 else
                 {
-                    ModMain.Hint("未能成功将 Java 加入列表中", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), ModMain.HintType.Critical);
                 }
             }));
     }

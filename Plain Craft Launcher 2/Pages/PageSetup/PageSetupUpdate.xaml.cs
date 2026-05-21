@@ -51,7 +51,7 @@ public partial class PageSetupUpdate
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "无法获取最新版本信息，请检查网络连接", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Setup.Update.Error.NetworkFailed"), ModBase.LogLevel.Hint);
             return UpdateStatus.Error;
         }
     }
@@ -61,7 +61,7 @@ public partial class PageSetupUpdate
         ModBase.Log("[Update] 开始检查更新");
         CardUpdate.Visibility = Visibility.Collapsed;
         CardCheck.Visibility = Visibility.Visible;
-        TextCurrentDesc.Text = "正在检查更新...";
+        TextCurrentDesc.Text = Lang.Text("Setup.Update.Checking");
         BtnCheckAgain.IsEnabled = false;
         switch (await IsLatestAsync())
         {
@@ -77,7 +77,7 @@ public partial class PageSetupUpdate
                     TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
                     var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
-                        TextChangelog.Text = "开发者似乎忘记提供更新摘要了...也许你可以点击下方看看完整更新日志？";
+                        TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
                     else
                         TextChangelog.Text = summary;
                 }
@@ -89,7 +89,7 @@ public partial class PageSetupUpdate
                 BtnCheckAgain.IsEnabled = true;
                 if (UpdateInfo is null)
                 {
-                    TextCurrentDesc.Text = "检查更新时出错";
+                    TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
                         ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
                     else
@@ -104,12 +104,12 @@ public partial class PageSetupUpdate
                 }
                 else if (UpdateManager.IsUpdateWaitingRestart)
                 {
-                    BtnUpdate.Text = "重启安装";
+                    BtnUpdate.Text = Lang.Text("Setup.Update.RestartInstall");
                     BtnUpdate.IsEnabled = true;
                 }
                 else
                 {
-                    BtnUpdate.Text = "下载并安装";
+                    BtnUpdate.Text = Lang.Text("Setup.Update.Install");
                     BtnUpdate.IsEnabled = true;
                 }
 
@@ -122,7 +122,7 @@ public partial class PageSetupUpdate
                 CardUpdate.Visibility = Visibility.Collapsed;
                 CardCheck.Visibility = Visibility.Visible;
                 BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = "已是最新版本";
+                TextCurrentDesc.Text = Lang.Text("Setup.Update.Latest");
                 break;
             }
             case UpdateStatus.Error:
@@ -130,7 +130,7 @@ public partial class PageSetupUpdate
                 CardUpdate.Visibility = Visibility.Collapsed;
                 CardCheck.Visibility = Visibility.Visible;
                 BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = "检查更新时出错";
+                TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
                 break;
             }
         }
@@ -153,8 +153,10 @@ public partial class PageSetupUpdate
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {
             ModMain.MyMsgBox(
-                $"发现了启动器更新（版本 {UpdateInfo.VersionName}），但是新版本要求你的电脑安装 .NET 8 才可以运行。{"\r\n"}你需要先安装 .NET 8 才可以继续更新。{"\r\n"}{"\r\n"}点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {(ModBase.IsArm64System ? "Arm64" : "x64")} 选项下载。",
-                "启动器更新 - 缺少运行环境", "下载 .NET 8 运行时", Lang.Text("Common.Action.Cancel"),
+                Lang.Text("Setup.Update.DotNetMissing.Message", UpdateInfo.VersionName,
+                    ModBase.IsArm64System ? "Arm64" : "x64"),
+                Lang.Text("Setup.Update.DotNetMissing.Title"),
+                Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
                 Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
             return;
         }
@@ -167,9 +169,9 @@ public partial class PageSetupUpdate
     private void BtnChangelogDetail_Click(object sender, EventArgs e)
     {
         if (UpdateInfo is null)
-            ModMain.MyMsgBox("没有可用的更新日志...", "关于此更新");
+            ModMain.MyMsgBox(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
         else
-            ModMain.MyMsgBoxMarkdown(UpdateInfo.Changelog, "关于此更新");
+            ModMain.MyMsgBoxMarkdown(UpdateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
     }
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -192,15 +194,10 @@ public partial class PageSetupUpdate
             }
             case 1:
             {
-                const string warningMsg = """
-                                          你正在切换启动器更新通道到测试版。
-                                          测试版可以提供下个版本更新内容的预览，但可能会包含未经充分测试的功能，稳定性欠佳。
-
-                                          在升级到测试版后，你需要等待下一个正式版发布，或是手动重新下载启动器来切换到正式版。
-                                          该选项仅推荐具有一定基础知识和能力的用户选择。如果你正在制作整合包，请使用正式版！
-                                          """;
-
-                if (ModMain.MyMsgBox(warningMsg, "继续之前...", "我已知晓", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                     IsCancelled = true;
                 else
                     CheckUpdate();
@@ -208,32 +205,21 @@ public partial class PageSetupUpdate
             }
             case 2:
             {
-                const string devWarning = """
-                                          你正在切换启动器更新通道到开发版。
-                                          该通道可第一时间获取基于最新代码构建的开发版本，但可能极不稳定，甚至直接无法启动。
-
-                                          在升级到开发版后，只能手动重新下载启动器来切换回正式版或测试版。
-                                          该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！
-                                          """;
-
-                if (ModMain.MyMsgBox(devWarning, "继续之前...", "我已知晓", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
                 {
                     IsCancelled = true;
                     break;
                 }
 
-                const string confirmText = "我确认切换到此分支并已知晓风险";
-                const string finalConfirmPrompt = $"""
-                                                   你确定要切换到开发版通道吗？
-                                                   开发版可能存在严重问题，甚至无法启动！
-
-                                                   在升级到开发版后，将无法切换回其他任何更新通道，只能手动重新下载启动器来切换回正式版或测试版。
-
-                                                   该选项仅推荐高级用户选择。如果你正在制作整合包，请使用正式版！
-                                                   请输入 '{confirmText}' 以确认。
-                                                   """;
-
-                var ret = ModMain.MyMsgBoxInput("最终确认", finalConfirmPrompt, Button1: "提交", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true);
+                var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
+                var ret = ModMain.MyMsgBoxInput(
+                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
+                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
+                    Button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
+                    Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true);
     
                 if (ret == confirmText)
                 {
@@ -241,7 +227,7 @@ public partial class PageSetupUpdate
                 }
                 else
                 {
-                    ModMain.Hint("你输入了错误的内容...");
+                    ModMain.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
                     IsCancelled = true;
                 }
                 break;

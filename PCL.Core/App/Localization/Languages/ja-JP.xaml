@@ -1,32 +1,9 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">ja-JP</sys:String>
     <sys:String x:Key="Localization.Meta.Name">日本語（日本）</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage.Auto">システム設定に従う（{0}）</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">UI 言語に従う</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Title">言語</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.CardTitle">言語</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">表示言語</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">地域形式</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">現在、一部の新規追加画面のみが多言語対応しており、その他の画面については今後の移行に伴い順次反映される予定です。</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Changed">言語設定を更新しました</sys:String>
-
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">システムの地域形式に従う</sys:String>
-
-    <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
-    <sys:String x:Key="Common.Action.Cancel">キャンセル</sys:String>
-    <sys:String x:Key="Common.Action.Close">閉じる</sys:String>
-    <sys:String x:Key="Common.Action.Search">検索</sys:String>
-    <sys:String x:Key="Common.Action.Refresh">更新</sys:String>
-    <sys:String x:Key="Common.Action.Reset">リセット</sys:String>
-
-    <sys:String x:Key="Main.Title.Launch">起動</sys:String>
-    <sys:String x:Key="Main.Title.Download">ダウンロード</sys:String>
-    <sys:String x:Key="Main.Title.Settings">設定</sys:String>
-    <sys:String x:Key="Main.Title.Tools">ツール</sys:String>
 </ResourceDictionary>

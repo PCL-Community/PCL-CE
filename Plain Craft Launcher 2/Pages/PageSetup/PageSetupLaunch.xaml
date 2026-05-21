@@ -10,7 +10,7 @@
     PanScroll="{Binding ElementName=PanBack, Mode=OneWay}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,25,25,10">
-            <local:MyCard x:Name="CardArgument" Margin="0,0,0,15" Title="启动选项">
+            <local:MyCard x:Name="CardArgument" Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Options.Title}">
                 <StackPanel Margin="25,40,25,15">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -36,36 +36,36 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="默认版本隔离"
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.InstanceIsolation.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentIndieV2" Grid.Column="1"
                                           SelectionChanged="ComboArgumentIndie_OnSelectionChanged"
-                                          ToolTip="当安装新实例时，据此自动设置新实例的隔离选项。&#xa;若想调整已有实例的隔离策略，请前往它的实例设置。">
+                                          ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
-                                                  ToolTip="所有实例均使用同一档案，存档、Mod、资源包等均为公用。&#xa;若存在多个安装了 Mod 的实例，可能会导致 Mod 冲突。" />
-                            <local:MyComboBoxItem Content="隔离可安装 Mod 的实例" IsSelected="True"
-                                                  ToolTip="可安装 Mod 的实例（例如 Forge、Fabric）均互相独立以避免 Mod 冲突，其他实例（例如原版）则不会被隔离。" />
-                            <local:MyComboBoxItem Content="隔离非正式版" ToolTip="将 Minecraft 快照、预发布版、远古版本、愚人节版本与其他实例进行隔离" />
-                            <local:MyComboBoxItem Content="隔离可安装 Mod 的实例与非正式版" />
-                            <local:MyComboBoxItem Content="隔离所有实例"
-                                                  ToolTip="不同实例之间的存档、Mod、资源包等均不互通。&#xa;这会导致不同原版实例间的存档不能共用，所以一般不推荐。" />
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.None.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly}" IsSelected="True"
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease}" ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedAndNonRelease}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.All}"
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.All.ToolTip}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏窗口标题"
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False" TextChanged="TextArgumentTitle_OnTextChanged"
-                                          ToolTip="自定义游戏窗口的标题，若留空则不进行更改。&#xa;支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号&#xa;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效"
+                                          ToolTip="{DynamicResource Setup.Launch.WindowTitle.ToolTip}"
                                           HintText="{DynamicResource Common.Option.Default}">
-                            <local:MyComboBoxItem Content="{}{name} | 玩家 : {user} | 使用 {login} 登录" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义信息"
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2"
                                          Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1"
                                          ValidatedTextChanged="TextBoxChange"
-                                         ToolTip="该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角">
+                                         ToolTip="{DynamicResource Setup.Launch.CustomInfo.ToolTip}">
                             <local:MyTextBox.ValidateRules>
                                 <val:BlacklistValidator>
                                     <val:BlacklistValidator.Blacklist>
@@ -76,28 +76,28 @@
                                 </val:BlacklistValidator>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="6" HorizontalAlignment="Left" Text="启动器可见性"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="6" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Visibility.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentVisibie" Grid.Row="6" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentVisible" Grid.Column="1"
                                           SelectionChanged="ComboArgumentVisibie_SelectionChanged">
-                            <local:MyComboBoxItem Content="游戏启动后立即关闭" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.CloseImmediately}" />
                             <local:MyComboBoxItem Content="" IsEnabled="False" Visibility="Collapsed" />
-                            <local:MyComboBoxItem Content="游戏启动后隐藏，游戏退出后自动关闭" />
-                            <local:MyComboBoxItem Content="游戏启动后隐藏，游戏退出后重新打开" />
-                            <local:MyComboBoxItem Content="游戏启动后最小化" />
-                            <local:MyComboBoxItem Content="游戏启动后仍保持不变" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndCloseOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndReopenOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.Minimize}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.KeepUnchanged}" IsSelected="True" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="进程优先级"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Priority.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentPriority" Grid.Row="8" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentPriority" Grid.Column="1"
                                           SelectionChanged="ComboChange">
-                            <local:MyComboBoxItem Content="高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）" />
-                            <local:MyComboBoxItem Content="中（平衡）" IsSelected="True" />
-                            <local:MyComboBoxItem Content="低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.High}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Normal}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Low}" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="窗口大小"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowSize.Label}"
                                    Margin="0,0,25,0" />
                         <Grid x:Name="PanArgumentWindow" Grid.Row="10" Grid.ColumnSpan="2" Grid.Column="1">
                             <Grid.ColumnDefinitions>
@@ -108,12 +108,12 @@
                             </Grid.ColumnDefinitions>
                             <local:MyComboBox x:Name="ComboArgumentWindowType" Tag="LaunchArgumentWindowType"
                                               SelectionChanged="ComboChange"
-                                              ToolTip="注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效">
-                                <local:MyComboBoxItem Content="全屏" />
+                                              ToolTip="{DynamicResource Setup.Launch.WindowSize.ModernUiWarning}">
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Fullscreen}" />
                                 <local:MyComboBoxItem Content="{DynamicResource Common.Option.Default}" IsSelected="True" />
-                                <local:MyComboBoxItem Content="与启动器尺寸一致" />
-                                <local:MyComboBoxItem Content="自定义尺寸" ToolTip="Forge 1.12.2 等个别版本存在 Bug，会导致高度设定无效" />
-                                <local:MyComboBoxItem Content="最大化" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.SameAsLauncher}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Custom}" ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Maximized}" />
                             </local:MyComboBox>
                             <local:MyTextBox Padding="0,0,5,0" Visibility="Collapsed" Grid.Column="1" Margin="50,0,0,0"
                                              x:Name="TextArgumentWindowWidth" Tag="LaunchArgumentWindowWidth"
@@ -129,43 +129,43 @@
                                              HorizontalContentAlignment="Center" x:Name="TextArgumentWindowHeight"
                                              Tag="LaunchArgumentWindowHeight" Text="480"
                                              ValidatedTextChanged="TextBoxChange"
-                                             ToolTip="Forge 1.12.2 等个别版本存在 Bug，会导致高度设定无效"
-                                             ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="5">
+                                             ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}"
+                                            ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="5">
                                 <local:MyTextBox.ValidateRules>
                                     <val:IntValidator Min="1" Max="9999" />
                                 </local:MyTextBox.ValidateRules>
                             </local:MyTextBox>
                         </Grid>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left" Text="正版验证方式"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.MsAuth.Label}"
                                    Margin="0,0,25,0"
-                                   ToolTip="Web 账户管理器的正版验证流程更为简单，而设备代码流允许你在任意设备上打开网页进行验证。&#xa;如果使用 Web 账户管理器登录遇到问题，可以尝试使用设备代码流。&#xa;如果正在公共计算机上临时登录账号，推荐使用设备代码流。&#xa;&#xa;由于部分依赖组件存在较多问题，该选项暂时强制指定为设备代码流。" />
+                                   ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}" />
                         <local:MyComboBox x:Name="ComboMsAuthType" Grid.Row="12" Grid.ColumnSpan="2"
                                           Tag="LoginMsAuthType" Grid.Column="1"
                                           SelectionChanged="ComboChange"
-                                          ToolTip="Web 账户管理器的正版验证流程更为简单，而设备代码流允许你在任意设备上打开网页进行验证。&#xa;如果使用 Web 账户管理器登录遇到问题，可以尝试使用设备代码流。&#xa;如果正在公共计算机上临时登录账号，推荐使用设备代码流。"
+                                          ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}"
                                           IsEnabled="False">
-                            <local:MyComboBoxItem Content="Web 账户管理器（暂时强制设备代码流）" IsSelected="True" />
-                            <local:MyComboBoxItem Content="设备代码流" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.WebManager}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.DeviceCode}" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="IP 协议偏好"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.IpStack.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboPreferredIpStack" Grid.Row="14" Grid.ColumnSpan="2"
                                           Tag="LaunchPreferredIpStack" Grid.Column="1"
                                           SelectionChanged="ComboChange"
-                                          ToolTip="通过设置 Java 虚拟机参数来设置 MC 的 IP 协议版本偏好。&#xa;一般建议设置为 “IPv4 优先”，这能确保 PCL CE 大厅正常工作。&#xa;如果有手动 IPv6 联机等需要，可以选择其他选项。&#xa;&#xa;IPv4 优先：-Djava.net.preferIPv4Stack=true&#xa;默认：不添加额外参数&#xa;IPv6 优先：-Djava.net.preferIPv6Stack=true">
-                            <local:MyComboBoxItem Content="IPv4 优先" IsSelected="True" />
-                            <local:MyComboBoxItem Content="Java 默认" />
-                            <local:MyComboBoxItem Content="IPv6 优先" />
+                                          ToolTip="{DynamicResource Setup.Launch.IpStack.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv4}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.JavaDefault}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv6}" />
                         </local:MyComboBox>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="游戏内存">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
                 <StackPanel Margin="25,40,25,15">
                     <local:MyHint x:Name="LabRamWarn" Visibility="Visible"
-                                  Text="32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！" Theme="Yellow" Margin="0,0,0,12" />
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}" Theme="Yellow" Margin="0,0,0,12" />
                     <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
-                                  Text="你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！" Margin="0,0,0,12"
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     <Grid Margin="0,0,0,3">
                         <Grid.ColumnDefinitions>
@@ -178,9 +178,9 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="9" />
                         </Grid.RowDefinitions>
-                        <local:MyRadioBox Text="自动配置" Width="110" Checked="True" x:Name="RadioRamType0"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" Checked="True" x:Name="RadioRamType0"
                                           Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange"
-                                          ToolTip="根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存" ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}" ToolTipService.Placement="Right"
                                           ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
                         <local:MyRadioBox Grid.Row="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
                                           Margin="0,0,20,0" Check="RadioBoxChange" />
@@ -210,9 +210,9 @@
                                    Fill="{DynamicResource ColorBrush3}" Opacity="0.5" x:Name="RectRamGame" />
                         <Rectangle x:Name="RectRamEmpty" Grid.Row="1" StrokeThickness="0" Grid.Column="2"
                                    Fill="{DynamicResource ColorBrush6}" Opacity="0.7" />
-                        <TextBlock x:Name="LabRamUsedTitle" Text="已使用内存 / 已安装内存" Grid.ColumnSpan="3" Opacity="0.7"
+                        <TextBlock x:Name="LabRamUsedTitle" Text="{DynamicResource Setup.Launch.Memory.UsedTotal}" Grid.ColumnSpan="3" Opacity="0.7"
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
-                        <TextBlock x:Name="LabRamGameTitle" Text="游戏分配" Opacity="0.7" Grid.ColumnSpan="3"
+                        <TextBlock x:Name="LabRamGameTitle" Text="{DynamicResource Setup.Launch.Memory.GameAllocation}" Opacity="0.7" Grid.ColumnSpan="3"
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
                                     HorizontalAlignment="Left">
@@ -227,7 +227,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="高级启动选项" IsSwapped="True" CanSwap="True">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Advanced.Title}" IsSwapped="True" CanSwap="True">
                 <Grid Margin="25,40,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -245,22 +245,22 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="渲染器"
+                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.Renderer.Label}"
                                Margin="0,0,25,0" />
                     <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                                       Tag="LaunchAdvanceRenderer"
                                       SelectionChanged="ComboAdvanceRenderer_OnSelectionChanged">
-                        <local:MyComboBoxItem Content="游戏默认" IsSelected="True" />
-                        <local:MyComboBoxItem Content="软渲染（llvmpipe）" />
-                        <local:MyComboBoxItem Content="DirectX12（d3d12）" />
-                        <local:MyComboBoxItem Content="Vulkan（zink）" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.GameDefault}" IsSelected="True" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Software}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.DirectX12}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Vulkan}" />
                     </local:MyComboBox>
                     <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Horizontal"
                                 HorizontalAlignment="Left" Margin="0,0,25,0">
-                        <TextBlock Text="JVM 参数头部" VerticalAlignment="Center" />
+                        <TextBlock Text="{DynamicResource Setup.Launch.Advanced.JvmHead}" VerticalAlignment="Center" />
                         <local:MyIconButton Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset"
                                             VerticalAlignment="Center" Click="BtnAdvanceJvmReset_Click"
-                                            ToolTip="还原" ToolTipService.Placement="Right"
+                                            ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Right"
                                             ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                             Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
                                             LogoScale="0.9" />
@@ -268,43 +268,43 @@
                     <local:MyTextBox Grid.Row="2" x:Name="TextAdvanceJvm" Grid.ColumnSpan="2" Tag="LaunchAdvanceJvm"
                                      TextChanged="TextAdvanceJvm_TextChanged"
                                      Grid.Column="1" ValidatedTextChanged="TextBoxChange"
-                                     ToolTip="启动 Minecraft 时使用的额外 JVM 参数，除非有确定把握，否则请不要修改。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。"
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.ToolTip}"
                                      MaxLength="4000" Height="100" AcceptsReturn="True" TextWrapping="Wrap"
                                      VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto" />
-                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="游戏参数尾部"
+                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.GameTail}"
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="LaunchAdvanceGame"
                                      Grid.Column="1" ValidatedTextChanged="TextBoxChange"
-                                     ToolTip="文本框中的内容将会被直接拼合在启动参数的末尾。&#xa;例如，输入 --demo 则会以试玩模式启动游戏。&#xa;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。" />
-                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动前执行命令"
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.GameTail.ToolTip}" />
+                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand}"
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="6" Grid.ColumnSpan="2" Tag="LaunchAdvanceRun"
                                      Grid.Column="1" HintText="" ValidatedTextChanged="TextBoxChange"
                                      TextChanged="TextAdvanceRun_TextChanged"
-                                     ToolTip="在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#xa;&#xa;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#xa; · {path}：PCL 的 exe 文件所在的文件夹&#xa; · {minecraft}：.minecraft 文件夹&#xa; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#xa; · {verindie}：开启版本隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#xa; · {java}：游戏运行时的 Java 文件夹&#xa;&#xa;除此之外，也支持以下替换标记：&#xa; · {user}：玩家名字&#xa; · {login}：玩家的登录方式&#xa; · {uuid}：玩家的 UUID&#xa; · {name}：游戏实例名&#xa; · {date}、{time}：当前的系统时间&#xa; · {version}：游戏对应的原版版本号&#xa;&#xa;例如：&#xa; · &quot;{verpath}test.exe&quot; ：运行实例文件夹下的 test.exe 程序&#xa; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; ：用 Java 运行实例文件夹下的 test.jar&#xa; · notepad &quot;{verindie}options.txt&quot; ：使用记事本打开该实例的设置文件&#xa;&#xa;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#xa;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。" />
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.ToolTip}" />
                     <local:MyCheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckAdvanceRunWait"
                                       Tag="LaunchAdvanceRunWait" Visibility="Collapsed"
                                       Change="CheckBoxChange"
-                                      Text="等待命令执行完成后再继续启动" Margin="0,8,0,7" />
+                                      Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" Margin="0,8,0,7" />
                     <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
-                        <local:MyCheckBox Height="28" Text="禁用 Java Launch Wrapper" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#xa;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。" />
-                        <local:MyCheckBox Height="28" Text="禁用 RetroWrapper" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。" />
-                        <local:MyCheckBox Height="28" Text="要求 Java 使用高性能显卡" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 Java 改为使用高性能显卡。&#xa;如果电脑同时有集显和独显，这能确保 MC 使用独显进行渲染，以大幅提高性能。" />
-                        <local:MyCheckBox Height="28" Text="使用 java.exe 而不是 javaw.exe" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"
-                            ToolTipService.Placement="Right" ToolTip="如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#xa;&#xa;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。" />
-                        <local:MyCheckBox Height="28" Text="禁用 LWJGL Unsafe Agent" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#xa;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#xa;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#xa;&#xa;该功能仅会在 LWJGL 版本为 3.4.1 时生效。" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableRw}" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.GpuPreference}" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.GpuPreference.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.UseJavaExe}" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"
+                            ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.UseJavaExe.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                     </StackPanel>
-                    <local:MyHint Text="你还可以在实例独立设置中找到更多高级启动选项。" Margin="0,5,0,10" Theme="Blue" Grid.Row="9"
+                    <local:MyHint Text="{DynamicResource Setup.Launch.Advanced.MoreInInstanceSetup}" Margin="0,5,0,10" Theme="Blue" Grid.Row="9"
                                   Grid.ColumnSpan="2"
                                   CanClose="True" RelativeSetup="HintMoreAdvancedSetup" />
                 </Grid>
             </local:MyCard>
             <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,15"
-                                     x:Name="BtnSwitch" Text="实例独立设置" Click="BtnSwitch_Click"
+                                     x:Name="BtnSwitch" Text="{DynamicResource Setup.Launch.SwitchToInstanceSetup}" Click="BtnSwitch_Click"
                                      LogoScale="0.9"
                                      Logo="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
         </StackPanel>

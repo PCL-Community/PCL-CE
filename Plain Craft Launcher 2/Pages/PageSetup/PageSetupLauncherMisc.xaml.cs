@@ -70,12 +70,12 @@ public partial class PageSetupLauncherMisc
             Config.Debug.Reset();
             Config.System.Reset();
             ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            ModMain.Hint("已初始化杂项页设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Initialized"), ModMain.HintType.Finish, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动器-杂项页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -155,7 +155,7 @@ public partial class PageSetupLauncherMisc
                 <= 5 => val * 10 + 50,
                 <= 13 => val * 50 - 150,
                 <= 28 => val * 100 - 800,
-                _ => "无限制"
+                _ => Lang.Text("Setup.Misc.Unlimited")
             };
         });
     }
@@ -163,14 +163,14 @@ public partial class PageSetupLauncherMisc
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        ModMain.Hint("此项变更将在重启 PCL 后生效");
+        ModMain.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint("部分调试信息将在刷新或启动器重启后切换显示！", Log: false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), Log: false);
     }
 
     // 自动更新
@@ -181,13 +181,10 @@ public partial class PageSetupLauncherMisc
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
         if (ModMain.MyMsgBox(
-                """
-                若选择此项，即使在将来出现严重问题时，你也无法获取相关通知。
-                例如，如果发现某个版本游戏存在严重 Bug，你可能就会因为无法得到通知而导致无法预知的后果。
-
-                一般选择 仅在有重要通知时显示公告 就可以让你尽量不受打扰了。
-                除非你在制作服务器整合包，或时常手动更新启动器，否则极度不推荐选择此项！
-                """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
+                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
+                Lang.Text("Common.Dialog.Warning"),
+                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
+                Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -214,21 +211,21 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.ExePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Setup.Misc.Export.Success"), ModMain.HintType.Finish);
         ModBase.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
     {
-        var sourcePath = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件");
+        var sourcePath = SystemDialogs.SelectFile(Lang.Text("Setup.Misc.Export.Filter"), Lang.Text("Setup.Misc.Import.SelectTitle"));
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
         Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
         FormMain.EndProgramForce();
     }
