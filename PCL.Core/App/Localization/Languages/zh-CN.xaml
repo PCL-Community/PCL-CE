@@ -918,4 +918,68 @@
     <!-- Common.Action (new) -->
     <sys:String x:Key="Common.Action.Back">返回</sys:String>
     <sys:String x:Key="Common.Action.Continue">继续</sys:String>
+
+    <!-- Launch.Skin.MySkin -->
+    <sys:String x:Key="Launch.Skin.SaveAs">另存为</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeCape">更换披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.ToolTip">点击更换皮肤（右键查看更多选项）</sys:String>
+    <sys:String x:Key="Launch.Skin.Fetching">皮肤正在获取中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Title">选取保存皮肤的位置</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Filter">皮肤图片文件(*.png)|*.png</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveSuccess">皮肤保存成功！</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Busy">有正在获取中的皮肤，请稍后再试！</sys:String>
+    <sys:String x:Key="Launch.Skin.Refreshing">正在刷新头像……</sys:String>
+    <sys:String x:Key="Launch.Skin.RefreshSuccess">已刷新头像！</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeSuccess">更改皮肤成功！</sys:String>
+
+    <!-- Launch.Skin.Cape -->
+    <sys:String x:Key="Launch.Skin.Cape.Changing">正在更改披风中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">登录失败，无法更改披风！</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.FetchingList">正在获取披风列表，请稍候……</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.None">无披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.SelectTitle">选择披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">更改披风失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailedWithReason">更改披风失败：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeSuccess">更改披风成功！等待一段时间后将会生效……</sys:String>
+
+    <!-- Launch.Skin.Cape.Name -->
+    <sys:String x:Key="Launch.Skin.Cape.Name.Migrator">迁移者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms 地图制作者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Moderator">Mojira 管理员披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Crowdin 中文翻译者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Crowdin 翻译者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt 披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">原版披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2011">Minecon 2011 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2012">Minecon 2012 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2013">Minecon 2013 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2015">Minecon 2015 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2016">Minecon 2016 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">樱花披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15 周年纪念披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">紫色心形披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Followers">追随者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15 周年披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MinecraftExperience">村民救援披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MojangOffice">Mojang 办公室披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Home">家园披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Menace">入侵披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">渴望披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Common">普通披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Pan">薄煎饼披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Founders">创始人披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Copper">铜披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">僵尸马披风</sys:String>
+
+    <!-- Launch.Skin.File -->
+    <sys:String x:Key="Launch.Skin.FileDialog.Filter">皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
+    <sys:String x:Key="Launch.Skin.FileDialog.Title">选择皮肤文件</sys:String>
+    <sys:String x:Key="Launch.Skin.InvalidSize">皮肤图片大小应为 64x32 像素或 64x64 像素！</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KB，而所选文件大小为 {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectTitle">选择皮肤种类</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectMessage">此皮肤为 Steve 模型（粗手臂）还是 Alex 模型（细手臂）？</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Steve">Steve 模型</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Alex">Alex 模型</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Unknown">我不知道</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.UnknownHint">请在皮肤下载页面确认皮肤种类后再使用此皮肤！</sys:String>
 </ResourceDictionary>

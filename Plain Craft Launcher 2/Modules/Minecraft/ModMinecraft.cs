@@ -2437,7 +2437,7 @@ public static class ModMinecraft
     /// </summary>
     public static McSkinInfo McSkinSelect()
     {
-        var FileName = SystemDialogs.SelectFile("皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp", "选择皮肤文件");
+        var FileName = SystemDialogs.SelectFile(Lang.Text("Launch.Skin.FileDialog.Filter"), Lang.Text("Launch.Skin.FileDialog.Title"));
 
         // 验证有效性
         if (string.IsNullOrEmpty(FileName))
@@ -2447,14 +2447,14 @@ public static class ModMinecraft
             var Image = new MyBitmap(FileName);
             if (Image.Pic.Width != 64 || !(Image.Pic.Height == 32 || Image.Pic.Height == 64))
             {
-                ModMain.Hint("皮肤图片大小应为 64x32 像素或 64x64 像素！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Launch.Skin.InvalidSize"), ModMain.HintType.Critical);
                 return new McSkinInfo { IsVaild = false };
             }
 
             var FileInfo = new FileInfo(FileName);
             if (FileInfo.Length > 24 * 1024)
             {
-                ModMain.Hint("皮肤文件大小需小于 24 KB，而所选文件大小为 " + Lang.Number(FileInfo.Length / 1024d, "N2") + " KB",
+                ModMain.Hint(Lang.Text("Launch.Skin.FileTooLarge", Lang.Number(FileInfo.Length / 1024d, "N2")),
                     ModMain.HintType.Critical);
                 return new McSkinInfo { IsVaild = false };
             }
@@ -2466,11 +2466,11 @@ public static class ModMinecraft
         }
 
         // 获取皮肤种类
-        var IsSlim = ModMain.MyMsgBox("此皮肤为 Steve 模型（粗手臂）还是 Alex 模型（细手臂）？", "选择皮肤种类", "Steve 模型", "Alex 模型", "我不知道",
+        var IsSlim = ModMain.MyMsgBox(Lang.Text("Launch.Skin.Model.SelectMessage"), Lang.Text("Launch.Skin.Model.SelectTitle"), Lang.Text("Launch.Skin.Model.Steve"), Lang.Text("Launch.Skin.Model.Alex"), Lang.Text("Launch.Skin.Model.Unknown"),
             HighLight: false);
         if (IsSlim == 3)
         {
-            ModMain.Hint("请在皮肤下载页面确认皮肤种类后再使用此皮肤！");
+            ModMain.Hint(Lang.Text("Launch.Skin.Model.UnknownHint"));
             return new McSkinInfo { IsVaild = false };
         }
 

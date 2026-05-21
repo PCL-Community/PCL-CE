@@ -924,4 +924,68 @@
     <!-- Common.Action (new) -->
     <sys:String x:Key="Common.Action.Back">Back</sys:String>
     <sys:String x:Key="Common.Action.Continue">Continue</sys:String>
+
+    <!-- Launch.Skin.MySkin -->
+    <sys:String x:Key="Launch.Skin.SaveAs">Save as</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeCape">Change cape</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.ToolTip">Click to change skin (right click for more options)</sys:String>
+    <sys:String x:Key="Launch.Skin.Fetching">Skin is being fetched, please wait!</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Title">Choose location to save skin</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Filter">Skin Image Files (*.png)|*.png</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveSuccess">Skin saved successfully!</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Busy">There is a skin being fetched, please try again later!</sys:String>
+    <sys:String x:Key="Launch.Skin.Refreshing">Refreshing avatar...</sys:String>
+    <sys:String x:Key="Launch.Skin.RefreshSuccess">Avatar refreshed!</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeSuccess">Skin changed successfully!</sys:String>
+
+    <!-- Launch.Skin.Cape -->
+    <sys:String x:Key="Launch.Skin.Cape.Changing">Changing cape, please wait!</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">Login failed, unable to change cape!</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.FetchingList">Fetching cape list, please wait...</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.None">No Cape</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.SelectTitle">Select Cape</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">Cape change failed</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailedWithReason">Cape change failed: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeSuccess">Cape changed successfully! It will take effect after a while...</sys:String>
+
+    <!-- Launch.Skin.Cape.Name -->
+    <sys:String x:Key="Launch.Skin.Cape.Name.Migrator">Migrator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms MapMaker</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Moderator">Mojira Moderator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Chinese Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">Vanilla</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2011">Minecon 2011 Attendee</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2012">Minecon 2012 Attendee</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2013">Minecon 2013 Attendee</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2015">Minecon 2015 Attendee</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2016">Minecon 2016 Attendee</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">Cherry Blossom</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15th Anniversary</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">Purple Heart</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Followers">Follower's</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15th Year</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MinecraftExperience">Minecraft Experience</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MojangOffice">Mojang Office</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Home">Home</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Menace">Menace</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">Yearn</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Common">Common</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Pan">Pan</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Founders">Founder's</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Copper">Copper</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
+
+    <!-- Launch.Skin.File -->
+    <sys:String x:Key="Launch.Skin.FileDialog.Filter">Skin Files (*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
+    <sys:String x:Key="Launch.Skin.FileDialog.Title">Select skin file</sys:String>
+    <sys:String x:Key="Launch.Skin.InvalidSize">Skin image must be 64x32 or 64x64 pixels!</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">Skin file must be smaller than 24 KB, the selected file is {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectTitle">Select skin model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectMessage">Is this skin Steve model (wide arms) or Alex model (slim arms)?</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Steve">Steve model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Alex">Alex model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Unknown">I do not know</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.UnknownHint">Please confirm the skin model on the skin download page before using this skin!</sys:String>
 </ResourceDictionary>
