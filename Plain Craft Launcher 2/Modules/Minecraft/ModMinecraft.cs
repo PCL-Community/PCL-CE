@@ -264,7 +264,7 @@ public static class ModMinecraft
                     continue;
                 if (!folder.Contains(">") || !folder.EndsWithF(@"\"))
                 {
-                    ModMain.Hint("无效的 Minecraft 文件夹：" + folder, ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Select.Folder.Invalid", folder), ModMain.HintType.Critical);
                     continue;
                 }
 
@@ -278,8 +278,8 @@ public static class ModMinecraft
                 catch (Exception ex)
                 {
                     ModMain.MyMsgBox(
-                        "失效的 Minecraft 文件夹：" + "\r\n" + path + "\r\n" + "\r\n" +
-                        ex.Message, "Minecraft 文件夹失效", IsWarn: true);
+                        Lang.Text("Select.Folder.Invalid", path) + "\r\n" + "\r\n" +
+                        ex.Message, Lang.Text("Select.Folder.InvalidTitle"), IsWarn: true);
                     ModBase.Log(ex, $"无法访问 Minecraft 文件夹 {path}");
                 }
             }
@@ -295,7 +295,7 @@ public static class ModMinecraft
             {
                 if (Directory.Exists(ModBase.ExePath + @"versions\"))
                     originalMcFolderList.Add(new McFolder
-                        { Name = "当前文件夹", Location = ModBase.ExePath, Type = McFolder.Types.Original });
+                        { Name = Lang.Text("Select.Folder.CurrentFolder"), Location = ModBase.ExePath, Type = McFolder.Types.Original });
                 foreach (var folder in new DirectoryInfo(ModBase.ExePath).GetDirectories())
                     if (Directory.Exists(Path.Combine(folder.FullName, "versions")) || folder.Name == ".minecraft")
                     {
@@ -316,7 +316,7 @@ public static class ModMinecraft
                 Directory.Exists(Path.Combine(MojangPath, "versions"))) // 当前文件夹不是官启文件夹
                 // 具有权限且存在 versions 文件夹
                 originalMcFolderList.Add(new McFolder
-                    { Name = "官方启动器文件夹", Location = MojangPath, Type = McFolder.Types.Original });
+                    { Name = Lang.Text("Select.Folder.OfficialLauncherFolder"), Location = MojangPath, Type = McFolder.Types.Original });
 
             ModBase.Log(cacheMcFolderList.Count + " 个自定义文件夹，" + originalMcFolderList.Count + " 个原始文件夹");
 
@@ -356,7 +356,7 @@ public static class ModMinecraft
             {
                 Directory.CreateDirectory(ModBase.ExePath + @".minecraft\versions\");
                 cacheMcFolderList.Add(new McFolder
-                    { Name = "当前文件夹", Location = ModBase.ExePath + @".minecraft\", Type = McFolder.Types.Original });
+                    { Name = Lang.Text("Select.Folder.CurrentFolder"), Location = ModBase.ExePath + @".minecraft\", Type = McFolder.Types.Original });
             }
 
             foreach (var Folder in cacheMcFolderList) McFolderLauncherProfilesJsonCreate(Folder.Location);
@@ -448,7 +448,7 @@ public static class ModMinecraft
         /// <summary>
         ///     显示的描述文本。
         /// </summary>
-        public string Desc = "该实例未被加载，请向作者反馈此问题";
+        public string Desc = Lang.Text("Select.Instance.Description.NotLoaded");
 
         /// <summary>
         ///     强制实例分类，0 为未启用，1 为隐藏，2 及以上为其他普通分类。
@@ -753,7 +753,7 @@ public static class ModMinecraft
 
                     // 无法获取
                     _info.VanillaName = "Unknown";
-                    Desc = "PCL 无法识别该版本的 MC 版本号";
+                    Desc = Lang.Text("Select.Instance.Description.UnknownMcVersion");
                 }
                 catch (Exception ex)
                 {
@@ -1039,7 +1039,7 @@ public static class ModMinecraft
             if (!Directory.Exists(PathInstance))
             {
                 State = McInstanceState.Error;
-                Desc = "未找到实例 " + Name;
+                Desc = Lang.Text("Select.Instance.Description.NotFound", Name);
                 return false;
             }
 
@@ -1052,7 +1052,7 @@ public static class ModMinecraft
             catch (Exception ex)
             {
                 State = McInstanceState.Error;
-                Desc = "PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL";
+                Desc = Lang.Text("Select.Instance.Description.NoPermission");
                 ModBase.Log(ex, "没有访问实例文件夹的权限");
                 return false;
             }
@@ -1093,7 +1093,7 @@ public static class ModMinecraft
                     if (!File.Exists(Path.Combine(ModBase.GetPathFromFullPath(PathInstance), InheritInstanceName, InheritInstanceName + ".json")))
                     {
                         State = McInstanceState.Error;
-                        Desc = "需要安装 " + InheritInstanceName + " 作为前置实例";
+                        Desc = Lang.Text("Select.Instance.Description.NeedInherit", InheritInstanceName);
                         return false;
                     }
             }
@@ -1101,7 +1101,7 @@ public static class ModMinecraft
             {
                 ModBase.Log(ex, "依赖实例检查出错（" + Name + "）");
                 State = McInstanceState.Error;
-                Desc = "未知错误：" + ex;
+                Desc = Lang.Text("Select.Instance.Description.UnknownError") + ": " + ex;
                 return false;
             }
 
@@ -1339,7 +1339,7 @@ public static class ModMinecraft
             }
             catch (Exception ex)
             {
-                Desc = "未知错误：" + ex;
+                Desc = Lang.Text("Select.Instance.Description.UnknownError") + ": " + ex;
                 Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
                 State = McInstanceState.Error;
                 ModBase.Log(ex, "加载实例失败（" + Name + "）", ModBase.LogLevel.Feedback);
@@ -1401,28 +1401,28 @@ public static class ModMinecraft
                 case McInstanceState.LiteLoader:
                 {
                     if (this.Info.VanillaName.ContainsF("pre", true))
-                        Info = "预发布版 " + this.Info.VanillaName;
+                        Info = Lang.Text("Select.Instance.Description.PreRelease", this.Info.VanillaName);
                     else if (this.Info.VanillaName.ContainsF("rc", true))
-                        Info = "发布候选 " + this.Info.VanillaName;
+                        Info = Lang.Text("Select.Instance.Description.ReleaseCandidate", this.Info.VanillaName);
                     else if (this.Info.VanillaName.Contains("experimental"))
-                        Info = "实验性快照" + this.Info.VanillaName;
+                        Info = Lang.Text("Select.Instance.Description.ExperimentalSnapshot", this.Info.VanillaName);
                     else if (this.Info.VanillaName == "pending")
-                        Info = "实验性快照";
+                        Info = Lang.Text("Select.Instance.Description.ExperimentalSnapshot.Pending");
                     else if (IsSnapshot())
-                        Info = this.Info.Reliable ? "快照版 " + this.Info.VanillaName.Replace("-snapshot", "") : "快照版";
+                        Info = this.Info.Reliable ? Lang.Text("Select.Instance.Description.Snapshot", this.Info.VanillaName.Replace("-snapshot", "")) : Lang.Text("Select.Instance.Description.Snapshot.Unknown");
                     else
-                        Info = this.Info.Reliable ? "正式版 " + this.Info.VanillaName : "正式版";
+                        Info = this.Info.Reliable ? Lang.Text("Select.Instance.Description.Release", this.Info.VanillaName) : Lang.Text("Select.Instance.Description.Release.Unknown");
 
                     break;
                 }
                 case McInstanceState.Old:
                 {
-                    Info = "远古版本";
+                    Info = Lang.Text("Select.Instance.Description.Old");
                     break;
                 }
                 case McInstanceState.Fool:
                 {
-                    Info = "愚人节版本 " + this.Info.VanillaName;
+                    Info = Lang.Text("Select.Instance.Description.AprilFools", this.Info.VanillaName);
                     break;
                 }
                 case McInstanceState.Error:
@@ -1432,7 +1432,7 @@ public static class ModMinecraft
 
                 default:
                 {
-                    return "发生了未知错误，请向作者反馈此问题";
+                    return Lang.Text("Select.Instance.Description.ReportUnknownError");
                 }
             }
 

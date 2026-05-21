@@ -982,4 +982,114 @@
     <sys:String x:Key="Launch.Skin.Model.Alex">Alex 模型</sys:String>
     <sys:String x:Key="Launch.Skin.Model.Unknown">我不知道</sys:String>
     <sys:String x:Key="Launch.Skin.Model.UnknownHint">请在皮肤下载页面确认皮肤种类后再使用此皮肤！</sys:String>
+
+    <!-- Select.Folder -->
+    <sys:String x:Key="Select.Folder.ListTitle">文件夹列表</sys:String>
+    <sys:String x:Key="Select.Folder.Rename">重命名</sys:String>
+    <sys:String x:Key="Select.Folder.MoveUp">上移</sys:String>
+    <sys:String x:Key="Select.Folder.MoveDown">下移</sys:String>
+    <sys:String x:Key="Select.Folder.Clear">清空</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreName">复原名称</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveFromList">移出列表</sys:String>
+    <sys:String x:Key="Select.Folder.AddOrImport">添加或导入</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.Title">新建 .minecraft 文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.Title">添加已有文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.ToolTip">将一个已有的 Minecraft 文件夹添加到列表</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.Title">导入整合包</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.ToolTip">在当前选择的 Minecraft 文件夹下安装整合包</sys:String>
+    <sys:String x:Key="Select.Folder.CannotAddWhileDownloading">在下载任务进行时，无法添加游戏文件夹！</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft 文件夹路径中不能含有感叹号或分号！</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Title">输入显示名称</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Message">输入该文件夹在左边栏列表中显示的名称。</sys:String>
+    <sys:String x:Key="Select.Folder.AccessDenied">添加文件夹失败：PCL 没有访问该文件夹的权限！</sys:String>
+    <sys:String x:Key="Select.Folder.AlreadyInList">此文件夹已在列表中！</sys:String>
+    <sys:String x:Key="Select.Folder.NameUpdated">文件夹名称已更新为 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Added">文件夹 {0} 已添加！</sys:String>
+    <sys:String x:Key="Select.Folder.CannotCreateWhileDownloading">在下载任务进行时，无法创建游戏文件夹！</sys:String>
+    <sys:String x:Key="Select.Folder.CreateSuccess">新建 .minecraft 文件夹成功！</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Title">配置文件清理</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Message">是否需要清理 PCL 在该文件夹中的配置文件？&#x0a;这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Keep">保留</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveSuccess">文件夹 {0} 已从列表中移除！</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreSuccess">文件夹名称已复原！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.WarningTitle">删除警告</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Confirm">确认删除</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FirstWarning">你确定要删除这个文件夹吗？&#x0a;目标文件夹：{0}&#x0a;&#x0a;这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FinalWarning">如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！&#x0a;继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！&#x0a;目标文件夹：{0}&#x0a;&#x0a;这是最后一次警告！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.InProgress">正在删除文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Success">已删除文件夹 {0}！</sys:String>
+
+    <sys:String x:Key="Select.Folder.Clear.Confirm">确认清空</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FirstWarning">你确定要清空这个文件夹吗？&#x0a;目标文件夹：{0}&#x0a;&#x0a;这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FinalWarning">如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同清空！&#x0a;继续清空会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！&#x0a;目标文件夹：{0}&#x0a;&#x0a;这是最后一次警告！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.InProgress">正在清空文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.Success">已清空文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Rename.Title">输入新名称</sys:String>
+    <sys:String x:Key="Select.Folder.SwitchBlockedByDownload">在下载任务进行时，无法切换游戏文件夹！</sys:String>
+
+    <!-- Select.Folder (ModMinecraft) -->
+    <sys:String x:Key="Select.Folder.CurrentFolder">当前文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.OfficialLauncherFolder">官方启动器文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.Invalid">无效的 Minecraft 文件夹：{0}</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidMessage">Minecraft 文件夹失效</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft 文件夹失效</sys:String>
+
+    <!-- Select.Instance -->
+    <sys:String x:Key="Select.Instance.Search.Hint">搜索游戏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.ToolTip">输入实例名称或 [游戏版本号] [Mod 加载器] 进行搜索</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Title">无可用实例</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Message">未找到任何游戏实例，请先下载一个游戏实例。&#x0a;若有已存在的实例，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Download">下载游戏</sys:String>
+    <sys:String x:Key="Select.Instance.EmptySearch.Title">无匹配的游戏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Loading">正在获取实例列表</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Regular">常规实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Modable">可安装 Mod</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Forge">Forge 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.NeoForge">NeoForge 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Cleanroom">Cleanroom 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LabyMod">LabyMod 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LiteLoader">LiteLoader 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Quilt">Quilt 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Fabric">Fabric 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Error">错误的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Hidden">隐藏的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LessUsed">不常用实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Favorites">收藏夹</sys:String>
+    <sys:String x:Key="Select.Instance.Card.AprilFools">愚人节版本</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">无隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">没有实例被隐藏，你可以在实例设置的实例分类选项中隐藏实例。&#x0a;再次按下 F11 即可退出隐藏实例查看模式。</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">无匹配的隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.EmptyInput">请输入搜索内容</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoHiddenResult">没有找到与 '{0}' 匹配的隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoResult">没有找到与 '{0}' 匹配的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Favorite">收藏</sys:String>
+    <sys:String x:Key="Select.Instance.Unfavorite">取消收藏</sys:String>
+    <sys:String x:Key="Select.Instance.OpenFolder">打开实例目录</sys:String>
+    <sys:String x:Key="Select.Instance.Settings">设置</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmTitle">实例删除确认</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.Permanent">永久</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmMessage">你确定要{0}删除实例 {1} 吗？</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.IsolatedWarning">由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.PermanentSuccess">实例 {0} 已永久删除！</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.RecycleBinSuccess">实例 {0} 已删除到回收站！</sys:String>
+
+    <!-- Select.Instance.Description -->
+    <sys:String x:Key="Select.Instance.Description.NotLoaded">该实例未被加载，请向作者反馈此问题</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL 无法识别该版本的 MC 版本号</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NotFound">未找到实例 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NeedInherit">需要安装 {0} 作为前置实例</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownError">未知错误</sys:String>
+    <sys:String x:Key="Select.Instance.Description.PreRelease">预发布版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReleaseCandidate">发布候选 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot">实验性快照{0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot.Pending">实验性快照</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot">快照版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot.Unknown">快照版</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release">正式版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release.Unknown">正式版</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Old">远古版本</sys:String>
+    <sys:String x:Key="Select.Instance.Description.AprilFools">愚人节版本 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReportUnknownError">发生了未知错误，请向作者反馈此问题</sys:String>
 </ResourceDictionary>
