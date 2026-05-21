@@ -1160,4 +1160,48 @@
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} launches!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Support">Support!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Decline">I refuse</sys:String>
+
+    <!-- Minecraft.Launch.Login.Microsoft -->
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Title">Password Required</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Message">During login, please select {0}Other Sign-in Methods{1}, then select {0}Use My Password{1}.&#x0a;If this option is not available, please select {0}Set Password{1}, then log in after setting it up.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">Re-login</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.SetPassword">Set Password</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Title">Account Info Refresh Failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Message">The launcher encountered a network error while trying to refresh account information.&#x0a;You can cancel, check your network, and try again, or ignore the error and continue launching, but some servers may not be playable.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to be banned by Microsoft and cannot log in.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register first and then log in.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to a Microsoft account.&#x0a;Please use an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">Over 13</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">Under 13</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Unknown">I don't know</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">$Too many login attempts, please wait a few minutes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">$Abnormal login attempts from this IP.&#x0a;If you are using a VPN or accelerator, please turn it off or switch nodes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft Java Edition, or the Xbox Game Pass may have expired.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">Create Profile</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">You have already added this profile...</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Continue">Continue</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.IKnow">I Understand</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Failed">Login Failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Register">Register</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Hint">Login Hint</sys:String>
+
+    <!-- Minecraft.Launch.Login.Auth -->
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">Login refresh failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.FailedTitle">Third-party Login Failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SecondRefreshFailed">Second login refresh failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">Login failed: Connection to login server timed out.&#x0a;Please check your network connection or try using a VPN!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$Login failed: Connection to login server timed out.&#x0a;Please check your network connection or try using a VPN!&#x0a;Details:</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.Message">Third-party login failed. Please check your network connection.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.InvalidProfile">Selected profile {0} is invalid!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfileCannotSwitch">You have not created a profile, unable to switch!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfile">$You have not created a profile, please create one first!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.OnlyOneProfile">You only have one profile in this account, unable to switch!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">Select Profile</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">Login failed: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">Details:</sys:String>
 </ResourceDictionary>

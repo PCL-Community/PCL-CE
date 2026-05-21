@@ -776,7 +776,7 @@ public static class ModLaunch
                     ModProfile.ProfileList[index].Username = result[1];
                     ModProfile.ProfileList[index].AccessToken = accessToken;
                     ModProfile.ProfileList[index].RefreshToken = oauthRefreshToken;
-                    ModMain.Hint("你已经添加了这个档案...");
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
                     goto SkipLogin;
                 }
             }
@@ -907,8 +907,8 @@ public static class ModLaunch
         if (Converter.Result is ModBase.RestartException)
         {
             if (ModMain.MyMsgBox(
-                    $"请在登录时选择 {ModBase.vbLQ}其他登录方法{ModBase.vbRQ}，然后选择 {ModBase.vbLQ}使用我的密码{ModBase.vbRQ}。{"\r\n"}如果没有该选项，请选择 {ModBase.vbLQ}设置密码{ModBase.vbRQ}，设置完毕后再登录。",
-                    "需要使用密码登录", "重新登录", "设置密码", Lang.Text("Common.Action.Cancel"),
+                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLQ, ModBase.vbRQ),
+                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Title"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.Relogin"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.SetPassword"), Lang.Text("Common.Action.Cancel"),
                     Button2Action: () => ModBase.OpenWebsite("https://account.live.com/password/Change")) ==
                 1) goto Retry;
 
@@ -969,8 +969,8 @@ public static class ModLaunch
                 if (!IsLaunching)
                     return;
                 if (ModMain.MyMsgBox(
-                        $"启动器在尝试刷新账号信息时遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore) return new[] { "Ignore", "" };
@@ -1041,8 +1041,8 @@ public static class ModLaunch
                 if (!IsLaunching)
                     return;
                 if (ModMain.MyMsgBox(
-                        $"启动器在尝试刷新账号信息时(Step 2)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore) return "Ignore";
@@ -1101,40 +1101,40 @@ public static class ModLaunch
                 // 参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
                 if (result.Contains("2148916227"))
                 {
-                    ModMain.MyMsgBox("该账号似乎已被微软封禁，无法登录。", "登录失败", "我知道了", IsWarn: true);
+                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"), Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"), IsWarn: true);
                     throw new Exception("$$");
                 }
 
                 if (result.Contains("2148916233"))
                 {
-                    if (ModMain.MyMsgBox("你尚未注册 Xbox 账户，请在注册后再登录。", "登录提示", "注册", Lang.Text("Common.Action.Cancel")) == 1)
+                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"), Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Register"), Lang.Text("Common.Action.Cancel")) == 1)
                         ModBase.OpenWebsite("https://signup.live.com/signup");
                     throw new Exception("$$");
                 }
 
                 if (result.Contains("2148916235"))
                 {
-                    ModMain.MyMsgBox($"你的网络所在的国家或地区无法登录微软账号。{"\r\n"}请使用加速器或 VPN。", "登录失败", "我知道了");
+                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"), Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"));
                     throw new Exception("$$");
                 }
 
                 if (result.Contains("2148916238"))
                 {
-                    if (ModMain.MyMsgBox("该账号年龄不足，你需要先修改出生日期，然后才能登录。" + "\r\n" + "该账号目前填写的年龄是否在 13 岁以上？",
-                            "登录提示", "13 岁以上", "12 岁以下", "我不知道") == 1)
+                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Unknown")) == 1)
                     {
                         ModBase.OpenWebsite("https://account.live.com/editprof.aspx");
                         ModMain.MyMsgBox(
-                            "请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。" + "\r\n" + "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！",
-                            "登录提示");
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"));
                     }
                     else
                     {
                         ModBase.OpenWebsite(
                             "https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
                         ModMain.MyMsgBox(
-                            "请根据打开的网页的说明，修改账号的出生日期（至少改为 18 岁以上）。" + "\r\n" +
-                            "在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！", "登录提示");
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"));
                     }
 
                     throw new Exception("$$");
@@ -1147,8 +1147,8 @@ public static class ModLaunch
                     if (!IsLaunching)
                         return;
                     if (ModMain.MyMsgBox(
-                            $"启动器在尝试刷新账号信息时(Step 3)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                            "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
+                            Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                            Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                         IsIgnore = true;
                 });
                 if (IsIgnore)
@@ -1198,13 +1198,13 @@ public static class ModLaunch
             if (ex.StatusCode.Equals(HttpStatusCode.TooManyRequests))
             {
                 ModBase.Log(ex, "正版验证 Step 4 汇报 429");
-                throw new Exception("$登录尝试太过频繁，请等待几分钟后再试！");
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Microsoft.TooManyRequests"));
             }
 
             if (ex.StatusCode is { } arg1 && arg1 == HttpStatusCode.Forbidden)
             {
                 ModBase.Log(ex, "正版验证 Step 4 汇报 403");
-                throw new Exception("$当前 IP 的登录尝试异常。" + "\r\n" + "如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！");
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Microsoft.AbnormalIp"));
             }
 
             ModProfile.ProfileLog("正版验证 Step 4/6 获取 MC AccessToken 失败：" + ex);
@@ -1214,8 +1214,8 @@ public static class ModLaunch
                 if (!IsLaunching)
                     return;
                 if (ModMain.MyMsgBox(
-                        $"启动器在尝试刷新账号信息时(Step 4)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore)
@@ -1261,8 +1261,8 @@ public static class ModLaunch
             if (!(ResultJson.ContainsKey("items") && ResultJson["items"].Any(x =>
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
-                switch (ModMain.MyMsgBox("暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期",
-                            "登录失败", "购买 Minecraft", Lang.Text("Common.Action.Cancel")))
+                switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                            Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"), Lang.Text("Common.Action.Cancel")))
                 {
                     case 1:
                     {
@@ -1312,7 +1312,7 @@ public static class ModLaunch
             if (ex.StatusCode.Equals(HttpStatusCode.TooManyRequests))
             {
                 ModBase.Log(ex, "正版验证 Step 6 汇报 429");
-                throw new Exception("$登录尝试太过频繁，请等待几分钟后再试！");
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Microsoft.TooManyRequests"));
             }
 
             if (ex.StatusCode is { } arg2 && arg2 == HttpStatusCode.NotFound)
@@ -1320,7 +1320,7 @@ public static class ModLaunch
                 ModBase.Log(ex, "正版验证 Step 6 汇报 404");
                 ModBase.RunInNewThread(() =>
                 {
-                    switch (ModMain.MyMsgBox("请先创建 Minecraft 玩家档案，然后再重新登录。", "登录失败", "创建档案", Lang.Text("Common.Action.Cancel")))
+                    switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"), Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"), Lang.Text("Common.Action.Cancel")))
                     {
                         case 1:
                         {
@@ -1339,8 +1339,8 @@ public static class ModLaunch
                 if (!IsLaunching)
                     return;
                 if (ModMain.MyMsgBox(
-                        $"启动器在尝试刷新账号信息时(Step 6)遇到了网络错误。{"\r\n"}你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。",
-                        "账号信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 1)
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                     IsIgnore = true;
             });
             if (IsIgnore)
@@ -1403,10 +1403,10 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModProfile.ProfileLog("刷新登录失败：" + ex);
-                ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
+                ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
+                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), IsWarn: true);
                 if (wasRefreshed)
-                    throw new Exception("二轮刷新登录失败", ex);
+                    throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
         }
 
@@ -1441,9 +1441,9 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModProfile.ProfileLog("刷新登录失败：" + ex);
-                ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
-                throw new Exception("二轮刷新登录失败", ex);
+                ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
+                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), IsWarn: true);
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
         }
 
@@ -1472,13 +1472,11 @@ public static class ModLaunch
         {
             ModProfile.ProfileLog("已触发超时登录失败");
             ModMain.MyMsgBox(
-                "$登录失败：连接登录服务器超时。" + "\r\n" +
-                "请检查你的网络状况是否良好，或尝试使用 VPN！" + "\r\n" + "\r\n" +
-                "详细信息：" + ex.InnerException,
-                "第三方验证失败", IsWarn: true);
+                Lang.Text("Minecraft.Launch.Login.Auth.Timeout.DetailMessage") + "\r\n" + "\r\n" +
+                ex.Message,
+                Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), IsWarn: true);
 
-            throw new Exception("$登录失败：连接登录服务器超时。" + "\r\n" +
-                                "请检查你的网络状况是否良好，或尝试使用 VPN！" + "\r\n" +
+            throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.Timeout.Message") + "\r\n" +
                                 "\r\n" + "详细信息：" + ex.InnerException);
         }
     }
@@ -1489,7 +1487,7 @@ public static class ModLaunch
     private static void HandleException(Exception ex, string logPrefix)
     {
         ModProfile.ProfileLog(logPrefix + "：" + ex);
-        ModMain.MyMsgBox(logPrefix + ": " + ex, "第三方验证失败", IsWarn: true);
+        ModMain.MyMsgBox(logPrefix + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), IsWarn: true);
         throw new Exception("$" + logPrefix + "\r\n" + "\r\n" + "详细信息：" + ex);
     }
 
@@ -1504,7 +1502,7 @@ public static class ModLaunch
 
         try
         {
-            message = "登录失败：";
+            message = Lang.Text("Minecraft.Launch.Login.Auth.DetailPrefix");
         }
         catch
         {
@@ -1512,10 +1510,10 @@ public static class ModLaunch
         }
 
         if (message is null)
-            message = "第三方验证登录失败，请检查你的网络状况是否良好。" + "\r\n" + "\r\n" +
-                      "详细信息：" + responseText;
+            message = Lang.Text("Minecraft.Launch.Login.Auth.NetworkFailed.Message") + "\r\n" + "\r\n" +
+                       "详细信息：" + responseText;
 
-        ModMain.MyMsgBox("刷新登录失败: " + ex, "第三方验证失败", IsWarn: true);
+        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), IsWarn: true);
         throw new Exception("$" + message);
     }
 
@@ -1582,7 +1580,7 @@ public static class ModLaunch
             ));
             // 将登录结果输出
             if (LoginJson["selectedProfile"] is null)
-                throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.InvalidProfile", ModProfile.SelectedProfile.Username));
             Data.Output.AccessToken = LoginJson["accessToken"].ToString();
             Data.Output.ClientToken = LoginJson["clientToken"].ToString();
             Data.Output.Uuid = LoginJson["selectedProfile"]["id"].ToString();
@@ -1600,7 +1598,7 @@ public static class ModLaunch
         }
         catch (HttpResponseException ex)
         {
-            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, Lang.Text("Minecraft.Launch.Login.Failed"));
             ex.Dispose();
             return;
         }
@@ -1629,12 +1627,12 @@ public static class ModLaunch
             if (LoginJson["availableProfiles"].Count() == 0)
             {
                 if (Data.Input.ForceReselectProfile)
-                    ModMain.Hint("你还没有创建角色，无法更换！", ModMain.HintType.Critical);
-                throw new Exception("$你还没有创建角色，请在创建角色后再试！");
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
             if (Data.Input.ForceReselectProfile && LoginJson["availableProfiles"].Count() == 1)
-                ModMain.Hint("你的账户中只有一个角色，无法更换！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
             string SelectedName = null;
             string SelectedId = null;
             if ((LoginJson["selectedProfile"] is null || Data.Input.ForceReselectProfile) &&
@@ -1665,7 +1663,7 @@ public static class ModLaunch
                             SelectionJson.Add(Profile);
                         }
 
-                        var SelectedIndex = (int)ModMain.MyMsgBoxSelect(SelectionControl, "选择使用的角色");
+                        var SelectedIndex = (int)ModMain.MyMsgBoxSelect(SelectionControl, Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"));
                         SelectedName = SelectionJson[SelectedIndex]["name"].ToString();
                         SelectedId = SelectionJson[SelectedIndex]["id"].ToString();
                     });
@@ -1727,7 +1725,7 @@ public static class ModLaunch
         catch (HttpResponseException ex)
         {
             
-            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, "登录失败");
+            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, Lang.Text("Minecraft.Launch.Login.Failed"));
             ex.Dispose();
             return false;
         }
@@ -1737,7 +1735,7 @@ public static class ModLaunch
             ModProfile.ProfileLog($"第三方验证失败: {ex}");
             if (ex.Message.StartsWithF("$")) throw;
 
-            throw new Exception("登录失败：" + ex.Message, ex);
+            throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.LoginFailed", ex.Message), ex);
         }
     }
 

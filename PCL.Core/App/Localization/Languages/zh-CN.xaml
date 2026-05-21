@@ -1155,4 +1155,48 @@
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} 次启动！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Support">支持一下！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Decline">但是我拒绝</sys:String>
+
+    <!-- Minecraft.Launch.Login.Microsoft -->
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Title">需要使用密码登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Message">请在登录时选择 {0}其他登录方法{1}，然后选择 {0}使用我的密码{1}。&#x0a;如果没有该选项，请选择 {0}设置密码{1}，设置完毕后再登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">重新登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.SetPassword">设置密码</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Title">账号信息获取失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Message">启动器在尝试刷新账号信息时遇到了网络错误。&#x0a;你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">该账号似乎已被微软封禁，无法登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">你尚未注册 Xbox 账户，请在注册后再登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">你的网络所在的国家或地区无法登录微软账号。&#x0a;请使用加速器或 VPN。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">该账号年龄不足，你需要先修改出生日期，然后才能登录。&#x0a;该账号目前填写的年龄是否在 13 岁以上？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 岁以上</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 岁以下</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Unknown">我不知道</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">$登录尝试太过频繁，请等待几分钟后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">$当前 IP 的登录尝试异常。&#x0a;如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">购买 Minecraft</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">请先创建 Minecraft 玩家档案，然后再重新登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">创建档案</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">你已经添加了这个档案...</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Continue">继续</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.IKnow">我知道了</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Failed">登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Register">注册</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Hint">登录提示</sys:String>
+
+    <!-- Minecraft.Launch.Login.Auth -->
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">刷新登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.FailedTitle">第三方验证失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SecondRefreshFailed">二轮刷新登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">登录失败：连接登录服务器超时。&#x0a;请检查你的网络状况是否良好，或尝试使用 VPN！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$登录失败：连接登录服务器超时。&#x0a;请检查你的网络状况是否良好，或尝试使用 VPN！&#x0a;详细信息：</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.Message">第三方验证登录失败，请检查你的网络状况是否良好。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.InvalidProfile">选择的角色 {0} 无效！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfileCannotSwitch">你还没有创建角色，无法更换！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfile">$你还没有创建角色，请在创建角色后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.OnlyOneProfile">你的账户中只有一个角色，无法更换！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">选择使用的角色</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">登录失败：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">详细信息：</sys:String>
 </ResourceDictionary>
