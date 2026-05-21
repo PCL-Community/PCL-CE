@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 

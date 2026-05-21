@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Animatable;
+namespace PCL.Core.UI.Animation.Animatable;
 
 public sealed class EmptyAnimatable : IAnimatable
 {

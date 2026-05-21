@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.ValueProcessor;
 

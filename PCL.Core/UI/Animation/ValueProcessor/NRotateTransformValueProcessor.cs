@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.ValueProcessor;
+namespace PCL.Core.UI.Animation.ValueProcessor;
 
 public class NRotateTransformValueProcessor : IValueProcessor<NRotateTransform>
 {

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Easings;
+namespace PCL.Core.UI.Animation.Easings;
 
 /// <summary>
 /// 所有缓动类的基类。

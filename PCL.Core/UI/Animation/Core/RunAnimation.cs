@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Markup;
 using Microsoft.Xaml.Behaviors;
