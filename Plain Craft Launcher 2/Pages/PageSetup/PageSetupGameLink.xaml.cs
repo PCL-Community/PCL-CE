@@ -123,10 +123,10 @@ public partial class PageSetupGameLink
             case "LinkRelayType": Config.Link.RelayType = (LinkRelayBehavior)(int)value; break;
             case "LinkServerType": Config.Link.ServerType = (int)value; break;
             case "LinkProtocolPreference": Config.Link.ProtocolPreference = (LinkProtocolPreference)(int)value; break;
-            case "LinkLatencyFirstMode": Config.Link.UseLatencyFirstMode = (bool?)value ?? false; break;
-            case "LinkTryPunchSym": Config.Link.TryPunchSym = (bool?)value ?? false; break;
-            case "LinkEnableIPv6": Config.Link.EnableIPv6 = (bool?)value ?? false; break;
-            case "LinkEnableCliOutput": Config.Link.EnableCliOutput = (bool?)value ?? false; break;
+            case "LinkLatencyFirstMode": Config.Link.UseLatencyFirstMode = (bool)value; break;
+            case "LinkTryPunchSym": Config.Link.TryPunchSym = (bool)value; break;
+            case "LinkEnableIPv6": Config.Link.EnableIPv6 = (bool)value; break;
+            case "LinkEnableCliOutput": Config.Link.EnableCliOutput = (bool)value; break;
         }
     }
 

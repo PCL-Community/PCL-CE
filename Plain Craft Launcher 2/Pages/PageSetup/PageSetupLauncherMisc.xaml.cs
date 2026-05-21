@@ -116,14 +116,14 @@ public partial class PageSetupLauncherMisc
         switch (tag)
         {
             case "SystemMaxLog": Config.System.MaxGameLog = (int)value; break;
-            case "SystemDebugMode": Config.Debug.Enabled = (bool?)value ?? false; break;
+            case "SystemDebugMode": Config.Debug.Enabled = (bool)value; break;
             case "SystemDebugAnim": Config.Debug.AnimationSpeed = (int)value; break;
-            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool?)value ?? false; break;
-            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool?)value ?? false; break;
-            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool?)value ?? false; break;
+            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool)value; break;
+            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool)value; break;
+            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool)value; break;
             case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
-            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool?)value ?? false; break;
-            case "SystemTelemetry": Config.System.Telemetry = (bool?)value ?? false; break;
+            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool)value; break;
+            case "SystemTelemetry": Config.System.Telemetry = (bool)value; break;
             case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
         }
     }

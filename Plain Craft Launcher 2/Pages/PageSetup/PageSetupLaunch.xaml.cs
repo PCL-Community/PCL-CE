@@ -60,7 +60,6 @@ public partial class PageSetupLaunch
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
             ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
             ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
-            // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
@@ -178,12 +177,12 @@ public partial class PageSetupLaunch
             case "LaunchAdvanceJvm": Config.Launch.JvmArgs = (string)value; break;
             case "LaunchAdvanceGame": Config.Launch.GameArgs = (string)value; break;
             case "LaunchAdvanceRun": Config.Launch.PreLaunchCommand = (string)value; break;
-            case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool?)value ?? false; break;
-            case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool?)value ?? false; break;
-            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool?)value ?? false; break;
-            case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool?)value ?? false; break;
-            case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool?)value ?? false; break;
-            case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool?)value ?? false; break;
+            case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool)value; break;
+            case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool)value; break;
+            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool)value; break;
+            case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool)value; break;
+            case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool)value; break;
+            case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool)value; break;
         }
     }
 

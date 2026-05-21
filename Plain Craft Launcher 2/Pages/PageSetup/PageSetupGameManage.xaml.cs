@@ -38,19 +38,19 @@ public partial class PageSetupGameManage
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
-        CheckDownloadAutoSelectVersion.Checked = (bool?)Config.Download.AutoSelectInstance;
-        CheckFixAuthlib.Checked = (bool?)Config.Download.FixAuthLib;
+        CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
+        CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
 
         // Mod 与整合包
         ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
-        CheckDownloadIgnoreQuilt.Checked = (bool?)Config.Download.Comp.IgnoreQuilt;
-        CheckDownloadClipboard.Checked = (bool?)Config.Download.Comp.ReadClipboard;
+        CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
-        CheckUpdateRelease.Checked = (bool?)Config.Tool.ReleaseNotification;
-        CheckUpdateSnapshot.Checked = (bool?)Config.Tool.SnapshotNotification;
+        CheckUpdateRelease.Checked = Config.Tool.ReleaseNotification;
+        CheckUpdateSnapshot.Checked = Config.Tool.SnapshotNotification;
 
         // 辅助设置
         CheckHelpLauncherLanguage.Checked = Config.Tool.AutoChangeLanguage;
@@ -104,16 +104,16 @@ public partial class PageSetupGameManage
             case "ToolDownloadSpeed": Config.Download.SpeedLimit = (int)value; break;
             case "ToolDownloadSource": Config.Download.FileSource = (int)value; break;
             case "ToolDownloadVersion": Config.Download.VersionListSource = (int)value; break;
-            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool?)value ?? false; break;
-            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool?)value ?? false; break;
+            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool)value; break;
+            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool)value; break;
             case "ToolDownloadTranslateV2": Config.Download.Comp.NameFormatV2 = (int)value; break;
             case "ToolDownloadMod": Config.Download.Comp.CompSourceSolution = (int)value; break;
             case "ToolModLocalNameStyle": Config.Download.Comp.UiCompNameSolution = (int)value; break;
-            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool?)value ?? false; break;
-            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool?)value ?? false; break;
-            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool?)value ?? false; break;
-            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool?)value ?? false; break;
-            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool?)value ?? false; break;
+            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool)value; break;
+            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool)value; break;
+            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool)value; break;
+            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool)value; break;
+            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool)value; break;
         }
     }
 
@@ -142,7 +142,7 @@ public partial class PageSetupGameManage
     {
         if (SliderDownloadThread.Value < 100)
             return;
-        if (!(States.Hint.LargeDownloadThread as bool? ?? false))
+        if (!States.Hint.LargeDownloadThread)
         {
             States.Hint.LargeDownloadThread = true;
             ModMain.MyMsgBox(
