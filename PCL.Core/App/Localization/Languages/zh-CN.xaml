@@ -729,4 +729,57 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">提交者：{0}（{1}）</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">类型：{0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">查看详情</sys:String>
+
+    <!-- Launch.Home -->
+    <sys:String x:Key="Launch.Home.SelectInstance">实例选择</sys:String>
+    <sys:String x:Key="Launch.Home.InstanceSettings">实例设置</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Loading">正在加载</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Launch">启动游戏</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Download">下载游戏</sys:String>
+    <sys:String x:Key="Launch.Home.VersionList.Loading">正在加载版本列表，请稍候</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.Loading">正在加载中，请稍候</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.NotFound">未找到可用的游戏实例</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotLaunch">当前实例正在安装，无法启动！</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotSetup">当前实例正在安装，暂无法进行实例设置！</sys:String>
+
+    <!-- Launch.Status -->
+    <sys:String x:Key="Launch.Status.Title.Launching">正在启动游戏</sys:String>
+    <sys:String x:Key="Launch.Status.Title.Launched">已启动游戏</sys:String>
+    <sys:String x:Key="Launch.Status.Title.ExportingScript">正在导出启动脚本</sys:String>
+    <sys:String x:Key="Launch.Status.Completed">已完成</sys:String>
+    <sys:String x:Key="Launch.Status.CurrentStep">当前步骤</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSupport">下载支持</sys:String>
+    <sys:String x:Key="Launch.Status.LoginMethod">验证方式</sys:String>
+    <sys:String x:Key="Launch.Status.MicrosoftLogin">正版验证</sys:String>
+    <sys:String x:Key="Launch.Status.LaunchProgress">启动进度</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSpeed">下载速度</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia">你知道吗</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia.Placeholder">这是一段测试用的小提示文本，它应该足够长以让它有两行。</sys:String>
+
+    <!-- Launch.Account -->
+    <sys:String x:Key="Launch.Account.Type.Offline">离线验证</sys:String>
+    <sys:String x:Key="Launch.Account.Type.Microsoft">正版验证</sys:String>
+    <sys:String x:Key="Launch.Account.Type.ThirdParty">第三方验证</sys:String>
+
+    <!-- Launch.Right -->
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">社区版提示</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。&#x0a;&#x0a;如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。&#x0a;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
+    <sys:String x:Key="Launch.Right.Log.Title">启动日志</sys:String>
+
+    <!-- Launch.Homepage -->
+    <sys:String x:Key="Launch.Homepage.Loading">正在加载主页……</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Title">加载主页界面失败</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Message">主页内容编写有误，请根据下列错误信息进行检查：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">重试</sys:String>
+    <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
+
+    <!-- Launch.Homepage.Preset -->
+    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
+
+    <!-- Launch.Homepage.News -->
+    <sys:String x:Key="Launch.Homepage.News.ViewDetail">查看详情</sys:String>
+    <sys:String x:Key="Launch.Homepage.News.Loading">加载中……</sys:String>
 </ResourceDictionary>

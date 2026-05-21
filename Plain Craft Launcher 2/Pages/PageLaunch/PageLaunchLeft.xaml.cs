@@ -20,6 +20,16 @@ public partial class PageLaunchLeft
     private bool IsHeightAnimating;
     public interface ILoginPage { void Reload(); }
 
+    private enum LaunchButtonAction
+    {
+        Loading,
+        Launch,
+        Download,
+        Disabled
+    }
+
+    private LaunchButtonAction _launchButtonAction;
+
     // 加载当前实例
     private bool IsLoad;
 
@@ -204,19 +214,24 @@ public partial class PageLaunchLeft
         }
 
         // 实际的启动
-        if (BtnLaunch.Text == "启动游戏")
+        switch (_launchButtonAction)
         {
-            if (File.Exists(ModMinecraft.McInstanceSelected.PathInstance + ".pclignore"))
+            case LaunchButtonAction.Launch:
             {
-                ModMain.Hint("当前实例正在安装，无法启动！", ModMain.HintType.Critical);
-                return;
-            }
+                if (File.Exists(ModMinecraft.McInstanceSelected.PathInstance + ".pclignore"))
+                {
+                    ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), ModMain.HintType.Critical);
+                    return;
+                }
 
-            ModLaunch.McLaunchStart();
-        }
-        else if (BtnLaunch.Text == "下载游戏")
-        {
-            ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+                ModLaunch.McLaunchStart();
+                break;
+            }
+            case LaunchButtonAction.Download:
+            {
+                ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+                break;
+            }
         }
     }
 
@@ -254,38 +269,42 @@ public partial class PageLaunchLeft
         {
             case 0:
             {
+                _launchButtonAction = LaunchButtonAction.Loading;
                 ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "正在加载";
+                ModMain.FrmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Loading");
                 ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "正在加载中，请稍候";
+                ModMain.FrmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.Loading");
                 ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = false;
                 ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
                 break;
             }
             case 1:
             {
+                _launchButtonAction = LaunchButtonAction.Disabled;
                 ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
+                ModMain.FrmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                 ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
+                ModMain.FrmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
                 ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
                 ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
                 break;
             }
             case 2:
             {
+                _launchButtonAction = LaunchButtonAction.Download;
                 ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "下载游戏";
+                ModMain.FrmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Download");
                 ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
-                ModMain.FrmLaunchLeft.LabVersion.Text = "未找到可用的游戏实例";
+                ModMain.FrmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
                 ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
                 ModMain.FrmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
                 break;
             }
             case 3:
             {
+                _launchButtonAction = LaunchButtonAction.Launch;
                 ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModMinecraft.McInstanceSelected.PathInstance);
-                ModMain.FrmLaunchLeft.BtnLaunch.Text = "启动游戏";
+                ModMain.FrmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                 ModMain.FrmLaunchLeft.BtnInstance.IsEnabled = true;
                 if (ModProfile.SelectedProfile is not null)
                     BtnLaunch.IsEnabled = true;
@@ -338,7 +357,7 @@ public partial class PageLaunchLeft
         PageInstanceLeft.Instance = ModMinecraft.McInstanceSelected;
         if (File.Exists(ModMinecraft.McInstanceSelected.PathInstance + ".pclignore"))
         {
-            ModMain.Hint("当前实例正在安装，暂无法进行实例设置！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), ModMain.HintType.Critical);
             return;
         }
 
@@ -371,7 +390,7 @@ public partial class PageLaunchLeft
                         }
 
                     if (exitTry) break;
-                    LabLaunchingStage.Text = "已完成";
+                    LabLaunchingStage.Text = Lang.Text("Launch.Status.Completed");
                 }
                 catch (Exception ex)
                 {
@@ -391,8 +410,8 @@ public partial class PageLaunchLeft
             if (IsLaunched)
                 ShowProgress = 1d; // 如果已经完成了，就不卖关子了
             // 文本
-            LabLaunchingTitle.Text = IsLaunched ? "已启动游戏" :
-                ModLaunch.CurrentLaunchOptions.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
+            LabLaunchingTitle.Text = IsLaunched ? Lang.Text("Launch.Status.Title.Launched") :
+                ModLaunch.CurrentLaunchOptions.SaveBatch is null ? Lang.Text("Launch.Status.Title.Launching") : Lang.Text("Launch.Status.Title.ExportingScript");
             LabLaunchingProgress.Text = Lang.Number(ShowProgress, "P2");
             var HasLaunchDownloader = false;
             try
@@ -526,17 +545,17 @@ public partial class PageLaunchLeft
         {
             case ModLaunch.McLoginType.Legacy:
             {
-                LabLaunchingMethod.Text = "离线验证";
+                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Offline");
                 break;
             }
             case ModLaunch.McLoginType.Ms:
             {
-                LabLaunchingMethod.Text = "正版验证";
+                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Microsoft");
                 break;
             }
             case ModLaunch.McLoginType.Auth:
             {
-                LabLaunchingMethod.Text = "第三方验证" + (!string.IsNullOrEmpty(ModProfile.SelectedProfile.ServerName)
+                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ModProfile.SelectedProfile.ServerName)
                     ? " / " + ModProfile.SelectedProfile.ServerName
                     : "");
                 break;
@@ -546,7 +565,9 @@ public partial class PageLaunchLeft
         // 初始化页面
         LabLaunchingName.Text = ModMinecraft.McInstanceSelected.Name;
         LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
-        LabLaunchingTitle.Text = ModLaunch.CurrentLaunchOptions?.SaveBatch is null ? "正在启动游戏" : "正在导出启动脚本";
+        LabLaunchingTitle.Text = ModLaunch.CurrentLaunchOptions?.SaveBatch is null
+            ? Lang.Text("Launch.Status.Title.Launching")
+            : Lang.Text("Launch.Status.Title.ExportingScript");
         LabLaunchingProgress.Text = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
@@ -764,7 +785,7 @@ public partial class PageLaunchLeft
         else
         {
             Type = PageType.Profile;
-            if (!(BtnLaunch.Text == "下载游戏"))
+            if (_launchButtonAction != LaunchButtonAction.Download)
                 BtnLaunch.IsEnabled = false;
         }
 

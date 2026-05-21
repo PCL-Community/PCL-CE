@@ -735,4 +735,57 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">Submitter: {0} ({1})</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">Type: {0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">Details</sys:String>
+
+    <!-- Launch.Home -->
+    <sys:String x:Key="Launch.Home.SelectInstance">Selection</sys:String>
+    <sys:String x:Key="Launch.Home.InstanceSettings">Properties</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Loading">Loading</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Launch">Launch</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Download">Download</sys:String>
+    <sys:String x:Key="Launch.Home.VersionList.Loading">Loading version list, please wait</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.Loading">Loading, please wait</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.NotFound">No available game instance</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotLaunch">The current instance is being installed and cannot be launched!</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotSetup">The current instance is being installed and cannot be configured!</sys:String>
+
+    <!-- Launch.Status -->
+    <sys:String x:Key="Launch.Status.Title.Launching">Launching</sys:String>
+    <sys:String x:Key="Launch.Status.Title.Launched">Game launched</sys:String>
+    <sys:String x:Key="Launch.Status.Title.ExportingScript">Exporting launch script</sys:String>
+    <sys:String x:Key="Launch.Status.Completed">Completed</sys:String>
+    <sys:String x:Key="Launch.Status.CurrentStep">Current step</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSupport">Download support</sys:String>
+    <sys:String x:Key="Launch.Status.LoginMethod">Login method</sys:String>
+    <sys:String x:Key="Launch.Status.MicrosoftLogin">Microsoft login</sys:String>
+    <sys:String x:Key="Launch.Status.LaunchProgress">Progress</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSpeed">Download speed</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia">Trivia</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia.Placeholder">This is a test hint text, it should be long enough to have two lines.</sys:String>
+
+    <!-- Launch.Account -->
+    <sys:String x:Key="Launch.Account.Type.Offline">Offline</sys:String>
+    <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft login</sys:String>
+    <sys:String x:Key="Launch.Account.Type.ThirdParty">Third-party</sys:String>
+
+    <!-- Launch.Right -->
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition Notice</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL Community Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#x0a;&#x0a;If you downloaded the Community Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#x0a;Additionally, please submit Community Edition issues to the Community Edition repository, and do not report Community Edition issues to the official repository!</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL CE development organization name.</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter PCL CE development organization name</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">Not quite right...</sys:String>
+    <sys:String x:Key="Launch.Right.Log.Title">Launch Log</sys:String>
+
+    <!-- Launch.Homepage -->
+    <sys:String x:Key="Launch.Homepage.Loading">Loading homepage...</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Title">Failed to load homepage</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Message">The homepage content is malformed. Check the following error information:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">Retry</sys:String>
+    <sys:String x:Key="Launch.Homepage.SlowWarning">The homepage is loading too slowly (took {0} seconds). Please report this issue to the homepage author, or temporarily stop using this homepage.</sys:String>
+
+    <!-- Launch.Homepage.Preset -->
+    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
+
+    <!-- Launch.Homepage.News -->
+    <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
+    <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
 </ResourceDictionary>
