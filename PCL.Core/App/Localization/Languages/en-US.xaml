@@ -1097,4 +1097,67 @@
     <sys:String x:Key="Select.Instance.Description.Old">Old version</sys:String>
     <sys:String x:Key="Select.Instance.Description.AprilFools">April Fools' {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.ReportUnknownError">An unknown error has occurred. Please report this issue to the author.</sys:String>
+
+    <!-- Minecraft.Launch.Stage -->
+    <sys:String x:Key="Minecraft.Launch.Stage.GetJava">Getting Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Login">Logging in</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CompleteFiles">Completing files</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">Getting launch arguments</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.ExtractNatives">Extracting natives</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">Pre-launch processing</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CustomCommand">Running custom command</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">Starting process</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.WaitWindow">Waiting for game window</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.End">Finishing up</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Root">Launching Minecraft</sys:String>
+
+    <!-- Minecraft.Launch -->
+    <sys:String x:Key="Minecraft.Launch.Success">{0} launched successfully!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Cancelled">Launch cancelled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">Export script cancelled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Success">Launch script exported successfully!</sys:String>
+
+    <!-- Launch.Error -->
+    <sys:String x:Key="Launch.Error.Title">Launch Failed</sys:String>
+    <sys:String x:Key="Launch.Error.ExportScriptTitle">Export Script Failed</sys:String>
+
+    <!-- Minecraft.Launch.Error -->
+    <sys:String x:Key="Minecraft.Launch.Error.InvalidState">Invalid state change: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.AlreadyLaunching">A game is already launching!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotLaunch">Cannot launch Minecraft: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NoJava">No Java available, launch cancelled!</sys:String>
+
+    <!-- Minecraft.Launch.Precheck -->
+    <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">Game path cannot contain ! or ; ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Title">Game Path Check</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Message">The path of instance "{0}" contains characters that may affect the game (non-ASCII characters). Do you still want to launch?&#x0a;&#x0a;If you are unsure, you can choose "Continue" first, and try modifying the game path if the game crashes shortly after launch.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Continue">Continue</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Back">Go Back</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">No Minecraft instance selected!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft problem: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoProfile">Please select a profile before launching!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">This instance requires Microsoft login. Please use a Microsoft login profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">This instance requires third-party login. Please use a third-party login profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">The third-party login server used by this profile does not match the instance requirement. Please use a matching profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">This instance requires Microsoft or third-party login. Please use a matching profile!</sys:String>
+
+    <!-- Minecraft.Launch.PurchaseHint -->
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">It looks like you haven't purchased the game...&#x0a;If you think Minecraft is good, consider purchasing it to support the developers... Don't keep freeloading.&#x0a;&#x0a;This prompt will no longer appear after you verify a genuine account!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Title">Purchase the Game?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">Purchase!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">Nah, maybe next time</sys:String>
+
+    <!-- Minecraft.Launch.AccountVerification -->
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Message">You must log in with a Microsoft account to launch the game!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Title">Microsoft Login</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Purchase">Purchase</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Demo">Demo</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Back">Back</sys:String>
+    <sys:String x:Key="Minecraft.Launch.DemoMode">The game will launch in demo mode!</sys:String>
+
+    <!-- Minecraft.Launch.Donate -->
+    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL has launched {0} games for you!&#x0a;If PCL has been useful, maybe consider supporting the original PCL author...&#x0a;Without everyone's support, it's hard for PCL to maintain updates for years while staying free and ad-free!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} launches!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Support">Support!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Decline">I refuse</sys:String>
 </ResourceDictionary>

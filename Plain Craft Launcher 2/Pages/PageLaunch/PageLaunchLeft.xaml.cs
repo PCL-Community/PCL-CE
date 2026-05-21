@@ -30,6 +30,10 @@ public partial class PageLaunchLeft
 
     private LaunchButtonAction _launchButtonAction;
 
+    private static string StageWaitWindow => Lang.Text("Minecraft.Launch.Stage.WaitWindow");
+    private static string StageEnd => Lang.Text("Minecraft.Launch.Stage.End");
+    private static string StageRoot => Lang.Text("Minecraft.Launch.Stage.Root");
+
     // 加载当前实例
     private bool IsLoad;
 
@@ -384,7 +388,7 @@ public partial class PageLaunchLeft
                         if (Loader.State == ModBase.LoadState.Loading || Loader.State == ModBase.LoadState.Waiting)
                         {
                             LabLaunchingStage.Text = Loader.Name;
-                            IsLaunched = Loader.Name == "等待游戏窗口出现" || Loader.Name == "结束处理";
+                            IsLaunched = Loader.Name == StageWaitWindow || Loader.Name == StageEnd;
                             exitTry = true;
                             break;
                         }
@@ -417,7 +421,7 @@ public partial class PageLaunchLeft
             try
             {
                 foreach (var Loader in ModNet.NetManager.Tasks)
-                    if (Loader.RealParent is not null && Loader.RealParent.Name == "Minecraft 启动" &&
+                    if (Loader.RealParent is not null && Loader.RealParent.Name == StageRoot &&
                         Loader.State == ModBase.LoadState.Loading)
                         HasLaunchDownloader = true;
             }

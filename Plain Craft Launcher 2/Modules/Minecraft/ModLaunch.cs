@@ -38,63 +38,63 @@ public static class ModLaunch
         // 检查路径
         if (ModMinecraft.McInstanceSelected.PathIndie.Contains("!") ||
             ModMinecraft.McInstanceSelected.PathIndie.Contains(";"))
-            throw new Exception("游戏路径中不可包含 ! 或 ;（" + ModMinecraft.McInstanceSelected.PathIndie + "）");
+            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.InvalidPathChars", ModMinecraft.McInstanceSelected.PathIndie));
         if (ModMinecraft.McInstanceSelected.PathInstance.Contains("!") ||
             ModMinecraft.McInstanceSelected.PathInstance.Contains(";"))
-            throw new Exception("游戏路径中不可包含 ! 或 ;（" + ModMinecraft.McInstanceSelected.PathInstance + "）");
+            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.InvalidPathChars", ModMinecraft.McInstanceSelected.PathInstance));
         if (Conversions.ToBoolean(ModBase.IsUtf8CodePage() && !(bool)States.Hint.NonAsciiGamePath &&
                                   !ModMinecraft.McInstanceSelected.PathInstance.IsASCII()))
         {
             var userChoice = ModMain.MyMsgBox(
-                $"欲启动实例 \"{ModMinecraft.McInstanceSelected.Name}\" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？{"\r\n"}{"\r\n"}如果不清楚具体作用，你可以先选择 \"继续\"，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作",
-                "游戏路径检查", "继续", "返回处理", Lang.Text("Common.Hint.DoNotShowAgain"));
+                Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Message", ModMinecraft.McInstanceSelected.Name),
+                Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Title"), Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Continue"), Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Back"), Lang.Text("Common.Hint.DoNotShowAgain"));
             if (userChoice == 2) throw new Exception("$$");
             if (userChoice == 3) States.Hint.NonAsciiGamePath = true;
         }
 
         // 检查实例
         if (ModMinecraft.McInstanceSelected is null)
-            throw new Exception("未选择 Minecraft 实例！");
+            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.NoInstance"));
         ModMinecraft.McInstanceSelected.Load();
         if (ModMinecraft.McInstanceSelected.State == ModMinecraft.McInstanceState.Error)
-            throw new Exception("Minecraft 存在问题：" + ModMinecraft.McInstanceSelected.Desc);
+            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.InstanceError", ModMinecraft.McInstanceSelected.Desc));
         // 检查输入信息
         var CheckResult = "";
         ModBase.RunInUiWait(() => CheckResult = Conversions.ToString(ModProfile.IsProfileValid()));
         if (ModProfile.SelectedProfile is null) // 没选档案
         {
-            CheckResult = "请先选择一个档案再启动游戏！";
+            CheckResult = Lang.Text("Minecraft.Launch.Precheck.NoProfile");
         }
         else if (ModMinecraft.McInstanceSelected.Info.HasLabyMod || Conversions.ToBoolean(
                      Operators.ConditionalCompareObjectEqual(
                          ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 1,
                          false))) // 要求正版验证
         {
-            if (!(ModProfile.SelectedProfile.Type == McLoginType.Ms)) CheckResult = "当前实例要求使用正版验证，请使用正版验证档案启动游戏！";
+            if (!(ModProfile.SelectedProfile.Type == McLoginType.Ms)) CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoft");
         }
         else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(
                      ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 2,
                      false))) // 要求第三方验证
         {
             if (!(ModProfile.SelectedProfile.Type == McLoginType.Auth))
-                CheckResult = "当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！";
+                CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireThirdParty");
             else if (Conversions.ToBoolean(!Operators.ConditionalCompareObjectEqual(
                          ModProfile.SelectedProfile.Server.BeforeLast("/authserver"),
                          ModBase.Setup.Get("VersionServerAuthServer", ModMinecraft.McInstanceSelected), false)))
-                CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！";
+                CheckResult = Lang.Text("Minecraft.Launch.Precheck.AuthServerMismatch");
         }
         else if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(
                      ModBase.Setup.Get("VersionServerLoginRequire", ModMinecraft.McInstanceSelected), 3,
                      false))) // 要求正版验证或第三方验证
         {
             if (ModProfile.SelectedProfile.Type == McLoginType.Legacy)
-                CheckResult = "当前实例要求使用正版验证或第三方验证，请使用符合要求的档案启动游戏！";
+                CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty");
             else if (Conversions.ToBoolean(ModProfile.SelectedProfile.Type == McLoginType.Auth &&
                                            !Operators.ConditionalCompareObjectEqual(
                                                ModProfile.SelectedProfile.Server.BeforeLast("/authserver"),
                                                ModBase.Setup.Get("VersionServerAuthServer",
                                                    ModMinecraft.McInstanceSelected), false)))
-                CheckResult = "当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！";
+                CheckResult = Lang.Text("Minecraft.Launch.Precheck.AuthServerMismatch");
         }
 
         if (!string.IsNullOrEmpty(CheckResult))
@@ -132,12 +132,10 @@ public static class ModLaunch
                     case 1800:
                     case 2000:
                         if (ModMain.MyMsgBox(
-                                $"PCL 已经为你启动了 {States.System.LaunchCount} 次游戏啦！\n" +
-                                "如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……\n" +
-                                "如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！",
-                                $"{States.System.LaunchCount} 次启动！",
-                                "支持一下！",
-                                "但是我拒绝") == 1)
+                                Lang.Text("Minecraft.Launch.Donate.Message", States.System.LaunchCount),
+                                Lang.Text("Minecraft.Launch.Donate.Title", States.System.LaunchCount),
+                                Lang.Text("Minecraft.Launch.Donate.Support"),
+                                Lang.Text("Minecraft.Launch.Donate.Decline")) == 1)
                         {
                             ModBase.OpenWebsite("https://afdian.com/a/LTCat");
                         }
@@ -157,26 +155,26 @@ public static class ModLaunch
             if (RegionUtils.IsRestrictedFeatAllowed)
             {
                 if (ModMain.MyMsgBox(
-                        $"看起来你似乎没买正版...{"\r\n"}如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。{"\r\n"}{"\r\n"}在验证一个正版账号之后，就不会出现这个提示了！",
-                        "考虑一下正版？", "支持正版游戏！", "下次一定") ==
+                        Lang.Text("Minecraft.Launch.PurchaseHint.Message"),
+                        Lang.Text("Minecraft.Launch.PurchaseHint.Title"), Lang.Text("Minecraft.Launch.PurchaseHint.Purchase"), Lang.Text("Minecraft.Launch.PurchaseHint.Later")) ==
                     1)
                     ModBase.OpenWebsite(
                         "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
             }
             else
             {                
-                switch (ModMain.MyMsgBox("你必须先登录正版账号才能启动游戏！", 
-                            "正版验证", 
-                            "购买正版", 
-                            "试玩", 
-                            "返回",
+                switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.AccountVerification.Message"), 
+                            Lang.Text("Minecraft.Launch.AccountVerification.Title"), 
+                            Lang.Text("Minecraft.Launch.AccountVerification.Purchase"), 
+                            Lang.Text("Minecraft.Launch.AccountVerification.Demo"), 
+                            Lang.Text("Minecraft.Launch.AccountVerification.Back"),
                             Button1Action: () =>
                                 ModBase.OpenWebsite(
                                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
                 {
                     case 2:
                     {
-                        ModMain.Hint("游戏将以试玩模式启动！", ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), ModMain.HintType.Critical);
                         CurrentLaunchOptions.ExtraArgs.Add("--demo");
                         break;
                     }
@@ -249,7 +247,7 @@ public static class ModLaunch
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
         if (McLaunchLoader.State == ModBase.LoadState.Loading)
         {
-            ModMain.Hint("已有游戏正在启动中！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), ModMain.HintType.Critical);
             IsLaunching = false;
             return false;
         }
@@ -263,7 +261,7 @@ public static class ModLaunch
             CurrentLaunchOptions.Instance.Load();
             if (CurrentLaunchOptions.Instance.State == ModMinecraft.McInstanceState.Error)
             {
-                ModMain.Hint("无法启动 Minecraft：" + CurrentLaunchOptions.Instance.Desc, ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", CurrentLaunchOptions.Instance.Desc), ModMain.HintType.Critical);
                 IsLaunching = false;
                 return false;
             }
@@ -353,24 +351,24 @@ public static class ModLaunch
             // 构造主加载器
             var Loaders = new List<ModLoader.LoaderBase>
             {
-                new ModLoader.LoaderTask<int, int>("获取 Java", McLaunchJava) { ProgressWeight = 4d, Block = false },
+                new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.GetJava"), McLaunchJava) { ProgressWeight = 4d, Block = false },
                 McLoginLoader,
-                new ModLoader.LoaderCombo<string>("补全文件",
+                new ModLoader.LoaderCombo<string>(Lang.Text("Minecraft.Launch.Stage.CompleteFiles"),
                         ModDownload.DlClientFix(ModMinecraft.McInstanceSelected, false,
                             ModDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
                     { ProgressWeight = 15d, Show = false },
-                new ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>>("获取启动参数", McLaunchArgumentMain)
+                new ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>>(Lang.Text("Minecraft.Launch.Stage.GetArguments"), McLaunchArgumentMain)
                     { ProgressWeight = 2d },
-                new ModLoader.LoaderTask<List<ModMinecraft.McLibToken>, int>("解压文件", McLaunchNatives)
+                new ModLoader.LoaderTask<List<ModMinecraft.McLibToken>, int>(Lang.Text("Minecraft.Launch.Stage.ExtractNatives"), McLaunchNatives)
                     { ProgressWeight = 2d },
-                new ModLoader.LoaderTask<int, int>("预启动处理", _ => McLaunchPrerun()) { ProgressWeight = 1d },
-                new ModLoader.LoaderTask<int, int>("执行自定义命令", McLaunchCustom) { ProgressWeight = 1d },
-                new ModLoader.LoaderTask<int, Process>("启动进程", McLaunchRun) { ProgressWeight = 2d },
-                new ModLoader.LoaderTask<Process, int>("等待游戏窗口出现", McLaunchWait) { ProgressWeight = 1d },
-                new ModLoader.LoaderTask<int, int>("结束处理", _ => McLaunchEnd()) { ProgressWeight = 1d }
+                new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.PreLaunch"), _ => McLaunchPrerun()) { ProgressWeight = 1d },
+                new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.CustomCommand"), McLaunchCustom) { ProgressWeight = 1d },
+                new ModLoader.LoaderTask<int, Process>(Lang.Text("Minecraft.Launch.Stage.StartProcess"), McLaunchRun) { ProgressWeight = 2d },
+                new ModLoader.LoaderTask<Process, int>(Lang.Text("Minecraft.Launch.Stage.WaitWindow"), McLaunchWait) { ProgressWeight = 1d },
+                new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.End"), _ => McLaunchEnd()) { ProgressWeight = 1d }
             }; // .ProgressWeight = 15, .Block = False
 
-            var LaunchLoader = new ModLoader.LoaderCombo<object>("Minecraft 启动", Loaders) { Show = false };
+            var LaunchLoader = new ModLoader.LoaderCombo<object>(Lang.Text("Minecraft.Launch.Stage.Root"), Loaders) { Show = false };
             if (McLoginLoader.State == ModBase.LoadState.Finished)
                 McLoginLoader.State = ModBase.LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
             // 等待加载器执行并更新 UI
@@ -391,13 +389,13 @@ public static class ModLaunch
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint(ModMinecraft.McInstanceSelected.Name + " 启动成功！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModMinecraft.McInstanceSelected.Name), ModMain.HintType.Finish);
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
                     if (AbortHint is null)
-                        ModMain.Hint(CurrentLaunchOptions?.SaveBatch is null ? "已取消启动！" : "已取消导出启动脚本！");
+                        ModMain.Hint(CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
                     else
                         ModMain.Hint(AbortHint, ModMain.HintType.Finish);
 
@@ -410,7 +408,7 @@ public static class ModLaunch
 
                 default:
                 {
-                    throw new Exception("错误的状态改变：" + ModBase.GetStringFromEnum(LaunchLoader.State));
+                    throw new Exception(Lang.Text("Minecraft.Launch.Error.InvalidState", ModBase.GetStringFromEnum(LaunchLoader.State)));
                 }
             }
 
@@ -427,7 +425,7 @@ public static class ModLaunch
                 // 若错误信息为 $$，则不提示
                 if (!(CurrentEx.Message == "$$"))
                     ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
-                        CurrentLaunchOptions?.SaveBatch is null ? "启动失败" : "导出启动脚本失败");
+                        CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
                 throw;
             }
 
@@ -440,8 +438,8 @@ public static class ModLaunch
 
             // 没有特殊处理过的错误信息
             McLaunchLog("错误：" + ex);
-            ModBase.Log(ex, CurrentLaunchOptions?.SaveBatch is null ? "Minecraft 启动失败" : "导出启动脚本失败",
-                ModBase.LogLevel.Msgbox, CurrentLaunchOptions?.SaveBatch is null ? "启动失败" : "导出启动脚本失败");
+            ModBase.Log(ex, CurrentLaunchOptions?.SaveBatch is null ? "Minecraft launch failed" : "Export script failed",
+                ModBase.LogLevel.Msgbox, CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
             throw;
         }
     }
@@ -606,7 +604,7 @@ public static class ModLaunch
 
     // 登录主模块加载器
     public static ModLoader.LoaderTask<McLoginData, McLoginResult> McLoginLoader =
-        new("登录", McLoginStart, McLoginInput, ThreadPriority.BelowNormal)
+        new(Lang.Text("Minecraft.Launch.Stage.Login"), McLoginStart, McLoginInput, ThreadPriority.BelowNormal)
             { ReloadTimeout = 1, ProgressWeight = 15d, Block = false };
 
     public static McLoginData McLoginInput()
@@ -2071,7 +2069,7 @@ public static class ModLaunch
             }
             else
             {
-                ModMain.Hint("没有可用的 Java，已取消启动！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), ModMain.HintType.Critical);
                 throw new Exception("$$");
             }
         }
@@ -3337,7 +3335,7 @@ public static class ModLaunch
             if (CurrentLaunchOptions.SaveBatch is not null)
             {
                 McLaunchLog("导出启动脚本完成，强制结束启动过程");
-                AbortHint = "导出启动脚本成功！";
+                AbortHint = Lang.Text("Minecraft.Launch.ExportScript.Success");
                 ModBase.OpenExplorer(CurrentLaunchOptions.SaveBatch);
                 Loader.Parent.Abort();
                 return; // 导出脚本完成

@@ -1092,4 +1092,67 @@
     <sys:String x:Key="Select.Instance.Description.Old">远古版本</sys:String>
     <sys:String x:Key="Select.Instance.Description.AprilFools">愚人节版本 {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.ReportUnknownError">发生了未知错误，请向作者反馈此问题</sys:String>
+
+    <!-- Minecraft.Launch.Stage -->
+    <sys:String x:Key="Minecraft.Launch.Stage.GetJava">获取 Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Login">登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CompleteFiles">补全文件</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">获取启动参数</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.ExtractNatives">解压文件</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">预启动处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CustomCommand">执行自定义命令</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">启动进程</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.WaitWindow">等待游戏窗口出现</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.End">结束处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Root">Minecraft 启动</sys:String>
+
+    <!-- Minecraft.Launch -->
+    <sys:String x:Key="Minecraft.Launch.Success">{0} 启动成功！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Cancelled">已取消启动！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">已取消导出启动脚本！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Success">导出启动脚本成功！</sys:String>
+
+    <!-- Launch.Error -->
+    <sys:String x:Key="Launch.Error.Title">启动失败</sys:String>
+    <sys:String x:Key="Launch.Error.ExportScriptTitle">导出启动脚本失败</sys:String>
+
+    <!-- Minecraft.Launch.Error -->
+    <sys:String x:Key="Minecraft.Launch.Error.InvalidState">错误的状态改变：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.AlreadyLaunching">已有游戏正在启动中！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotLaunch">无法启动 Minecraft：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NoJava">没有可用的 Java，已取消启动！</sys:String>
+
+    <!-- Minecraft.Launch.Precheck -->
+    <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">游戏路径中不可包含 ! 或 ;（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Title">游戏路径检查</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Message">欲启动实例 "{0}" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？&#x0a;&#x0a;如果不清楚具体作用，你可以先选择 "继续"，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Continue">继续</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Back">返回处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">未选择 Minecraft 实例！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft 存在问题：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoProfile">请先选择一个档案再启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">当前实例要求使用正版验证，请使用正版验证档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">当前实例要求使用正版验证或第三方验证，请使用符合要求的档案启动游戏！</sys:String>
+
+    <!-- Minecraft.Launch.PurchaseHint -->
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">看起来你似乎没买正版...&#x0a;如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。&#x0a;&#x0a;在验证一个正版账号之后，就不会出现这个提示了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Title">考虑一下正版？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">支持正版游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">下次一定</sys:String>
+
+    <!-- Minecraft.Launch.AccountVerification -->
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Message">你必须先登录正版账号才能启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Title">正版验证</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Purchase">购买正版</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Demo">试玩</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Back">返回</sys:String>
+    <sys:String x:Key="Minecraft.Launch.DemoMode">游戏将以试玩模式启动！</sys:String>
+
+    <!-- Minecraft.Launch.Donate -->
+    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL 已经为你启动了 {0} 次游戏啦！&#x0a;如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……&#x0a;如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} 次启动！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Support">支持一下！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Decline">但是我拒绝</sys:String>
 </ResourceDictionary>
