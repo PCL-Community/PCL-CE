@@ -2012,26 +2012,26 @@ public static class ModLaunch
             {
                 if (ModMinecraft.McInstanceSelected.Info.HasForge)
                     ModMain.MyMsgBox(
-                        $"你需要先安装 LegacyJavaFixer Mod，或安装 Java 7 才能启动该版本。{"\r\n"}请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。",
-                        "未找到 Java");
+                        Lang.Text("Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7"),
+                        Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
                 else
                     ModMain.MyMsgBox(
-                        $"你需要安装 Java 7 才能启动该版本。{"\r\n"}请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。",
-                        "未找到 Java");
+                        Lang.Text("Minecraft.Launch.Java.NeedJava7"),
+                        Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
                 throw new Exception("$$");
             }
             else if (minVer > new Version(1, 8, 0, 140) && maxVer < new Version(1, 8, 0, 321))
             {
                 ModMain.MyMsgBox(
-                    $"你需要安装 Java 8u141 ~ 8u320 才能启动该版本。{"\r\n"}请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。",
-                    "未找到 Java");
+                    Lang.Text("Minecraft.Launch.Java.NeedJava8U141ToU320"),
+                    Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
                 throw new Exception("$$");
             }
             else if (minVer > new Version(1, 8, 0, 140))
             {
                 ModMain.MyMsgBox(
-                    $"你需要安装 Java 8u141 或更高版本的 Java 8 才能启动该版本。{"\r\n"}请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。",
-                    "未找到 Java");
+                    Lang.Text("Minecraft.Launch.Java.NeedJava8U141OrLater"),
+                    Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
                 throw new Exception("$$");
             }
             else
@@ -2395,7 +2395,7 @@ public static class ModLaunch
                     // 不包含端口号
                     FinalArguments += " --server " + Server + " --port 25565";
                 if (ModMinecraft.McInstanceSelected.Info.HasOptiFine)
-                    ModMain.Hint("OptiFine 与自动进入服务器可能不兼容，有概率导致材质丢失甚至游戏崩溃！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
             }
         }
 
@@ -2446,11 +2446,11 @@ public static class ModLaunch
             catch (WebException ex)
             {
                 throw new Exception(
-                    $"无法连接到第三方登录服务器（{Server ?? null}）{"\r\n"}详细信息：" + ex.InnerException, ex);
+                    Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServerWithDetail", Server ?? null) + ex.InnerException, ex);
             }
             catch (Exception ex)
             {
-                throw new Exception($"无法连接到第三方登录服务器（{Server ?? null}）", ex);
+                throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", Server ?? null), ex);
             }
         }
 
@@ -2509,7 +2509,7 @@ public static class ModLaunch
         }
 
         // 添加 MainClass
-        if (instance.JsonObject["mainClass"] is null) throw new Exception("实例 JSON 中没有 mainClass 项！");
+        if (instance.JsonObject["mainClass"] is null) throw new Exception(Lang.Text("Minecraft.Launch.Error.MissingMainClass"));
 
         DataList.Add((string)instance.JsonObject["mainClass"]);
 
@@ -2568,7 +2568,7 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                throw new Exception("无法连接到第三方登录服务器（" + (Server ?? null) + "）", ex);
+                throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", Server ?? null), ex);
             }
         }
         
@@ -2663,7 +2663,7 @@ public static class ModLaunch
         var Result = DeDuplicateDataList.Distinct().ToList().Join(" ");
 
         // 添加 MainClass
-        if (instance.JsonObject["mainClass"] is null) throw new Exception("实例 JSON 中没有 mainClass 项！");
+        if (instance.JsonObject["mainClass"] is null) throw new Exception(Lang.Text("Minecraft.Launch.Error.MissingMainClass"));
 
         Result += " " + instance.JsonObject["mainClass"];
 
@@ -2982,7 +2982,7 @@ public static class ModLaunch
             {
                 ModBase.Log(ex, "打开 Natives 文件失败（" + Native.LocalPath + "）");
                 File.Delete(Native.LocalPath);
-                throw new Exception("无法打开 Natives 文件（" + Native.LocalPath + "），该文件可能已损坏，请重新尝试启动游戏");
+                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", Native.LocalPath));
             }
 
             foreach (var Entry in Zip.Entries)

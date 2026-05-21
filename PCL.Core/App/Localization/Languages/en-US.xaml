@@ -1126,6 +1126,11 @@
     <sys:String x:Key="Minecraft.Launch.Error.AlreadyLaunching">A game is already launching!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.CannotLaunch">Cannot launch Minecraft: {0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.NoJava">No Java available, launch cancelled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.OptiFineAutoJoinWarning">OptiFine may be incompatible with auto-join server, potentially causing missing textures or even game crashes!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServer">Unable to connect to third-party login server ({0}).</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServerWithDetail">Unable to connect to third-party login server ({0}).&#x0a;Details:</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.MissingMainClass">Missing "mainClass" in version JSON!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NativesCorrupted">Unable to open the Natives file ({0}), the file may be corrupted. Please try relaunching the game.</sys:String>
 
     <!-- Minecraft.Launch.Precheck -->
     <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">Game path cannot contain ! or ; ({0})</sys:String>
@@ -1204,4 +1209,12 @@
     <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">Select Profile</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">Login failed: {0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">Details:</sys:String>
+
+    <!-- Minecraft.Launch.Java -->
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Title">Java Not Found</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.InstallManuallyHint">Please search and install it manually</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">You need to install the LegacyJavaFixer mod, or install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it in Settings → Launch Options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">You need to install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it in Settings → Launch Options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">You need to install Java 8u141 ~ 8u320 to launch this version.&#x0a;Please search and install it manually, then re-search or import it in Settings → Launch Options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">You need to install Java 8u141 or later to launch this version.&#x0a;Please search and install it manually, then re-search or import it in Settings → Launch Options → Game Java.</sys:String>
 </ResourceDictionary>
