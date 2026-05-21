@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils.Exts;

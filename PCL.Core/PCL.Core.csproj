@@ -57,7 +57,7 @@
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->
         <PackageReference Include="System.Text.Json" Version="10.0.3" />
-        <PackageReference Include="YamlDotNet" Version="16.3.0" />
+        <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />
         <PackageReference Include="LiteDB" Version="5.0.21" />
         <PackageReference Include="protobuf-net" Version="3.2.56" />
@@ -71,7 +71,7 @@
         <!-- 日志与遥测 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-        <PackageReference Include="Sentry" Version="3.34.0" />
+        <PackageReference Include="Sentry" Version="6.3.1" />
         <!-- 身份认证 -->
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
         <!-- 验证 -->

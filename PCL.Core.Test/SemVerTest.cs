@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using PCL.Core.Utils;
 
@@ -42,6 +42,11 @@ namespace PCL.Core.Test
                 && t4.Prerelease == "alpha.2"
                 );
             Console.WriteLine(t4.ToString());
+
+            var t5 = SemVer.Parse("v2.14.5-beta.1.2147483647");
+            Assert.IsNotNull(t5);
+            Console.WriteLine(t5.ToString());
+            Assert.IsGreaterThan(t5, t4);
         }
     }
 }

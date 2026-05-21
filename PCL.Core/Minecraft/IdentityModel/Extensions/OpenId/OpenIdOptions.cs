@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 

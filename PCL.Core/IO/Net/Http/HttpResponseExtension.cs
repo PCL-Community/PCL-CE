@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PCL.Core.IO.Net.Http.Client.Request;
+namespace PCL.Core.IO.Net.Http;
 
 public static class HttpResponseExtension
 {

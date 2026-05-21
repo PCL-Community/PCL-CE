@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -52,6 +53,32 @@ public static class SharedExtensions
                 baseType = baseType.BaseType;
             }
             return false;
+        }
+
+        public int GenerateTypeHeader(StringBuilder sb)
+        {
+            var ctnTypes = new Stack<INamedTypeSymbol>();
+            for (var ctnType = type.ContainingType; ctnType != null; ctnType = ctnType.ContainingType) ctnTypes.Push(ctnType);
+            // namespace
+            var ns = type.ContainingNamespace?.ToDisplayString();
+            var indent = 0;
+            if (!string.IsNullOrEmpty(ns))
+            {
+                sb.Append("namespace ").Append(ns).AppendLine();
+                sb.AppendLine("{");
+                indent++;
+            }
+            // outer classes
+            foreach (var containingType in ctnTypes)
+            {
+                sb.Append(' ', indent * 4).Append("partial class ").Append(containingType.Name).AppendLine();
+                sb.Append(' ', indent * 4).AppendLine("{");
+                indent++;
+            }
+            // class
+            sb.Append(' ', indent * 4).Append("partial class ").Append(type.Name).AppendLine();
+            sb.Append(' ', indent * 4).AppendLine("{");
+            return indent + 1;
         }
     }
 
@@ -191,6 +218,12 @@ public static class SharedExtensions
         return owner + "." + prop.Name;
     }
 
+    public static bool IsAwaitable(this IMethodSymbol method)
+    {
+        // TODO this is a very naive implementation.
+        return method.ReturnType.GetSimplifiedTypeName() == "System.Threading.Tasks.Task";
+    }
+
     public static string CorrectConfigTypeName(this string typeName, out string? fullTypeName)
     {
         var isArgConfig = typeName.StartsWith("PCL.Core.App.Configuration.ArgConfig<");
@@ -201,5 +234,19 @@ public static class SharedExtensions
         }
         else fullTypeName = null;
         return typeName;
+    }
+
+    extension(string str)
+    {
+        public string SnakeIdToPascal()
+        {
+            var sb = new StringBuilder();
+            foreach (var part in str.Split('-'))
+            {
+                if (part.Length == 0) continue;
+                sb.Append(char.ToUpper(part[0])).Append(part.Substring(1));
+            }
+            return sb.ToString();
+        }
     }
 }

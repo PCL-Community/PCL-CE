@@ -9,7 +9,7 @@ using Ae.Dns.Client;
 using Ae.Dns.Protocol;
 using Ae.Dns.Protocol.Enums;
 using Ae.Dns.Protocol.Records;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 
 namespace PCL.Core.IO.Net.Dns;

@@ -19,7 +19,7 @@ using static PCL.Core.Link.Lobby.LobbyInfoProvider;
 using static PCL.Core.Link.Natayark.NatayarkProfileManager;
 using LobbyType = PCL.Core.Link.Scaffolding.Client.Models.LobbyType;
 using PCL.Core.Link.McPing;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Link.Lobby;
 
