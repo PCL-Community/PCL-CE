@@ -86,17 +86,12 @@ public partial class FormMain
             // 触发降级
             DowngradeSub(LastVersion);
         // 版本隔离设置迁移
-        if (ModBase.Setup.IsUnset("LaunchArgumentIndieV2"))
+        if (Config.Launch.IndieSolutionV2Config.IsDefault())
         {
-            if (!ModBase.Setup.IsUnset("LaunchArgumentIndie"))
+            if (!Config.Launch.IndieSolutionV1Config.IsDefault())
             {
                 ModBase.Log("[Start] 从老 PCL 迁移版本隔离");
                 Config.Launch.IndieSolutionV2 = Config.Launch.IndieSolutionV1;
-            }
-            else if (!ModBase.Setup.IsUnset("WindowHeight"))
-            {
-                ModBase.Log("[Start] 从老 PCL 升级，但此前未调整版本隔离，使用老的版本隔离默认值");
-                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV1Config.DefaultValue);
             }
             else
             {
@@ -105,7 +100,7 @@ public partial class FormMain
             }
         }
 
-        ModBase.Setup.Load("UiLauncherTheme");
+        _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
@@ -169,11 +164,11 @@ public partial class FormMain
         ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
         ModBase.FrmHandle = new WindowInteropHelper(this).Handle;
         // 读取设置
-        ModBase.Setup.Load("UiBackgroundOpacity");
-        ModBase.Setup.Load("UiBackgroundBlur");
-        ModBase.Setup.Load("UiLogoType");
-        ModBase.Setup.Load("UiHiddenPageDownload");
-        ModBase.Setup.Load("UiAutoPauseVideo"); // 智能暂停视频背景
+        _ = Config.Preference.Background.WallpaperOpacity;
+        _ = Config.Preference.Background.WallpaperBlurRadius;
+        _ = Config.Preference.WindowTitleType;
+        _ = Config.Preference.Hide.PageDownload;
+        _ = Config.Preference.Background.AutoPauseVideo; // 智能暂停视频背景
         PageSetupUI.HiddenRefresh();
         PageSetupUI.BackgroundRefresh(false, true);
         ModMusic.MusicRefreshPlay(false, true);
@@ -375,7 +370,7 @@ public partial class FormMain
         // 迁移旧版用户档案
         if (LastVersionCode <= 368) ModBase.RunInNewThread(() => ModProfile.MigrateOldProfile());
         // Mod 命名设置迁移
-        if (!ModBase.Setup.IsUnset("ToolDownloadTranslate") && ModBase.Setup.IsUnset("ToolDownloadTranslateV2"))
+        if (!Config.Download.Comp.NameFormatV1Config.IsDefault() && Config.Download.Comp.NameFormatV2Config.IsDefault())
         {
             Config.Download.Comp.NameFormatV2 += 1;
             ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");

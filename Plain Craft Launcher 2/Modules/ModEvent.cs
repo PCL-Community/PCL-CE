@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
@@ -318,7 +319,8 @@ namespace PCL
                     case EventType.写入设置:
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
-                        ModBase.Setup.SetSafe(args[0], args[1], instance: ModMinecraft.McInstanceSelected);
+                        if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
+                            item.SetValueNoType(args[1], ModMinecraft.McInstanceSelected?.PathInstance);
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;
@@ -429,7 +431,7 @@ namespace PCL
 
         private static bool EventSafetyConfirm(string message)
         {
-            if (ModBase.Setup.Get("HintCustomCommand") == "True")
+            if (States.Hint.HomepageCommand)
                 return true;
 
             switch (ModMain.MyMsgBox(
@@ -442,7 +444,7 @@ namespace PCL
                 case 1:
                     return true;
                 case 2:
-                    ModBase.Setup.Set("HintCustomCommand", "True");
+                    States.Hint.HomepageCommand = true;
                     return true;
                 default:
                     return false;

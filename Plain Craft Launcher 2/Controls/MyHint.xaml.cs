@@ -2,8 +2,8 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
-
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.UI.Theme;
 using System.Windows.Controls;
 
@@ -135,13 +135,14 @@ public partial class MyHint
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
     {
         ThemeService.ColorModeChanged += (v, theme) => _ThemeChanged(v, theme);
-        if (CanClose && ModBase.Setup.Get(RelativeSetup) != null)
+        if (CanClose && ConfigService.TryGetConfigItemNoType(RelativeSetup, out var item) && item.GetValueNoType() != null)
             Visibility = Visibility.Collapsed;
     }
 
     private void BtnClose_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Set(RelativeSetup, true);
+        if (ConfigService.TryGetConfigItemNoType(RelativeSetup, out var item))
+            item.SetValueNoType(true);
         ModAnimation.AniDispose(this, false);
     }
 

@@ -290,7 +290,7 @@ public static class ModJava
         {
             ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
             if (RelatedVersion is not null)
-                ModBase.Setup.Reset("VersionArgumentJavaSelect", instance: RelatedVersion);
+                Config.Instance.SelectedJava[RelatedVersion.PathInstance] = "使用全局设置";
             Config.Launch.SelectedJava = "";
         }
 

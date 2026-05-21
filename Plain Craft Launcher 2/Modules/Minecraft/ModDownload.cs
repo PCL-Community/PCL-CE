@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils;
@@ -82,7 +81,7 @@ public static class ModDownload
 
         #region 下载支持库文件
 
-        if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
+        if (ModMinecraft.ShouldIgnoreFileCheck(Version))
         {
             ModBase.Log("[Download] 已跳过所有 Libraries 检查");
         }
@@ -103,7 +102,7 @@ public static class ModDownload
 
         #region 下载资源文件
 
-        if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
+        if (ModMinecraft.ShouldIgnoreFileCheck(Version))
         {
             ModBase.Log("[Download] 已跳过所有 Assets 检查");
         }
@@ -277,7 +276,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
@@ -285,7 +284,7 @@ public static class ModDownload
                     loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
@@ -372,12 +371,10 @@ public static class ModDownload
             string Version;
             // 快照版
             Version = (string)Json["latest"]["snapshot"];
-            if (Conversions.ToBoolean((bool)Config.Tool.SnapshotNotification &&
-                                      !Operators.ConditionalCompareObjectEqual(
-                                          States.Tool.LastSnapshot, "", false) &&
-                                      Operators.ConditionalCompareObjectNotEqual(
-                                          States.Tool.LastSnapshot, Version, false) &&
-                                      !_DlClientListMojangMain_IsHinted))
+            if (Config.Tool.SnapshotNotification &&
+                                      States.Tool.LastSnapshot != "" &&
+                                      States.Tool.LastSnapshot != Version &&
+                                      !_DlClientListMojangMain_IsHinted)
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
@@ -386,12 +383,10 @@ public static class ModDownload
             States.Tool.LastSnapshot = Version ?? "Nothing";
             // 正式版
             Version = (string)Json["latest"]["release"];
-            if (Conversions.ToBoolean((bool)Config.Tool.ReleaseNotification &&
-                                      !Operators.ConditionalCompareObjectEqual(
-                                          States.Tool.LastRelease, "", false) &&
-                                      Operators.ConditionalCompareObjectNotEqual(
-                                          States.Tool.LastRelease, Version, false) &&
-                                      !_DlClientListMojangMain_IsHinted))
+            if (Config.Tool.ReleaseNotification &&
+                                      States.Tool.LastRelease != "" &&
+                                      States.Tool.LastRelease != Version &&
+                                      !_DlClientListMojangMain_IsHinted)
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
@@ -596,7 +591,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
@@ -604,7 +599,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
@@ -763,7 +758,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
@@ -771,7 +766,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
@@ -799,12 +794,12 @@ public static class ModDownload
 
     private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
-        var Result = Conversions.ToString(Requester.FetchJson(
+        var Result = Requester.FetchJson(
             "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", new RequestParam
             {
                 Encoding = Encoding.Default,
                 UseBrowserUserAgent = true
-            }));
+            })?.ToString() ?? "";
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
@@ -824,11 +819,11 @@ public static class ModDownload
     private static void DlForgeListBmclapiMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
         var Result =
-            Conversions.ToString(Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
+            Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
                 new RequestParam
                 {
                     Encoding = Encoding.Default,
-                }));
+                })?.ToString() ?? "";
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
@@ -955,7 +950,7 @@ public static class ModDownload
             // 司马版本的特殊处理
             if (Version == "11.15.1.2318" || Version == "11.15.1.1902" || Version == "11.15.1.1890")
                 Branch = "1.8.9";
-            if (Branch is null && Inherit == "1.7.10" && Conversions.ToDouble(Version.Split(".")[3]) >= 1300d)
+            if (Branch is null && Inherit == "1.7.10" && double.Parse(Version.Split(".")[3]) >= 1300d)
                 Branch = "1.7.10";
             // 为 DlForgelikeEntry 提供所有信息
             ForgeType = ForgelikeType.Forge;
@@ -979,7 +974,7 @@ public static class ModDownload
                 DlForgeVersionBmclapiMain);
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
@@ -987,7 +982,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
@@ -1015,12 +1010,12 @@ public static class ModDownload
         string Result;
         try
         {
-            Result = Conversions.ToString(Requester.FetchJson(
+            Result = Requester.FetchJson(
                 "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" +
                 Loader.Input.Replace("-", "_") + ".html", new RequestParam
                 {
                     UseBrowserUserAgent = true
-                })); // 兼容 Forge 1.7.10-pre4，#4057
+                })?.ToString() ?? ""; // 兼容 Forge 1.7.10-pre4，#4057
         }
         catch (WebException)
         {
@@ -1095,7 +1090,7 @@ public static class ModDownload
                     Versions.Add(new DlForgeVersionEntry(Name, Branch, Inherit)
                     {
                         Category = Category, IsRecommended = IsRecommended,
-                        Hash = MD5.Trim(Conversions.ToChar("\r"), Conversions.ToChar("\n")),
+                        Hash = MD5.Trim('\r', '\n'),
                         ReleaseTime = ReleaseTime
                     });
                 }
@@ -1245,7 +1240,7 @@ public static class ModDownload
             {
                 VersionName = ApiName;
                 var Segments = ApiName.BeforeFirst("-").Split('.');
-                Version = new Version(0, 0, Conversions.ToInteger(Segments.Last()));
+                Version = new Version(0, 0, int.Parse(Segments.Last()));
                 Inherit = Segments[1];
             }
             else // 20.4.30-beta；26.1.0.0-alpha.1+snapshot-1
@@ -1285,7 +1280,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
@@ -1293,7 +1288,7 @@ public static class ModDownload
                     loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
@@ -1465,14 +1460,14 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
                         { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
@@ -1610,7 +1605,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
@@ -1619,7 +1614,7 @@ public static class ModDownload
                     }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
@@ -1664,7 +1659,7 @@ public static class ModDownload
                 Versions.Add(new DlLiteLoaderListEntry
                 {
                     Inherit = Pair.Key,
-                    IsLegacy = Conversions.ToDouble(Pair.Key.Split(".")[1]) < 8d,
+                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8d,
                     IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
@@ -1707,7 +1702,7 @@ public static class ModDownload
                 Versions.Add(new DlLiteLoaderListEntry
                 {
                     Inherit = Pair.Key,
-                    IsLegacy = Conversions.ToDouble(Pair.Key.Split(".")[1]) < 8d,
+                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8d,
                     IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
@@ -1757,7 +1752,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
@@ -1765,7 +1760,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
@@ -1873,7 +1868,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
@@ -1881,7 +1876,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
@@ -1966,7 +1961,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
@@ -1974,7 +1969,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
@@ -2063,14 +2058,14 @@ public static class ModDownload
         if ((McimUrl ?? "") != (url ?? ""))
             switch (Config.Download.Comp.CompSourceSolution)
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+                case 0:
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+                case 1:
                 {
                     Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
@@ -2129,14 +2124,14 @@ public static class ModDownload
         if ((McimUrl ?? "") != (url ?? ""))
             switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+                case 0:
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+                case 1:
                 {
                     Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
@@ -2185,9 +2180,9 @@ public static class ModDownload
     /// <summary>
     ///     下载文件（而非获取版本列表）的时候，是否优先使用官方源。
     /// </summary>
-    public static bool DlSourcePreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 1, false) && DlPreferMojang));
+    public static bool DlSourcePreferMojang =>
+        Config.Download.FileSource == 2 ||
+        (Config.Download.FileSource == 1 && DlPreferMojang);
 
     /// <summary>
     ///     下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
@@ -2200,10 +2195,9 @@ public static class ModDownload
     /// <summary>
     ///     获取版本列表（而非下载文件）的时候，是否优先使用官方源。
     /// </summary>
-    public static bool DlVersionListPreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 1, false) &&
-         DlPreferMojang));
+    public static bool DlVersionListPreferMojang =>
+        Config.Download.VersionListSource == 2 ||
+        (Config.Download.VersionListSource == 1 && DlPreferMojang);
 
     /// <summary>
     ///     获取版本列表（而非下载文件）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
@@ -2314,19 +2308,19 @@ public static class ModDownload
         // like https://edge.forgecdn.net/files/6767/951/jei-1.21.5-neoforge-21.4.0.27.jar
         switch (Config.Download.Comp.CompSourceSolution)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 镜像源
+            case 0: // 镜像源
             {
                 res.Add(mirrorDl);
                 res.Add(mirrorDl);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 平衡
+            case 1: // 平衡
             {
                 res.Add(original);
                 res.Add(mirrorDl);
                 break;
             }
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 官方源
+            case 2: // 官方源
             {
                 res.Add(original);
                 res.Add(original); // 错误
@@ -2335,7 +2329,7 @@ public static class ModDownload
 
             default:
             {
-                ModBase.Setup.Reset("ToolDownloadMod");
+                Config.Download.Comp.CompSourceSolution = 1;
                 res.Add(original);
                 break;
             }
@@ -2472,14 +2466,14 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
                         { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>

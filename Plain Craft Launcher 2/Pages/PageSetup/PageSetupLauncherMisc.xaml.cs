@@ -86,7 +86,7 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetMiscByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -94,21 +94,38 @@ public partial class PageSetupLauncherMisc
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            SetMiscByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetMiscByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetMiscByTag(sender.Tag?.ToString(), sender.Value);
+    }
+
+    private static void SetMiscByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "SystemMaxLog": Config.System.MaxGameLog = (int)value; break;
+            case "SystemDebugMode": Config.Debug.Enabled = (bool?)value ?? false; break;
+            case "SystemDebugAnim": Config.Debug.AnimationSpeed = (int)value; break;
+            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool?)value ?? false; break;
+            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool?)value ?? false; break;
+            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool?)value ?? false; break;
+            case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
+            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool?)value ?? false; break;
+            case "SystemTelemetry": Config.System.Telemetry = (bool?)value ?? false; break;
+            case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
+        }
     }
 
     // 网络

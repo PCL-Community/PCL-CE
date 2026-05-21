@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
@@ -99,16 +98,16 @@ public static class ModMinecraft
             // 两边均缺失，感觉是一个东西
             if (lefts.Count - 1 < i && rights.Count - 1 < i)
             {
-                if (Operators.CompareString(left, right, false) > 0)
+                if (string.CompareOrdinal(left, right) > 0)
                     return 1;
-                if (Operators.CompareString(left, right, false) < 0)
+                if (string.CompareOrdinal(left, right) < 0)
                     return -1;
                 return 0;
             }
 
             // 确定两边的数值
-            var leftValue = Conversions.ToString(lefts.Count - 1 < i ? 0 : lefts[i]);
-            var rightValue = Conversions.ToString(rights.Count - 1 < i ? 0 : rights[i]);
+            var leftValue = lefts.Count - 1 < i ? "0" : lefts[i];
+            var rightValue = rights.Count - 1 < i ? "0" : rights[i];
             if ((leftValue ?? "") == (rightValue ?? ""))
                 goto NextEntry;
             if (leftValue == "rc")
@@ -132,9 +131,9 @@ public static class ModMinecraft
             if (leftValValue == 0d && rightValValue == 0d)
             {
                 // 如果没有数值则直接比较字符串
-                if (Operators.CompareString(leftValue, rightValue, false) > 0) return 1;
+                if (string.CompareOrdinal(leftValue, rightValue) > 0) return 1;
 
-                if (Operators.CompareString(leftValue, rightValue, false) < 0) return -1;
+                if (string.CompareOrdinal(leftValue, rightValue) < 0) return -1;
             }
             // 如果有数值则比较数值
             // 这会使得一边是数字一边是字母时数字方更大
@@ -360,7 +359,7 @@ public static class ModMinecraft
             }
 
             foreach (var Folder in cacheMcFolderList) McFolderLauncherProfilesJsonCreate(Folder.Location);
-            if (Conversions.ToBoolean(Config.Debug.AddRandomDelay))
+            if (Config.Debug.AddRandomDelay)
                 Thread.Sleep(RandomUtils.NextInt(200, 2000));
 
             // 回设
@@ -910,8 +909,7 @@ public static class ModMinecraft
                                 inheritInstanceName = _jsonObject["inheritsFrom"] is null
                                     ? ""
                                     : _jsonObject["inheritsFrom"].ToString();
-                                if (Conversions.ToBoolean(
-                                        Operators.ConditionalCompareObjectEqual(inheritInstanceName, Name, false)))
+                                if (Equals(inheritInstanceName, Name))
                                 {
                                     ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogLevel.Debug);
                                     inheritInstanceName = "";
@@ -920,16 +918,13 @@ public static class ModMinecraft
 
                                 Recheck: ;
 
-                                if (Conversions.ToBoolean(
-                                        Operators.ConditionalCompareObjectNotEqual(inheritInstanceName, "", false)))
+                                if (!Equals(inheritInstanceName, ""))
                                 {
-                                    var inheritInstance = new McInstance(Conversions.ToString(inheritInstanceName));
+                                    var inheritInstance = new McInstance(inheritInstanceName?.ToString() ?? "");
                                     // 继续循环
-                                    if (Conversions.ToBoolean(
-                                            Operators.ConditionalCompareObjectEqual(inheritInstance.InheritInstanceName,
-                                                inheritInstanceName, false)))
-                                        throw new Exception(Conversions.ToString(
-                                            Operators.ConcatenateObject("版本依赖项出现嵌套：", inheritInstanceName)));
+                                    if (Equals(inheritInstance.InheritInstanceName,
+                                            inheritInstanceName))
+                                    throw new Exception("版本依赖项出现嵌套：" + inheritInstanceName);
                                     inheritInstanceName = inheritInstance.InheritInstanceName;
                                     // 合并
                                     inheritInstance.JsonObject.Merge(_jsonObject);
@@ -1312,7 +1307,7 @@ public static class ModMinecraft
                 // 确定实例收藏状态
                 IsStar = States.Instance.Starred[PathInstance];
                 // 确定实例显示种类
-                DisplayType = (McInstanceCardType)Conversions.ToInteger(States.Instance.CardType[PathInstance]);
+                DisplayType = (McInstanceCardType)States.Instance.CardType[PathInstance];
                 // 写入缓存
                 if (Directory.Exists(PathInstance))
                 {
@@ -1970,14 +1965,14 @@ public static class ModMinecraft
         var results = new Dictionary<McInstanceCardType, List<McInstance>>();
         try
         {
-            var cardCount = Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
+            var cardCount = int.Parse(ModBase.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
             if (cardCount == -1)
                 return null;
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
             {
                 var cardType =
-                    (McInstanceCardType)Conversions.ToInteger(ModBase.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
-                        ":"));
+                    (McInstanceCardType)int.Parse(ModBase.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
+                        "0"));
                 var instanceList = new List<McInstance>();
 
                 // 循环读取实例
@@ -2016,10 +2011,10 @@ public static class ModMinecraft
                             instance.ReleaseTime = DateTime.Parse(instanceCfg.ReleaseTime[instance.PathInstance]);
                         if (!instanceCfg.StateConfig.IsDefault(instance.PathInstance))
                             instance.State =
-                                (McInstanceState)Conversions.ToInteger(instanceCfg.State[instance.PathInstance]);
+                                (McInstanceState)(int)instanceCfg.State[instance.PathInstance];
                         instance.IsStar = instanceCfg.Starred[instance.PathInstance];
                         instance.DisplayType =
-                            (McInstanceCardType)Conversions.ToInteger(instanceCfg.CardType[instance.PathInstance]);
+                            (McInstanceCardType)(int)instanceCfg.CardType[instance.PathInstance];
                         if (instance.State != McInstanceState.Error &&
                             !instanceCfg.VanillaVersionNameConfig.IsDefault(instance.PathInstance) &&
                             !instanceCfg.VanillaVersionConfig
@@ -2298,9 +2293,9 @@ public static class ModMinecraft
                      McInstanceCardType.Rubbish, McInstanceCardType.Fool, McInstanceCardType.Error,
                      McInstanceCardType.Hidden
                  })
-            if (results.ContainsKey((McInstanceCardType)Conversions.ToInteger(sortRule)))
-                sortedInstanceList.Add((McInstanceCardType)Conversions.ToInteger(sortRule),
-                    results[(McInstanceCardType)Conversions.ToInteger(sortRule)]);
+            if (results.ContainsKey(sortRule))
+                sortedInstanceList.Add(sortRule,
+                    results[sortRule]);
         results = sortedInstanceList;
 
         // 版本排序
@@ -2352,7 +2347,7 @@ public static class ModMinecraft
                 if (getComponentCode(left) != getComponentCode(right))
                     return getComponentCode(left) > getComponentCode(right);
                 // 名称
-                return Operators.CompareString(left.Name, right.Name, false) > 0;
+                return string.CompareOrdinal(left.Name, right.Name) > 0;
             });
         }
 
@@ -2578,11 +2573,11 @@ public static class ModMinecraft
     {
         if (!(Uuid.Length == 32))
             return "Steve";
-        var a = int.Parse(Conversions.ToString(Uuid[7]), NumberStyles.AllowHexSpecifier);
-        var b = int.Parse(Conversions.ToString(Uuid[15]), NumberStyles.AllowHexSpecifier);
-        var c = int.Parse(Conversions.ToString(Uuid[23]), NumberStyles.AllowHexSpecifier);
-        var d = int.Parse(Conversions.ToString(Uuid[31]), NumberStyles.AllowHexSpecifier);
-        return Conversions.ToBoolean((a ^ b ^ c ^ d) % 2) ? "Alex" : "Steve";
+        var a = int.Parse(Uuid[7].ToString(), NumberStyles.AllowHexSpecifier);
+        var b = int.Parse(Uuid[15].ToString(), NumberStyles.AllowHexSpecifier);
+        var c = int.Parse(Uuid[23].ToString(), NumberStyles.AllowHexSpecifier);
+        var d = int.Parse(Uuid[31].ToString(), NumberStyles.AllowHexSpecifier);
+        return ((a ^ b ^ c ^ d) % 2) != 0 ? "Alex" : "Steve";
         // Math.floorMod(uuid.hashCode(), 18)
 
         // Public Function hashCode(ByVal str As String) As Integer
@@ -3042,9 +3037,8 @@ public static class ModMinecraft
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
         if (McInstanceSelected is not null)
-            renderer = Conversions.ToInteger(
-                Operators.SubtractObject(ModBase.Setup.Get("VersionAdvanceRenderer", McInstanceSelected), 1));
-        if (renderer == -1) renderer = Conversions.ToInteger(Config.Launch.Renderer);
+            renderer = Config.Instance.Renderer[McInstanceSelected?.PathInstance] - 1;
+        if (renderer == -1) renderer = Config.Launch.Renderer;
 
         if (renderer != 0 && !File.Exists(mesaLoaderWindowsTargetFile))
         {
@@ -3095,7 +3089,7 @@ public static class ModMinecraft
         }
 
         // 跳过校验
-        if (Conversions.ToBoolean(ShouldIgnoreFileCheck(instance)))
+        if (ShouldIgnoreFileCheck(instance))
         {
             ModBase.Log("[Minecraft] 用户要求尽量忽略文件检查，这可能会保留有误的文件");
             result = result.Where(f =>
@@ -3237,10 +3231,10 @@ public static class ModMinecraft
     /// <summary>
     ///     检查设置，是否应当忽略文件检查？
     /// </summary>
-    public static object ShouldIgnoreFileCheck(McInstance Version)
+    public static bool ShouldIgnoreFileCheck(McInstance Version)
     {
-        return (bool)ModBase.Setup.Get("VersionAdvanceAssetsV2", Version) ||
-               Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionAdvanceAssets", Version), 2, false);
+        return Config.Instance.DisableAssetVerifyV2[Version.PathInstance] ||
+               Config.Instance.AssetVerifySolutionV1[Version.PathInstance] == 2;
     }
 
     #endregion
@@ -3387,7 +3381,7 @@ public static class ModMinecraft
                     LocalPath = localPath,
                     SourcePath = file.Key,
                     Hash = file.Value["hash"].ToString(),
-                    Size = Conversions.ToLong(file.Value["size"].ToString())
+                    Size = long.Parse(file.Value["size"].ToString())
                 });
             }
 

@@ -102,14 +102,14 @@ public partial class Application
                     Lang.Text("Application.EnvironmentWarning.IKnow"),
                     IsWarn: true);
             // 设置初始化
-            ModBase.Setup.Load("SystemDebugMode");
-            ModBase.Setup.Load("SystemDebugAnim");
-            ModBase.Setup.Load("SystemHttpProxy");
-            ModBase.Setup.Load("SystemHttpProxyCustomUsername");
-            ModBase.Setup.Load("SystemHttpProxyType");
-            ModBase.Setup.Load("ToolDownloadThread");
-            ModBase.Setup.Load("ToolDownloadSpeed");
-            ModBase.Setup.Load("UiFont");
+            _ = Config.Debug.Enabled;
+            _ = Config.Debug.AnimationSpeed;
+            _ = Config.Network.HttpProxy.CustomAddress;
+            _ = Config.Network.HttpProxy.CustomUsername;
+            _ = Config.Network.HttpProxy.Type;
+            _ = Config.Download.ThreadLimit;
+            _ = Config.Download.SpeedLimit;
+            _ = Config.Preference.Font;
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
                 updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")

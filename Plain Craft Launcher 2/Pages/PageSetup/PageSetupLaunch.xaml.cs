@@ -63,7 +63,7 @@ public partial class PageSetupLaunch
             // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
-            ((MyRadioBox)FindName("RadioRamType" + ModBase.Setup.Load("LaunchRamType"))).Checked = true;
+            ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
 
             // 高级设置
@@ -122,42 +122,69 @@ public partial class PageSetupLaunch
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            SetLaunchByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Checked);
+    }
+
+    private static void SetLaunchByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "LaunchRamType": Config.Launch.MemoryAllocationMode = (int)value; break;
+            case "LaunchRamCustom": Config.Launch.CustomMemorySize = (int)value; break;
+            case "LaunchArgumentTitle": Config.Launch.Title = (string)value; break;
+            case "LaunchArgumentInfo": Config.Launch.TypeInfo = (string)value; break;
+            case "LaunchArgumentIndieV2": Config.Launch.IndieSolutionV2 = (int)value; break;
+            case "LaunchArgumentVisible": Config.Launch.LauncherVisibility = (LauncherVisibility)(int)value; break;
+            case "LaunchArgumentPriority": Config.Launch.ProcessPriority = (GameProcessPriority)(int)value; break;
+            case "LaunchArgumentWindowType": Config.Launch.GameWindowMode = (GameWindowSizeMode)(int)value; break;
+            case "LoginMsAuthType": Config.Launch.LoginMsAuthType = (int)value; break;
+            case "LaunchPreferredIpStack": Config.Launch.PreferredIpStack = (JvmPreferredIpStack)(int)value; break;
+            case "LaunchAdvanceRenderer": Config.Launch.Renderer = (int)value; break;
+            case "LaunchAdvanceJvm": Config.Launch.JvmArgs = (string)value; break;
+            case "LaunchAdvanceGame": Config.Launch.GameArgs = (string)value; break;
+            case "LaunchAdvanceRun": Config.Launch.PreLaunchCommand = (string)value; break;
+            case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool?)value ?? false; break;
+            case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool?)value ?? false; break;
+            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool?)value ?? false; break;
+            case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool?)value ?? false; break;
+            case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool?)value ?? false; break;
+            case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool?)value ?? false; break;
+        }
     }
 
     // 切换到实例独立设置
@@ -537,14 +564,14 @@ public partial class PageSetupLaunch
     private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnAdvanceJvmReset.Visibility =
-            TextAdvanceJvm.Text == (string)ModBase.Setup.GetDefault("LaunchAdvanceJvm")
+            TextAdvanceJvm.Text == Config.Launch.JvmArgsConfig.DefaultValue
                 ? Visibility.Hidden
                 : Visibility.Visible;
     }
 
     private void BtnAdvanceJvmReset_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Reset("LaunchAdvanceJvm");
+        Config.Launch.JvmArgsConfig.Reset();
         Reload();
     }
 
@@ -564,13 +591,13 @@ public partial class PageSetupLaunch
             }
             else
             {
-                ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+                Config.Launch.Renderer = sender.SelectedIndex;
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+            Config.Launch.Renderer = sender.SelectedIndex;
         }
     }
 

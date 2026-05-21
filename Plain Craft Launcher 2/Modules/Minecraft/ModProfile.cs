@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -59,16 +58,15 @@ public static class ModProfile
         ProfileLog("开始从旧版配置迁移档案");
         var profileCount = 0;
         // 正版档案
-        if (Conversions.ToBoolean(
-                !Operators.ConditionalCompareObjectEqual(States.Game.LegacyProfile.LoginMsJson, "{}", false)))
+        if (States.Game.LegacyProfile.LoginMsJson != "{}")
         {
-            var oldMsJson = (JObject)ModBase.GetJson(Conversions.ToString(States.Game.LegacyProfile.LoginMsJson));
+            var oldMsJson = (JObject)ModBase.GetJson(States.Game.LegacyProfile.LoginMsJson);
             ProfileLog($"找到 {oldMsJson.Count} 个旧版正版档案信息");
             foreach (var Profile in oldMsJson)
             {
                 var newProfile = new McProfile
                 {
-                    Username = Profile.Key, Uuid = Conversions.ToString(McLoginMojangUuid(Profile.Key, false)),
+                    Username = Profile.Key, Uuid = McLoginMojangUuid(Profile.Key, false)?.ToString() ?? "",
                     Type = ModLaunch.McLoginType.Ms
                 };
                 ProfileList.Add(newProfile);
@@ -77,7 +75,7 @@ public static class ModProfile
 
             SaveProfile();
             ProfileLog("旧版正版档案迁移完成");
-            ModBase.Setup.Reset("LoginMsJson");
+            States.Game.LegacyProfile.LoginMsJson = "{}";
         }
         else
         {
@@ -85,7 +83,7 @@ public static class ModProfile
         }
 
         // 离线档案
-        if (!string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.LoginLegacyName)))
+        if (!string.IsNullOrWhiteSpace(States.Game.LegacyProfile.LoginLegacyName))
         {
             var oldOfflineInfo = (string[])((dynamic)States.Game.LegacyProfile.LoginLegacyName).Split("¨");
             ProfileLog($"找到 {oldOfflineInfo.Count()} 个旧版离线档案信息");
@@ -102,7 +100,7 @@ public static class ModProfile
 
             SaveProfile();
             ProfileLog("旧版离线档案迁移完成");
-            ModBase.Setup.Reset("LoginLegacyName");
+            States.Game.LegacyProfile.LoginLegacyName = "";
         }
         else
         {
@@ -110,32 +108,31 @@ public static class ModProfile
         }
 
         // 第三方验证档案
-        if (!(string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthUserName)) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthUuid)) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthServerAddress)) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthThirdPartyUserName)) ||
-              string.IsNullOrWhiteSpace(Conversions.ToString(States.Game.LegacyProfile.AuthPassword))))
+        if (!(string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthUserName) ||
+              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthUuid) ||
+              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthServerAddress) ||
+              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthThirdPartyUserName) ||
+              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthPassword)))
         {
             ProfileLog("找到旧版第三方验证档案信息");
             var newProfile = new McProfile
             {
-                Username = Conversions.ToString(States.Game.LegacyProfile.AuthUserName),
-                Uuid = Conversions.ToString(States.Game.LegacyProfile.AuthUuid),
-                Name = Conversions.ToString(States.Game.LegacyProfile.AuthThirdPartyUserName),
-                Password = Conversions.ToString(States.Game.LegacyProfile.AuthPassword),
-                Server = Conversions.ToString(Operators.ConcatenateObject(States.Game.LegacyProfile.AuthServerAddress,
-                    "/authserver")),
+                Username = States.Game.LegacyProfile.AuthUserName,
+                Uuid = States.Game.LegacyProfile.AuthUuid,
+                Name = States.Game.LegacyProfile.AuthThirdPartyUserName,
+                Password = States.Game.LegacyProfile.AuthPassword,
+                Server = States.Game.LegacyProfile.AuthServerAddress + "/authserver",
                 Type = ModLaunch.McLoginType.Auth
             };
             ProfileList.Add(newProfile);
             SaveProfile();
             ProfileLog("旧版第三方验证档案迁移完成");
             profileCount += 1;
-            ModBase.Setup.Reset("CacheAuthName");
-            ModBase.Setup.Reset("CacheAuthUuid");
-            ModBase.Setup.Reset("CacheAuthServerServer");
-            ModBase.Setup.Reset("CacheAuthUsername");
-            ModBase.Setup.Reset("CacheAuthPass");
+            States.Game.LegacyProfile.AuthUserName = "";
+            States.Game.LegacyProfile.AuthUuid = "";
+            States.Game.LegacyProfile.AuthServerAddress = "";
+            States.Game.LegacyProfile.AuthThirdPartyUserName = "";
+            States.Game.LegacyProfile.AuthPassword = "";
         }
         else
         {
@@ -950,15 +947,7 @@ public static class ModProfile
             msb = (msb << 8) | (bytes[i] & 0xFF);
         for (var i = 8; i <= 15; i++)
             lsb = (lsb << 8) | (bytes[i] & 0xFF);
-        return Conversions.ToString(Operators.AddObject(
-            Operators.AddObject(
-                Operators.AddObject(
-                    Operators.AddObject(
-                        Operators.AddObject(
-                            Operators.AddObject(
-                                Operators.AddObject(Operators.AddObject(Digits(msb >> 32, 8), "-"),
-                                    Digits(msb >> 16, 4)), "-"), Digits(msb, 4)), "-"), Digits(lsb >> 48, 4)), "-"),
-            Digits(lsb, 12)));
+        return $"{Digits(msb >> 32, 8)}-{Digits(msb >> 16, 4)}-{Digits(msb, 4)}-{Digits(lsb >> 48, 4)}-{Digits(lsb, 12)}";
     }
 
     private static object Digits(long val, int digs)
@@ -1061,7 +1050,7 @@ public static class ModProfile
     ///     检查当前档案是否有效
     /// </summary>
     /// <returns>若档案验证有效，则返回空字符串，否则返回错误原因</returns>
-    public static object IsProfileValid()
+    public static string IsProfileValid()
     {
         switch (SelectedProfile.Type)
         {
@@ -1164,8 +1153,7 @@ public static class ModProfile
                 if (res.Contains("\"error\""))
                 {
                     ModMain.Hint(
-                        Conversions.ToString(Operators.ConcatenateObject("更改皮肤失败：",
-                            ((JObject)ModBase.GetJson(res))["error"])),
+                        $"更改皮肤失败：{((JObject)ModBase.GetJson(res))["error"]}",
                         ModMain.HintType.Critical);
                     return;
                 }

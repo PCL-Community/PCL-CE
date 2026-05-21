@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO;
@@ -105,8 +103,8 @@ public partial class PageInstanceSetup
             RefreshJavaComboBox();
 
             // 游戏内存
-            ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
-                ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
+            var ramType = Config.Instance.MemorySolution[PageInstanceLeft.Instance.PathInstance];
+            ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
 
             // 服务器
@@ -126,12 +124,10 @@ public partial class PageInstanceSetup
             TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
-            if (Conversions.ToBoolean(
-                    Operators.ConditionalCompareObjectEqual(
-                        ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
+            if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.Instance.PathInstance] == 2)
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
-                ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
+                Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.Instance.PathInstance);
                 Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
             }
 
@@ -185,7 +181,7 @@ public partial class PageInstanceSetup
         var sender = (MyRadioBox)o;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -194,8 +190,7 @@ public partial class PageInstanceSetup
             return;
         if (o is not MyTextBox textBox) return;
         
-        // 使用新配置系统保存
-        var tag = Conversions.ToString(textBox.Tag);
+        var tag = textBox.Tag?.ToString();
         var value = textBox.Text;
         ArgConfig<string> setting = tag switch 
         {
@@ -218,14 +213,24 @@ public partial class PageInstanceSetup
     {
         var sender = (MySlider)o;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private static void ComboChange(MyComboBox sender, object e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
-                instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private static void SetInstanceByTag(string tag, object value)
+    {
+        var path = PageInstanceLeft.Instance.PathInstance;
+        switch (tag)
+        {
+            case "VersionRamType": Config.Instance.MemorySolution[path] = (int)value; break;
+            case "VersionRamCustom": Config.Instance.CustomMemorySize[path] = (int)value; break;
+            case "VersionServerLoginRequire": Config.InstanceAuth.LoginRequirementSolution[path] = (int)value; break;
+        }
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -234,7 +239,7 @@ public partial class PageInstanceSetup
             return;
         if (sender is not MyCheckBox checkBox) return;
         
-        var tag = Conversions.ToString(checkBox.Tag);
+        var tag = checkBox.Tag?.ToString();
         var value = checkBox.Checked.GetValueOrDefault();
         ArgConfig<bool> setting = tag switch
         {
@@ -456,9 +461,9 @@ public partial class PageInstanceSetup
     /// </summary>
     public static double GetRam(ModMinecraft.McInstance Version, bool? Is32BitJava = default)
     {
+        var instancePath = Version?.PathInstance;
         // 跟随全局设置
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 2, false)))
+        if (Config.Instance.MemorySolution[instancePath] == 2)
             return PageSetupLaunch.GetRam(Version, true, Is32BitJava);
 
         // ------------------------------------------
@@ -467,8 +472,7 @@ public partial class PageInstanceSetup
 
         // 使用当前实例的设置
         var RamGive = default(double);
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 0, false)))
+        if (Config.Instance.MemorySolution[instancePath] == 0)
         {
             // 自动配置
             var RamAvailable =
@@ -540,7 +544,7 @@ public partial class PageInstanceSetup
         else
         {
             // 手动配置
-            var Value = Conversions.ToInteger(ModBase.Setup.Get("VersionRamCustom", Version));
+            var Value = Config.Instance.CustomMemorySize[instancePath];
             if (Value <= 12)
                 RamGive = Value * 0.1d + 0.3d;
             else if (Value <= 25)
@@ -625,7 +629,7 @@ public partial class PageInstanceSetup
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Conversions.ToBoolean(ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
+        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
         {
             HintServerLoginLock.Visibility = Visibility.Visible;
             ComboServerLoginRequire.IsEnabled = false;
@@ -891,9 +895,8 @@ public partial class PageInstanceSetup
 
         var firstItem = ComboArgumentJava.Items[0] as MyComboBoxItem;
         if (firstItem is not null &&
-            (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(firstItem.Content, "未检测到可用的 Java 运行时", false)) ||
-             Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(firstItem.Content, "列表加载失败，请重试", false))))
+            ((string)firstItem.Content == "未检测到可用的 Java 运行时" ||
+             (string)firstItem.Content == "列表加载失败，请重试"))
             ComboArgumentJava.IsDropDownOpen = false;
     }
 
@@ -907,9 +910,7 @@ public partial class PageInstanceSetup
 
         var selectedItem = ComboArgumentJava.SelectedItem as MyComboBoxItem;
         if (selectedItem is null || (selectedItem.Tag is null &&
-                                     Conversions.ToBoolean(
-                                         Operators.ConditionalCompareObjectNotEqual(selectedItem.Content,
-                                             "自动选择合适的 Java", false))))
+                                     (string)selectedItem.Content != "自动选择合适的 Java"))
             return;
 
         JavaPreference preference = default;
@@ -1025,7 +1026,7 @@ public partial class PageInstanceSetup
 
         var args = (SelectionChangedEventArgs)e; // 转换事件参数
 
-        if (Conversions.ToBoolean(!(bool)States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0))
+        if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
             if (ModMain.MyMsgBox("""
                                  修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！

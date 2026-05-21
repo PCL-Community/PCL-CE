@@ -126,7 +126,7 @@ public partial class PageLogRight
     private void SliderMaxLog_ValueChanged(object o, bool user)
     {
         var sender = (MySlider)o;
-        ModBase.Setup.Set(sender.Tag.ToString(), sender.Value);
+        Config.System.MaxGameLog = sender.Value;
         if (ModMain.FrmSetupLauncherMisc is null)
             return;
         ModMain.FrmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;

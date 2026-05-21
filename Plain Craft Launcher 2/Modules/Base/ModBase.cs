@@ -69,7 +69,7 @@ public static class ModBase
     /// <summary>
     ///     程序可执行文件所在目录，以“\”结尾。
     /// </summary>
-    public static readonly string ExePath = Conversions.ToString(Basics.ExecutableDirectory.EndsWith(@"\")
+    public static readonly string ExePath = (Basics.ExecutableDirectory.EndsWith(@"\")
         ? Basics.ExecutableDirectory
         : Basics.ExecutableDirectory + @"\");
 

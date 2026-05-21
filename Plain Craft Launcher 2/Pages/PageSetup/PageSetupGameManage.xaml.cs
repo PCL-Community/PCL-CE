@@ -79,21 +79,42 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private static void SetGameManageByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "ToolDownloadThread": Config.Download.ThreadLimit = (int)value; break;
+            case "ToolDownloadSpeed": Config.Download.SpeedLimit = (int)value; break;
+            case "ToolDownloadSource": Config.Download.FileSource = (int)value; break;
+            case "ToolDownloadVersion": Config.Download.VersionListSource = (int)value; break;
+            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool?)value ?? false; break;
+            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool?)value ?? false; break;
+            case "ToolDownloadTranslateV2": Config.Download.Comp.NameFormatV2 = (int)value; break;
+            case "ToolDownloadMod": Config.Download.Comp.CompSourceSolution = (int)value; break;
+            case "ToolModLocalNameStyle": Config.Download.Comp.UiCompNameSolution = (int)value; break;
+            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool?)value ?? false; break;
+            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool?)value ?? false; break;
+            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool?)value ?? false; break;
+            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool?)value ?? false; break;
+            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool?)value ?? false; break;
+        }
     }
 
     // 滑动条

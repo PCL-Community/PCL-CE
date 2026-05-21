@@ -92,7 +92,7 @@ public partial class PageSetupGameLink
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void
@@ -100,14 +100,30 @@ public partial class PageSetupGameLink
             object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.Checked);
+    }
+
+    private static void SetGameLinkByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "LinkUsername": Config.Link.Username = (string)value; break;
+            case "LinkRelayServer": Config.Link.CustomRelayServer = (string)value; break;
+            case "LinkRelayType": Config.Link.RelayType = (LinkRelayBehavior)(int)value; break;
+            case "LinkServerType": Config.Link.ServerType = (int)value; break;
+            case "LinkProtocolPreference": Config.Link.ProtocolPreference = (LinkProtocolPreference)(int)value; break;
+            case "LinkLatencyFirstMode": Config.Link.UseLatencyFirstMode = (bool?)value ?? false; break;
+            case "LinkTryPunchSym": Config.Link.TryPunchSym = (bool?)value ?? false; break;
+            case "LinkEnableIPv6": Config.Link.EnableIPv6 = (bool?)value ?? false; break;
+            case "LinkEnableCliOutput": Config.Link.EnableCliOutput = (bool?)value ?? false; break;
+        }
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
