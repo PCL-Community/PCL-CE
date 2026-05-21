@@ -169,6 +169,9 @@ public partial class FormMain
         _ = Config.Preference.WindowTitleType;
         _ = Config.Preference.Hide.PageDownload;
         _ = Config.Preference.Background.AutoPauseVideo; // 智能暂停视频背景
+        ModSetup.UiLogoType((int)Config.Preference.WindowTitleType);
+        ModSetup.UiLogoText(Config.Preference.WindowTitleCustomText);
+        ModSetup.UiLogoLeft(Config.Preference.TopBarLeftAlign);
         PageSetupUI.HiddenRefresh();
         PageSetupUI.BackgroundRefresh(false, true);
         ModMusic.MusicRefreshPlay(false, true);

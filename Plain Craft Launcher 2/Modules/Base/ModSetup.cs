@@ -376,7 +376,7 @@ public class ModSetup : IConfigScope
     }
 
     // 顶部栏
-    public void UiLogoType(int Value)
+    public static void UiLogoType(int Value)
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) Value = 4;
         switch (Value)
@@ -484,12 +484,12 @@ public class ModSetup : IConfigScope
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
 
-    public void UiLogoText(string Value)
+    public static void UiLogoText(string Value)
     {
         ModMain.FrmMain.LabTitleLogo.Text = Value;
     }
 
-    public void UiLogoLeft(bool Value)
+    public static void UiLogoLeft(bool Value)
     {
         ModMain.FrmMain.PanTitleMain.ColumnDefinitions[0].Width = new GridLength(
             Value && Config.Preference.WindowTitleType == LauncherTitleType.None ? 0 : 1,

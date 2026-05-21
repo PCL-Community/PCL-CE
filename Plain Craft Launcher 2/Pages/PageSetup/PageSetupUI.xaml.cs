@@ -250,6 +250,7 @@ public partial class PageSetupUI
             case "UiBackgroundSuit": Config.Preference.Background.WallpaperSuitMode = (int)value; break;
             case "UiCustomPreset": Config.Preference.Homepage.SelectedPreset = (int)value; break;
             case "UiLogoType": Config.Preference.WindowTitleType = (LauncherTitleType)(int)value; break;
+            case "UiLogoText": Config.Preference.WindowTitleCustomText = (string)value; break;
             case "UiCustomType": Config.Preference.Homepage.Type = (int)value; break;
 
             case "UiHiddenPageDownload": Config.Preference.Hide.PageDownload = (bool?)value ?? false; break;
