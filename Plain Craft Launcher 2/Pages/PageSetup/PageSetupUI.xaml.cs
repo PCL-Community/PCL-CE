@@ -109,6 +109,7 @@ public partial class PageSetupUI
 
             ((MyRadioBox)FindName("RadioCustomType" + Config.Preference.Homepage.Type)).Checked = true;
             TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
+            ModSetup.UiCustomType(Config.Preference.Homepage.Type);
 
             // 功能隐藏
             // 获取配置组引用

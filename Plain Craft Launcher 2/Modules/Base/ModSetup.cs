@@ -296,7 +296,7 @@ public class ModSetup : IConfigScope
     }
 
     // 主页
-    public void UiCustomType(int Value)
+    public static void UiCustomType(int Value)
     {
         if (ModMain.FrmSetupUI is null)
             return;
