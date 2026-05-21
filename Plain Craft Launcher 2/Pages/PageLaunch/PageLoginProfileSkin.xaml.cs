@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -97,7 +98,7 @@ public partial class PageLoginProfileSkin
         }
         else
         {
-            ModMain.Hint("当前档案不支持修改密码！");
+            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
         }
     }
 
@@ -127,7 +128,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            ModMain.Hint("当前档案不支持修改皮肤！");
+                ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
     }
 
     // 保存皮肤
@@ -151,7 +152,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            ModMain.Hint("当前档案不支持修改披风！");
+            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
     }
 
     #endregion

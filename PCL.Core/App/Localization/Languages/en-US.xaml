@@ -764,16 +764,16 @@
 
     <!-- Launch.Account -->
     <sys:String x:Key="Launch.Account.Type.Offline">Offline</sys:String>
-    <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft login</sys:String>
+    <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft</sys:String>
     <sys:String x:Key="Launch.Account.Type.ThirdParty">Third-party</sys:String>
 
     <!-- Launch.Right -->
-    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition Notice</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition notice</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL Community Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#x0a;&#x0a;If you downloaded the Community Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#x0a;Additionally, please submit Community Edition issues to the Community Edition repository, and do not report Community Edition issues to the official repository!</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL CE development organization name.</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter PCL CE development organization name</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">Not quite right...</sys:String>
-    <sys:String x:Key="Launch.Right.Log.Title">Launch Log</sys:String>
+    <sys:String x:Key="Launch.Right.Log.Title">Launch log</sys:String>
 
     <!-- Launch.Homepage -->
     <sys:String x:Key="Launch.Homepage.Loading">Loading homepage...</sys:String>
@@ -788,4 +788,140 @@
     <!-- Launch.Homepage.News -->
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
+
+    <!-- Launch.Account.LoginDialog -->
+    <sys:String x:Key="Launch.Account.LoginDialog.Title">Test Title Text</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">Copy code</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Login to Minecraft</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">The login page will open automatically. Enter the authorization code {0} (will be automatically copied).&#x0a;&#x0a;If you have network issues and the page fails to load, please use a VPN and try again.&#x0a;You can also open {1} on another device and enter the authorization code above.</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be auto-filled.&#x0a;&#x0a;If you have network issues and the page fails to load, please use a VPN and try again.&#x0a;If the code is not auto-filled, paste this authorization code {0} (will be automatically copied) into the page.&#x0a;You can also open {1} on another device and enter the authorization code.</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in through the webpage!</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">Microsoft verification polling failed</sys:String>
+
+    <!-- Launch.Account.Microsoft -->
+    <sys:String x:Key="Launch.Account.Microsoft.Start">Verify</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  Purchase</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Website">»  Website</sys:String>
+    <sys:String x:Key="Launch.Account.Back">«  Back</sys:String>
+    <sys:String x:Key="Launch.Account.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.LoginCancelled">Login cancelled!</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">Microsoft login verification failed. Try disabling [Verify SSL certificate for Microsoft login] in [Settings → Miscellaneous], then try again.&#x0a;&#x0a;Raw error message:</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">Microsoft login failed</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">Unknown error!</sys:String>
+
+    <!-- Launch.Account.Auth -->
+    <sys:String x:Key="Launch.Account.Auth.ServerLabel">Auth server: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ChangeProfile">Switch profile</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Logout">Log out</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Server">Server</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Email">Email</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Register">Register account</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ForgotPassword">Forgot password</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Back">Back</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.EmptyFields">Auth server, username and password cannot be empty!</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.InvalidServer">Invalid auth server address</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Cancelled">Login cancelled!</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.LoginFailed">Third-party login failed</sys:String>
+
+    <!-- Launch.Account.Offline -->
+    <sys:String x:Key="Launch.Account.Offline.PlayerId">ID</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.PlayerId.ToolTip">3 - 16 characters, only letters, numbers and underscores</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.UuidStandard">UUID standard</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard">Standard</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard.ToolTip">[Recommended] The generated UUID is consistent with other software such as HMCL, BakaXL and Bukkit</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy">Legacy</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy.ToolTip">Use legacy PCL UUID generation rules&#x0a;If upgrading from an older PCL version and some single-player save data is missing, try this option</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.ToolTip">For advanced users. If you don't know what this is, do not select this option</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.Input.ToolTip">Must be a 32-character hex string without hyphens</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Back">Back</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Create">Create</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Title">Invalid player ID</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Message">Your player ID does not meet the standard (3 - 16 characters, only letters, numbers and underscores), which may cause some game versions to fail to launch or encounter errors.&#x0a;It is strongly recommended to use a standard player ID!&#x0a;If you insist, you can still continue to create the profile.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidUuid">UUID does not meet requirements: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Created">Profile created successfully!</sys:String>
+
+    <!-- Launch.Account.Profile -->
+    <sys:String x:Key="Launch.Account.Profile.SelectHint">Select a profile to launch the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">Create and select a profile to launch the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Create">Create profile</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ImportExport">Import / Export</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeUuid">Change UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CopyUuid">Copy UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeAuthServerName">Change auth server name</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Delete">Delete profile</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Title">Modify auth server name</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Message">Enter the new auth server name</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">Confirm profile deletion</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">You are about to delete this profile. This action cannot be undone.&#x0a;Are you sure you want to continue?</sys:String>
+
+    <!-- Launch.Account.Profile.Create -->
+    <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">Create profile - Select auth type</sys:String>
+
+    <!-- Launch.Account.Profile.EditPlayerId -->
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Title">Enter new player ID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.MicrosoftWarning">Player ID can only be changed once every 30 days. Please consider carefully!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Hint">3 - 16 characters, only letters, numbers and underscores</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Empty">The player name to set is empty</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Title">Confirm change</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Message">Note: Player ID can only be changed once every 30 days. Please consider carefully!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Failed.Title">ID change failed</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Duplicate">This ID is already in use. Please choose a different one.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.NotAllowed">This ID contains invalid characters other than letters, numbers and underscores.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Success">Player ID changed successfully. Current ID: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Cooldown">After changing your ID for the first time, you must wait 30 days before changing it again. You can check the exact date on the official website.</sys:String>
+
+    <!-- Launch.Account.Profile.Uuid -->
+    <sys:String x:Key="Launch.Account.Profile.Uuid.SelectType.Title">Create profile - Select UUID type</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Standard">Standard UUID (recommended)</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Legacy">Legacy PCL UUID (if single-player save data is missing, try this option)</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.ChangeTitle">Change UUID for profile {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 characters, no hyphens</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID should only contain letters and numbers!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Saved">Profile saved!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Deleted">Profile deleted successfully!</sys:String>
+
+    <!-- Launch.Account.Profile.Migration -->
+    <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">Since the current profile list is empty, only importing from HMCL is supported.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Import">Import</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Export">Export</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">Importing from HMCL...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">HMCL configuration file not found.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">You must complete Microsoft login at least once before importing these profiles!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">No new profiles to import.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">Successfully imported {0} profile(s)!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">Exporting to HMCL...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">Successfully synced {0} profile(s).</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">Import error. Please check the file format.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">Export failed.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">Profiles have been automatically migrated from legacy configuration files, total {0} profile(s) migrated</sys:String>
+
+    <!-- Launch.Account.Profile.Validation -->
+    <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">Player name cannot be empty!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.QuoteInUsername">Player name cannot contain double quotes!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UsernameTooLong">Since 1.20.3, player names can have at most 16 characters!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UnknownAuthType">Unknown auth type</sys:String>
+
+    <!-- Launch.Account.ProfileSkin -->
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinsAndCapes">Skins and capes</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeSkin">Change skin</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SaveSkin">Save skin</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.RefreshSkin">Refresh skin</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeCape">Change cape</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditProfile">Edit profile</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditPassword">Edit password</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditUsername">Edit username</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SwitchProfile">Switch accounts</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.PasswordUnsupported">This profile does not support changing the password!</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinUnsupported">This profile does not support changing the skin!</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.CapeUnsupported">This profile does not support changing the cape!</sys:String>
+
+    <!-- Common.Action (new) -->
+    <sys:String x:Key="Common.Action.Back">Back</sys:String>
+    <sys:String x:Key="Common.Action.Continue">Continue</sys:String>
 </ResourceDictionary>
