@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
@@ -325,13 +324,13 @@ public static class ModModpack
         if (File.Exists(OverridesIni))
         {
             ModBase.WriteIni(OverridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            ModBase.WriteIni(OverridesIni, "VersionArgumentIndieV2", Conversions.ToString(true));
+            ModBase.WriteIni(OverridesIni, "VersionArgumentIndieV2", true.ToString());
             ModBase.CopyFile(OverridesIni, VersionIni); // 覆写已有的 ini
         }
         else
         {
             ModBase.WriteIni(VersionIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            ModBase.WriteIni(VersionIni, "VersionArgumentIndieV2", Conversions.ToString(true));
+            ModBase.WriteIni(VersionIni, "VersionArgumentIndieV2", true.ToString());
         }
 
         ModBase.IniClearCache(VersionIni); // 重置缓存，避免被安装过程中写入的 ini 覆盖
@@ -1546,8 +1545,8 @@ public static class ModModpack
 
                     ModBase.WriteFile(MMCSetupFile, Lines.Join("\r\n"));
                     // 读取文件
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideCommands",
-                            Conversions.ToString(false))))
+                    if (Convert.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideCommands",
+                            false.ToString())))
                     {
                         var PreLaunchCommand = ModBase.ReadIni(MMCSetupFile, "PreLaunchCommand");
                         if (!string.IsNullOrEmpty(PreLaunchCommand))
@@ -1562,8 +1561,8 @@ public static class ModModpack
                         }
                     }
 
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunch",
-                            Conversions.ToString(false))))
+                    if (Convert.ToBoolean(ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunch",
+                            false.ToString())))
                     {
                         var ServerAddress = ModBase.ReadIni(MMCSetupFile, "JoinServerOnLaunchAddress")
                             .Replace(@"\""", "\"");
@@ -1571,8 +1570,8 @@ public static class ModModpack
                         ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + ServerAddress);
                     }
 
-                    if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility",
-                            Conversions.ToString(false))))
+                    if (Convert.ToBoolean(ModBase.ReadIni(MMCSetupFile, "IgnoreJavaCompatibility",
+                            false.ToString())))
                     {
                         Config.Instance.IgnoreJavaCompatibility[VersionFolder] = true;
                         ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
@@ -1592,17 +1591,17 @@ public static class ModModpack
                     var JvmArgs = ModBase.ReadIni(MMCSetupFile, "JvmArgs");
                     if (!string.IsNullOrEmpty(JvmArgs))
                     {
-                        if (Conversions.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideJavaArgs",
-                                Conversions.ToString(false))))
+                        if (Convert.ToBoolean(ModBase.ReadIni(MMCSetupFile, "OverrideJavaArgs",
+                                false.ToString())))
                         {
                             Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + JvmArgs);
                         }
                         else
                         {
-                            JvmArgs = Conversions.ToString(JvmArgs +
-                                                           Operators.ConcatenateObject(" ",
-                                                               Config.Launch.JvmArgs));
+                            JvmArgs = JvmArgs +
+                                                           " " +
+                                                               Config.Launch.JvmArgs;
                             Config.Instance.JvmArgs[VersionFolder] = JvmArgs;
                             ModBase.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + JvmArgs);
                         }

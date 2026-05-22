@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using System.Collections;
@@ -565,7 +564,7 @@ public static class ModLoader
             // 获取输入
             try
             {
-                Input = StartGetInput(Conversions.ToGenericParameter<InputType>(Input));
+                Input = StartGetInput((InputType)Input);
             }
             catch (Exception ex)
             {
@@ -600,7 +599,7 @@ public static class ModLoader
                 // 输入不同或失败，开始加载
                 if (State == ModBase.LoadState.Loading)
                     TriggerThreadAbort();
-                this.Input = Conversions.ToGenericParameter<InputType>(Input);
+                this.Input = (InputType)Input;
                 lock (LockState)
                 {
                     State = ModBase.LoadState.Loading;
@@ -996,7 +995,7 @@ public static class ModLoader
 
         public override void Start(object Input = null, bool IsForceRestart = false)
         {
-            this.Input = Conversions.ToGenericParameter<InputType>(Input);
+            this.Input = (InputType)Input;
             base.Start(this.Input, IsForceRestart);
         }
     }

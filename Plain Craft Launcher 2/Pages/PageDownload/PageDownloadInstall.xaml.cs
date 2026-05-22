@@ -7,7 +7,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using FluentValidation;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils.Validate;
@@ -889,7 +888,7 @@ public partial class PageDownloadInstall
     // 信息栏动画
     private void SetPanelVisibility(Grid panel, bool visible)
     {
-        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(panel.Tag, visible.ToString(), false)))
+        if (Equals(panel.Tag, visible.ToString()))
             return;
         panel.Tag = visible.ToString();
         if (visible)
@@ -1199,8 +1198,7 @@ public partial class PageDownloadInstall
         if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadOptiFine.State).Error.Message));
+            return $"获取版本列表失败：{((dynamic)LoadOptiFine.State).Error.Message}";
         // 是否有 Cleanroom
         if (SelectedCleanroom is not null)
             return "与 Cleanroom 不兼容";
@@ -1223,7 +1221,7 @@ public partial class PageDownloadInstall
             HasAny = true;
             if (SelectedForge is null)
                 return null; // 未选择 Forge
-            if (Conversions.ToBoolean(IsOptiFineSuitForForge(OptiFineVersion, SelectedForge)))
+            if ((bool)IsOptiFineSuitForForge(OptiFineVersion, SelectedForge))
                 return null; // 该版本可用
             if (OptiFineVersion.RequiredForgeVersion is not null)
                 HasRequiredVersion = true;
@@ -1250,7 +1248,7 @@ public partial class PageDownloadInstall
             return ModMinecraft.CompareVersion(Forge.Version.ToString(), OptiFine.RequiredForgeVersion) == 0;
 
         // XXXX
-        return Forge.Version.Revision == Conversions.ToDouble(OptiFine.RequiredForgeVersion);
+        return Forge.Version.Revision == Convert.ToDouble(OptiFine.RequiredForgeVersion);
     }
 
     // 限制展开
@@ -1274,8 +1272,8 @@ public partial class PageDownloadInstall
             var Versions = new List<ModDownload.DlOptiFineListEntry>();
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
             {
-                if (Conversions.ToBoolean(SelectedForge is not null &&
-                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
+                if (SelectedForge is not null &&
+                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge))
                     continue;
                 if (Version.DisplayName.StartsWith(_vanillaName + " "))
                     Versions.Add(Version);
@@ -1309,8 +1307,8 @@ public partial class PageDownloadInstall
     private void OptiFine_Selected(MyListItem sender, EventArgs e)
     {
         SelectedOptiFine = (ModDownload.DlOptiFineListEntry)(dynamic)sender.Tag;
-        if (Conversions.ToBoolean(SelectedForge is not null &&
-                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+        if (SelectedForge is not null &&
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge))
             SelectedForge = null;
         OptiFabric_Loaded();
         Forge_Loaded();
@@ -1431,8 +1429,7 @@ public partial class PageDownloadInstall
             if (SelectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
                 ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
                 return "与 OptiFine 不兼容"; // 1.13 ~ 1.14.3 OptiFine 检查
-            if (Conversions.ToBoolean(
-                    SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version)))
+            if (SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version))
                 continue;
             return null;
         }
@@ -1470,8 +1467,8 @@ public partial class PageDownloadInstall
             {
                 if (v.Category == "universal" || v.Category == "client")
                     return false; // 跳过无法自动安装的版本
-                if (Conversions.ToBoolean(SelectedOptiFine is not null &&
-                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
+                if (SelectedOptiFine is not null &&
+                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v))
                     return false;
                 return true;
             }).OrderByDescending(v => v).ToList();
@@ -1493,8 +1490,8 @@ public partial class PageDownloadInstall
         SelectedForge = (ModDownload.DlForgeVersionEntry)(dynamic)sender.Tag;
         SelectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
-        if (Conversions.ToBoolean(SelectedOptiFine is not null &&
-                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+        if (SelectedOptiFine is not null &&
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge))
             SelectedOptiFine = null;
         OptiFine_Loaded();
         ReloadSelected();
@@ -1894,8 +1891,7 @@ public partial class PageDownloadInstall
         if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLegacyFabric.State).Error.Message));
+            return $"获取版本列表失败：{((dynamic)LoadLegacyFabric.State).Error.Message}";
         foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
@@ -1998,8 +1994,7 @@ public partial class PageDownloadInstall
         if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLegacyFabricApi.State).Error.Message));
+            return $"获取版本列表失败：{((dynamic)LoadLegacyFabricApi.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "Legacy Fabric API"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlLegacyFabricApiLoader.Output is null)
@@ -2214,8 +2209,7 @@ public partial class PageDownloadInstall
         if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "正在获取版本列表……";
         if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadQSL.State).Error.Message));
+            return $"获取版本列表失败：{((dynamic)LoadQSL.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlQSLLoader.Output is null)
@@ -2457,8 +2451,7 @@ public partial class PageDownloadInstall
         if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLabyMod.State).Error.Message));
+            return $"获取版本列表失败：{((dynamic)LoadLabyMod.State).Error.Message}";
         // 检查 Loader
         if (GetLoaderError(LoadLabyMod) is not null)
             return GetLoaderError(LoadLabyMod);
@@ -2577,10 +2570,8 @@ public partial class PageDownloadInstall
     {
         // 确认版本隔离
         if (SelectedLoaderName is not null &&
-            (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 0, false)) ||
-             Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 2, false))))
+            (Config.Launch.IndieSolutionV2 == 0 ||
+             Config.Launch.IndieSolutionV2 == 2))
             if (ModMain.MyMsgBox(
                     "你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。" + "\r\n" + "因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。" +
                     "\r\n" + "推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！", "版本隔离提示", "取消下载", "继续") == 1)

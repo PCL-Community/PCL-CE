@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -2544,7 +2543,7 @@ public static class ModLaunch
             var Server = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "");
             try
             {
-                var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
+                var Response = ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8)?.ToString();
                 DataList.Insert(0,
                     "-javaagent:\"" + Path.Combine(ModBase.PathPure, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
