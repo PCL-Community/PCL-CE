@@ -880,7 +880,7 @@ public static class ModLaunch
         JObject PrepareJson;
         var parameters = new Dictionary<string, string>
         {
-            { "client_id", ModSecret.OAuthClientId },
+            { "client_id", Secrets.MSOAuthClientId },
             { "tenant", "/consumers" },
             { "scope", "XboxLive.signin offline_access" }
         };
@@ -935,7 +935,7 @@ public static class ModLaunch
         {
             var parameters = new Dictionary<string, string>
             {
-                { "client_id", ModSecret.OAuthClientId },
+                { "client_id", Secrets.MSOAuthClientId },
                 { "refresh_token", Code },
                 { "grant_type", "refresh_token" },
                 { "scope", "XboxLive.signin offline_access" }

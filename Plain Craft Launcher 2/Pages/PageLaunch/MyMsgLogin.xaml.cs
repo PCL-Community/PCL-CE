@@ -2,6 +2,7 @@ using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Network;
@@ -76,7 +77,7 @@ public partial class MyMsgLogin
         {
             try
             {
-                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={ModSecret.OAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access";
+                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access";
 
                 var Result = Requester.Fetch(
                     "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",

@@ -1,7 +1,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using Microsoft.VisualBasic;
+using PCL.Core.App;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Link.Natayark;
 
@@ -310,7 +310,7 @@ public static class ModWebServer
     {
         Exception? resultEx = null;
         StartOAuthWaitingCallback("NatayarkID",
-            $"https://account.naids.com/oauth2/authorize?response_type=code&client_id={ModSecret.NatayarkClientId}&redirect_uri=%r",
+            $"https://account.naids.com/oauth2/authorize?response_type=code&client_id={Secrets.NatayarkClientId}&redirect_uri=%r",
             (success, parameters, content) =>
             {
                 OAuthCompleteStatus? status;
