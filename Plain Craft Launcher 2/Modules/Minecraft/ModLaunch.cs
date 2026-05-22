@@ -27,6 +27,7 @@ namespace PCL;
 
 public static class ModLaunch
 {
+    public const string MesaLoaderWindowsVersion = "26.0.4";
 
     #region 预检测
 
@@ -2475,7 +2476,6 @@ public static class ModLaunch
                     1));
         else
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
-        var MesaLoaderWindowsVersion = "26.0.4";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
@@ -2600,7 +2600,6 @@ public static class ModLaunch
                     1));
         else
             Renderer = Conversions.ToInteger(Config.Launch.Renderer);
-        var MesaLoaderWindowsVersion = "26.0.4";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
