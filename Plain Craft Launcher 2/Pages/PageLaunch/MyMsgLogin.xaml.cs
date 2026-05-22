@@ -138,7 +138,7 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
         }
 
         Loaded += Load;
@@ -171,7 +171,7 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Load"), ModBase.LogLevel.Hint);
         }
     }
 

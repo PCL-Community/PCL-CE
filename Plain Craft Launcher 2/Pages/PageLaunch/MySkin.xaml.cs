@@ -131,7 +131,7 @@ public partial class MySkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "保存皮肤失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Skin.Save.Error"), ModBase.LogLevel.Hint);
         }
     }
 
@@ -161,7 +161,7 @@ public partial class MySkin
             }
             catch (Exception ex) // #2272
             {
-                ModBase.Log(ex, $"皮肤文件已损坏：{Address}", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Corrupted", Address), ModBase.LogLevel.Hint);
                 File.Delete(Address);
                 return;
             }
@@ -235,7 +235,7 @@ public partial class MySkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "载入头像失败（" + (Address ?? "null") + "," + Loader.Name + "）", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Avatar", (Address ?? "null") + "," + Loader.Name), ModBase.LogLevel.Hint);
         }
     }
 
@@ -301,7 +301,7 @@ public partial class MySkin
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "刷新皮肤缓存失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, Lang.Text("Launch.Skin.Refresh.Error"), ModBase.LogLevel.Msgbox);
                 }
             });
     }
@@ -328,7 +328,7 @@ public partial class MySkin
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更改正版皮肤后刷新皮肤失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, Lang.Text("Launch.Skin.Change.Error.MsRefresh"), ModBase.LogLevel.Feedback);
             }
         });
     }
@@ -423,7 +423,7 @@ public partial class MySkin
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "获取玩家皮肤列表失败", ModBase.LogLevel.Feedback);
+                        ModBase.Log(ex, Lang.Text("Launch.Skin.Cape.Error.List"), ModBase.LogLevel.Feedback);
                     }
                 });
                 if (SelId is null)
@@ -449,7 +449,7 @@ public partial class MySkin
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更改披风失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Launch.Skin.Cape.ChangeFailed"), ModBase.LogLevel.Hint);
             }
             finally
             {

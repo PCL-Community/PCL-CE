@@ -616,7 +616,7 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取登录输入信息失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Login.Error.Input"), ModBase.LogLevel.Feedback);
         }
 
         return LoginData;
@@ -2494,7 +2494,7 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "添加代理信息到游戏失败，放弃加入", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
         // 添加 Java Wrapper 作为主 Jar
@@ -2619,7 +2619,7 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "添加代理信息到游戏失败，放弃加入", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
         // 添加 RetroWrapper 相关参数
@@ -3091,7 +3091,7 @@ public static class ModLaunch
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "调整显卡设置失败，Minecraft 可能会使用默认显卡运行", ModBase.LogLevel.Hint);
+                    ModBase.Log(exx, Lang.Text("Minecraft.Launch.Error.GpuSet"), ModBase.LogLevel.Hint);
                 }
             }
         }
@@ -3365,7 +3365,7 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行全局自定义命令失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
             }
             finally
             {
@@ -3395,7 +3395,7 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行实例自定义命令失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
             }
             finally
             {
@@ -3466,7 +3466,7 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置进程优先级失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.PrioritySet"), ModBase.LogLevel.Feedback);
         }
     }
 

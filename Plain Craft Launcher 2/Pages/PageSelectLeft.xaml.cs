@@ -390,7 +390,7 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"添加文件夹失败（{NewFolder}）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Add", NewFolder), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -478,7 +478,7 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "向文件夹列表中添加新文件夹失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, Lang.Text("Select.Folder.Error.AddNew"), ModBase.LogLevel.Feedback);
             }
         }); // 加上斜杠……
     }
@@ -569,7 +569,7 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "从列表中移除游戏文件夹失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Remove"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -627,7 +627,7 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"{deleteText}文件夹 {folder.Name} 失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name), ModBase.LogLevel.Hint);
             }
             finally
             {
@@ -706,7 +706,7 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重命名文件夹失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Rename"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -877,7 +877,7 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽放下操作失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.DragDrop"), ModBase.LogLevel.Feedback);
         }
         finally
         {

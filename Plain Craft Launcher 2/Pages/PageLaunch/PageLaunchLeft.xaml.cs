@@ -144,7 +144,7 @@ public partial class PageLaunchLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "自动安装整合包失败：" + PackInstallPath, ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, Lang.Text("Select.Folder.Error.InstallPack", PackInstallPath), ModBase.LogLevel.Msgbox);
                 }
 
             // 确认 Minecraft 版本实例
@@ -347,7 +347,7 @@ public partial class PageLaunchLeft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "取消启动结束进程失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CancelProcess"), ModBase.LogLevel.Hint);
             }
         }
     }
@@ -487,7 +487,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新启动信息失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.RefreshInfo"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -759,7 +759,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换登录分页失败（" + ModBase.GetStringFromEnum(Type) + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(Type)), ModBase.LogLevel.Feedback);
             return PageNew;
         }
     }
@@ -863,7 +863,7 @@ public partial class PageLaunchLeft
             {
                 Data.Output = ModBase.PathImage + "Skins/" +
                               ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) + ".png";
-                ModBase.Log("[Minecraft] 获取正版皮肤失败（" + UserName + "）：获取皮肤太过频繁，请 5 分钟后再试！", ModBase.LogLevel.Hint);
+                ModBase.Log(Lang.Text("Launch.Skin.Error.MsRateLimited", UserName), ModBase.LogLevel.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
@@ -875,7 +875,7 @@ public partial class PageLaunchLeft
             {
                 Data.Output = ModBase.PathImage + "Skins/" +
                               ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(UserName)) + ".png";
-                ModBase.Log(ex, "获取微软正版皮肤失败（" + UserName + "）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Launch.Skin.Error.MsGet", UserName), ModBase.LogLevel.Hint);
             }
         }
 
@@ -976,7 +976,7 @@ public partial class PageLaunchLeft
             else
             {
                 Data.Output = ModBase.PathImage + "Skins/Steve.png";
-                ModBase.Log(ex, "获取 Authlib-Injector 皮肤失败（" + UserName + "）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Launch.Skin.Error.AuthGet", UserName), ModBase.LogLevel.Hint);
             }
         }
 

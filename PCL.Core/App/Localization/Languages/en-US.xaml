@@ -788,6 +788,8 @@
     <!-- Launch.Homepage.News -->
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.Download">Failed to download homepage ({0})</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.ExternalFile">Failed to read external file: {0}</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
     <sys:String x:Key="Launch.Account.LoginDialog.Title">Test Title Text</sys:String>
@@ -798,6 +800,8 @@
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be auto-filled.&#x0a;&#x0a;If you have network issues and the page fails to load, please use a VPN and try again.&#x0a;If the code is not auto-filled, paste this authorization code {0} (will be automatically copied) into the page.&#x0a;You can also open {1} on another device and enter the authorization code.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in through the webpage!</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">Microsoft verification polling failed</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Init">Microsoft login dialog initialization failed</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Load">Microsoft login dialog loading failed</sys:String>
 
     <!-- Launch.Account.Microsoft -->
     <sys:String x:Key="Launch.Account.Microsoft.Start">Verify</sys:String>
@@ -883,6 +887,11 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID should only contain letters and numbers!</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Saved">Profile saved!</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Deleted">Profile deleted successfully!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Read">Failed to read profile list</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Corrupted">Profile data read failed, the file may be corrupted. The profile file has been backed up and reset.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Write">Failed to write profile list</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeId">Failed to modify profile ID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeSkin">Failed to change skin</sys:String>
 
     <!-- Launch.Account.Profile.Migration -->
     <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
@@ -920,6 +929,7 @@
     <sys:String x:Key="Launch.Account.ProfileSkin.PasswordUnsupported">This profile does not support changing the password!</sys:String>
     <sys:String x:Key="Launch.Account.ProfileSkin.SkinUnsupported">This profile does not support changing the skin!</sys:String>
     <sys:String x:Key="Launch.Account.ProfileSkin.CapeUnsupported">This profile does not support changing the cape!</sys:String>
+    <sys:String x:Key="Launch.Account.Error.SwitchPage">Failed to switch login page ({0})</sys:String>
 
     <!-- Common.Action (new) -->
     <sys:String x:Key="Common.Action.Back">Back</sys:String>
@@ -988,6 +998,16 @@
     <sys:String x:Key="Launch.Skin.Model.Alex">Alex model</sys:String>
     <sys:String x:Key="Launch.Skin.Model.Unknown">I do not know</sys:String>
     <sys:String x:Key="Launch.Skin.Model.UnknownHint">Please confirm the skin model on the skin download page before using this skin!</sys:String>
+    <sys:String x:Key="Launch.Skin.Save.Error">Failed to save skin</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">Skin file corrupted: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Avatar">Failed to load avatar: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Error">Failed to refresh skin cache</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Error.MsRefresh">Failed to refresh skin after changing Microsoft skin</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Error.List">Failed to get player cape list</sys:String>
+    <sys:String x:Key="Launch.Skin.File.Error">Skin file has errors</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsRateLimited">Skin fetch rate limited, please try again in 5 minutes ({0})</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsGet">Failed to get Microsoft skin ({0})</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.AuthGet">Failed to get Authlib-Injector skin ({0})</sys:String>
 
     <!-- Select.Folder -->
     <sys:String x:Key="Select.Folder.ListTitle">Folder list</sys:String>
@@ -1039,6 +1059,15 @@
     <sys:String x:Key="Select.Folder.Invalid">Invalid Minecraft folder: {0}</sys:String>
     <sys:String x:Key="Select.Folder.InvalidMessage">Minecraft folder is invalid</sys:String>
     <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft Folder Unavailable</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Load">Failed to load Minecraft folder list</sys:String>
+    <sys:String x:Key="Select.Folder.Error.DragDrop">Folder drag-and-drop sort failed</sys:String>
+    <sys:String x:Key="Select.Folder.Error.InstallPack">Auto-install modpack failed: {0}</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Add">Failed to add folder ({0})</sys:String>
+    <sys:String x:Key="Select.Folder.Error.AddNew">Failed to add new folder to list</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Remove">Failed to remove game folder from list</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Rename">Failed to rename folder</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Operate">Failed to {0} folder {1}</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Cleanup">Failed to clean up leftover ignored items ({0})</sys:String>
 
     <!-- Select.Instance -->
     <sys:String x:Key="Select.Instance.Search.Hint">Search game instances</sys:String>
@@ -1097,6 +1126,13 @@
     <sys:String x:Key="Select.Instance.Description.Old">Old version</sys:String>
     <sys:String x:Key="Select.Instance.Description.AprilFools">April Fools' {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.ReportUnknownError">An unknown error has occurred. Please report this issue to the author.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Load">Failed to load instance ({0})</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Classify">Failed to categorize instance list</sys:String>
+    <sys:String x:Key="Select.Instance.Error.ListLoad">Failed to load .minecraft instance list</sys:String>
+    <sys:String x:Key="Select.Instance.Error.IconLoad">Failed to load instance icon</sys:String>
+    <sys:String x:Key="Select.Instance.Error.UiUpdate">Failed to render instance list UI</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Delete">Failed to delete instance {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.UpdateNotify">Failed to send Minecraft update notification ({0})</sys:String>
 
     <!-- Minecraft.Launch.Stage -->
     <sys:String x:Key="Minecraft.Launch.Stage.GetJava">Getting Java</sys:String>
@@ -1131,6 +1167,12 @@
     <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServerWithDetail">Unable to connect to third-party login server ({0}).&#x0a;Details:</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.MissingMainClass">Missing "mainClass" in version JSON!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.NativesCorrupted">Unable to open the Natives file ({0}), the file may be corrupted. Please try relaunching the game.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CancelProcess">Failed to cancel launch and terminate process</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">Failed to refresh launch info</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.Proxy">Failed to add proxy info, giving up</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.GpuSet">Failed to set GPU preference, Minecraft may run on the default GPU</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CustomCommand">Failed to execute custom command</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">Failed to set process priority</sys:String>
 
     <!-- Minecraft.Launch.Precheck -->
     <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">Game path cannot contain ! or ; ({0})</sys:String>
@@ -1194,6 +1236,7 @@
     <sys:String x:Key="Minecraft.Launch.Login.Failed">Login Failed</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Register">Register</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Hint">Login Hint</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Error.Input">Failed to get login input info</sys:String>
 
     <!-- Minecraft.Launch.Login.Auth -->
     <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">Login refresh failed</sys:String>

@@ -367,7 +367,7 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "将实例列表转换显示时失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.UiUpdate"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -406,7 +406,7 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载实例图标失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.IconLoad"), ModBase.LogLevel.Hint);
             NewItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
@@ -595,7 +595,7 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"删除实例 {instance.Name} 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", instance.Name), ModBase.LogLevel.Msgbox);
         }
     }
 

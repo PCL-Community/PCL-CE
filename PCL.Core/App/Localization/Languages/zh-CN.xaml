@@ -775,6 +775,8 @@
     <sys:String x:Key="Launch.Homepage.LoadFailed.Message">主页内容编写有误，请根据下列错误信息进行检查：&#x0a;{0}</sys:String>
     <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">重试</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.Download">下载主页失败（{0}）</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.ExternalFile">读取外部文件失败：{0}</sys:String>
 
     <!-- Launch.Homepage.Preset -->
     <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
@@ -792,6 +794,8 @@
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">登录网页将自动开启，授权码将自动填充。&#x0a;&#x0a;如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。&#x0a;如果没有自动填充，请在页面内粘贴此授权码 {0}（将自动复制）&#x0a;你也可以用其他设备打开 {1} 并输入授权码。</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">网页登录成功！</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">正版验证轮询失败</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Init">正版验证弹窗初始化失败</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Load">正版验证弹窗加载失败</sys:String>
 
     <!-- Launch.Account.Microsoft -->
     <sys:String x:Key="Launch.Account.Microsoft.Start">开始正版验证</sys:String>
@@ -803,6 +807,7 @@
     <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。&#x0a;&#x0a;原始错误信息：</sys:String>
     <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">正版登录尝试失败</sys:String>
     <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">未知错误！</sys:String>
+    <sys:String x:Key="Launch.Account.Error.SwitchPage">切换登录分页失败（{0}）</sys:String>
 
     <!-- Launch.Account.Auth -->
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
@@ -877,6 +882,10 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID 只应该包括英文字母和数字！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Saved">档案信息已保存！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Deleted">档案删除成功！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Read">读取档案列表失败</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Corrupted">档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Write">写入档案列表失败</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeId">修改档案 ID 失败</sys:String>
 
     <!-- Launch.Account.Profile.Migration -->
     <sys:String x:Key="Launch.Account.Profile.Migration.Title">档案迁移</sys:String>
@@ -914,6 +923,7 @@
     <sys:String x:Key="Launch.Account.ProfileSkin.PasswordUnsupported">当前档案不支持修改密码！</sys:String>
     <sys:String x:Key="Launch.Account.ProfileSkin.SkinUnsupported">当前档案不支持修改皮肤！</sys:String>
     <sys:String x:Key="Launch.Account.ProfileSkin.CapeUnsupported">当前档案不支持修改披风！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeSkin">更改皮肤失败</sys:String>
 
     <!-- Common.Action (new) -->
     <sys:String x:Key="Common.Action.Back">返回</sys:String>
@@ -931,6 +941,14 @@
     <sys:String x:Key="Launch.Skin.Refreshing">正在刷新头像……</sys:String>
     <sys:String x:Key="Launch.Skin.RefreshSuccess">已刷新头像！</sys:String>
     <sys:String x:Key="Launch.Skin.ChangeSuccess">更改皮肤成功！</sys:String>
+    <sys:String x:Key="Launch.Skin.Save.Error">保存皮肤失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">皮肤文件已损坏：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Avatar">载入头像失败：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Error">刷新皮肤缓存失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Error.MsRefresh">更改正版皮肤后刷新皮肤失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsRateLimited">获取正版皮肤太过频繁，请 5 分钟后再试（{0}）</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsGet">获取微软正版皮肤失败（{0}）</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.AuthGet">获取 Authlib-Injector 皮肤失败（{0}）</sys:String>
 
     <!-- Launch.Skin.Cape -->
     <sys:String x:Key="Launch.Skin.Cape.Changing">正在更改披风中，请稍候！</sys:String>
@@ -941,6 +959,7 @@
     <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">更改披风失败</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.ChangeFailedWithReason">更改披风失败：{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.ChangeSuccess">更改披风成功！等待一段时间后将会生效……</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Error.List">获取玩家皮肤列表失败</sys:String>
 
     <!-- Launch.Skin.Cape.Name -->
     <sys:String x:Key="Launch.Skin.Cape.Name.Migrator">迁移者披风</sys:String>
@@ -976,6 +995,7 @@
     <sys:String x:Key="Launch.Skin.FileDialog.Title">选择皮肤文件</sys:String>
     <sys:String x:Key="Launch.Skin.InvalidSize">皮肤图片大小应为 64x32 像素或 64x64 像素！</sys:String>
     <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KB，而所选文件大小为 {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.File.Error">皮肤文件存在错误</sys:String>
     <sys:String x:Key="Launch.Skin.Model.SelectTitle">选择皮肤种类</sys:String>
     <sys:String x:Key="Launch.Skin.Model.SelectMessage">此皮肤为 Steve 模型（粗手臂）还是 Alex 模型（细手臂）？</sys:String>
     <sys:String x:Key="Launch.Skin.Model.Steve">Steve 模型</sys:String>
@@ -1034,6 +1054,15 @@
     <sys:String x:Key="Select.Folder.Invalid">无效的 Minecraft 文件夹：{0}</sys:String>
     <sys:String x:Key="Select.Folder.InvalidMessage">Minecraft 文件夹失效</sys:String>
     <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft 文件夹失效</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Load">加载 Minecraft 文件夹列表失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.DragDrop">拖拽文件夹排序操作失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.InstallPack">自动安装整合包失败：{0}</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Add">添加文件夹失败（{0}）</sys:String>
+    <sys:String x:Key="Select.Folder.Error.AddNew">向文件夹列表中添加新文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Remove">从列表中移除游戏文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Rename">重命名文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Operate">{0}文件夹 {1} 失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Cleanup">清理残留的忽略项目失败（{0}）</sys:String>
 
     <!-- Select.Instance -->
     <sys:String x:Key="Select.Instance.Search.Hint">搜索游戏实例</sys:String>
@@ -1092,6 +1121,12 @@
     <sys:String x:Key="Select.Instance.Description.Old">远古版本</sys:String>
     <sys:String x:Key="Select.Instance.Description.AprilFools">愚人节版本 {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.ReportUnknownError">发生了未知错误，请向作者反馈此问题</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Load">加载实例失败（{0}）</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Classify">分类实例列表失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.ListLoad">加载 .minecraft 实例列表失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.IconLoad">加载实例图标失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.UiUpdate">将实例列表转换显示时失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Delete">删除实例 {0} 失败</sys:String>
 
     <!-- Minecraft.Launch.Stage -->
     <sys:String x:Key="Minecraft.Launch.Stage.GetJava">获取 Java</sys:String>
@@ -1111,6 +1146,7 @@
     <sys:String x:Key="Minecraft.Launch.Cancelled">已取消启动！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">已取消导出启动脚本！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Success">导出启动脚本成功！</sys:String>
+    <sys:String x:Key="Minecraft.Error.UpdateNotify">Minecraft 更新提示发送失败（{0}）</sys:String>
 
     <!-- Launch.Error -->
     <sys:String x:Key="Launch.Error.Title">启动失败</sys:String>
@@ -1126,6 +1162,12 @@
     <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServerWithDetail">无法连接到第三方登录服务器（{0}）&#x0a;详细信息：</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.MissingMainClass">实例 JSON 中没有 mainClass 项！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.NativesCorrupted">无法打开 Natives 文件（{0}），该文件可能已损坏，请重新尝试启动游戏</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CancelProcess">取消启动结束进程失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">刷新启动信息失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.Proxy">添加代理信息到游戏失败，放弃加入</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.GpuSet">调整显卡设置失败，Minecraft 可能会使用默认显卡运行</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CustomCommand">执行自定义命令失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">设置进程优先级失败</sys:String>
 
     <!-- Minecraft.Launch.Precheck -->
     <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">游戏路径中不可包含 ! 或 ;（{0}）</sys:String>
@@ -1189,6 +1231,7 @@
     <sys:String x:Key="Minecraft.Launch.Login.Failed">登录失败</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Register">注册</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Hint">登录提示</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Error.Input">获取登录输入信息失败</sys:String>
 
     <!-- Minecraft.Launch.Login.Auth -->
     <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">刷新登录失败</sys:String>

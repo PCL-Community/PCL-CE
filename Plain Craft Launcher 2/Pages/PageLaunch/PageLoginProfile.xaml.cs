@@ -49,7 +49,7 @@ public partial class PageLoginProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取档案列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
         }
 
         if (!ModProfile.ProfileList.Any())

@@ -58,7 +58,7 @@ public static class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Minecraft 更新提示发送失败（" + (versionName ?? "Nothing") + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Minecraft.Error.UpdateNotify", versionName ?? "Nothing"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -369,7 +369,7 @@ public static class ModMinecraft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载 Minecraft 文件夹列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Load"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -1342,7 +1342,7 @@ public static class ModMinecraft
                 Desc = Lang.Text("Select.Instance.Description.UnknownError") + ": " + ex;
                 Logo = ModBase.PathImage + "Blocks/RedstoneBlock.png";
                 State = McInstanceState.Error;
-                ModBase.Log(ex, "加载实例失败（" + Name + "）", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, Lang.Text("Select.Instance.Error.Load", Name), ModBase.LogLevel.Feedback);
             }
             finally
             {
@@ -1960,7 +1960,7 @@ public static class ModMinecraft
         catch (Exception ex)
         {
             ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
-            ModBase.Log(ex, "加载 .minecraft 实例列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.ListLoad"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -2128,7 +2128,7 @@ public static class ModMinecraft
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "清理残留的忽略项目失败（" + instanceFolder + "）", ModBase.LogLevel.Hint);
+                        ModBase.Log(ex, Lang.Text("Select.Folder.Error.Cleanup", instanceFolder), ModBase.LogLevel.Hint);
                     }
                 }
                 else
@@ -2283,7 +2283,7 @@ public static class ModMinecraft
         catch (Exception ex)
         {
             results.Clear();
-            ModBase.Log(ex, "分类实例列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Classify"), ModBase.LogLevel.Feedback);
         }
 
         #endregion
@@ -2461,7 +2461,7 @@ public static class ModMinecraft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "皮肤文件存在错误", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Skin.File.Error"), ModBase.LogLevel.Hint);
             return new McSkinInfo { IsVaild = false };
         }
 

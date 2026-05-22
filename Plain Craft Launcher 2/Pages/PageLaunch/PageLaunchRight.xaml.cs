@@ -254,7 +254,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogLevel.Hint);
+                ModBase.Log(Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath), ModBase.LogLevel.Hint);
             }
         }
 
@@ -348,7 +348,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"下载主页失败（{Address}）", ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", Address), ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
         }
     }
 
@@ -438,7 +438,7 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, "加载主页界面失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, Lang.Text("Launch.Homepage.LoadFailed.Title"), ModBase.LogLevel.Hint);
                 }
 
                 return;

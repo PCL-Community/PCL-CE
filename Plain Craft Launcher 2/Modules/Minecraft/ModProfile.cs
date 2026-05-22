@@ -359,7 +359,7 @@ public static class ModProfile
             {
             }
 
-            ModBase.Log(ex, "档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Corrupted"), ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -428,7 +428,7 @@ public static class ModProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "写入档案列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Write"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -579,7 +579,7 @@ public static class ModProfile
                     if (exSummary.Contains("403"))
                         ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
                     else
-                        ModBase.Log(ex, "修改档案 ID 失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeId"), ModBase.LogLevel.Msgbox);
                 }
             });
         }
@@ -1187,7 +1187,7 @@ public static class ModProfile
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
                     ModMain.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", ModMain.HintType.Critical);
                 else
-                    ModBase.Log(ex, "更改皮肤失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
             }
             finally
             {
