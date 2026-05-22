@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -36,7 +37,7 @@ public partial class PageComp
                 Storage.ModrinthOffset < Storage.ModrinthTotal
                     ? Visibility.Visible
                     : Visibility.Collapsed;
-            LabPage.Text = (Page + 1).ToString();
+            LabPage.Text = Lang.Number(Page + 1, "N0");
             BtnPageFirst.IsEnabled = Page > 1;
             BtnPageFirst.Opacity = Page > 1 ? 1d : 0.2d;
             BtnPageLeft.IsEnabled = Page > 0;

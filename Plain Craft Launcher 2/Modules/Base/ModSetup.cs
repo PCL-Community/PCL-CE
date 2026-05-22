@@ -76,78 +76,6 @@ public class ModSetup : IConfigScope
         return result ? item! : throw new KeyNotFoundException($"配置项 '{key}' 不存在");
     }
 
-    /// <summary>
-    ///     改变某个设置项的值。
-    /// </summary>
-    public void Set(string key, object value, bool forceReload = false, ModMinecraft.McInstance? instance = null)
-    {
-        GetConfigItem(key).SetValueNoType(value, instance?.PathInstance);
-    }
-
-    /// <summary>
-    ///     应用某个设置项的值。
-    /// </summary>
-    public object Load(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
-    {
-        var value = Get(key, instance);
-        InvokeEventMethod(key, () => value);
-        return value;
-    }
-    
-    /// <summary>
-    /// 写入某个未经加密的设置项。
-    /// 若该设置项经过了加密，则会抛出异常。
-    /// </summary>
-    public void SetSafe(string key, object value, bool forceReload = false, ModMinecraft.McInstance instance = null)
-    {
-        if (!ConfigService.TryGetConfigItemNoType(key, out ConfigItem item)) return;
-        if (item.Source == ConfigSource.SharedEncrypt) throw new InvalidOperationException("禁止写入加密设置项：" + key);
-        Set(key, value, forceReload, instance);
-    }
-
-    /// <summary>
-    /// 获取某个未经加密的设置项的值。
-    /// 若该设置项经过了加密，则会抛出异常。
-    /// </summary>
-    public object GetSafe(string key, ModMinecraft.McInstance instance = null)
-    {
-        if (!ConfigService.TryGetConfigItemNoType(key, out ConfigItem item)) return null;
-        if (item.Source == ConfigSource.SharedEncrypt) throw new InvalidOperationException("禁止读取加密设置项：" + key);
-        return Get(key, instance);
-    }
-    
-    /// <summary>
-    ///     获取某个设置项的值。
-    /// </summary>
-    public object Get(string key, ModMinecraft.McInstance? instance = null)
-    {
-        return GetConfigItem(key).GetValueNoType(instance?.PathInstance);
-    }
-
-    /// <summary>
-    ///     初始化某个设置项的值。
-    /// </summary>
-    public void Reset(string key, bool forceReload = false, ModMinecraft.McInstance? instance = null)
-    {
-        GetConfigItem(key).Reset(instance?.PathInstance);
-    }
-
-    /// <summary>
-    ///     获取某个设置项的默认值。
-    /// </summary>
-    public object GetDefault(string key)
-    {
-        return GetConfigItem(key).DefaultValueNoType;
-    }
-
-    /// <summary>
-    ///     某个设置项是否从未被设置过。
-    /// </summary>
-    public bool IsUnset(string key, ModMinecraft.McInstance? instance = null)
-    {
-        return GetConfigItem(key).IsDefault(instance?.PathInstance);
-    }
-
     #endregion
 
     #region Launch
@@ -368,7 +296,7 @@ public class ModSetup : IConfigScope
     }
 
     // 主页
-    public void UiCustomType(int Value)
+    public static void UiCustomType(int Value)
     {
         if (ModMain.FrmSetupUI is null)
             return;
@@ -422,25 +350,6 @@ public class ModSetup : IConfigScope
         ModMain.FrmSetupUI.CardCustom.TriggerForceResize();
     }
 
-
-#if False
-    public static UiDarkMode(int value)
-    {
-        switch (value)
-        {
-            case 0:
-                IsDarkMode = false;
-                break;
-            case 1:
-                IsDarkMode = true;
-                break;
-            default:
-                IsDarkMode = SystemTheme.IsSystemInDarkMode();
-        }
-        ThemeRefresh();
-    }
-#endif
-
     // 高级材质
     public void UiBlur(bool Value)
     {
@@ -467,7 +376,7 @@ public class ModSetup : IConfigScope
     }
 
     // 顶部栏
-    public void UiLogoType(int Value)
+    public static void UiLogoType(int Value)
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) Value = 4;
         switch (Value)
@@ -524,7 +433,7 @@ public class ModSetup : IConfigScope
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
                 }
 
-                ModBase.Setup.Load("UiLogoText", true);
+                _ = Config.Preference.WindowTitleCustomText;
                 break;
             }
             case 3: // 图片
@@ -570,17 +479,17 @@ public class ModSetup : IConfigScope
                 break;
         }
 
-        ModBase.Setup.Load("UiLogoLeft", true);
+        _ = Config.Preference.TopBarLeftAlign;
         if (ModMain.FrmSetupUI != null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
 
-    public void UiLogoText(string Value)
+    public static void UiLogoText(string Value)
     {
         ModMain.FrmMain.LabTitleLogo.Text = Value;
     }
 
-    public void UiLogoLeft(bool Value)
+    public static void UiLogoLeft(bool Value)
     {
         ModMain.FrmMain.PanTitleMain.ColumnDefinitions[0].Width = new GridLength(
             Value && Config.Preference.WindowTitleType == LauncherTitleType.None ? 0 : 1,

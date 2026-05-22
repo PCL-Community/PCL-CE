@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using Humanizer;
 using PCL.Core.App.IoC;
+using PCL.Core.IO;
 
 namespace PCL.Core.App.Localization;
 
@@ -28,6 +30,22 @@ namespace PCL.Core.App.Localization;
 /// </summary>
 public static class Lang
 {
+    /// <summary>
+    ///     当前代码侧本地化格式化使用的展示区域性。
+    /// </summary>
+    public static CultureInfo Culture { get; private set; } = CultureInfo.CurrentCulture;
+
+    /// <summary>
+    ///     同步展示区域性。该方法由 <see cref="LocalizationService" /> 在语言或展示格式变化时调用。
+    /// </summary>
+    /// <param name="culture">
+    ///     新的展示区域性。
+    /// </param>
+    internal static void SyncCulture(CultureInfo culture)
+    {
+        Culture = culture;
+    }
+
     /// <summary>
     ///     获取指定资源键对应的本地化文本。
     /// </summary>
@@ -71,7 +89,7 @@ public static class Lang
     /// </returns>
     public static string Text(string key, params object?[] args)
     {
-        return string.Format(CultureInfo.CurrentCulture, Text(key), args);
+        return string.Format(Culture, Text(key), args);
     }
 
     /// <summary>
@@ -88,7 +106,49 @@ public static class Lang
     /// </returns>
     public static string Date(DateTime value, string format = "G")
     {
-        return value.ToString(format, CultureInfo.CurrentCulture);
+        return value.ToString(format, Culture);
+    }
+
+    /// <summary>
+    ///     <p>使用当前展示区域性格式化日期时间。</p>
+    /// </summary>
+    /// <param name="value">
+    ///     要格式化的日期时间。
+    /// </param>
+    /// <param name="format">
+    ///     标准或自定义日期时间格式字符串，默认使用 <c>G</c>。
+    /// </param>
+    /// <returns>
+    ///     使用当前展示区域性格式化后的日期时间文本。
+    /// </returns>
+    public static string Date(DateTimeOffset value, string format = "G")
+    {
+        return value.ToString(format, Culture);
+    }
+
+    /// <summary>
+    ///     使用当前展示区域性格式化时间间隔。
+    /// </summary>
+    /// <param name="span">
+    ///     要格式化的时间间隔。负值表示过去，正值表示未来。
+    /// </param>
+    /// <param name="isShortForm">
+    ///     如果为 <see langword="true" />，仅显示一个时间单位；否则显示两个时间单位。
+    /// </param>
+    /// <returns>
+    ///     使用当前展示区域性格式化后的时间间隔文本。
+    /// </returns>
+    public static string TimeSpan(TimeSpan span, bool isShortForm = false)
+    {
+        var isPast = span.TotalMilliseconds < 0;
+        if (isPast) span = span.Negate();
+
+        var text = span.Humanize(
+            isShortForm ? 1 : 2,
+            maxUnit: TimeUnit.Year,
+            minUnit: TimeUnit.Hour,
+            culture: Culture);
+        return Text(isPast ? "Common.Format.TimeSpan.Past" : "Common.Format.TimeSpan.Future", text);
     }
 
     /// <summary>
@@ -108,7 +168,64 @@ public static class Lang
     /// </returns>
     public static string Number<T>(T value, string? format = null) where T : IFormattable
     {
-        return value.ToString(format, CultureInfo.CurrentCulture);
+        return value.ToString(format, Culture);
+    }
+
+    /// <summary>
+    ///     使用当前展示区域性格式化紧凑数值，例如下载量。
+    /// </summary>
+    /// <param name="value">
+    ///     要格式化的整数。
+    /// </param>
+    /// <returns>
+    ///     按当前展示区域性格式化后的紧凑数值文本，例如 <c>11M</c>、<c>2 万</c>。
+    /// </returns>
+    public static string CompactNumber(long value)
+    {
+        var absValue = Math.Abs((double)value);
+        var sign = value < 0 ? -1 : 1;
+
+        // 使用 4 位进位
+        if (_IsEastAsianCulture(Culture.Name))
+            return absValue switch
+            {
+                > 1_000_000_000_000d => Text("Common.Format.Number.Digit3",
+                    Number(sign * absValue / 1_000_000_000_000d, "N2")),
+                > 100_000_000d => Text("Common.Format.Number.Digit2",
+                    Number(sign * absValue / 100_000_000d, "N2")),
+                > 100_000d => Text("Common.Format.Number.Digit1",
+                    Number(sign * Math.Round(absValue / 10_000d), "N0")),
+                _ => Number(value, "N0")
+            };
+
+        // 使用 3 位进位
+        return absValue switch
+        {
+            > 1_000_000_000d => Text("Common.Format.Number.Digit3",
+                Number(sign * absValue / 1_000_000_000d, "N2")),
+            > 1_000_000d => Text("Common.Format.Number.Digit2",
+                Number(sign * absValue / 1_000_000d, "N2")),
+            > 10_000d => Text("Common.Format.Number.Digit1",
+                Number(sign * Math.Round(absValue / 1_000d), "N0")),
+            _ => Number(value, "N0")
+        };
+    }
+
+    /// <summary>
+    ///     使用当前展示区域性格式化文件大小，例如 <c>1.28 MB</c>。
+    /// </summary>
+    /// <param name="length">字节数</param>
+    /// <param name="startUnit">起始单位索引，0 为 B</param>
+    /// <returns>格式化后的文件大小文本。</returns>
+    public static string FileSize(long length, int startUnit = 0)
+    {
+        return ByteStream.GetReadableLength(length, startUnit, Culture);
+    }
+
+    private static bool _IsEastAsianCulture(string cultureName)
+    {
+        return cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ||
+               cultureName is "ja-JP" or "ko-KR" or "lzh";
     }
 
     private static object? _LifecycleSafeFindResource(string key)

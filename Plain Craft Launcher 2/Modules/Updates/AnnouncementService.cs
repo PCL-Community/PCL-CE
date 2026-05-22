@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -26,7 +27,7 @@ public static class AnnouncementService
                 ModMain.MyMsgBox(item.detail, item.title,
                     item.btn1 is null ? "" : item.btn1.text,
                     item.btn2 is null ? "" : item.btn2.text,
-                    "关闭",
+                    Lang.Text("Common.Action.Close"),
                     Button1Action: () =>
                     {
                         if (Enum.TryParse<CustomEvent.EventType>(

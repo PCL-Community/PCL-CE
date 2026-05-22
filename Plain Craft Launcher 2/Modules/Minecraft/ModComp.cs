@@ -19,6 +19,8 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 using PCL.Network;
 using ProtoBuf;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -279,12 +281,12 @@ public static class ModComp
                 if (HasFavs)
                 {
                     Item.Header = $"取消收藏 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeFill;
+                    Item.Icon = Icon.IconButtonLikeFill;
                 }
                 else
                 {
                     Item.Header = $"收藏到 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeLine;
+                    Item.Icon = Icon.IconButtonLikeLine;
                 }
 
                 Item.Click += (_, _) =>
@@ -2050,7 +2052,7 @@ public static class ModComp
 
                     if (LastUpdate != null)
                     {
-                        newItem.LabTime.Text = TimeUtils.GetTimeSpanString(LastUpdate.Value - DateTime.Now, true);
+                        newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, true);
                     }
                     else
                     {
@@ -2060,12 +2062,7 @@ public static class ModComp
                     }
 
                     // 下载量数值缩写
-                    newItem.LabDownload.Text = DownloadCount switch
-                    {
-                        > 100_000_000 => $"{Math.Round(DownloadCount / 100_000_000.0, 2)} 亿",
-                        > 100_000 => $"{Math.Floor(DownloadCount / 10_000.0)} 万",
-                        _ => DownloadCount.ToString()
-                    };
+                    newItem.LabDownload.Text = Lang.CompactNumber(DownloadCount);
 
                     return newItem;
                 })
@@ -3383,11 +3380,9 @@ public static class ModComp
                         info.Add($"游戏版本 {string.Join("、", GameVersions)}");
 
                     if (DownloadCount > 0)
-                        info.Add("下载 " + (DownloadCount > 100000
-                            ? $"{Math.Round(DownloadCount / 10000.0)} 万次"
-                            : $"{DownloadCount} 次"));
+                        info.Add(Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(DownloadCount)));
 
-                    info.Add($"更新于 {TimeUtils.GetTimeSpanString(ReleaseDate - DateTime.Now, false)}");
+                    info.Add($"更新于 {Lang.TimeSpan(ReleaseDate - DateTime.Now)}");
 
                     if (Status != CompFileStatus.Release)
                         info.Add(StatusDescription);
@@ -3414,7 +3409,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);

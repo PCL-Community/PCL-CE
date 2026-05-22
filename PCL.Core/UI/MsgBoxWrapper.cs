@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.UI;
 
@@ -38,30 +39,30 @@ public static class MsgBoxWrapper
         ICollection<MsgBoxButtonInfo> buttonCollection)
     {
         var result = 0;
-        if (buttonCollection.Count == 0) buttonCollection = [new MsgBoxButtonInfo("确定")];
+        if (buttonCollection.Count == 0) buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
         OnShow?.Invoke(message, caption, buttonCollection, theme, block, ref result);
         return result;
     }
 
     public static int ShowWithCustomButtons(
         string message,
-        string caption = "提示",
+        string? caption = null,
         MsgBoxTheme theme = MsgBoxTheme.Info,
         bool block = true,
         params MsgBoxButtonInfo[] buttons)
     {
-        return ShowWithCustomButtons(message, caption, theme, block, buttonCollection: buttons);
+        return ShowWithCustomButtons(message, caption ?? Lang.Text("Common.Dialog.Title"), theme, block, buttonCollection: buttons);
     }
 
     public static int Show(
         string message,
-        string caption = "提示",
+        string? caption = null,
         MsgBoxTheme theme = MsgBoxTheme.Info,
         bool block = true,
         params string[] buttons)
     {
         var index = 0;
         var list = buttons.Select(button => new MsgBoxButtonInfo(button, ++index)).ToList();
-        return ShowWithCustomButtons(message, caption, theme, block, list);
+        return ShowWithCustomButtons(message, caption ?? Lang.Text("Common.Dialog.Title"), theme, block, list);
     }
 }

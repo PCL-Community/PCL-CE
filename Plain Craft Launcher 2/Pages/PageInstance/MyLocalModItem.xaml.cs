@@ -6,6 +6,7 @@ using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -36,7 +37,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            $"当前版本：{CurrentName}（{TimeUtils.GetTimeSpanString(Entry.CompFile.ReleaseDate - DateTime.Now, false)}）{"\r\n"}最新版本：{NewestName}（{TimeUtils.GetTimeSpanString(Entry.UpdateFile.ReleaseDate - DateTime.Now, false)}）";
+            $"当前版本：{CurrentName}（{Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now)}）{"\r\n"}最新版本：{NewestName}（{Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now)}）";
     }
 
     public void Refresh()
@@ -299,7 +300,7 @@ public partial class MyLocalCompItem
     {
         switch (ModMain.MyMsgBox(
                     $"是否要更新 {Entry.Name}？{"\r\n"}{"\r\n"}{GetUpdateCompareDescription()}", "更新确认",
-                    "更新", "查看更新日志", "取消"))
+                    "更新", "查看更新日志", Lang.Text("Common.Action.Cancel")))
         {
             case 1: // 更新
             {

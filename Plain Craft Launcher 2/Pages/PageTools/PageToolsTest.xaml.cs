@@ -19,6 +19,8 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
+using System.Globalization;
 
 namespace PCL;
 
@@ -163,7 +165,7 @@ public partial class PageToolsTest
         var random = new Random(GenerateDailySeed());
         var luckValue = random.Next(0, 101);
         var rating = GetRating(luckValue);
-        var currentDate = DateTime.Now.ToString("yyyy/MM/dd");
+        var currentDate = Lang.Date(DateTime.Now, "d");
         var title = $"今日人品 - {currentDate}";
 
         if (luckValue >= 60)
@@ -215,7 +217,7 @@ public partial class PageToolsTest
                                 虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？
 
                                 在完成清理后，PCL 将自动重启。
-                                """, "清理确认", "确定", "取消") ==
+                                """, "清理确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) ==
                             2) return;
                         States.Hint.CleanJunkFile += 1;
                     }
@@ -260,7 +262,7 @@ public partial class PageToolsTest
                                            清理了 {num} 个文件！
                                            PCL 即将自动重启……
                                            """,
-                            "缓存已清理", "确定", "", "", false, true, true);
+                            "缓存已清理", Lang.Text("Common.Action.Confirm"), "", "", false, true, true);
                         Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
                         FormMain.EndProgramForce();
                     }
@@ -303,9 +305,9 @@ public partial class PageToolsTest
             "\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。" +
             "\n\n是否仍然继续使用内存优化？",
             "功能即将废弃",
-            "确定",
+            Lang.Text("Common.Action.Confirm"),
             "了解 Mem Reduct",
-            "取消",
+            Lang.Text("Common.Action.Cancel"),
             IsWarn: true,
             Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
         );
@@ -452,7 +454,7 @@ public partial class PageToolsTest
 
     public static int GenerateDailySeed()
     {
-        var datePart = DateTime.Today.ToString("yyyyMMdd");
+        var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
         return DJB2Hash(datePart + Identify.LauncherId);
     }
@@ -500,7 +502,7 @@ public partial class PageToolsTest
 
                  {desktopName}位置: {desktop}
                  {startName}位置: {start}
-                 """, "选择快捷方式位置", "取消", desktopName, startName);
+                 """, "选择快捷方式位置", Lang.Text("Common.Action.Cancel"), desktopName, startName);
         if (choice == 1)
             return;
         var shortcutPath = choice == 2 ? desktop : start;
@@ -631,7 +633,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
+        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
             "SURE") throw new Exception("手动崩溃");
     }
 

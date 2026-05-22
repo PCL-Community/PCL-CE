@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -59,11 +61,11 @@ public partial class PageLogLeft
                 var NewItem = new MyListItem
                 {
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = Version.Name, Info = $"{Version.Info} - {Proc.StartTime:HH:mm:ss}", Height = 40d, Tag = Uuid
+                    Title = Version.Name, Info = $"{Version.Info} - {Lang.Date(Proc.StartTime, "T")}", Height = 40d, Tag = Uuid
                 };
                 NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var RemoveButton = new MyIconButton { Logo = ModBase.Logo.IconButtonDelete, LogoScale = 1.1d };
+                var RemoveButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
                 RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 NewItem.Buttons = new[] { RemoveButton };
@@ -204,14 +206,6 @@ public partial class PageLogLeft
         ModMain.FrmMain.BtnExtraLog.ShowRefresh();
     }
 
-    // Public Sub Kill_Click(sender As Object, e As RoutedEventArgs)
-    // Dim Uuid As Integer = (CType(CType(sender, MyIconButton).Parent, MyListItem).Tag)
-    // For Each item In ShownLogs
-    // If item.Key = Uuid Then
-    // item.Value.proc.Kill()
-    // End If
-    // Next
-    // End Sub
     public void Remove_Click(object sender, RoutedEventArgs e)
     {
         RemoveItem((int)((MyListItem)((MyIconButton)sender).Parent).Tag);

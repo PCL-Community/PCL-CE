@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -146,7 +147,7 @@ public class SnapLiteVersionControl : IVersionControl , IDisposable
             {
                 Created = DateTime.Now,
                 Desc = desc ?? "Backup made by SnapLite",
-                Name = name ?? $"{DateTime.Now:yyyy/dd/MM-HH:mm:ss}",
+                Name = name ?? DateTime.Now.ToString("yyyy/dd/MM-HH:mm:ss", CultureInfo.InvariantCulture),
                 NodeId = nodeId,
                 Version = 1
             };

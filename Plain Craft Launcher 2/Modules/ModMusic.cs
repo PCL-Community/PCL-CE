@@ -4,6 +4,7 @@ using Microsoft.VisualBasic;
 using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;
+using PCL.Core.UI;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -226,14 +227,14 @@ public static class ModMusic
                     string tipText;
                     if (MusicState == MusicStates.Pause)
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = ModBase.Logo.IconPlay;
+                        ModMain.FrmMain.BtnExtraMusic.Logo = Icon.IconPlay;
                         ModMain.FrmMain.BtnExtraMusic.LogoScale = 0.8d;
                         tipText = $"已暂停：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
                     }
                     else
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = ModBase.Logo.IconMusic;
+                        ModMain.FrmMain.BtnExtraMusic.Logo = Icon.IconMusic;
                         ModMain.FrmMain.BtnExtraMusic.LogoScale = 1d;
                         tipText = $"正在播放：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");

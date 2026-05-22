@@ -164,12 +164,6 @@ public class MyCard : AnimatedBackgroundGrid
         }
     }
 
-    // 已在依赖属性中实现
-    // Private Sub Dispose() Handles Me.Unloaded
-    // If Parent Is Nothing Then
-    // RemoveHandler ThemeChanged, AddressOf _BackgroundBrushChanged 
-    // End If
-    // End Sub
     public void StackInstall()
     {
         var argstack = (StackPanel)SwapControl;

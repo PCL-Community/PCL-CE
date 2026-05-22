@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using static PCL.MyLoading;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -66,7 +67,7 @@ public partial class MyLoading
         }
     }
 
-    private string _Text = "加载中";
+    private string _Text = Lang.Text("Common.State.Loading");
 
     public string Text
     {
@@ -125,7 +126,7 @@ public partial class MyLoading
             }
             else if (ShowProgress && State.IsLoader)
             {
-                LabText.Text = Text + " - " + Math.Floor(State.Progress * 100) + "%";
+                LabText.Text = Text + " - " + Lang.Number(State.Progress, "P0");
             }
             else
             {

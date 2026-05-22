@@ -13,6 +13,8 @@ using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 
@@ -475,7 +477,7 @@ public static class ModMain
     {
         // 设置轮询 Url
         public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
-        public string Button1 = "确定";
+        public string Button1 = "";
 
         /// <summary>
         ///     点击第一个按钮将执行该方法，不关闭弹窗。
@@ -550,6 +552,12 @@ public static class ModMain
         Markdown
     }
 
+    private static string GetDefaultDialogTitle() => Lang.Text("Common.Dialog.Title");
+
+    private static string GetDefaultConfirmText() => Lang.Text("Common.Action.Confirm");
+
+    private static string GetDefaultCancelText() => Lang.Text("Common.Action.Cancel");
+
     /// <summary>
     ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
@@ -562,10 +570,14 @@ public static class ModMain
     /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBox(string Caption, string Title = "提示", string Button1 = "确定", string Button2 = "",
-        string Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
+    public static int MyMsgBox(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
+        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
         Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
+        Button3 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -653,10 +665,14 @@ public static class ModMain
     /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBoxMarkdown(string Caption, string Title = "提示", string Button1 = "确定", string Button2 = "",
-        string Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
+    public static int MyMsgBoxMarkdown(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
+        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
         Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
+        Button3 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -744,9 +760,11 @@ public static class ModMain
     /// <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static string MyMsgBoxInput(string Title, string Text = "", string DefaultInput = "",
-        Collection<IValidator<string>>? ValidateRules = null, string HintText = "", string Button1 = "确定",
-        string Button2 = "取消", bool IsWarn = false)
+        Collection<IValidator<string>>? ValidateRules = null, string HintText = "", string? Button1 = null,
+        string? Button2 = null, bool IsWarn = false)
     {
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= GetDefaultCancelText();
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -778,9 +796,12 @@ public static class ModMain
     /// <param name="Button1">显示的第一个按钮，默认为 “确定”。</param>
     /// <param name="Button2">显示的第二个按钮，默认为空。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int? MyMsgBoxSelect(List<IMyRadio> Selections, string Title = "提示", string Button1 = "确定",
-        string Button2 = "", bool IsWarn = false)
+    public static int? MyMsgBoxSelect(List<IMyRadio> Selections, string? Title = null, string? Button1 = null,
+        string? Button2 = "", bool IsWarn = false)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -867,9 +888,9 @@ public static class ModMain
     public static void MsgBoxWrapper_OnShow(string message, string caption, ICollection<MsgBoxButtonInfo> buttons,
         MsgBoxTheme theme, bool block, ref int result)
     {
-        var btnText1 = buttons.Count < 1 ? "确定" : buttons.ElementAt(0).Context;
+        var btnText1 = buttons.Count < 1 ? GetDefaultConfirmText() : buttons.ElementAt(0).Context;
         var btnAct1 = (Action)(buttons.Count < 1 ? (object)null : buttons.ElementAt(0).OnClick);
-        var btnText2 = buttons.Count < 2 ? "取消" : buttons.ElementAt(1).Context;
+        var btnText2 = buttons.Count < 2 ? GetDefaultCancelText() : buttons.ElementAt(1).Context;
         var btnAct2 = (Action)(buttons.Count < 2 ? (object)null : buttons.ElementAt(1).OnClick);
         var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Context;
         var btnAct3 = (Action)(buttons.Count < 3 ? (object)null : buttons.ElementAt(2).OnClick);
@@ -1458,8 +1479,8 @@ public static class ModMain
     // 时间
     if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
     {
-        text = text.Replace("{date}", replacer(DateTime.Now.ToString("yyyy/M/d")));
-        text = text.Replace("{time}", replacer(DateTime.Now.ToString("HH:mm:ss")));
+        text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
+        text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
     }
     
     // Minecraft
@@ -1522,9 +1543,14 @@ public static class ModMain
     // 高级
     text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
     text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
-    text = ModBase.RegexReplaceEach(text, @"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
-    text = ModBase.RegexReplaceEach(text, @"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
+    {
+        if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
+            return replacer(item.GetValueNoType(ModMinecraft.McInstanceSelected?.PathInstance)?.ToString() ?? "");
+        return replacer("");
+    });
+    text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     
     return text;
 }

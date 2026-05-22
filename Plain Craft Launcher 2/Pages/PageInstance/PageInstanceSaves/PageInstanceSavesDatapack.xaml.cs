@@ -12,6 +12,7 @@ using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -276,14 +277,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         };
 
         // 图标按钮
-        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = ModBase.Logo.IconButtonOpen, Tag = sender };
+        var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
         BtnOpen.ToolTip = "打开文件位置";
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
-        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonInfo, Tag = sender };
+        var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
         BtnCont.ToolTip = "详情";
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
@@ -291,8 +292,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         BtnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonDelete, Tag = sender };
-        BtnDelete.ToolTip = "删除";
+        var BtnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
+        BtnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(BtnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnDelete, 30d);
         ToolTipService.SetHorizontalOffset(BtnDelete, 2d);
@@ -300,7 +301,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonStop, Tag = sender };
+            var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonStop, Tag = sender };
             BtnDisable.ToolTip = "禁用";
             ToolTipService.SetPlacement(BtnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnDisable, 30d);
@@ -310,7 +311,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = ModBase.Logo.IconButtonCheck, Tag = sender };
+            var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonCheck, Tag = sender };
             BtnEnable.ToolTip = "启用";
             ToolTipService.SetPlacement(BtnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnEnable, 30d);
@@ -603,8 +604,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 确认安装
         if (!(ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup &&
               ModMain.FrmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
-            if (ModMain.MyMsgBox($"是否要将这{(FilePathList.Count() == 1 ? "个" : "些")}文件作为数据包安装到当前存档？", "数据包安装确认", "确定",
-                    "取消") != 1)
+            if (ModMain.MyMsgBox($"是否要将这{(FilePathList.Count() == 1 ? "个" : "些")}文件作为数据包安装到当前存档？", "数据包安装确认", Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Common.Action.Cancel")) != 1)
                 return;
 
         // 执行安装
@@ -619,7 +620,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 var DestFile = DatapackFolder + NewFileName;
 
                 if (File.Exists(DestFile))
-                    if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", "覆盖", "取消") != 1)
+                    if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
                         continue;
 
                 ModBase.CopyFile(FilePath, DestFile);
@@ -659,7 +660,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     {
         var Choice =
             ModMain.MyMsgBox("TXT 格式：仅导出当前的数据包文件名称信息" + "\r\n" + "CSV 格式：导出详细的数据包信息，包括文件名、工程 ID、版本信息等详细信息",
-                "选择导出模式", "TXT 格式", "CSV 格式", "取消");
+                "选择导出模式", "TXT 格式", "CSV 格式", Lang.Text("Common.Action.Cancel"));
 
         void ExportText(string Content, string FileName)
         {
@@ -1159,7 +1160,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         {
             if (ModMain.MyMsgBox(
                     $"新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！{"\r\n"}{"\r\n"}在更新前，请先备份存档。{"\r\n"}如果更新后出现问题，你也可以在回收站找回更新前的数据包。",
-                    "数据包更新警告", "我已了解风险，继续更新", "取消", IsWarn: true) == 1)
+                    "数据包更新警告", "我已了解风险，继续更新", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 States.Hint.FunctionDatapackUpdate = true;
             else
                 return;

@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -217,7 +218,7 @@ public partial class ServerCard
                 $"""
                  你确定要移除服务器 {Server.Name} 吗？
                  '{Server.Address}' 将从您的列表中移除，包括游戏内列表，且无法恢复。
-                 """, "移除服务器确认", "确认", "取消") == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
+                 """, "移除服务器确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
     }
 
     public class ResultEventArgs : EventArgs

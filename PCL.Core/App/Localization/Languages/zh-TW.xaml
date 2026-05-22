@@ -1,32 +1,9 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
 
     <sys:String x:Key="Localization.Meta.Code">zh-TW</sys:String>
     <sys:String x:Key="Localization.Meta.Name">繁體中文（台灣）</sys:String>
-
-    <sys:String x:Key="Localization.Language.Auto">跟隨系統（{0}）</sys:String>
-
-    <sys:String x:Key="Localization.FormatCulture.FollowLanguage">同步介面語言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Title">語言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.CardTitle">語言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.UiLanguage">介面語言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">地區格式</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前僅部分新增介面支援多語言功能，其餘介面將在後續遷移中逐步完成生效。</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Changed">語言設定已更新</sys:String>
-
-    <sys:String x:Key="Localization.FormatCulture.Auto">跟隨系統地區格式</sys:String>
-
-    <sys:String x:Key="Common.Action.Confirm">確定</sys:String>
-    <sys:String x:Key="Common.Action.Cancel">取消</sys:String>
-    <sys:String x:Key="Common.Action.Close">關閉</sys:String>
-    <sys:String x:Key="Common.Action.Search">搜尋</sys:String>
-    <sys:String x:Key="Common.Action.Refresh">重新整理</sys:String>
-    <sys:String x:Key="Common.Action.Reset">重設</sys:String>
-
-    <sys:String x:Key="Main.Title.Launch">啟動</sys:String>
-    <sys:String x:Key="Main.Title.Download">下載</sys:String>
-    <sys:String x:Key="Main.Title.Settings">設定</sys:String>
-    <sys:String x:Key="Main.Title.Tools">工具</sys:String>
 </ResourceDictionary>

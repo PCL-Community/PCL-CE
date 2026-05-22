@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -87,7 +88,7 @@ public static class UpdateManager
                     {
                         if (ModMain.MyMsgBox(
                                 $"启动器有新版本可用（{ModBase.VersionBaseName} -> {version.VersionName}){"\r\n"}是否立即更新？",
-                                "启动器更新", "更新", "取消") ==
+                                "启动器更新", "更新", Lang.Text("Common.Action.Cancel")) ==
                             1) ModMain.FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
                     });
                     return;
@@ -116,7 +117,7 @@ public static class UpdateManager
                         ModBase.RunInUi(() =>
                         {
                             ModMain.FrmMain.BtnExtraUpdateRestart.ToolTip =
-                                $"重启 PCL CE 以应用软件更新 ({ModBase.VersionBaseName} → {version.VersionName})";
+                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.VersionBaseName, version.VersionName);
                             ModMain.FrmMain.BtnExtraUpdateRestart.ShowRefresh();
                             ModMain.FrmMain.BtnExtraUpdateRestart.Ribble();
                         });
@@ -181,7 +182,7 @@ public static class UpdateManager
         catch (Win32Exception ex)
         {
             ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", ModBase.LogLevel.Debug, "出现错误");
-            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", true, true, false, null, null, null) == 1)
+            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", Lang.Text("Common.Action.Confirm"), "", true, true, false, null, null, null) == 1)
             {
                 CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json");
             }

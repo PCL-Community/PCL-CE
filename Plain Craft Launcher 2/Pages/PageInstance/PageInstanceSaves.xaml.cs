@@ -6,6 +6,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -202,7 +204,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = saveLogo,
                         Title = GetFolderNameFromPath(curFolder),
                         Info =
-                            $"创建时间：{Directory.GetCreationTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}，最后修改时间：{Directory.GetLastWriteTime(curFolder).ToString("yyyy\"/\"MM\"/\"dd")}",
+                            $"创建时间：{Lang.Date(Directory.GetCreationTime(curFolder), "d")}，最后修改时间：{Lang.Date(Directory.GetLastWriteTime(curFolder), "d")}",
                         Type = MyListItem.CheckType.Clickable
                     };
                     worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -210,14 +212,14 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnOpen = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonOpen,
-                        ToolTip = "打开"
+                        Logo = Icon.IconButtonOpen,
+                        ToolTip = Lang.Text("Common.Action.Open")
                     };
                     BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var BtnDelete = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonDelete,
-                        ToolTip = "删除"
+                        Logo = Icon.IconButtonDelete,
+                        ToolTip = Lang.Text("Common.Action.Delete")
                     };
                     BtnDelete.Click += (_, _) =>
                     {
@@ -241,8 +243,8 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnCopy = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonCopy,
-                        ToolTip = "复制"
+                        Logo = Icon.IconButtonCopy,
+                        ToolTip = Lang.Text("Common.Action.Copy")
                     };
                     BtnCopy.Click += (_, _) =>
                     {
@@ -266,7 +268,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var BtnInfo = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconButtonInfo,
+                        Logo = Icon.IconButtonInfo,
                         ToolTip = "详情"
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -274,7 +276,7 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var BtnLaunch = new MyIconButton
                     {
-                        Logo = ModBase.Logo.IconPlayGame,
+                        Logo = Icon.IconPlayGame,
                         ToolTip = "快捷启动"
                     };
                     BtnLaunch.Click += (_, _) =>

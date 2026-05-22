@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,8 +41,9 @@ public sealed class Logger : IAsyncDisposable
 
     private void _CreateNewFile()
     {
-        var nameFormat = (Configuration.FileNameFormat ?? $"Launch-{DateTime.Now:yyyy-M-d}-{{0}}") + ".log";
-        var filename = nameFormat.Replace("{0}", $"{DateTime.Now:HHmmssfff}");
+        var now = DateTime.Now;
+        var nameFormat = (Configuration.FileNameFormat ?? $"Launch-{now.ToString("yyyy-M-d", CultureInfo.InvariantCulture)}-{{0}}") + ".log";
+        var filename = nameFormat.Replace("{0}", now.ToString("HHmmssfff", CultureInfo.InvariantCulture));
         var filePath = Path.Combine(Configuration.StoreFolder, filename);
         _files.Add(filePath);
         var lastWriter = _currentStream;

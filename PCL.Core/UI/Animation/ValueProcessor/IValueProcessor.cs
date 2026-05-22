@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.ValueProcessor;
+namespace PCL.Core.UI.Animation.ValueProcessor;
 
 /// <summary>
 /// 数值处理器。
@@ -35,4 +35,18 @@ public interface IValueProcessor<T>
     /// <param name="factor">缩放因子。</param>
     /// <returns>返回缩放后的值。</returns>
     T Scale(T value, double factor);
+
+    /// <summary>
+    /// 获取某种类型的初始值。
+    /// </summary>
+    /// <returns>初始值。</returns>
+    T DefaultValue();
+    
+    /// <summary>
+    /// 比较两个值是否相等。
+    /// </summary>
+    /// <param name="value1">第一个值。</param>
+    /// <param name="value2">第二个值。</param>
+    /// <returns></returns>
+    bool Equal(T value1, T value2);
 }
