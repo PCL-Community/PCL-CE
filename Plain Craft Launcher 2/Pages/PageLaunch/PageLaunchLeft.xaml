@@ -24,11 +24,11 @@
         <Grid.RenderTransform>
             <ScaleTransform />
         </Grid.RenderTransform>
-        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="实例选择"
+        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="{DynamicResource Launch.Home.SelectInstance}"
                         IsEnabled="False" Click="BtnInstance_Click" />
         <local:MyButton Grid.Row="3" Grid.Column="3" x:Name="BtnMore" Visibility="Collapsed" Height="35"
                         Click="BtnMore_Click"
-                        Margin="0,10,10,0" TextPadding="36" Text="实例设置" />
+                        Margin="0,10,10,0" TextPadding="36" Text="{DynamicResource Launch.Home.InstanceSettings}" />
         <Grid Grid.ColumnSpan="5" Grid.Row="1" Margin="20,0" VerticalAlignment="Center" x:Name="PanLogin" />
         <Grid Grid.ColumnSpan="5" Grid.Row="2" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
@@ -37,10 +37,10 @@
                     <TranslateTransform x:Name="AprilPosTrans" />
                 </TransformGroup>
             </Grid.RenderTransform>
-            <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="正在加载" ColorType="Highlight"
+            <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="{DynamicResource Launch.Home.Button.Loading}" ColorType="Highlight"
                             Click="BtnLaunch_Click"
                             Padding="30,0,30,15" IsEnabled="False" />
-            <TextBlock x:Name="LabVersion" Text="正在加载版本列表，请稍候" Margin="35,0,35,10" IsHitTestVisible="False"
+            <TextBlock x:Name="LabVersion" Text="{DynamicResource Launch.Home.VersionList.Loading}" Margin="35,0,35,10" IsHitTestVisible="False"
                        VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
                        FontSize="11" Foreground="{DynamicResource ColorBrushGray3}" RenderTransformOrigin="0.5,-0.2">
                 <TextBlock.RenderTransform>
@@ -67,7 +67,7 @@
                                         Opacity="0.15" Softness="0.15" />
             </StackPanel.BitmapEffect>
             <local:MyLoading x:Name="LoadLaunching" AutoRun="False" Height="50" Margin="0,10,0,5" />
-            <TextBlock Name="LabLaunchingTitle" Margin="15,10,15,0" Text="正在启动游戏" HorizontalAlignment="Center"
+            <TextBlock Name="LabLaunchingTitle" Margin="15,10,15,0" Text="{DynamicResource Launch.Status.Title.Launching}" HorizontalAlignment="Center"
                        FontSize="20" Foreground="{DynamicResource ColorBrush3}">
                 <TextBlock.RenderTransform>
                     <SkewTransform AngleX="-3" />
@@ -109,20 +109,20 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="当前步骤" Grid.Row="0" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.CurrentStep}" Grid.Row="0" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载支持" Grid.Row="0" Grid.Column="3"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.DownloadLibs}" Grid.Row="0" Grid.Column="3"
                            HorizontalAlignment="Left" Name="LabLaunchingStage" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="验证方式" Grid.Row="1" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.LoginMethod}" Grid.Row="1" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="正版验证" Grid.Row="1" Grid.Column="3"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.MicrosoftLogin}" Grid.Row="1" Grid.Column="3"
                            HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow"
                            Name="LabLaunchingMethod" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="启动进度" Grid.Row="2" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.LaunchProgress}" Grid.Row="2" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="69.28 %" Grid.Row="2" Grid.Column="3"
                            HorizontalAlignment="Left" Name="LabLaunchingProgress" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载速度" Grid.Row="3" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.DownloadSpeed}" Grid.Row="3" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft"
                            Visibility="Collapsed" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="5.2 M/s" Grid.Row="3" Grid.Column="3"
@@ -142,9 +142,9 @@
                             </CombinedGeometry>
                         </Border.Clip>
                     </Border>
-                    <TextBlock FontSize="12.5" Text="你知道吗" HorizontalAlignment="Center" VerticalAlignment="Top"
+                    <TextBlock FontSize="12.5" Text="{DynamicResource Launch.Status.Trivia}" HorizontalAlignment="Center" VerticalAlignment="Top"
                                Opacity="0.5" />
-                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="这是一段测试用的小提示文本，它应该足够长以让它有两行。"
+                    <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="{DynamicResource Launch.Status.Trivia.Placeholder}"
                                Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" MaxHeight="54"
                                TextTrimming="CharacterEllipsis" />
                 </Grid>

@@ -28,15 +28,14 @@ public partial class PageLaunchRight : IRefreshable
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
             : Visibility.Collapsed;
-        LabHint1.Text =
-            $"你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。{"\r\n"}{"\r\n"}如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。{"\r\n"}此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！{"\r\n"}";
-        LabHint2.Text = "若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。";
+        LabHint1.Text = Lang.Text("Launch.Right.CommunityHint.Message");
+        LabHint2.Text = Lang.Text("Launch.Right.CommunityHint.HidePrompt");
     }
 
     // 暂时关闭快照版提示
     private void BtnHintClose_Click(object sender, EventArgs e)
     {
-        var input = ModMain.MyMsgBoxInput("输入 PCL CE 开发组织名称");
+        var input = ModMain.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
         if (string.IsNullOrWhiteSpace(input))
             return;
         input = new string(input.Where(x => char.IsAsciiLetter(x)).ToArray()).ToLower();
@@ -47,7 +46,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         else
         {
-            ModMain.Hint("不太对哦……");
+            ModMain.Hint(Lang.Text("Launch.Right.CommunityHint.WrongInput"));
         }
     }
 
@@ -104,7 +103,7 @@ public partial class PageLaunchRight : IRefreshable
                     LogWrapper.Info("[Page] 主页预设：你知道吗");
                     var hintText = GetRandomHint();
                     content = $@"
-    <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
+    <local:MyCard Title=""{{DynamicResource Launch.Status.Trivia}}"" Margin=""0,0,0,15"">
         <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
         <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
             EventType=""刷新主页"" EventData=""/""
@@ -114,7 +113,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 1:
                     LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
-                    ModMain.MyMsgBox("回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页");
+                    ModMain.MyMsgBox(Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
                     return;
 
                 case 2:
@@ -229,7 +228,7 @@ public partial class PageLaunchRight : IRefreshable
         }
 
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
-        HintWrapper.Show("正在加载主页……");
+        HintWrapper.Show(Lang.Text("Launch.Homepage.Loading"));
         ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
         States.UI.SavedHomepageVersion = "";
         OnlineLoader.Start(url); // 下载完成后将会再次触发更新
@@ -255,7 +254,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogLevel.Hint);
+                ModBase.Log(Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath), ModBase.LogLevel.Hint);
             }
         }
 
@@ -349,7 +348,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"下载主页失败（{Address}）", ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", Address), ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
         }
     }
 
@@ -431,12 +430,15 @@ public partial class PageLaunchRight : IRefreshable
                     if (ModMain.MyMsgBox(
                             ex is UnauthorizedAccessException
                                 ? ex.Message
-                                : $"主页内容编写有误，请根据下列错误信息进行检查：\r\n{ex}", "加载主页界面失败", "重试", Lang.Text("Common.Action.Cancel")) ==
+                                : Lang.Text("Launch.Homepage.LoadFailed.Message", ex),
+                            Lang.Text("Launch.Homepage.LoadFailed.Title"),
+                            Lang.Text("Launch.Homepage.LoadFailed.Retry"),
+                            Lang.Text("Common.Action.Cancel")) ==
                         1) goto Refresh; // 防止 SyncLock 死锁
                 }
                 else
                 {
-                    ModBase.Log(ex, "加载主页界面失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, Lang.Text("Launch.Homepage.LoadFailed.Title"), ModBase.LogLevel.Hint);
                 }
 
                 return;
@@ -445,7 +447,7 @@ public partial class PageLaunchRight : IRefreshable
             var LoadCostTime = (DateTime.Now - LoadStartTime).Milliseconds;
             ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {LoadCostTime}ms");
             if (LoadCostTime > 3000)
-                ModMain.Hint($"主页加载过于缓慢（花费了 {Lang.Number(Math.Round(LoadCostTime / 1000d, 1), "N1")} 秒），请向主页作者反馈此问题，或暂时停止使用该主页");
+                ModMain.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(LoadCostTime / 1000d, 1), "N1")));
         }
 
         return;

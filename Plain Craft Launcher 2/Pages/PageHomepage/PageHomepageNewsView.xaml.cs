@@ -1,13 +1,14 @@
-﻿using PCL.Core.ViewModel.Homepage;
+﻿using PCL.Core.App.Localization;
+using PCL.Core.ViewModel.Homepage;
 
-namespace PCL
+namespace PCL;
+
+public partial class PageHomepageNewsView : MyPageRight
 {
-    public partial class PageHomepageNewsView : MyPageRight
+    public PageHomepageNewsView()
     {
-        public PageHomepageNewsView()
-        {
-            InitializeComponent();
-            this.DataContext = new NewsViewModel();
-        }
+        InitializeComponent();
+        Load.Text = Lang.Text("Launch.Homepage.News.Loading");
+        DataContext = new NewsViewModel();
     }
 }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Network;
 
@@ -45,27 +46,16 @@ public partial class MyMsgLogin
         if (Data["verification_uri_complete"] is not null)
         {
             Website = (string)Data["verification_uri_complete"];
-            LabCaption.Text = $"""
-                               登录网页将自动开启，授权码将自动填充。
-
-                               如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
-                               如果没有自动填充，请在页面内粘贴此授权码 {UserCode} （将自动复制）
-                               你也可以用其他设备打开 {Website} 并输入授权码。
-                               """;
+            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", UserCode, Website);
         }
         else
         {
             Website = (string)Data["verification_uri"];
-            LabCaption.Text = $"""
-                               登录网页将自动开启，请在网页中输入授权码 {UserCode}（将自动复制）。
-
-                               如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
-                               你也可以用其他设备打开 {Website} 并输入上述授权码。
-                               """;
+            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", UserCode, Website);
         }
 
         // 设置 UI
-        LabTitle.Text = "登录 Minecraft";
+        LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
         CustomEventService.SetEventData(Btn1, Website);
         CustomEventService.SetEventData(Btn2, UserCode);
         // 启动工作线程
@@ -100,7 +90,7 @@ public partial class MyMsgLogin
                 // 获取结果
                 var ResultJson = (JObject)ModBase.GetJson(Result);
                 ModProfile.ProfileLog($"令牌过期时间：{ResultJson["expires_in"]} 秒");
-                ModMain.Hint("网页登录成功！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), ModMain.HintType.Finish);
                 Finished(new[] { ResultJson["access_token"].ToString(), ResultJson["refresh_token"].ToString() });
                 return;
             }
@@ -119,7 +109,7 @@ public partial class MyMsgLogin
                 }
                 else
                 {
-                    Finished(new Exception("正版验证轮询失败", ex));
+                    Finished(new Exception(Lang.Text("Launch.Account.LoginDialog.PollingFailed"), ex));
                     return;
                 }
             }
@@ -148,7 +138,7 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
         }
 
         Loaded += Load;
@@ -181,7 +171,7 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Load"), ModBase.LogLevel.Hint);
         }
     }
 

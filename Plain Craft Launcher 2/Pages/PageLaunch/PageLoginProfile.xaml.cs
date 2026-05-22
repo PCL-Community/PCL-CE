@@ -49,7 +49,7 @@ public partial class PageLoginProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取档案列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
         }
 
         if (!ModProfile.ProfileList.Any())
@@ -109,27 +109,27 @@ public partial class PageLoginProfile
     {
         // 更改 UUID
         var btnEditUuid = new MyIconButton
-            { Logo = Icon.IconButtonEdit, ToolTip = "更改 UUID", Tag = sender.Tag };
+            { Logo = Icon.IconButtonEdit, ToolTip = Lang.Text("Launch.Account.Profile.ChangeUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2d);
         btnEditUuid.Click += EditProfileUuid;
         // 复制 UUID
         var btnCopyUuid = new MyIconButton
-            { Logo = Icon.IconButtonCopy, ToolTip = "复制 UUID", Tag = sender.Tag };
+            { Logo = Icon.IconButtonCopy, ToolTip = Lang.Text("Launch.Account.Profile.CopyUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnCopyUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2d);
         btnCopyUuid.Click += CopyProfileUuid;
         // 更改验证服务器名称
         var btnEditServerName = new MyIconButton
-            { Logo = Icon.IconButtonInfo, ToolTip = "更改验证服务器名称", Tag = sender.Tag };
+            { Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Launch.Account.Profile.ChangeAuthServerName"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditServerName, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditServerName, 30d);
         ToolTipService.SetHorizontalOffset(btnEditServerName, 2d);
         btnEditServerName.Click += EditProfileServer;
         // 删除档案
-        var btnDelete = new MyIconButton { Logo = Icon.IconButtonDelete, ToolTip = "删除档案", Tag = sender.Tag };
+        var btnDelete = new MyIconButton { Logo = Icon.IconButtonDelete, ToolTip = Lang.Text("Launch.Account.Profile.Delete"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
@@ -166,14 +166,14 @@ public partial class PageLoginProfile
     private void EditProfileServer(object sender, EventArgs e)
     {
         var profile = (ModProfile.McProfile)((MyIconButton)sender).Tag;
-        string name = ModMain.MyMsgBoxInput("修改验证服务器名称", "请输入新的验证服务器名称", profile.ServerName);
+        string name = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"), Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.ServerName);
         if (name is not null) ModProfile.EditAuthServerName(profile, name);
     }
 
     // 删除档案
     private void DeleteProfile(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox($"你正在选择删除此档案，该操作无法撤销。{"\r\n"}确定继续？", "删除档案确认", "继续", Lang.Text("Common.Action.Cancel"), IsWarn: true,
+        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true,
                 ForceWait: true) == 2)
             return;
         ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);

@@ -30,6 +30,7 @@
     <sys:String x:Key="Common.Option.Default">Default</sys:String>
     <sys:String x:Key="Common.Option.Auto">Auto</sys:String>
     <sys:String x:Key="Common.Option.Customize">Customize</sys:String>
+    <sys:String x:Key="Common.Option.IDontKnow">I don't know</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">Do not show again</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Past">{0} ago</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Future">in {0}</sys:String>
@@ -735,4 +736,527 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">Submitter: {0} ({1})</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">Type: {0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">Details</sys:String>
+
+    <!-- Launch.Home -->
+    <sys:String x:Key="Launch.Home.SelectInstance">Selection</sys:String>
+    <sys:String x:Key="Launch.Home.InstanceSettings">Properties</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Loading">Loading</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Launch">Launch</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Download">Download</sys:String>
+    <sys:String x:Key="Launch.Home.VersionList.Loading">Getting version list...</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.Loading">Loading, please wait</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.NotFound">No instance available</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotLaunch">The current instance is being installed and cannot be launched!</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotSetup">The current instance is being installed and cannot be configured!</sys:String>
+
+    <!-- Launch.Status -->
+    <sys:String x:Key="Launch.Status.Title.Launching">Launching...</sys:String>
+    <sys:String x:Key="Launch.Status.Title.Launched">Game launched</sys:String>
+    <sys:String x:Key="Launch.Status.Title.ExportingScript">Exporting launch script</sys:String>
+    <sys:String x:Key="Launch.Status.Completed">Completed</sys:String>
+    <sys:String x:Key="Launch.Status.CurrentStep">Current step</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadLibs">Download libraries</sys:String>
+    <sys:String x:Key="Launch.Status.LoginMethod">Login method</sys:String>
+    <sys:String x:Key="Launch.Status.MicrosoftLogin">Microsoft login</sys:String>
+    <sys:String x:Key="Launch.Status.LaunchProgress">Progress</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSpeed">Speed</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia">Trivia</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia.Placeholder">This is a test trivia text that should be long enough to span two lines.</sys:String>
+
+    <!-- Launch.Account -->
+    <sys:String x:Key="Launch.Account.Type.Offline">Offline</sys:String>
+    <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft</sys:String>
+    <sys:String x:Key="Launch.Account.Type.ThirdParty">Third-party</sys:String>
+
+    <!-- Launch.Right -->
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition notice</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL Community Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#x0a;&#x0a;If you downloaded the Community Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#x0a;Additionally, please submit Community Edition issues to the Community Edition repository, and do not report Community Edition issues to the official repository!</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL CE development organization name.</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter the PCL CE development organization name</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">Not quite right...</sys:String>
+    <sys:String x:Key="Launch.Right.Log.Title">Launch log</sys:String>
+
+    <!-- Launch.Homepage -->
+    <sys:String x:Key="Launch.Homepage.Loading">Loading homepage...</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Title">Failed to load homepage</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Message">The homepage content is malformed. Please check the following error information:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">Retry</sys:String>
+    <sys:String x:Key="Launch.Homepage.SlowWarning">The homepage is loading too slowly ({0} seconds). Please report this issue to the homepage author, or temporarily stop using this homepage.</sys:String>
+
+    <!-- Launch.Homepage.Preset -->
+    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
+
+    <!-- Launch.Homepage.News -->
+    <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
+    <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.Download">Failed to download homepage. ({0})</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.ExternalFile">Failed to read external file. ({0})</sys:String>
+
+    <!-- Launch.Account.LoginDialog -->
+    <sys:String x:Key="Launch.Account.LoginDialog.Title">Test title text</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">Copy code</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Login to Minecraft</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">The login page will open automatically. Enter the authorization code {0} (it will be copied automatically).&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be filled in automatically.&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;If the code is not filled in automatically, paste this authorization code {0} manually (it will be copied automatically).&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in through the webpage!</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">Microsoft login polling failed</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Init">Failed to initialize Microsoft login dialog</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Load">Failed to load Microsoft login dialog</sys:String>
+
+    <!-- Launch.Account.Microsoft -->
+    <sys:String x:Key="Launch.Account.Microsoft.Start">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  Purchase</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Website">»  Website</sys:String>
+    <sys:String x:Key="Launch.Account.Back">«  Back</sys:String>
+    <sys:String x:Key="Launch.Account.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.LoginCancelled">Login canceled!</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">Microsoft login authentication failed.&#x0a;Please consider disabling the &quot;Verify SSL certificates for Microsoft login&quot; option in &quot;Settings → Miscellaneous&quot; and try again.&#x0a;&#x0a;Original error message:</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">Microsoft login authentication failed</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">Unknown error!</sys:String>
+
+    <!-- Launch.Account.Auth -->
+    <sys:String x:Key="Launch.Account.Auth.ServerLabel">Authentication server: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ChangeProfile">Switch profile</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Logout">Log out</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Server">Authentication server</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Email">Email</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ForgotPassword">Forgot password</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Back">Back</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.EmptyFields">Authentication server, username, and password cannot be empty!</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.InvalidServer">The authentication server address is invalid.</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Cancelled">Login canceled!</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.LoginFailed">Third-party login failed.</sys:String>
+
+    <!-- Launch.Account.Offline -->
+    <sys:String x:Key="Launch.Account.Offline.PlayerId">Username</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.PlayerId.ToolTip">3 - 16 characters, letters, numbers, and underscores only</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.UuidStandard">UUID standard</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard">Standard</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard.ToolTip">[Recommended] The generated UUID is consistent with other launchers such as HMCL, BakaXL, and Bukkit.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy">Legacy</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy.ToolTip">Use legacy PCL UUID generation rules.&#x0a;If some single-player save data is missing after upgrading from an older PCL version, try this option.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.ToolTip">For advanced users. If you do not know what this is, do not select this option.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.Input.ToolTip">Must be a 32-character hexadecimal string without hyphens</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Back">Back</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Create">Create</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Title">Invalid username</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Message">Your username does not meet the standard (3 - 16 characters, letters, numbers, and underscores only), which may cause some game versions to fail to launch or encounter errors.&#x0a;It is strongly recommended to use a standard username!&#x0a;If you insist on using this username, you can continue.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidUuid">UUID does not meet requirements: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Created">Profile created!</sys:String>
+
+    <!-- Launch.Account.Profile -->
+    <sys:String x:Key="Launch.Account.Profile.SelectHint">Select a profile before launching the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">Create and select a profile before launching the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Create">New profile</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ImportExport">Import / Export</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeUuid">Change UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CopyUuid">Copy UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeAuthServerName">Change authentication server name</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Delete">Delete profile</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Title">Change authentication server name</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Message">Enter the new authentication server name.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">Confirm profile deletion</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">You are about to delete this profile. This action cannot be undone.&#x0a;Are you sure you want to continue?</sys:String>
+
+    <!-- Launch.Account.Profile.Create -->
+    <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">New profile - Select login type</sys:String>
+
+    <!-- Launch.Account.Profile.EditPlayerId -->
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Title">Enter a new username</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.MicrosoftWarning">The username can only be changed once every 30 days. Please consider carefully!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Hint">3 - 16 characters, letters, numbers, and underscores only</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Empty">The username cannot be empty.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Title">Confirm change</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Message">Note: Username can only be changed once every 30 days. Please consider carefully!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Failed.Title">Failed to change username</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Duplicate">This username is already in use. Please choose a different one.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.NotAllowed">This username contains invalid characters other than letters, numbers and underscores.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Success">Username changed successfully. Current username: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Cooldown">After changing your username for the first time, you must wait 30 days before changing it again. You can check the exact date on the official website.</sys:String>
+
+    <!-- Launch.Account.Profile.Uuid -->
+    <sys:String x:Key="Launch.Account.Profile.Uuid.SelectType.Title">New profile - Select UUID type</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Standard">Standard UUID (recommended)</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Legacy">Legacy PCL UUID (if single-player save data is missing, try this option)</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.ChangeTitle">Change UUID for profile {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 characters, no hyphens</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID should only contain letters and numbers!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Saved">Profile saved!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Deleted">Profile deleted!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Read">Failed to read profile list.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Corrupted">Failed to read profile data. The file may be corrupted; the profile file has been backed up and reset.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Write">Failed to write profile list.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeId">Failed to change username.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeSkin">Failed to change skin</sys:String>
+
+    <!-- Launch.Account.Profile.Migration -->
+    <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">Since the current profile list is empty, only importing from HMCL is supported.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Import">Import</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Export">Export</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">Importing from HMCL...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">HMCL configuration file not found.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">You must complete Microsoft login at least once before importing these profiles!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">No new profiles to import.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">Successfully imported {0} profile(s)!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">Exporting to HMCL...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">Successfully synchronized {0} profile(s).</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">Import error. Please check the file format.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">Export failed.</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">{0} profile(s) have been automatically migrated from legacy configuration files.</sys:String>
+
+    <!-- Launch.Account.Profile.Validation -->
+    <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">Username cannot be empty!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.QuoteInUsername">Username cannot contain quotation marks!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UsernameTooLong">Starting from version 1.20.3, usernames can contain a maximum of 16 characters!</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UnknownAuthType">Unknown login type.</sys:String>
+
+    <!-- Launch.Account.ProfileSkin -->
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinsAndCapes">Skins and capes</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeSkin">Change skin</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SaveSkin">Save skin</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.RefreshSkin">Refresh</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeCape">Change cape</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditProfile">Edit profile</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditPassword">Edit password</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditUsername">Edit username</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SwitchProfile">Switch accounts</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.PasswordUnsupported">This profile does not support changing the password!</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinUnsupported">This profile does not support changing the skin!</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.CapeUnsupported">This profile does not support changing the cape!</sys:String>
+    <sys:String x:Key="Launch.Account.Error.SwitchPage">Failed to switch login page. ({0})</sys:String>
+
+    <!-- Common.Action (new) -->
+    <sys:String x:Key="Common.Action.Back">Back</sys:String>
+    <sys:String x:Key="Common.Action.Continue">Continue</sys:String>
+
+    <!-- Launch.Skin.MySkin -->
+    <sys:String x:Key="Launch.Skin.SaveAs">Save as</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeCape">Change cape</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.ToolTip">Click to change (right-click for more options)</sys:String>
+    <sys:String x:Key="Launch.Skin.Fetching">Obtaining the skin, please wait!</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Title">Select a location to save the skin file.</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Filter">Skin image file (*.png)|*.png</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveSuccess">Skin saved successfully!</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Busy">Still obtaining the skin, please try again later!</sys:String>
+    <sys:String x:Key="Launch.Skin.Refreshing">Updating avatar...</sys:String>
+    <sys:String x:Key="Launch.Skin.RefreshSuccess">The avatar has been refreshed!</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeSuccess">Skin changed successfully!</sys:String>
+
+    <!-- Launch.Skin.Cape -->
+    <sys:String x:Key="Launch.Skin.Cape.Changing">Changing cape, please wait!</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">Failed to login, and the cape cannot be changed!</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.FetchingList">Getting the list of capes, please wait...</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.None">None</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.SelectTitle">Choose a cape</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">Failed to change the cape.</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailedWithReason">Failed to change the cape: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeSuccess">Cape changed successfully!</sys:String>
+
+    <!-- Launch.Skin.Cape.Name -->
+    <sys:String x:Key="Launch.Skin.Cape.Name.Migrator">Migrator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms MapMaker</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Moderator">Mojira Moderator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Chinese Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">Vanilla</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2011">MINECON 2011</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2012">MINECON 2012</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2013">MINECON 2013</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2015">MINECON 2015</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2016">MINECON 2016</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">Cherry Blossom</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15th Anniversary</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">Purple Heart</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Followers">Follower's</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15th Year</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MinecraftExperience">Minecraft Experience</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MojangOffice">Mojang Office</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Home">Home</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Menace">Menace</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">Yearn</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Common">Common</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Pan">Pan</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Founders">Founders</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Copper">Copper</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
+
+    <!-- Launch.Skin.File -->
+    <sys:String x:Key="Launch.Skin.FileDialog.Filter">Skin file (*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
+    <sys:String x:Key="Launch.Skin.FileDialog.Title">Select skin file</sys:String>
+    <sys:String x:Key="Launch.Skin.InvalidSize">The skin image should be 64x32 pixels or 64x64 pixels!</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">The skin file must be smaller than 24 KB. The selected file is {0} KB.</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectTitle">Skin model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectMessage">Is this skin the Steve model (wide arms) or the Alex model (slim arms)?</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Steve">Steve model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Alex">Alex model</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.UnknownHint">Please confirm the skin model on the skin download page before using this skin!</sys:String>
+    <sys:String x:Key="Launch.Skin.Save.Error">Failed to save the skin file.</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">Skin file is corrupted: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Avatar">Failed to load avatar: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Error">Failed to refresh skin cache.</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Error.MsRefresh">Failed to refresh the Microsoft skin after changing it.</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Error.List">Failed to get player cape list.</sys:String>
+    <sys:String x:Key="Launch.Skin.File.Error">Skin file error</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsRateLimited">Skin fetch has been rate-limited. Please try again in 5 minutes. ({0})</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsGet">Failed to get Microsoft skin. ({0})</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.AuthGet">Failed to get Authlib-Injector skin. ({0})</sys:String>
+
+    <!-- Select.Folder -->
+    <sys:String x:Key="Select.Folder.ListTitle">Folder list</sys:String>
+    <sys:String x:Key="Select.Folder.Rename">Rename</sys:String>
+    <sys:String x:Key="Select.Folder.MoveUp">Move up</sys:String>
+    <sys:String x:Key="Select.Folder.MoveDown">Move down</sys:String>
+    <sys:String x:Key="Select.Folder.Clear">Clear</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreName">Restore name</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveFromList">Remove from list</sys:String>
+    <sys:String x:Key="Select.Folder.AddOrImport">Add or import</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.Title">Create a new folder</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">Create a new &quot;.minecraft&quot; folder at the location of PCL.</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.Title">Add an existing folder</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.ToolTip">Add an existing Minecraft folder to the list.</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.Title">Import a modpack</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.ToolTip">Install the modpack in the selected Minecraft folder.</sys:String>
+    <sys:String x:Key="Select.Folder.CannotAddWhileDownloading">The game folder cannot be added while the download task is in progress!</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft folder paths cannot contain exclamation marks (!) or semicolons (;)!</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Title">Enter a display name</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Message">Enter the name of the folder that shows on the list on the left column.</sys:String>
+    <sys:String x:Key="Select.Folder.AccessDenied">Failed to add folder: PCL does not have permission to access this folder!</sys:String>
+    <sys:String x:Key="Select.Folder.AlreadyInList">This folder already exists on the list!</sys:String>
+    <sys:String x:Key="Select.Folder.NameUpdated">The folder has been renamed to {0}!</sys:String>
+    <sys:String x:Key="Select.Folder.Added">The folder {0} has been added!</sys:String>
+    <sys:String x:Key="Select.Folder.CannotCreateWhileDownloading">The game folder cannot be created while the download task is in progress!</sys:String>
+    <sys:String x:Key="Select.Folder.CreateSuccess">Create a new &quot;.minecraft&quot; folder successfully!</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Title">Profile clean-up</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Message">Do you want to clean up the PCL config files in this folder?&#x0a;This includes settings for each instance (such as custom icons, third-party login options, etc.). It has no effect on the instance itself.</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Keep">Keep</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveSuccess">The folder {0} has been removed from the list!</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreSuccess">The folder name has been restored!</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.WarningTitle">Deletion warning</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Confirm">Delete</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FirstWarning">Are you sure you want to delete this folder?&#x0a;Target folder: {0}&#x0a;&#x0a;All saves and other files in this folder will be permanently lost and unrecoverable!</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FinalWarning">Non-Minecraft files stored in the folder will also be deleted!&#x0a;Continuing the deletion will cause all files in this folder to be permanently lost.&#x0a;Please confirm carefully before continuing!&#x0a;Target folder: {0}&#x0a;&#x0a;This is the last warning!</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.InProgress">Deleting folder {0}...</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Success">The folder {0} has been deleted!</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.Confirm">Clear</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FirstWarning">Are you sure you want to clear this folder?&#x0a;Target folder: {0}&#x0a;&#x0a;All saves and other files in this folder will be permanently lost and unrecoverable!</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FinalWarning">Non-Minecraft files stored in the folder will also be cleared!&#x0a;Continuing will cause all files in this folder to be permanently lost.&#x0a;Please confirm carefully before continuing!&#x0a;Target folder: {0}&#x0a;&#x0a;This is the last warning!</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.InProgress">Clearing folder {0}...</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.Success">The folder {0} has been cleared!</sys:String>
+    <sys:String x:Key="Select.Folder.Rename.Title">Enter a new name</sys:String>
+    <sys:String x:Key="Select.Folder.SwitchBlockedByDownload">The game folder cannot be switched while the download task is in progress!</sys:String>
+
+    <!-- Select.Folder (ModMinecraft) -->
+    <sys:String x:Key="Select.Folder.CurrentFolder">Current folder</sys:String>
+    <sys:String x:Key="Select.Folder.OfficialLauncherFolder">Official launcher folder</sys:String>
+    <sys:String x:Key="Select.Folder.Invalid">Invalid Minecraft folder: {0}</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidMessage">Invalid Minecraft folder</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft folder unavailable</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Load">Failed to load Minecraft folder list.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.DragDrop">Failed to sort folders by drag-and-drop.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.InstallPack">Failed to install the modpack automatically: {0}</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Add">Failed to add folder. ({0})</sys:String>
+    <sys:String x:Key="Select.Folder.Error.AddNew">Failed to add a new folder to the folder list.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Remove">Failed to remove game folder from list.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Rename">Failed to rename the folder.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Operate">Failed to {0} folder {1}.</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Cleanup">Failed to clean up leftover ignored items. ({0})</sys:String>
+
+    <!-- Select.Instance -->
+    <sys:String x:Key="Select.Instance.Search.Hint">Search game instances</sys:String>
+    <sys:String x:Key="Select.Instance.Search.ToolTip">Enter instance name or [game version] [mod loader] to search.</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Title">No instances available</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Message">No instances found. Please download an instance in any game version first.&#x0a;If there is an existing instance, click &quot;Add an existing folder&quot; on the list on the left, and select the &quot;.minecraft&quot; folder to import it.</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Download">Download</sys:String>
+    <sys:String x:Key="Select.Instance.EmptySearch.Title">No matching instances</sys:String>
+    <sys:String x:Key="Select.Instance.Loading">Getting instance list...</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Regular">Regular</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Modable">Mod-installable</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Forge">Forge</sys:String>
+    <sys:String x:Key="Select.Instance.Card.NeoForge">NeoForge</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Cleanroom">Cleanroom</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LabyMod">LabyMod</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Error">Error</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Hidden">Hidden</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LessUsed">Less-used</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Favorites">Favorites</sys:String>
+    <sys:String x:Key="Select.Instance.Card.AprilFools">April Fools'</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">No hidden instances</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">No instances are hidden. You can select &quot;Hidden from list&quot; in &quot;Properties → Personalization → Category&quot; to hide the instance.&#x0a;Press &quot;F11&quot; again to exit the hidden instance viewing mode.</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">No matching hidden instances</sys:String>
+    <sys:String x:Key="Select.Instance.Search.EmptyInput">Please enter search content.</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoHiddenResult">No hidden instances matching &quot;{0}&quot; were found.</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoResult">No instances matching &quot;{0}&quot; were found.</sys:String>
+    <sys:String x:Key="Select.Instance.Favorite">Favorite</sys:String>
+    <sys:String x:Key="Select.Instance.Unfavorite">Unfavorite</sys:String>
+    <sys:String x:Key="Select.Instance.OpenFolder">Folder</sys:String>
+    <sys:String x:Key="Select.Instance.Settings">Properties</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmTitle">Instance deletion</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmMessage">Are you sure you want to delete the instance {0}?</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmPermanentMessage">Are you sure you want to permanently delete the instance {0}?</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.IsolatedWarning">Since the instance isolation is enabled for this instance, the corresponding saves, resource packs, mods, and other files of this instance will also be deleted!</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.PermanentSuccess">The instance {0} has been permanently deleted!</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.RecycleBinSuccess">The instance {0} has been moved to the recycle bin!</sys:String>
+
+    <!-- Select.Instance.Description -->
+    <sys:String x:Key="Select.Instance.Description.NotLoaded">This instance has not been loaded. Please report this issue to the developers.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL cannot recognize the Minecraft version number of this version.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NotFound">Instance {0} not found.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL does not have permission to access this folder. Please run PCL as administrator.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NeedInherit">{0} needs to be installed as a parent instance.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownError">Unknown error</sys:String>
+    <sys:String x:Key="Select.Instance.Description.PreRelease">Pre-release {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReleaseCandidate">Release candidate {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot">Experimental snapshot {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot.Pending">Experimental snapshot</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot">Snapshot {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot.Unknown">Snapshot</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release">Release {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release.Unknown">Release</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Old">Before release</sys:String>
+    <sys:String x:Key="Select.Instance.Description.AprilFools">April Fools' {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReportUnknownError">An unknown error occurred. Please report this issue to the author.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Load">Failed to load instance. ({0})</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Classify">Failed while converting the instance list to display.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.ListLoad">Failed to load .minecraft instance list.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.IconLoad">Failed to load instance icon.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.UiUpdate">Failed to render instance list UI.</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Delete">Failed to delete the instance {0}.</sys:String>
+    <sys:String x:Key="Minecraft.Error.UpdateNotify">Failed to send Minecraft update notification. ({0})</sys:String>
+
+    <!-- Minecraft.Launch.Stage -->
+    <sys:String x:Key="Minecraft.Launch.Stage.GetJava">Get Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Login">Login</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CompleteFiles">Complete files</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">Get launch arguments</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.ExtractNatives">Extract natives</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">Pre-launch processing</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CustomCommand">Execute custom command</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">Start process</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.WaitWindow">Wait for appearance</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.End">End processing</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Root">Minecraft launch</sys:String>
+
+    <!-- Minecraft.Launch -->
+    <sys:String x:Key="Minecraft.Launch.Success">{0} launched successfully!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Cancelled">Launch canceled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">Exporting launch script canceled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Success">Launch script exported successfully!</sys:String>
+
+    <!-- Launch.Error -->
+    <sys:String x:Key="Launch.Error.Title">Launch failed</sys:String>
+    <sys:String x:Key="Launch.Error.ExportScriptTitle">Failed to export launch script</sys:String>
+
+    <!-- Minecraft.Launch.Error -->
+    <sys:String x:Key="Minecraft.Launch.Error.InvalidState">Invalid state change: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.AlreadyLaunching">A game is already launching!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotLaunch">Cannot launch Minecraft: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NoJava">No Java available, launch canceled!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.OptiFineAutoJoinWarning">OptiFine may be incompatible with auto-join server, potentially causing missing textures or even game crashes!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServer">Unable to connect to third-party login server. ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServerWithDetail">Unable to connect to third-party login server ({0}).&#x0a;Details:</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.MissingMainClass">Missing &quot;mainClass&quot; in version JSON!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NativesCorrupted">Unable to open the Natives file ({0}), the file may be corrupted. Please try relaunching the game.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CancelProcess">Failed to cancel launch and terminate process</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">Failed to refresh launch info</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.Proxy">Failed to add proxy info, giving up</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.GpuSet">Failed to set GPU preference, Minecraft may run on the default GPU</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CustomCommand">Failed to execute custom command</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">Failed to set process priority</sys:String>
+
+    <!-- Minecraft.Launch.Precheck -->
+    <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">Game path cannot contain ! or ; ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Title">Game path check</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Message">The path of instance "{0}" contains characters that may affect the game (non-ASCII characters). Do you still want to launch?&#x0a;&#x0a;If you are unsure, you can choose "Continue" first, and try modifying the game path if the game crashes shortly after launch.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Continue">Continue</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Back">Back</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">No Minecraft instance selected!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft has a problem: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoProfile">Please select a profile before launching!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">This instance requires Microsoft login. Please use a Microsoft login profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">This instance requires third-party login. Please use a third-party login profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">The third-party login server used by the current profile does not match the one required by this instance. Please use a matching profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">This instance requires Microsoft or third-party login. Please use a matching profile!</sys:String>
+
+    <!-- Minecraft.Launch.PurchaseHint -->
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">It looks like you haven't purchased the game...&#x0a;If you think Minecraft is good, consider purchasing it to support the developers... Don't keep freeloading.&#x0a;&#x0a;This prompt will no longer appear after you verify a valid Microsoft account!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Title">Purchase the game?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">Purchase!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">Nah, maybe next time</sys:String>
+
+    <!-- Minecraft.Launch.AccountVerification -->
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Message">You must log in with a Microsoft account to launch the game!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Title">Microsoft login</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Purchase">Purchase</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Demo">Demo</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Back">Back</sys:String>
+    <sys:String x:Key="Minecraft.Launch.DemoMode">The game will launch in demo mode!</sys:String>
+
+    <!-- Minecraft.Launch.Donate -->
+    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL has launched the game {0} times for you!&#x0a;If PCL has been useful, maybe consider supporting the original PCL author...&#x0a;Without everyone's support, it's hard for PCL to maintain updates for years while staying free and ad-free!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} launches!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Support">Support!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Decline">Pardon my rejection</sys:String>
+
+    <!-- Minecraft.Launch.Login.Microsoft -->
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Title">Password required</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Message">During login, please select {0}Other Sign-in Methods{1}, then select {0}Use My Password{1}.&#x0a;If this option is not available, please select {0}Set Password{1}, then log in after setting it up.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">Relogin</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.SetPassword">Set password</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Title">Failed to refresh account information</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Message">The launcher encountered a network error while trying to refresh account information.&#x0a;You can cancel, check your network, and try again, or ignore the error and continue launching, but some servers may not be playable.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to be banned by Microsoft and cannot log in.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register one first and then log in.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to Microsoft accounts.&#x0a;Please use an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 or older</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 or younger</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">Too many login attempts. Please wait a few minutes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;If you are using a VPN or proxy, please turn it off or switch nodes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft: Java Edition, or its Xbox Game Pass may have expired.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">Create profile</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">You have already added this profile...</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Continue">Continue</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.IKnow">I see</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Failed">Login failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Register">Register</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Hint">Login hint</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Error.Input">Failed to get login input information.</sys:String>
+
+    <!-- Minecraft.Launch.Login.Auth -->
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">Login refresh failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.FailedTitle">Third-party login failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SecondRefreshFailed">Second login refresh failed</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">Login failed: Connection to login server timed out.&#x0a;Please check your network connection!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$Login failed: Connection to login server timed out.&#x0a;Please check your network connection!&#x0a;Details:</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.Message">Third-party login failed. Please check your network connection.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.InvalidProfile">Selected profile {0} is invalid!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfileCannotSwitch">You have not created a profile, so you cannot switch profiles!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfile">$You have not created a profile. Please create one first!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.OnlyOneProfile">There is only one profile in your account, so you cannot switch profiles!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">Select profile</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">Login failed: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">Details:</sys:String>
+
+    <!-- Minecraft.Launch.Java -->
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Title">Java not found</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.InstallManuallyHint">Please search and install it manually.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">You need to install the LegacyJavaFixer mod, or install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">You need to install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">You need to install Java 8u141 ~ 8u320 to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">You need to install Java 8u141 or later to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
 </ResourceDictionary>

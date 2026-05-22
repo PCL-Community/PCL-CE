@@ -28,6 +28,7 @@
     <sys:String x:Key="Common.Option.Default">默认</sys:String>
     <sys:String x:Key="Common.Option.Auto">自动</sys:String>
     <sys:String x:Key="Common.Option.Customize">自定义</sys:String>
+    <sys:String x:Key="Common.Option.IDontKnow">我不知道</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">不再提示</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Past">{0}前</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Future">{0}后</sys:String>
@@ -729,4 +730,528 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">提交者：{0}（{1}）</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">类型：{0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">查看详情</sys:String>
+
+    <!-- Launch.Home -->
+    <sys:String x:Key="Launch.Home.SelectInstance">实例选择</sys:String>
+    <sys:String x:Key="Launch.Home.InstanceSettings">实例设置</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Loading">正在加载</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Launch">启动游戏</sys:String>
+    <sys:String x:Key="Launch.Home.Button.Download">下载游戏</sys:String>
+    <sys:String x:Key="Launch.Home.VersionList.Loading">正在加载版本列表，请稍候</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.Loading">正在加载中，请稍候</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.NotFound">未找到可用的游戏实例</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotLaunch">当前实例正在安装，无法启动！</sys:String>
+    <sys:String x:Key="Launch.Home.Instance.InstallingCannotSetup">当前实例正在安装，暂无法进行实例设置！</sys:String>
+
+    <!-- Launch.Status -->
+    <sys:String x:Key="Launch.Status.Title.Launching">正在启动游戏</sys:String>
+    <sys:String x:Key="Launch.Status.Title.Launched">已启动游戏</sys:String>
+    <sys:String x:Key="Launch.Status.Title.ExportingScript">正在导出启动脚本</sys:String>
+    <sys:String x:Key="Launch.Status.Completed">已完成</sys:String>
+    <sys:String x:Key="Launch.Status.CurrentStep">当前步骤</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadLibs">下载支持</sys:String>
+    <sys:String x:Key="Launch.Status.LoginMethod">验证方式</sys:String>
+    <sys:String x:Key="Launch.Status.MicrosoftLogin">正版验证</sys:String>
+    <sys:String x:Key="Launch.Status.LaunchProgress">启动进度</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadSpeed">下载速度</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia">你知道吗</sys:String>
+    <sys:String x:Key="Launch.Status.Trivia.Placeholder">这是一段测试用的小提示文本，它应该足够长以让它有两行。</sys:String>
+
+    <!-- Launch.Account -->
+    <sys:String x:Key="Launch.Account.Type.Offline">离线验证</sys:String>
+    <sys:String x:Key="Launch.Account.Type.Microsoft">正版验证</sys:String>
+    <sys:String x:Key="Launch.Account.Type.ThirdParty">第三方验证</sys:String>
+
+    <!-- Launch.Right -->
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">社区版提示</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。&#x0a;&#x0a;如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。&#x0a;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
+    <sys:String x:Key="Launch.Right.Log.Title">启动日志</sys:String>
+
+    <!-- Launch.Homepage -->
+    <sys:String x:Key="Launch.Homepage.Loading">正在加载主页……</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Title">加载主页界面失败</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Message">主页内容编写有误，请根据下列错误信息进行检查：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">重试</sys:String>
+    <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.Download">下载主页失败（{0}）</sys:String>
+    <sys:String x:Key="Launch.Homepage.Error.ExternalFile">读取外部文件失败：{0}</sys:String>
+
+    <!-- Launch.Homepage.Preset -->
+    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
+
+    <!-- Launch.Homepage.News -->
+    <sys:String x:Key="Launch.Homepage.News.ViewDetail">查看详情</sys:String>
+    <sys:String x:Key="Launch.Homepage.News.Loading">加载中……</sys:String>
+
+    <!-- Launch.Account.LoginDialog -->
+    <sys:String x:Key="Launch.Account.LoginDialog.Title">测试标题文本</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">重新打开网页</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">复制代码</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">登录 Minecraft</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">登录网页将自动开启，请在网页中输入授权码 {0}（将自动复制）。&#x0a;&#x0a;如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。&#x0a;你也可以用其他设备打开 {1} 并输入上述授权码。</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">登录网页将自动开启，授权码将自动填充。&#x0a;&#x0a;如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。&#x0a;如果没有自动填充，请在页面内粘贴此授权码 {0}（将自动复制）&#x0a;你也可以用其他设备打开 {1} 并输入授权码。</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Success">网页登录成功！</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">正版验证轮询失败</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Init">正版验证弹窗初始化失败</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Error.Load">正版验证弹窗加载失败</sys:String>
+
+    <!-- Launch.Account.Microsoft -->
+    <sys:String x:Key="Launch.Account.Microsoft.Start">开始正版验证</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  购买正版</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Website">»  前往官网</sys:String>
+    <sys:String x:Key="Launch.Account.Back">«  返回</sys:String>
+    <sys:String x:Key="Launch.Account.Login">登录</sys:String>
+    <sys:String x:Key="Launch.Account.LoginCancelled">已取消登录！</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。&#x0a;&#x0a;原始错误信息：</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">正版登录尝试失败</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">未知错误！</sys:String>
+    <sys:String x:Key="Launch.Account.Error.SwitchPage">切换登录分页失败（{0}）</sys:String>
+
+    <!-- Launch.Account.Auth -->
+    <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ChangeProfile">更换角色</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Logout">退出登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Server">服务器</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Email">邮箱</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Password">密码</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Register">注册账号</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ForgotPassword">找回密码</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Back">返回</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Login">登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.EmptyFields">验证服务器、用户名与密码均不能为空！</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.InvalidServer">输入的验证服务器地址无效</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Cancelled">已取消登录！</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">预设 - LittleSkin</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.LoginFailed">第三方登录尝试失败</sys:String>
+
+    <!-- Launch.Account.Offline -->
+    <sys:String x:Key="Launch.Account.Offline.PlayerId">玩家 ID</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.PlayerId.ToolTip">3 - 16 位，只可以包含英文字母、数字与下划线</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.UuidStandard">UUID 标准</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard">行业规范</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Standard.ToolTip">[推荐] 生成的 UUID 与 HMCL、BakaXL 和 Bukkit 等其他软件一致</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy">旧版</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy.ToolTip">使用旧版 PCL 的 UUID 生成规则&#x0a;若从旧版 PCL 升级，且单人存档的部分信息丢失，可尝试此项</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.ToolTip">适用于高级用户，如果你不知道这是什么，请不要选择此项</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.Input.ToolTip">应为 32 位 16 进制字符串，不含连字符</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Back">返回</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Create">创建</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Title">玩家 ID 不符合规范</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidPlayerId.Message">你输入的玩家 ID 不符合标准（3 - 16 位，只可以包含英文字母、数字与下划线），可能导致部分版本的游戏无法启动或发生错误。&#x0a;强烈建议使用规范的玩家 ID！&#x0a;如果你坚持，仍然可以继续创建档案。</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.InvalidUuid">UUID 不符合要求：{0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Created">档案新建成功！</sys:String>
+
+    <!-- Launch.Account.Profile -->
+    <sys:String x:Key="Launch.Account.Profile.SelectHint">选择一个档案以启动游戏</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">新建并选择一个档案以启动游戏</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Create">新建档案</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ImportExport">导入 / 导出</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeUuid">更改 UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.CopyUuid">复制 UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.ChangeAuthServerName">更改验证服务器名称</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Delete">删除档案</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Title">修改验证服务器名称</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditServerName.Message">请输入新的验证服务器名称</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">删除档案确认</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在选择删除此档案，该操作无法撤销。&#x0a;确定继续？</sys:String>
+
+    <!-- Launch.Account.Profile.Create -->
+    <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">新建档案 - 选择验证类型</sys:String>
+
+    <!-- Launch.Account.Profile.EditPlayerId -->
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Title">输入新的玩家 ID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.MicrosoftWarning">玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Hint">3 - 16 个字符，只可以包含大小写字母、数字、下划线</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Empty">欲设置的玩家名称为空</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Title">确认修改</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Confirm.Message">注意：玩家 ID 只能每 30 天更改一次，请务必谨慎考虑！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Failed.Title">ID 修改失败</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Duplicate">此 ID 已被使用，请换一个 ID。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.NotAllowed">此 ID 包含了除大小写字母、数字、下划线以外的不合法字符。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Success">玩家 ID 修改成功，当前 ID 为：{0}</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.EditPlayerId.Cooldown">首次更改 ID 后，必须等待 30 天后才能再次修改 ID，你可以前往官网查询具体时间。</sys:String>
+
+    <!-- Launch.Account.Profile.Uuid -->
+    <sys:String x:Key="Launch.Account.Profile.Uuid.SelectType.Title">新建档案 - 选择 UUID 类型</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Standard">行业规范 UUID（推荐）</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Legacy">官方版 PCL UUID（若单人存档的部分信息丢失，可尝试此项）</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.ChangeTitle">更改档案 {0} 的 UUID</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 位，不含连字符</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID 只应该包括英文字母和数字！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Saved">档案信息已保存！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Deleted">档案删除成功！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Read">读取档案列表失败</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Corrupted">档案数据读取失败，文件可能意外损坏。已对档案文件进行备份重置。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.Write">写入档案列表失败</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeId">修改档案 ID 失败</sys:String>
+
+    <!-- Launch.Account.Profile.Migration -->
+    <sys:String x:Key="Launch.Account.Profile.Migration.Title">档案迁移</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE 支持与 HMCL 相互同步全局档案列表。&#x0a;请选择操作：</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">由于当前档案列表为空，仅支持从 HMCL 导入档案。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Import">导入</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Export">导出</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">正在从 HMCL 导入...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">未找到 HMCL 的配置文件。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">你必须先进行一次正版验证才能导入这些档案！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">没有新档案可供导入。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">成功导入 {0} 个档案！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">正在导出至 HMCL...</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">已成功同步 {0} 个档案。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">导入出错，请检查文件格式。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">导出失败。</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">已自动从旧版配置文件迁移档案，共迁移了 {0} 个档案</sys:String>
+
+    <!-- Launch.Account.Profile.Validation -->
+    <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">玩家名不能为空！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.QuoteInUsername">玩家名不能包含英文引号！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UsernameTooLong">自 1.20.3 起，玩家名至多只能包含 16 个字符！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Validation.UnknownAuthType">未知的验证方式</sys:String>
+
+    <!-- Launch.Account.ProfileSkin -->
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinsAndCapes">皮肤与披风</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeSkin">修改皮肤</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SaveSkin">保存皮肤</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.RefreshSkin">刷新头像</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.ChangeCape">修改披风</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditProfile">修改信息</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditPassword">修改密码</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.EditUsername">修改玩家名</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SwitchProfile">选择档案</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.PasswordUnsupported">当前档案不支持修改密码！</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.SkinUnsupported">当前档案不支持修改皮肤！</sys:String>
+    <sys:String x:Key="Launch.Account.ProfileSkin.CapeUnsupported">当前档案不支持修改披风！</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Error.ChangeSkin">更改皮肤失败</sys:String>
+
+    <!-- Common.Action (new) -->
+    <sys:String x:Key="Common.Action.Back">返回</sys:String>
+    <sys:String x:Key="Common.Action.Continue">继续</sys:String>
+
+    <!-- Launch.Skin.MySkin -->
+    <sys:String x:Key="Launch.Skin.SaveAs">另存为</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeCape">更换披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.ToolTip">点击更换皮肤（右键查看更多选项）</sys:String>
+    <sys:String x:Key="Launch.Skin.Fetching">皮肤正在获取中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Title">选取保存皮肤的位置</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveDialog.Filter">皮肤图片文件(*.png)|*.png</sys:String>
+    <sys:String x:Key="Launch.Skin.SaveSuccess">皮肤保存成功！</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Busy">有正在获取中的皮肤，请稍后再试！</sys:String>
+    <sys:String x:Key="Launch.Skin.Refreshing">正在刷新头像……</sys:String>
+    <sys:String x:Key="Launch.Skin.RefreshSuccess">已刷新头像！</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeSuccess">更改皮肤成功！</sys:String>
+    <sys:String x:Key="Launch.Skin.Save.Error">保存皮肤失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">皮肤文件已损坏：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Load.Error.Avatar">载入头像失败：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Refresh.Error">刷新皮肤缓存失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Error.MsRefresh">更改正版皮肤后刷新皮肤失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsRateLimited">获取正版皮肤太过频繁，请 5 分钟后再试（{0}）</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.MsGet">获取微软正版皮肤失败（{0}）</sys:String>
+    <sys:String x:Key="Launch.Skin.Error.AuthGet">获取 Authlib-Injector 皮肤失败（{0}）</sys:String>
+
+    <!-- Launch.Skin.Cape -->
+    <sys:String x:Key="Launch.Skin.Cape.Changing">正在更改披风中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">登录失败，无法更改披风！</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.FetchingList">正在获取披风列表，请稍候……</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.None">无披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.SelectTitle">选择披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">更改披风失败</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeFailedWithReason">更改披风失败：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.ChangeSuccess">更改披风成功！等待一段时间后将会生效……</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Error.List">获取玩家皮肤列表失败</sys:String>
+
+    <!-- Launch.Skin.Cape.Name -->
+    <sys:String x:Key="Launch.Skin.Cape.Name.Migrator">迁移者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms 地图制作者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Moderator">Mojira 管理员披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Crowdin 中文翻译者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Crowdin 翻译者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt 披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">原版披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2011">Minecon 2011 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2012">Minecon 2012 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2013">Minecon 2013 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2015">Minecon 2015 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Minecon2016">Minecon 2016 参与者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">樱花披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15 周年纪念披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">紫色心形披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Followers">追随者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15 周年披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MinecraftExperience">村民救援披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MojangOffice">Mojang 办公室披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Home">家园披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Menace">入侵披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">渴望披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Common">普通披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Pan">薄煎饼披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Founders">创始人披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Copper">铜披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">僵尸马披风</sys:String>
+
+    <!-- Launch.Skin.File -->
+    <sys:String x:Key="Launch.Skin.FileDialog.Filter">皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
+    <sys:String x:Key="Launch.Skin.FileDialog.Title">选择皮肤文件</sys:String>
+    <sys:String x:Key="Launch.Skin.InvalidSize">皮肤图片大小应为 64x32 像素或 64x64 像素！</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KB，而所选文件大小为 {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.File.Error">皮肤文件存在错误</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectTitle">选择皮肤种类</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.SelectMessage">此皮肤为 Steve 模型（粗手臂）还是 Alex 模型（细手臂）？</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Steve">Steve 模型</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.Alex">Alex 模型</sys:String>
+    <sys:String x:Key="Launch.Skin.Model.UnknownHint">请在皮肤下载页面确认皮肤种类后再使用此皮肤！</sys:String>
+
+    <!-- Select.Folder -->
+    <sys:String x:Key="Select.Folder.ListTitle">文件夹列表</sys:String>
+    <sys:String x:Key="Select.Folder.Rename">重命名</sys:String>
+    <sys:String x:Key="Select.Folder.MoveUp">上移</sys:String>
+    <sys:String x:Key="Select.Folder.MoveDown">下移</sys:String>
+    <sys:String x:Key="Select.Folder.Clear">清空</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreName">复原名称</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveFromList">移出列表</sys:String>
+    <sys:String x:Key="Select.Folder.AddOrImport">添加或导入</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.Title">新建 .minecraft 文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.Title">添加已有文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.AddExisting.ToolTip">将一个已有的 Minecraft 文件夹添加到列表</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.Title">导入整合包</sys:String>
+    <sys:String x:Key="Select.Folder.ImportModpack.ToolTip">在当前选择的 Minecraft 文件夹下安装整合包</sys:String>
+    <sys:String x:Key="Select.Folder.CannotAddWhileDownloading">在下载任务进行时，无法添加游戏文件夹！</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft 文件夹路径中不能含有感叹号或分号！</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Title">输入显示名称</sys:String>
+    <sys:String x:Key="Select.Folder.InputDisplayName.Message">输入该文件夹在左边栏列表中显示的名称。</sys:String>
+    <sys:String x:Key="Select.Folder.AccessDenied">添加文件夹失败：PCL 没有访问该文件夹的权限！</sys:String>
+    <sys:String x:Key="Select.Folder.AlreadyInList">此文件夹已在列表中！</sys:String>
+    <sys:String x:Key="Select.Folder.NameUpdated">文件夹名称已更新为 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Added">文件夹 {0} 已添加！</sys:String>
+    <sys:String x:Key="Select.Folder.CannotCreateWhileDownloading">在下载任务进行时，无法创建游戏文件夹！</sys:String>
+    <sys:String x:Key="Select.Folder.CreateSuccess">新建 .minecraft 文件夹成功！</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Title">配置文件清理</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Message">是否需要清理 PCL 在该文件夹中的配置文件？&#x0a;这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Keep">保留</sys:String>
+    <sys:String x:Key="Select.Folder.RemoveSuccess">文件夹 {0} 已从列表中移除！</sys:String>
+    <sys:String x:Key="Select.Folder.RestoreSuccess">文件夹名称已复原！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.WarningTitle">删除警告</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Confirm">确认删除</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FirstWarning">你确定要删除这个文件夹吗？&#x0a;目标文件夹：{0}&#x0a;&#x0a;这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.FinalWarning">如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同删除！&#x0a;继续删除会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！&#x0a;目标文件夹：{0}&#x0a;&#x0a;这是最后一次警告！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.InProgress">正在删除文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Delete.Success">已删除文件夹 {0}！</sys:String>
+
+    <sys:String x:Key="Select.Folder.Clear.Confirm">确认清空</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FirstWarning">你确定要清空这个文件夹吗？&#x0a;目标文件夹：{0}&#x0a;&#x0a;这会导致该文件夹中的所有存档与其他文件永久丢失，且不可恢复！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.FinalWarning">如果你在该文件夹中存放了除 MC 以外的其他文件，这些文件也会被一同清空！&#x0a;继续清空会导致该文件夹中的所有文件永久丢失，请在仔细确认后再继续！&#x0a;目标文件夹：{0}&#x0a;&#x0a;这是最后一次警告！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.InProgress">正在清空文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Clear.Success">已清空文件夹 {0}！</sys:String>
+    <sys:String x:Key="Select.Folder.Rename.Title">输入新名称</sys:String>
+    <sys:String x:Key="Select.Folder.SwitchBlockedByDownload">在下载任务进行时，无法切换游戏文件夹！</sys:String>
+
+    <!-- Select.Folder (ModMinecraft) -->
+    <sys:String x:Key="Select.Folder.CurrentFolder">当前文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.OfficialLauncherFolder">官方启动器文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.Invalid">无效的 Minecraft 文件夹：{0}</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidMessage">Minecraft 文件夹失效</sys:String>
+    <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft 文件夹失效</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Load">加载 Minecraft 文件夹列表失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.DragDrop">拖拽文件夹排序操作失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.InstallPack">自动安装整合包失败：{0}</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Add">添加文件夹失败（{0}）</sys:String>
+    <sys:String x:Key="Select.Folder.Error.AddNew">向文件夹列表中添加新文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Remove">从列表中移除游戏文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Rename">重命名文件夹失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Operate">{0}文件夹 {1} 失败</sys:String>
+    <sys:String x:Key="Select.Folder.Error.Cleanup">清理残留的忽略项目失败（{0}）</sys:String>
+
+    <!-- Select.Instance -->
+    <sys:String x:Key="Select.Instance.Search.Hint">搜索游戏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.ToolTip">输入实例名称或 [游戏版本号] [Mod 加载器] 进行搜索</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Title">无可用实例</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Message">未找到任何游戏实例，请先下载一个游戏实例。&#x0a;若有已存在的实例，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。</sys:String>
+    <sys:String x:Key="Select.Instance.Empty.Download">下载游戏</sys:String>
+    <sys:String x:Key="Select.Instance.EmptySearch.Title">无匹配的游戏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Loading">正在获取实例列表</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Regular">常规实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Modable">可安装 Mod</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Forge">Forge 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.NeoForge">NeoForge 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Cleanroom">Cleanroom 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LabyMod">LabyMod 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LiteLoader">LiteLoader 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Quilt">Quilt 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Fabric">Fabric 实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Error">错误的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Hidden">隐藏的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.LessUsed">不常用实例</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Favorites">收藏夹</sys:String>
+    <sys:String x:Key="Select.Instance.Card.AprilFools">愚人节版本</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">无隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">没有实例被隐藏，你可以在实例设置的实例分类选项中隐藏实例。&#x0a;再次按下 F11 即可退出隐藏实例查看模式。</sys:String>
+    <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">无匹配的隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.EmptyInput">请输入搜索内容</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoHiddenResult">没有找到与 '{0}' 匹配的隐藏实例</sys:String>
+    <sys:String x:Key="Select.Instance.Search.NoResult">没有找到与 '{0}' 匹配的实例</sys:String>
+    <sys:String x:Key="Select.Instance.Favorite">收藏</sys:String>
+    <sys:String x:Key="Select.Instance.Unfavorite">取消收藏</sys:String>
+    <sys:String x:Key="Select.Instance.OpenFolder">打开实例目录</sys:String>
+    <sys:String x:Key="Select.Instance.Settings">设置</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmTitle">实例删除确认</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmMessage">你确定要删除实例 {0} 吗？</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmPermanentMessage">你确定要永久删除实例 {0} 吗？</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.IsolatedWarning">由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.PermanentSuccess">实例 {0} 已永久删除！</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.RecycleBinSuccess">实例 {0} 已删除到回收站！</sys:String>
+
+    <!-- Select.Instance.Description -->
+    <sys:String x:Key="Select.Instance.Description.NotLoaded">该实例未被加载，请向开发者反馈此问题</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL 无法识别该版本的 MC 版本号</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NotFound">未找到实例 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NeedInherit">需要安装 {0} 作为前置实例</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownError">未知错误</sys:String>
+    <sys:String x:Key="Select.Instance.Description.PreRelease">预发布版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReleaseCandidate">发布候选 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot">实验性快照{0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot.Pending">实验性快照</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot">快照版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Snapshot.Unknown">快照版</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release">正式版 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Release.Unknown">正式版</sys:String>
+    <sys:String x:Key="Select.Instance.Description.Old">远古版本</sys:String>
+    <sys:String x:Key="Select.Instance.Description.AprilFools">愚人节版本 {0}</sys:String>
+    <sys:String x:Key="Select.Instance.Description.ReportUnknownError">发生了未知错误，请向作者反馈此问题</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Load">加载实例失败（{0}）</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Classify">分类实例列表失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.ListLoad">加载 .minecraft 实例列表失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.IconLoad">加载实例图标失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.UiUpdate">将实例列表转换显示时失败</sys:String>
+    <sys:String x:Key="Select.Instance.Error.Delete">删除实例 {0} 失败</sys:String>
+
+    <!-- Minecraft.Launch.Stage -->
+    <sys:String x:Key="Minecraft.Launch.Stage.GetJava">获取 Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Login">登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CompleteFiles">补全文件</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">获取启动参数</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.ExtractNatives">解压文件</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">预启动处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.CustomCommand">执行自定义命令</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">启动进程</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.WaitWindow">等待游戏窗口出现</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.End">结束处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.Root">Minecraft 启动</sys:String>
+
+    <!-- Minecraft.Launch -->
+    <sys:String x:Key="Minecraft.Launch.Success">{0} 启动成功！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Cancelled">已取消启动！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">已取消导出启动脚本！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ExportScript.Success">导出启动脚本成功！</sys:String>
+    <sys:String x:Key="Minecraft.Error.UpdateNotify">Minecraft 更新提示发送失败（{0}）</sys:String>
+
+    <!-- Launch.Error -->
+    <sys:String x:Key="Launch.Error.Title">启动失败</sys:String>
+    <sys:String x:Key="Launch.Error.ExportScriptTitle">导出启动脚本失败</sys:String>
+
+    <!-- Minecraft.Launch.Error -->
+    <sys:String x:Key="Minecraft.Launch.Error.InvalidState">错误的状态改变：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.AlreadyLaunching">已有游戏正在启动中！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotLaunch">无法启动 Minecraft：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NoJava">没有可用的 Java，已取消启动！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.OptiFineAutoJoinWarning">OptiFine 与自动进入服务器可能不兼容，有概率导致材质丢失甚至游戏崩溃！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServer">无法连接到第三方登录服务器（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CannotConnectAuthServerWithDetail">无法连接到第三方登录服务器（{0}）&#x0a;详细信息：</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.MissingMainClass">实例 JSON 中没有 mainClass 项！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.NativesCorrupted">无法打开 Natives 文件（{0}），该文件可能已损坏，请重新尝试启动游戏</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CancelProcess">取消启动结束进程失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">刷新启动信息失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.Proxy">添加代理信息到游戏失败，放弃加入</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.GpuSet">调整显卡设置失败，Minecraft 可能会使用默认显卡运行</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.CustomCommand">执行自定义命令失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">设置进程优先级失败</sys:String>
+
+    <!-- Minecraft.Launch.Precheck -->
+    <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">游戏路径中不可包含 ! 或 ;（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Title">游戏路径检查</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Message">欲启动实例 "{0}" 的路径中存在可能影响游戏正常运行的字符（非 ASCII 字符），是否仍旧启动游戏？&#x0a;&#x0a;如果不清楚具体作用，你可以先选择 "继续"，发现游戏在启动后很快出现崩溃的情况后再尝试修改游戏路径等操作</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Continue">继续</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NonAsciiPath.Back">返回处理</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">未选择 Minecraft 实例！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft 存在问题：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.NoProfile">请先选择一个档案再启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">当前实例要求使用正版验证，请使用正版验证档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">当前实例要求使用正版验证或第三方验证，请使用符合要求的档案启动游戏！</sys:String>
+
+    <!-- Minecraft.Launch.PurchaseHint -->
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">看起来你似乎没买正版...&#x0a;如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。&#x0a;&#x0a;在验证一个正版账号之后，就不会出现这个提示了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Title">考虑一下正版？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">支持正版游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">下次一定</sys:String>
+
+    <!-- Minecraft.Launch.AccountVerification -->
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Message">你必须先登录正版账号才能启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Title">正版验证</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Purchase">购买正版</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Demo">试玩</sys:String>
+    <sys:String x:Key="Minecraft.Launch.AccountVerification.Back">返回</sys:String>
+    <sys:String x:Key="Minecraft.Launch.DemoMode">游戏将以试玩模式启动！</sys:String>
+
+    <!-- Minecraft.Launch.Donate -->
+    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL 已经为你启动了 {0} 次游戏啦！&#x0a;如果 PCL 还算好用的话，也许可以考虑赞助一下 PCL 原作者……&#x0a;如果没有大家的支持，PCL 很难在免费、无任何广告的情况下维持数年的更新（磕头）……！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} 次启动！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Support">支持一下！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Decline">但是我拒绝</sys:String>
+
+    <!-- Minecraft.Launch.Login.Microsoft -->
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Title">需要使用密码登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Message">请在登录时选择 {0}其他登录方法{1}，然后选择 {0}使用我的密码{1}。&#x0a;如果没有该选项，请选择 {0}设置密码{1}，设置完毕后再登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">重新登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.SetPassword">设置密码</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Title">账号信息获取失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Message">启动器在尝试刷新账号信息时遇到了网络错误。&#x0a;你可以选择取消，检查网络后再次启动，也可以选择忽略错误继续启动，但可能无法游玩部分服务器。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">该账号似乎已被微软封禁，无法登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">你尚未注册 Xbox 账户，请在注册后再登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">你的网络所在的国家或地区无法登录微软账号。&#x0a;请使用加速器或 VPN。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">该账号年龄不足，你需要先修改出生日期，然后才能登录。&#x0a;该账号目前填写的年龄是否在 13 岁以上？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 岁以上</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 岁以下</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">登录尝试太过频繁，请等待几分钟后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">当前 IP 的登录尝试异常。&#x0a;如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">购买 Minecraft</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">请先创建 Minecraft 玩家档案，然后再重新登录。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">创建档案</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">你已经添加了这个档案...</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Continue">继续</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.IKnow">我知道了</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Failed">登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Register">注册</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Hint">登录提示</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Error.Input">获取登录输入信息失败</sys:String>
+
+    <!-- Minecraft.Launch.Login.Auth -->
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed">刷新登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.FailedTitle">第三方验证失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SecondRefreshFailed">二轮刷新登录失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">登录失败：连接登录服务器超时。&#x0a;请检查你的网络状况是否良好，或尝试使用 VPN！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$登录失败：连接登录服务器超时。&#x0a;请检查你的网络状况是否良好，或尝试使用 VPN！&#x0a;详细信息：</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.Message">第三方验证登录失败，请检查你的网络状况是否良好。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.InvalidProfile">选择的角色 {0} 无效！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfileCannotSwitch">你还没有创建角色，无法更换！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NoProfile">$你还没有创建角色，请在创建角色后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.OnlyOneProfile">你的账户中只有一个角色，无法更换！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">选择使用的角色</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">登录失败：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">详细信息：</sys:String>
+
+    <!-- Minecraft.Launch.Java -->
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Title">未找到 Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.InstallManuallyHint">请自行搜索并安装</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">你需要先安装 LegacyJavaFixer Mod，或安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">你需要安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">你需要安装 Java 8u141 ~ 8u320 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">你需要安装 Java 8u141 或更高版本的 Java 8 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
 </ResourceDictionary>

@@ -35,6 +35,8 @@ public partial class PageSelectRight
     public PageSelectRight()
     {
         InitializeComponent();
+        Load.Text = Lang.Text("Select.Instance.Loading");
+        PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;
         LoaderInit();
@@ -166,7 +168,7 @@ public partial class PageSelectRight
                 {
                     case ModMinecraft.McInstanceCardType.OriginalLike:
                     {
-                        CardName = "常规实例";
+                        CardName = Lang.Text("Select.Instance.Card.Regular");
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.API:
@@ -201,47 +203,47 @@ public partial class PageSelectRight
                         if ((IsLiteExists ? 1 : 0) + (IsForgeExists ? 1 : 0) + (IsFabricExists ? 1 : 0) +
                             (IsNeoForgeExists ? 1 : 0) + (IsQuiltExists ? 1 : 0) + (IsCleanroomExists ? 1 : 0) +
                             (IsLabyModExists ? 1 : 0) > 1)
-                            CardName = "可安装 Mod";
+                            CardName = Lang.Text("Select.Instance.Card.Modable");
                         else if (IsForgeExists)
-                            CardName = "Forge 实例";
+                            CardName = Lang.Text("Select.Instance.Card.Forge");
                         else if (IsNeoForgeExists)
-                            CardName = "NeoForge 实例";
+                            CardName = Lang.Text("Select.Instance.Card.NeoForge");
                         else if (IsCleanroomExists)
-                            CardName = "Cleanroom 实例";
+                            CardName = Lang.Text("Select.Instance.Card.Cleanroom");
                         else if (IsLabyModExists)
-                            CardName = "LabyMod 实例";
+                            CardName = Lang.Text("Select.Instance.Card.LabyMod");
                         else if (IsLiteExists)
-                            CardName = "LiteLoader 实例";
+                            CardName = Lang.Text("Select.Instance.Card.LiteLoader");
                         else if (IsQuiltExists)
-                            CardName = "Quilt 实例";
+                            CardName = Lang.Text("Select.Instance.Card.Quilt");
                         else
-                            CardName = "Fabric 实例";
+                            CardName = Lang.Text("Select.Instance.Card.Fabric");
 
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.Error:
                     {
-                        CardName = "错误的实例";
+                        CardName = Lang.Text("Select.Instance.Card.Error");
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.Hidden:
                     {
-                        CardName = "隐藏的实例";
+                        CardName = Lang.Text("Select.Instance.Card.Hidden");
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.Rubbish:
                     {
-                        CardName = "不常用实例";
+                        CardName = Lang.Text("Select.Instance.Card.LessUsed");
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.Star:
                     {
-                        CardName = "收藏夹";
+                        CardName = Lang.Text("Select.Instance.Card.Favorites");
                         break;
                     }
                     case ModMinecraft.McInstanceCardType.Fool:
                     {
-                        CardName = "愚人节版本";
+                        CardName = Lang.Text("Select.Instance.Card.AprilFools");
                         break;
                     }
 
@@ -254,7 +256,7 @@ public partial class PageSelectRight
                 #endregion
 
                 // 建立控件
-                var CardTitle = $"{CardName}{(CardName == "收藏夹" ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
+                var CardTitle = $"{CardName}{(Card.Key == ModMinecraft.McInstanceCardType.Star ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
                 var NewCard = new MyCard { Title = CardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
@@ -303,20 +305,14 @@ public partial class PageSelectRight
                     PanBack.Visibility = Visibility.Collapsed;
                     if (ShowHidden)
                     {
-                        LabEmptyTitle.Text = "无隐藏实例";
-                        LabEmptyContent.Text = """
-                                               没有实例被隐藏，你可以在实例设置的实例分类选项中隐藏实例。
-                                               再次按下 F11 即可退出隐藏实例查看模式。
-                                               """;
+                        LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                        LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
                         BtnEmptyDownload.Visibility = Visibility.Collapsed;
                     }
                     else
                     {
-                        LabEmptyTitle.Text = "无可用实例";
-                        LabEmptyContent.Text = """
-                                               未找到任何游戏实例，请先下载一个游戏实例。
-                                               若有已存在的实例，请在左边的列表中选择添加文件夹，选择 .minecraft 文件夹将其导入。
-                                               """;
+                        LabEmptyTitle.Text = Lang.Text("Select.Instance.Empty.Title");
+                        LabEmptyContent.Text = Lang.Text("Select.Instance.Empty.Message");
                         BtnEmptyDownload.Visibility =
                             Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow
                                 ? Visibility.Collapsed
@@ -332,22 +328,18 @@ public partial class PageSelectRight
                     PanEmpty.Visibility = Visibility.Collapsed;
                     PanBack.Visibility = Visibility.Visible;
                     PanEmptySearch.Visibility = Visibility.Visible;
-                    LabEmptySearchTitle.Text = "无匹配的隐藏实例";
+                    LabEmptySearchTitle.Text = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
                     LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
-                        ? "请输入搜索内容"
-                        : $"没有找到与 '{searchText}' 匹配的隐藏实例";
+                        ? Lang.Text("Select.Instance.Search.EmptyInput")
+                        : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
                 }
                 else if (ShowHidden)
                 {
                     // 无隐藏实例 - 显示"无隐藏实例"提示
                     PanEmpty.Visibility = Visibility.Visible;
                     PanBack.Visibility = Visibility.Collapsed;
-                    LabEmptyTitle.Text = "无隐藏实例";
-                    LabEmptyContent.Text =
-                        """
-                        没有实例被隐藏，你可以在实例设置的实例分类选项中隐藏实例。
-                        再次按下 F11 即可退出隐藏实例查看模式。
-                        """;
+                    LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                    LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
                     BtnEmptyDownload.Visibility = Visibility.Collapsed;
                     PanVerSearchBox.Visibility = Visibility.Collapsed;
                 }
@@ -358,10 +350,10 @@ public partial class PageSelectRight
                     PanEmpty.Visibility = Visibility.Collapsed;
                     PanBack.Visibility = Visibility.Visible;
                     PanEmptySearch.Visibility = Visibility.Visible;
-                    LabEmptySearchTitle.Text = "无匹配的游戏实例";
+                    LabEmptySearchTitle.Text = Lang.Text("Select.Instance.EmptySearch.Title");
                     LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
-                        ? "请输入搜索内容"
-                        : $"没有找到与 '{searchText}' 匹配的实例";
+                        ? Lang.Text("Select.Instance.Search.EmptyInput")
+                        : Lang.Text("Select.Instance.Search.NoResult", searchText);
                 }
             }
             else
@@ -375,7 +367,7 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "将实例列表转换显示时失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.UiUpdate"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -414,7 +406,7 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载实例图标失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.IconLoad"), ModBase.LogLevel.Hint);
             NewItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
@@ -431,7 +423,7 @@ public partial class PageSelectRight
         var BtnStar = new MyIconButton();
         if (Version.IsStar)
         {
-            BtnStar.ToolTip = "取消收藏";
+            BtnStar.ToolTip = Lang.Text("Select.Instance.Unfavorite");
             ToolTipService.SetPlacement(BtnStar, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
@@ -440,7 +432,7 @@ public partial class PageSelectRight
         }
         else
         {
-            BtnStar.ToolTip = "收藏";
+            BtnStar.ToolTip = Lang.Text("Select.Instance.Favorite");
             ToolTipService.SetPlacement(BtnStar, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnStar, 30d);
             ToolTipService.SetHorizontalOffset(BtnStar, 2d);
@@ -456,7 +448,7 @@ public partial class PageSelectRight
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
         var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonOpen };
-        BtnOpenFolder.ToolTip = "打开实例目录";
+        BtnOpenFolder.ToolTip = Lang.Text("Select.Instance.OpenFolder");
         ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
@@ -470,7 +462,7 @@ public partial class PageSelectRight
         if (Version.State != ModMinecraft.McInstanceState.Error)
         {
             var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonSetup };
-            BtnCont.ToolTip = "设置";
+            BtnCont.ToolTip = Lang.Text("Select.Instance.Settings");
             ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnCont, 30d);
             ToolTipService.SetHorizontalOffset(BtnCont, 2d);
@@ -534,12 +526,13 @@ public partial class PageSelectRight
             var IsShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             var IsHintIndie = instance.State != ModMinecraft.McInstanceState.Error &&
                               (instance.PathIndie ?? "") != (ModMinecraft.McFolderSelected ?? "");
-            switch (ModMain.MyMsgBox(
-                        $"""
-                         你确定要{(IsShiftPressed ? "永久" : "")}删除实例 {instance.Name} 吗？{(IsHintIndie
-                             ? "\r\n由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！"
-                             : "")}
-                         """, "实例删除确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
+            var confirmMsg = IsShiftPressed
+                ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", instance.Name)
+                : Lang.Text("Select.Instance.Delete.ConfirmMessage", instance.Name);
+            var confirmFullMsg = confirmMsg +
+                                 (IsHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
+            switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+                        Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
             {
                 case 1:
                 {
@@ -549,13 +542,15 @@ public partial class PageSelectRight
                     if (IsShiftPressed)
                     {
                         ModBase.DeleteDirectory(instance.PathInstance);
-                        ModMain.Hint($"实例 {instance.Name} 已永久删除！", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", instance.Name),
+                            ModMain.HintType.Finish);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(instance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        ModMain.Hint($"实例 {instance.Name} 已删除到回收站！", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name),
+                            ModMain.HintType.Finish);
                     }
 
                     break;
@@ -605,7 +600,7 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"删除实例 {instance.Name} 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", instance.Name), ModBase.LogLevel.Msgbox);
         }
     }
 
