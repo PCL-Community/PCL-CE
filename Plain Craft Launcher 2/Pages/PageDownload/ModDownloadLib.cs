@@ -3573,24 +3573,24 @@ pause";
     /// </summary>
     public static void LoaderStateChangedHintOnly(object Loader)
     {
-        switch (((dynamic)Loader).State)
+        switch (((ModLoader.LoaderBase)Loader).State)
         {
             case var @case when (ModBase.LoadState)@case == ModBase.LoadState.Finished:
             {
-                ModMain.Hint($"{((dynamic)Loader).Name}成功！",
+                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}成功！",
                     ModMain.HintType.Finish);
                 break;
             }
             case var case1 when (ModBase.LoadState)case1 == ModBase.LoadState.Failed:
             {
                 ModMain.Hint(
-                    $"{((dynamic)Loader).Name}失败：{((dynamic)Loader).Error.Message}",
+                    $"{((ModLoader.LoaderBase)Loader).Name}失败：{((ModLoader.LoaderBase)Loader).Error.Message}",
                     ModMain.HintType.Critical);
                 break;
             }
             case var case2 when (ModBase.LoadState)case2 == ModBase.LoadState.Aborted:
             {
-                ModMain.Hint($"{((dynamic)Loader).Name}已取消！",
+                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}已取消！",
                     ModMain.HintType.Info);
                 break;
             }
@@ -3602,13 +3602,13 @@ pause";
     /// </summary>
     public static void McInstallState(object Loader)
     {
-        switch (((dynamic)Loader).State)
+        switch (((ModLoader.LoaderBase)Loader).State)
         {
             case var @case when (ModBase.LoadState)@case == ModBase.LoadState.Finished:
             {
                 if (Config.Download.AutoSelectInstance)
                 {
-                    string VersionName = ((dynamic)Loader).Name.ToString();
+                    string VersionName = ((ModLoader.LoaderBase)Loader).Name.ToString();
                     ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
                         VersionName.Remove(VersionName.Length - 3, 3));
                 }
@@ -3616,21 +3616,21 @@ pause";
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
                 ModBase.DeleteDirectory(
-                    $"{((dynamic)Loader).Input}PCLInstallBackups\\");
-                ModMain.Hint($"{((dynamic)Loader).Name}成功！",
+                    $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\");
+                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}成功！",
                     ModMain.HintType.Finish);
                 break;
             }
             case var case1 when (ModBase.LoadState)case1 == ModBase.LoadState.Failed:
             {
                 ModMain.Hint(
-                    $"{((dynamic)Loader).Name}失败：{((dynamic)Loader).Error.Message}",
+                    $"{((ModLoader.LoaderBase)Loader).Name}失败：{((ModLoader.LoaderBase)Loader).Error.Message}",
                     ModMain.HintType.Critical);
                 break;
             }
             case var case2 when (ModBase.LoadState)case2 == ModBase.LoadState.Aborted:
             {
-                ModMain.Hint($"{((dynamic)Loader).Name}已取消！",
+                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}已取消！",
                     ModMain.HintType.Info);
                 break;
             }
@@ -3640,16 +3640,16 @@ pause";
             }
         }
 
-        if ((ModBase.LoadState)((dynamic)Loader).State != ModBase.LoadState.Finished &&
+        if (((ModLoader.LoaderBase)Loader).State != ModBase.LoadState.Finished &&
                 Directory.Exists(
-                    $"{((dynamic)Loader).Input}PCLInstallBackups\\")) // 实例修改失败回滚
+                    $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\")) // 实例修改失败回滚
         {
             ModBase.CopyDirectory(
-                $"{((dynamic)Loader).Input}PCLInstallBackups\\",
-                (string)((dynamic)Loader).Input);
-            File.Delete($"{((dynamic)Loader).Input}.pclignore");
+                $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\",
+                (string)((ModLoader.LoaderCombo)Loader).Input);
+            File.Delete($"{((ModLoader.LoaderCombo)Loader).Input}.pclignore");
             ModBase.DeleteDirectory(
-                $"{((dynamic)Loader).Input}PCLInstallBackups\\");
+                $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\");
         }
         else
         {
@@ -3665,26 +3665,26 @@ pause";
         try
         {
             Thread.Sleep(1000); // 防止存在尚未完全释放的文件，导致清理失败（例如整合包安装）
-            if ((ModBase.LoadState)((dynamic)Loader).State == ModBase.LoadState.Failed ||
-                (ModBase.LoadState)((dynamic)Loader).State == ModBase.LoadState.Aborted)
+            if (((ModLoader.LoaderBase)Loader).State == ModBase.LoadState.Failed ||
+                ((ModLoader.LoaderBase)Loader).State == ModBase.LoadState.Aborted)
             {
                 // 删除实例文件夹
                 if (Directory.Exists(
-                        $"{((dynamic)Loader).Input}saves\\") ||
+                        $"{((ModLoader.LoaderCombo)Loader).Input}saves\\") ||
                     Directory.Exists(
-                        $"{((dynamic)Loader).Input}versions\\") ||
+                        $"{((ModLoader.LoaderCombo)Loader).Input}versions\\") ||
                     Directory.Exists(
-                        $"{((dynamic)Loader).Input}mods\\") ||
-                    File.Exists($"{((dynamic)Loader).Input}server.dat"))
+                        $"{((ModLoader.LoaderCombo)Loader).Input}mods\\") ||
+                    File.Exists($"{((ModLoader.LoaderCombo)Loader).Input}server.dat"))
                 {
                     ModBase.Log(
-                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((dynamic)Loader).Input}", ModBase.LogLevel.Developer);
+                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((ModLoader.LoaderCombo)Loader).Input}", ModBase.LogLevel.Developer);
                 }
                 else
                 {
                     ModBase.Log(
-                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((dynamic)Loader).Input}", ModBase.LogLevel.Developer);
-                    ModBase.DeleteDirectory((string)((dynamic)Loader).Input);
+                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)Loader).Input}", ModBase.LogLevel.Developer);
+                    ModBase.DeleteDirectory((string)((ModLoader.LoaderCombo)Loader).Input);
                 }
             }
         }

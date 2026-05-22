@@ -1389,7 +1389,7 @@ public partial class PageInstanceInstall
         if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return $"获取版本列表失败：{((dynamic)LoadOptiFine.State).Error.Message}";
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadOptiFine.State).Error.Message}";
         // 是否有 Cleanroom
         if (SelectedCleanroom is not null)
             return "与 Cleanroom 不兼容";
@@ -2120,7 +2120,7 @@ public partial class PageInstanceInstall
         if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return $"获取版本列表失败：{((dynamic)LoadLegacyFabric.State).Error.Message}";
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLegacyFabric.State).Error.Message}";
         foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
@@ -2223,7 +2223,7 @@ public partial class PageInstanceInstall
         if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return $"获取版本列表失败：{((dynamic)LoadLegacyFabricApi.State).Error.Message}";
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLegacyFabricApi.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "Legacy Fabric API"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlLegacyFabricApiLoader.Output is null)
@@ -2438,7 +2438,7 @@ public partial class PageInstanceInstall
         if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "正在获取版本列表……";
         if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return $"获取版本列表失败：{((dynamic)LoadQSL.State).Error.Message}";
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadQSL.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlQSLLoader.Output is null)
@@ -2680,7 +2680,7 @@ public partial class PageInstanceInstall
         if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return $"获取版本列表失败：{((dynamic)LoadLabyMod.State).Error.Message}";
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLabyMod.State).Error.Message}";
         // 检查 Loader
         if (GetLoaderError(LoadLabyMod) is not null)
             return GetLoaderError(LoadLabyMod);
