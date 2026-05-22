@@ -3573,27 +3573,18 @@ pause";
     /// </summary>
     public static void LoaderStateChangedHintOnly(object Loader)
     {
-        switch (((ModLoader.LoaderBase)Loader).State)
+        var loader = (ModLoader.LoaderBase)Loader;
+        switch (loader.State)
         {
-            case var @case when (ModBase.LoadState)@case == ModBase.LoadState.Finished:
-            {
-                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}成功！",
-                    ModMain.HintType.Finish);
+            case ModBase.LoadState.Finished:
+                ModMain.Hint($"{loader.Name}成功！", ModMain.HintType.Finish);
                 break;
-            }
-            case var case1 when (ModBase.LoadState)case1 == ModBase.LoadState.Failed:
-            {
-                ModMain.Hint(
-                    $"{((ModLoader.LoaderBase)Loader).Name}失败：{((ModLoader.LoaderBase)Loader).Error.Message}",
-                    ModMain.HintType.Critical);
+            case ModBase.LoadState.Failed:
+                ModMain.Hint($"{loader.Name}失败：{loader.Error.Message}", ModMain.HintType.Critical);
                 break;
-            }
-            case var case2 when (ModBase.LoadState)case2 == ModBase.LoadState.Aborted:
-            {
-                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}已取消！",
-                    ModMain.HintType.Info);
+            case ModBase.LoadState.Aborted:
+                ModMain.Hint($"{loader.Name}已取消！");
                 break;
-            }
         }
     }
 
@@ -3602,54 +3593,54 @@ pause";
     /// </summary>
     public static void McInstallState(object Loader)
     {
-        switch (((ModLoader.LoaderBase)Loader).State)
+        var loader = (ModLoader.LoaderBase)Loader;
+        var combo = (ModLoader.LoaderCombo)Loader;
+        switch (loader.State)
         {
-            case var @case when (ModBase.LoadState)@case == ModBase.LoadState.Finished:
+            case ModBase.LoadState.Finished:
             {
                 if (Config.Download.AutoSelectInstance)
                 {
-                    string VersionName = ((ModLoader.LoaderBase)Loader).Name.ToString();
+                    var versionName = loader.Name;
                     ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
-                        VersionName.Remove(VersionName.Length - 3, 3));
+                        versionName.Remove(versionName.Length - 3, 3));
                 }
 
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
-                ModBase.DeleteDirectory(
-                    $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\");
-                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}成功！",
+                ModBase.DeleteDirectory($"{combo.Input}PCLInstallBackups\\");
+                ModMain.Hint($"{loader.Name}成功！",
                     ModMain.HintType.Finish);
                 break;
             }
-            case var case1 when (ModBase.LoadState)case1 == ModBase.LoadState.Failed:
+            case ModBase.LoadState.Failed:
             {
                 ModMain.Hint(
-                    $"{((ModLoader.LoaderBase)Loader).Name}失败：{((ModLoader.LoaderBase)Loader).Error.Message}",
+                    $"{loader.Name}失败：{loader.Error.Message}",
                     ModMain.HintType.Critical);
                 break;
             }
-            case var case2 when (ModBase.LoadState)case2 == ModBase.LoadState.Aborted:
+            case ModBase.LoadState.Aborted:
             {
-                ModMain.Hint($"{((ModLoader.LoaderBase)Loader).Name}已取消！",
-                    ModMain.HintType.Info);
+                ModMain.Hint($"{loader.Name}已取消！");
                 break;
             }
-            case var case3 when (ModBase.LoadState)case3 == ModBase.LoadState.Loading:
+            case ModBase.LoadState.Loading:
             {
                 return; // 不重新加载实例列表
             }
         }
 
-        if (((ModLoader.LoaderBase)Loader).State != ModBase.LoadState.Finished &&
+        if (loader.State != ModBase.LoadState.Finished &&
                 Directory.Exists(
-                    $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\")) // 实例修改失败回滚
+                    $"{combo.Input}PCLInstallBackups\\")) // 实例修改失败回滚
         {
             ModBase.CopyDirectory(
-                $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\",
-                (string)((ModLoader.LoaderCombo)Loader).Input);
-            File.Delete($"{((ModLoader.LoaderCombo)Loader).Input}.pclignore");
+                $"{combo.Input}PCLInstallBackups\\",
+                (string)combo.Input);
+            File.Delete($"{combo.Input}.pclignore");
             ModBase.DeleteDirectory(
-                $"{((ModLoader.LoaderCombo)Loader).Input}PCLInstallBackups\\");
+                $"{combo.Input}PCLInstallBackups\\");
         }
         else
         {
