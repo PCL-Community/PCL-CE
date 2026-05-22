@@ -1,5 +1,6 @@
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;

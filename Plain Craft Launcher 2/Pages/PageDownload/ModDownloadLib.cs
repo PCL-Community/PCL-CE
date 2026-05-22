@@ -3649,7 +3649,7 @@ pause";
                 (string)((dynamic)Loader).Input);
             File.Delete($"{((dynamic)Loader).Input}.pclignore");
             ModBase.DeleteDirectory(
-                $"{((dynamic)Loader).Input}PCLInstallBackups\\"));
+                $"{((dynamic)Loader).Input}PCLInstallBackups\\");
         }
         else
         {
