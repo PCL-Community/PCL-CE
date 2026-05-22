@@ -28,6 +28,7 @@
     <sys:String x:Key="Common.Option.Default">默认</sys:String>
     <sys:String x:Key="Common.Option.Auto">自动</sys:String>
     <sys:String x:Key="Common.Option.Customize">自定义</sys:String>
+    <sys:String x:Key="Common.Option.IDontKnow">我不知道</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">不再提示</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Past">{0}前</sys:String>
     <sys:String x:Key="Common.Format.TimeSpan.Future">{0}后</sys:String>
@@ -748,7 +749,7 @@
     <sys:String x:Key="Launch.Status.Title.ExportingScript">正在导出启动脚本</sys:String>
     <sys:String x:Key="Launch.Status.Completed">已完成</sys:String>
     <sys:String x:Key="Launch.Status.CurrentStep">当前步骤</sys:String>
-    <sys:String x:Key="Launch.Status.DownloadSupport">下载支持</sys:String>
+    <sys:String x:Key="Launch.Status.DownloadLibs">下载支持</sys:String>
     <sys:String x:Key="Launch.Status.LoginMethod">验证方式</sys:String>
     <sys:String x:Key="Launch.Status.MicrosoftLogin">正版验证</sys:String>
     <sys:String x:Key="Launch.Status.LaunchProgress">启动进度</sys:String>
@@ -1000,7 +1001,6 @@
     <sys:String x:Key="Launch.Skin.Model.SelectMessage">此皮肤为 Steve 模型（粗手臂）还是 Alex 模型（细手臂）？</sys:String>
     <sys:String x:Key="Launch.Skin.Model.Steve">Steve 模型</sys:String>
     <sys:String x:Key="Launch.Skin.Model.Alex">Alex 模型</sys:String>
-    <sys:String x:Key="Launch.Skin.Model.Unknown">我不知道</sys:String>
     <sys:String x:Key="Launch.Skin.Model.UnknownHint">请在皮肤下载页面确认皮肤种类后再使用此皮肤！</sys:String>
 
     <!-- Select.Folder -->
@@ -1097,14 +1097,14 @@
     <sys:String x:Key="Select.Instance.OpenFolder">打开实例目录</sys:String>
     <sys:String x:Key="Select.Instance.Settings">设置</sys:String>
     <sys:String x:Key="Select.Instance.Delete.ConfirmTitle">实例删除确认</sys:String>
-    <sys:String x:Key="Select.Instance.Delete.Permanent">永久</sys:String>
-    <sys:String x:Key="Select.Instance.Delete.ConfirmMessage">你确定要{0}删除实例 {1} 吗？</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmMessage">你确定要删除实例 {0} 吗？</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.ConfirmPermanentMessage">你确定要永久删除实例 {0} 吗？</sys:String>
     <sys:String x:Key="Select.Instance.Delete.IsolatedWarning">由于该实例开启了版本隔离，删除时该实例对应的存档、资源包、Mod 等文件也将被一并删除！</sys:String>
     <sys:String x:Key="Select.Instance.Delete.PermanentSuccess">实例 {0} 已永久删除！</sys:String>
     <sys:String x:Key="Select.Instance.Delete.RecycleBinSuccess">实例 {0} 已删除到回收站！</sys:String>
 
     <!-- Select.Instance.Description -->
-    <sys:String x:Key="Select.Instance.Description.NotLoaded">该实例未被加载，请向作者反馈此问题</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NotLoaded">该实例未被加载，请向开发者反馈此问题</sys:String>
     <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL 无法识别该版本的 MC 版本号</sys:String>
     <sys:String x:Key="Select.Instance.Description.NotFound">未找到实例 {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.NoPermission">PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL</sys:String>
@@ -1216,11 +1216,10 @@
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">该账号年龄不足，你需要先修改出生日期，然后才能登录。&#x0a;该账号目前填写的年龄是否在 13 岁以上？</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 岁以上</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 岁以下</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Unknown">我不知道</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">$登录尝试太过频繁，请等待几分钟后再试！</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">$当前 IP 的登录尝试异常。&#x0a;如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">登录尝试太过频繁，请等待几分钟后再试！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">当前 IP 的登录尝试异常。&#x0a;如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">购买 Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">请先创建 Minecraft 玩家档案，然后再重新登录。</sys:String>

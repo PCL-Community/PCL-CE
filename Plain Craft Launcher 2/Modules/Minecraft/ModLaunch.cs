@@ -1121,7 +1121,7 @@ public static class ModLaunch
                 if (result.Contains("2148916238"))
                 {
                     if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Unknown")) == 1)
+                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"), Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"), Lang.Text("Common.Option.IDontKnow")) == 1)
                     {
                         ModBase.OpenWebsite("https://account.live.com/editprof.aspx");
                         ModMain.MyMsgBox(

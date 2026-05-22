@@ -526,10 +526,13 @@ public partial class PageSelectRight
             var IsShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             var IsHintIndie = instance.State != ModMinecraft.McInstanceState.Error &&
                               (instance.PathIndie ?? "") != (ModMinecraft.McFolderSelected ?? "");
-            var permanentText = IsShiftPressed ? Lang.Text("Select.Instance.Delete.Permanent") : "";
-            var confirmMsg = Lang.Text("Select.Instance.Delete.ConfirmMessage", permanentText, instance.Name);
-            var confirmFullMsg = confirmMsg + (IsHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
-            switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
+            var confirmMsg = IsShiftPressed
+                ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", instance.Name)
+                : Lang.Text("Select.Instance.Delete.ConfirmMessage", instance.Name);
+            var confirmFullMsg = confirmMsg +
+                                 (IsHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
+            switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+                        Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
             {
                 case 1:
                 {
@@ -539,13 +542,15 @@ public partial class PageSelectRight
                     if (IsShiftPressed)
                     {
                         ModBase.DeleteDirectory(instance.PathInstance);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", instance.Name), ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", instance.Name),
+                            ModMain.HintType.Finish);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(instance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name), ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name),
+                            ModMain.HintType.Finish);
                     }
 
                     break;
