@@ -9,6 +9,8 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
+using System.Globalization;
 
 namespace PCL;
 
@@ -1197,7 +1199,7 @@ public class CrashAnalyzer
         // 确定是否是加载器版本不兼容问题
         var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
         // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", "确定",
+        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
                     IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
                     IsHandAnalyze ? "" : "导出错误报告",
                     Button2Action: IsHandAnalyze || DirectFile is null || isModLoaderIncompatible
@@ -1232,7 +1234,7 @@ public class CrashAnalyzer
                 {
                     // 获取文件路径
                     ModBase.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
-                        "错误报告-" + DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
+                        "错误报告-" + DateTime.Now.ToString("G", CultureInfo.InvariantCulture).Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
                         ".zip", "Minecraft 错误报告(*.zip)|*.zip"));
                     if (string.IsNullOrEmpty(FileAddress))
                         return;
@@ -1304,7 +1306,7 @@ public class CrashAnalyzer
                         $"操作系统：{SystemInfo.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
                     EnvInfo += $"CPU：{SystemInfo.CPUName}{"\r\n"}";
                     EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(SystemInfo.SystemMemorySize / 1024d, 2)} GB ({SystemInfo.SystemMemorySize} MB){"\r\n"}";
+                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(SystemInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(SystemInfo.SystemMemorySize, "N0")} MB){"\r\n"}";
                     foreach (var GPU in SystemInfo.GPUs)
                     {
                         EnvInfo +=

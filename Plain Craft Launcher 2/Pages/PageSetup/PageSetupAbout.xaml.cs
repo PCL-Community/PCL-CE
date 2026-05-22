@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 
 namespace PCL;
@@ -53,7 +54,7 @@ public partial class PageSetupAbout
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载贡献者信息失败");
+            ModBase.Log(ex, Lang.Text("Setup.About.Error.LoadContributorsFailed"));
         }
     }
 
@@ -71,21 +72,21 @@ public partial class PageSetupAbout
             {
                 case 5:
                 {
-                    ModMain.Hint("点这个很好玩么……");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.NiceClick"));
                     break;
                 }
                 case 15:
                 {
-                    ModMain.Hint("还点？");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
                     break;
                 }
                 case 25:
                 {
-                    switch (ModMain.MyMsgBox("你现在是不是超无聊的？", "咕咕咕？", "是的", "并不是"))
+                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Bored.Message"), Lang.Text("Setup.About.EasterEgg.Bored.Title"), Lang.Text("Setup.About.EasterEgg.Bored.Yes"), Lang.Text("Setup.About.EasterEgg.Bored.No")))
                     {
                         case 2:
                         {
-                            ModMain.Hint("那你还点啥……真是搞不懂。");
+                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
                             break;
                         }
                     }
@@ -94,54 +95,54 @@ public partial class PageSetupAbout
                 }
                 case 50:
                 {
-                    ModMain.Hint("嗯，加油吧，嗯……");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Encouragement"));
                     break;
                 }
                 case 75:
                 {
-                    ModMain.Hint("隐藏主题 混乱黄 已……嗯不对，这是 PCL 社区版，应该没有这玩意……");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.HiddenTheme"));
                     break;
                 }
                 case 100:
                 {
-                    ModMain.Hint("你咋还这么无聊啊？");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.StillStaring"));
                     break;
                 }
                 case 130:
                 {
-                    ModMain.Hint("后面什么都没有了哦！");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
                     break;
                 }
                 case 150:
                 {
-                    switch (ModMain.MyMsgBox("你真的不累么？", "温馨提示", "累死了", "真的不累"))
+                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message1"), Lang.Text("Setup.About.EasterEgg.Tired.Title1"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                     {
                         case 1:
                         {
-                            ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
+                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                             break;
                         }
                         case 2:
                         {
-                            switch (ModMain.MyMsgBox("你真的真的不累么？", "超温馨的温馨提示", "累死了", "真的真的不累"))
+                            switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message2"), Lang.Text("Setup.About.EasterEgg.Tired.Title2"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                             {
                                 case 1:
                                 {
-                                    ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
+                                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                     break;
                                 }
                                 case 2:
                                 {
-                                    switch (ModMain.MyMsgBox("你真的真的真的不累么？", "超超超温馨的温馨提示", "累死了", "真的真的真的不累"))
+                                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message3"), Lang.Text("Setup.About.EasterEgg.Tired.Title3"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
                                     {
                                         case 1:
                                         {
-                                            ModMain.Hint("那你就别点了喂……后面真的真的真的什么都没有了！");
+                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                             break;
                                         }
                                         case 2:
                                         {
-                                            ModMain.Hint("好吧……不过后面是真的啥也没了，不用点了真的。");
+                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.FinallyGiveUp"));
                                             break;
                                         }
                                     }
@@ -158,7 +159,7 @@ public partial class PageSetupAbout
                 }
                 case 200:
                 {
-                    ModMain.Hint("还点，还点就不让你点了……");
+                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.ClickDisabled"));
                     ImgPCLLogo.IsHitTestVisible = false;
                     return;
                 }

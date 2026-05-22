@@ -7,6 +7,7 @@ using System.Windows.Media;
 using PCL.Core.UI;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -28,7 +29,7 @@ public partial class PageDownloadCompFavorites
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = ModBase.Logo.IconButtonSetup;
+            Btn_ManageTargetFav.Logo = Icon.IconButtonSetup;
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -275,22 +276,6 @@ public partial class PageDownloadCompFavorites
                 CardNoContent.Visibility = Visibility.Visible;
             }
 
-            // If SomeGetFail Then
-            // Dim FailList As New List(Of MyListItem)
-            // Dim FailIds = Loader.Input.Except(Loader.Output.Select(Function(e) e.Id))
-            // For Each Id In FailIds
-            // Dim FailItem As New MyListItem
-            // FailItem.Title = $"{Id}"
-            // FailItem.Info = "此资源获取失败，可能在线资源被删除或者未获取成功"
-            // FailItem.Tag = Id
-
-            // ListItemBuild(FailItem)
-
-            // FailList.Add(FailItem)
-            // Next
-            // CompItemList.AddRange(FailList)
-            // End If
-
             RefreshContent();
             RefreshCardTitle();
         }
@@ -313,7 +298,7 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var Btn_EditNote = new MyIconButton();
-        Btn_EditNote.Logo = ModBase.Logo.IconButtonEdit;
+        Btn_EditNote.Logo = Icon.IconButtonEdit;
         Btn_EditNote.ToolTip = "修改备注";
         ToolTipService.SetPlacement(Btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_EditNote, 30d);
@@ -332,7 +317,7 @@ public partial class PageDownloadCompFavorites
         };
         // 删除按钮
         var Btn_Delete = new MyIconButton();
-        Btn_Delete.Logo = ModBase.Logo.IconButtonLikeFill;
+        Btn_Delete.Logo = Icon.IconButtonLikeFill;
         Btn_Delete.ToolTip = "取消收藏";
         ToolTipService.SetPlacement(Btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_Delete, 30d);
@@ -552,7 +537,7 @@ public partial class PageDownloadCompFavorites
                     var MSelection = new List<IMyRadio>();
                     foreach (var i in SupportedModLoader)
                         MSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, "选择期望的加载器", Button2: "取消");
+                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, "选择期望的加载器", Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedModLoaderStr is null)
                         return;
                     DesiredModLoader = SupportedModLoader[(int)SelectedModLoaderStr];
@@ -626,7 +611,7 @@ public partial class PageDownloadCompFavorites
                     List<IMyRadio> Selection = [];
                     foreach (var i in SuitVersion)
                         Selection.Add(new MyRadioBox { Text = i });
-                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: "取消");
+                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedVersion is null) Ts.Abort();
                 });
                 string SelectedVersionStr = SuitVersion[(int)SelectedVersion];
@@ -718,7 +703,7 @@ public partial class PageDownloadCompFavorites
         var NewItem = new MyMenuItem
         {
             Header = "分享当前收藏夹",
-            Icon = ModBase.Logo.IconButtonShare
+            Icon = Icon.IconButtonShare
         };
         NewItem.Click += (_, _) =>
         {
@@ -741,7 +726,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "导入收藏",
-            Icon = ModBase.Logo.IconButtonAdd
+            Icon = Icon.IconButtonAdd
         };
         NewItem.Click += (_, _) =>
         {
@@ -787,7 +772,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "新建收藏夹",
-            Icon = ModBase.Logo.IconButtonCreate
+            Icon = Icon.IconButtonCreate
         };
         NewItem.Click += (_, _) =>
         {
@@ -803,7 +788,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "重命名收藏夹名称",
-            Icon = ModBase.Logo.IconButtonEdit
+            Icon = Icon.IconButtonEdit
         };
         NewItem.Click += (_, _) =>
         {
@@ -818,7 +803,7 @@ public partial class PageDownloadCompFavorites
         NewItem = new MyMenuItem
         {
             Header = "删除当前收藏夹",
-            Icon = ModBase.Logo.IconButtonDelete
+            Icon = Icon.IconButtonDelete
         };
         NewItem.Click += (_, _) =>
         {

@@ -39,7 +39,7 @@
                                                   ToolTipService.BetweenShowDelay="0"
                                                   ToolTip="与其他实例的存档、Mod 等文件相互独立，互不干涉。&#xa;这会使你无法跨实例共享存档，但可以规避 Mod 冲突问题。"
                                                   ToolTipService.HorizontalOffset="100" />
-                            <local:MyComboBoxItem Content="关闭" ToolTipService.InitialShowDelay="0"
+                            <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}" ToolTipService.InitialShowDelay="0"
                                                   ToolTipService.BetweenShowDelay="0"
                                                   ToolTip="与其余关闭隔离的实例共享存档、Mod 等文件。&#xa;若存在多个安装了 Mod 的实例，可能会由于 Mod 冲突而导致崩溃。"
                                                   ToolTipService.HorizontalOffset="100" />
@@ -104,7 +104,7 @@
                                            Tag="VersionRamType/0" Margin="0,0,20,0"
                                           ToolTip="根据安装的 Mod 量与电脑剩余内存动态调整为游戏分配的内存" ToolTipService.Placement="Right"
                                           ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
-<local:MyRadioBox Grid.Row="3" Text="自定义" x:Name="RadioRamType1" Tag="VersionRamType/1"
+<local:MyRadioBox Grid.Row="3" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="VersionRamType/1"
                                            Margin="0,0,20,0" />
 <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
                                          Tag="VersionRamCustom" MaxValue="49" Value="13" />

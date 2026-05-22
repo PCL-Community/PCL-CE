@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 
 namespace PCL.Core.UI.Animation.Easings;
 
 public class BackEaseInOut : Easing
 {
+    public static BackEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5)

@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using PCL.Core.Utils;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -29,6 +30,7 @@ public partial class PageSetupFeedback
     public PageSetupFeedback()
     {
         InitializeComponent();
+        Load.Text = Lang.Text("Setup.Feedback.Loading");
         Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
@@ -55,7 +57,7 @@ public partial class PageSetupFeedback
                 UseBrowserUserAgent = true
             }); // 获取近期 200 条数据就够了
         if (list is null)
-            throw new Exception("无法获取到内容");
+            throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
         foreach (JObject i in list)
         {
@@ -74,7 +76,7 @@ public partial class PageSetupFeedback
                 IsPullRequest = false
             };
 
-            var issueType = "未分类";
+            var issueType = Lang.Text("Setup.Feedback.Uncategorized");
             var typeToken = i["type"];
             if (typeToken is not null && typeToken.Type == JTokenType.Object)
             {
@@ -95,7 +97,7 @@ public partial class PageSetupFeedback
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
     {
-        var commonInfo = $"{item.User} | {item.Time:yyyy-MM-dd HH:mm:ss}";
+        var commonInfo = $"{item.User} | {Lang.Date(item.Time, "G")}";
 
         var li = new MyListItem();
         li.Title = item.Title;
@@ -111,14 +113,12 @@ public partial class PageSetupFeedback
 
     private void ShowFeedbackDetail(Feedback item)
     {
-        var timeSpanText = TimeUtils.GetTimeSpanString(item.Time - DateTime.Now, false);
+        var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
         switch (ModMain.MyMsgBoxMarkdown(
-                    $"""
-                     提交者：{item.User}（{timeSpanText}）
-                     类型：{item.Type}
-
-                     {item.Content}
-                     """, $"#{item.ID} {item.Title}", Button2: "查看详情"))
+                    Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
+                    Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
+                    item.Content,
+                    $"#{item.ID} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {

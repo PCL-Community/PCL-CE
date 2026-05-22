@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using PCL.Core.App;
 
 namespace PCL.Network;
 
@@ -21,7 +22,7 @@ public static class RequestSigning
         Client.Version = HttpVersion.Version20;
         Client.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
         if (Url.Contains("api.curseforge.com"))
-            Client.Headers.Add("x-api-key", ModSecret.CurseForgeAPIKey);
+            Client.Headers.Add("x-api-key", Secrets.CurseForgeAPIKey);
         var userAgent = !string.IsNullOrEmpty(CustomUserAgent)
             ? CustomUserAgent
             : UseBrowserUserAgent

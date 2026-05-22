@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO;
@@ -13,6 +11,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -100,12 +99,12 @@ public partial class PageInstanceSetup
             var _unused = PageInstanceLeft.Instance.PathIndie; // 触发自动判定
             ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] ? 0 : 1;
             CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
-            TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
+            TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : "跟随全局设置";
             RefreshJavaComboBox();
 
             // 游戏内存
-            ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
-                ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
+            var ramType = Config.Instance.MemorySolution[PageInstanceLeft.Instance.PathInstance];
+            ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
 
             // 服务器
@@ -125,12 +124,10 @@ public partial class PageInstanceSetup
             TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
-            if (Conversions.ToBoolean(
-                    Operators.ConditionalCompareObjectEqual(
-                        ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
+            if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.Instance.PathInstance] == 2)
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
-                ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
+                Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.Instance.PathInstance);
                 Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
             }
 
@@ -184,7 +181,7 @@ public partial class PageInstanceSetup
         var sender = (MyRadioBox)o;
         var gotCfg = sender.Tag.ToString().Split("/");
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]), instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -193,8 +190,7 @@ public partial class PageInstanceSetup
             return;
         if (o is not MyTextBox textBox) return;
         
-        // 使用新配置系统保存
-        var tag = Conversions.ToString(textBox.Tag);
+        var tag = textBox.Tag?.ToString();
         var value = textBox.Text;
         ArgConfig<string> setting = tag switch 
         {
@@ -217,14 +213,24 @@ public partial class PageInstanceSetup
     {
         var sender = (MySlider)o;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value, instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private static void ComboChange(MyComboBox sender, object e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
-                instance: PageInstanceLeft.Instance);
+            SetInstanceByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private static void SetInstanceByTag(string tag, object value)
+    {
+        var path = PageInstanceLeft.Instance.PathInstance;
+        switch (tag)
+        {
+            case "VersionRamType": Config.Instance.MemorySolution[path] = (int)value; break;
+            case "VersionRamCustom": Config.Instance.CustomMemorySize[path] = (int)value; break;
+            case "VersionServerLoginRequire": Config.InstanceAuth.LoginRequirementSolution[path] = (int)value; break;
+        }
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -233,7 +239,7 @@ public partial class PageInstanceSetup
             return;
         if (sender is not MyCheckBox checkBox) return;
         
-        var tag = Conversions.ToString(checkBox.Tag);
+        var tag = checkBox.Tag?.ToString();
         var value = checkBox.Checked.GetValueOrDefault();
         ArgConfig<bool> setting = tag switch
         {
@@ -292,9 +298,9 @@ public partial class PageInstanceSetup
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{(RamGame == Math.Floor(RamGame) ? $"{RamGame}.0" : RamGame)} GB{(RamGame != RamGameActual ? $" (可用 {(RamGameActual == Math.Floor(RamGameActual) ? $"{RamGameActual}.0" : RamGameActual)} GB)" : "")}";
-        LabRamUsed.Text = $"{(RamUsed == Math.Floor(RamUsed) ? $"{RamUsed}.0" : RamUsed)} GB";
-        LabRamTotal.Text = $" / {(RamTotal == Math.Floor(RamTotal) ? $"{RamTotal}.0" : RamTotal)} GB";
+        LabRamGame.Text = $"{Lang.Number(RamGame, "N1")} GB{(RamGame != RamGameActual ? $" (可用 {Lang.Number(RamGameActual, "N1")} GB)" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(RamUsed, "N1")} GB";
+        LabRamTotal.Text = $" / {Lang.Number(RamTotal, "N1")} GB";
         LabRamWarn.Visibility =
             RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !ModBase.Is32BitSystem &&
             ModJava.Javas.ExistAnyJava()
@@ -455,9 +461,9 @@ public partial class PageInstanceSetup
     /// </summary>
     public static double GetRam(ModMinecraft.McInstance Version, bool? Is32BitJava = default)
     {
+        var instancePath = Version?.PathInstance;
         // 跟随全局设置
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 2, false)))
+        if (Config.Instance.MemorySolution[instancePath] == 2)
             return PageSetupLaunch.GetRam(Version, true, Is32BitJava);
 
         // ------------------------------------------
@@ -466,8 +472,7 @@ public partial class PageInstanceSetup
 
         // 使用当前实例的设置
         var RamGive = default(double);
-        if (Conversions.ToBoolean(
-                Operators.ConditionalCompareObjectEqual(ModBase.Setup.Get("VersionRamType", Version), 0, false)))
+        if (Config.Instance.MemorySolution[instancePath] == 0)
         {
             // 自动配置
             var RamAvailable =
@@ -539,7 +544,7 @@ public partial class PageInstanceSetup
         else
         {
             // 手动配置
-            var Value = Conversions.ToInteger(ModBase.Setup.Get("VersionRamCustom", Version));
+            var Value = Config.Instance.CustomMemorySize[instancePath];
             if (Value <= 12)
                 RamGive = Value * 0.1d + 0.3d;
             else if (Value <= 25)
@@ -624,7 +629,7 @@ public partial class PageInstanceSetup
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Conversions.ToBoolean(ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
+        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
         {
             HintServerLoginLock.Visibility = Visibility.Visible;
             ComboServerLoginRequire.IsEnabled = false;
@@ -682,7 +687,7 @@ public partial class PageInstanceSetup
                 除非你是服主，或者服主要求你这样做，否则请不要继续。
 
                 是否确实需要覆盖当前设置？
-                """, "设置覆盖确认", "继续", "取消") == 2)
+                """, "设置覆盖确认", "继续", Lang.Text("Common.Action.Cancel")) == 2)
             return;
         TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
         TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
@@ -694,7 +699,7 @@ public partial class PageInstanceSetup
     {
         if (ModMain.MyMsgBox(
                 $"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{"\r\n"}此功能可能会帮助一些服主吧。{"\r\n"}是否继续？",
-                "锁定验证方式确认", "确定", "取消", IsWarn: true) == 1)
+                "锁定验证方式确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance] = true;
             Reload();
@@ -890,9 +895,8 @@ public partial class PageInstanceSetup
 
         var firstItem = ComboArgumentJava.Items[0] as MyComboBoxItem;
         if (firstItem is not null &&
-            (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(firstItem.Content, "未检测到可用的 Java 运行时", false)) ||
-             Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(firstItem.Content, "列表加载失败，请重试", false))))
+            ((string)firstItem.Content == "未检测到可用的 Java 运行时" ||
+             (string)firstItem.Content == "列表加载失败，请重试"))
             ComboArgumentJava.IsDropDownOpen = false;
     }
 
@@ -906,9 +910,7 @@ public partial class PageInstanceSetup
 
         var selectedItem = ComboArgumentJava.SelectedItem as MyComboBoxItem;
         if (selectedItem is null || (selectedItem.Tag is null &&
-                                     Conversions.ToBoolean(
-                                         Operators.ConditionalCompareObjectNotEqual(selectedItem.Content,
-                                             "自动选择合适的 Java", false))))
+                                     (string)selectedItem.Content != "自动选择合适的 Java"))
             return;
 
         JavaPreference preference = default;
@@ -981,7 +983,7 @@ public partial class PageInstanceSetup
                 调整版本隔离后，你可能得把游戏存档、Mod 等文件手动迁移到新的游戏文件夹中。
                 如果修改后发现存档消失，把这项设置改回来就能恢复。
                 如果你不会迁移存档，不建议修改这项设置！
-                """, "警告", "我知道我在做什么", "取消", IsWarn: true) == 2)
+                """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
         {
             IsReverting = true;
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -997,7 +999,7 @@ public partial class PageInstanceSetup
     // 游戏窗口
     private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
-        TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
+        TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : "跟随全局设置";
         CheckBoxChange(sender,e);
     }
 
@@ -1024,13 +1026,13 @@ public partial class PageInstanceSetup
 
         var args = (SelectionChangedEventArgs)e; // 转换事件参数
 
-        if (Conversions.ToBoolean(!(bool)States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0))
+        if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
             if (ModMain.MyMsgBox("""
                                  修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！
                                  你确定要继续修改吗？
                                  """, "警告",
-                    "我知道我在做什么", "取消", IsWarn: true) == 2)
+                    "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
             }
@@ -1059,7 +1061,7 @@ public partial class PageInstanceSetup
                     """
                     本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！
                     你确定要继续修改吗？
-                    """, "警告", "我知道我在做什么", "取消", IsWarn: true) == 2)
+                    """, "警告", "我知道我在做什么", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 checkBox.Checked = false;
             }

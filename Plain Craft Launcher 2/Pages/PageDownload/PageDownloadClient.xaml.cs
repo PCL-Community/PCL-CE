@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Newtonsoft.Json.Linq;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -152,13 +153,13 @@ public partial class PageDownloadClient
             var TopestVersions = new List<JObject>();
             var Release = (JObject)Dict["正式版"][0].DeepClone();
             Release["lore"] =
-                "最新正式版，发布于 " + Release["releaseTime"].Value<DateTime>().ToString("yyyy'/'MM'/'dd HH':'mm");
+                "最新正式版，发布于 " + Lang.Date(Release["releaseTime"].Value<DateTime>(), "g");
             TopestVersions.Add(Release);
             if (Dict["正式版"][0]["releaseTime"].Value<DateTime>() < Dict["预览版"][0]["releaseTime"].Value<DateTime>())
             {
                 var Snapshot = (JObject)Dict["预览版"][0].DeepClone();
                 Snapshot["lore"] = "最新预览版，发布于 " +
-                                   Snapshot["releaseTime"].Value<DateTime>().ToString("yyyy'/'MM'/'dd HH':'mm");
+                                   Lang.Date(Snapshot["releaseTime"].Value<DateTime>(), "g");
                 TopestVersions.Add(Snapshot);
             }
 
@@ -205,18 +206,4 @@ public partial class PageDownloadClient
             ModBase.Log(ex, "可视化 MC 版本列表出错", ModBase.LogLevel.Feedback);
         }
     }
-
-    public void DownloadStart(MyListItem sender, object e)
-    {
-        ModDownloadLib.McDownloadClient(NetPreDownloadBehaviour.HintWhileExists, sender.Title,
-            ((JObject)sender.Tag)["url"].ToString());
-    }
-
-    // '介绍栏
-    // Private Sub BtnWeb_Click(sender As Object, e As EventArgs) Handles BtnWeb.Click
-    // OpenWebsite("https://www.minecraft.net/zh-hans")
-    // End Sub
-    // Private Sub BtnInstall_Click(sender As Object, e As EventArgs) Handles BtnInstall.Click
-    // FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall)
-    // End Sub
 }

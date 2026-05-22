@@ -18,7 +18,7 @@
             x:Name="PanMain"
             Margin="25,10"
             Grid.IsSharedSizeScope="True">
-            <local:MyCard Margin="0,15" Title="关于">
+            <local:MyCard Margin="0,15" Title="{DynamicResource Setup.About.Title}">
                 <Grid Margin="21,40,21,16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="45" />
@@ -34,22 +34,22 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="Plain Craft Launcher 的原作者！"
+                        Info="{DynamicResource Setup.About.OriginalAuthor.Info}"
                         IsHitTestVisible="False"
-                        Title="龙腾猫跃" />
+                        Title="{DynamicResource Setup.About.OriginalAuthor.Name}" />
                     <local:MyListItem
                         Grid.Row="1"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="Plain Craft Launcher 社区版的开发团队！"
+                        Info="{DynamicResource Setup.About.Community.Info}"
                         IsHitTestVisible="False"
-                        Title="PCL Community" />
+                        Title="{DynamicResource Setup.About.Community.Name}" />
                     <local:MyListItem
                         x:Name="ItemAboutPcl"
                         Grid.Row="2"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="当前版本: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)"
+                        Info="{DynamicResource Setup.About.Version.Info}"
                         IsHitTestVisible="False"
                         Title="{Binding Name}" />
                     <Image
@@ -86,24 +86,24 @@
                         Height="35"
                         local:CustomEventService.EventData="https://ifdian.net/a/LTCat"
                         local:CustomEventService.EventType="打开网页"
-                        Text="赞助原作者" />
+                        Text="{DynamicResource Setup.About.SponsorOriginalAuthor}" />
                     <local:MyButton
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://github.com/PCL-Community"
                         local:CustomEventService.EventType="打开网页"
-                        Text="GitHub 主页" />
+                        Text="{DynamicResource Setup.About.GitHubHome}" />
                     <local:MyButton
                         Grid.Row="2"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE"
                         local:CustomEventService.EventType="打开网页"
-                        Text="查看源代码" />
+                        Text="{DynamicResource Setup.About.SourceCode}" />
                 </Grid>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="特别鸣谢">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.About.SpecialThanks.Title}">
                 <Grid Margin="21,40,21,16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="45" />
@@ -123,92 +123,92 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="提供 BMCLAPI 镜像源和 Forge 安装工具，详见 https://bmclapi.bangbang93.com"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Bmclapi}"
                         IsHitTestVisible="False"
-                        Title="bangbang93" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Bangbang93}" />
                     <local:MyButton
                         Grid.Row="0"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://afdian.com/a/bangbang93"
                         local:CustomEventService.EventType="打开网页"
-                        Text="赞助镜像源" />
+                        Text="{DynamicResource Setup.About.SpecialThanks.SponsorMirror}" />
                     <local:MyListItem
                         Grid.Row="1"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了 Mod 名称的中文翻译和更多相关信息！"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcmod}"
                         IsHitTestVisible="False"
-                        Title="MC 百科" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Mcmod}" />
                     <local:MyButton
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.mcmod.cn"
                         local:CustomEventService.EventType="打开网页"
-                        Text="打开百科" />
+                        Text="{DynamicResource Setup.About.SpecialThanks.OpenMcmod}" />
                     <local:MyListItem
                         Grid.Row="2"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了 PCL CE 的相关云服务"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Cloud}"
                         IsHitTestVisible="False"
-                        Title="Pysio @ Akaere Network" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Pysio}" />
                     <local:MyButton
                         Grid.Row="2"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.pysio.online"
                         local:CustomEventService.EventType="打开网页"
-                        Text="转到博客" />
+                        Text="{DynamicResource Setup.About.SpecialThanks.GoBlog}" />
                     <local:MyListItem
                         Grid.Row="3"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了 PCL CE 的相关云服务"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Cloud}"
                         IsHitTestVisible="False"
-                        Title="云默安 @ 至远光辉" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Yunmoan}" />
                     <local:MyButton
                         Grid.Row="3"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.zyghit.cn"
                         local:CustomEventService.EventType="打开网页"
-                        Text="打开网站" />
+                        Text="{DynamicResource Setup.About.SpecialThanks.OpenWebsite}" />
                     <local:MyListItem
                         Grid.Row="4"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了联机模块"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.LinkModule}"
                         IsHitTestVisible="False"
-                        Title="EasyTier" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.EasyTier}" />
                     <local:MyButton
                         Grid.Row="4"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://easytier.cn"
                         local:CustomEventService.EventType="打开网页"
-                        Text="打开网站" />
+                        Text="{DynamicResource Setup.About.SpecialThanks.OpenWebsite}" />
                     <local:MyListItem
                         Grid.Row="5"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="提供了 MCIM 中国 Mod 下载镜像源和帮助库图床！"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcim}"
                         IsHitTestVisible="False"
-                        Title="z0z0r4" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Z0z0r4}" />
                     <local:MyListItem
                         Grid.Row="6"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
-                        Info="设计并制作了 PCL CE 的图标"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.IconDesign}"
                         IsHitTestVisible="False"
-                        Title="Emperormummy" />
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Emperormummy}" />
                     <Image
                         Grid.Row="0"
                         Margin="3"
@@ -291,7 +291,7 @@
             <local:MyCard
                 Margin="0,0,0,15"
                 DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
-                Title="贡献者们">
+                Title="{DynamicResource Setup.About.Contributors.Title}">
                 <Grid Margin="17,42,15,20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -335,34 +335,34 @@
                         HorizontalAlignment="Center"
                         local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE/graphs/contributors"
                         local:CustomEventService.EventType="打开网页"
-                        Text="查看更多" />
+                        Text="{DynamicResource Setup.About.Contributors.ViewMore}" />
                 </Grid>
             </local:MyCard>
 
             <local:MyCard
                 Margin="0,0,0,15"
                 CanSwap="True"
-                Title="版权声明与法律信息">
+                Title="{DynamicResource Setup.About.Legal.Title}">
                 <StackPanel Margin="25,39,23,20">
                     <TextBlock
                         Margin="0,6,0,4"
                         FontWeight="Bold"
-                        Text="隐私说明"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,0,0,2"
                         LineHeight="17"
-                        Text="本软件的 User Agent 中包含启动器的版本号，以统计各版本的用户数量。&#13;除此之外，本软件不会向开发者上传任何其他信息。&#13;* 联机与软硬件调查相关功能遵循其自身的隐私政策，与上述说明不通用。"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyText}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,12,0,4"
                         FontWeight="Bold"
-                        Text="其他信息"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,0,0,2"
                         LineHeight="17"
-                        Text="Copyright © 2026 PCL Community &#x26; 龙腾猫跃.&#13;非 MINECRAFT 官方产品。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联。"
+                        Text="{DynamicResource Setup.About.Legal.CopyrightText}"
                         TextWrapping="Wrap" />
                     <StackPanel
                         Height="35"
@@ -375,19 +375,19 @@
                             local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
-                            Text="社区版开源代码" />
+                            Text="{DynamicResource Setup.About.Legal.CommunitySource}" />
                         <local:MyButton
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
-                            Text="社区版联机大厅隐私政策" />
+                            Text="{DynamicResource Setup.About.Legal.CommunityLobbyPrivacy}" />
                         <local:MyButton
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://account.naids.com/policy"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
-                            Text="Natayark OpenID 服务条款" />
+                            Text="{DynamicResource Setup.About.Legal.NatayarkTerms}" />
                     </StackPanel>
                 </StackPanel>
             </local:MyCard>
@@ -395,27 +395,27 @@
                 Margin="0,0,0,15"
                 CanSwap="True"
                 IsSwapped="True"
-                Title="上游版权与法律信息">
+                Title="{DynamicResource Setup.About.UpstreamLegal.Title}">
                 <StackPanel Margin="25,39,23,20">
                     <TextBlock
                         Margin="0,6,0,4"
                         FontWeight="Bold"
-                        Text="隐私说明"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,0,0,2"
                         LineHeight="17"
-                        Text="本软件的 User Agent 中包含启动器的版本号，以统计各版本的用户数量。&#13;除此之外，本软件不会向开发者上传任何其他信息。"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.PrivacyText}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,12,0,4"
                         FontWeight="Bold"
-                        Text="其他信息"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
                         TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,0,0,2"
                         LineHeight="17"
-                        Text="Copyright © 龙腾猫跃 2016. All Rights Reserved.&#13;计算机软件著作权登记号：2020SR0875133&#13;违法违规行为举报投诉邮箱：hexdragon@vip.qq.com&#13;非 MINECRAFT 官方产品。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联。"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.CopyrightText}"
                         TextWrapping="Wrap" />
                     <StackPanel
                         Height="35"
@@ -429,14 +429,14 @@
                             local:CustomEventService.EventData="https://shimo.im/docs/rGrd8pY8xWkt6ryW"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
-                            Text="用户协议与免责声明" />
+                            Text="{DynamicResource Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
                         <local:MyButton
                             Width="120"
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://github.com/Meloong-Git/PCL"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
-                            Text="开源代码" />
+                            Text="{DynamicResource Setup.About.UpstreamLegal.OpenSource}" />
                     </StackPanel>
                 </StackPanel>
             </local:MyCard>
@@ -444,7 +444,7 @@
                 Margin="0,0,0,15"
                 CanSwap="True"
                 IsSwapped="True"
-                Title="许可与版权声明">
+                Title="{DynamicResource Setup.About.Licenses.Title}">
                 <ItemsControl Margin="25,42,23,4" ItemsSource="{Binding Licenses}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -480,7 +480,7 @@
                                     local:CustomEventService.EventData="{Binding WebsiteUri}"
                                     local:CustomEventService.EventType="打开网页"
                                     Padding="13,0"
-                                    Text="查看来源网站"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewWebsite}"
                                     Visibility="{Binding WebsiteUri, Converter={StaticResource NullToVisibilityConverter}}" />
                                 <local:MyButton
                                     Grid.Row="1"
@@ -491,7 +491,7 @@
                                     local:CustomEventService.EventData="{Binding LicenseUri}"
                                     local:CustomEventService.EventType="打开网页"
                                     Padding="13,0"
-                                    Text="查看许可文档"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewLicense}"
                                     Visibility="{Binding LicenseUri, Converter={StaticResource NullToVisibilityConverter}}" />
                             </Grid>
                         </DataTemplate>

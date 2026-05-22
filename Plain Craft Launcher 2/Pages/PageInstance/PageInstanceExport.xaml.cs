@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -177,7 +178,7 @@ public partial class PageInstanceExport : IRefreshable
                     };
                     if (ReferenceEquals(Panel, PanOptionsSaves))
                         GetExportOption(NewCheckBox).Description =
-                            SubFolder.LastWriteTime.ToString("yyyy'/'MM'/'dd HH':'mm");
+                            Lang.Date(SubFolder.LastWriteTime, "g");
                     Panel.Children.Add(NewCheckBox);
                 }
         }
@@ -698,7 +699,7 @@ public partial class PageInstanceExport : IRefreshable
             {
                 ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{ConfigPackPath}）");
                 if (ModMain.MyMsgBox($"指定的路径：{ConfigPackPath}{"\r\n"}{"\r\n"}{ex}",
-                        "无法使用配置文件中指定的导出路径", "确定", "取消") == 2)
+                        "无法使用配置文件中指定的导出路径", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                     return;
             }
 
@@ -837,8 +838,8 @@ public partial class PageInstanceExport : IRefreshable
             // 复制 PCL 实例设置
             ModBase.CopyDirectory(Path.Combine(McInstance.PathInstance, "PCL"), Path.Combine(OverridesFolder, "PCL"));
             #if RELEASE
-                        '复制 PCL 本体
-                        If IncludePCL Then CopyFile(ExePathWithName, CacheFolder & "Plain Craft Launcher.exe")
+                        // 复制 PCL 本体
+                        if (IncludePCL) ModBase.CopyFile(ModBase.ExePathWithName, Path.Combine(CacheFolder, "Plain Craft Launcher.exe"));
             #endif
             // 复制 PCL 个性化内容
             if (IncludePCLCustom)
@@ -975,14 +976,14 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     if (ModMain.MyMsgBox(
                             "联网获取部分文件信息失败，是否继续导出？" + "\r\n" + "\r\n" + "若继续，无法获取信息的文件将被直接打包。" +
-                            "\r\n" + "由于二次分发可能违反使用协议，请尽量不要公开发布导出的整合包！", "部分文件信息获取失败", "继续", "取消") == 2)
+                            "\r\n" + "由于二次分发可能违反使用协议，请尽量不要公开发布导出的整合包！", "部分文件信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 2)
                         throw FailedExceptions.First();
                 }
                 else if (FailedExceptions.Count > 1)
                 {
                     if (ModMain.MyMsgBox(
                             "联网获取文件信息失败，是否继续导出？" + "\r\n" + "\r\n" + "若继续，所有文件都将被直接打包。" +
-                            "\r\n" + "由于二次分发可能违反使用协议，请尽量不要公开发布导出的整合包！", "文件信息获取失败", "继续", "取消") == 2)
+                            "\r\n" + "由于二次分发可能违反使用协议，请尽量不要公开发布导出的整合包！", "文件信息获取失败", "继续", Lang.Text("Common.Action.Cancel")) == 2)
                         throw FailedExceptions.First();
                 }
             })

@@ -20,7 +20,7 @@
                             LogoScale="0.75" Height="24"
                             Logo="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z"
                             HorizontalAlignment="Right" Theme="Black" />
-        <local:MyButton x:Name="BtnSearch" Click="BtnSearch_Click" Visibility="Collapsed" Margin="0,4,4,4" Text="搜索" Width="60"
+        <local:MyButton x:Name="BtnSearch" Click="BtnSearch_Click" Visibility="Collapsed" Margin="0,4,4,4" Text="{DynamicResource Common.Action.Search}" Width="60"
                         ColorType="Highlight" HorizontalAlignment="Right" />
     </Grid>
 </local:MyCard>

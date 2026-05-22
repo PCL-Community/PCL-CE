@@ -40,7 +40,7 @@
                     <local:MyIconTextButton x:Name="BtnOverrideCancel" Height="24" HorizontalAlignment="Right"
                                             VerticalAlignment="Center" Margin="0,0,5,0"
                                             IsHitTestVisible="False" Opacity="0.5"
-                                            Text="重置"
+                                            Text="{DynamicResource Common.Action.Reset}"
                                             Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
                                             LogoScale="0.9" />
                     <StackPanel Margin="25,38,15,15" Name="PanOptions">

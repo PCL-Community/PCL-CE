@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Windows;
 using Microsoft.VisualBasic;
 using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.Utils.VersionControl;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -77,7 +79,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnApply = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconPlayGame,
+                    Logo = Icon.IconPlayGame,
                     ToolTip = "回到到此快照"
                 };
 
@@ -85,7 +87,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                 {
                     try
                     {
-                        if (ModMain.MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1: "确定", Button2: "取消") == 2)
+                        if (ModMain.MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1: Lang.Text("Common.Action.Confirm"), Button2: Lang.Text("Common.Action.Cancel")) == 2)
                             return;
                         ModMain.Hint("应用快照中，请勿执行其他操作！");
                         var loaders = new List<ModLoader.LoaderBase>();
@@ -109,7 +111,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnExport = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonSave,
+                    Logo = Icon.IconButtonSave,
                     ToolTip = "导出到压缩包"
                 };
 
@@ -144,8 +146,8 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnDelete = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonDelete,
-                    ToolTip = "删除"
+                    Logo = Icon.IconButtonDelete,
+                    ToolTip = Lang.Text("Common.Action.Delete")
                 };
 
                 btnDelete.Click += (_, _) =>
@@ -154,7 +156,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     {
                         if (ModMain.MyMsgBox(
                                 $"你确定要删除备份 {item.Name} 吗？{"\r\n"}描述：{item.Desc}{"\r\n"}创建时间：{item.Created}",
-                                "删除确认", "确认", "取消") == 2) return;
+                                "删除确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2) return;
                         using (var snap = new SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave))
                         {
                             snap.DeleteVersion(item.NodeId);
@@ -171,7 +173,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
                 var btnInfo = new MyIconButton
                 {
-                    Logo = ModBase.Logo.IconButtonInfo,
+                    Logo = Icon.IconButtonInfo,
                     ToolTip = "信息"
                 };
 
@@ -189,7 +191,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                         var totalSize = data.Select(x => x.Length).Sum();
                         ModMain.MyMsgBox($@"描述: {item.Desc}
                             创建时间: {item.Created}
-                            存档大小: {ByteStream.GetReadableLength(totalSize)} ({data.Count} 个对象)", item.Name);
+                            存档大小: {ByteStream.GetReadableLength(totalSize, provider: Lang.Culture)} ({data.Count} 个对象)", item.Name);
                     }
                     catch (Exception ex)
                     {
@@ -211,7 +213,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
     {
         try
         {
-            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: $"{DateTime.Now:yyyy/MM/dd-HH:mm:ss}");
+            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: DateTime.Now.ToString("yyyy/MM/dd-HH:mm:ss", CultureInfo.InvariantCulture));
             if (input is null)
                 return;
             if (string.IsNullOrWhiteSpace(input))
@@ -244,7 +246,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
 
     private void BtnClean_Click()
     {
-        if (ModMain.MyMsgBox("此功能可以清理备份文件中已不再需要的文件，建议在发生备份删除后使用。", "确定使用吗？", "确定", "返回") == 2)
+        if (ModMain.MyMsgBox("此功能可以清理备份文件中已不再需要的文件，建议在发生备份删除后使用。", "确定使用吗？", Lang.Text("Common.Action.Confirm"), "返回") == 2)
             return;
         var loaders = new List<ModLoader.LoaderBase>
         {
