@@ -154,7 +154,7 @@ public class SequentialPipelineTask<TContext> : ITask, ITaskCancelable, ITaskPro
     private void _UpdateState(TaskState newState, string msg)
     {
         State = newState;
-        _UpdateState(newState, msg);
+        StateChanged?.Invoke(newState, msg);
     }
 
     /// <inheritdoc />
@@ -164,7 +164,7 @@ public class SequentialPipelineTask<TContext> : ITask, ITaskCancelable, ITaskPro
     public void Cancel() => _cts?.Cancel();
 
     /// <summary>
-    /// 同步步骤：将 <see cref="Func{TContext, TInput?, TOutput?}"/> 适配为 <see cref="IPipelineStep{TContext}"/>。
+    /// 同步步骤：将 <see cref="Func{TContext, TInput, TOutput}"/> 适配为 <see cref="IPipelineStep{TContext}"/>。
     /// </summary>
     private sealed class SyncStep<TInput, TOutput> : IPipelineStep<TContext>
     {
@@ -191,7 +191,7 @@ public class SequentialPipelineTask<TContext> : ITask, ITaskCancelable, ITaskPro
     }
 
     /// <summary>
-    /// 异步步骤：将 <see cref="Func{TContext, TInput?, CancellationToken, Task{TOutput?}}"/> 适配为 <see cref="IPipelineStep{TContext}"/>。
+    /// 异步步骤：将 <see cref="Func{TContext, TInput, CancellationToken, Task{TOutput}}"/> 适配为 <see cref="IPipelineStep{TContext}"/>。
     /// </summary>
     private sealed class AsyncStep<TInput, TOutput> : IPipelineStep<TContext>
     {

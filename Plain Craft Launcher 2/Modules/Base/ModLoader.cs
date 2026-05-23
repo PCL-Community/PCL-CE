@@ -40,12 +40,14 @@ public static class ModLoader
     // 文件夹刷新类委托
     private static readonly Dictionary<LoaderBase, LoaderFolderDictionaryEntry> LoaderFolderDictionary = [];
 
-    public static void LoaderTaskbarAdd<T>(LoaderCombo<T> Loader)
+    public static void LoaderTaskbarAdd<TContext>(LoaderCombo<TContext> Loader)
     {
         if (ModMain.FrmSpeedLeft is not null)
             ModMain.FrmSpeedLeft.TaskRemove(Loader);
         LoaderTaskbar.Add(Loader);
         ModBase.Log($"[Taskbar] {Loader.Name} 已加入任务列表");
+
+
     }
 
     public static void LoaderTaskbarProgressRefresh()
