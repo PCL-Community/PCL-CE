@@ -2203,9 +2203,10 @@ pause";
                             Task.Progress = 0.6d;
                             // 解压支持库文件
                             Installer.Dispose();
-                            ModBase.ExtractFile(InstallerAddress, Path.Combine(InstallerAddress, "_unrar"));
-                            ModBase.CopyDirectory(Path.Combine(InstallerAddress, "_unrar", "maven"), Path.Combine(McFolder, "libraries"));
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            ModBase.ExtractFile(InstallerAddress, unrarDir);
+                            ModBase.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(McFolder, "libraries"));
+                            ModBase.DeleteDirectory(unrarDir);
                         }
                         else
                         {
@@ -2239,8 +2240,9 @@ pause";
                                 Installer.Dispose();
                             if (File.Exists(InstallerAddress))
                                 File.Delete(InstallerAddress);
-                            if (Directory.Exists(Path.Combine(InstallerAddress, "_unrar")))
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            if (Directory.Exists(unrarDir))
+                                ModBase.DeleteDirectory(unrarDir);
                         }
                         catch (Exception ex)
                         {
