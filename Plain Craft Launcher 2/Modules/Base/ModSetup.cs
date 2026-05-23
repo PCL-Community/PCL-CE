@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using System.Net;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -13,70 +11,147 @@ using PCL.Network;
 
 namespace PCL;
 
-public class ModSetup : IConfigScope
+public class ModSetup
 {
-    #region 基础
-
-    public IEnumerable<string> CheckScope(IReadOnlySet<string> keys)
-    {
-        var methods = typeof(ModSetup).GetMethods();
-        foreach (var method in methods)
-            _methodCache.TryAdd(method.Name, method);
-        return methods.Where(method => keys.Contains(method.Name)).Select(method => method.Name);
-    }
-
-    public bool Reset(object? argument = null)
-    {
-        throw new NotSupportedException();
-    }
-
-    public bool IsDefault(object? argument = null)
-    {
-        throw new NotSupportedException();
-    }
-
     public ModSetup()
     {
-        ConfigService.RegisterObserver(this, new ConfigObserver(ConfigEvent.Changed, OnConfigChanged));
+        // === Hide Group ===
+        ConfigService.RegisterObserver(Config.Preference.Hide,
+            new ConfigObserver(ConfigEvent.Changed, _ => PageSetupUI.HiddenRefresh()));
+
+        // === Launch ===
+        Config.Launch.MemoryAllocationModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => LaunchRamType((int)e.Value!)));
+
+        // === Tool ===
+        Config.Download.ThreadLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => ToolDownloadThread((int)e.Value!)));
+        Config.Download.SpeedLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => ToolDownloadSpeed((int)e.Value!)));
+
+        // === UI - Launcher ===
+        Config.Preference.Theme.WindowOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLauncherTransparent((int)e.Value!)));
+        Config.Preference.Theme.ThemeSelectedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLauncherTheme((int)e.Value!)));
+        Config.Preference.Background.BackgroundColorfulConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBackgroundColorful((bool)e.Value!)));
+        Config.Preference.LockWindowSizeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLockWindowSize((bool)e.Value!)));
+
+        // UI - Video Background
+        Config.Preference.Background.AutoPauseVideoConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiAutoPauseVideo((bool)e.Value!)));
+
+        // UI - Background Image
+        Config.Preference.Background.WallpaperOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBackgroundOpacity((int)e.Value!)));
+        Config.Preference.Background.WallpaperBlurRadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBackgroundBlur((int)e.Value!)));
+        Config.Preference.Background.WallpaperSuitModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBackgroundSuit((int)e.Value!)));
+
+        // UI - Font
+        Config.Preference.FontConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiFont((string)(e.Value ?? ""))));
+
+        // UI - Homepage
+        Config.Preference.Homepage.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiCustomType((int)e.Value!)));
+
+        // UI - Blur
+        Config.Preference.Blur.IsEnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBlur((bool)e.Value!)));
+        Config.Preference.Blur.RadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBlurValue((int)e.Value!)));
+        Config.Preference.Blur.SamplingRateConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBlurSamplingRate((int)e.Value!)));
+        Config.Preference.Blur.KernelTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiBlurType((int)e.Value!)));
+
+        // UI - Title Bar
+        Config.Preference.WindowTitleTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLogoType((int)e.Value!)));
+        Config.Preference.WindowTitleCustomTextConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLogoText((string)(e.Value ?? ""))));
+        Config.Preference.TopBarLeftAlignConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => UiLogoLeft((bool)e.Value!)));
+
+        // === System ===
+        Config.Debug.EnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemDebugMode((bool)e.Value!)));
+        Config.Debug.AnimationSpeedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemDebugAnim((int)e.Value!)));
+        Config.Network.HttpProxy.CustomAddressConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemHttpProxy((string)(e.Value ?? ""))));
+        Config.Network.HttpProxy.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemHttpProxyType((int)e.Value!)));
+        Config.Network.HttpProxy.CustomUsernameConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemHttpProxyCustomUsername((string)(e.Value ?? ""))));
+        Config.Network.HttpProxy.CustomPasswordConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => SystemHttpProxyCustomPassword((string)(e.Value ?? ""))));
+
+        // === Version ===
+        Config.Instance.MemorySolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => VersionRamType((int)e.Value!)));
+        Config.InstanceAuth.LoginRequirementSolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => VersionServerLogin((int)e.Value!)));
     }
 
-    private readonly ConcurrentDictionary<string, MethodInfo?> _methodCache = new();
-
-    private void InvokeEventMethod(string key, Func<object> valueGetter)
+    /// <summary>
+    /// 主动应用所有当前配置值到 UI，用于启动时初始化。
+    /// </summary>
+    public static void ApplyAll()
     {
-        var method = _methodCache.GetOrAdd(key, typeof(ModSetup).GetMethod);
-        if (method == null) return;
-        var para = method.GetParameters();
-        if (para.Length < 1) return;
-        var paraType = para[0].ParameterType;
-        var value = valueGetter();
-        var valueType = value.GetType();
-        if (valueType != paraType)
-        {
-            if (valueType.IsEnum) value = (int)value;
-            else if (value is string s) value = StringConvertExtension.Convert(s, paraType);
-            else if (paraType == typeof(string)) value = value.ConvertToString();
-            else
-                throw new InvalidCastException(
-                    $"{key}: {valueType.FullName} cannot be converted to {paraType.FullName}");
-        }
+        // Launch
+        LaunchRamType(Config.Launch.MemoryAllocationMode);
 
-        method.Invoke(this, [value]);
+        // Tool
+        ToolDownloadThread(Config.Download.ThreadLimit);
+        ToolDownloadSpeed(Config.Download.SpeedLimit);
+
+        // UI - Launcher
+        UiLauncherTransparent(Config.Preference.Theme.WindowOpacity);
+        UiLauncherTheme(Config.Preference.Theme.ThemeSelected);
+        UiBackgroundColorful(Config.Preference.Background.BackgroundColorful);
+        UiLockWindowSize(Config.Preference.LockWindowSize);
+
+        // UI - Video Background
+        UiAutoPauseVideo(Config.Preference.Background.AutoPauseVideo);
+
+        // UI - Background Image
+        UiBackgroundOpacity(Config.Preference.Background.WallpaperOpacity);
+        UiBackgroundBlur(Config.Preference.Background.WallpaperBlurRadius);
+        UiBackgroundSuit(Config.Preference.Background.WallpaperSuitMode);
+
+        // UI - Font
+        UiFont(Config.Preference.Font);
+
+        // UI - Homepage
+        UiCustomType(Config.Preference.Homepage.Type);
+
+        // UI - Blur
+        UiBlur(Config.Preference.Blur.IsEnabled); 
+        UiBlurValue(Config.Preference.Blur.Radius);
+        UiBlurSamplingRate(Config.Preference.Blur.SamplingRate);
+        UiBlurType(Config.Preference.Blur.KernelType);
+
+        // UI - Title Bar
+        UiLogoType((int)Config.Preference.WindowTitleType);
+        UiLogoText(Config.Preference.WindowTitleCustomText);
+        UiLogoLeft(Config.Preference.TopBarLeftAlign);
+
+        // UI - Hide
+        PageSetupUI.HiddenRefresh();
+
+        // System
+        SystemDebugMode(Config.Debug.Enabled);
+        SystemDebugAnim(Config.Debug.AnimationSpeed);
+        SystemHttpProxy(Config.Network.HttpProxy.CustomAddress);
+        SystemHttpProxyType(Config.Network.HttpProxy.Type);
+        SystemHttpProxyCustomUsername(Config.Network.HttpProxy.CustomUsername);
+        SystemHttpProxyCustomPassword(Config.Network.HttpProxy.CustomPassword);
     }
-
-    public void OnConfigChanged(ConfigEventArgs e)
-    {
-        var key = e.Item.Key;
-        InvokeEventMethod(key, () => e.Value ?? GetConfigItem(key).DefaultValueNoType);
-    }
-
-    private static ConfigItem GetConfigItem(string key)
-    {
-        var result = ConfigService.TryGetConfigItemNoType(key, out var item);
-        return result ? item! : throw new KeyNotFoundException($"配置项 '{key}' 不存在");
-    }
-
-    #endregion
 
     #region Launch
 
@@ -95,7 +170,7 @@ public class ModSetup : IConfigScope
     }
 
     // 游戏内存
-    public void LaunchRamType(int Type)
+    public static void LaunchRamType(int Type)
     {
         if (ModMain.FrmSetupLaunch is null)
             return;
@@ -106,12 +181,12 @@ public class ModSetup : IConfigScope
 
     #region Tool
 
-    public void ToolDownloadThread(int Value)
+    public static void ToolDownloadThread(int Value)
     {
         ModNet.NetTaskThreadLimit = Value + 1;
     }
 
-    public void ToolDownloadSpeed(int Value)
+    public static void ToolDownloadSpeed(int Value)
     {
         if (Value <= 14)
             ModNet.NetTaskSpeedLimitHigh = (long)Math.Round((Value + 1) * 0.1d * 1024d * 1024d);
@@ -128,22 +203,22 @@ public class ModSetup : IConfigScope
     #region UI
 
     // 启动器
-    public void UiLauncherTransparent(int Value)
+    public static void UiLauncherTransparent(int Value)
     {
         ModMain.FrmMain.Opacity = Value / 1000d + 0.4d;
     }
 
-    public void UiLauncherTheme(int Value)
+    public static void UiLauncherTheme(int Value)
     {
         ThemeManager.ThemeRefresh(Value);
     }
 
-    public void UiBackgroundColorful(bool Value)
+    public static void UiBackgroundColorful(bool Value)
     {
         ThemeManager.ThemeRefresh();
     }
 
-    public void UiLockWindowSize(bool Value)
+    public static void UiLockWindowSize(bool Value)
     {
         if (Value)
             ModMain.FrmMain.RemoveResizer();
@@ -152,7 +227,7 @@ public class ModSetup : IConfigScope
     }
 
     // 视频背景
-    public void UiAutoPauseVideo(bool Value)
+    public static void UiAutoPauseVideo(bool Value)
     {
         if (!Value)
         {
@@ -168,12 +243,12 @@ public class ModSetup : IConfigScope
     }
 
     // 背景图片
-    public void UiBackgroundOpacity(int Value)
+    public static void UiBackgroundOpacity(int Value)
     {
         ModMain.FrmMain.ImgBack.Opacity = Value / 1000d;
     }
 
-    public void UiBackgroundBlur(int Value)
+    public static void UiBackgroundBlur(int Value)
     {
         if (Value == 0)
             ModMain.FrmMain.ImgBack.Effect = null;
@@ -182,7 +257,7 @@ public class ModSetup : IConfigScope
         ModMain.FrmMain.ImgBack.Margin = new Thickness(-(Value + 1) / 1.8d);
     }
 
-    public void UiBackgroundSuit(int Value)
+    public static void UiBackgroundSuit(int Value)
     {
         if (ModMain.FrmMain.ImgBack.Background == null)
             return;
@@ -283,7 +358,7 @@ public class ModSetup : IConfigScope
     }
 
     // 字体
-    public void UiFont(string value)
+    public static void UiFont(string value)
     {
         try
         {
@@ -351,8 +426,10 @@ public class ModSetup : IConfigScope
     }
 
     // 高级材质
-    public void UiBlur(bool Value)
+    public static void UiBlur(bool Value)
     {
+        if (ModMain.FrmSetupUI is null)
+            return;
         ModMain.FrmSetupUI.PanBlurValue.Visibility = Value ? Visibility.Visible : Visibility.Collapsed;
         if (Value)
             UiBlurValue(Config.Preference.Blur.Radius);
@@ -360,17 +437,17 @@ public class ModSetup : IConfigScope
             UiBlurValue(0);
     }
 
-    public void UiBlurValue(int Value)
+    public static void UiBlurValue(int Value)
     {
         System.Windows.Application.Current.Resources["BlurRadius"] = Value * 1.0d;
     }
 
-    public void UiBlurSamplingRate(int Value)
+    public static void UiBlurSamplingRate(int Value)
     {
         System.Windows.Application.Current.Resources["BlurSamplingRate"] = Value * 0.01d;
     }
 
-    public void UiBlurType(int Value)
+    public static void UiBlurType(int Value)
     {
         System.Windows.Application.Current.Resources["BlurType"] = (KernelType)Value;
     }
@@ -496,167 +573,22 @@ public class ModSetup : IConfigScope
             GridUnitType.Star);
     }
 
-    public void UiHiddenPageDownload(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenPageSetup(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenPageTools(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupLaunch(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupUi(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupLauncherLanguage(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupLauncherMisc(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupGameManage(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupJava(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupUpdate(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupGameLink(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupAbout(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupFeedback(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenSetupLog(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenToolsGameLink(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenToolsHelp(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenToolsTest(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionEdit(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionExport(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionSave(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionScreenshot(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionMod(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionResourcePack(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionShader(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionSchematic(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenVersionServer(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenFunctionSelect(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenFunctionModUpdate(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
-    public void UiHiddenFunctionHidden(bool Value)
-    {
-        PageSetupUI.HiddenRefresh();
-    }
-
     #endregion
 
     #region System
 
     // 调试选项
-    public void SystemDebugMode(bool Value)
+    public static void SystemDebugMode(bool Value)
     {
         ModBase.ModeDebug = Value;
     }
 
-    public void SystemDebugAnim(int Value)
+    public static void SystemDebugAnim(int Value)
     {
         ModAnimation.AniSpeed = Value >= 30 ? 200d : ModBase.MathClamp(Value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
-    public void SystemHttpProxy(string value)
+    public static void SystemHttpProxy(string value)
     {
         if (value.IsNullOrWhiteSpace()) return;
         try
@@ -669,7 +601,7 @@ public class ModSetup : IConfigScope
         }
     }
 
-    public void SystemHttpProxyType(int value)
+    public static void SystemHttpProxyType(int value)
     {
         var mode = (HttpProxyManager.ProxyMode)value;
         HttpProxyManager.Instance.Mode = Enum.IsDefined(mode)
@@ -677,7 +609,7 @@ public class ModSetup : IConfigScope
             : HttpProxyManager.Instance.Mode;
     }
 
-    public void SystemHttpProxyCustomUsername(string value)
+    public static void SystemHttpProxyCustomUsername(string value)
     {
         if (!string.IsNullOrEmpty(value))
         {
@@ -690,7 +622,7 @@ public class ModSetup : IConfigScope
         }
     }
 
-    public void SystemHttpProxyCustomPassword(string value)
+    public static void SystemHttpProxyCustomPassword(string value)
     {
         var username = Config.Network.HttpProxy.CustomUsername;
         if (!string.IsNullOrEmpty(username))
@@ -704,7 +636,7 @@ public class ModSetup : IConfigScope
     #region Version
 
     // 游戏内存
-    public void VersionRamType(int Type)
+    public static void VersionRamType(int Type)
     {
         if (ModMain.FrmInstanceSetup is null)
             return;
@@ -712,7 +644,7 @@ public class ModSetup : IConfigScope
     }
 
     // 服务器
-    public void VersionServerLogin(int Type)
+    public static void VersionServerLogin(int Type)
     {
         if (ModMain.FrmInstanceSetup is null)
             return;
