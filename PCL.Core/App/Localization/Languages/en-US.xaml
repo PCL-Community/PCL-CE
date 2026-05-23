@@ -738,6 +738,205 @@
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">Copy these IDs</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">Remove these favorites</sys:String>
 
+    <!-- Minecraft.Download Stage -->
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">Analyze assets index URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Background">Analyze assets index URL (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Side">Analyze assets index URL (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeCoreJarUrl">Analyze core JAR URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeFabricLibraries">Analyze Fabric libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeGameLibrariesSide">Analyze game libraries (side)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLabyModLibraries">Analyze LabyMod libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLegacyFabricLibraries">Analyze Legacy Fabric libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLiteLoaderLibraries">Analyze LiteLoader libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLoaderLibraries">Analyze {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">Analyze missing assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">Analyze missing libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">Analyze OptiFine libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">Analyze Quilt libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">Analyze required assets (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">Analyze vanilla and LabyMod libraries (side)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">Analyze vanilla libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AddIgnoreFlag">Add ignore flag</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.BuildServer">Build server</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.CopyAssetsIndex.Background">Copy assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DeleteIgnoreFlag">Delete ignore flag</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets">Download assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.MainLoader">Download assets (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.Side">Download assets (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex">Download assets index</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Background">Download assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Side">Download assets index (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadCoreJar">Download core JAR</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadFabricAPI">Download Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibraries">Download game libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibrariesSide">Download game libraries (side)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadInstanceJson">Download instance JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLabyModClientJson">Download LabyMod client JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLegacyFabricAPI">Download Legacy Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries">Download libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries.MainLoader">Download libraries (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLiteLoaderLibraries">Download LiteLoader libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries">Download {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries.Side">Download {0} libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderMainFile">Download {0} main file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadMainFile">Download main file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">Download OptiFabric</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">Download OptiFine libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">Download OptiFine file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadQFAPI_QSL">Download QFAPI / QSL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">Download server file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">Download vanilla and LabyMod libraries (side)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">Download vanilla assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaLibraries.Side">Download vanilla libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.FabricInstallerDownload">Fabric {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeDownload">{0} Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeInstallerFilter">{0} installer (*.{1})|*.{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.GetLoaderLibraries">Obtain {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodA">Install Forge (Method A)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodB">Install Forge (Method B)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForgeType">Install {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallGame">Install game</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallLiteLoader">Install LiteLoader</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodA">Install OptiFine (Method A)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodB">Install OptiFine (Method B)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LabyModInstallerDownload">LabyMod installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LegacyFabricInstallerDownload">Legacy Fabric {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderDownload">LiteLoader {0} Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderInstallerDownload">LiteLoader {0} Installer Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderDownloadCombo">{0} {1} Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderInstallerDownload">Download {0} {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftDownload">Minecraft {0} Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftServerDownload">Minecraft {0} Server Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainFabricMainFileUrl">Obtain Fabric main file URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLabyModClientUrl">Obtain LabyMod client file URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLegacyFabricMainFileUrl">Obtain Legacy Fabric main file URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">Obtain {0} details</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">Obtain OptiFine download URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">Obtain OptiFine file URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">Obtain Quilt main file URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">Obtain vanilla JSON URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">Prepare to download {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">Start LiteLoader dependency download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">Update assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">Download vanilla JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">Download vanilla libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">Wait for vanilla download</sys:String>
+
+    <!-- Minecraft.Download Error -->
+    <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">Failed to add client version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">Failed to analyze asset index URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BMCLAPIMissingTargetVersion">BMCLAPI missing target version {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta download failed: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">Old-style Forge installation failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">Result too short ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeRecommendedTooFew">Too few recommended versions ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallationCanceled">Installation canceled.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists">An instance named {0} already exists. Download again?{1}This will overwrite the instance's JSON and JAR files, but will not affect version-isolated files.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists.Title">Instance already exists</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceDownloading">This instance is already downloading!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallerFailedLastLine">Installer failed, last line: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaNotFoundInstallCanceled">Installation canceled because Java was not found.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaVersionRequired">Java 8 or higher</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JsonInvalid">{0} JSON invalid, path: {1}, prefix: {2}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LiteLoaderInstallFailed">Failed to install new LiteLoader instance</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderDetailsNotFound">Failed to find details for {0} {1}-{2}!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallFailed">Failed to install new {0} instance</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerFailedLastLine">{0} installer failed, log ends with: {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerRunFailed">Failed to run {0} installer</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderLibraryListFailed">Failed to obtain {0} library list</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoAvailableVersion">No available version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJarDownloadInfo">No JAR download info in base version {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJsonDownloadAddress">No corresponding JSON download URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoOfficialServerDownload">Mojang has not provided an official server download for Minecraft {0}!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoVanillaLoaderSpecified">Cannot specify MC installation folder without a vanilla downloader</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NotFound">No available version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineForgeCompatMismatch">Version and Forge compatibility data mismatch</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodA">OptiFine installation (Method A) failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodB">OptiFine installation (Method B) failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallerRunFailed">Failed to run OptiFine installer</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineTimeDataMismatch">Version and release time data mismatch</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ServerDownloading">This server is already downloading!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.Timeout">Download source connection timed out</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.UnknownMinecraftVersion">Unknown Minecraft version ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">{0} version list parse failed ({1})</sys:String>
+
+    <!-- Minecraft.Download ServerBatch -->
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEULA">If prompted "You need to agree to the EULA", edit eula.txt to agree!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, right-click edit this script and replace %JAVA_HOME% with !JAVA_HOME!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPCLSettings">You can select an appropriate Java for this version in PCL's [Settings → Launch Options → In-launcher Java Path]!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">Server stopped.</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} vanilla server</sys:String>
+
+    <!-- Download Source -->
+    <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom Official</sys:String>
+    <sys:String x:Key="Download.Source.FabricOfficial">Fabric Official</sys:String>
+    <sys:String x:Key="Download.Source.ForgeOfficial">Forge Official</sys:String>
+    <sys:String x:Key="Download.Source.LegacyFabricOfficial">LegacyFabric Official</sys:String>
+    <sys:String x:Key="Download.Source.LiteLoaderOfficial">LiteLoader Official</sys:String>
+    <sys:String x:Key="Download.Source.MojangOfficial">Mojang Official</sys:String>
+    <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge Official</sys:String>
+    <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine Official</sys:String>
+    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt Official</sys:String>
+
+    <!-- Download Tag & Type -->
+    <sys:String x:Key="Download.Tag.UVMC">UVMC Exclusive</sys:String>
+    <sys:String x:Key="Download.Version.Type.Installer">Installer</sys:String>
+
+    <!-- Common Status & Actions (additions) -->
+    <sys:String x:Key="Common.Action.Download">Download</sys:String>
+    <sys:String x:Key="Common.Action.Install">Install</sys:String>
+    <sys:String x:Key="Common.Action.UpdateLog">Changelog</sys:String>
+    <sys:String x:Key="Common.Status.Cancelled">Canceled!</sys:String>
+    <sys:String x:Key="Common.Status.Failure">Failure:</sys:String>
+    <sys:String x:Key="Common.Status.Success">Success!</sys:String>
+
+    <!-- Minecraft Version -->
+    <sys:String x:Key="Minecraft.Version.Unknown">Unknown version</sys:String>
+    <sys:String x:Key="Minecraft.Version.Vanilla">Vanilla</sys:String>
+
+    <!-- Minecraft Update -->
+    <sys:String x:Key="Minecraft.Update.NewVersion">New version: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Update.Title">Minecraft Update</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdateTime">Update time: </sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdatedAt">Updated: </sys:String>
+
+    <!-- Minecraft Error -->
+    <sys:String x:Key="Minecraft.Error.AssetIndexNotFound">Asset Index not found</sys:String>
+    <sys:String x:Key="Minecraft.Error.CannotReadInstanceFolder">Cannot read instance folder, possibly due to permissions ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Error.DependencyRecursion">Version dependency recursion: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.InitInstanceJsonFailed">Failed to initialize instance JSON ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Error.InstanceJsonNotFound">Instance JSON file not found: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.NoAssetIndexInfo">This instance has no asset index information</sys:String>
+    <sys:String x:Key="Minecraft.Error.Unrecognizable">Unrecognizable: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">Cannot get version number, result is empty</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">Failed to fetch version number: {0}</sys:String>
+
+    <!-- Minecraft Skin Error -->
+    <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">Invalid skin type: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoCustomSkin">User has not set a custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoSkinData">Skin response contains no skin data, possibly a user without custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.OfflineNoSkin">Offline UUID has no official skin.</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.PropertyNotFound">No matching Property found in skin response</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.SkinReturnEmpty">Skin return value is empty, possibly a user without custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.UuidEmpty">UUID is empty.</sys:String>
+
+    <!-- Minecraft April Fools -->
+    <sys:String x:Key="Minecraft.Fool.Description.2013">2013 | This update, planned in secret for two years, takes the game to new heights!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2015">2015 | As an all-ages game, we need peace, love, and hugs.</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2016">2016 | It's time to bring modern technology to Minecraft!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2019">2019 | We found this masterpiece from 1994 in the basement ruins!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2020">2020 | We added 20 billion new dimensions, turning infinite imagination into reality!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2022">2022 | One block at a time! Embrace new mining, crafting and riding gameplay!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2023">2023 | Research shows: players love making choices—the more the better!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2024">2024 | Poisonous potatoes have always been overlooked and underestimated, so we supercharged them!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2025">2025 | You can craft anything—including crafting your world!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2026">2026 | Who needs an inventory? Let the blocks follow you!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Blue">(Blue version)</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Purple">(Purple version)</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Red">(Red version)</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>

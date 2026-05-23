@@ -732,6 +732,205 @@
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">复制这些 ID</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">移除这些收藏</sys:String>
 
+    <!-- Minecraft.Download Stage -->
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">分析资源文件索引地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Background">后台分析资源文件索引地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Side">分析资源文件索引地址（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeCoreJarUrl">分析核心 Jar 文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeFabricLibraries">分析 Fabric 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeGameLibrariesSide">分析游戏支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLabyModLibraries">分析 LabyMod 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLegacyFabricLibraries">分析 Legacy Fabric 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLiteLoaderLibraries">分析 LiteLoader 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLoaderLibraries">分析 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">分析缺失资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">分析缺失支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">分析 OptiFine 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">分析 Quilt 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">分析所需资源文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">分析原版与 LabyMod 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">分析原版支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AddIgnoreFlag">添加忽略标识</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.BuildServer">构建服务端</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.CopyAssetsIndex.Background">后台复制资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DeleteIgnoreFlag">删除忽略标识</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets">下载资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.MainLoader">下载资源文件（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.Side">下载资源文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex">下载资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Background">后台下载资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Side">下载资源文件索引（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadCoreJar">下载核心 Jar 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadFabricAPI">下载 Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibraries">下载游戏支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibrariesSide">下载游戏支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadInstanceJson">下载实例 JSON 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLabyModClientJson">下载 LabyMod 客户端 Json 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLegacyFabricAPI">下载 Legacy Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries">下载支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries.MainLoader">下载支持库文件（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLiteLoaderLibraries">下载 LiteLoader 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries">下载 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries.Side">下载 {0} 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderMainFile">下载 {0} 主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadMainFile">下载主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">下载 OptiFabric</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">下载 OptiFine 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">下载 OptiFine 主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadQFAPI_QSL">下载 QFAPI / QSL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">下载服务端文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">下载原版与 LabyMod 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">下载原版资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaLibraries.Side">下载原版支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.FabricInstallerDownload">Fabric {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeDownload">{0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeInstallerFilter">{0} 安装器 (*.{1})|*.{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.GetLoaderLibraries">获取 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodA">安装 Forge（方式 A）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodB">安装 Forge（方式 B）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForgeType">安装 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallGame">安装游戏</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallLiteLoader">安装 LiteLoader</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodA">安装 OptiFine（方式 A）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodB">安装 OptiFine（方式 B）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LabyModInstallerDownload">LabyMod 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LegacyFabricInstallerDownload">Legacy Fabric {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderDownload">LiteLoader {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderInstallerDownload">LiteLoader {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderDownloadCombo">{0} {1} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderInstallerDownload">下载 {0} {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftDownload">Minecraft {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftServerDownload">Minecraft {0} 服务端下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainFabricMainFileUrl">获取 Fabric 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLabyModClientUrl">获取 LabyMod 客户端文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLegacyFabricMainFileUrl">获取 Legacy Fabric 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">获取 {0} 详细信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">获取 OptiFine 下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">获取 OptiFine 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">获取 Quilt 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">获取原版 Json 文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">准备下载 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">启动 LiteLoader 依赖实例下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">后台更新资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">下载原版 Json 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">下载原版支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">等待原版下载</sys:String>
+
+    <!-- Minecraft.Download Error -->
+    <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">添加客户端版本失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">分析资源文件索引地址失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BMCLAPIMissingTargetVersion">BMCLAPI 源未包含目标版本 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta 下载失败: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">非新版方式安装 Forge 失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">获取的结果过短（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeRecommendedTooFew">获取的推荐版本数过少（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallationCanceled">已取消安装。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists">实例 {0} 已存在，是否重新下载？{1}这会覆盖实例的 Json 和 Jar 文件，但不会影响版本隔离的文件。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists.Title">实例已存在</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceDownloading">该实例正在下载中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallerFailedLastLine">安装器运行出错，末行为 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaNotFoundInstallCanceled">由于未找到 Java，已取消安装。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaVersionRequired">Java 8 或更高版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JsonInvalid">{0} Json 有误，地址：{1}，前段内容：{2}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LiteLoaderInstallFailed">安装新 LiteLoader 实例失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderDetailsNotFound">未能找到 {0} {1}-{2} 的详细信息！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallFailed">安装新 {0} 实例失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerFailedLastLine">{0} 安装器出错，日志结束部分为：{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerRunFailed">运行 {0} 安装器失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderLibraryListFailed">获取{0}支持库列表失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoAvailableVersion">没有可用版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJarDownloadInfo">底层实例 {0} 中无 Jar 文件下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJsonDownloadAddress">无对应的 json 下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoOfficialServerDownload">Mojang 没有给 Minecraft {0} 提供官方服务端下载，没法下，撤退！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoVanillaLoaderSpecified">如果没有指定原版下载器，则不能指定 MC 安装文件夹</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NotFound">无可用版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineForgeCompatMismatch">版本与 Forge 兼容数据无法对应</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodA">安装 OptiFine（方式 A）失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodB">安装 OptiFine（方式 B）失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallerRunFailed">运行 OptiFine 安装器失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineTimeDataMismatch">版本与发布时间数据无法对应</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ServerDownloading">该服务端正在下载中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.Timeout">下载源连接超时</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.UnknownMinecraftVersion">未知的 Minecraft 版本（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">{0} 版本列表解析失败（{1}）</sys:String>
+
+    <!-- Minecraft.Download ServerBatch -->
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEULA">如果提示 "You need to agree to the EULA"，请编辑 eula.txt 同意协议!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服务端立即停止，请右键编辑该脚本，使用!JAVA_HOME!替换%JAVA_HOME%</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPCLSettings">你可以在 PCL 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">服务端已停止。</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} 原版服务端</sys:String>
+
+    <!-- Download Source -->
+    <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom 官方源</sys:String>
+    <sys:String x:Key="Download.Source.FabricOfficial">Fabric 官方源</sys:String>
+    <sys:String x:Key="Download.Source.ForgeOfficial">Forge 官方源</sys:String>
+    <sys:String x:Key="Download.Source.LegacyFabricOfficial">LegacyFabric 官方源</sys:String>
+    <sys:String x:Key="Download.Source.LiteLoaderOfficial">LiteLoader 官方源</sys:String>
+    <sys:String x:Key="Download.Source.MojangOfficial">Mojang 官方源</sys:String>
+    <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge 官方源</sys:String>
+    <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine 官方源</sys:String>
+    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt 官方源</sys:String>
+
+    <!-- Download Tag & Type -->
+    <sys:String x:Key="Download.Tag.UVMC">UVMC 特供下载</sys:String>
+    <sys:String x:Key="Download.Version.Type.Installer">安装器</sys:String>
+
+    <!-- Common Status & Actions (additions) -->
+    <sys:String x:Key="Common.Action.Download">下载</sys:String>
+    <sys:String x:Key="Common.Action.Install">安装</sys:String>
+    <sys:String x:Key="Common.Action.UpdateLog">更新日志</sys:String>
+    <sys:String x:Key="Common.Status.Cancelled">已取消！</sys:String>
+    <sys:String x:Key="Common.Status.Failure">失败：</sys:String>
+    <sys:String x:Key="Common.Status.Success">成功！</sys:String>
+
+    <!-- Minecraft Version -->
+    <sys:String x:Key="Minecraft.Version.Unknown">未知版本</sys:String>
+    <sys:String x:Key="Minecraft.Version.Vanilla">原版</sys:String>
+
+    <!-- Minecraft Update -->
+    <sys:String x:Key="Minecraft.Update.NewVersion">新版本：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Update.Title">Minecraft 更新提示</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdateTime">更新时间：</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdatedAt">更新于：</sys:String>
+
+    <!-- Minecraft Error -->
+    <sys:String x:Key="Minecraft.Error.AssetIndexNotFound">未找到 Asset Index</sys:String>
+    <sys:String x:Key="Minecraft.Error.CannotReadInstanceFolder">无法读取实例文件夹，可能是由于没有权限（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Error.DependencyRecursion">版本依赖项出现嵌套：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.InitInstanceJsonFailed">初始化实例 JSON 时失败（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Error.InstanceJsonNotFound">未找到实例 JSON 文件：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.NoAssetIndexInfo">该实例不存在资源文件索引信息</sys:String>
+    <sys:String x:Key="Minecraft.Error.Unrecognizable">无法识别：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">无法获取版本号，结果为空</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">版本号获取失败：{0}</sys:String>
+
+    <!-- Minecraft Skin Error -->
+    <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">皮肤地址种类无效：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoCustomSkin">用户未设置自定义皮肤</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoSkinData">皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.OfflineNoSkin">离线 Uuid 无正版皮肤文件。</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.PropertyNotFound">未从皮肤返回值中找到符合条件的 Property</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.SkinReturnEmpty">皮肤返回值为空，可能是未设置自定义皮肤的用户</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.UuidEmpty">Uuid 为空。</sys:String>
+
+    <!-- Minecraft April Fools -->
+    <sys:String x:Key="Minecraft.Fool.Description.2013">2013 | 这个秘密计划了两年的更新将游戏推向了一个新高度！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2015">2015 | 作为一款全年龄向的游戏，我们需要和平，需要爱与拥抱。</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2016">2016 | 是时候将现代科技带入 Minecraft 了！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2019">2019 | 我们从地下室的废墟里找到了这个开发于 1994 年的杰作！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2020">2020 | 我们加入了 20 亿个新的维度，让无限的想象变成了现实！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2022">2022 | 一次一个方块更新！迎接全新的挖掘、合成与骑乘玩法吧！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2023">2023 | 研究表明：玩家喜欢作出选择——越多越好！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2024">2024 | 毒马铃薯一直都被大家忽视和低估，于是我们超级加强了它！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2025">2025 | 你可以合成任何东西——包括合成你的世界！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2026">2026 | 为什么需要物品栏？让方块们跟着你走吧！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Blue">（蓝色版本）</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Purple">（紫色版本）</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Red">（红色版本）</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">用户名</sys:String>
