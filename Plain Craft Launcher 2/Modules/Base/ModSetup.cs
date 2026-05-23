@@ -99,7 +99,7 @@ public class ModSetup
     }
 
     /// <summary>
-    /// 主动应用所有当前配置值到 UI，用于启动时初始化。
+    /// 主动应用所有当前配置值。
     /// </summary>
     public static void ApplyAll()
     {

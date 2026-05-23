@@ -89,6 +89,11 @@ public static class ModBase
     public static string CurrentLang = "zh_CN";
 
     /// <summary>
+    ///     设置对象。
+    /// </summary>
+    public static ModSetup Setup = new();
+
+    /// <summary>
     ///     程序的打开计时。
     /// </summary>
     public static long ApplicationStartTick = TimeUtils.GetTimeTick();
