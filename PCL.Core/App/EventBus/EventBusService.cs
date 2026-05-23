@@ -14,7 +14,7 @@ namespace PCL.Core.App.EventBus;
 public sealed partial class EventBusService
 {
     private static readonly ConcurrentDictionary<string,
-        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef, bool OwnsOwner)>>> _Channels = [];
+        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef)>>> _Channels = [];
 
     /// <summary>
     /// 0 = running, 1 = stopping/closed
@@ -30,7 +30,7 @@ public sealed partial class EventBusService
             var channelCount = _Channels.Count;
             var handlerCount = _Channels.Values.Sum(c => c.Values.Sum(h => h.Count));
             _Channels.Clear();
-            Context.Error($"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
+            Context.Info($"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
             return Task.CompletedTask;
         }
         catch (Exception exception)
@@ -40,6 +40,9 @@ public sealed partial class EventBusService
         }
     }
 
+    /// <summary>
+    /// Publish an event to a channel. All handlers subscribed to this channel with compatible event data type will be invoked.
+    /// </summary>
     /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
     public static Task PublishAsync<TEventData>(string channelName, TEventData data) where TEventData : EventDataBase
     {
@@ -52,6 +55,7 @@ public sealed partial class EventBusService
     /// 返回 <see cref="IDisposable"/> 用于取消订阅。
     /// </summary>
     /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
+    /// <exception cref="InvalidOperationException">Failed to create channel</exception>
     /// <exception cref="ArgumentNullException"><paramref name="channel"/> is <see langword="null"/></exception>
     public static IDisposable Subscribe<TEventData>(string channel, IEventHandler<TEventData> handler, bool disposeOwnerOnUnsubscribe = false)
         where TEventData : EventDataBase
@@ -62,17 +66,26 @@ public sealed partial class EventBusService
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Error($"Channel {channel} not found.");
-            throw new InvalidOperationException("No channel found for the given channel identification.");
+            Context.Trace($"Channel {channel} not found.");
+            //throw new InvalidOperationException("No channel found for the given channel identification.");
+
+            // create channel if not exist
+            var success = AddChannel(channel);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to create channel.");
+            }
         }
 
+        dataHandler ??= _Channels[channel]; // ensure dataHandler is not null here
+
         var dataType = typeof(TEventData);
-        var handlers = dataHandler.GetOrAdd(dataType, _ => new ConcurrentDictionary<Guid, (Func<EventDataBase, Task>, WeakReference<object>?, bool)>());
+        var handlers = dataHandler.GetOrAdd(dataType, _ => []);
 
         var ownerRef = new WeakReference<object>(handler);
 
         var id = Guid.NewGuid();
-        handlers.TryAdd(id, (Wrapper, ownerRef, disposeOwnerOnUnsubscribe));
+        handlers.TryAdd(id, (Wrapper, ownerRef));
 
         return new Subscription(() =>
         {
@@ -83,7 +96,9 @@ public sealed partial class EventBusService
             }
 
             // disposal responsibility: if this subscription requested owner disposal, try to dispose target if still alive
-            if (disposeOwnerOnUnsubscribe && ownerRef.TryGetTarget(out var tgt) && tgt is IDisposable d)
+            if (disposeOwnerOnUnsubscribe &&
+                ownerRef.TryGetTarget(out var tgt) &&
+                tgt is IDisposable d)
             {
                 // check if any remaining subscription in this channel still references the same owner
                 var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e => e.OwnerRef != null && e.OwnerRef.TryGetTarget(out var other) && ReferenceEquals(other, tgt)));
@@ -105,8 +120,11 @@ public sealed partial class EventBusService
     }
 
     /// <summary>
-    /// 订阅一个委托（更轻量）
+    /// 订阅一个委托
     /// </summary>
+    /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
+    /// <exception cref="InvalidOperationException">Failed to create channel</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="channel"/> is <see langword="null"/></exception>
     public static IDisposable Subscribe<TEventData>(string channel, Func<TEventData, Task> handler)
         where TEventData : EventDataBase
     {
@@ -116,15 +134,25 @@ public sealed partial class EventBusService
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Error($"Channel {channel} not found.");
-            throw new InvalidOperationException("No channel found for the given channel identification.");
+            Context.Trace($"Channel {channel} not found.");
+            //throw new InvalidOperationException("No channel found for the given channel identification.");
+
+            // create channel if not exist
+            var success = AddChannel(channel);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to create channel.");
+            }
+
         }
+
+        dataHandler ??= _Channels[channel]; // ensure dataHandler is not null here
 
         var dataType = typeof(TEventData);
         var handlers = dataHandler.GetOrAdd(dataType, _ => []);
 
         var id = Guid.NewGuid();
-        handlers.TryAdd(id, (Wrapper, null, false));
+        handlers.TryAdd(id, (Wrapper, null));
 
         return new Subscription(() =>
         {
@@ -143,6 +171,11 @@ public sealed partial class EventBusService
     /// </summary>
     public static bool AddChannel(string name) => !string.IsNullOrWhiteSpace(name) && _Channels.TryAdd(name, []);
 
+    /// <summary>
+    /// Remove a channel and all its handlers. Use with caution.
+    /// </summary>
+    /// <param name="name">Channel name.</param>
+    /// <returns><see langword="true"/> if the channel was removed; otherwise, <see langword="false"/>.</returns>
     public static bool RemoveChannel(string name) => _Channels.TryRemove(name, out _);
 
     private static Task _CallChannelAsync<TEventData>(string channel, TEventData data)
@@ -157,7 +190,8 @@ public sealed partial class EventBusService
         return _CallEventHandlerAsync(data, eventHandlers);
     }
 
-    private static Task _CallEventHandlerAsync<TEventData>(TEventData data, ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef, bool OwnsOwner)>> dataHandlers)
+    private static Task _CallEventHandlerAsync<TEventData>(TEventData data,
+        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef)>> dataHandlers)
         where TEventData : EventDataBase
     {
         var eventType = data.GetType();
@@ -171,7 +205,7 @@ public sealed partial class EventBusService
                 {
                     var key = kv.Key;
                     var entry = kv.Value;
-                    if (entry.OwnerRef != null)
+                    if (entry.OwnerRef is not null)
                     {
                         if (!entry.OwnerRef.TryGetTarget(out var _))
                         {
@@ -187,7 +221,7 @@ public sealed partial class EventBusService
 
         if (matching.Count == 0)
         {
-            Context.Error($"No handler found for event data type {eventType.Name}");
+            Context.Trace($"No handler found for event data type {eventType.Name}");
             return Task.CompletedTask;
             // will not throw Exception
             //throw new InvalidOperationException("No handler found for the given event data type.");
@@ -213,7 +247,11 @@ public sealed partial class EventBusService
     private sealed class Subscription : IDisposable
     {
         private Action? _dispose;
+
+        /// <exception cref="ArgumentNullException">The dispose action is null.</exception>
         public Subscription(Action dispose) => _dispose = dispose ?? throw new ArgumentNullException(nameof(dispose));
+
+        /// <exception cref="Exception">A delegate callback throws an exception.</exception>
         public void Dispose()
         {
             var d = Interlocked.Exchange(ref _dispose, null);
