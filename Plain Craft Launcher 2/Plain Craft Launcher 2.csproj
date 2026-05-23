@@ -74,7 +74,6 @@
         <PackageReference Include="IPNetwork2" Version="3.4.851"/>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2"/>
         <PackageReference Include="NAudio" Version="2.2.1"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="System.Management" Version="10.0.3"/>
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
         <PackageReference Include="System.Private.Uri" Version="4.3.2"/>
@@ -85,7 +84,10 @@
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <Import Include="Newtonsoft.Json.Linq"/>
+        <Using Include="System.Text.Json"/>
+        <Using Include="System.Text.Json.Nodes"/>
+    </ItemGroup>
+    <ItemGroup>
         <Import Include="System.IO"/>
         <Import Include="System.Net"/>
         <Import Include="System.Text"/>
