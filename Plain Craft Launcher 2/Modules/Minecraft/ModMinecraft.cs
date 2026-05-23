@@ -1141,7 +1141,7 @@ public static class ModMinecraft
                         var realJson = JsonObject != null ? JsonObject.ToString() : JsonText;
                         // 愚人节与快照版本
                         if ((JsonObject["type"] ?? "").ToString() == "fool" ||
-                            !string.IsNullOrEmpty(GetMcFoolName(Info.VanillaName)))
+                            !string.IsNullOrEmpty(McVersionClassifier.GetMcFoolName(Info.VanillaName)))
                             State = McInstanceState.Fool;
                         else if (IsSnapshot()) State = McInstanceState.Snapshot;
                         // OptiFine
@@ -1818,50 +1818,6 @@ public static class ModMinecraft
     /// <summary>
     ///     根据版本名获取对应的愚人节版本描述。非愚人节版本会返回空字符串。
     /// </summary>
-    public static string GetMcFoolName(string name)
-    {
-        name = name.ToLowerInvariant();
-
-        return name switch
-        {
-            _ when name.StartsWithF("2.0") || name.StartsWithF("2point0")
-                => Lang.Text("Minecraft.Fool.Description.2013") + name switch
-                {
-                    _ when name.EndsWith("red")
-                        => Lang.Text("Minecraft.Fool.Tag.Red"),
-
-                    _ when name.EndsWith("blue")
-                        => Lang.Text("Minecraft.Fool.Tag.Blue"),
-
-                    _ when name.EndsWith("purple")
-                        => Lang.Text("Minecraft.Fool.Tag.Purple"),
-
-                    _ => ""
-                },
-
-            "15w14a" => Lang.Text("Minecraft.Fool.Description.2015"),
-
-            "1.rv-pre1" => Lang.Text("Minecraft.Fool.Description.2016"),
-
-            "3d shareware v1.34" => Lang.Text("Minecraft.Fool.Description.2019"),
-
-            _ when name.StartsWithF("20w14inf") || name == "20w14∞"
-                => Lang.Text("Minecraft.Fool.Description.2020"),
-
-            "22w13oneblockatatime" => Lang.Text("Minecraft.Fool.Description.2022"),
-
-            "23w13a_or_b" => Lang.Text("Minecraft.Fool.Description.2023"),
-
-            "24w14potato" => Lang.Text("Minecraft.Fool.Description.2024"),
-
-            "25w14craftmine" => Lang.Text("Minecraft.Fool.Description.2025"),
-
-            "26w14a" => Lang.Text("Minecraft.Fool.Description.2026"),
-
-            _ => ""
-        };
-    }
-
     /// <summary>
     ///     当前按卡片分类的所有版本列表。
     /// </summary>

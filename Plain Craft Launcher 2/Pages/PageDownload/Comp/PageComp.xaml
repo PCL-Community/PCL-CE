@@ -118,7 +118,7 @@
         </StackPanel>
         <StackPanel x:Name="PanContent">
             <local:MyHint x:Name="HintError" HasBorder="True"
-                          Text="无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#xa;请稍后重试，或使用 VPN 以改善网络环境。"
+                          Text="{DynamicResource Download.Comp.Hint.ModrinthUnreachable}"
                           Theme="Yellow" Margin="0,0,0,15" />
             <local:MyCard x:Name="CardProjects" UseAnimation="False">
                 <StackPanel x:Name="PanProjects" Margin="12" />

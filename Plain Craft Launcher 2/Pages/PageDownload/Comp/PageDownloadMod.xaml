@@ -6,7 +6,7 @@
     mc:Ignorable="d" x:Class="PCL.PageDownloadMod"
     PanScroll="{Binding ElementName=Content}">
     <local:PageComp x:Name="Content" PageType="Mod">
-        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.All}" Tag="" IsSelected="True" />
+        <local:MyComboBoxItem Content="{DynamicResource Common.Option.All}" Tag="" IsSelected="True" />
         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.WorldGen}" Tag="406/worldgen" />
         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Biomes}" Tag="407/" Margin="15,0,0,0" />
         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Dimensions}" Tag="410/" Margin="15,0,0,0" />

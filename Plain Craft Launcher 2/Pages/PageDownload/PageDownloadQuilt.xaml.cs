@@ -35,7 +35,7 @@ public partial class PageDownloadQuilt
                 PanVersions.Children.Add(
                     ModDownloadLib.QuiltDownloadListItem((JObject)Version,
                         (a, b) => this.Quilt_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

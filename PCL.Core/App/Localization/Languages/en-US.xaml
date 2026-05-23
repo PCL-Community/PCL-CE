@@ -30,6 +30,7 @@
     <sys:String x:Key="Common.State.Loading">Loading...</sys:String>
     <sys:String x:Key="Common.State.Unknown">Unknown</sys:String>
     <sys:String x:Key="Common.Option.Default">Default</sys:String>
+    <sys:String x:Key="Common.Option.All">All</sys:String>
     <sys:String x:Key="Common.Option.Auto">Auto</sys:String>
     <sys:String x:Key="Common.Option.Customize">Customize</sys:String>
     <sys:String x:Key="Common.Option.IDontKnow">I don't know</sys:String>
@@ -334,9 +335,12 @@
     <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.LabyMod">LabyMod</sys:String>
     <sys:String x:Key="Download.Left.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Download.Left.Hint.Refreshing">Refreshing...</sys:String>
+    <sys:String x:Key="Download.Left.Error.UnknownSubPageType">Unknown download subpage type: {0}</sys:String>
 
     <!-- Download.Version Common -->
     <sys:String x:Key="Download.Version.VersionList">Version list</sys:String>
+    <sys:String x:Key="Download.Version.VersionListCount">Version list ({0})</sys:String>
     <sys:String x:Key="Download.Version.OpenWebsite">Open website</sys:String>
     <sys:String x:Key="Download.Version.LoadingList">Loading version list</sys:String>
     <sys:String x:Key="Download.Version.Changelog">Changelog</sys:String>
@@ -390,8 +394,9 @@
 
     <!-- Download.Version OptiFine -->
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine Introduction</sys:String>
-    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine, also known as HD Fix, allows installing shaders, using HD textures, and improving game performance, but has poor compatibility with mods.</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine allows installing shaders, using HD textures, and improving game performance, but has poor compatibility with mods.</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">Loading OptiFine list</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Snapshot">Snapshot</sys:String>
 
     <!-- Download.Version Types -->
     <sys:String x:Key="Download.Version.AllVersions">All versions ({0})</sys:String>
@@ -400,7 +405,7 @@
     <sys:String x:Key="Download.Version.Latest.Development">Latest development, released on {0}</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">Release</sys:String>
     <sys:String x:Key="Download.Version.Type.Development">Development</sys:String>
-    <sys:String x:Key="Download.Version.Type.Old">Before-release</sys:String>
+    <sys:String x:Key="Download.Version.Type.BeforeRelease">Before-release</sys:String>
     <sys:String x:Key="Download.Version.Type.AprilFools">April Fools'</sys:String>
     <sys:String x:Key="Download.Version.Type.Snapshot">Snapshot</sys:String>
     <sys:String x:Key="Download.Version.Type.Stable">Stable</sys:String>
@@ -416,6 +421,7 @@
     <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
     <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">Incompatible with Forge</sys:String>
     <sys:String x:Key="Download.Version.Optifine.CompatibleForge">Compatible with Forge {0}</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Latest">Latest</sys:String>
 
     <!-- Download.Install Warning -->
     <sys:String x:Key="Download.Install.Warning.FabricAPI">Most mods won't work without Fabric API!</sys:String>
@@ -498,18 +504,37 @@
     <sys:String x:Key="Download.Comp.Type.World">World</sys:String>
     <sys:String x:Key="Download.Comp.Type.Schematic">Schematic</sys:String>
     <sys:String x:Key="Download.Comp.Type.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Only">Only {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Any">Any</sys:String>
 
     <!-- Download.Comp List -->
-    <sys:String x:Key="Download.Comp.List.LoadingTyped">Getting {0} list</sys:String>
-    <sys:String x:Key="Download.Comp.List.SearchTyped">Search {0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Mod">Getting mod list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Modpack">Getting modpack list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.ResourcePack">Getting resource pack list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Shader">Getting shader list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.DataPack">Getting datapack list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Plugin">Getting plugin list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.World">Getting world list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Schematic">Getting schematic list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Unknown">Getting unknown list</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Mod">Search mods</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Modpack">Search modpacks</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.ResourcePack">Search resource packs</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Shader">Search shaders</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.DataPack">Search data packs</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Plugin">Search plugins</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.World">Search worlds</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Schematic">Search schematics</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Unknown">Search unknown</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">Fetching community resources: {0}</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">Unable to connect to Modrinth. Currently only showing CurseForge content, search results may be incomplete.&#x0a;Please retry later or use a VPN to improve network conditions.</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">Unable to connect to CurseForge. Currently only showing Modrinth content, search results may be incomplete.&#x0a;Please retry later or use a VPN to improve network conditions.</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResultsSimple">No search results</sys:String>
+    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">Cannot connect to Modrinth, so currently only showing CurseForge content. Search results may be incomplete.&#xa;Please try again later, or use a VPN to improve network conditions.</sys:String>
 
     <!-- Download.Comp.Category Shared -->
-    <sys:String x:Key="Download.Comp.Category.All">All</sys:String>
     <sys:String x:Key="Download.Comp.Category.WorldGen">World generation</sys:String>
     <sys:String x:Key="Download.Comp.Category.Biomes">Biomes</sys:String>
     <sys:String x:Key="Download.Comp.Category.Dimensions">Dimensions</sys:String>
@@ -650,7 +675,6 @@
     <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">Due to delayed version information updates, recently updated MC versions may not be recognized. It should work correctly in a few days.</sys:String>
 
     <!-- Download.Comp.Detail VersionGroup -->
-    <sys:String x:Key="Download.Comp.Detail.VersionGroup.All">All</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">Other</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">Snapshot</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">Older</sys:String>
@@ -680,6 +704,10 @@
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">Release</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">Beta</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">Alpha</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ModpackDownload">Modpack download</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldDownload">World download</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.OriginalModpack">Original modpack</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.KnownButton">Got it</sys:String>
 
     <!-- Download.Comp.Detail CompItem -->
     <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">All versions</sys:String>
@@ -743,6 +771,9 @@
     <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.CurrentFolder">Current folder</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">Copy these IDs</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">Remove these favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.QueryInfo">Query resource info</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">Batch download suitable resources</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">Batch download resources ({0})</sys:String>
 
     <!-- Minecraft.Download Stage -->
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">Analyze assets index URL</sys:String>
@@ -829,11 +860,12 @@
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">Download vanilla JSON</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">Download vanilla libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">Wait for vanilla download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Loader.NewForge">New Forge</sys:String>
 
     <!-- Minecraft.Download Error -->
     <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">Failed to add client version</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">Failed to analyze asset index URL</sys:String>
-    <sys:String x:Key="Minecraft.Download.Error.BMCLAPIMissingTargetVersion">BMCLAPI missing target version {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BmclapiMissingTargetVersion">BMCLAPI missing target version {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta download failed: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">Old-style Forge installation failed</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">Result too short ({0})</sys:String>
@@ -869,9 +901,9 @@
     <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">{0} version list parse failed ({1})</sys:String>
 
     <!-- Minecraft.Download ServerBatch -->
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEULA">If prompted "You need to agree to the EULA", edit eula.txt to agree!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">If prompted "You need to agree to the EULA", edit eula.txt to agree!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, right-click edit this script and replace %JAVA_HOME% with !JAVA_HOME!</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPCLSettings">You can select an appropriate Java for this version in PCL's [Settings → Launch Options → In-launcher Java Path]!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">You can select an appropriate Java for this version in PCL's [Settings → Launch Options → In-launcher Java Path]!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">Server stopped.</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} vanilla server</sys:String>
 
@@ -887,7 +919,7 @@
     <sys:String x:Key="Download.Source.QuiltOfficial">Quilt Official</sys:String>
 
     <!-- Download Tag & Type -->
-    <sys:String x:Key="Download.Tag.UVMC">UVMC Exclusive</sys:String>
+    <sys:String x:Key="Download.Tag.Uvmc">UVMC Exclusive</sys:String>
     <sys:String x:Key="Download.Version.Type.Installer">Installer</sys:String>
 
     <!-- Common Status & Actions (additions) -->
@@ -897,6 +929,7 @@
     <sys:String x:Key="Common.Status.Cancelled">Canceled!</sys:String>
     <sys:String x:Key="Common.Status.Failure">Failure:</sys:String>
     <sys:String x:Key="Common.Status.Success">Success!</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">Not a valid Json file</sys:String>
 
     <!-- Minecraft Version -->
     <sys:String x:Key="Minecraft.Version.Unknown">Unknown version</sys:String>
@@ -918,6 +951,7 @@
     <sys:String x:Key="Minecraft.Error.Unrecognizable">Unrecognizable: {0}</sys:String>
     <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">Cannot get version number, result is empty</sys:String>
     <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">Failed to fetch version number: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.QuiltUnsupported">Quilt does not support Minecraft {0}</sys:String>
 
     <!-- Minecraft Skin Error -->
     <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">Invalid skin type: {0}</sys:String>

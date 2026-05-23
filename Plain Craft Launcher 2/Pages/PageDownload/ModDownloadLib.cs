@@ -326,7 +326,7 @@ public static class ModDownloadLib
         }
 
         if (Entry["url"].ToString().Contains("unlisted-versions-of-minecraft"))
-            NewItem.Tags = Lang.Text("Download.Tag.UVMC");
+            NewItem.Tags = Lang.Text("Download.Tag.Uvmc");
         NewItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
@@ -452,9 +452,9 @@ public static class ModDownloadLib
                            @echo off
                            title {Lang.Text("Minecraft.Download.ServerBatch.Title", Id)}
                            echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionJavaPath")}
-                           echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionPCLSettings")}
+                           echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionPclSettings")}
                            echo ------------------------------
-                           echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionEULA")}
+                           echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionEula")}
                            echo ------------------------------
                            "java" -server -XX:+UseG1GC -Xmx4096M -Xms1024M -XX:+UseCompressedOops -jar {Id}-server.jar nogui
                            echo ----------------------
@@ -2056,7 +2056,7 @@ public static class ModDownloadLib
                     throw new Exception(
                         Lang.Text("Minecraft.Download.Error.LoaderLibraryListFailed",
                             ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge
-                                ? "新版 Forge"
+                                ? Lang.Text("Minecraft.Download.Loader.NewForge")
                                 : " " + ForgeType), ex);
                 }
                 finally
@@ -2555,14 +2555,18 @@ public static class ModDownloadLib
         if (FreshStableVersion is not null)
         {
             var Fresh = NeoForgeDownloadListItem(FreshStableVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Stable") : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info)
+                ? Lang.Text("Download.Version.Fresh.Stable")
+                : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
         if (FreshBetaVersion is not null)
         {
             var Fresh = NeoForgeDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info)
+                ? Lang.Text("Download.Version.Fresh.Development")
+                : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
@@ -2664,7 +2668,7 @@ public static class ModDownloadLib
         if (FreshBetaVersion is not null)
         {
             var Fresh = CleanroomDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
@@ -3826,14 +3830,16 @@ public static class ModDownloadLib
         }
     }
 
+    private const string McInstallDefaultType = "安装";
+
     /// <summary>
     ///     进行合并安装。返回是否已经开始安装（例如如果没有安装 Java 则会进行提示并返回 False）
     /// </summary>
-    public static bool McInstall(McInstallRequest Request, string Type = "安装")
+    public static bool McInstall(McInstallRequest Request, string Type = McInstallDefaultType)
     {
         try
         {
-            var SubLoaders = McInstallLoader(Request, IgnoreDump: Type != "安装");
+            var SubLoaders = McInstallLoader(Request, IgnoreDump: Type != McInstallDefaultType);
             if (SubLoaders is null)
                 return false;
             var Loader = new ModLoader.LoaderCombo<string>(Request.TargetInstanceName + " " + Type, SubLoaders)
@@ -4009,8 +4015,15 @@ public static class ModDownloadLib
 
         // 原版
         var ClientLoader = new ModLoader.LoaderCombo<string>(
-            Lang.Text("Minecraft.Download.Stage.LoaderDownloadCombo", "原版", Request.MinecraftName),
-            McDownloadClientLoader(Request.MinecraftName, Request.MinecraftJson, Request.TargetInstanceName))
+            Lang.Text(
+                "Minecraft.Download.Stage.LoaderDownloadCombo",
+                Lang.Text("Minecraft.Version.Vanilla"),
+                Request.MinecraftName
+            ),
+            McDownloadClientLoader(
+                Request.MinecraftName, Request.MinecraftJson, Request.TargetInstanceName
+            )
+        )
         {
             Show = false,
             ProgressWeight = 39d,
@@ -4167,10 +4180,18 @@ public static class ModDownloadLib
             if (Request.LabyModCommitRef is not null)
             {
                 var LabyModClientLoader = new ModLoader.LoaderCombo<string>(
-                        Lang.Text("Minecraft.Download.Stage.LoaderDownloadCombo", "原版", Request.MinecraftName),
-                        McDownloadLabyModClientLoader(Request.MinecraftName, Request.LabyModChannel,
-                            Request.LabyModCommitRef, Request.TargetInstanceName))
-                    { Show = false, ProgressWeight = 39d, Block = false };
+                    Lang.Text(
+                        "Minecraft.Download.Stage.LoaderDownloadCombo",
+                        Lang.Text("Minecraft.Version.Vanilla"), Request.MinecraftName
+                    ),
+                    McDownloadLabyModClientLoader(
+                        Request.MinecraftName, Request.LabyModChannel,
+                        Request.LabyModCommitRef, Request.TargetInstanceName
+                    )
+                )
+                {
+                    Show = false, ProgressWeight = 39d, Block = false
+                };
                 LoaderList.Add(LabyModClientLoader);
             }
             else

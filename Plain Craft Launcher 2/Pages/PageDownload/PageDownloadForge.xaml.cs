@@ -51,7 +51,7 @@ public partial class PageDownloadForge
                 NewCard.SwapControl = NewStack;
                 NewCard.InstallMethod = Stack =>
                 {
-                    var LoadingPickaxe = new MyLoading { Text = "正在获取版本列表", Margin = new Thickness(5d) };
+                    var LoadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
                     var Loader =
                         new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>("DlForgeVersion Main",
                             ModDownload.DlForgeVersionMain);

@@ -459,7 +459,7 @@ public static class ModDownload
                 var Id = Loader.Input;
                 if (DlClientListLoader.Output.Value is not null &&
                     !DlClientListLoader.Output.Value["versions"].Any(v => (string)v["id"] == Id))
-                    throw new Exception(Lang.Text("Minecraft.Download.Error.BMCLAPIMissingTargetVersion", Id));
+                    throw new Exception(Lang.Text("Minecraft.Download.Error.BmclapiMissingTargetVersion", Id));
             }
 
             // 返回

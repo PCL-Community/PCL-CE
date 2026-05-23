@@ -78,7 +78,7 @@ public partial class PageComp
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
+                if (ErrorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
                     ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
                     ((MyPageRight)Parent).PageLoaderRestart();
@@ -191,8 +191,8 @@ public partial class PageComp
             BtnSearchInstallModPack.Visibility =
                 value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
             Loader.Name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
-            PanSearchBox.HintText = Lang.Text("Download.Comp.List.SearchTyped", TypeName);
-            Load.Text = Lang.Text("Download.Comp.List.LoadingTyped", TypeName);
+            PanSearchBox.HintText = ModComp.GetCompSearchName(value);
+            Load.Text = ModComp.GetCompLoadingName(value);
         }
     }
 

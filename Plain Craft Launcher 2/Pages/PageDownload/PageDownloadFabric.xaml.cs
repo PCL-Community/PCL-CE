@@ -35,7 +35,7 @@ public partial class PageDownloadFabric
                 PanVersions.Children.Add(
                     ModDownloadLib.FabricDownloadListItem((JObject)Version,
                         (sender, e) => Fabric_Selected((MyListItem)sender, e)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

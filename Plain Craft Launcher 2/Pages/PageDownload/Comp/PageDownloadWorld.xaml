@@ -6,7 +6,7 @@
     mc:Ignorable="d" x:Class="PCL.PageDownloadWorld"
     PanScroll="{Binding ElementName=Content}">
     <local:PageComp x:Name="Content" PageType="World" SupportModrinth="False">
-        <local:MyComboBoxItem Tag="" Content="{DynamicResource Download.Comp.Category.All}" IsSelected="True" />
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
 
         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Adventure}" Tag="248/" />
         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Creative}" Tag="249/" />

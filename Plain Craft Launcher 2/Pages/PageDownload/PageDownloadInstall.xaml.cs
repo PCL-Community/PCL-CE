@@ -992,195 +992,155 @@ public partial class PageDownloadInstall
     private void LoadMinecraft_OnFinish()
     {
         ExitSelectPage(); // 返回
-        do
+
+        try
         {
-            try
+            if (ModDownload.DlClientListLoader.Output.Value["versions"] is not JArray versions)
+                return;
+
+            var categoryOrder = new[]
             {
-                var Dict = new Dictionary<string, List<JObject>>
-                {
-                    { "正式版", new List<JObject>() }, { "预览版", new List<JObject>() }, { "远古版", new List<JObject>() },
-                    { "愚人节版", new List<JObject>() }
-                };
-                var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
-                foreach (JObject Version in Versions)
-                {
-                    // 确定分类
-                    var Type = Version["type"].ToString();
-                    var versionId = Version["id"].ToString().ToLower();
-                    switch (Type ?? "")
-                    {
-                        case "release":
-                        {
-                            Type = "正式版";
-                            break;
-                        }
-                        case "snapshot":
-                        case "pending":
-                        {
-                            Type = "预览版";
-                            // Mojang 误分类
-                            if (versionId.StartsWith("1.") && !versionId.Contains("combat") &&
-                                !versionId.Contains("rc") && !versionId.Contains("experimental") &&
-                                !versionId.Equals("1.2") && !versionId.Contains("pre"))
-                            {
-                                Type = "正式版";
-                                Version["type"] = "release";
-                            }
+                McVersionCategory.Release,
+                McVersionCategory.Snapshot,
+                McVersionCategory.BeforeRelease,
+                McVersionCategory.AprilFools
+            };
 
-                            // 愚人节版本
-                            switch (Version["id"].ToString().ToLower() ?? "")
-                            {
-                                case "2point0_blue":
-                                case "2point0_red":
-                                case "2point0_purple":
-                                case "2.0_blue":
-                                case "2.0_red":
-                                case "2.0_purple":
-                                case "2.0":
-                                {
-                                    Type = "愚人节版";
-                                    Version["id"] = Version["id"].ToString().Replace("point", ".");
-                                    Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "20w14infinite":
-                                case "20w14∞":
-                                {
-                                    Type = "愚人节版";
-                                    Version["id"] = "20w14∞";
-                                    Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "3d shareware v1.34":
-                                case "1.rv-pre1":
-                                case "15w14a":
-                                case var @case when @case == "2.0":
-                                case "22w13oneblockatatime":
-                                case "23w13a_or_b":
-                                case "24w14potato":
-                                case "25w14craftmine":
-                                case "26w14a":
-                                {
-                                    Type = "愚人节版";
-                                    Version["type"] = "special";
-                                    Version.Add("lore",
-                                        ModMinecraft.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
-                                    break;
-                                }
+            var dict = categoryOrder.ToDictionary(
+                category => category,
+                _ => new List<JObject>()
+            );
 
-                                default:
-                                {
-                                    var ReleaseDate = Version["releaseTime"].Value<DateTime>().ToUniversalTime()
-                                        .AddHours(2d);
-                                    if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
-                                    {
-                                        Type = "愚人节版";
-                                        Version["type"] = "special";
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case "special":
-                        {
-                            // 已被处理的愚人节版
-                            Type = "愚人节版";
-                            break;
-                        }
-
-                        default:
-                        {
-                            Type = "远古版";
-                            break;
-                        }
-                    }
-
-                    // 加入辞典
-                    Dict[Type].Add(Version);
-                }
-
-                // 排序
-                foreach (var Pair in Dict.ToList())
-                    Dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].Value<DateTime>()).ToList();
-                // 清空当前
-                PanMinecraft.Children.Clear();
-                // 添加最新版本
-                var CardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 15d, 0d, 15d) };
-                var TopestVersions = new List<JObject>();
-                var Release = (JObject)Dict["正式版"][0].DeepClone();
-                Release["lore"] = Lang.Text("Download.Version.Latest.Release",
-                                  Lang.Date(Release["releaseTime"].Value<DateTime>(), "g"));
-                TopestVersions.Add(Release);
-                if (Dict["正式版"][0]["releaseTime"].Value<DateTime>() < Dict["预览版"][0]["releaseTime"].Value<DateTime>())
-                {
-                    var Snapshot = (JObject)Dict["预览版"][0].DeepClone();
-                    Snapshot["lore"] = Lang.Text("Download.Version.Latest.Development",
-                                       Lang.Date(Snapshot["releaseTime"].Value<DateTime>(), "g"));
-                    TopestVersions.Add(Snapshot);
-                }
-
-                var PanInfo = new StackPanel
-                {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
-                    Tag = TopestVersions
-                };
-
-                void StackInstall(StackPanel Stack)
-                {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.McDownloadListItem((JObject)item,
-                            (sender, e) => ModMain.FrmDownloadInstall.MinecraftSelected((MyListItem)sender, e), false));
-                }
-
-                ;
-                MyCard.StackInstall(ref PanInfo, StackInstall);
-                CardInfo.Children.Add(PanInfo);
-                PanMinecraft.Children.Insert(0, CardInfo);
-                // 添加其他版本
-                foreach (var Pair in Dict)
-                {
-                    if (!Pair.Value.Any())
-                        continue;
-                    // 增加卡片
-                    var NewCard = new MyCard
-                        { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
-                    var NewStack = new StackPanel
-                    {
-                        Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                        VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
-                        Tag = Pair.Value
-                    };
-                    NewCard.Children.Add(NewStack);
-                    NewCard.SwapControl = NewStack;
-                    // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
-                    NewCard.InstallMethod = StackInstall;
-                    NewCard.IsSwapped = true;
-                    PanMinecraft.Children.Add(NewCard);
-                }
-
-                // 自动选择版本
-                if (McVersionWaitingForSelect is null)
-                    break;
-                ModBase.Log("[Download] 自动选择 MC 版本：" + McVersionWaitingForSelect);
-                foreach (JObject Version in Versions)
-                {
-                    if ((Version["id"].ToString() ?? "") != (McVersionWaitingForSelect ?? ""))
-                        continue;
-                    var Item = ModDownloadLib.McDownloadListItem(Version, (_, _) => { }, false);
-                    MinecraftSelected(Item, null);
-                }
-            }
-            catch (Exception ex)
+            foreach (JObject version in versions)
             {
-                ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogLevel.Feedback);
+                var category = McVersionClassifier.ClassifyVersion(version);
+                dict[category].Add(version);
             }
-        } while (false);
+
+            foreach (var category in categoryOrder)
+                dict[category] = dict[category]
+                    .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                    .ToList();
+
+            PanMinecraft.Children.Clear();
+
+            _AddLatestVersionCard(dict);
+            _AddCategoryCards(dict, categoryOrder);
+
+            if (McVersionWaitingForSelect is null) return;
+
+            ModBase.Log("[Download] 自动选择 MC 版本：" + McVersionWaitingForSelect);
+
+            foreach (JObject version1 in versions)
+            {
+                if ((version1.Value<string>("id") ?? "") != McVersionWaitingForSelect)
+                    continue;
+
+                var item = ModDownloadLib.McDownloadListItem(version1, (_, _) => { }, false);
+                MinecraftSelected(item, null);
+                break;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogLevel.Feedback);
+        }
+    }
+
+    private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JObject>> dict)
+    {
+        var latestRelease = dict[McVersionCategory.Release].FirstOrDefault();
+        var latestSnapshot = dict[McVersionCategory.Snapshot].FirstOrDefault();
+
+        var latestVersions = new List<JObject>();
+
+        if (latestRelease is not null)
+        {
+            var release = (JObject)latestRelease.DeepClone();
+            release["lore"] = Lang.Text(
+                "Download.Version.Latest.Release",
+                Lang.Date(McVersionClassifier.GetReleaseTime(release), "g")
+            );
+            latestVersions.Add(release);
+        }
+
+        if (latestSnapshot is not null &&
+            (latestRelease is null || McVersionClassifier.GetReleaseTime(latestRelease) < McVersionClassifier.GetReleaseTime(latestSnapshot)))
+        {
+            var snapshot = (JObject)latestSnapshot.DeepClone();
+            snapshot["lore"] = Lang.Text(
+                "Download.Version.Latest.Development",
+                Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g")
+            );
+            latestVersions.Add(snapshot);
+        }
+
+        if (latestVersions.Count == 0)
+            return;
+
+        var cardInfo = new MyCard
+        {
+            Title = Lang.Text("Download.Version.Latest.Title"),
+            Margin = new Thickness(0d, 15d, 0d, 15d)
+        };
+
+        var panInfo = _CreateVersionStack(latestVersions);
+        MyCard.StackInstall(ref panInfo, _StackInstall);
+
+        cardInfo.Children.Add(panInfo);
+        PanMinecraft.Children.Insert(0, cardInfo);
+    }
+
+    private void _AddCategoryCards(
+        Dictionary<McVersionCategory, List<JObject>> dict,
+        IEnumerable<McVersionCategory> categoryOrder)
+    {
+        foreach (var category in categoryOrder)
+        {
+            var versions = dict[category];
+            if (versions.Count == 0)
+                continue;
+
+            var card = new MyCard
+            {
+                Title = $"{McVersionClassifier.GetCategoryDisplayName(category)} ({versions.Count})",
+                Margin = new Thickness(0d, 0d, 0d, 15d)
+            };
+
+            var stack = _CreateVersionStack(versions);
+
+            card.Children.Add(stack);
+            card.SwapControl = stack;
+
+            // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
+            card.InstallMethod = _StackInstall;
+            card.IsSwapped = true;
+
+            PanMinecraft.Children.Add(card);
+        }
+    }
+
+    private static StackPanel _CreateVersionStack(IEnumerable<JObject> versions)
+    {
+        return new StackPanel
+        {
+            Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+            VerticalAlignment = VerticalAlignment.Top,
+            RenderTransform = new TranslateTransform(0d, 0d),
+            Tag = versions
+        };
+    }
+
+    private static void _StackInstall(StackPanel stack)
+    {
+        foreach (var item in (IEnumerable)stack.Tag)
+            stack.Children.Add(
+                ModDownloadLib.McDownloadListItem(
+                    (JObject)item,
+                    (sender, e) => ModMain.FrmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
+                    false
+                )
+            );
     }
 
     /// <summary>

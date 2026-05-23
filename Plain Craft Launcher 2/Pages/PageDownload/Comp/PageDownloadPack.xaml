@@ -6,7 +6,7 @@
     mc:Ignorable="d" x:Class="PCL.PageDownloadPack"
     PanScroll="{Binding ElementName=Content}">
     <local:PageComp x:Name="Content" PageType="ModPack">
-        <local:MyComboBoxItem Tag="" Content="{DynamicResource Download.Comp.Category.All}" IsSelected="True" />
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
         <local:MyComboBoxItem Tag="4484/" Content="{DynamicResource Download.Comp.Category.Multiplayer}" />
         <local:MyComboBoxItem Tag="/optimization" Content="{DynamicResource Download.Comp.Category.Optimization}" />
         <local:MyComboBoxItem Tag="4479/challenging" Content="{DynamicResource Download.Comp.Category.Modpack.Hardcore}" />

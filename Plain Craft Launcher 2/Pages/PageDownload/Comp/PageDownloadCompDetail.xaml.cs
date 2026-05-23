@@ -58,12 +58,12 @@ public partial class PageDownloadCompDetail
             // 获取基本信息
             var File = (ModComp.CompFile)sender.Tag;
             var LoaderName =
-                $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} 整合包下载：{_project.TranslatedName} ";
+                $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.ModpackDownload")}：{_project.TranslatedName} ";
 
             // 获取实例名
             var PackName = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "")
                 .Replace(@"\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜")
-                .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
+                    .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
             var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
             if (!Validate.Validate(PackName).IsValid)
                 PackName = "";
@@ -92,12 +92,12 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
+                            ModMain.Hint(MyLoader.Name + Lang.Text("Common.Status.Failure") + MyLoader.Error.Message, ModMain.HintType.Critical);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            ModMain.Hint(MyLoader.Name + "已取消！");
+                            ModMain.Hint(MyLoader.Name + Lang.Text("Common.Status.Cancelled"));
                             break;
                         }
                         case ModBase.LoadState.Loading:
@@ -128,7 +128,7 @@ public partial class PageDownloadCompDetail
         {
             // 获取基本信息
             var File = (ModComp.CompFile)sender.Tag;
-            var LoaderName = $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} 世界下载：{_project.TranslatedName} ";
+            var LoaderName = $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project.TranslatedName} ";
 
             // 确认默认保存位置
             string DefaultFolder = null;
@@ -535,7 +535,7 @@ public partial class PageDownloadCompDetail
                 var errorMessage = "";
                 if (_compFileLoader.Error is not null)
                     errorMessage = _compFileLoader.Error.Message;
-                if (errorMessage.Contains("不是有效的 Json 文件"))
+                if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
                     ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
                     PageLoaderRestart();
@@ -693,8 +693,8 @@ public partial class PageDownloadCompDetail
                 PanModLoaderFilter.Children.Add(modLoaderTextBlock);
             }
 
-            instanceFilters.Insert(0, Lang.Text("Download.Comp.Detail.Filter.All"));
-            modLoaderFilters.Insert(0, Lang.Text("Download.Comp.Detail.Filter.All"));
+            instanceFilters.Insert(0, Lang.Text("Common.Option.All"));
+            modLoaderFilters.Insert(0, Lang.Text("Common.Option.All"));
             // 转化为按钮
             foreach (var version in instanceFilters)
             {
@@ -706,7 +706,7 @@ public partial class PageDownloadCompDetail
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
                 newButton.Check += (sender, raiseByMouse) =>
                 {
-                    _instanceFilter = sender.Text == Lang.Text("Download.Comp.Detail.VersionGroup.All") ? null : sender.Text;
+                    _instanceFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
                     UpdateFilterResult();
                 };
                 PanInstanceFilter.Children.Add(newButton);
@@ -724,7 +724,7 @@ public partial class PageDownloadCompDetail
                     newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
                     newButton.Check += (sender, raiseByMouse) =>
                     {
-                        _modLoaderFilter = sender.Text == Lang.Text("Download.Comp.Detail.VersionGroup.All") ? null : sender.Text;
+                        _modLoaderFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
                         UpdateFilterResult();
                     };
                     PanModLoaderFilter.Children.Add(newButton);
@@ -957,7 +957,7 @@ public partial class PageDownloadCompDetail
                     newCard.IsSwapped = true;
 
                 // 特殊提示
-                if (currentKey == "其他")
+                if (currentKey == Lang.Text("Download.Comp.Detail.VersionGroup.Other"))
                     newStack.Children.Add(new MyHint
                     {
                         Text = Lang.Text("Download.Comp.Detail.VersionRecognitionDelayHint"),

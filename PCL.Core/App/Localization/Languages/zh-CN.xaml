@@ -28,6 +28,7 @@
     <sys:String x:Key="Common.State.Loading">加载中...</sys:String>
     <sys:String x:Key="Common.State.Unknown">未知</sys:String>
     <sys:String x:Key="Common.Option.Default">默认</sys:String>
+    <sys:String x:Key="Common.Option.All">全部</sys:String>
     <sys:String x:Key="Common.Option.Auto">自动</sys:String>
     <sys:String x:Key="Common.Option.Customize">自定义</sys:String>
     <sys:String x:Key="Common.Option.IDontKnow">我不知道</sys:String>
@@ -328,9 +329,12 @@
     <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.LabyMod">LabyMod</sys:String>
     <sys:String x:Key="Download.Left.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Download.Left.Hint.Refreshing">正在刷新……</sys:String>
+    <sys:String x:Key="Download.Left.Error.UnknownSubPageType">未知的下载子页面种类：{0}</sys:String>
 
     <!-- Download.Version Common -->
     <sys:String x:Key="Download.Version.VersionList">版本列表</sys:String>
+    <sys:String x:Key="Download.Version.VersionListCount">版本列表（{0}）</sys:String>
     <sys:String x:Key="Download.Version.OpenWebsite">打开官网</sys:String>
     <sys:String x:Key="Download.Version.LoadingList">正在获取版本列表</sys:String>
     <sys:String x:Key="Download.Version.Changelog">更新日志</sys:String>
@@ -386,6 +390,7 @@
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine 简介</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与 Mod 的兼容性不佳。</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">正在获取 OptiFine 列表</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Snapshot">快照版本</sys:String>
 
     <!-- Download.Version Types -->
     <sys:String x:Key="Download.Version.AllVersions">全部版本 ({0})</sys:String>
@@ -394,7 +399,7 @@
     <sys:String x:Key="Download.Version.Latest.Development">最新预览版，发布于 {0}</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">正式版</sys:String>
     <sys:String x:Key="Download.Version.Type.Development">预览版</sys:String>
-    <sys:String x:Key="Download.Version.Type.Old">远古版</sys:String>
+    <sys:String x:Key="Download.Version.Type.BeforeRelease">远古版</sys:String>
     <sys:String x:Key="Download.Version.Type.AprilFools">愚人节版</sys:String>
     <sys:String x:Key="Download.Version.Type.Snapshot">快照版</sys:String>
     <sys:String x:Key="Download.Version.Type.Stable">稳定版</sys:String>
@@ -410,6 +415,7 @@
     <sys:String x:Key="Download.Version.ReleaseDate">发布于 {0}</sys:String>
     <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">不兼容 Forge</sys:String>
     <sys:String x:Key="Download.Version.Optifine.CompatibleForge">兼容 Forge {0}</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Latest">最新</sys:String>
 
     <!-- Download.Install Warning -->
     <sys:String x:Key="Download.Install.Warning.FabricAPI">如果不安装 Fabric API，大多数 Mod 都会无法使用！</sys:String>
@@ -492,18 +498,37 @@
     <sys:String x:Key="Download.Comp.Type.World">世界</sys:String>
     <sys:String x:Key="Download.Comp.Type.Schematic">投影原理图</sys:String>
     <sys:String x:Key="Download.Comp.Type.Unknown">未知</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Only">仅 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Any">任意</sys:String>
 
     <!-- Download.Comp List -->
-    <sys:String x:Key="Download.Comp.List.LoadingTyped">正在获取{0}列表</sys:String>
-    <sys:String x:Key="Download.Comp.List.SearchTyped">搜索{0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Mod">正在获取 Mod 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Modpack">正在获取 整合包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.ResourcePack">正在获取 资源包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Shader">正在获取 光影包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.DataPack">正在获取 数据包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Plugin">正在获取 插件 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.World">正在获取 世界 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Schematic">正在获取 投影原理图 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Unknown">正在获取 未知 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Mod">搜索 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Modpack">搜索 整合包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.ResourcePack">搜索 资源包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Shader">搜索 光影包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.DataPack">搜索 数据包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Plugin">搜索 插件</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.World">搜索 世界</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Schematic">搜索 投影原理图</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Unknown">搜索 未知</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">社区资源获取：{0}</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
     <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">无法连接到 CurseForge，所以目前仅显示了来自 Modrinth 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResults">无搜索结果，请尝试搜索英文名称</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">没有符合条件的结果</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResultsSimple">没有搜索结果</sys:String>
+    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#xa;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
 
     <!-- Download.Comp.Category Shared -->
-    <sys:String x:Key="Download.Comp.Category.All">全部</sys:String>
     <sys:String x:Key="Download.Comp.Category.WorldGen">世界元素</sys:String>
     <sys:String x:Key="Download.Comp.Category.Biomes">生物群系</sys:String>
     <sys:String x:Key="Download.Comp.Category.Dimensions">维度</sys:String>
@@ -644,7 +669,6 @@
     <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">由于版本信息更新缓慢，可能无法识别刚更新的 MC 版本。几天后即可正常识别。</sys:String>
 
     <!-- Download.Comp.Detail VersionGroup -->
-    <sys:String x:Key="Download.Comp.Detail.VersionGroup.All">全部</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">其他</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">快照版</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">远古版</sys:String>
@@ -674,6 +698,10 @@
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">正式版</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">测试版</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">早期测试版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ModpackDownload">整合包下载</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldDownload">世界下载</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.OriginalModpack">原始整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.KnownButton">我知道了</sys:String>
 
     <!-- Download.Comp.Detail CompItem -->
     <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">全版本</sys:String>
@@ -737,6 +765,9 @@
     <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.CurrentFolder">当前收藏夹</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">复制这些 ID</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">移除这些收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.QueryInfo">查询资源信息</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">批量下载合适资源</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">批量下载资源（{0}）</sys:String>
 
     <!-- Minecraft.Download Stage -->
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">分析资源文件索引地址</sys:String>
@@ -823,11 +854,12 @@
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">下载原版 Json 文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">下载原版支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">等待原版下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Loader.NewForge">新版 Forge</sys:String>
 
     <!-- Minecraft.Download Error -->
     <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">添加客户端版本失败</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">分析资源文件索引地址失败</sys:String>
-    <sys:String x:Key="Minecraft.Download.Error.BMCLAPIMissingTargetVersion">BMCLAPI 源未包含目标版本 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BmclapiMissingTargetVersion">BMCLAPI 源未包含目标版本 {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta 下载失败: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">非新版方式安装 Forge 失败</sys:String>
     <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">获取的结果过短（{0}）</sys:String>
@@ -863,9 +895,9 @@
     <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">{0} 版本列表解析失败（{1}）</sys:String>
 
     <!-- Minecraft.Download ServerBatch -->
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEULA">如果提示 "You need to agree to the EULA"，请编辑 eula.txt 同意协议!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">如果提示 "You need to agree to the EULA"，请编辑 eula.txt 同意协议!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服务端立即停止，请右键编辑该脚本，使用!JAVA_HOME!替换%JAVA_HOME%</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPCLSettings">你可以在 PCL 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">你可以在 PCL 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">服务端已停止。</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} 原版服务端</sys:String>
 
@@ -881,7 +913,7 @@
     <sys:String x:Key="Download.Source.QuiltOfficial">Quilt 官方源</sys:String>
 
     <!-- Download Tag & Type -->
-    <sys:String x:Key="Download.Tag.UVMC">UVMC 特供下载</sys:String>
+    <sys:String x:Key="Download.Tag.Uvmc">UVMC 特供下载</sys:String>
     <sys:String x:Key="Download.Version.Type.Installer">安装器</sys:String>
 
     <!-- Common Status & Actions (additions) -->
@@ -891,6 +923,7 @@
     <sys:String x:Key="Common.Status.Cancelled">已取消！</sys:String>
     <sys:String x:Key="Common.Status.Failure">失败：</sys:String>
     <sys:String x:Key="Common.Status.Success">成功！</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">不是有效的 Json 文件</sys:String>
 
     <!-- Minecraft Version -->
     <sys:String x:Key="Minecraft.Version.Unknown">未知版本</sys:String>
@@ -912,6 +945,7 @@
     <sys:String x:Key="Minecraft.Error.Unrecognizable">无法识别：{0}</sys:String>
     <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">无法获取版本号，结果为空</sys:String>
     <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">版本号获取失败：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.QuiltUnsupported">Quilt 不支持 Minecraft {0}</sys:String>
 
     <!-- Minecraft Skin Error -->
     <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">皮肤地址种类无效：{0}</sys:String>

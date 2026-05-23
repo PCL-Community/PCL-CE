@@ -447,7 +447,7 @@ public partial class PageDownloadCompFavorites
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
+                if (ErrorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
                     ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
                     PageLoaderRestart();
@@ -550,7 +550,8 @@ public partial class PageDownloadCompFavorites
             ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions"));
             // 输入 Ids，输出合适版本
             var GetInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
-            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>("查询资源信息", Ts =>
+            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>(
+                Lang.Text("Download.Comp.Favorites.LoaderName.QueryInfo"), Ts =>
             {
                 List<List<ModComp.CompFile>> AllFiles = [];
                 List<string> SuitVersion = [];
@@ -647,13 +648,26 @@ public partial class PageDownloadCompFavorites
             {
                 ProgressWeight = 2d
             });
-            GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
-                { ProgressWeight = 8d });
-            var CheckLoader =
-                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
-                    { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
-            CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
-            ModLoader.LoaderTaskbarAdd(CheckLoader);
+
+            GetInfoAndDownloadLoader.Add(
+                new LoaderDownload(
+                    Lang.Text("Download.Comp.Favorites.LoaderName.BatchDownloadSuitable"),
+                    []
+                )
+                {
+                    ProgressWeight = 8d
+                }
+            );
+            var checkLoader = new ModLoader.LoaderCombo<List<string>>(
+                Lang.Text("Download.Comp.Favorites.LoaderName.BatchDownload", ModBase.GetUuid()),
+                GetInfoAndDownloadLoader
+            )
+            {
+                OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
+            };
+
+            checkLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
+            ModLoader.LoaderTaskbarAdd(checkLoader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();
             Items_SetSelectAll(false);

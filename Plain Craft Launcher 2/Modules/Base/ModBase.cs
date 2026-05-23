@@ -1325,7 +1325,7 @@ public static class ModBase
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("不是有效的 Json 文件", ex);
+                        throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
                     }
                 }
 

@@ -43,7 +43,7 @@ public partial class PageDownloadLabyMod
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(SnapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

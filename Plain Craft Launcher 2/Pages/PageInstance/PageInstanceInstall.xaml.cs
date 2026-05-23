@@ -1231,7 +1231,7 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["id"] = Version["id"].ToString().Replace("point", ".");
                                     Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
                                     break;
                                 }
                                 case "20w14infinite":
@@ -1240,7 +1240,7 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["id"] = "20w14∞";
                                     Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
                                     break;
                                 }
                                 case "3d shareware v1.34":
@@ -1256,7 +1256,7 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["type"] = "special";
                                     Version.Add("lore",
-                                        ModMinecraft.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
+                                        McVersionClassifier.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
                                     break;
                                 }
 
