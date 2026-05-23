@@ -1,15 +1,5 @@
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media.Imaging;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.App.Tools;
 using PCL.Core.IO;
 using PCL.Core.IO.Net;
@@ -19,8 +9,18 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.App.Localization;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace PCL;
 
@@ -90,22 +90,22 @@ public partial class PageToolsTest
             switch (Loader.State)
             {
                 case ModBase.LoadState.Finished:
-                {
-                    ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
-                    Console.Beep();
-                    break;
-                }
+                    {
+                        ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
+                        Console.Beep();
+                        break;
+                    }
                 case ModBase.LoadState.Failed:
-                {
-                    ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
-                    Console.Beep();
-                    break;
-                }
+                    {
+                        ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
+                        Console.Beep();
+                        break;
+                    }
                 case ModBase.LoadState.Aborted:
-                {
-                    ModMain.Hint($"{Loader.Name}已取消！");
-                    break;
-                }
+                    {
+                        ModMain.Hint($"{Loader.Name}已取消！");
+                        break;
+                    }
             }
         }
         catch (Exception ex)
@@ -141,13 +141,13 @@ public partial class PageToolsTest
             var uuid = ModBase.GetUuid();
             ModLoader.LoaderBase loaderdownload;
             if (new HttpValidator().Validate(Url).IsValid)
-                loaderdownload = new LoaderDownload($"自定义下载文件：{FileName} ",
+                loaderdownload = new DownloadTask($"自定义下载文件：{FileName} ",
                     new List<DownloadFile> { new(new[] { Url }, Folder + FileName, null, true, UserAgent) });
             else // UNC 路径
                 loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{FileName} ",
                     new Tuple<string, string>(Url, Folder + FileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>($"自定义下载 ({uuid}) ", new[] { loaderdownload })
-                { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
+            { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
             loaderCombo.Start();
             ModLoader.LoaderTaskbarAdd(loaderCombo);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -734,11 +734,11 @@ public partial class PageToolsTest
         }
 
         for (int x = 0, loopTo = HeadSize - 1; x <= loopTo; x++)
-        for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
-        {
-            var pixel = hairScaled.GetPixel(x, y);
-            if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
-        }
+            for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
+            {
+                var pixel = hairScaled.GetPixel(x, y);
+                if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
+            }
     }
 
     private void BtnSaveHead_Click(object sender, MouseButtonEventArgs e)

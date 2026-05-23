@@ -1,9 +1,9 @@
-﻿using System;
+using PCL.Core.Logging;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using PCL.Core.Logging;
 
 namespace PCL.Core.App.Tasks;
 
@@ -31,8 +31,8 @@ public static class TaskCenter
         {
             Title = instance.Title,
             SupportProgress = progressive != null,
-            OnCancel = cancelable == null ? null : (() => cancelable.Cancel()),
-            OnPause = pausable == null ? null : (() => pausable.Pause()),
+            OnCancel = cancelable == null ? null : cancelable.Cancel,
+            OnPause = pausable == null ? null : pausable.Pause,
         };
 
         // state event
@@ -75,25 +75,17 @@ public static class TaskCenter
     /// </summary>
     /// <param name="instance">任务实例</param>
     /// <param name="start">是否立即启动该实例</param>
-    public static void Register(ITask instance, bool start = true)
+    public static TaskModel Register(ITask instance, bool start = true)
     {
         var model = _InitModel(instance);
         Tasks.Add(model);
 
         if (start)
         {
-            _ = Task.Run(async () =>
-            {
-                try { await instance.ExecuteAsync(); }
-                catch (OperationCanceledException) { /* ignoring */ }
-                catch (Exception ex)
-                {
-                    LogWrapper.Warn(ex, "TaskCenter", $"{instance.Title}: exception thrown");
-                    model.State = TaskState.Failed;
-                    model.StateMessage = ex.Message;
-                }
-            });
+            _ = _ExecuteTaskAsync(instance, model);
         }
+
+        return model;
     }
 
     /// <summary>
@@ -104,4 +96,29 @@ public static class TaskCenter
         foreach (var model in Tasks.Where(x => x.State > TaskState.Running).ToList())
             Tasks.Remove(model);
     }
+
+    private static async Task _ExecuteTaskAsync(ITask instance, TaskModel model)
+    {
+        try
+        {
+            await instance.ExecuteAsync().ConfigureAwait(true);
+
+            if (model.State is TaskState.Running)
+            {
+                model.State = TaskState.Success;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            model.State = TaskState.Canceled;
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "TaskCenter", $"{instance.Title}: exception thrown");
+            model.State = TaskState.Failed;
+            model.StateMessage = ex.Message;
+        }
+    }
+
+    public static event Action<TaskModel>? TaskCompleted;
 }

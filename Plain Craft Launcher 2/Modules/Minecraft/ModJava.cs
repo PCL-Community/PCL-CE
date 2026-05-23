@@ -1,13 +1,13 @@
-using System.IO;
-using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.App.Localization;
+using System.IO;
+using System.Text.Json;
 
 namespace PCL;
 
@@ -56,64 +56,64 @@ public static class ModJava
                     switch (true)
                     {
                         case object _ when preference is ExistingJava: // "exist"
-                        {
-                            var existPref = (ExistingJava)preference;
-                            var candidate = Javas.AddOrGet(existPref.JavaExePath);
-
-                            if (candidate is not null && candidate.IsEnabled)
                             {
-                                if (!IsVersionSuitable(candidate.Installation.Version))
-                                    ModMain.Hint(
-                                        $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{MinVersion?.ToString() ?? "无下限"}, {MaxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
-                                ModBase.Log($"[Java] 返回实例 '{RelatedInstance.Name}' 指定的 Java: {candidate}");
-                                return candidate;
-                            }
+                                var existPref = (ExistingJava)preference;
+                                var candidate = Javas.AddOrGet(existPref.JavaExePath);
 
-                            ModBase.Log($"[Java] 警告：实例指定的 Java 路径无效或不可用: {existPref.JavaExePath}");
-
-                            break;
-                        }
-
-                        case object _ when preference is UseRelativePath: // "relative"
-                        {
-                            var relPref = (UseRelativePath)preference;
-                            var absPath =
-                                Path.GetFullPath(Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath));
-
-                            if (Files.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory))
-                            {
-                                var candidate = Javas.Get(absPath);
                                 if (candidate is not null && candidate.IsEnabled)
                                 {
                                     if (!IsVersionSuitable(candidate.Installation.Version))
                                         ModMain.Hint(
-                                            $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
-                                            ModMain.HintType.Critical);
-                                    ModBase.Log(
-                                        $"[Java] 返回实例 '{RelatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
+                                            $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{MinVersion?.ToString() ?? "无下限"}, {MaxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
+                                    ModBase.Log($"[Java] 返回实例 '{RelatedInstance.Name}' 指定的 Java: {candidate}");
                                     return candidate;
                                 }
-                            }
-                            else
-                            {
-                                ModBase.Log($"[Java] 警告：实例相对路径指定的 Java 无效: {absPath}");
+
+                                ModBase.Log($"[Java] 警告：实例指定的 Java 路径无效或不可用: {existPref.JavaExePath}");
+
+                                break;
                             }
 
-                            break;
-                        }
+                        case object _ when preference is UseRelativePath: // "relative"
+                            {
+                                var relPref = (UseRelativePath)preference;
+                                var absPath =
+                                    Path.GetFullPath(Path.Combine(Basics.ExecutableDirectory, relPref.RelativePath));
+
+                                if (Files.IsPathWithinDirectory(absPath, Basics.ExecutableDirectory))
+                                {
+                                    var candidate = Javas.Get(absPath);
+                                    if (candidate is not null && candidate.IsEnabled)
+                                    {
+                                        if (!IsVersionSuitable(candidate.Installation.Version))
+                                            ModMain.Hint(
+                                                $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
+                                                ModMain.HintType.Critical);
+                                        ModBase.Log(
+                                            $"[Java] 返回实例 '{RelatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
+                                        return candidate;
+                                    }
+                                }
+                                else
+                                {
+                                    ModBase.Log($"[Java] 警告：实例相对路径指定的 Java 无效: {absPath}");
+                                }
+
+                                break;
+                            }
 
                         case object _ when preference is UseGlobalPreference: // "global"
-                        {
-                            // 不返回，继续到全局设置检查
-                            ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 配置为使用全局 Java 设置，继续检查全局配置");
-                            break;
-                        }
+                            {
+                                // 不返回，继续到全局设置检查
+                                ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 配置为使用全局 Java 设置，继续检查全局配置");
+                                break;
+                            }
 
                         default:
-                        {
-                            ModBase.Log($"[Java] 警告：未知的 Java 偏好类型 '{preference}'，跳过处理");
-                            break;
-                        }
+                            {
+                                ModBase.Log($"[Java] 警告：未知的 Java 偏好类型 '{preference}'，跳过处理");
+                                break;
+                            }
                     }
                 else
                     ModBase.Log($"[Java] 实例 '{RelatedInstance.Name}' 未指定 Java 偏好（空值），使用自动选择策略");
@@ -177,7 +177,7 @@ public static class ModJava
         var rawPreference = Config.Instance.SelectedJava[instance.PathInstance];
 
         JavaPreference preference = default;
-        
+
         // 尝试读取 JSON 配置
         if (!string.IsNullOrEmpty(rawPreference))
         {
@@ -211,20 +211,20 @@ public static class ModJava
         switch (true)
         {
             case object _ when preference is ExistingJava:
-            {
-                var m = (ExistingJava)preference;
-                if (!Path.IsPathRooted(m.JavaExePath)) preference = new UseGlobalPreference();
+                {
+                    var m = (ExistingJava)preference;
+                    if (!Path.IsPathRooted(m.JavaExePath)) preference = new UseGlobalPreference();
 
-                break;
-            }
+                    break;
+                }
             case object _ when preference is UseRelativePath:
-            {
-                var m = (UseRelativePath)preference;
-                if (!Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory))
-                    preference = new UseGlobalPreference();
+                {
+                    var m = (UseRelativePath)preference;
+                    if (!Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory))
+                        preference = new UseGlobalPreference();
 
-                break;
-            }
+                    break;
+                }
         }
 
         return preference;
@@ -252,27 +252,27 @@ public static class ModJava
                 switch (true)
                 {
                     case object _ when instancePreference is AutoSelect:
-                    {
-                        return Javas.Existing64BitJava();
-                    }
-                    case object _ when instancePreference is ExistingJava:
-                    {
-                        var m = (ExistingJava)instancePreference;
-                        var java = Javas.AddOrGet(m.JavaExePath);
-                        return java is not null && java.Installation.Is64Bit;
-                    }
-                    case object _ when instancePreference is UseRelativePath:
-                    {
-                        var m = (UseRelativePath)instancePreference;
-                        var javaExePath = Path.GetFullPath(m.RelativePath);
-                        if (Files.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory))
                         {
-                            var java = Javas.Get(javaExePath);
+                            return Javas.Existing64BitJava();
+                        }
+                    case object _ when instancePreference is ExistingJava:
+                        {
+                            var m = (ExistingJava)instancePreference;
+                            var java = Javas.AddOrGet(m.JavaExePath);
                             return java is not null && java.Installation.Is64Bit;
                         }
+                    case object _ when instancePreference is UseRelativePath:
+                        {
+                            var m = (UseRelativePath)instancePreference;
+                            var javaExePath = Path.GetFullPath(m.RelativePath);
+                            if (Files.IsPathWithinDirectory(javaExePath, Basics.ExecutableDirectory))
+                            {
+                                var java = Javas.Get(javaExePath);
+                                return java is not null && java.Installation.Is64Bit;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
 
@@ -322,8 +322,8 @@ public static class ModJava
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
-        var JavaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
-            { ProgressWeight = 10d };
+        var JavaDownloadLoader = new DownloadTask("下载 Java 文件", new List<DownloadFile>())
+        { ProgressWeight = 10d };
         var Loader = new ModLoader.LoaderCombo<string>("下载 Java",
             new ModLoader.LoaderBase[]
             {

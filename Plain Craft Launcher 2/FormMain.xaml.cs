@@ -11,6 +11,7 @@ using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Tasks;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
@@ -546,8 +547,8 @@ public partial class FormMain
                 ModBase.RunInNewThread(() =>
                 {
                     ModBase.Log("[System] 正在强行停止任务");
-                    foreach (var Task in ModLoader.LoaderTaskbar.ToList())
-                        Task.Abort();
+                    foreach (var Task in TaskCenter.Tasks.ToList())
+                        Task.Cancel();
                 }, "强行停止下载任务");
             else
                 return;

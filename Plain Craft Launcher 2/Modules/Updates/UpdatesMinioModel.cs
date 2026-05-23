@@ -1,12 +1,11 @@
-using System.IO;
-using System.IO.Compression;
-using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
+using System.IO;
+using System.IO.Compression;
 
 namespace PCL;
 
@@ -98,7 +97,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 load.Output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
             }
         }));
-        loaders.Add(new LoaderDownload("下载文件", new List<DownloadFile>()));
+        loaders.Add(new DownloadTask("下载文件", new List<DownloadFile>()));
         loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", _ =>
         {
             if (patchUpdate)
@@ -197,41 +196,41 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         switch (channel)
         {
             case UpdateChannel.stable:
-            {
-                ChannelName += "sr";
-                break;
-            }
+                {
+                    ChannelName += "sr";
+                    break;
+                }
             case UpdateChannel.beta:
-            {
-                ChannelName += "fr";
-                break;
-            }
+                {
+                    ChannelName += "fr";
+                    break;
+                }
 
             default:
-            {
-                ChannelName += "sr";
-                break;
-            }
+                {
+                    ChannelName += "sr";
+                    break;
+                }
         }
 
         switch (arch)
         {
             case UpdateArch.x64:
-            {
-                ChannelName += "x64";
-                break;
-            }
+                {
+                    ChannelName += "x64";
+                    break;
+                }
             case UpdateArch.arm64:
-            {
-                ChannelName += "arm64";
-                break;
-            }
+                {
+                    ChannelName += "arm64";
+                    break;
+                }
 
             default:
-            {
-                ChannelName += "x64";
-                break;
-            }
+                {
+                    ChannelName += "x64";
+                    break;
+                }
         }
 
         return ChannelName;

@@ -1,8 +1,6 @@
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Tasks.Models;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
 using PCL.Core.Link.McPing;
@@ -13,6 +11,9 @@ using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace PCL;
 
@@ -321,7 +322,7 @@ public static class ModLink
             try
             {
                 // Initialize loaders
-                var loaders = new List<ModLoader.LoaderBase>();
+                var loaders = new SequentialPipelineTask<JObject>("EasyTireDownloading");
 
                 // Setup download addresses
                 var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
@@ -332,16 +333,18 @@ public static class ModLink
                 };
 
                 // 1. Download EasyTier
-                loaders.Add(new LoaderDownload("下载 EasyTier", new List<DownloadFile>
+                loaders.add(new DownloadTask("下载 EasyTier", new List<DownloadFile>
                 {
                     new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
-                }) { ProgressWeight = 15 });
+                })
+                { ProgressWeight = 15 });
 
                 // 2. Extract files
                 loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
                     ModBase.ExtractFile(dlTargetPath,
                         Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
-                ) { Block = true });
+                )
+                { Block = true });
 
                 // 3. Cleanup
                 loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", _ =>
@@ -353,7 +356,8 @@ public static class ModLink
                 // 4. Update UI hint
                 loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", _ =>
                     HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
-                ) { Show = false });
+                )
+                { Show = false });
 
                 // Start loader combo
                 DlEasyTierLoader = new ModLoader.LoaderCombo<JObject>("大厅初始化", loaders);

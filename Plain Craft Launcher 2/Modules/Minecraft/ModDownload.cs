@@ -1,18 +1,17 @@
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
-using PCL;
-using PCL.Core.App.Localization;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Text;
 
 namespace PCL;
 
@@ -92,11 +91,11 @@ public static class ModDownload
             {
                 new ModLoader.LoaderTask<string, List<DownloadFile>>("分析缺失支持库文件",
                     Task => Task.Output = ModMinecraft.McLibNetFilesFromInstance(Version)) { ProgressWeight = 1d },
-                new LoaderDownload("下载支持库文件", new List<DownloadFile>()) { ProgressWeight = 15d }
+                new DownloadTask("下载支持库文件", new List<DownloadFile>()) { ProgressWeight = 15d }
             };
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载支持库文件（主加载器）", LoadersLib)
-                { Block = false, Show = false, ProgressWeight = 16d });
+            { Block = false, Show = false, ProgressWeight = 16d });
         }
 
         #endregion
@@ -127,10 +126,11 @@ public static class ModDownload
                 {
                     throw new Exception("分析资源文件索引地址失败", ex);
                 }
-            }) { ProgressWeight = 0.5d, Show = false });
+            })
+            { ProgressWeight = 0.5d, Show = false });
             // 下载资源文件索引
-            LoadersAssets.Add(new LoaderDownload("下载资源文件索引", new List<DownloadFile>())
-                { ProgressWeight = 2d });
+            LoadersAssets.Add(new DownloadTask("下载资源文件索引", new List<DownloadFile>())
+            { ProgressWeight = 2d });
             // 要求独立更新索引
             if (AssetsIndexBehaviour == AssetsIndexExistsBehaviour.DownloadInBackground)
             {
@@ -152,7 +152,7 @@ public static class ModDownload
                         Task.Abort();
                     }
                 }));
-                LoadersAssetsUpdate.Add(new LoaderDownload("后台下载资源文件索引", new List<DownloadFile>()));
+                LoadersAssetsUpdate.Add(new DownloadTask("后台下载资源文件索引", new List<DownloadFile>()));
                 LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>("后台复制资源文件索引", Task =>
                 {
                     ModBase.CopyFile(TempAddress, RealAddress);
@@ -174,10 +174,10 @@ public static class ModDownload
                 ProgressWeight = 3d
             });
             // 下载资源文件
-            LoadersAssets.Add(new LoaderDownload("下载资源文件", new List<DownloadFile>()) { ProgressWeight = 25d });
+            LoadersAssets.Add(new DownloadTask("下载资源文件", new List<DownloadFile>()) { ProgressWeight = 25d });
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载资源文件（主加载器）", LoadersAssets)
-                { Block = false, Show = false, ProgressWeight = 30.5d });
+            { Block = false, Show = false, ProgressWeight = 30.5d });
         }
 
         #endregion
@@ -278,30 +278,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListBmclapiLoader, 30), new(DlClientListMojangLoader, 30 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListBmclapiLoader, 30), new(DlClientListMojangLoader, 30 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListMojangLoader, 5), new(DlClientListBmclapiLoader, 5 + 30) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListMojangLoader, 5), new(DlClientListBmclapiLoader, 5 + 30) },
+                        loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
-                        { new(DlClientListMojangLoader, 60), new(DlClientListBmclapiLoader, 60 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
+                            { new(DlClientListMojangLoader, 60), new(DlClientListBmclapiLoader, 60 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
         }
 
         // 提取所有 Drop 序数
@@ -477,27 +477,27 @@ public static class ModDownload
             switch (DlClientListLoader.State)
             {
                 case ModBase.LoadState.Finished:
-                {
-                    // 从当前的结果获取目标版本…
-                    foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
-                        if ((string)Version["id"] == Id)
-                            return Version["url"].ToString();
-                    // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
-                    DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
-                    break;
-                }
+                    {
+                        // 从当前的结果获取目标版本…
+                        foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+                            if ((string)Version["id"] == Id)
+                                return Version["url"].ToString();
+                        // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
+                        DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
+                        break;
+                    }
                 case ModBase.LoadState.Loading:
-                {
-                    DlClientListLoader.WaitForExit(Id);
-                    break;
-                }
+                    {
+                        DlClientListLoader.WaitForExit(Id);
+                        break;
+                    }
                 case ModBase.LoadState.Failed:
                 case ModBase.LoadState.Aborted:
                 case ModBase.LoadState.Waiting:
-                {
-                    DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
-                    break;
-                }
+                    {
+                        DlClientListLoader.WaitForExit(Id, IsForceRestart: true);
+                        break;
+                    }
             }
 
             // 重新查找版本
@@ -597,30 +597,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListBmclapiLoader, 30), new(DlOptiFineListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListBmclapiLoader, 30), new(DlOptiFineListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListOfficialLoader, 5), new(DlOptiFineListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListOfficialLoader, 5), new(DlOptiFineListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
-                        { new(DlOptiFineListOfficialLoader, 60), new(DlOptiFineListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
+                            { new(DlOptiFineListOfficialLoader, 60), new(DlOptiFineListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -683,7 +683,7 @@ public static class ModDownload
             }
 
             Loader.Output = new DlOptiFineListResult
-                { IsOfficial = true, SourceName = "OptiFine 官方源", Value = Versions };
+            { IsOfficial = true, SourceName = "OptiFine 官方源", Value = Versions };
         }
         catch (Exception ex)
         {
@@ -764,30 +764,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListBmclapiLoader, 30), new(DlForgeListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListBmclapiLoader, 30), new(DlForgeListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListOfficialLoader, 5), new(DlForgeListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListOfficialLoader, 5), new(DlForgeListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
-                        { new(DlForgeListOfficialLoader, 60), new(DlForgeListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
+                            { new(DlForgeListOfficialLoader, 60), new(DlForgeListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -980,30 +980,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionBmclapiLoader, 30), new(DlForgeVersionOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionBmclapiLoader, 30), new(DlForgeVersionOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionOfficialLoader, 5), new(DlForgeVersionBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionOfficialLoader, 5), new(DlForgeVersionBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
-                        { new(DlForgeVersionOfficialLoader, 60), new(DlForgeVersionBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
+                            { new(DlForgeVersionOfficialLoader, 60), new(DlForgeVersionBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1094,7 +1094,8 @@ public static class ModDownload
                     // 添加进列表
                     Versions.Add(new DlForgeVersionEntry(Name, Branch, Inherit)
                     {
-                        Category = Category, IsRecommended = IsRecommended,
+                        Category = Category,
+                        IsRecommended = IsRecommended,
                         Hash = MD5.Trim(Conversions.ToChar("\r"), Conversions.ToChar("\n")),
                         ReleaseTime = ReleaseTime
                     });
@@ -1137,41 +1138,41 @@ public static class ModDownload
                     switch (File["category"].ToString() ?? "")
                     {
                         case "installer":
-                        {
-                            if (File["format"].ToString() == "jar")
                             {
-                                // 类型为 installer.jar，支持范围 ~753 (~ 1.6.1 部分), 738~684 (1.5.2 全部)
-                                Hash = (string)File["hash"];
-                                Category = "installer";
-                                Proi = 2;
-                            }
+                                if (File["format"].ToString() == "jar")
+                                {
+                                    // 类型为 installer.jar，支持范围 ~753 (~ 1.6.1 部分), 738~684 (1.5.2 全部)
+                                    Hash = (string)File["hash"];
+                                    Category = "installer";
+                                    Proi = 2;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         case "universal":
-                        {
-                            if (Proi <= 1 && File["format"].ToString() == "zip")
                             {
-                                // 类型为 universal.zip，支持范围 751~449 (1.6.1 部分), 682~183 (1.5.1 ~ 1.3.2 部分)
-                                Hash = (string)File["hash"];
-                                Category = "universal";
-                                Proi = 1;
-                            }
+                                if (Proi <= 1 && File["format"].ToString() == "zip")
+                                {
+                                    // 类型为 universal.zip，支持范围 751~449 (1.6.1 部分), 682~183 (1.5.1 ~ 1.3.2 部分)
+                                    Hash = (string)File["hash"];
+                                    Category = "universal";
+                                    Proi = 1;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         case "client":
-                        {
-                            if (Proi <= 0 && File["format"].ToString() == "zip")
                             {
-                                // 类型为 client.zip，支持范围 182~ (1.3.2 部分 ~)
-                                Hash = (string)File["hash"];
-                                Category = "client";
-                                Proi = 0;
-                            }
+                                if (Proi <= 0 && File["format"].ToString() == "zip")
+                                {
+                                    // 类型为 client.zip，支持范围 182~ (1.3.2 部分 ~)
+                                    Hash = (string)File["hash"];
+                                    Category = "client";
+                                    Proi = 0;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                     }
 
                 // 获取 Entry
@@ -1179,7 +1180,7 @@ public static class ModDownload
                 var Name = (string)Token["version"];
                 // 基础信息获取
                 var Entry = new DlForgeVersionEntry(Name, Branch, Loader.Input)
-                    { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
+                { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
                 var TimeSplit = Token["modified"].ToString().Split('-', 'T', ':', '.', ' ', '/');
                 Entry.ReleaseTime = Lang.Date(Token["modified"].ToObject<DateTime>().ToLocalTime(), "g");
                 // 添加项
@@ -1286,30 +1287,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListBmclapiLoader, 30), new(DlNeoForgeListOfficialLoader, 30 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListBmclapiLoader, 30), new(DlNeoForgeListOfficialLoader, 30 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListOfficialLoader, 5), new(DlNeoForgeListBmclapiLoader, 5 + 30) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListOfficialLoader, 5), new(DlNeoForgeListBmclapiLoader, 5 + 30) },
+                        loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
-                        { new(DlNeoForgeListOfficialLoader, 60), new(DlNeoForgeListBmclapiLoader, 60 + 60) },
-                    loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
+                            { new(DlNeoForgeListOfficialLoader, 60), new(DlNeoForgeListBmclapiLoader, 60 + 60) },
+                        loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1466,27 +1467,27 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 5) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 5) }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
-                        { new(DlCleanroomListOfficialLoader, 60) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
+                            { new(DlCleanroomListOfficialLoader, 60) }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1528,7 +1529,7 @@ public static class ModDownload
         var Json = JArray.Parse(LatestJson);
         foreach (JObject Token in Json)
             Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
-                { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
+            { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
         if (!Versions.Any())
             throw new Exception("没有可用版本");
         Versions = Versions.OrderByDescending(a => a.Version).ToList();
@@ -1611,33 +1612,33 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListBmclapiLoader, 30), new(DlLiteLoaderListOfficialLoader, 30 + 60)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListOfficialLoader, 5), new(DlLiteLoaderListBmclapiLoader, 5 + 30)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
-                    {
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
+                        {
                         new(DlLiteLoaderListOfficialLoader, 60), new(DlLiteLoaderListBmclapiLoader, 60 + 60)
-                    }, Loader.IsForceRestarting);
-                break;
-            }
+                        }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1675,7 +1676,7 @@ public static class ModDownload
             }
 
             Loader.Output = new DlLiteLoaderListResult
-                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
+            { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
         }
         catch (Exception ex)
         {
@@ -1758,30 +1759,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListBmclapiLoader, 30), new(DlFabricListOfficialLoader, 30 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListBmclapiLoader, 30), new(DlFabricListOfficialLoader, 30 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListOfficialLoader, 5), new(DlFabricListBmclapiLoader, 5 + 30) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListOfficialLoader, 5), new(DlFabricListBmclapiLoader, 5 + 30) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
-                        { new(DlFabricListOfficialLoader, 60), new(DlFabricListBmclapiLoader, 60 + 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
+                            { new(DlFabricListOfficialLoader, 60), new(DlFabricListBmclapiLoader, 60 + 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1874,30 +1875,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 30), new(DlQuiltListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 30), new(DlQuiltListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 5), new(DlQuiltListOfficialLoader, 35) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 5), new(DlQuiltListOfficialLoader, 35) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
-                        { new(DlQuiltListOfficialLoader, 60), new(DlQuiltListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
+                            { new(DlQuiltListOfficialLoader, 60), new(DlQuiltListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -1967,30 +1968,30 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 30), new(DlLabyModListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 30), new(DlLabyModListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 5), new(DlLabyModListOfficialLoader, 35) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 5), new(DlLabyModListOfficialLoader, 35) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
-                        { new(DlLabyModListOfficialLoader, 60), new(DlLabyModListOfficialLoader, 60) },
-                    Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
+                            { new(DlLabyModListOfficialLoader, 60), new(DlLabyModListOfficialLoader, 60) },
+                        Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -2064,28 +2065,28 @@ public static class ModDownload
             switch (Config.Download.Comp.CompSourceSolution)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        break;
+                    }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
 
                 default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
             }
 
         var Exs = "";
@@ -2116,7 +2117,7 @@ public static class ModDownload
     /// </summary>
     public static string DlModRequest(string url, string method, string data, string contentType,
         bool allowMirror = false) => DlModRequest<string>(url, method, data, contentType, allowMirror);
-    
+
     /// <summary>
     ///     对可能涉及 Mod 镜像源的请求进行处理。
     ///     调用 NetRequest，会进行重试。
@@ -2130,28 +2131,28 @@ public static class ModDownload
             switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
                 case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        break;
+                    }
                 case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-                {
-                    Urls.Add(new KeyValuePair<string, int>(url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
 
                 default:
-                {
-                    Urls.Add(new KeyValuePair<string, int>(url, 5));
-                    Urls.Add(new KeyValuePair<string, int>(url, 15));
-                    Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
-                    break;
-                }
+                    {
+                        Urls.Add(new KeyValuePair<string, int>(url, 5));
+                        Urls.Add(new KeyValuePair<string, int>(url, 15));
+                        Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
+                        break;
+                    }
             }
 
         var Exs = "";
@@ -2161,7 +2162,7 @@ public static class ModDownload
                 string json = Requester.Fetch(Source.Key, new FetchParam
                 {
                     Method = method,
-                    Content = data, 
+                    Content = data,
                     ContentType = contentType,
                     Timeout = Source.Value * 1000
                 });
@@ -2315,30 +2316,30 @@ public static class ModDownload
         switch (Config.Download.Comp.CompSourceSolution)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 镜像源
-            {
-                res.Add(mirrorDl);
-                res.Add(mirrorDl);
-                break;
-            }
+                {
+                    res.Add(mirrorDl);
+                    res.Add(mirrorDl);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 平衡
-            {
-                res.Add(original);
-                res.Add(mirrorDl);
-                break;
-            }
+                {
+                    res.Add(original);
+                    res.Add(mirrorDl);
+                    break;
+                }
             case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 官方源
-            {
-                res.Add(original);
-                res.Add(original); // 错误
-                break;
-            }
+                {
+                    res.Add(original);
+                    res.Add(original); // 错误
+                    break;
+                }
 
             default:
-            {
-                ModBase.Setup.Reset("ToolDownloadMod");
-                res.Add(original);
-                break;
-            }
+                {
+                    ModBase.Setup.Reset("ToolDownloadMod");
+                    res.Add(original);
+                    break;
+                }
         }
 
         res.Add(original);
@@ -2473,27 +2474,27 @@ public static class ModDownload
         switch (Config.Download.VersionListSource)
         {
             case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
+                    break;
+                }
             case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 5) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 5) }, Loader.IsForceRestarting);
+                    break;
+                }
 
             default:
-            {
-                DlSourceLoader(Loader,
-                    new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
-                        { new(DlLegacyFabricListOfficialLoader, 60) }, Loader.IsForceRestarting);
-                break;
-            }
+                {
+                    DlSourceLoader(Loader,
+                        new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
+                            { new(DlLegacyFabricListOfficialLoader, 60) }, Loader.IsForceRestarting);
+                    break;
+                }
         }
     }
 
@@ -2510,7 +2511,7 @@ public static class ModDownload
         try
         {
             var Output = new DlLegacyFabricListResult
-                { IsOfficial = true, SourceName = "LegacyFabric 官方源", Value = Result };
+            { IsOfficial = true, SourceName = "LegacyFabric 官方源", Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
                 throw new Exception("获取到的列表缺乏必要项");
             Loader.Output = Output;

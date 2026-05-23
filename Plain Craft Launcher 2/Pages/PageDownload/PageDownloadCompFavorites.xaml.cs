@@ -1,13 +1,13 @@
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.UI;
-using PCL.Network;
-using PCL.Network.Loaders;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -156,51 +156,51 @@ public partial class PageDownloadCompFavorites
         switch (Type)
         {
             case -1:
-            {
-                NewItem.Title = "搜索结果 ({0})"; // 搜索结果
-                break;
-            }
+                {
+                    NewItem.Title = "搜索结果 ({0})"; // 搜索结果
+                    break;
+                }
             case (int)ModComp.CompType.Mod:
-            {
-                NewItem.Title = "Mod ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "Mod ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.ModPack:
-            {
-                NewItem.Title = "整合包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "整合包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.ResourcePack:
-            {
-                NewItem.Title = "资源包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "资源包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.Shader:
-            {
-                NewItem.Title = "光影包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "光影包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.DataPack:
-            {
-                NewItem.Title = "数据包 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "数据包 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.Plugin:
-            {
-                NewItem.Title = "插件 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "插件 ({0})";
+                    break;
+                }
             case (int)ModComp.CompType.World:
-            {
-                NewItem.Title = "世界 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "世界 ({0})";
+                    break;
+                }
 
             default:
-            {
-                NewItem.Title = "未分类类型 ({0})";
-                break;
-            }
+                {
+                    NewItem.Title = "未分类类型 ({0})";
+                    break;
+                }
         }
 
         NewItem.Card.Title = string.Format(NewItem.Title, 0);
@@ -441,18 +441,18 @@ public partial class PageDownloadCompFavorites
         switch (Loader.State)
         {
             case ModBase.LoadState.Failed:
-            {
-                var ErrorMessage = "";
-                if (Loader.Error is not null)
-                    ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
                 {
-                    ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var ErrorMessage = "";
+                    if (Loader.Error is not null)
+                        ErrorMessage = Loader.Error.Message;
+                    if (ErrorMessage.Contains("不是有效的 json 文件"))
+                    {
+                        ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -643,11 +643,11 @@ public partial class PageDownloadCompFavorites
             {
                 ProgressWeight = 2d
             });
-            GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
-                { ProgressWeight = 8d });
+            GetInfoAndDownloadLoader.Add(new DownloadTask("批量下载合适资源", new List<DownloadFile>())
+            { ProgressWeight = 8d });
             var CheckLoader =
                 new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
-                    { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+                { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(CheckLoader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -745,22 +745,22 @@ public partial class PageDownloadCompFavorites
                 switch (UserWant)
                 {
                     case 1:
-                    {
-                        var NewFavName = ModMain.MyMsgBoxInput("新收藏夹名称", "请输入新收藏夹名称");
-                        if (string.IsNullOrWhiteSpace(NewFavName)) return;
-                        ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, NewFavs));
-                        ModComp.CompFavorites.Save();
-                        RefreshFavTargets();
-                        ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
-                        break;
-                    }
+                        {
+                            var NewFavName = ModMain.MyMsgBoxInput("新收藏夹名称", "请输入新收藏夹名称");
+                            if (string.IsNullOrWhiteSpace(NewFavName)) return;
+                            ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, NewFavs));
+                            ModComp.CompFavorites.Save();
+                            RefreshFavTargets();
+                            ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+                            break;
+                        }
                     case 2:
-                    {
-                        NewFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
-                        ModComp.CompFavorites.Save();
-                        Loader.Start(IsForceRestart: true);
-                        break;
-                    }
+                        {
+                            NewFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
+                            ModComp.CompFavorites.Save();
+                            Loader.Start(IsForceRestart: true);
+                            break;
+                        }
                 }
             }
             catch (Exception ex)

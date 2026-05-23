@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCL.Core.App.Tasks;
@@ -27,6 +27,8 @@ public interface ITask
     /// </summary>
     /// <param name="cancelToken">取消令牌</param>
     public Task ExecuteAsync(CancellationToken cancelToken = default);
+
+    public TaskState State { get; set; }
 
     /// <summary>
     /// 任务状态改变事件

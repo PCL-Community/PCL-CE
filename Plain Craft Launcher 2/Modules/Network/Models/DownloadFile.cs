@@ -1,5 +1,3 @@
-using PCL.Core.Utils;
-
 namespace PCL.Network;
 
 public class DownloadFile
@@ -17,7 +15,7 @@ public class DownloadFile
     public long DownloadedBytes { get; set; }
     public bool IsCopy { get; set; }
     public List<Exception> Errors { get; } = new();
-    public List<PCL.Network.Loaders.LoaderDownload> Loaders { get; } = new();
+    public List<PCL.Network.Loaders.DownloadTask> Loaders { get; } = new();
     public long Speed { get; set; }
     public int ActiveThreads { get; set; }
     public double Progress

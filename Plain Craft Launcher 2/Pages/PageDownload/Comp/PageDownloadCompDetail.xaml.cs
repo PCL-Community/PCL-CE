@@ -1,16 +1,14 @@
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.Collections;
+using System.IO;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 using Control = System.Windows.Forms.Control;
 
 namespace PCL;
@@ -75,12 +73,13 @@ public partial class PageDownloadCompDetail
             var Target =
                 $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            Loaders.Add(new LoaderDownload("下载整合包文件", new List<DownloadFile> { File.ToNetFile(Target) })
-                { ProgressWeight = 10d, Block = true });
+            Loaders.Add(new DownloadTask("下载整合包文件", new List<DownloadFile> { File.ToNetFile(Target) })
+            { ProgressWeight = 10d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("准备安装整合包",
                 _ => ModModpack.ModpackInstall(Target, InstanceName,
                     System.IO.File.Exists(LogoFileAddress) ? LogoFileAddress : null, File.ProjectId,
-                    true)) { ProgressWeight = 0.1d });
+                    true))
+            { ProgressWeight = 0.1d });
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<string>(LoaderName, Loaders)
@@ -90,19 +89,19 @@ public partial class PageDownloadCompDetail
                     switch (MyLoader.State)
                     {
                         case ModBase.LoadState.Failed:
-                        {
-                            ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
-                            break;
-                        }
+                            {
+                                ModMain.Hint(MyLoader.Name + "失败：" + MyLoader.Error.Message, ModMain.HintType.Critical);
+                                break;
+                            }
                         case ModBase.LoadState.Aborted:
-                        {
-                            ModMain.Hint(MyLoader.Name + "已取消！");
-                            break;
-                        }
+                            {
+                                ModMain.Hint(MyLoader.Name + "已取消！");
+                                break;
+                            }
                         case ModBase.LoadState.Loading:
-                        {
-                            return; // 不重新加载版本列表
-                        }
+                            {
+                                return; // 不重新加载版本列表
+                            }
                     }
 
                     ModDownloadLib.McInstallFailedClearFolder(MyLoader);
@@ -209,16 +208,16 @@ public partial class PageDownloadCompDetail
             var Loaders = new List<ModLoader.LoaderBase>();
             var TargetPath = Target.BeforeLast(@"\");
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            Loaders.Add(new LoaderDownload("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
-                { ProgressWeight = 10d, Block = true });
+            Loaders.Add(new DownloadTask("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
+            { ProgressWeight = 10d, Block = true });
             Loaders.Add(
                 new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
-                    { ProgressWeight = 0.1d, Block = true });
+                { ProgressWeight = 0.1d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存", _ => System.IO.File.Delete(Target)));
 
             // 启动
             var Loader = new ModLoader.LoaderCombo<int>(LoaderName, Loaders)
-                { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
+            { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             Loader.Start();
             ModLoader.LoaderTaskbarAdd(Loader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
@@ -391,7 +390,7 @@ public partial class PageDownloadCompDetail
                     var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
                     var Loaders = new List<ModLoader.LoaderBase>
                     {
-                        new LoaderDownload("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
+                        new DownloadTask("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
                         {
                             ProgressWeight = 6,
                             Block = true
@@ -527,18 +526,18 @@ public partial class PageDownloadCompDetail
         switch (_compFileLoader.State)
         {
             case ModBase.LoadState.Failed:
-            {
-                var errorMessage = "";
-                if (_compFileLoader.Error is not null)
-                    errorMessage = _compFileLoader.Error.Message;
-                if (errorMessage.Contains("不是有效的 Json 文件"))
                 {
-                    ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    if (_compFileLoader.Error is not null)
+                        errorMessage = _compFileLoader.Error.Message;
+                    if (errorMessage.Contains("不是有效的 Json 文件"))
+                    {
+                        ModBase.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", ModBase.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -645,7 +644,7 @@ public partial class PageDownloadCompDetail
         GroupedDrop = true;
         GroupedOld = true;
         updateFilters();
-        GroupDone: ;
+    GroupDone:;
 
 
         // UI 化筛选器
@@ -696,7 +695,8 @@ public partial class PageDownloadCompDetail
             {
                 var newButton = new MyRadioButton
                 {
-                    Text = version, Margin = new Thickness(2d, 0d, 2d, 0d),
+                    Text = version,
+                    Margin = new Thickness(2d, 0d, 2d, 0d),
                     ColorType = MyRadioButton.ColorState.Highlight
                 };
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
@@ -916,31 +916,31 @@ public partial class PageDownloadCompDetail
                     switch (_project.Type)
                     {
                         case ModComp.CompType.ModPack:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) => ModMain.FrmDownloadCompDetail.Install_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
+                            {
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(
+                                        (sender, e) => ModMain.FrmDownloadCompDetail.Install_Click((MyListItem)sender, e),
+                                        ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
+                                break;
+                            }
                         case ModComp.CompType.World:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) =>
-                                        ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
-                                    ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
+                            {
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(
+                                        (sender, e) =>
+                                            ModMain.FrmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
+                                        ModMain.FrmDownloadCompDetail.Save_Click, badDisplayName));
+                                break;
+                            }
 
                         default:
-                        {
-                            ModComp.CompFilesCardPreload(stack, list);
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(ModMain.FrmDownloadCompDetail.Save_Click,
-                                    badDisplayName: badDisplayName));
-                            break;
-                        }
+                            {
+                                ModComp.CompFilesCardPreload(stack, list);
+                                foreach (var item in list)
+                                    stack.Children.Add(item.ToListItem(ModMain.FrmDownloadCompDetail.Save_Click,
+                                        badDisplayName: badDisplayName));
+                                break;
+                            }
                     }
                 };
 

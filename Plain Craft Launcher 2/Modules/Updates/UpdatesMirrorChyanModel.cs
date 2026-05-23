@@ -1,10 +1,9 @@
-using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 
@@ -73,7 +72,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 throw new Exception("Mirror 酱下载源不可用");
             load.Output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
         }));
-        loaders.Add(new LoaderDownload("下载更新文件", new List<DownloadFile>()));
+        loaders.Add(new DownloadTask("下载更新文件", new List<DownloadFile>()));
         return loaders;
     }
 

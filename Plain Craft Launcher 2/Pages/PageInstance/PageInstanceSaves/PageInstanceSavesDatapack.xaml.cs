@@ -1187,7 +1187,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 构造加载器
             var InstallLoaders = new List<ModLoader.LoaderBase>();
             var FinishedFileNames = new List<string>();
-            InstallLoaders.Add(new LoaderDownload("下载新版数据包文件", FileList)
+            InstallLoaders.Add(new DownloadTask("下载新版数据包文件", FileList)
                 { ProgressWeight = DatapackList.Count() * 1.5d });
 
             InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
