@@ -832,7 +832,7 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            double customHeight = 20d; // 修改左侧神秘动画条的高度
+            var customHeight = 20d; // 修改左侧神秘动画条的高度
 
             if (IsLoaded && ModAnimation.AniControlEnabled == 0 && anime) // 防止默认属性变更触发动画
             {
@@ -840,7 +840,7 @@ public partial class MyListItem : IMyRadio
                 if (Checked)
                 {
                     // 由无变有
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         // 统一静态属性：固定高度、居中对齐、无额外边距
                         RectCheck.Height = customHeight;
@@ -868,7 +868,7 @@ public partial class MyListItem : IMyRadio
                 else
                 {
                     // 由有变无
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         if (!(RectCheck.RenderTransform is ScaleTransform))
                         {
