@@ -183,6 +183,19 @@ public static class ModComp
         World = 7
     }
 
+    public static string GetCompTypeName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.Type.Mod",
+        CompType.ModPack => "Download.Comp.Type.Modpack",
+        CompType.ResourcePack => "Download.Comp.Type.ResourcePack",
+        CompType.Shader => "Download.Comp.Type.Shader",
+        CompType.DataPack => "Download.Comp.Type.DataPack",
+        CompType.Plugin => "Download.Comp.Type.Plugin",
+        CompType.World => "Download.Comp.Type.World",
+        CompType.Schematic => "Download.Comp.Type.Schematic",
+        _ => "Download.Comp.Type.Unknown"
+    });
+
     #region CompFavorites | 收藏
 
     public class CompFavorites
@@ -1039,372 +1052,372 @@ public static class ModComp
                             // Mod
                             case 406:
                             {
-                                Tags.Add("世界元素");
+                                Tags.Add(Lang.Text("Download.Comp.Category.WorldGen"));
                                 break;
                             }
                             case 407:
                             {
-                                Tags.Add("生物群系");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Biomes"));
                                 break;
                             }
                             case 410:
                             {
-                                Tags.Add("维度");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Dimensions"));
                                 break;
                             }
                             case 408:
                             {
-                                Tags.Add("矿物/资源");
+                                Tags.Add(Lang.Text("Download.Comp.Category.OresResources"));
                                 break;
                             }
                             case 409:
                             {
-                                Tags.Add("天然结构");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Structures"));
                                 break;
                             }
                             case 412:
                             {
-                                Tags.Add("科技");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Technology"));
                                 break;
                             }
                             case 415:
                             {
-                                Tags.Add("管道/物流");
+                                Tags.Add(Lang.Text("Download.Comp.Category.PipesLogistics"));
                                 break;
                             }
                             case 4843:
                             {
-                                Tags.Add("自动化");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Automation"));
                                 break;
                             }
                             case 417:
                             {
-                                Tags.Add("能源");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Energy"));
                                 break;
                             }
                             case 4558:
                             {
-                                Tags.Add("红石");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Redstone"));
                                 break;
                             }
                             case 436:
                             {
-                                Tags.Add("食物/烹饪");
+                                Tags.Add(Lang.Text("Download.Comp.Category.FoodCooking"));
                                 break;
                             }
                             case 416:
                             {
-                                Tags.Add("农业");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Farming"));
                                 break;
                             }
                             case 414:
                             {
-                                Tags.Add("运输");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Transportation"));
                                 break;
                             }
                             case 420:
                             {
-                                Tags.Add("仓储");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Storage"));
                                 break;
                             }
                             case 419:
                             {
-                                Tags.Add("魔法");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Magic"));
                                 break;
                             }
                             case 422:
                             {
-                                Tags.Add("冒险");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Adventure"));
                                 break;
                             }
                             case 424:
                             {
-                                Tags.Add("装饰");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Decoration"));
                                 break;
                             }
                             case 411:
                             {
-                                Tags.Add("生物");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Mobs"));
                                 break;
                             }
                             case 434:
                             {
-                                Tags.Add("装备");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Equipment"));
                                 break;
                             }
                             case 6814:
                             {
-                                Tags.Add("性能优化");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Optimization"));
                                 break;
                             }
                             case 9026:
                             {
-                                Tags.Add("创造模式");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Creative"));
                                 break;
                             }
                             case 423:
                             {
-                                Tags.Add("信息显示");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Display"));
                                 break;
                             }
                             case 435:
                             {
-                                Tags.Add("服务器");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Server"));
                                 break;
                             }
                             case 5191:
                             {
-                                Tags.Add("改良");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Tweaks"));
                                 break;
                             }
                             case 421:
                             {
-                                Tags.Add("支持库");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Library"));
                                 break;
                             }
                             // 整合包
                             case 4484:
                             {
-                                Tags.Add("多人");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Multiplayer"));
                                 break;
                             }
                             case 4479:
                             {
-                                Tags.Add("硬核");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Hardcore"));
                                 break;
                             }
                             case 4483:
                             {
-                                Tags.Add("战斗");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Combat"));
                                 break;
                             }
                             case 4478:
                             {
-                                Tags.Add("任务");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Quests"));
                                 break;
                             }
                             case 4472:
                             {
-                                Tags.Add("科技");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Technology"));
                                 break;
                             }
                             case 4473:
                             {
-                                Tags.Add("魔法");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Magic"));
                                 break;
                             }
                             case 4475:
                             {
-                                Tags.Add("冒险");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Adventure"));
                                 break;
                             }
                             case 4476:
                             {
-                                Tags.Add("探索");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Exploration"));
                                 break;
                             }
                             case 4477:
                             {
-                                Tags.Add("小游戏");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.MiniGame"));
                                 break;
                             }
                             case 4471:
                             {
-                                Tags.Add("科幻");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.SciFi"));
                                 break;
                             }
                             case 4736:
                             {
-                                Tags.Add("空岛");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Skyblock"));
                                 break;
                             }
                             case 5128:
                             {
-                                Tags.Add("原版改良");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.VanillaPlus"));
                                 break;
                             }
                             case 4487:
                             {
-                                Tags.Add("FTB");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Ftb"));
                                 break;
                             }
                             case 4480:
                             {
-                                Tags.Add("基于地图");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.MapBased"));
                                 break;
                             }
                             case 4481:
                             {
-                                Tags.Add("轻量");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.SmallLight"));
                                 break;
                             }
                             case 4482:
                             {
-                                Tags.Add("大型");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.ExtraLarge"));
                                 break;
                             }
                             // 资源包
                             case 403:
                             {
-                                Tags.Add("原版风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.VanillaLike"));
                                 break;
                             }
                             case 400:
                             {
-                                Tags.Add("写实风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Realistic"));
                                 break;
                             }
                             case 401:
                             {
-                                Tags.Add("现代风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modern"));
                                 break;
                             }
                             case 402:
                             {
-                                Tags.Add("中世纪");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Medieval"));
                                 break;
                             }
                             case 399:
                             {
-                                Tags.Add("蒸汽朋克");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Steampunk"));
                                 break;
                             }
                             case 5244:
                             {
-                                Tags.Add("含字体");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Fonts"));
                                 break;
                             }
                             case 404:
                             {
-                                Tags.Add("动态效果");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Animated"));
                                 break;
                             }
                             case 4465:
                             {
-                                Tags.Add("兼容 Mod");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ModSupport"));
                                 break;
                             }
                             case 393:
                             {
-                                Tags.Add("16x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution16x"));
                                 break;
                             }
                             case 394:
                             {
-                                Tags.Add("32x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution32x"));
                                 break;
                             }
                             case 395:
                             {
-                                Tags.Add("64x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution64x"));
                                 break;
                             }
                             case 396:
                             {
-                                Tags.Add("128x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution128x"));
                                 break;
                             }
                             case 397:
                             {
-                                Tags.Add("256x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution256x"));
                                 break;
                             }
                             case 398:
                             {
-                                Tags.Add("超高清");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution512xOrHigher"));
                                 break;
                             }
                             case 5193:
                             {
-                                Tags.Add("数据包"); // 有这个 Tag 的项会从资源包请求中被移除
+                                Tags.Add(Lang.Text("Download.Comp.Type.DataPack")); // 有这个 Tag 的项会从资源包请求中被移除
                                 break;
                             }
                             // 光影包
                             case 6553:
                             {
-                                Tags.Add("写实风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Realistic"));
                                 break;
                             }
                             case 6554:
                             {
-                                Tags.Add("幻想风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Fantasy"));
                                 break;
                             }
                             case 6555:
                             {
-                                Tags.Add("原版风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.VanillaLike"));
                                 break;
                             }
                             // 数据包
                             case 6948:
                             {
-                                Tags.Add("冒险");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Adventure"));
                                 break;
                             }
                             case 6949:
                             {
-                                Tags.Add("幻想");
+                                Tags.Add(Lang.Text("Download.Comp.Category.DataPack.Fantasy"));
                                 break;
                             }
                             case 6950:
                             {
-                                Tags.Add("支持库");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Library"));
                                 break;
                             }
                             case 6952:
                             {
-                                Tags.Add("魔法");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Magic"));
                                 break;
                             }
                             case 6946:
                             {
-                                Tags.Add("Mod 相关");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Mod.ModRelated"));
                                 break;
                             }
                             case 6951:
                             {
-                                Tags.Add("科技");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Technology"));
                                 break;
                             }
                             case 6953:
                             {
-                                Tags.Add("实用");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Utility"));
                                 break;
                             }
                             // 世界
                             case 248:
                             {
-                                Tags.Add("冒险");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Adventure"));
                                 break;
                             }
                             case 249:
                             {
-                                Tags.Add("创造");
+                                Tags.Add(Lang.Text("Download.Comp.Category.World.Creative"));
                                 break;
                             }
                             case 250:
                             {
-                                Tags.Add("小游戏");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.MiniGame"));
                                 break;
                             }
                             case 251:
                             {
-                                Tags.Add("跑酷");
+                                Tags.Add(Lang.Text("Download.Comp.Category.World.Parkour"));
                                 break;
                             }
                             case 252:
                             {
-                                Tags.Add("解谜");
+                                Tags.Add(Lang.Text("Download.Comp.Category.World.Puzzle"));
                                 break;
                             }
                             case 253:
                             {
-                                Tags.Add("生存");
+                                Tags.Add(Lang.Text("Download.Comp.Category.World.Survival"));
                                 break;
                             }
                             case 4464:
                             {
-                                Tags.Add("Mod 世界");
+                                Tags.Add(Lang.Text("Download.Comp.Category.World.ModWorld"));
                                 break;
                             }
                         }
@@ -1519,231 +1532,231 @@ public static class ModComp
                             // 共用
                             case "technology":
                             {
-                                Tags.Add("科技");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Technology"));
                                 break;
                             }
                             case "magic":
                             {
-                                Tags.Add("魔法");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Magic"));
                                 break;
                             }
                             case "adventure":
                             {
-                                Tags.Add("冒险");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Adventure"));
                                 break;
                             }
                             case "utility":
                             {
-                                Tags.Add("实用");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Utility"));
                                 break;
                             }
                             case "optimization":
                             {
-                                Tags.Add("性能优化");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Optimization"));
                                 break;
                             }
                             case "vanilla-like":
                             {
-                                Tags.Add("原版风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.VanillaLike"));
                                 break;
                             }
                             case "realistic":
                             {
-                                Tags.Add("写实风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Realistic"));
                                 break;
                             }
                             // Mod/数据包
                             case "worldgen":
                             {
-                                Tags.Add("世界元素");
+                                Tags.Add(Lang.Text("Download.Comp.Category.WorldGen"));
                                 break;
                             }
                             case "food":
                             {
-                                Tags.Add("食物/烹饪");
+                                Tags.Add(Lang.Text("Download.Comp.Category.FoodCooking"));
                                 break;
                             }
                             case "game-mechanics":
                             {
-                                Tags.Add("游戏机制");
+                                Tags.Add(Lang.Text("Download.Comp.Category.GameMechanics"));
                                 break;
                             }
                             case "transportation":
                             {
-                                Tags.Add("运输");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Transportation"));
                                 break;
                             }
                             case "storage":
                             {
-                                Tags.Add("仓储");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Storage"));
                                 break;
                             }
                             case "decoration":
                             {
                                 if (Type != CompType.ResourcePack)
-                                    Tags.Add("装饰");
+                                    Tags.Add(Lang.Text("Download.Comp.Category.Decoration"));
                                 break;
                             }
                             case "mobs":
                             {
                                 if (Type != CompType.ResourcePack)
-                                    Tags.Add("生物");
+                                    Tags.Add(Lang.Text("Download.Comp.Category.Mobs"));
                                 break;
                             }
                             case "equipment":
                             {
                                 if (Type != CompType.ResourcePack)
-                                    Tags.Add("装备");
+                                    Tags.Add(Lang.Text("Download.Comp.Category.Equipment"));
                                 break;
                             }
                             case "social":
                             {
-                                Tags.Add("服务器");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Server"));
                                 break;
                             }
                             case "library":
                             {
-                                Tags.Add("支持库");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Library"));
                                 break;
                             }
                             // 整合包
                             case "multiplayer":
                             {
-                                Tags.Add("多人");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Multiplayer"));
                                 break;
                             }
                             case "challenging":
                             {
-                                Tags.Add("硬核");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Hardcore"));
                                 break;
                             }
                             case "combat":
                             {
-                                Tags.Add("战斗");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Combat"));
                                 break;
                             }
                             case "quests":
                             {
-                                Tags.Add("任务");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.Quests"));
                                 break;
                             }
                             case "kitchen-sink":
                             {
-                                Tags.Add("水槽包");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.KitchenSink"));
                                 break;
                             }
                             case "lightweight":
                             {
-                                Tags.Add("轻量");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Modpack.SmallLight"));
                                 break;
                             }
                             // 资源包
                             case "simplistic":
                             {
-                                Tags.Add("简洁");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Simplistic"));
                                 break;
                             }
                             case var @case when @case == "combat":
                             {
-                                Tags.Add("战斗");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Combat"));
                                 break;
                             }
                             case "tweaks":
                             {
-                                Tags.Add("改良");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Tweaks"));
                                 break;
                             }
 
                             case "8x-":
                             {
-                                Tags.Add("极简");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution8xOrLower"));
                                 break;
                             }
                             case "16x":
                             {
-                                Tags.Add("16x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution16x"));
                                 break;
                             }
                             case "32x":
                             {
-                                Tags.Add("32x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution32x"));
                                 break;
                             }
                             case "48x":
                             {
-                                Tags.Add("48x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution48x"));
                                 break;
                             }
                             case "64x":
                             {
-                                Tags.Add("64x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution64x"));
                                 break;
                             }
                             case "128x":
                             {
-                                Tags.Add("128x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution128x"));
                                 break;
                             }
                             case "256x":
                             {
-                                Tags.Add("256x");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution256x"));
                                 break;
                             }
                             case "512x+":
                             {
-                                Tags.Add("超高清");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ResourcePack.Resolution512xOrHigher"));
                                 break;
                             }
 
                             case "audio":
                             {
-                                Tags.Add("含声音");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Audio"));
                                 break;
                             }
                             case "fonts":
                             {
-                                Tags.Add("含字体");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Fonts"));
                                 break;
                             }
                             case "models":
                             {
-                                Tags.Add("含模型");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Models"));
                                 break;
                             }
                             case "gui":
                             {
-                                Tags.Add("含 UI");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Gui"));
                                 break;
                             }
                             case "locale":
                             {
-                                Tags.Add("含语言");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Locale"));
                                 break;
                             }
                             case "core-shaders":
                             {
-                                Tags.Add("核心着色器");
+                                Tags.Add(Lang.Text("Download.Comp.Category.CoreShaders"));
                                 break;
                             }
                             case "modded":
                             {
-                                Tags.Add("兼容 Mod");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ModSupport"));
                                 break;
                             }
                             // 光影包
                             case "fantasy":
                             {
-                                Tags.Add("幻想风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Fantasy"));
                                 break;
                             }
                             case "semi-realistic":
                             {
-                                Tags.Add("半写实风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.SemiRealistic"));
                                 break;
                             }
                             case "cartoon":
                             {
-                                Tags.Add("卡通风");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Cartoon"));
                                 break;
                             }
                             // 暂时不添加性能负荷 Tag
@@ -1753,38 +1766,38 @@ public static class ModComp
                             // Case "high" : Tags.Add("高")
                             case "colored-lighting":
                             {
-                                Tags.Add("彩色光照");
+                                Tags.Add(Lang.Text("Download.Comp.Category.ColoredLighting"));
                                 break;
                             }
                             case "path-tracing":
                             {
-                                Tags.Add("路径追踪");
+                                Tags.Add(Lang.Text("Download.Comp.Category.PathTracing"));
                                 break;
                             }
                             case "pbr":
                             {
-                                Tags.Add("PBR");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Pbr"));
                                 break;
                             }
                             case "reflections":
                             {
-                                Tags.Add("反射");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Reflections"));
                                 break;
                             }
 
                             case "iris":
                             {
-                                Tags.Add("Iris");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Iris"));
                                 break;
                             }
                             case "optifine":
                             {
-                                Tags.Add("OptiFine");
+                                Tags.Add(Lang.Text("Download.Comp.Category.Optifine"));
                                 break;
                             }
                             case "vanilla":
                             {
-                                Tags.Add("原版可用");
+                                Tags.Add(Lang.Text("Download.Comp.Filter.Loader.VanillaAvailable"));
                                 break;
                             }
                         }
@@ -1793,7 +1806,7 @@ public static class ModComp
                 }
 
                 if (!Tags.Any())
-                    Tags.Add("其他");
+                    Tags.Add(Lang.Text("Download.Comp.Category.Other"));
                 Tags.Sort();
                 ModLoaders.Sort();
             }
@@ -2765,7 +2778,7 @@ public static class ModComp
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
                         var json = ModDownload.DlModRequest<JObject>(curseForgeUrl);
                         var projects = json["data"].Select(j => new CompProject((JObject)j))
-                            .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains("数据包")))
+                            .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
                             .ToList();
                         lock (resultsLock)
                         {

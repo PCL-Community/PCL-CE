@@ -455,6 +455,161 @@
     <sys:String x:Key="Download.Install.LoadingVersionList">Loading version list</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">Click the Minecraft item to go back to the version selection page!</sys:String>
 
+    <!-- Download.Comp Search -->
+    <sys:String x:Key="Download.Comp.Search.Hint">Search resources</sys:String>
+
+    <!-- Download.Comp Filter -->
+    <sys:String x:Key="Download.Comp.Filter.Source">Source</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Tag">Tags</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Sort">Sort</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version">Version</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader">Loader</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.AllInputAvailable">All (can enter manually)</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.AnyShader">Any loader</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable">Vanilla</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable.ToolTip">Loaded as a resource pack, can be used directly in the vanilla game.</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Reset">Reset filters</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.InstallModpack.ToolTip">Install modpack to the currently selected Minecraft folder</sys:String>
+
+    <!-- Download.Comp Sort -->
+    <sys:String x:Key="Download.Comp.Sort.Relevance">Relevance</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Downloads">Downloads</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Follows">Follows</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Newest">Newest</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Updated">Recently updated</sys:String>
+
+    <!-- Download.Comp Type -->
+    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Modpack">Modpack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.ResourcePack">Resource pack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Shader">Shader</sys:String>
+    <sys:String x:Key="Download.Comp.Type.DataPack">Data pack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Plugin">Plugin</sys:String>
+    <sys:String x:Key="Download.Comp.Type.World">World</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Schematic">Schematic</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Unknown">Unknown</sys:String>
+
+    <!-- Download.Comp List -->
+    <sys:String x:Key="Download.Comp.List.LoadingTyped">Getting {0} list</sys:String>
+    <sys:String x:Key="Download.Comp.List.SearchTyped">Search {0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">Fetching community resources: {0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">Unable to connect to Modrinth. Currently only showing CurseForge content, search results may be incomplete.&#x0a;Please retry later or use a VPN to improve network conditions.</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">Unable to connect to CurseForge. Currently only showing Modrinth content, search results may be incomplete.&#x0a;Please retry later or use a VPN to improve network conditions.</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
+
+    <!-- Download.Comp.Category Shared -->
+    <sys:String x:Key="Download.Comp.Category.All">All</sys:String>
+    <sys:String x:Key="Download.Comp.Category.WorldGen">World generation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Biomes">Biomes</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Dimensions">Dimensions</sys:String>
+    <sys:String x:Key="Download.Comp.Category.OresResources">Ores &amp; resources</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Structures">Structures</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Technology">Technology</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PipesLogistics">Pipes &amp; logistics</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Automation">Automation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Energy">Energy</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Redstone">Redstone</sys:String>
+    <sys:String x:Key="Download.Comp.Category.FoodCooking">Food &amp; cooking</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Farming">Farming</sys:String>
+    <sys:String x:Key="Download.Comp.Category.GameMechanics">Game mechanics</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Transportation">Transportation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Storage">Storage</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Magic">Magic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Adventure">Adventure</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Decoration">Decoration</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mobs">Mobs</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Utility">Utility</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Equipment">Equipment &amp; tools</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Creative">Creative mode</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optimization">Optimization</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Display">Information display</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Server">Server</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Library">Library</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Combat">Combat</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Multiplayer">Multiplayer</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Tweaks">Tweaks</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaLike">Vanilla-like</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Realistic">Realistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modern">Modern</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Medieval">Medieval</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Steampunk">Steampunk</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fantasy">Fantasy</sys:String>
+    <sys:String x:Key="Download.Comp.Category.SemiRealistic">Semi-realistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cartoon">Cartoon</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Simplistic">Simplistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Themed">Themed</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cursed">Cursed</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Entities">Entities</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Audio">Audio</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fonts">Fonts</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Models">Models</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Locale">Locale</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Gui">GUI</sys:String>
+    <sys:String x:Key="Download.Comp.Category.CoreShaders">Core shaders</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Animated">Animated</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ModSupport">Mod support</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ColoredLighting">Colored lighting</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PathTracing">Path tracing</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Pbr">PBR</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Reflections">Reflections</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Iris">Iris</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaAvailable">Vanilla available</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Other">Other</sys:String>
+
+    <!-- Download.Comp.Category Mod -->
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod-related</sys:String>
+
+    <!-- Download.Comp.Category Modpack -->
+    <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">Hardcore</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Quests">Quests</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.KitchenSink">Kitchen-sink</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Exploration">Exploration</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MiniGame">Mini game</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SciFi">Sci-fi</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Skyblock">Skyblock</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.VanillaPlus">Vanilla+</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb">FTB</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb.ToolTip">Released by FTB</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MapBased">Map-based</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SmallLight">Lightweight</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.ExtraLarge">Extra large</sys:String>
+
+    <!-- Download.Comp.Category ResourcePack -->
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution8xOrLower">8x or lower</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution16x">16x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution32x">32x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution48x">48x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution64x">64x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution128x">128x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution256x">256x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution512xOrHigher">512x or higher</sys:String>
+
+    <!-- Download.Comp.Category Section Headers -->
+    <sys:String x:Key="Download.Comp.Category.Style">Style</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Feature">Features</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Performance">Performance impact</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Resolution">Resolution</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformancePotato">Potato (very low)</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceLow">Low</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceMedium">Medium</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceHigh">High</sys:String>
+
+    <!-- Download.Comp.Category World -->
+    <sys:String x:Key="Download.Comp.Category.World.Creative">Creative</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Parkour">Parkour</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Puzzle">Puzzle</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Survival">Survival</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.ModWorld">Mod world</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Adventure">Adventure</sys:String>
+
+    <!-- Download.Comp.Category DataPack -->
+    <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">Fantasy</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>

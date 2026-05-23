@@ -449,6 +449,161 @@
     <sys:String x:Key="Download.Install.LoadingVersionList">正在获取版本列表</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
 
+    <!-- Download.Comp Search -->
+    <sys:String x:Key="Download.Comp.Search.Hint">搜索资源</sys:String>
+
+    <!-- Download.Comp Filter -->
+    <sys:String x:Key="Download.Comp.Filter.Source">来源</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Tag">标签</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Sort">排序方式</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version">版本</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader">加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.AllInputAvailable">全部 (也可自行输入)</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.AnyShader">任意加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable">原版可用</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable.ToolTip">作为资源包加载，可以直接在原版游戏里使用。</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Reset">重置条件</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.InstallModpack.ToolTip">在当前选择的 Minecraft 文件夹下安装整合包</sys:String>
+
+    <!-- Download.Comp Sort -->
+    <sys:String x:Key="Download.Comp.Sort.Relevance">相关性</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Downloads">下载量</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Follows">关注量</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Newest">最新发布</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Updated">最近更新</sys:String>
+
+    <!-- Download.Comp Type -->
+    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Modpack">整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.ResourcePack">资源包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Shader">光影包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.DataPack">数据包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Plugin">插件</sys:String>
+    <sys:String x:Key="Download.Comp.Type.World">世界</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Schematic">投影原理图</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Unknown">未知</sys:String>
+
+    <!-- Download.Comp List -->
+    <sys:String x:Key="Download.Comp.List.LoadingTyped">正在获取{0}列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.SearchTyped">搜索{0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">社区资源获取：{0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">无法连接到 CurseForge，所以目前仅显示了来自 Modrinth 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResults">无搜索结果，请尝试搜索英文名称</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoMatchingResults">没有符合条件的结果</sys:String>
+
+    <!-- Download.Comp.Category Shared -->
+    <sys:String x:Key="Download.Comp.Category.All">全部</sys:String>
+    <sys:String x:Key="Download.Comp.Category.WorldGen">世界元素</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Biomes">生物群系</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Dimensions">维度</sys:String>
+    <sys:String x:Key="Download.Comp.Category.OresResources">矿物与资源</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Structures">天然结构</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Technology">科技</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PipesLogistics">管道与物流</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Automation">自动化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Energy">能源</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Redstone">红石</sys:String>
+    <sys:String x:Key="Download.Comp.Category.FoodCooking">食物与烹饪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Farming">农业</sys:String>
+    <sys:String x:Key="Download.Comp.Category.GameMechanics">游戏机制</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Transportation">运输</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Storage">仓储</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Magic">魔法</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Adventure">冒险</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Decoration">装饰</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mobs">生物</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Utility">实用</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Equipment">装备与工具</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Creative">创造模式</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optimization">性能优化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Display">信息显示</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Server">服务器</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Library">支持库</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Combat">战斗</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Multiplayer">多人</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Tweaks">改良</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaLike">原版风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Realistic">写实风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modern">现代风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Medieval">中世纪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Steampunk">蒸汽朋克</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fantasy">幻想风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.SemiRealistic">半写实风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cartoon">卡通风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Simplistic">简洁</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Themed">主题化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cursed">鬼畜</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Entities">含实体</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Audio">含声音</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fonts">含字体</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Models">含模型</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Locale">含语言</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Gui">含 UI</sys:String>
+    <sys:String x:Key="Download.Comp.Category.CoreShaders">核心着色器</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Animated">动态效果</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ModSupport">兼容 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ColoredLighting">彩色光照</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PathTracing">路径追踪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Pbr">PBR</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Reflections">反射</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Iris">Iris</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaAvailable">原版可用</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Other">其他</sys:String>
+
+    <!-- Download.Comp.Category Mod -->
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod 相关</sys:String>
+
+    <!-- Download.Comp.Category Modpack -->
+    <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">硬核</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Quests">任务</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.KitchenSink">水槽包</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Exploration">探索</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MiniGame">小游戏</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SciFi">科幻</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Skyblock">空岛</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.VanillaPlus">原版改良</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb">FTB</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb.ToolTip">由 FTB 官方发布</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MapBased">基于地图</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SmallLight">轻量整合</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.ExtraLarge">大型整合</sys:String>
+
+    <!-- Download.Comp.Category ResourcePack -->
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution8xOrLower">8x 或更低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution16x">16x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution32x">32x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution48x">48x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution64x">64x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution128x">128x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution256x">256x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution512xOrHigher">512x 或更高</sys:String>
+
+    <!-- Download.Comp.Category Section Headers -->
+    <sys:String x:Key="Download.Comp.Category.Style">风格</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Feature">特性</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Performance">性能负荷</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Resolution">分辨率</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformancePotato">极低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceLow">低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceMedium">中</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceHigh">高</sys:String>
+
+    <!-- Download.Comp.Category World -->
+    <sys:String x:Key="Download.Comp.Category.World.Creative">创造</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Parkour">跑酷</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Puzzle">解谜</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Survival">生存</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.ModWorld">Mod 世界</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Adventure">冒险</sys:String>
+
+    <!-- Download.Comp.Category DataPack -->
+    <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">幻想</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">用户名</sys:String>
