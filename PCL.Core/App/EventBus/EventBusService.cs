@@ -14,46 +14,49 @@ namespace PCL.Core.App.EventBus;
 public sealed partial class EventBusService
 {
     private static readonly ConcurrentDictionary<string,
-        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, object? Owner)>>> _Channels = [];
+        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef, bool OwnsOwner)>>> _Channels = [];
+
+    /// <summary>
+    /// 0 = running, 1 = stopping/closed
+    /// </summary>
+    private static int _isStopping;
 
     [LifecycleStop]
     private static Task _StopAsync()
     {
+        Interlocked.Exchange(ref _isStopping, 1);
         try
         {
-            foreach (var channel in _Channels.Values)
-            {
-                foreach (var handlersByType in channel.Values)
-                {
-                    foreach (var entry in handlersByType.Values)
-                    {
-                        if (entry.Owner is IDisposable d)
-                        {
-                            try { d.Dispose(); } catch { /* ignore */ }
-                        }
-                    }
-                }
-            }
-
+            var channelCount = _Channels.Count;
+            var handlerCount = _Channels.Values.Sum(c => c.Values.Sum(h => h.Count));
             _Channels.Clear();
+            Context.Error($"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
             return Task.CompletedTask;
         }
         catch (Exception exception)
         {
+            Context.Error($"Exception while stopping EventBus: {exception}");
             return Task.FromException(exception);
         }
     }
 
+    /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
     public static Task PublishAsync<TEventData>(string channelName, TEventData data) where TEventData : EventDataBase
-        => _CallChannelAsync(channelName, data);
+    {
+        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
+        return _CallChannelAsync(channelName, data);
+    }
 
     /// <summary>
     /// 订阅使用 <c>IEventHandler{TEventData}</c> 的对象实例。
     /// 返回 <see cref="IDisposable"/> 用于取消订阅。
     /// </summary>
-    public static IDisposable Subscribe<TEventData>(string channel, IEventHandler<TEventData> handler)
+    /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="channel"/> is <see langword="null"/></exception>
+    public static IDisposable Subscribe<TEventData>(string channel, IEventHandler<TEventData> handler, bool disposeOwnerOnUnsubscribe = false)
         where TEventData : EventDataBase
     {
+        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
         if (handler == null) throw new ArgumentNullException(nameof(handler));
 
@@ -64,10 +67,12 @@ public sealed partial class EventBusService
         }
 
         var dataType = typeof(TEventData);
-        var handlers = dataHandler.GetOrAdd(dataType, _ => []);
+        var handlers = dataHandler.GetOrAdd(dataType, _ => new ConcurrentDictionary<Guid, (Func<EventDataBase, Task>, WeakReference<object>?, bool)>());
+
+        var ownerRef = new WeakReference<object>(handler);
 
         var id = Guid.NewGuid();
-        handlers.TryAdd(id, (Wrapper, handler));
+        handlers.TryAdd(id, (Wrapper, ownerRef, disposeOwnerOnUnsubscribe));
 
         return new Subscription(() =>
         {
@@ -76,9 +81,27 @@ public sealed partial class EventBusService
             {
                 dataHandler.TryRemove(dataType, out _);
             }
+
+            // disposal responsibility: if this subscription requested owner disposal, try to dispose target if still alive
+            if (disposeOwnerOnUnsubscribe && ownerRef.TryGetTarget(out var tgt) && tgt is IDisposable d)
+            {
+                // check if any remaining subscription in this channel still references the same owner
+                var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e => e.OwnerRef != null && e.OwnerRef.TryGetTarget(out var other) && ReferenceEquals(other, tgt)));
+
+                if (stillReferenced) return;
+
+                try { d.Dispose(); } catch (Exception ex) { Context.Error($"Exception disposing subscription owner: {ex}"); }
+            }
         });
 
-        Task Wrapper(EventDataBase ev) => handler.HandleEventAsync((TEventData)ev);
+        Task Wrapper(EventDataBase ev)
+        {
+            if (ownerRef.TryGetTarget(out var target) && target is IEventHandler<TEventData> typed)
+            {
+                return typed.HandleEventAsync((TEventData)ev);
+            }
+            return Task.CompletedTask;
+        }
     }
 
     /// <summary>
@@ -87,6 +110,7 @@ public sealed partial class EventBusService
     public static IDisposable Subscribe<TEventData>(string channel, Func<TEventData, Task> handler)
         where TEventData : EventDataBase
     {
+        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
         if (handler == null) throw new ArgumentNullException(nameof(handler));
 
@@ -100,7 +124,7 @@ public sealed partial class EventBusService
         var handlers = dataHandler.GetOrAdd(dataType, _ => []);
 
         var id = Guid.NewGuid();
-        handlers.TryAdd(id, (Wrapper, null));
+        handlers.TryAdd(id, (Wrapper, null, false));
 
         return new Subscription(() =>
         {
@@ -133,7 +157,7 @@ public sealed partial class EventBusService
         return _CallEventHandlerAsync(data, eventHandlers);
     }
 
-    private static Task _CallEventHandlerAsync<TEventData>(TEventData data, ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, object? Owner)>> dataHandlers)
+    private static Task _CallEventHandlerAsync<TEventData>(TEventData data, ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef, bool OwnsOwner)>> dataHandlers)
         where TEventData : EventDataBase
     {
         var eventType = data.GetType();
@@ -143,8 +167,19 @@ public sealed partial class EventBusService
         {
             if (registeredType.IsAssignableFrom(eventType))
             {
-                foreach (var entry in handlers.Values.ToImmutableArray())
+                foreach (var kv in handlers.ToImmutableArray())
                 {
+                    var key = kv.Key;
+                    var entry = kv.Value;
+                    if (entry.OwnerRef != null)
+                    {
+                        if (!entry.OwnerRef.TryGetTarget(out var _))
+                        {
+                            // owner was collected, remove this subscription
+                            handlers.TryRemove(key, out _);
+                            continue;
+                        }
+                    }
                     matching.Add(entry.Handler);
                 }
             }
@@ -170,6 +205,8 @@ public sealed partial class EventBusService
 
         return Task.WhenAll(tasks);
     }
+
+
 
     private sealed class Subscription : IDisposable
     {
