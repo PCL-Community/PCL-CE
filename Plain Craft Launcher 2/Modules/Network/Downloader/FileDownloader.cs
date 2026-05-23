@@ -97,54 +97,56 @@ public static class FileDownloader
             MinimumSizeOfChunking = 1024L * 1024L,
         };
 
-        using var downloader = new DownloadService(configuration);
-
-        downloader.DownloadStarted += (_, args) =>
         {
-            if (trackedFile is null)
-                return;
-            trackedFile.State = NetState.Reading;
-            trackedFile.TotalSize = args.TotalBytesToReceive;
-            trackedFile.IsUnknownSize = args.TotalBytesToReceive <= 0;
-            trackedFile.DownloadedBytes = 0;
-            trackedFile.Speed = 0;
-            trackedFile.ActiveThreads = 0;
-        };
+            using var downloader = new DownloadService(configuration);
 
-        downloader.DownloadProgressChanged += (_, args) =>
-        {
-            if (trackedFile is null)
-                return;
-            trackedFile.State = NetState.Downloading;
-            trackedFile.TotalSize = args.TotalBytesToReceive > 0 ? args.TotalBytesToReceive : trackedFile.TotalSize;
-            trackedFile.IsUnknownSize = trackedFile.TotalSize <= 0;
-            trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, args.ReceivedBytesSize);
-            trackedFile.Speed = Math.Max(0L, (long)Math.Round(args.BytesPerSecondSpeed));
-            trackedFile.ActiveThreads = Math.Max(0, args.ActiveChunks);
-        };
-
-        downloader.DownloadFileCompleted += (_, args) =>
-        {
-            if (trackedFile is not null)
+            downloader.DownloadStarted += (_, args) =>
             {
+                if (trackedFile is null)
+                    return;
+                trackedFile.State = NetState.Reading;
+                trackedFile.TotalSize = args.TotalBytesToReceive;
+                trackedFile.IsUnknownSize = args.TotalBytesToReceive <= 0;
+                trackedFile.DownloadedBytes = 0;
                 trackedFile.Speed = 0;
                 trackedFile.ActiveThreads = 0;
-                trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, trackedFile.TotalSize);
-            }
-        };
+            };
 
-        try
-        {
-            await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            CleanupTempFiles(localPath);
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TimeoutException($"下载超时（{url}）", ex);
+            downloader.DownloadProgressChanged += (_, args) =>
+            {
+                if (trackedFile is null)
+                    return;
+                trackedFile.State = NetState.Downloading;
+                trackedFile.TotalSize = args.TotalBytesToReceive > 0 ? args.TotalBytesToReceive : trackedFile.TotalSize;
+                trackedFile.IsUnknownSize = trackedFile.TotalSize <= 0;
+                trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, args.ReceivedBytesSize);
+                trackedFile.Speed = Math.Max(0L, (long)Math.Round(args.BytesPerSecondSpeed));
+                trackedFile.ActiveThreads = Math.Max(0, args.ActiveChunks);
+            };
+
+            downloader.DownloadFileCompleted += (_, args) =>
+            {
+                if (trackedFile is not null)
+                {
+                    trackedFile.Speed = 0;
+                    trackedFile.ActiveThreads = 0;
+                    trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, trackedFile.TotalSize);
+                }
+            };
+
+            try
+            {
+                await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                CleanupTempFiles(localPath);
+                throw;
+            }
+            catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException($"下载超时（{url}）", ex);
+            }
         }
 
         var tempPath = localPath + ModNet.NetDownloadEnd;
@@ -161,6 +163,7 @@ public static class FileDownloader
 
     private static void FinalizeDownload(string tempPath, string finalPath)
     {
+        Exception? lastEx = null;
         for (var retry = 0; retry < 5; retry++)
         {
             try
@@ -168,13 +171,15 @@ public static class FileDownloader
                 File.Move(tempPath, finalPath, true);
                 return;
             }
-            catch (IOException)
+            catch (IOException ex)
             {
+                lastEx = ex;
+                ModBase.Log(ex, $"[Download] 文件写入重试 {retry + 1}/5：{tempPath} -> {finalPath}", ModBase.LogLevel.Debug);
                 Thread.Sleep(100);
             }
         }
 
-        throw new IOException($"无法完成文件写入：{finalPath}");
+        throw new IOException($"无法完成文件写入：{finalPath}", lastEx);
     }
 
     private static void CleanupTempFiles(string localPath)
