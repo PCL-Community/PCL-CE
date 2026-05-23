@@ -47,9 +47,9 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开存档文件夹" Padding="13,0" Margin="0,0,20,0"
+                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开存档文件夹" Padding="13,0" Margin="0,0,20,0" Click="BtnOpenFolder_Click"
                                         HorizontalAlignment="Left" ColorType="Highlight" />
-                        <local:MyButton Grid.Column="1" MinWidth="140" Text="粘贴剪贴板文件" Padding="13,0" Margin="0,0,20,0"
+                        <local:MyButton Grid.Column="1" MinWidth="140" Text="粘贴剪贴板文件" Padding="13,0" Margin="0,0,20,0" Click="BtnPaste_Click"
                                         HorizontalAlignment="Left" />
                     </Grid>
                 </local:MyCard>
