@@ -224,7 +224,7 @@ public static class ModComp
                         try
                         {
                             var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData);
-                            if (Migrate is not null) RawList = new List<FavData> { GetNewFav("默认", Migrate) };
+                            if (Migrate is not null) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), Migrate) };
                         }
                         catch (Exception ex2)
                         {
@@ -233,7 +233,7 @@ public static class ModComp
                     }
 
                     // 最终兜底：确保至少有一个收藏夹
-                    if (RawList is null || RawList.Count == 0) RawList = new List<FavData> { GetNewFav("默认", null) };
+                    if (RawList is null || RawList.Count == 0) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), null) };
                     _FavoritesList = RawList;
                     Save();
                 }
@@ -293,12 +293,12 @@ public static class ModComp
                 var HasFavs = i.Favs.Contains(Project.Id);
                 if (HasFavs)
                 {
-                    Item.Header = $"取消收藏 {i.Name}";
+                    Item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
                     Item.Icon = Icon.IconButtonLikeFill;
                 }
                 else
                 {
-                    Item.Header = $"收藏到 {i.Name}";
+                    Item.Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name);
                     Item.Icon = Icon.IconButtonLikeLine;
                 }
 
@@ -309,12 +309,12 @@ public static class ModComp
                         if (HasFavs)
                         {
                             i.Favs.Remove(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
                         else
                         {
                             i.Favs.Add(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
 
                         Save();
@@ -344,7 +344,7 @@ public static class ModComp
                 var Item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = $"收藏到 {i.Name}"
+                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name)
                 };
                 Item.Click += (_, _) =>
                 {
@@ -356,7 +356,9 @@ public static class ModComp
                         var SuccessCount = i.Favs.Count - Count;
                         var FailedCount = Project.Count - SuccessCount;
                         ModMain.Hint(
-                            $"已将 {SuccessCount} 个资源添加到 {i.Name} 中{(FailedCount > 0 ? $"，{FailedCount} 个资源已添加" : "")}！",
+                            Lang.Text(FailedCount > 0
+                                ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
+                                : "Download.Comp.Detail.Favorites.BulkAdd", SuccessCount, i.Name, FailedCount),
                             ModMain.HintType.Finish);
                     }
                     catch (Exception ex)
@@ -1884,7 +1886,7 @@ public static class ModComp
             {
                 if (ex.Message.Contains("404"))
                 {
-                    ModMain.MyMsgBox("当前资源的简介暂无译文", "获取译文失败", "我知道了");
+                    ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"), Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"), "我知道了");
                     return null;
                 }
 
@@ -1936,7 +1938,7 @@ public static class ModComp
             string gameVersionDescription;
             if (Drops == null || !Drops.Any())
             {
-                gameVersionDescription = "仅快照版本";
+                gameVersionDescription = Lang.Text("Download.Comp.Detail.CompItem.SnapshotOnly");
             }
             else
             {
@@ -1975,7 +1977,7 @@ public static class ModComp
                         if (endDrop < 100)
                         {
                             segments.Clear();
-                            segments.Add("全版本");
+                            segments.Add(Lang.Text("Download.Comp.Detail.CompItem.AllVersions"));
                             break;
                         }
 
@@ -2191,7 +2193,7 @@ public static class ModComp
                     lowerEx.Replace("forge", "").Replace("fabric", "").Replace("quilt", "").Length <= 3)
                     ex = ex.Replace("Edition", "", StringComparison.OrdinalIgnoreCase)
                         .Replace("edition", "", StringComparison.OrdinalIgnoreCase)
-                        .Trim().Capitalize() + " 版";
+                        .Trim().Capitalize() + Lang.Text("Download.Comp.Detail.CompItem.EditionSuffix");
 
                 // 规范化名称大小写
                 ex = ex.Replace("forge", "Forge").Replace("neo", "Neo").Replace("fabric", "Fabric")
@@ -3121,7 +3123,7 @@ public static class ModComp
                     // GameVersions
                     RawGameVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
-                        .Select(v => v.Replace("-snapshot", " 预览版")).Distinct().ToList();
+                        .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3134,7 +3136,7 @@ public static class ModComp
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        GameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     // ModLoaders
@@ -3260,7 +3262,7 @@ public static class ModComp
                     // GameVersions
                     RawGameVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
-                        v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).Distinct().ToList();
+                        v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3277,7 +3279,7 @@ public static class ModComp
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        GameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     #endregion
@@ -3296,16 +3298,16 @@ public static class ModComp
                 {
                     case CompFileStatus.Release:
                     {
-                        return "正式版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Release");
                     }
                     case CompFileStatus.Beta:
                     {
-                        return ModBase.ModeDebug ? "Beta 版" : "测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Beta");
                     }
 
                     default:
                     {
-                        return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Alpha");
                     }
                 }
             }
@@ -3384,18 +3386,18 @@ public static class ModComp
                         info.Add(FileName.BeforeLast("."));
 
                     if (Dependencies.Any())
-                        info.Add($"{Dependencies.Count()} 项前置");
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.DependencyCount", Dependencies.Count()));
 
                     // 简化后的游戏版本逻辑喵
                     var snapshotKeywords = new[] { "w", "snapshot", "rc", "pre", "experimental", "-" };
                     if (GameVersions.All(ver =>
                             !ver.Contains('.') || snapshotKeywords.Any(s => ver.ContainsF(s, true))))
-                        info.Add($"游戏版本 {string.Join("、", GameVersions)}");
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion", string.Join("、", GameVersions)));
 
                     if (DownloadCount > 0)
                         info.Add(Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(DownloadCount)));
 
-                    info.Add($"更新于 {Lang.TimeSpan(ReleaseDate - DateTime.Now)}");
+                    info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated", Lang.TimeSpan(ReleaseDate - DateTime.Now)));
 
                     if (Status != CompFileStatus.Release)
                         info.Add(StatusDescription);
@@ -3422,7 +3424,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
@@ -3606,7 +3608,7 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "必要前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3630,7 +3632,7 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "可选前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3644,7 +3646,7 @@ public static class ModComp
         // 添加结尾间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "版本列表", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 12d, 0d, 5d)
         });
     }

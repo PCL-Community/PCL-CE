@@ -604,6 +604,79 @@
     <!-- Download.Comp.Category DataPack -->
     <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">幻想</sys:String>
 
+    <!-- Download.Comp.Detail -->
+    <sys:String x:Key="Download.Comp.Detail.McMod">MC 百科</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyName">复制名称</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyLink">复制链接</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.TranslateDescription">翻译简介</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorite">收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Unfavorite">取消收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoadingVersions">正在获取版本列表</sys:String>
+
+    <!-- Download.Comp.Detail Install -->
+    <sys:String x:Key="Download.Comp.Detail.InputInstanceName">输入实例名称</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadModpackFile">下载整合包文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.PrepareModpackInstall">准备安装整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadWorldFile">下载世界文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstallWorld">安装世界</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CleanCache">清理缓存</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadFile">下载文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadResource">{0}下载：{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FindingApplicableInstance">正在查找适合的游戏实例……</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.NoApplicableInstance">当前 MC 文件夹中没有找到适合此资源文件的实例！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">选择世界安装位置 (saves 文件夹)</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">世界文件|*.zip</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">选择保存位置</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0}文件|*.*</sys:String>
+
+    <!-- Download.Comp.Detail Filter -->
+    <sys:String x:Key="Download.Comp.Detail.InstanceFilter">实例筛选：</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoaderFilter">模组加载器筛选：</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectedVersion">所选版本：{0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">由于版本信息更新缓慢，可能无法识别刚更新的 MC 版本。几天后即可正常识别。</sys:String>
+
+    <!-- Download.Comp.Detail VersionGroup -->
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.All">全部</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">其他</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">快照版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">远古版</sys:String>
+
+    <!-- Download.Comp.Detail Translation -->
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslating">正在获取 {0} 的简介译文……</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">当前资源的简介暂无译文</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationFailed">获取译文失败</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationResult">原文：{0}&#x0a;译文：{1}</sys:String>
+
+    <!-- Download.Comp.Detail Favorites -->
+    <sys:String x:Key="Download.Comp.Detail.Favorites.DefaultName">默认</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Remove">已将 {0} 从 {1} 中删除</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Add">已将 {0} 添加到 {1} 中</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAdd">已将 {0} 个资源添加到 {1} 中！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAddWithFailures">已将 {0} 个资源添加到 {1} 中，{2} 个资源已添加！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.UnfavoriteContextMenu">取消收藏 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.FavoriteContextMenu">收藏到 {0}</sys:String>
+
+    <!-- Download.Comp.Detail FileList -->
+    <sys:String x:Key="Download.Comp.Detail.FileList.DependencyCount">{0} 项前置</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.GameVersion">游戏版本 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.Updated">更新于 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">必要前置资源</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">可选前置资源</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">版本列表</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">正式版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">测试版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">早期测试版</sys:String>
+
+    <!-- Download.Comp.Detail CompItem -->
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">全版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.SnapshotOnly">仅快照版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Unknown">未知</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.UnknownVersion">未知版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AncientVersion">远古版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.EditionSuffix"> 版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.PreviewSuffix"> 预览版</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">用户名</sys:String>

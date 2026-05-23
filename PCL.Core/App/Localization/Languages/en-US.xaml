@@ -610,6 +610,79 @@
     <!-- Download.Comp.Category DataPack -->
     <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">Fantasy</sys:String>
 
+    <!-- Download.Comp.Detail -->
+    <sys:String x:Key="Download.Comp.Detail.McMod">MCMod</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyName">Copy name</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyLink">Copy link</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.TranslateDescription">Translate description</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorite">Favorite</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Unfavorite">Unfavorite</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoadingVersions">Loading version list</sys:String>
+
+    <!-- Download.Comp.Detail Install -->
+    <sys:String x:Key="Download.Comp.Detail.InputInstanceName">Enter instance name</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadModpackFile">Download modpack file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.PrepareModpackInstall">Prepare modpack installation</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadWorldFile">Download world file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstallWorld">Install world</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CleanCache">Clean cache</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadFile">Download file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadResource">{0} download: {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FindingApplicableInstance">Looking for an applicable instance...</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.NoApplicableInstance">No applicable instance found for this resource in this Minecraft folder!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">Select world install location (saves folder)</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">World file|*.zip</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">Select save location</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0} file|*.*</sys:String>
+
+    <!-- Download.Comp.Detail Filter -->
+    <sys:String x:Key="Download.Comp.Detail.InstanceFilter">Instance: </sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoaderFilter">Loader: </sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectedVersion">Selected version: {0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">Due to delayed version information updates, recently updated MC versions may not be recognized. It should work correctly in a few days.</sys:String>
+
+    <!-- Download.Comp.Detail VersionGroup -->
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.All">All</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">Other</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">Older</sys:String>
+
+    <!-- Download.Comp.Detail Translation -->
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslating">Getting translation for {0}...</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">No translation available for this resource</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationFailed">Failed to get translation</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationResult">Original: {0}&#x0a;Translation: {1}</sys:String>
+
+    <!-- Download.Comp.Detail Favorites -->
+    <sys:String x:Key="Download.Comp.Detail.Favorites.DefaultName">Default</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Remove">Removed {0} from {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Add">Added {0} to {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAdd">Added {0} resource(s) to {1}!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAddWithFailures">Added {0} resource(s) to {1}, {2} already added!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.UnfavoriteContextMenu">Unfavorite {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.FavoriteContextMenu">Favorite to {0}</sys:String>
+
+    <!-- Download.Comp.Detail FileList -->
+    <sys:String x:Key="Download.Comp.Detail.FileList.DependencyCount">{0} dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.GameVersion">Game version {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.Updated">Updated {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">Required dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">Optional dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">Version list</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">Release</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">Beta</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">Alpha</sys:String>
+
+    <!-- Download.Comp.Detail CompItem -->
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">All versions</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.SnapshotOnly">Snapshot only</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.UnknownVersion">Unknown version</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AncientVersion">Before-release</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.EditionSuffix"> Edition</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.PreviewSuffix"> Preview</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>
