@@ -451,6 +451,12 @@
     <sys:String x:Key="Download.Install.LoadingVersionList">正在获取版本列表</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
 
+    <!-- Download.Install InstanceIsolation -->
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。&#13;因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。&#13;推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">版本隔离提示</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Cancel">取消下载</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Continue">继续</sys:String>
+
     <!-- Download.Comp Search -->
     <sys:String x:Key="Download.Comp.Search.Hint">搜索资源</sys:String>
 
@@ -930,6 +936,48 @@
     <sys:String x:Key="Minecraft.Fool.Tag.Blue">（蓝色版本）</sys:String>
     <sys:String x:Key="Minecraft.Fool.Tag.Purple">（紫色版本）</sys:String>
     <sys:String x:Key="Minecraft.Fool.Tag.Red">（红色版本）</sys:String>
+
+    <!-- Minecraft.Download.Modpack -->
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">选择整合包压缩文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">游戏路径中不能含有感叹号或分号：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL 无法处理加密的压缩包，请在解压后重新压缩为不加密的 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OpenFailed">打开整合包文件失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">打开整合包文件失败，文件可能损坏或为不支持的压缩包格式</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">解压整合包文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">获取 Mod 下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">构造 Mod 下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">下载 Mod</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">下载 Mod（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ModpackInstall">整合包安装</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.GameInstall">游戏安装</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.FinalizeFiles">最终整理文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadAdditions">下载额外文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractArchive">解压压缩包</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">输入实例名称</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">某项 Mod 缺少必要信息，已跳过：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Message">是否要下载整合包中的可选文件 {0}？</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">下载可选文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Download">下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Skip">跳过</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！&#13;&#10;错误的文件：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Installing">该整合包正在安装中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的 Mod 加载器 {0}（版本为 {1}）！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">该 HMCL 整合包未提供游戏版本信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">该 MCBBS 整合包未提供游戏版本附加信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">该整合包未提供游戏版本信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">请选择一个空文件夹作为安装目标！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">整合包里似乎自带了启动器，是否换用它继续安装？&#13;&#10;即将打开：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">换用整合包启动器？</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">换用</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.DoNotUse">不换用</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">未能找到适合的文件结构，这可能不是一个 MC 压缩包</sys:String>
 
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>

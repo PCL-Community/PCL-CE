@@ -2587,8 +2587,11 @@ public partial class PageDownloadInstall
              Conversions.ToBoolean(
                  Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 2, false))))
             if (ModMain.MyMsgBox(
-                    "你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。" + "\r\n" + "因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。" +
-                    "\r\n" + "推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！", "版本隔离提示", "取消下载", "继续") == 1)
+                    Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
+                    Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
+                    Lang.Text("Download.Install.InstanceIsolation.Warning.Cancel"),
+                    Lang.Text("Download.Install.InstanceIsolation.Warning.Continue")
+                ) == 1)
                 return;
 
         // 提交安装申请

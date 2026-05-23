@@ -457,6 +457,12 @@
     <sys:String x:Key="Download.Install.LoadingVersionList">Loading version list</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">Click the Minecraft item to go back to the version selection page!</sys:String>
 
+    <!-- Download.Install InstanceIsolation -->
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">Instance isolation is not enabled. Multiple MC instances will share the same Mod folder.&#13;As a result, the game may crash due to loading mods incompatible with the current instance.&#13;It is recommended to enable it in Settings → Launch Options → Default Instance Isolation first!</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">Instance Isolation Warning</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Continue">Continue</sys:String>
+
     <!-- Download.Comp Search -->
     <sys:String x:Key="Download.Comp.Search.Hint">Search resources</sys:String>
 
@@ -936,6 +942,48 @@
     <sys:String x:Key="Minecraft.Fool.Tag.Blue">(Blue version)</sys:String>
     <sys:String x:Key="Minecraft.Fool.Tag.Purple">(Purple version)</sys:String>
     <sys:String x:Key="Minecraft.Fool.Tag.Red">(Red version)</sys:String>
+
+    <!-- Minecraft.Download.Modpack -->
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">Modpack files(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">Select modpack archive</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">Game path cannot contain exclamation marks or semicolons: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL cannot handle encrypted archives, please decrypt and re-compress as an unencrypted zip format and try again</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OpenFailed">Failed to open modpack file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL cannot handle rar format archives, please decompress and re-compress as zip format and try again</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">Failed to open modpack file, the file may be corrupted or in an unsupported archive format</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">Extract modpack files</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">Prepare mod download information</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">Build mod download information</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">Download mods</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">Download mods (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ModpackInstall">Modpack installation</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.GameInstall">Game installation</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.FinalizeFiles">Final file organization</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadAdditions">Download additional files</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractArchive">Extract archive</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">Enter instance name</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">Mod missing required information, skipped: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, unable to continue installation. Please report this to the modpack author</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Message">Download the optional file from the modpack: {0}?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">Download optional file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Download">Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Skip">Skip</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">File path in the modpack exceeds the instance folder, please report this to the modpack author!&#13;&#10;Error file: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Installing">This modpack is currently being installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">This HMCL modpack does not provide game version information, unable to install!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">This MCBBS modpack does not provide game version addon information, unable to install!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">This modpack does not provide game version information, unable to install!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, please select an empty folder where the modpack will be installed.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">Please select an empty folder as the installation target!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">The modpack appears to include its own launcher. Switch to using it to continue?&#13;&#10;Will open: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">Switch to modpack launcher?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">Use bundled</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.DoNotUse">Do not use</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">Could not find a suitable file structure, this may not be a Minecraft archive</sys:String>
 
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
