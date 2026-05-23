@@ -1077,6 +1077,7 @@ public partial class PageInstanceExport : IRefreshable
 
     private static bool LikeString(string input, string pattern)
     {
+        pattern = pattern.Replace("#", "[0-9]");
         var options = new GlobOptions { Evaluation = { CaseInsensitive = true } };
         var glob = Glob.Parse(pattern, options);
         return glob.IsMatch(input);
