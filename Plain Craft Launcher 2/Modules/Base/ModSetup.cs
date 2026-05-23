@@ -131,10 +131,16 @@ public class ModSetup
         UiCustomType(Config.Preference.Homepage.Type);
 
         // UI - Blur
-        UiBlur(Config.Preference.Blur.IsEnabled); 
-        UiBlurValue(Config.Preference.Blur.Radius);
-        UiBlurSamplingRate(Config.Preference.Blur.SamplingRate);
-        UiBlurType(Config.Preference.Blur.KernelType);
+        if (Config.Preference.Blur.IsEnabled)
+        {
+            UiBlurValue(Config.Preference.Blur.Radius);
+            UiBlurSamplingRate(Config.Preference.Blur.SamplingRate);
+            UiBlurType(Config.Preference.Blur.KernelType);
+        }
+        else
+        {
+            UiBlurValue(0);
+        }
 
         // UI - Title Bar
         UiLogoType((int)Config.Preference.WindowTitleType);
