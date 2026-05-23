@@ -109,6 +109,7 @@ public partial class PageSetupUI
 
             ((MyRadioBox)FindName("RadioCustomType" + Config.Preference.Homepage.Type)).Checked = true;
             TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
+            ModSetup.UiCustomType(Config.Preference.Homepage.Type);
 
             // 功能隐藏
             // 获取配置组引用
@@ -282,7 +283,6 @@ public partial class PageSetupUI
             case "UiHiddenFunctionModUpdate": Config.Preference.Hide.FunctionModUpdate = (bool)value; break;
             case "UiHiddenFunctionHidden": Config.Preference.Hide.FunctionHidden = (bool)value; break;
         }
-        ModSetup.ApplyAll();
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
