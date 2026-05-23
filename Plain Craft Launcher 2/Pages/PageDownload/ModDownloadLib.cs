@@ -3390,7 +3390,7 @@ pause";
         // 建立控件
         var NewItem = new MyListItem
         {
-            Title = Entry["version"] + (Entry["channel"].ToString().Contains("snapshot") ? " 快照版" : " 稳定版"),
+            Title = Entry["version"] + " " + (Entry["channel"].ToString().Contains("snapshot") ? Lang.Text("Download.Version.Type.Snapshot") : Lang.Text("Download.Version.Type.Stable")),
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,

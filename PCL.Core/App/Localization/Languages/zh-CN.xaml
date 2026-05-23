@@ -409,6 +409,46 @@
     <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">不兼容 Forge</sys:String>
     <sys:String x:Key="Download.Version.Optifine.CompatibleForge">兼容 Forge {0}</sys:String>
 
+    <!-- Download.Install Warning -->
+    <sys:String x:Key="Download.Install.Warning.FabricAPI">如果不安装 Fabric API，大多数 Mod 都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricAPI">如果不安装 Legacy Fabric API，大多数 Mod 都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在 Mod 下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在 Mod 下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分 Mod 的兼容性不佳，请谨慎安装。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QSL">如果不安装 QFAPI / QSL，大多数 Mod 都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QuiltFabricAPI">你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。</sys:String>
+
+    <!-- Download.Install State -->
+    <sys:String x:Key="Download.Install.State.Getting">获取中……</sys:String>
+    <sys:String x:Key="Download.Install.State.Loading">加载中……</sys:String>
+    <sys:String x:Key="Download.Install.State.CanAdd">可以添加</sys:String>
+    <sys:String x:Key="Download.Install.State.NoAvailableVersion">没有可用版本</sys:String>
+    <sys:String x:Key="Download.Install.State.NoVersion">无可用版本</sys:String>
+    <sys:String x:Key="Download.Install.State.GetFailed">获取失败：{0}</sys:String>
+    <sys:String x:Key="Download.Install.State.GetVersionListFailed">获取版本列表失败：{0}</sys:String>
+    <sys:String x:Key="Download.Install.State.UnknownUnloaded">未知错误，状态为 Unloaded</sys:String>
+
+    <!-- Download.Install Compat -->
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">与 Forge 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">与 Fabric 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">与 OptiFine 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">与 Cleanroom 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">与 LiteLoader 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">与 {0} 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">仅兼容特定版本的 Forge</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresFabric">需要安装 Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">需要安装 LegacyFabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">需要安装 Quilt</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">需要安装 OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">需要安装 OptiFine 与 Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">不兼容老版本 Fabric，请手动下载 OptiFabric Origins</sys:String>
+
+    <!-- Download.Install -->
+    <sys:String x:Key="Download.Install.StartDownload">开始下载</sys:String>
+    <sys:String x:Key="Download.Install.LoadingVersionList">正在获取版本列表</sys:String>
+    <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">用户名</sys:String>

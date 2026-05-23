@@ -415,6 +415,46 @@
     <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">Incompatible with Forge</sys:String>
     <sys:String x:Key="Download.Version.Optifine.CompatibleForge">Compatible with Forge {0}</sys:String>
 
+    <!-- Download.Install Warning -->
+    <sys:String x:Key="Download.Install.Warning.FabricAPI">Most mods won't work without Fabric API!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricAPI">Most mods won't work without Legacy Fabric API!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabric">OptiFabric is required for OptiFine to work!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">After installation, please search for OptiFabric Origins in the Mod Download page and install it, otherwise OptiFine won't work!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">After installation, please search for LegacyOptiFabric in the Mod Download page and install it, otherwise OptiFine won't work!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine has poor compatibility with some mods, please use with caution.</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QSL">Most mods won't work without QFAPI / QSL! If QFAPI / QSL has no available version, you can choose to install Fabric API instead.</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QuiltFabricAPI">You chose to install Fabric API with Quilt, but a compatible QFAPI / QSL is available. Please consider installing QFAPI / QSL first.</sys:String>
+
+    <!-- Download.Install State -->
+    <sys:String x:Key="Download.Install.State.Getting">Obtaining...</sys:String>
+    <sys:String x:Key="Download.Install.State.Loading">Loading...</sys:String>
+    <sys:String x:Key="Download.Install.State.CanAdd">Can add</sys:String>
+    <sys:String x:Key="Download.Install.State.NoAvailableVersion">No available version</sys:String>
+    <sys:String x:Key="Download.Install.State.NoVersion">No version available</sys:String>
+    <sys:String x:Key="Download.Install.State.GetFailed">Get failed: {0}</sys:String>
+    <sys:String x:Key="Download.Install.State.GetVersionListFailed">Get version list failed: {0}</sys:String>
+    <sys:String x:Key="Download.Install.State.UnknownUnloaded">Unknown error, state is Unloaded</sys:String>
+
+    <!-- Download.Install Compat -->
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">Incompatible with Forge</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">Incompatible with Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">Incompatible with OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">Incompatible with Cleanroom</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">Incompatible with LiteLoader</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">Incompatible with {0}</sys:String>
+    <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">Only compatible with specific Forge versions</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresFabric">Requires Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">Requires LegacyFabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">Requires Quilt</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">Requires OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">Requires OptiFine and Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">Not compatible with older Fabric, please download OptiFabric Origins manually</sys:String>
+
+    <!-- Download.Install -->
+    <sys:String x:Key="Download.Install.StartDownload">Start download</sys:String>
+    <sys:String x:Key="Download.Install.LoadingVersionList">Loading version list</sys:String>
+    <sys:String x:Key="Download.Install.Hint.MinecraftBack">Click the Minecraft item to go back to the version selection page!</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>
