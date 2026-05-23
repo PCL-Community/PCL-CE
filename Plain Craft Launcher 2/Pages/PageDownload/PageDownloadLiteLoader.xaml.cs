@@ -2,6 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -12,6 +13,7 @@ public partial class PageDownloadLiteLoader
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.LiteLoader.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 

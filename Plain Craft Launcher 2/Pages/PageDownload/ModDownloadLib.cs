@@ -326,12 +326,12 @@ public static class ModDownloadLib
 
     private static void McDownloadSaveMenuBuild(object sender, EventArgs _)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
         BtnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
-        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = "下载服务端" };
+        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
@@ -341,17 +341,17 @@ public static class ModDownloadLib
 
     private static void McDownloadMenuBuild(object sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
         BtnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
-        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = "下载服务端" };
+        var BtnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(BtnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnServer, 30d);
         ToolTipService.SetHorizontalOffset(BtnServer, 2d);
@@ -597,7 +597,7 @@ pause";
         try
         {
             var Id = DownloadInfo.NameVersion;
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), DownloadInfo.NameFile, "OptiFine Jar (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
 
@@ -1114,11 +1114,11 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = (Entry.IsPreview ? "测试版" : "正式版") +
-                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : "，发布于 " + Entry.ReleaseTime) +
-                   (Entry.RequiredForgeVersion is null ? "，不兼容 Forge" :
+            Info = (Entry.IsPreview ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Release")) +
+                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime)) +
+                   (Entry.RequiredForgeVersion is null ? Lang.Text("Download.Version.Optifine.IncompatibleForge") :
                        string.IsNullOrEmpty(Entry.RequiredForgeVersion) ? "" :
-                       "，兼容 Forge " + Entry.RequiredForgeVersion),
+                       Lang.Text("Download.Version.Optifine.CompatibleForge", Entry.RequiredForgeVersion)),
             Logo = ModBase.PathImage + "Blocks/GrassPath.png"
         };
         NewItem.Click += OnClick;
@@ -1133,7 +1133,7 @@ pause";
 
     private static void OptiFineSaveContMenuBuild(object sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -1143,12 +1143,12 @@ pause";
 
     private static void OptiFineContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         //btnSave.Click += () ModDownloadLib.OptiFineSave_Click;
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -1239,7 +1239,7 @@ pause";
         try
         {
             var Id = DownloadInfo.Inherit;
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", DownloadInfo.FileName.Replace("-SNAPSHOT", ""),
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), DownloadInfo.FileName.Replace("-SNAPSHOT", ""),
                 "LiteLoader 安装器 (*.jar)|*.jar");
             if (!Target.Contains(@"\"))
                 return;
@@ -1409,8 +1409,8 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = (Entry.IsPreview ? "测试版" : "稳定版") +
-                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : "，发布于 " + Entry.ReleaseTime),
+            Info = (Entry.IsPreview ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable")) +
+                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime)),
             Logo = ModBase.PathImage + "Blocks/Egg.png"
         };
         NewItem.Click += OnClick;
@@ -1431,7 +1431,7 @@ pause";
         }
         else
         {
-            var BtnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = "查看全部版本", Tag = sender };
+            var BtnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
@@ -1442,7 +1442,7 @@ pause";
 
     private static void LiteLoaderContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "保存安装器", Tag = sender };
+        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveInstaller"), Tag = sender };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
@@ -1453,7 +1453,7 @@ pause";
         }
         else
         {
-            var BtnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = "查看全部版本", Tag = sender };
+            var BtnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
             ToolTipService.SetPlacement(BtnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnList, 30d);
             ToolTipService.SetHorizontalOffset(BtnList, 2d);
@@ -1491,7 +1491,7 @@ pause";
     {
         try
         {
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置",
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"),
                 $"{Info.LoaderName}-{Info.Inherit}-{Info.VersionName}.{Info.FileExtension}",
                 $"{Info.LoaderName} 安装器 (*.{Info.FileExtension})|*.{Info.FileExtension}");
             var DisplayName = $"{Info.LoaderName} {Info.Inherit} - {Info.VersionName}";
@@ -2279,21 +2279,21 @@ pause";
         if (RecommendedVersion is not null)
         {
             var Recommended = ForgeDownloadListItem(RecommendedVersion, OnClick, IsSaveOnly);
-            Recommended.Info = "推荐版" + (string.IsNullOrEmpty(Recommended.Info) ? "" : "，" + Recommended.Info);
+            Recommended.Info = Lang.Text("Download.Version.Type.Recommended") + (string.IsNullOrEmpty(Recommended.Info) ? "" : "，" + Recommended.Info);
             Stack.Children.Add(Recommended);
         }
 
         if (FreshVersion is not null)
         {
             var Fresh = ForgeDownloadListItem(FreshVersion, OnClick, IsSaveOnly);
-            Fresh.Info = "最新版" + (string.IsNullOrEmpty(Fresh.Info) ? "" : "，" + Fresh.Info);
+            Fresh.Info = Lang.Text("Download.Version.Latest.Title") + (string.IsNullOrEmpty(Fresh.Info) ? "" : "，" + Fresh.Info);
             Stack.Children.Add(Fresh);
         }
 
         // 添加间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "全部版本 (" + Entries.Count + ")", HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Version.AllVersions", Entries.Count), HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 13d, 0d, 4d)
         });
     }
@@ -2311,7 +2311,7 @@ pause";
             Tag = Entry,
             Info = new[]
             {
-                string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : "发布于 " + Entry.ReleaseTime,
+                string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime),
                 ModBase.ModeDebug ? "种类：" + Entry.Category : ""
             }.Where(d => !string.IsNullOrEmpty(d)).Join("，"),
             Logo = ModBase.PathImage + "Blocks/Anvil.png"
@@ -2328,12 +2328,12 @@ pause";
 
     private static void ForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2343,7 +2343,7 @@ pause";
 
     private static void ForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2483,21 +2483,21 @@ pause";
         if (FreshStableVersion is not null)
         {
             var Fresh = NeoForgeDownloadListItem(FreshStableVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? "最新稳定版" : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Stable") : "最新" + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
         if (FreshBetaVersion is not null)
         {
             var Fresh = NeoForgeDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? "最新测试版" : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : "最新" + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
         // 添加间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "全部版本 (" + Entries.Count + ")", HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Version.AllVersions", Entries.Count), HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 13d, 0d, 4d)
         });
     }
@@ -2513,7 +2513,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Info,
-            Info = Info.IsBeta ? "测试版" : "稳定版",
+            Info = Info.IsBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.PathImage + "Blocks/NeoForge.png"
         };
         NewItem.Click += OnClick;
@@ -2528,12 +2528,12 @@ pause";
 
     private static void NeoForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2543,7 +2543,7 @@ pause";
 
     private static void NeoForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2592,14 +2592,14 @@ pause";
         if (FreshBetaVersion is not null)
         {
             var Fresh = CleanroomDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? "最新测试版" : "最新" + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : "最新" + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
         // 添加间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "全部版本 (" + Entries.Count + ")", HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Version.AllVersions", Entries.Count), HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 13d, 0d, 4d)
         });
     }
@@ -2615,7 +2615,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Info,
-            Info = Info.IsBeta ? "测试版" : "稳定版",
+            Info = Info.IsBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.PathImage + "Blocks/Cleanroom.png"
         };
         NewItem.Click += OnClick;
@@ -2630,12 +2630,12 @@ pause";
 
     private static void CleanroomContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var BtnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(BtnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2645,7 +2645,7 @@ pause";
 
     private static void CleanroomSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var BtnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
@@ -2688,7 +2688,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Fabric 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), FileName, Lang.Text("Download.Version.Installer.Fabric.Filter"));
             if (!Target.Contains(@"\"))
                 return;
 
@@ -2802,7 +2802,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LegacyFabric 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), FileName, Lang.Text("Download.Version.Installer.LegacyFabric.Filter"));
             if (!Target.Contains(@"\"))
                 return;
 
@@ -2903,7 +2903,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry["stable"].ToObject<bool>() ? "稳定版" : "测试版",
+            Info = Entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
             Logo = ModBase.PathImage + "Blocks/Fabric.png"
         };
         NewItem.Click += OnClick;
@@ -2914,7 +2914,7 @@ pause";
 
     private static void FabricContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2937,7 +2937,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry.StatusDescription + "，发布于 " + Lang.Date(Entry.ReleaseDate, "g"),
+            Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.ReleaseDate, "g")),
             Logo = ModBase.PathImage + "Blocks/Fabric.png"
         };
         NewItem.Click += OnClick;
@@ -2955,7 +2955,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry.StatusDescription + "，发布于 " + Lang.Date(Entry.ReleaseDate, "g"),
+            Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.ReleaseDate, "g")),
             Logo = ModBase.PathImage + "Blocks/OptiFabric.png"
         };
         NewItem.Click += OnClick;
@@ -2977,7 +2977,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry["stable"].ToObject<bool>() ? "稳定版" : "测试版",
+            Info = Entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
             Logo = ModBase.PathImage + "Blocks/Fabric.png"
         };
         NewItem.Click += OnClick;
@@ -2996,7 +2996,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry.StatusDescription + "，发布于 " + Lang.Date(Entry.ReleaseDate, "g"),
+            Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.ReleaseDate, "g")),
             Logo = ModBase.PathImage + "Blocks/Fabric.png"
         };
         NewItem.Click += OnClick;
@@ -3015,7 +3015,7 @@ pause";
             var Url = DownloadInfo["url"].ToString();
             var FileName = ModBase.GetFileNameFromPath(Url);
             var Version = ModBase.GetFileNameFromPath(DownloadInfo["version"].ToString());
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "Quilt 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), FileName, Lang.Text("Download.Version.Installer.Quilt.Filter"));
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3120,8 +3120,8 @@ pause";
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
             Info = Entry["maven"].ToString().Contains("installer") ? "安装器" :
-                Entry["version"].ToString().Contains("beta") || Entry["version"].ToString().Contains("pre") ? "测试版" :
-                "稳定版",
+                Entry["version"].ToString().Contains("beta") || Entry["version"].ToString().Contains("pre") ? Lang.Text("Download.Version.Type.Preview") :
+                Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.PathImage + "Blocks/Quilt.png"
         };
         NewItem.Click += OnClick;
@@ -3132,7 +3132,7 @@ pause";
 
     private static void QuiltContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3155,7 +3155,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry.StatusDescription + "，发布于 " + Lang.Date(Entry.ReleaseDate, "g"),
+            Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.ReleaseDate, "g")),
             Logo = ModBase.PathImage + "Blocks/Quilt.png"
         };
         NewItem.Click += OnClick;
@@ -3173,7 +3173,7 @@ pause";
         {
             var Url = "https://releases.labymod.net/api/v1/installer/production/java";
             var FileName = "LabyMod4ProductionInstaller.jar";
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), FileName, Lang.Text("Download.Version.Installer.LabyMod.Filter"));
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3214,7 +3214,7 @@ pause";
         {
             var Url = "https://releases.labymod.net/api/v1/installer/snapshot/java";
             var FileName = "LabyMod4SnapshotInstaller.jar";
-            var Target = SystemDialogs.SelectSaveFile("选择保存位置", FileName, "LabyMod 安装器 (*.jar)|*.jar");
+            var Target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), FileName, Lang.Text("Download.Version.Installer.LabyMod.Filter"));
             if (!Target.Contains(@"\"))
                 return;
 
@@ -3395,7 +3395,7 @@ pause";
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = Entry["channel"].ToString().Contains("snapshot") ? "快照版" : "稳定版",
+            Info = Entry["channel"].ToString().Contains("snapshot") ? Lang.Text("Download.Version.Type.Snapshot") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.PathImage + "Blocks/LabyMod.png"
         };
         NewItem.Click += OnClick;
@@ -3406,12 +3406,12 @@ pause";
 
     private static void LabyModContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = "更新日志" };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

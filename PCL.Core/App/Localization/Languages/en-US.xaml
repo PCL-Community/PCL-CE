@@ -312,6 +312,109 @@
     <sys:String x:Key="Setup.GameManage.Initialized">Game management settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.GameManage.Error.InitFailed">Failed to initialize game management settings</sys:String>
 
+    <!-- Download.Left -->
+    <sys:String x:Key="Download.Left.CommunityResources">Community resources</sys:String>
+    <sys:String x:Key="Download.Left.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Left.Modpack">Modpack</sys:String>
+    <sys:String x:Key="Download.Left.DataPack">Data pack</sys:String>
+    <sys:String x:Key="Download.Left.ResourcePack">Resource pack</sys:String>
+    <sys:String x:Key="Download.Left.Shader">Shader pack</sys:String>
+    <sys:String x:Key="Download.Left.World">World</sys:String>
+    <sys:String x:Key="Download.Left.Favorites">Favorites</sys:String>
+    <sys:String x:Key="Download.Left.Installers">Installers</sys:String>
+    <sys:String x:Key="Download.Left.Minecraft">Minecraft</sys:String>
+    <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Left.Forge">Forge</sys:String>
+    <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
+    <sys:String x:Key="Download.Left.Cleanroom">Cleanroom</sys:String>
+    <sys:String x:Key="Download.Left.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Download.Left.LegacyFabric">Legacy Fabric</sys:String>
+    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Download.Left.LabyMod">LabyMod</sys:String>
+    <sys:String x:Key="Download.Left.LiteLoader">LiteLoader</sys:String>
+
+    <!-- Download.Version Common -->
+    <sys:String x:Key="Download.Version.VersionList">Version list</sys:String>
+    <sys:String x:Key="Download.Version.OpenWebsite">Open website</sys:String>
+    <sys:String x:Key="Download.Version.LoadingList">Loading version list</sys:String>
+    <sys:String x:Key="Download.Version.Changelog">Changelog</sys:String>
+    <sys:String x:Key="Download.Version.SaveAs">Save as</sys:String>
+    <sys:String x:Key="Download.Version.DownloadServer">Download server</sys:String>
+    <sys:String x:Key="Download.Version.ViewAllVersions">View all versions</sys:String>
+    <sys:String x:Key="Download.Version.SaveInstaller">Save installer</sys:String>
+
+    <!-- Download.Version Client -->
+    <sys:String x:Key="Download.Version.Client.LoadingList">Loading version list</sys:String>
+
+    <!-- Download.Version Forge -->
+    <sys:String x:Key="Download.Version.Forge.Intro.Title">Forge Introduction</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Intro.Description">Forge is a mod loader. You need to install Forge first to use Forge mods.</sys:String>
+    <sys:String x:Key="Download.Version.Forge.LoadingList">Loading Forge list</sys:String>
+
+    <!-- Download.Version NeoForge -->
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Title">NeoForge Introduction</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge is a mod loader for Minecraft 1.20.1+. You need to install it first to use NeoForge mods, and it is also compatible with some Forge mods.&#x0a;This page provides NeoForge installer downloads. After downloading, you need to manually run the installer.</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.LoadingList">Loading NeoForge list</sys:String>
+
+    <!-- Download.Version Cleanroom -->
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Cleanroom Introduction</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom is a Forge-based mod loader for 1.12.2, theoretically compatible with 99% of Forge mods.</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.LoadingList">Loading Cleanroom list</sys:String>
+
+    <!-- Download.Version LiteLoader -->
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Title">LiteLoader Introduction</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Description">Similar to Forge, LiteLoader can be used to load LiteLoader mods in older versions of Minecraft.</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.LoadingList">Loading LiteLoader list</sys:String>
+
+    <!-- Download.Version Fabric -->
+    <sys:String x:Key="Download.Version.Fabric.Intro.Title">Fabric Introduction</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader is a lightweight mod loader for modern Minecraft. You need to install it first to use Fabric mods.&#x0a;This page provides Fabric installer downloads. After downloading, you need to manually run the installer.</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.LoadingList">Loading Fabric list</sys:String>
+
+    <!-- Download.Version LegacyFabric -->
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Title">Legacy Fabric Introduction</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Description">Legacy Fabric is a backport of Fabric for older versions. You need to install it first to use Legacy Fabric mods.&#x0a;This page provides Legacy Fabric installer downloads. After downloading, you need to manually run the installer.</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.LoadingList">Loading Legacy Fabric list</sys:String>
+
+    <!-- Download.Version Quilt -->
+    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Quilt Introduction</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader is a lightweight, modular mod loader for modern Minecraft. You need to install it first to use Quilt mods.&#x0a;This page provides Quilt installer downloads. After downloading, you need to manually run the installer.</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.LoadingList">Loading Quilt list</sys:String>
+
+    <!-- Download.Version LabyMod -->
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Title">LabyMod Introduction</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod is an optimization client for Minecraft.&#x0a;This page provides LabyMod installer downloads. After downloading, you need to manually run the installer.</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.LoadingList">Loading LabyMod list</sys:String>
+
+    <!-- Download.Version OptiFine -->
+    <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine Introduction</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine, also known as HD Fix, allows installing shaders, using HD textures, and improving game performance, but has poor compatibility with mods.</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.LoadingList">Loading OptiFine list</sys:String>
+
+    <!-- Download.Version Types -->
+    <sys:String x:Key="Download.Version.AllVersions">All versions ({0})</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Title">Latest version</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Release">Latest release, released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Development">Latest development, released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Type.Release">Release</sys:String>
+    <sys:String x:Key="Download.Version.Type.Development">Development</sys:String>
+    <sys:String x:Key="Download.Version.Type.Old">Before-release</sys:String>
+    <sys:String x:Key="Download.Version.Type.AprilFools">April Fools'</sys:String>
+    <sys:String x:Key="Download.Version.Type.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Version.Type.Stable">Stable</sys:String>
+    <sys:String x:Key="Download.Version.Type.Recommended">Recommended</sys:String>
+    <sys:String x:Key="Download.Version.Type.Preview">Preview</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Stable">Latest stable</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Development">Latest development</sys:String>
+    <sys:String x:Key="Download.Version.SelectSaveLocation">Select save location</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric Installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">LegacyFabric Installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt Installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod Installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">Incompatible with Forge</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.CompatibleForge">Compatible with Forge {0}</sys:String>
+
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>

@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,6 +10,7 @@ public partial class PageDownloadLegacyFabric
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.LegacyFabric.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 

@@ -19,7 +19,7 @@
                 </local:MyCard>
             </StackPanel>
             <local:MyCard x:Name="CardLoad" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <local:MyLoading x:Name="PanLoad" Text="正在加载 Java 列表" Margin="12" />
+                <local:MyLoading x:Name="PanLoad" Margin="12" />
             </local:MyCard>
         </Grid>
     </local:MyScrollViewer>
