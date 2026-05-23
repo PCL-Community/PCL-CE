@@ -188,7 +188,9 @@ public sealed partial class EventBusService
         if (matching.Count == 0)
         {
             Context.Error($"No handler found for event data type {eventType.Name}");
-            throw new InvalidOperationException("No handler found for the given event data type.");
+            return Task.CompletedTask;
+            // will not throw Exception
+            //throw new InvalidOperationException("No handler found for the given event data type.");
         }
 
         var tasks = matching.Select(async h =>
