@@ -1,11 +1,10 @@
 using System.IO;
 using System.IO.Compression;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using DotNet.Globbing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -1078,36 +1077,8 @@ public partial class PageInstanceExport : IRefreshable
 
     private static bool LikeString(string input, string pattern)
     {
-        var sb = new StringBuilder();
-        sb.Append('^');
-        for (var i = 0; i < pattern.Length; i++)
-        {
-            switch (pattern[i])
-            {
-                case '*':
-                    sb.Append(".*");
-                    break;
-                case '?':
-                    sb.Append('.');
-                    break;
-                case '#':
-                    sb.Append("[0-9]");
-                    break;
-                case '[':
-                    var end = pattern.IndexOf(']', i);
-                    if (end == -1) { sb.Append(Regex.Escape(pattern[i].ToString())); break; }
-                    var charClass = pattern.Substring(i, end - i + 1);
-                    if (charClass.Length > 2 && charClass[1] == '!')
-                        charClass = "[^" + charClass.Substring(2);
-                    sb.Append(charClass);
-                    i = end;
-                    break;
-                default:
-                    sb.Append(Regex.Escape(pattern[i].ToString()));
-                    break;
-            }
-        }
-        sb.Append('$');
-        return Regex.IsMatch(input, sb.ToString(), RegexOptions.None);
+        var options = new GlobOptions { Evaluation = { CaseInsensitive = true } };
+        var glob = Glob.Parse(pattern, options);
+        return glob.IsMatch(input);
     }
 }
