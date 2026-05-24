@@ -5,8 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using DotNet.Globbing;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;

@@ -6,7 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;

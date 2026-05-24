@@ -6,8 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using FluentValidation;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
