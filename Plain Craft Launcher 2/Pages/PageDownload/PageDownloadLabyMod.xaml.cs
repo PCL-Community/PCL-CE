@@ -1,3 +1,4 @@
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -8,6 +9,7 @@ public partial class PageDownloadLabyMod
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.LabyMod.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -40,7 +42,7 @@ public partial class PageDownloadLabyMod
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(SnapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

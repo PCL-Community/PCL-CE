@@ -5,28 +5,26 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadShader"
     PanScroll="{Binding ElementName=Content}">
-    <local:PageComp x:Name="Content" PageType="Shader" TypeName="光影包" TypeNameSpaced="光影包">
-        <local:MyComboBoxItem Tag="" Content="全部" IsSelected="True" />
+    <local:PageComp x:Name="Content" PageType="Shader">
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
 
-        <local:MyComboBoxItem Content="风格" IsEnabled="False" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="原版风" Tag="6555/vanilla-like" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="幻想风" Tag="6554/fantasy" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="写实风" Tag="6553/realistic" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="半写实风" Tag="/semi-realistic" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="卡通风" Tag="/cartoon" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Style}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.VanillaLike}" Tag="6555/vanilla-like" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Fantasy}" Tag="6554/fantasy" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Realistic}" Tag="6553/realistic" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.SemiRealistic}" Tag="/semi-realistic" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Cartoon}" Tag="/cartoon" />
 
-        <local:MyComboBoxItem Content="特性" IsEnabled="False" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="彩色光照" Tag="/colored-lighting" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="路径追踪" Tag="/path-tracing" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="PBR" Tag="/pbr" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="反射" Tag="/reflections" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Feature}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ColoredLighting}" Tag="/colored-lighting" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.PathTracing}" Tag="/path-tracing" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Pbr}" Tag="/pbr" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Reflections}" Tag="/reflections" />
 
-        <local:MyComboBoxItem Content="性能负荷" IsEnabled="False" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="极低" Tag="/potato" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="低" Tag="/low" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="中" Tag="/medium" />
-        <local:MyComboBoxItem Margin="15,0,0,0" Content="高" Tag="/high" />
-
-
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Performance}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.PerformancePotato}" Tag="/potato" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.PerformanceLow}" Tag="/low" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.PerformanceMedium}" Tag="/medium" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.PerformanceHigh}" Tag="/high" />
     </local:PageComp>
 </local:MyPageRight>

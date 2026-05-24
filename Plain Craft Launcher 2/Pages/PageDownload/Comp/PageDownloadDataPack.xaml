@@ -5,23 +5,23 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadDataPack"
     PanScroll="{Binding ElementName=Content}">
-    <local:PageComp x:Name="Content" PageType="DataPack" TypeName="数据包" TypeNameSpaced="数据包">
-        <local:MyComboBoxItem Tag="" Content="全部" IsSelected="True" />
-        <local:MyComboBoxItem Content="世界元素" Tag="/worldgen" />
-        <local:MyComboBoxItem Content="科技" Tag="6951/technology" />
-        <local:MyComboBoxItem Content="游戏机制" Tag="/game-mechanics" />
-        <local:MyComboBoxItem Content="运输" Tag="/transportation" />
-        <local:MyComboBoxItem Content="仓储" Tag="/storage" />
-        <local:MyComboBoxItem Content="魔法" Tag="6952/magic" />
-        <local:MyComboBoxItem Content="冒险" Tag="6948/adventure" />
-        <local:MyComboBoxItem Content="幻想" Tag="6949/" />
-        <local:MyComboBoxItem Content="装饰" Tag="/decoration" />
-        <local:MyComboBoxItem Content="生物" Tag="/mobs" />
-        <local:MyComboBoxItem Content="实用" Tag="6953/utility" />
-        <local:MyComboBoxItem Content="装备与工具" Tag="/equipment" />
-        <local:MyComboBoxItem Content="性能优化" Tag="/optimization" />
-        <local:MyComboBoxItem Content="服务器" Tag="/social" />
-        <local:MyComboBoxItem Content="支持库" Tag="6950/library" />
-        <local:MyComboBoxItem Content="Mod 相关" Tag="6946/" />
+    <local:PageComp x:Name="Content" PageType="DataPack">
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.WorldGen}" Tag="/worldgen" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Technology}" Tag="6951/technology" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.GameMechanics}" Tag="/game-mechanics" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Transportation}" Tag="/transportation" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Storage}" Tag="/storage" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Magic}" Tag="6952/magic" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Adventure}" Tag="6948/adventure" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.DataPack.Fantasy}" Tag="6949/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Decoration}" Tag="/decoration" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Mobs}" Tag="/mobs" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Utility}" Tag="6953/utility" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Equipment}" Tag="/equipment" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Optimization}" Tag="/optimization" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Server}" Tag="/social" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Library}" Tag="6950/library" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Mod.ModRelated}" Tag="6946/" />
     </local:PageComp>
 </local:MyPageRight>

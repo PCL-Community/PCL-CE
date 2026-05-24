@@ -21,6 +21,8 @@
     <sys:String x:Key="Common.Action.Delete">Delete</sys:String>
     <sys:String x:Key="Common.Action.Agree">Agree</sys:String>
     <sys:String x:Key="Common.Action.Decline">Decline</sys:String>
+    <sys:String x:Key="Common.Action.Yes">Yes</sys:String>
+    <sys:String x:Key="Common.Action.No">No</sys:String>
     <sys:String x:Key="Common.Action.Overwrite">Override</sys:String>
     <sys:String x:Key="Common.Action.OpenFolder">Open folder</sys:String>
     <sys:String x:Key="Common.Dialog.Title">Hint</sys:String>
@@ -28,6 +30,7 @@
     <sys:String x:Key="Common.State.Loading">Loading...</sys:String>
     <sys:String x:Key="Common.State.Unknown">Unknown</sys:String>
     <sys:String x:Key="Common.Option.Default">Default</sys:String>
+    <sys:String x:Key="Common.Option.All">All</sys:String>
     <sys:String x:Key="Common.Option.Auto">Auto</sys:String>
     <sys:String x:Key="Common.Option.Customize">Customize</sys:String>
     <sys:String x:Key="Common.Option.IDontKnow">I don't know</sys:String>
@@ -311,6 +314,711 @@
     <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">When enabled, PCL will read your clipboard and recognize resource links, then ask whether to navigate to the detail page.</sys:String>
     <sys:String x:Key="Setup.GameManage.Initialized">Game management settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.GameManage.Error.InitFailed">Failed to initialize game management settings</sys:String>
+
+    <!-- Download.Left -->
+    <sys:String x:Key="Download.Left.CommunityResources">Community resources</sys:String>
+    <sys:String x:Key="Download.Left.Mod">Mods</sys:String>
+    <sys:String x:Key="Download.Left.Modpack">Modpacks</sys:String>
+    <sys:String x:Key="Download.Left.DataPack">Data packs</sys:String>
+    <sys:String x:Key="Download.Left.ResourcePack">Resource packs</sys:String>
+    <sys:String x:Key="Download.Left.Shader">Shaders</sys:String>
+    <sys:String x:Key="Download.Left.World">Worlds</sys:String>
+    <sys:String x:Key="Download.Left.Favorites">Favorites</sys:String>
+    <sys:String x:Key="Download.Left.Installation">Installation</sys:String>
+    <sys:String x:Key="Download.Left.Minecraft">Minecraft</sys:String>
+    <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Left.Forge">Forge</sys:String>
+    <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
+    <sys:String x:Key="Download.Left.Cleanroom">Cleanroom</sys:String>
+    <sys:String x:Key="Download.Left.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Download.Left.LegacyFabric">Legacy Fabric</sys:String>
+    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Download.Left.LabyMod">LabyMod</sys:String>
+    <sys:String x:Key="Download.Left.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Download.Left.Hint.Refreshing">Refreshing...</sys:String>
+    <sys:String x:Key="Download.Left.Error.UnknownSubPageType">Unknown download subpage type: {0}</sys:String>
+
+    <!-- Download.Version Common -->
+    <sys:String x:Key="Download.Version.VersionList">Version list</sys:String>
+    <sys:String x:Key="Download.Version.VersionListCount">Version list ({0})</sys:String>
+    <sys:String x:Key="Download.Version.OpenWebsite">Official website</sys:String>
+    <sys:String x:Key="Download.Version.LoadingList">Getting version list...</sys:String>
+    <sys:String x:Key="Download.Version.Changelog">Changelog</sys:String>
+    <sys:String x:Key="Download.Version.SaveAs">Save as</sys:String>
+    <sys:String x:Key="Download.Version.DownloadServer">Download server</sys:String>
+    <sys:String x:Key="Download.Version.ViewAllVersions">Show all versions</sys:String>
+    <sys:String x:Key="Download.Version.SaveInstaller">Save installer</sys:String>
+
+    <!-- Download.Version Client -->
+    <sys:String x:Key="Download.Version.Client.LoadingList">Getting version list...</sys:String>
+
+    <!-- Download.Version Forge -->
+    <sys:String x:Key="Download.Version.Forge.Intro.Title">Introduction of Forge</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Intro.Description">Forge is a mod loader. You must install it before using any Forge mods.</sys:String>
+    <sys:String x:Key="Download.Version.Forge.LoadingList">Getting Forge list...</sys:String>
+
+    <!-- Download.Version NeoForge -->
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Title">Introduction of NeoForge</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge is a mod loader for Minecraft 1.20.1+. You must install it before using any NeoForge mods. Additionally, it is compatible with some Forge mods.&#x0a;This page offers the NeoForge installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.LoadingList">Getting NeoForge list...</sys:String>
+
+    <!-- Download.Version Cleanroom -->
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Introduction of Cleanroom</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom is a Forge-based mod loader for 1.12.2, theoretically compatible with 99% of Forge mods.</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.LoadingList">Getting Cleanroom list...</sys:String>
+
+    <!-- Download.Version LiteLoader -->
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Title">Introduction of LiteLoader</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Description">Similar to Forge, LiteLoader can be used to load LiteLoader mods in older versions of Minecraft.</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.LoadingList">Getting LiteLoader list...</sys:String>
+
+    <!-- Download.Version Fabric -->
+    <sys:String x:Key="Download.Version.Fabric.Intro.Title">Introduction of Fabric</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader is a lightweight mod loader for modern versions of Minecraft.&#x0a;You must install it before using any Fabric mods. This page offers the Fabric installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.LoadingList">Getting Fabric list...</sys:String>
+
+    <!-- Download.Version LegacyFabric -->
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Title">Introduction of Legacy Fabric</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Description">Legacy Fabric is a backport of Fabric for older versions of Minecraft.&#x0a;You must install it before using any Legacy Fabric mods. This page offers the Legacy Fabric installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.LoadingList">Getting Legacy Fabric list...</sys:String>
+
+    <!-- Download.Version Quilt -->
+    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Introduction of Quilt</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader is a lightweight, modular mod loader for modern versions of Minecraft.&#x0a;You must install it before using any Quilt mods. This page offers the Quilt installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.LoadingList">Getting Quilt list...</sys:String>
+
+    <!-- Download.Version LabyMod -->
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Title">Introduction of LabyMod</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod is an optimization client for Minecraft.&#x0a;This page offers the LabyMod installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.LoadingList">Getting LabyMod list...</sys:String>
+
+    <!-- Download.Version OptiFine -->
+    <sys:String x:Key="Download.Version.Optifine.Intro.Title">Introduction of OptiFine</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine allows you to install shaders, use HD resource packs, and improve game performance significantly.</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.LoadingList">Getting OptiFine list...</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Snapshot">Snapshot</sys:String>
+
+    <!-- Download.Version Types -->
+    <sys:String x:Key="Download.Version.AllVersions">All versions ({0})</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Title">Latest version</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Release">Latest release, released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Development">Latest development, released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Type.Release">Release</sys:String>
+    <sys:String x:Key="Download.Version.Type.Development">Development</sys:String>
+    <sys:String x:Key="Download.Version.Type.BeforeRelease">Before-release</sys:String>
+    <sys:String x:Key="Download.Version.Type.AprilFools">April Fools'</sys:String>
+    <sys:String x:Key="Download.Version.Type.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Version.Type.Stable">Stable</sys:String>
+    <sys:String x:Key="Download.Version.Type.Recommended">Recommended</sys:String>
+    <sys:String x:Key="Download.Version.Type.Preview">Preview</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Stable">Latest stable</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Development">Latest development</sys:String>
+    <sys:String x:Key="Download.Version.SelectSaveLocation">Select save location</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">Legacy Fabric installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod installer (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Type">Type: {0}</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">Incompatible with Forge</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.CompatibleForge">Compatible with Forge {0}</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Latest">Latest</sys:String>
+
+    <!-- Download.Install Warning -->
+    <sys:String x:Key="Download.Install.Warning.FabricAPI">Most of the mods will be unable to run if Fabric API is not installed!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricAPI">Most of the mods will be unable to run if Legacy Fabric API is not installed!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabric">OptiFine will be unable to run if OptiFabric is not installed!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">Please install "OptiFabric Origins" mod after the installation, otherwise OptiFine will be unable to run!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">Please install "LegacyOptiFabric" mod after the installation, otherwise OptiFine will be unable to run!</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine has poor compatibility with some mods. Please install it cautiously.</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QSL">Most of the mods will be unable to run if QFAPI / QSL is not installed! If QFAPI / QSL has no available version, you can choose to install Fabric API instead.</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QuiltFabricAPI">You have selected Fabric API for Quilt, but a compatible QFAPI / QSL version is available. Please consider installing QFAPI / QSL first.</sys:String>
+
+    <!-- Download.Install State -->
+    <sys:String x:Key="Download.Install.State.Getting">Obtaining...</sys:String>
+    <sys:String x:Key="Download.Install.State.Loading">Loading...</sys:String>
+    <sys:String x:Key="Download.Install.State.CanAdd">Installable</sys:String>
+    <sys:String x:Key="Download.Install.State.NoAvailableVersion">No available version</sys:String>
+    <sys:String x:Key="Download.Install.State.NoVersion">No version available</sys:String>
+    <sys:String x:Key="Download.Install.State.GetFailed">Failed to get version list: {0}</sys:String>
+    <sys:String x:Key="Download.Install.State.GetVersionListFailed">Failed to get version list: {0}</sys:String>
+    <sys:String x:Key="Download.Install.State.UnknownUnloaded">Unknown error, the status is Unloaded</sys:String>
+
+    <!-- Download.Install Compat -->
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">Incompatible with Forge</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">Incompatible with Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">Incompatible with OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">Incompatible with Cleanroom</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">Incompatible with LiteLoader</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">Incompatible with {0}</sys:String>
+    <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">Compatible only with certain Forge versions</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresFabric">Requires Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">Requires Legacy Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">Requires Quilt</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">Requires OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">Requires OptiFine &amp; Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">Incompatible with older versions of Fabric, please download OptiFabric Origins manually.</sys:String>
+
+    <!-- Download.Install -->
+    <sys:String x:Key="Download.Install.StartDownload">Start download</sys:String>
+    <sys:String x:Key="Download.Install.LoadingVersionList">Getting version list...</sys:String>
+    <sys:String x:Key="Download.Install.Hint.MinecraftBack">Click the Minecraft tile to return!</sys:String>
+
+    <!-- Download.Install InstanceIsolation -->
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">Instance isolation is not enabled, causing multiple instances to share the same mods folder.&#x0a;As a result, Minecraft may crash when switching instances due to incompatible mods being loaded.&#x0a;It is strongly recommended to enable instance isolation under "Settings → Launch options → Instance isolation" before proceeding with the installation.</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">Instance isolation</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Continue">Continue</sys:String>
+
+    <!-- Download.Comp Search -->
+    <sys:String x:Key="Download.Comp.Search.Hint">Search resources</sys:String>
+
+    <!-- Download.Comp Filter -->
+    <sys:String x:Key="Download.Comp.Filter.Source">Source</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Tag">Tags</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Sort">Sorting</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version">Version</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader">Loader</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.AllInputAvailable">All (input available)</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.AnyShader">Any loader</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable">Vanilla</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable.ToolTip">It can be loaded as a resource pack and used directly in the vanilla game.</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Reset">Reset filters</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.InstallModpack.ToolTip">Install the modpack into the currently selected Minecraft folder.</sys:String>
+
+    <!-- Download.Comp Sort -->
+    <sys:String x:Key="Download.Comp.Sort.Relevance">Relevance</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Downloads">Downloads</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Follows">Follows</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Newest">Newest</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Updated">Recently updated</sys:String>
+
+    <!-- Download.Comp Type -->
+    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Modpack">Modpack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.ResourcePack">Resource pack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Shader">Shader</sys:String>
+    <sys:String x:Key="Download.Comp.Type.DataPack">Data pack</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Plugin">Plugin</sys:String>
+    <sys:String x:Key="Download.Comp.Type.World">World</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Schematic">Schematic</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Only">Only {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Any">Any</sys:String>
+
+    <!-- Download.Comp List -->
+    <sys:String x:Key="Download.Comp.List.Loading.Mod">Getting mod list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Modpack">Getting modpack list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.ResourcePack">Getting resource pack list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Shader">Getting shader list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.DataPack">Getting data pack list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Plugin">Getting plugin list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.World">Getting world list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Schematic">Getting schematic list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Unknown">Getting unknown list...</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Mod">Search mods</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Modpack">Search modpacks</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.ResourcePack">Search resource packs</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Shader">Search shaders</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.DataPack">Search data packs</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Plugin">Search plugins</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.World">Search worlds</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Schematic">Search schematics</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Unknown">Search unknown</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">Community resource fetching: {0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">Unable to connect to Modrinth; only contents from CurseForge are being displayed. Search results might be incomplete.&#x0a;Please check your internet and try again.</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">Unable to connect to CurseForge; only contents from Modrinth are being displayed. Search results might be incomplete.&#x0a;Please check your internet and try again.</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResultsSimple">No search results</sys:String>
+    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">Unable to connect to Modrinth; only contents from CurseForge are being displayed. Results might be incomplete.&#x0a;Please check your internet and try again.</sys:String>
+
+    <!-- Download.Comp.Category Shared -->
+    <sys:String x:Key="Download.Comp.Category.WorldGen">World Gen</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Biomes">Biomes</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Dimensions">Dimensions</sys:String>
+    <sys:String x:Key="Download.Comp.Category.OresResources">Ores &amp; Resources</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Structures">Structures</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Technology">Technology</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PipesLogistics">Energy, Fluid, and Item Transport</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Automation">Automation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Energy">Energy</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Redstone">Redstone</sys:String>
+    <sys:String x:Key="Download.Comp.Category.FoodCooking">Food &amp; Cooking</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Farming">Farming</sys:String>
+    <sys:String x:Key="Download.Comp.Category.GameMechanics">Game Mechanics</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Transportation">Transportation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Storage">Storage</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Magic">Magic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Adventure">Adventure</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Decoration">Decoration</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mobs">Mobs</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Utility">Utility</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Equipment">Equipment</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Creative">Creative</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optimization">Optimization</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Display">Display</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Server">Server</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Library">API &amp; Library</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Combat">Combat</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Multiplayer">Multiplayer</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Tweaks">Tweaks</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaLike">Vanilla-like</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Realistic">Realistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modern">Modern</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Medieval">Medieval</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Steampunk">Steampunk</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fantasy">Fantasy</sys:String>
+    <sys:String x:Key="Download.Comp.Category.SemiRealistic">Semi-realistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cartoon">Cartoon</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Simplistic">Simplistic</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Themed">Themed</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cursed">Cursed</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Entities">Entities</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Audio">Audio</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fonts">Fonts</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Models">Models</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Locale">Locale</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Gui">GUI</sys:String>
+    <sys:String x:Key="Download.Comp.Category.CoreShaders">Core Shaders</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Animated">Animated</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ModSupport">Mod Support</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ColoredLighting">Colored Lighting</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PathTracing">Path Tracing</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Pbr">PBR</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Reflections">Reflections</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Iris">Iris</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaAvailable">Vanilla</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Other">Other</sys:String>
+
+    <!-- Download.Comp.Category Mod -->
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod-related</sys:String>
+
+    <!-- Download.Comp.Category Modpack -->
+    <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">Hardcore</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Quests">Quests</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.KitchenSink">Kitchen Sink</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Exploration">Exploration</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MiniGame">Mini Games</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SciFi">Sci-Fi</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Skyblock">Skyblock</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.VanillaPlus">Vanilla+</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb">FTB</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb.ToolTip">Published by FTB.</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MapBased">Map Based</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SmallLight">Small &amp; Light</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.ExtraLarge">Extra Large</sys:String>
+
+    <!-- Download.Comp.Category ResourcePack -->
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution8xOrLower">8x or lower</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution16x">16x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution32x">32x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution48x">48x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution64x">64x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution128x">128x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution256x">256x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution512xOrHigher">512x or higher</sys:String>
+
+    <!-- Download.Comp.Category Section Headers -->
+    <sys:String x:Key="Download.Comp.Category.Style">Style</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Feature">Features</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Performance">Performance impact</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Resolution">Resolution</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformancePotato">Potato</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceLow">Low</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceMedium">Medium</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceHigh">High</sys:String>
+
+    <!-- Download.Comp.Category World -->
+    <sys:String x:Key="Download.Comp.Category.World.Creative">Creative</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Parkour">Parkour</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Puzzle">Puzzle</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Survival">Survival</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.ModWorld">Mod World</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Adventure">Adventure</sys:String>
+
+    <!-- Download.Comp.Category DataPack -->
+    <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">Fantasy</sys:String>
+
+    <!-- Download.Comp.Detail -->
+    <sys:String x:Key="Download.Comp.Detail.McMod">MCMod</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyName">Copy name</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyLink">Copy link</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.TranslateDescription">Translate description</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorite">Favorite</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Unfavorite">Unfavorite</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoadingVersions">Getting version list...</sys:String>
+
+    <!-- Download.Comp.Detail Install -->
+    <sys:String x:Key="Download.Comp.Detail.InputInstanceName">Enter instance name</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadModpackFile">Download modpack file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.PrepareModpackInstall">Prepare for modpack installation</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadWorldFile">Download world file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstallWorld">Install world</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CleanCache">Clean cache</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadFile">Download file</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadResource">{0} download: {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FindingApplicableInstance">Looking for an applicable instance...</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.NoApplicableInstance">No applicable instance found in this Minecraft folder for this resource!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">Select world install location (saves folder)</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">World file|*.zip</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">Select save location</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0} file|*.*</sys:String>
+
+    <!-- Download.Comp.Detail Filter -->
+    <sys:String x:Key="Download.Comp.Detail.InstanceFilter">Instance: </sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoaderFilter">Mod loader: </sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectedVersion">Selected version: {0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">Since the API updates slowly, it may not be able to recognize the Minecraft version that was just updated. It will be recognized normally after a few days.</sys:String>
+
+    <!-- Download.Comp.Detail VersionGroup -->
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">Other</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">Older</sys:String>
+
+    <!-- Download.Comp.Detail Translation -->
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslating">Getting description translation for {0}...</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">No description translation is available for this resource</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationFailed">Failed to get description translation</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationResult">Original: {0}&#x0a;Translation: {1}</sys:String>
+
+    <!-- Download.Comp.Detail Favorites -->
+    <sys:String x:Key="Download.Comp.Detail.Favorites.DefaultName">Default</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Remove">Removed {0} from {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Add">Added {0} to {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAdd">Added {0} resources to {1}!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAddWithFailures">Added {0} resources to {1}; {2} resources had already been added!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.UnfavoriteContextMenu">Unfavorite {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.FavoriteContextMenu">Add to {0}</sys:String>
+
+    <!-- Download.Comp.Detail FileList -->
+    <sys:String x:Key="Download.Comp.Detail.FileList.DependencyCount">{0} dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.GameVersion">Game version {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.Updated">Updated {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">Required dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">Optional dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">Version list</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">Release</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">Beta</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">Alpha</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ModpackDownload">Modpack download</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldDownload">World download</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.OriginalModpack">Original modpack</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.KnownButton">Got it</sys:String>
+
+    <!-- Download.Comp.Detail CompItem -->
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">All versions</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.SnapshotOnly">Snapshot only</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Any">Any</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.UnknownVersion">Unknown version</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AncientVersion">Before-release</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.EditionSuffix"> Edition</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.PreviewSuffix"> Preview</sys:String>
+
+    <!-- Download.Comp.Favorites -->
+    <sys:String x:Key="Download.Comp.Favorites.Search.Hint">Search favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Manage">Manage</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.GetInfoFailed">Online information for some resources failed to load. Click to view details.</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Empty.Title">No favorites yet</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Empty.Description">You can click the favorite button on the resource detail page to add a resource to favorites.</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Selection.Placeholder">8 files selected</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Cancel">Unfavorite</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Share">Share selected</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Download">Download selected</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Deselect">Deselect</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Loading">Loading favorites list...</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.CardTitle">{0} ({1})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.SearchResults.Title">Search results ({0})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.UnknownType">Unknown type</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.EditNote">Edit note</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Action.Unfavorite">Unfavorite</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Action.Manage">Manage</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Share">Share current favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Import">Import favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.New">Create favorites folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Rename">Rename favorites folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Delete">Delete current favorites folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.EditNote.Title">Edit note</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.BulkDownload.Title">Use this feature?</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.BulkDownload.Content">Bulk download is still in testing.&#x0a;Using this feature to download mods will not automatically download dependencies.&#x0a;Please think through your needs and carefully check your selections before downloading to avoid wasting time and bandwidth.</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.SelectLoader.Title">Select desired loader</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.SelectVersion.Title">Select desired game version</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Input">Enter shared favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Hint">e.g. ["23333"]</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Type">Do you want to add the shared favorites to the current favorites folder or to a new favorites folder?</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.New">New folder name</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.NewHint">Enter new folder name</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.NewPrompt">Enter new folder name</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.New.Title">Create favorites folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Rename.Title">Enter new name</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Delete.Title">Deletion confirmation</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Delete.Confirm">Are you sure you want to delete the {0} favorites folder?&#x0a;This favorites folder has {1} favorite items&#x0a;Favorites folder ID: {2}&#x0a;This action cannot be undone!</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Title">Some favorites failed to load</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Content">The following resources failed to load due to deleted online resources, network issues, or other reasons (shown by resource ID).</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.LastCollection">You cannot delete the last favorites folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.Deleted">Favorites folder deleted</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.Removed">Related favorites removed</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectLoader">The selected mods do not support the same loader</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.LoadingVersions">Please wait while detailed version support is being queried. This may take a while...</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.NoResource">No resource exists for the specified loader and same game version</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectSaveLocation">Selected {0}; now select a save location below</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectedCount">{0} favorite items selected</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.NewFolder">New folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.CurrentFolder">Current folder</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">Copy these IDs</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">Remove these favorites</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.QueryInfo">Query resource information</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">Batch download applicable resources</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">Batch download resources ({0})</sys:String>
+
+    <!-- Minecraft.Download Stage -->
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">Analyze assets index URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Background">Analyze assets index URL (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Side">Analyze assets index URL (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeCoreJarUrl">Analyze core JAR URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeFabricLibraries">Analyze Fabric libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeGameLibrariesSide">Analyze game libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLabyModLibraries">Analyze LabyMod libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLegacyFabricLibraries">Analyze Legacy Fabric libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLiteLoaderLibraries">Analyze LiteLoader libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLoaderLibraries">Analyze {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">Analyze missing assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">Analyze missing libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">Analyze OptiFine libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">Analyze Quilt libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">Analyze required assets (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">Analyze Vanilla and LabyMod libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">Analyze Vanilla libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AddIgnoreFlag">Add ignore flag</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.BuildServer">Build server</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.CopyAssetsIndex.Background">Copy assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DeleteIgnoreFlag">Delete ignore flag</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets">Download assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.MainLoader">Download assets (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.Side">Download assets (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex">Download assets index</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Background">Download assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Side">Download assets index (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadCoreJar">Download core JAR</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadFabricAPI">Download Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibraries">Download game libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibrariesSide">Download game libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadInstanceJson">Download instance JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLabyModClientJson">Download LabyMod client JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLegacyFabricAPI">Download Legacy Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries">Download libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries.MainLoader">Download libraries (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLiteLoaderLibraries">Download LiteLoader libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries">Download {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries.Side">Download {0} libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderMainFile">Download {0} main file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadMainFile">Download main file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">Download OptiFabric</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">Download OptiFine libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">Download OptiFine main file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadQFAPI_QSL">Download QFAPI / QSL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">Download server file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">Download Vanilla and LabyMod libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">Download Vanilla assets</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaLibraries.Side">Download Vanilla libraries (side loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.FabricInstallerDownload">Fabric {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeDownload">{0} download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeInstallerFilter">{0} installer (*.{1})|*.{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.GetLoaderLibraries">Obtain {0} libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodA">Install Forge (method A)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodB">Install Forge (method B)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForgeType">Install {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallGame">Install game</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallLiteLoader">Install LiteLoader</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodA">Install OptiFine (method A)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodB">Install OptiFine (method B)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LabyModInstallerDownload">LabyMod installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LegacyFabricInstallerDownload">Legacy Fabric {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderDownload">LiteLoader {0} download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderInstallerDownload">LiteLoader {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderDownloadCombo">{0} {1} download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderInstallerDownload">Download {0} {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftDownload">Minecraft {0} download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftServerDownload">Minecraft {0} server download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainFabricMainFileUrl">Obtain Fabric main file URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLabyModClientUrl">Obtain LabyMod client file URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLegacyFabricMainFileUrl">Obtain Legacy Fabric main file URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">Obtain {0} details</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">Obtain OptiFine URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">Obtain OptiFine URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">Obtain Quilt main file URI</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">Obtain Vanilla JSON URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">Prepare to download {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} installer download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">Start LiteLoader dependency download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">Update assets index (background)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">Download Vanilla JSON</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">Download Vanilla libraries</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">Wait for Vanilla download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Loader.NewForge">New Forge</sys:String>
+
+    <!-- Minecraft.Download Error -->
+    <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">Failed to add client version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">Failed to analyze asset index URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BmclapiMissingTargetVersion">BMCLAPI missing target version {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta download failed: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">Failed to install Forge in old-style mode</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">Result too short ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeRecommendedTooFew">Too few recommended versions ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallationCanceled">Installation canceled.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists">Instance {0} already exists. Download it again?{1}This will overwrite the instance JSON and JAR files, but will not affect version-isolated files.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists.Title">Instance already exists</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceDownloading">This instance is already downloading!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallerFailedLastLine">The installer failed, and the last line is {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaNotFoundInstallCanceled">Java was not found, installation canceled.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaVersionRequired">Java 8 or higher</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JsonInvalid">{0} JSON is invalid. Path: {1}; beginning content: {2}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LiteLoaderInstallFailed">Failed to install new LiteLoader instance</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderDetailsNotFound">Unable to find details for {0} {1}-{2}!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallFailed">Failed to install new {0} instance</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerFailedLastLine">{0} installer failed. Log ending: {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerRunFailed">Failed to run {0} installer</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderLibraryListFailed">Failed to get {0} library list</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoAvailableVersion">No available version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJarDownloadInfo">No JAR download info in base version {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJsonDownloadAddress">No corresponding JSON download URL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoOfficialServerDownload">Mojang has not provided an official server download for Minecraft {0}, so it cannot be downloaded.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoVanillaLoaderSpecified">The MC installation folder cannot be specified unless a Vanilla downloader is specified</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NotFound">No available version</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineForgeCompatMismatch">Version and Forge compatibility data mismatch</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodA">Failed to install OptiFine (method A)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodB">Failed to install OptiFine (method B)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallerRunFailed">Failed to run OptiFine installer</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineTimeDataMismatch">Version and release time data mismatch</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ServerDownloading">This server is already downloading!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.Timeout">Download source connection timed out</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.UnknownMinecraftVersion">Unknown Minecraft version ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">Failed to parse {0} version list ({1})</sys:String>
+
+    <!-- Minecraft.Download ServerBatch -->
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">If prompted "You need to agree to the EULA", edit eula.txt to agree!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, right-click edit this script and replace %JAVA_HOME% with !JAVA_HOME!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">You can select this version as a suitable Java and enable it in PCL under [Settings → Launch options → Java path inside launcher]!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">Server stopped.</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} vanilla server</sys:String>
+
+    <!-- Download Source -->
+    <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom official source</sys:String>
+    <sys:String x:Key="Download.Source.FabricOfficial">Fabric official source</sys:String>
+    <sys:String x:Key="Download.Source.ForgeOfficial">Forge official source</sys:String>
+    <sys:String x:Key="Download.Source.LegacyFabricOfficial">Legacy Fabric official source</sys:String>
+    <sys:String x:Key="Download.Source.LiteLoaderOfficial">LiteLoader official source</sys:String>
+    <sys:String x:Key="Download.Source.MojangOfficial">Mojang official source</sys:String>
+    <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge official source</sys:String>
+    <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine official source</sys:String>
+    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt official source</sys:String>
+
+    <!-- Download Tag & Type -->
+    <sys:String x:Key="Download.Tag.Uvmc">UVMC Exclusive</sys:String>
+    <sys:String x:Key="Download.Version.Type.Installer">Installer</sys:String>
+
+    <!-- Common Status & Actions (additions) -->
+    <sys:String x:Key="Common.Action.Download">Download</sys:String>
+    <sys:String x:Key="Common.Action.Install">Install</sys:String>
+    <sys:String x:Key="Common.Action.UpdateLog">Changelog</sys:String>
+    <sys:String x:Key="Common.Status.Cancelled">Canceled!</sys:String>
+    <sys:String x:Key="Common.Status.Failure">Failure:</sys:String>
+    <sys:String x:Key="Common.Status.Success">Success!</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">Not a valid Json file</sys:String>
+
+    <!-- Minecraft Version -->
+    <sys:String x:Key="Minecraft.Version.Unknown">Unknown version</sys:String>
+    <sys:String x:Key="Minecraft.Version.Vanilla">Vanilla</sys:String>
+
+    <!-- Minecraft Update -->
+    <sys:String x:Key="Minecraft.Update.NewVersion">New version: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Update.Title">Minecraft update</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdateTime">Update time: </sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdatedAt">Updated: </sys:String>
+
+    <!-- Minecraft Error -->
+    <sys:String x:Key="Minecraft.Error.AssetIndexNotFound">Asset index not found</sys:String>
+    <sys:String x:Key="Minecraft.Error.CannotReadInstanceFolder">Cannot read instance folder, possibly due to permissions ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Error.DependencyRecursion">Version dependency recursion: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.InitInstanceJsonFailed">Failed to initialize instance JSON ({0})</sys:String>
+    <sys:String x:Key="Minecraft.Error.InstanceJsonNotFound">Instance JSON file not found: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.NoAssetIndexInfo">This instance has no asset index information</sys:String>
+    <sys:String x:Key="Minecraft.Error.Unrecognizable">Unrecognizable: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">Cannot get version number, result is empty</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">Failed to fetch version number: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.QuiltUnsupported">Quilt does not support Minecraft {0}</sys:String>
+
+    <!-- Minecraft Skin Error -->
+    <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">Invalid skin type: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoCustomSkin">User has not set a custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoSkinData">Skin response contains no skin data, possibly a user without custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.OfflineNoSkin">Offline UUID has no official skin.</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.PropertyNotFound">No matching property found in skin response</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.SkinReturnEmpty">Skin return value is empty, possibly a user without custom skin</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.UuidEmpty">UUID is empty.</sys:String>
+
+    <!-- Minecraft April Fools -->
+    <sys:String x:Key="Minecraft.Fool.Description.2013">2013 | This update, planned in secret for two years, takes the game to new heights!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2015">2015 | As an all-ages game, we need peace, love, and hugs.</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2016">2016 | It's time to bring modern technology to Minecraft!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2019">2019 | We found this masterpiece from 1994 in the basement ruins!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2020">2020 | We added 20 billion new dimensions, turning infinite imagination into reality!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2022">2022 | One block at a time! Embrace new mining, crafting and riding gameplay!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2023">2023 | Research shows: players love making choices—the more the better!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2024">2024 | Poisonous potatoes have always been overlooked and underestimated, so we supercharged them!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2025">2025 | You can craft anything—including crafting your world!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2026">2026 | Who needs an inventory? Let the blocks follow you!</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Blue">(Blue version)</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Purple">(Purple version)</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Red">(Red version)</sys:String>
+
+    <!-- Minecraft.Download.Modpack -->
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">Modpack files(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">Select modpack archive</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">Game path cannot contain exclamation marks (!) or semicolons (;): {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL cannot handle encrypted archives. Please extract and re-archive them in an unencrypted .zip format and try again.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OpenFailed">Failed to open modpack file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">Failed to open the modpack file. The file may be corrupted or in an unsupported archive format.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">Extract modpack files</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">Prepare mods download information</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">Construct mods download information</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">Download mods</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">Download mods (main loader)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ModpackInstall">Modpack installation</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.GameInstall">Game installation</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.FinalizeFiles">Final files organization</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadAdditions">Download additions</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractArchive">Extract archive</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">Enter instance name</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">A mod is missing required information and has been skipped: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Message">Do you want to download the optional file {0} from the modpack?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">Download optional file</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Download">Download</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Skip">Skip</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">A file path in the modpack exceeds the instance folder. Please report this issue to the modpack author!&#x0a;Incorrect file: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Installing">This modpack is currently being installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">This HMCL modpack does not provide game version information and cannot be installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">This MCBBS modpack does not provide game version addon information and cannot be installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">This modpack does not provide game version information and cannot be installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">Please select an empty folder as the installation target!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">The modpack appears to include its own launcher. Switch to using it to continue?&#13;&#10;Will open: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">Switch to modpack launcher?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">Use bundled</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.DoNotUse">Do not use</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">No suitable file structure was found. This may not be a Minecraft archive.</sys:String>
 
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
