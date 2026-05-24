@@ -2510,7 +2510,7 @@ public static class ModComp
                     Item = res,
                     SearchSource = new List<ModBase.SearchSource>
                     {
-                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' },StringSplitOptions.RemoveEmptyEntries), 1),
+                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
                         new(res.Description, 0.05)
                     }
                 });
