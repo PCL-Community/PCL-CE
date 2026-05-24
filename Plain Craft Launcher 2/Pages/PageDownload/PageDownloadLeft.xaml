@@ -137,7 +137,7 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
 
-            <TextBlock Text="{DynamicResource Download.Left.Installers}" Margin="13,10,5,4" Opacity="0.6" FontSize="12" />
+            <TextBlock Text="{DynamicResource Download.Left.Installation}" Margin="13,10,5,4" Opacity="0.6" FontSize="12" />
             <local:MyListItem x:Name="ItemClient" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="9"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"

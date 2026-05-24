@@ -318,7 +318,7 @@
     <sys:String x:Key="Download.Left.Shader">光影包</sys:String>
     <sys:String x:Key="Download.Left.World">世界</sys:String>
     <sys:String x:Key="Download.Left.Favorites">收藏夹</sys:String>
-    <sys:String x:Key="Download.Left.Installers">安装包</sys:String>
+    <sys:String x:Key="Download.Left.Installation">安装包</sys:String>
     <sys:String x:Key="Download.Left.Minecraft">Minecraft</sys:String>
     <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
     <sys:String x:Key="Download.Left.Forge">Forge</sys:String>
