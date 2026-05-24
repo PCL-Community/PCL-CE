@@ -67,7 +67,7 @@ public static class JsonNodeExtensions
 
     public static T? ToObject<T>(this JsonNode node)
     {
-        return JsonSerializer.Deserialize<T>(node.ToJsonString(), CompatOptions);
+        return node.Deserialize<T>(CompatOptions);
     }
 
     public static JsonArray FromObject<T>(IEnumerable<T> items)

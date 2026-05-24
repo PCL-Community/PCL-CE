@@ -1075,7 +1075,7 @@ public static class ModComp
                 Slug = (string)data["slug"],
                 RawName = (string)data["name"],
                 Description = (string)data["summary"],
-                Website = data["links"]["websiteUrl"].ToString().TrimEnd('/'),
+                Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
                 LastUpdate = data["dateReleased"]?.ToObject<DateTime>(), // #1194
                 DownloadCount = (int)data["downloadCount"]
             };
