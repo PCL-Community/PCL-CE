@@ -149,6 +149,9 @@ public static class FileDownloader
             }
         }
 
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
         var tempPath = localPath + ModNet.NetDownloadEnd;
         if (!File.Exists(localPath) && File.Exists(tempPath))
         {
@@ -164,7 +167,7 @@ public static class FileDownloader
     private static void FinalizeDownload(string tempPath, string finalPath)
     {
         Exception? lastEx = null;
-        for (var retry = 0; retry < 5; retry++)
+        for (var retry = 0; retry < 12; retry++)
         {
             try
             {
@@ -174,8 +177,26 @@ public static class FileDownloader
             catch (IOException ex)
             {
                 lastEx = ex;
-                ModBase.Log(ex, $"[Download] 文件写入重试 {retry + 1}/5：{tempPath} -> {finalPath}", ModBase.LogLevel.Debug);
-                Thread.Sleep(100);
+                ModBase.Log(ex, $"[Download] 文件移动重试 {retry + 1}/12", ModBase.LogLevel.Debug);
+
+                try
+                {
+                    using var source = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var dest = new FileStream(finalPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                    source.CopyTo(dest);
+                    dest.Flush(true);
+
+                    TryDeleteFile(tempPath);
+                    return;
+                }
+                catch (Exception copyEx)
+                {
+                    ModBase.Log(copyEx, $"[Download] 文件复制也失败，等待重试", ModBase.LogLevel.Debug);
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                Thread.Sleep((1 << Math.Min(retry, 8)) * 100);
             }
         }
 
@@ -191,7 +212,7 @@ public static class FileDownloader
 
     private static void TryDeleteFile(string path)
     {
-        for (var retry = 0; retry < 5; retry++)
+        for (var retry = 0; retry < 8; retry++)
         {
             try
             {
@@ -201,7 +222,9 @@ public static class FileDownloader
             }
             catch (IOException)
             {
-                Thread.Sleep(100);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                Thread.Sleep((1 << Math.Min(retry, 6)) * 100);
             }
         }
     }
