@@ -970,14 +970,14 @@ public static class ModComp
                     #region CurseForge
 
                     // 简单信息
-                    Id = (string)Data["id"];
+                    Id = Data["id"].ToString();
                     Slug = (string)Data["slug"];
                     RawName = (string)Data["name"];
                     Description = (string)Data["summary"];
                     Website = Data["links"]["websiteUrl"].ToString().TrimEnd('/');
                     LastUpdate = (DateTime?)Data["dateReleased"]; // #1194
                     DownloadCount = (int)Data["downloadCount"];
-                    if (Data["logo"].AsArray().Count > 0)
+                    if (Data["logo"].AsObject().Count > 0)
                     {
                         if (Data["logo"]["thumbnailUrl"] is null || (string)Data["logo"]["thumbnailUrl"] == "")
                             LogoUrl = (string)Data["logo"]["url"];
@@ -3066,8 +3066,8 @@ public static class ModComp
                     #region CurseForge
 
                     // 简单信息
-                    Id = (string)Data["id"];
-                    ProjectId = (string)Data["modId"];
+                    Id = Data["id"].ToString();
+                    ProjectId = Data["modId"].ToString();
                     DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
                     Version = null;
                     ReleaseDate = (DateTime)Data["fileDate"];
