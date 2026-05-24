@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -9,6 +10,27 @@ namespace PCL.Network;
 
 public static class FileDownloader
 {
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> PathLocks =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private static SemaphoreSlim GetPathLock(string localPath)
+    {
+        var key = NormalizePathKey(localPath);
+        return PathLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+    }
+
+    private static string NormalizePathKey(string localPath)
+    {
+        try
+        {
+            return Path.GetFullPath(localPath);
+        }
+        catch
+        {
+            return localPath;
+        }
+    }
+
     public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
@@ -50,29 +72,53 @@ public static class FileDownloader
 
         Directory.CreateDirectory(Path.GetDirectoryName(localPath) ?? throw new ArgumentException("下载路径无效", nameof(localPath)));
 
-        Exception? lastException = null;
-        foreach (var url in urlList)
+        var pathLock = GetPathLock(localPath);
+        await pathLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            try
+            if (trackedFile?.Check is { CanUseExistsFile: true } existsChecker
+                && File.Exists(localPath)
+                && existsChecker.Check(localPath) is null)
             {
-                await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-                    enableParallelChunks, trackedFile).ConfigureAwait(false);
+                ModBase.Log($"[Download] 目标文件已被并行任务下载完成，跳过：{localPath}", ModBase.LogLevel.Debug);
+                trackedFile.IsCopy = true;
+                trackedFile.TotalSize = new FileInfo(localPath).Length;
+                trackedFile.DownloadedBytes = trackedFile.TotalSize;
+                trackedFile.IsUnknownSize = false;
+                trackedFile.Speed = 0;
+                trackedFile.ActiveThreads = 0;
+                trackedFile.State = NetState.Finished;
                 return;
             }
-            catch (OperationCanceledException)
-            {
-                CleanupTempFiles(localPath);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                CleanupTempFiles(localPath);
-                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
-            }
-        }
 
-        throw new IOException($"下载失败：{localPath}", lastException);
+            Exception? lastException = null;
+            foreach (var url in urlList)
+            {
+                try
+                {
+                    await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+                        enableParallelChunks, trackedFile).ConfigureAwait(false);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    CleanupTempFiles(localPath);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    CleanupTempFiles(localPath);
+                    ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+                }
+            }
+
+            throw new IOException($"下载失败：{localPath}", lastException);
+        }
+        finally
+        {
+            pathLock.Release();
+        }
     }
 
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
