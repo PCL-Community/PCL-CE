@@ -2472,59 +2472,59 @@ public static class ModComp
 
         #region 排序与最终输出
 
-        if (request.Sort == CompSortType.Default)
-        {   
-            var scores = new Dictionary<CompProject, double>();
-            Func<CompProject, double> getDownloadCountMult = p =>
-            {
-                switch (request.Type)
-                {
-                    case CompType.Mod:
-                    case CompType.ModPack: return p.FromCurseForge ? 1 : 7;
-                    case CompType.DataPack: return p.FromCurseForge ? 10 : 1;
-                    case CompType.ResourcePack:
-                    case CompType.Shader: return p.FromCurseForge ? 1 : 5;
-                    default: return 1;
-                }
-            };
-
-            if (string.IsNullOrEmpty(rawFilter))
-            {
-                foreach (var res in realResults) scores.Add(res, res.DownloadCount * getDownloadCountMult(res));
-            }
-            else
-            {
-                var searchEntries = new List<ModBase.SearchEntry<CompProject>>();
-                foreach (var res in realResults)
-                {
-                    scores.Add(res,
-                        (res.WikiId > 0 ? 0.2 : 0) +
-                        Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
-                    searchEntries.Add(new ModBase.SearchEntry<CompProject>
-                    {
-                        Item = res,
-                        SearchSource = new List<ModBase.SearchSource>
-                        {
-                            new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' },StringSplitOptions.RemoveEmptyEntries), 1),
-                            new(res.Description, 0.05)
-                        }
-                    });
-                }
-
-                var searchRes = ModBase.Search(searchEntries, rawFilter, 101, -1);
-                foreach (var item in searchRes)
-                    scores[item.Item] +=
-                        (item.AbsoluteRight ? 10 : item.Similarity) /
-                        (searchRes.First().AbsoluteRight ? 10 : searchRes.First().Similarity);
-            }
-
+        if (request.Sort != CompSortType.Default)
+        {
             if (task.IsAborted) throw new ThreadInterruptedException();
-            storage.Results.AddRange(scores.OrderByDescending(s => s.Value).Select(s => s.Key));
+            storage.Results.AddRange(realResults); // 遵从API返回顺序
+            return;
+        }
+        
+        var scores = new Dictionary<CompProject, double>();
+        Func<CompProject, double> getDownloadCountMult = p =>
+        {
+            switch (request.Type)
+            {
+                case CompType.Mod:
+                case CompType.ModPack: return p.FromCurseForge ? 1 : 7;
+                case CompType.DataPack: return p.FromCurseForge ? 10 : 1;
+                case CompType.ResourcePack:
+                case CompType.Shader: return p.FromCurseForge ? 1 : 5;
+                default: return 1;
+            }
+        };
+
+        if (string.IsNullOrEmpty(rawFilter))
+        {
+            foreach (var res in realResults) scores.Add(res, res.DownloadCount * getDownloadCountMult(res));
         }
         else
         {
-            storage.Results.AddRange(realResults); // 遵从API返回顺序
+            var searchEntries = new List<ModBase.SearchEntry<CompProject>>();
+            foreach (var res in realResults)
+            {
+                scores.Add(res,
+                    (res.WikiId > 0 ? 0.2 : 0) +
+                    Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
+                searchEntries.Add(new ModBase.SearchEntry<CompProject>
+                {
+                    Item = res,
+                    SearchSource = new List<ModBase.SearchSource>
+                    {
+                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' },StringSplitOptions.RemoveEmptyEntries), 1),
+                        new(res.Description, 0.05)
+                    }
+                });
+            }
+
+            var searchRes = ModBase.Search(searchEntries, rawFilter, 101, -1);
+            foreach (var item in searchRes)
+                scores[item.Item] +=
+                    (item.AbsoluteRight ? 10 : item.Similarity) /
+                    (searchRes.First().AbsoluteRight ? 10 : searchRes.First().Similarity);
         }
+
+        if (task.IsAborted) throw new ThreadInterruptedException();
+        storage.Results.AddRange(scores.OrderByDescending(s => s.Value).Select(s => s.Key));
 
         #endregion
     }
