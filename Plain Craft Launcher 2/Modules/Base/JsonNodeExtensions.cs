@@ -8,8 +8,22 @@ public static class JsonNodeExtensions
     public static void Merge(this JsonObject target, JsonNode? source)
     {
         if (source is not JsonObject sourceObj) return;
+
         foreach (var prop in sourceObj.ToArray())
-            target[prop.Key] = prop.Value?.DeepClone();
+            switch (target[prop.Key])
+            {
+                case JsonObject targetChild when
+                    prop.Value is JsonObject sourceChild:
+                    targetChild.Merge(sourceChild);
+                    break;
+                case JsonArray targetArray when
+                    prop.Value is JsonArray sourceArray:
+                    targetArray.Merge(sourceArray);
+                    break;
+                default:
+                    target[prop.Key] = prop.Value?.DeepClone();
+                    break;
+            }
     }
 
     public static void Merge(this JsonArray target, JsonNode? source)
