@@ -3,7 +3,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using Microsoft.VisualBasic;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -271,7 +270,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的 Json 数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
         // ''' <summary>
         // ''' 官方源的失败原因。若没有则为 Nothing。
         // ''' </summary>
@@ -318,7 +317,7 @@ public static class ModDownload
 
         // 提取所有 Drop 序数
         var drops = new List<int>();
-        foreach (JObject version in loader.Output.Value["versions"])
+        foreach (JsonObject version in loader.Output.Value["versions"].AsArray())
             drops.Add(ModMinecraft.McInstanceInfo.VersionToDrop((string)version["id"]));
         AllDrops = drops.Distinct().OrderByDescending(d => d).ToList();
     }
@@ -338,10 +337,10 @@ public static class ModDownload
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
         var StartTime = TimeUtils.GetTimeTick();
-        var Json = (JObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
+        var Json = (JsonObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
         try
         {
-            var Versions = (JArray)Json["versions"];
+            var Versions = (JsonArray)Json["versions"];
             if (Versions.Count < 200)
                 throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Mojang", Json));
             // 添加 UVMC 项
@@ -349,7 +348,7 @@ public static class ModDownload
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
+                    var UnlistedJson = (JsonObject)Requester.FetchJson(
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
@@ -360,7 +359,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -422,11 +421,11 @@ public static class ModDownload
 
     private static void DlClientListBmclapiMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
-        var Json = (JObject)Requester.FetchJson(
+        var Json = (JsonObject)Requester.FetchJson(
             "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
         try
         {
-            var Versions = (JArray)Json["versions"];
+            var Versions = (JsonArray)Json["versions"];
             if (Versions.Count < 200)
                 throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "BMCLAPI", Json));
             // 添加 UVMC 项
@@ -434,7 +433,7 @@ public static class ModDownload
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
+                    var UnlistedJson = (JsonObject)Requester.FetchJson(
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
@@ -445,7 +444,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -458,7 +457,7 @@ public static class ModDownload
             {
                 var Id = Loader.Input;
                 if (DlClientListLoader.Output.Value is not null &&
-                    !DlClientListLoader.Output.Value["versions"].Any(v => (string)v["id"] == Id))
+                    !DlClientListLoader.Output.Value["versions"].AsArray().Any(v => (string)v["id"] == Id))
                     throw new Exception(Lang.Text("Minecraft.Download.Error.BmclapiMissingTargetVersion", Id));
             }
 
@@ -488,7 +487,7 @@ public static class ModDownload
                 case ModBase.LoadState.Finished:
                 {
                     // 从当前的结果获取目标版本…
-                    foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+                    foreach (JsonObject Version in DlClientListLoader.Output.Value["versions"].AsArray())
                         if ((string)Version["id"] == Id)
                             return Version["url"].ToString();
                     // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
@@ -510,7 +509,7 @@ public static class ModDownload
             }
 
             // 重新查找版本
-            foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+            foreach (JsonObject Version in DlClientListLoader.Output.Value["versions"].AsArray())
                 if ((string)Version["id"] == Id)
                     return Version["url"].ToString();
             ModBase.Log($"未发现版本 {Id} 的 json 下载地址，版本列表返回为：{"\r\n"}{DlClientListLoader.Output.Value}",
@@ -709,11 +708,11 @@ public static class ModDownload
 
     private static void DlOptiFineListBmclapiMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        var Json = (JArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
+        var Json = (JsonArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
         try
         {
             var Versions = new List<DlOptiFineListEntry>();
-            foreach (JObject Token in Json)
+            foreach (JsonObject Token in Json)
             {
                 var Entry = new DlOptiFineListEntry
                 {
@@ -1135,20 +1134,20 @@ public static class ModDownload
     /// </summary>
     public static void DlForgeVersionBmclapiMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
-        var Json = (JArray)Requester.FetchJson(
+        var Json = (JsonArray)Requester.FetchJson(
             "https://bmclapi2.bangbang93.com/forge/minecraft/" +
             Loader.Input.Replace("-", "_")); // 兼容 Forge 1.7.10-pre4，#4057
         var Versions = new List<DlForgeVersionEntry>();
         try
         {
             var Recommended = ModDownloadLib.McDownloadForgeRecommendedGet(Loader.Input);
-            foreach (JObject Token in Json)
+            foreach (JsonObject Token in Json)
             {
                 // 分类与 Hash 获取
                 string Hash = null;
                 var Category = "unknown";
                 var Proi = -1;
-                foreach (JObject File in Token["files"])
+                foreach (JsonObject File in Token["files"].AsArray())
                     switch (File["category"].ToString() ?? "")
                     {
                         case "installer":
@@ -1547,8 +1546,8 @@ public static class ModDownload
     private static List<DlCleanroomListEntry> GetCleanroomEntries(string LatestJson)
     {
         var Versions = new List<DlCleanroomListEntry>();
-        var Json = JArray.Parse(LatestJson);
-        foreach (JObject Token in Json)
+        var Json = JsonArray.Parse(LatestJson);
+        foreach (JsonObject Token in Json.AsArray())
             Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
                 { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
         if (!Versions.Any())
@@ -1609,7 +1608,7 @@ public static class ModDownload
         /// <summary>
         ///     对应的 Json 项。
         /// </summary>
-        public JToken JsonToken;
+        public JsonNode JsonToken;
 
         /// <summary>
         ///     文件的 MD5。
@@ -1672,10 +1671,10 @@ public static class ModDownload
     private static void DlLiteLoaderListOfficialMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
+            (JsonObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
+            var Json = (JsonObject)Result["versions"];
             var Versions = new List<DlLiteLoaderListEntry>();
             foreach (var Pair in Json)
             {
@@ -1691,7 +1690,7 @@ public static class ModDownload
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp(long.Parse(RealEntry["timestamp"].ToString())),
                     JsonToken = RealEntry
                 });
             }
@@ -1715,11 +1714,11 @@ public static class ModDownload
     private static void DlLiteLoaderListBmclapiMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson(
+            (JsonObject)Requester.FetchJson(
                 "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
+            var Json = (JsonObject)Result["versions"];
             var Versions = new List<DlLiteLoaderListEntry>();
             foreach (var Pair in Json)
             {
@@ -1768,7 +1767,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -1817,7 +1816,7 @@ public static class ModDownload
 
     private static void DlFabricListOfficialMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
         try
         {
             var Output = new DlFabricListResult
@@ -1840,7 +1839,7 @@ public static class ModDownload
 
     private static void DlFabricListBmclapiMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
         try
         {
             var Output = new DlFabricListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Result };
@@ -1887,7 +1886,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -1936,7 +1935,7 @@ public static class ModDownload
 
     private static void DlQuiltListOfficialMain(ModLoader.LoaderTask<int, DlQuiltListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
         try
         {
             var Output = new DlQuiltListResult
@@ -1956,7 +1955,7 @@ public static class ModDownload
     // ''' </summary>
     // Public DlQuiltListBmclapiLoader As New LoaderTask(Of Integer, DlQuiltListResult)("DlQuiltList Bmclapi", AddressOf DlQuiltListBmclapiMain)
     // Private Sub DlQuiltListBmclapiMain(Loader As LoaderTask(Of Integer, DlQuiltListResult))
-    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions")
+    // Dim Result As JsonObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions")
     // Try
     // Dim Output = New DlQuiltListResult With {.IsOfficial = False, .SourceName = "BMCLAPI", .Value = Result}
     // If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
@@ -1981,7 +1980,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -2030,7 +2029,7 @@ public static class ModDownload
 
     private static void DlLabyModListOfficialMain(ModLoader.LoaderTask<int, DlLabyModListResult> Loader)
     {
-        JObject ResultProduction;
+        JsonObject ResultProduction;
         using (var productionResponse = HttpRequest
                    .Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json")
                    .WithHttpVersionOption(HttpVersion.Version20)
@@ -2038,10 +2037,10 @@ public static class ModDownload
                    .GetAwaiter()
                    .GetResult())
         {
-            ResultProduction = (JObject)ModBase.GetJson(productionResponse.AsString());
+            ResultProduction = (JsonObject)ModBase.GetJson(productionResponse.AsString());
         }
 
-        JObject ResultSnapshot;
+        JsonObject ResultSnapshot;
         using (var snapshotResponse = HttpRequest
                    .Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json")
                    .WithHttpVersionOption(HttpVersion.Version20)
@@ -2050,10 +2049,10 @@ public static class ModDownload
                    .GetResult())
         {
             snapshotResponse.EnsureSuccessStatusCode();
-            ResultSnapshot = (JObject)ModBase.GetJson(snapshotResponse.AsString());
+            ResultSnapshot = (JsonObject)ModBase.GetJson(snapshotResponse.AsString());
         }
 
-        var Result = new JObject();
+        var Result = new JsonObject();
         Result.Add("production", ResultProduction);
         Result.Add("snapshot", ResultSnapshot);
         try
@@ -2128,7 +2127,7 @@ public static class ModDownload
                     UseBrowserUserAgent = true
                 });
                 if (typeof(T) == typeof(string)) return (T)(object)json;
-                return (T)ModBase.GetJson(json);
+                return (T)(object)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
@@ -2196,7 +2195,7 @@ public static class ModDownload
                     Timeout = Source.Value * 1000
                 });
                 if (typeof(T) == typeof(string)) return (T)(object)json; // 沟槽的，为什么不能写 T is string
-                return (T)ModBase.GetJson(json);
+                return (T)(object)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
@@ -2488,7 +2487,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -2535,7 +2534,7 @@ public static class ModDownload
     private static void DlLegacyFabricListOfficialMain(ModLoader.LoaderTask<int, DlLegacyFabricListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
+            (JsonObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
         try
         {
             var Output = new DlLegacyFabricListResult

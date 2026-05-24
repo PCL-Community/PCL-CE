@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Newtonsoft.Json.Linq;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -121,15 +120,15 @@ internal static class ModStyle
         private static readonly string randomChars =
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;:,.<>?/~";
 
-        public static string ConvertToMinecraftFormat(JObject data)
+        public static string ConvertToMinecraftFormat(JsonObject data)
         {
             var result = "";
-            foreach (var item in data["extra"])
-                result += ProcessElement((JObject)item, new List<string>());
+            foreach (var item in data["extra"].AsArray())
+                result += ProcessElement((JsonObject)item, new List<string>());
             return result.Replace("§§", "§");
         }
 
-        private static string ProcessElement(JObject element, List<string> currentFormat)
+        private static string ProcessElement(JsonObject element, List<string> currentFormat)
         {
             var text = "";
             var formats = new List<string>(currentFormat);
@@ -153,8 +152,8 @@ internal static class ModStyle
 
             // 处理子元素
             if (element.ContainsKey("extra"))
-                foreach (var child in element["extra"])
-                    text += ProcessElement((JObject)child, new List<string>(formats));
+                foreach (var child in element["extra"].AsArray())
+                    text += ProcessElement((JsonObject)child, new List<string>(formats));
 
             return text;
         }

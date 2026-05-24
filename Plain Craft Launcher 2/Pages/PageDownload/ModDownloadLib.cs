@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -244,7 +243,7 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json")));
+                var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json")));
                 versionJson.Add("clientVersion", id);
                 ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
             }
@@ -289,7 +288,7 @@ public static class ModDownloadLib
 
     #region Minecraft 下载菜单
 
-    public static MyListItem McDownloadListItem(JObject Entry, MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
+    public static MyListItem McDownloadListItem(JsonObject Entry, MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
         // 确定图标
         string Logo = Entry["type"].ToString() switch
@@ -311,10 +310,10 @@ public static class ModDownloadLib
         if (Entry["lore"] is null)
         {
             if (FormattedVersion != (string)Entry["id"])
-                NewItem.Info = Lang.Date(Entry["releaseTime"].Value<DateTime>(), "g") + " | " +
+                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g") + " | " +
                                Entry["id"];
             else
-                NewItem.Info = Lang.Date(Entry["releaseTime"].Value<DateTime>(), "g");
+                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g");
         }
         else if (FormattedVersion != (string)Entry["id"])
         {
@@ -374,13 +373,13 @@ public static class ModDownloadLib
 
     private static void McDownloadMenuLog(object sender, RoutedEventArgs e)
     {
-        JToken Version;
+        JsonNode Version;
         if (((dynamic)sender).Tag is not null)
-            Version = (JToken)((dynamic)sender).Tag;
+            Version = (JsonNode)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            Version = (JToken)((dynamic)sender).Parent.Tag;
+            Version = (JsonNode)((dynamic)sender).Parent.Tag;
         else
-            Version = (JToken)((dynamic)sender).Parent.Parent.Tag;
+            Version = (JsonNode)((dynamic)sender).Parent.Parent.Tag;
         McUpdateLogShow(Version);
     }
 
@@ -500,7 +499,7 @@ public static class ModDownloadLib
         try
         {
             var Id = Version.Title;
-            var JsonUrl = ((JObject)Version.Tag)["url"]!.ToString();
+            var JsonUrl = ((JsonObject)Version.Tag)["url"]!.ToString();
             var VersionFolder = SystemDialogs.SelectFolder();
             if (!VersionFolder.Contains(@"\"))
                 return;
@@ -553,7 +552,7 @@ public static class ModDownloadLib
     ///     显示某 Minecraft 版本的更新日志。
     /// </summary>
     /// <param name="VersionJson">在 version_manifest.json 中的对应项。</param>
-    public static void McUpdateLogShow(JToken VersionJson)
+    public static void McUpdateLogShow(JsonNode VersionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(VersionJson["id"].ToString());
         ModBase.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
@@ -1402,7 +1401,7 @@ public static class ModDownloadLib
             try
             {
                 Directory.CreateDirectory(VersionFolder);
-                var VersionJson = new JObject();
+                var VersionJson = new JsonObject();
                 VersionJson.Add("id", VersionName);
                 VersionJson.Add("time",
                     DateTime.ParseExact(DownloadInfo.ReleaseTime, "yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture));
@@ -1410,12 +1409,12 @@ public static class ModDownloadLib
                     DateTime.ParseExact(DownloadInfo.ReleaseTime, "yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture));
                 VersionJson.Add("type", "release");
                 VersionJson.Add("arguments",
-                    (JToken)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + DownloadInfo.JsonToken["tweakClass"] +
+                    (JsonNode)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + DownloadInfo.JsonToken["tweakClass"] +
                                             "\"]}"));
                 VersionJson.Add("libraries", DownloadInfo.JsonToken["libraries"]);
-                ((JContainer)VersionJson["libraries"]).Add(ModBase.GetJson("{\"name\": \"com.mumfrey:liteloader:" +
-                                                                           DownloadInfo.JsonToken["version"] +
-                                                                           "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
+                VersionJson["libraries"].AsArray().Add(ModBase.GetJson("{\"name\": \"com.mumfrey:liteloader:" +
+                                                                            DownloadInfo.JsonToken["version"] +
+                                                                            "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
                 VersionJson.Add("mainClass", "net.minecraft.launchwrapper.Launch");
                 VersionJson.Add("minimumLauncherVersion", 18);
                 VersionJson.Add("inheritsFrom", DownloadInfo.Inherit);
@@ -1996,13 +1995,13 @@ public static class ModDownloadLib
                     // 解压并获取、合并两个 Json 的信息
                     Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     Task.Progress = 0.2d;
-                    var Json = (JObject)ModBase.GetJson(
+                    var Json = (JsonObject)ModBase.GetJson(
                         ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
-                    var Json2 = (JObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
+                    var Json2 = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib))
-                        Json = JObject.Parse(Json.ToString()
+                        Json = (JsonObject)JsonNode.Parse(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
@@ -2014,7 +2013,7 @@ public static class ModDownloadLib
                     {
                         // 下载原版 Json 文件
                         Task.Progress = 0.4d;
-                        var RawJson = (JObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
+                        var RawJson = (JsonObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
                             ModDownload.DlSourceLauncherOrMetaGet(
                                 Conversions.ToString(ModDownload.DlClientListGet(Inherit))), IsJson: true));
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
@@ -2251,7 +2250,7 @@ public static class ModDownloadLib
                         // 解压并获取信息
                         Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                         Task.Progress = 0.2d;
-                        var Json = (JObject)ModBase.GetJson(
+                        var Json = (JsonObject)ModBase.GetJson(
                             ModBase.ReadFile(Installer.GetEntry("install_profile.json").Open()));
                         Task.Progress = 0.4d;
                         // 新建实例文件夹
@@ -2262,7 +2261,7 @@ public static class ModDownloadLib
                             // 中版：Legacy 方式 1
                             ModBase.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + InstallerAddress);
                             // 建立 Json 文件
-                            var JsonVersion = (JObject)ModBase.GetJson(
+                            var JsonVersion = (JsonObject)ModBase.GetJson(
                                 ModBase.ReadFile(Installer.GetEntry(Json["json"].ToString().TrimStart('/')).Open()));
                             JsonVersion["id"] = TargetVersion;
                             ModBase.WriteFile(Path.Combine(VersionFolder, TargetVersion + ".json"), JsonVersion.ToString());
@@ -2288,7 +2287,7 @@ public static class ModDownloadLib
                             // 建立 Json 文件
                             Json["versionInfo"]["id"] = TargetVersion;
                             if (Json["versionInfo"]["inheritsFrom"] is null)
-                                ((JObject)Json["versionInfo"]).Add("inheritsFrom", Inherit);
+                                ((JsonObject)Json["versionInfo"]).Add("inheritsFrom", Inherit);
                             ModBase.WriteFile(Path.Combine(VersionFolder, TargetVersion + ".json"), Json["versionInfo"].ToString());
                         }
                     }
@@ -2467,11 +2466,10 @@ public static class ModDownloadLib
             {
                 ModBase.Log("[Download] 刷新 Forge 推荐版本缓存开始");
                 var Result = ModNet.NetGetCodeByLoader("https://bmclapi2.bangbang93.com/forge/promos");
-                if (Result.Length < 1000)
-                    throw new Exception(Lang.Text("Minecraft.Download.Error.ForgePromosResultTooShort", Result));
-                var ResultJson = (JContainer)ModBase.GetJson(Result);
+                if (Result.Length < 1000) throw new Exception(Lang.Text("Minecraft.Download.Error.ForgePromosResultTooShort", Result));
+                var ResultJson = (JsonNode)ModBase.GetJson(Result);
                 var RecommendedList = new List<string>();
-                foreach (JObject Version in ResultJson)
+                foreach (JsonObject Version in ResultJson.AsArray())
                 {
                     if (Version["name"] is null || Version["build"] is null) continue;
                     var Name = (string)Version["name"];
@@ -2511,7 +2509,7 @@ public static class ModDownloadLib
                 return null;
             }
 
-            var Json = (JObject)ModBase.GetJson(List);
+            var Json = (JsonObject)ModBase.GetJson(List);
             if (Json is null || !(McInstance ?? "null").Contains(".") || !Json.ContainsKey(McInstance))
                 return null;
             return (Json[McInstance] ?? "").ToString();
@@ -2757,7 +2755,7 @@ public static class ModDownloadLib
 
     #region Fabric 下载
 
-    public static void McDownloadFabricLoaderSave(JObject DownloadInfo)
+    public static void McDownloadFabricLoaderSave(JsonObject DownloadInfo)
     {
         try
         {
@@ -2789,7 +2787,7 @@ public static class ModDownloadLib
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<JObject>(
+                new ModLoader.LoaderCombo<JsonObject>(
                         Lang.Text("Minecraft.Download.Stage.FabricInstallerDownload", Version), Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start(DownloadInfo);
@@ -2879,7 +2877,7 @@ public static class ModDownloadLib
 
     #region LegacyFabric 下载
 
-    public static void McDownloadLegacyFabricLoaderSave(JObject DownloadInfo)
+    public static void McDownloadLegacyFabricLoaderSave(JsonObject DownloadInfo)
     {
         try
         {
@@ -2910,7 +2908,7 @@ public static class ModDownloadLib
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<JObject>(
+                new ModLoader.LoaderCombo<JsonObject>(
                         Lang.Text("Minecraft.Download.Stage.LegacyFabricInstallerDownload", Version), Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start(DownloadInfo);
@@ -2985,7 +2983,7 @@ public static class ModDownloadLib
 
     #region Fabric 下载菜单
 
-    public static MyListItem FabricDownloadListItem(JObject Entry, MyListItem.ClickEventHandler OnClick)
+    public static MyListItem FabricDownloadListItem(JsonObject Entry, MyListItem.ClickEventHandler OnClick)
     {
         // 建立控件
         var NewItem = new MyListItem
@@ -3059,7 +3057,7 @@ public static class ModDownloadLib
 
     #region LegacyFabric 下载菜单
 
-    public static MyListItem LegacyFabricDownloadListItem(JObject Entry, MyListItem.ClickEventHandler OnClick)
+    public static MyListItem LegacyFabricDownloadListItem(JsonObject Entry, MyListItem.ClickEventHandler OnClick)
     {
         // 建立控件
         var NewItem = new MyListItem
@@ -3100,7 +3098,7 @@ public static class ModDownloadLib
 
     #region Quilt 下载
 
-    public static void McDownloadQuiltLoaderSave(JObject DownloadInfo)
+    public static void McDownloadQuiltLoaderSave(JsonObject DownloadInfo)
     {
         try
         {
@@ -3132,7 +3130,7 @@ public static class ModDownloadLib
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<JObject>(
+                new ModLoader.LoaderCombo<JsonObject>(
                         Lang.Text("Minecraft.Download.Stage.QuiltInstallerDownload", Version), Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start(DownloadInfo);
@@ -3208,7 +3206,7 @@ public static class ModDownloadLib
 
     #region Quilt 下载菜单
 
-    public static MyListItem QuiltDownloadListItem(JObject Entry, MyListItem.ClickEventHandler OnClick)
+    public static MyListItem QuiltDownloadListItem(JsonObject Entry, MyListItem.ClickEventHandler OnClick)
     {
         // 建立控件
         var NewItem = new MyListItem
@@ -3296,7 +3294,7 @@ public static class ModDownloadLib
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<JObject>(Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload"),
+                new ModLoader.LoaderCombo<JsonObject>(Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload"),
                         Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start();
@@ -3340,7 +3338,7 @@ public static class ModDownloadLib
                 { ProgressWeight = 15d });
             // 启动
             var Loader =
-                new ModLoader.LoaderCombo<JObject>(Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload"),
+                new ModLoader.LoaderCombo<JsonObject>(Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload"),
                         Loaders)
                 { OnStateChanged = LoaderStateChangedHintOnly };
             Loader.Start();
@@ -3459,7 +3457,7 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var VersionJson = (JObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(VersionFolder, VersionName + ".json")));
+                var VersionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(VersionFolder, VersionName + ".json")));
                 VersionJson.Add("clientVersion", Id);
                 ModBase.WriteFile(Path.Combine(VersionFolder, VersionName + ".json"), VersionJson.ToString());
             }
@@ -3501,7 +3499,7 @@ public static class ModDownloadLib
 
     #region LabyMod 下载菜单
 
-    public static MyListItem LabyModDownloadListItem(JObject Entry, MyListItem.ClickEventHandler OnClick)
+    public static MyListItem LabyModDownloadListItem(JsonObject Entry, MyListItem.ClickEventHandler OnClick)
     {
         // 建立控件
         var NewItem = new MyListItem
@@ -3542,13 +3540,13 @@ public static class ModDownloadLib
 
     private static void LabyModSave_Click(object sender, RoutedEventArgs e)
     {
-        JObject version;
+        JsonObject version;
         if (((dynamic)sender).Tag is not null)
-            version = (JObject)((dynamic)sender).Tag;
+            version = (JsonObject)((dynamic)sender).Tag;
         else if (((dynamic)sender).Parent.Tag is not null)
-            version = (JObject)((dynamic)sender).Parent.Tag;
+            version = (JsonObject)((dynamic)sender).Parent.Tag;
         else
-            version = (JObject)((dynamic)sender).Parent.Parent.Tag;
+            version = (JsonObject)((dynamic)sender).Parent.Parent.Tag;
         if ((string)version["channel"] == "snapshot")
             McDownloadLabyModSnapshotLoaderSave();
         else
@@ -4362,17 +4360,17 @@ public static class ModDownloadLib
 
         #endregion
 
-        JObject OutputJson;
-        JObject MinecraftJson = null;
-        JObject OptiFineJson = null;
-        JObject ForgeJson = null;
-        JObject NeoForgeJson = null;
-        JObject LegacyFabricJson = null;
-        JObject CleanroomJson = null;
-        JObject LiteLoaderJson = null;
-        JObject FabricJson = null;
-        JObject QuiltJson = null;
-        JObject LabyModJson = null;
+        JsonObject OutputJson;
+        JsonObject MinecraftJson = null;
+        JsonObject OptiFineJson = null;
+        JsonObject ForgeJson = null;
+        JsonObject NeoForgeJson = null;
+        JsonObject LegacyFabricJson = null;
+        JsonObject CleanroomJson = null;
+        JsonObject LiteLoaderJson = null;
+        JsonObject FabricJson = null;
+        JsonObject QuiltJson = null;
+        JsonObject LabyModJson = null;
 
         #region 读取文件并检查文件是否合规
 
@@ -4382,7 +4380,7 @@ public static class ModDownloadLib
             if (!MinecraftJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Minecraft", MinecraftJsonPath,
                     MinecraftJsonText.Substring(0, Math.Min(MinecraftJsonText.Length, 1000))));
-            MinecraftJson = (JObject)ModBase.GetJson(MinecraftJsonText);
+            MinecraftJson = (JsonObject)ModBase.GetJson(MinecraftJsonText);
         }
 
         if (HasOptiFine)
@@ -4391,7 +4389,7 @@ public static class ModDownloadLib
             if (!OptiFineJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "OptiFine", OptiFineJsonPath,
                     OptiFineJsonText.Substring(0, Math.Min(OptiFineJsonText.Length, 1000))));
-            OptiFineJson = (JObject)ModBase.GetJson(OptiFineJsonText);
+            OptiFineJson = (JsonObject)ModBase.GetJson(OptiFineJsonText);
         }
 
         if (HasForge)
@@ -4400,7 +4398,7 @@ public static class ModDownloadLib
             if (!ForgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Forge", ForgeJsonPath,
                     ForgeJsonText.Substring(0, Math.Min(ForgeJsonText.Length, 1000))));
-            ForgeJson = (JObject)ModBase.GetJson(ForgeJsonText);
+            ForgeJson = (JsonObject)ModBase.GetJson(ForgeJsonText);
         }
 
         if (HasNeoForge)
@@ -4409,7 +4407,7 @@ public static class ModDownloadLib
             if (!NeoForgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "NeoForge", NeoForgeJsonPath,
                     NeoForgeJsonText.Substring(0, Math.Min(NeoForgeJsonText.Length, 1000))));
-            NeoForgeJson = (JObject)ModBase.GetJson(NeoForgeJsonText);
+            NeoForgeJson = (JsonObject)ModBase.GetJson(NeoForgeJsonText);
         }
 
         if (HasCleanroom)
@@ -4418,7 +4416,7 @@ public static class ModDownloadLib
             if (!CleanroomJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Cleanroom", CleanroomJsonPath,
                     CleanroomJsonText.Substring(0, Math.Min(CleanroomJsonText.Length, 1000))));
-            CleanroomJson = (JObject)ModBase.GetJson(CleanroomJsonText);
+            CleanroomJson = (JsonObject)ModBase.GetJson(CleanroomJsonText);
         }
 
         if (HasLiteLoader)
@@ -4427,7 +4425,7 @@ public static class ModDownloadLib
             if (!LiteLoaderJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LiteLoader", LiteLoaderJsonPath,
                     LiteLoaderJsonText.Substring(0, Math.Min(LiteLoaderJsonText.Length, 1000))));
-            LiteLoaderJson = (JObject)ModBase.GetJson(LiteLoaderJsonText);
+            LiteLoaderJson = (JsonObject)ModBase.GetJson(LiteLoaderJsonText);
         }
 
         if (HasFabric)
@@ -4436,7 +4434,7 @@ public static class ModDownloadLib
             if (!FabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Fabric", FabricJsonPath,
                     FabricJsonText.Substring(0, Math.Min(FabricJsonText.Length, 1000))));
-            FabricJson = (JObject)ModBase.GetJson(FabricJsonText);
+            FabricJson = (JsonObject)ModBase.GetJson(FabricJsonText);
         }
 
         if (HasLegacyFabric)
@@ -4445,7 +4443,7 @@ public static class ModDownloadLib
             if (!LegacyFabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Legacy Fabric", FabricJsonPath,
                     LegacyFabricJsonText.Substring(0, Math.Min(LegacyFabricJsonText.Length, 1000))));
-            LegacyFabricJson = (JObject)ModBase.GetJson(LegacyFabricJsonText);
+            LegacyFabricJson = (JsonObject)ModBase.GetJson(LegacyFabricJsonText);
         }
 
         if (HasQuilt)
@@ -4454,7 +4452,7 @@ public static class ModDownloadLib
             if (!QuiltJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Quilt", QuiltJsonPath,
                     QuiltJsonText.Substring(0, Math.Min(QuiltJsonText.Length, 1000))));
-            QuiltJson = (JObject)ModBase.GetJson(QuiltJsonText);
+            QuiltJson = (JsonObject)ModBase.GetJson(QuiltJsonText);
         }
 
         if (HasLabyMod)
@@ -4463,7 +4461,7 @@ public static class ModDownloadLib
             if (!LabyModJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LabyMod", LabyModJsonPath,
                     LabyModJsonText.Substring(0, Math.Min(LabyModJsonText.Length, 1000))));
-            LabyModJson = (JObject)ModBase.GetJson(LabyModJsonText);
+            LabyModJson = (JsonObject)ModBase.GetJson(LabyModJsonText);
         }
 
         #endregion
@@ -4595,23 +4593,23 @@ public static class ModDownloadLib
             LabyModJson.Remove("releaseTime");
             LabyModJson.Remove("time");
             if (OutputJson is null)
-                OutputJson = new JObject();
+                OutputJson = new JsonObject();
             OutputJson.Merge(LabyModJson);
 
             var LabyModLib =
-                (JObject)Requester.FetchJson(
+                (JsonObject)Requester.FetchJson(
                     $"https://releases.r2.labymod.net/api/v1/libraries/{LabyModChannel}.json", RequestParam.WithRetry);
-            var LabyModCore = (JObject)Requester.FetchJson(
+            var LabyModCore = (JsonObject)Requester.FetchJson(
                 $"https://releases.r2.labymod.net/api/v1/manifest/{LabyModChannel}/latest.json", RequestParam.WithRetry);
-            var OutputLibraries = new JArray();
+            var OutputLibraries = new JsonArray();
             var IsolatedLibraries = new Dictionary<string, bool>();
             var MinecraftVersion = LabyModJson["_minecraftVersion"];
 
-            foreach (var Library in LabyModLib["isolated_libraries"])
-                if (((JArray)Library["versions"]).Contains(MinecraftVersion))
+            foreach (var Library in LabyModLib["isolated_libraries"].AsArray())
+                if (((JsonArray)Library["versions"]).Contains(MinecraftVersion))
                     IsolatedLibraries.Add(Library["name"].ToString(), true);
 
-            foreach (var Library in LabyModJson["libraries"])
+            foreach (var Library in LabyModJson["libraries"].AsArray())
             {
                 var RegexMatchResult = Library["name"].ToString().RegexSeek(RegexPatterns.CatchLwjglInLib);
                 if (RegexMatchResult is null ||
@@ -4619,8 +4617,8 @@ public static class ModDownloadLib
                     OutputLibraries.Add(Library);
             }
 
-            foreach (var Library in LabyModLib["libraries"])
-                OutputLibraries.Add(JObject.Parse($@"{{
+            foreach (var Library in LabyModLib["libraries"].AsArray())
+                OutputLibraries.Add(JsonNode.Parse($@"{{
                     ""name"": ""{Library["name"]}"",
                     ""downloads"": {{
                         ""artifact"": {{
@@ -4632,7 +4630,7 @@ public static class ModDownloadLib
                     }}
                 }}"));
 
-            OutputLibraries.Add(JObject.Parse($@"{{
+            OutputLibraries.Add(JsonNode.Parse($@"{{
                     ""name"": ""net.labymod:LabyMod:4"",
                     ""downloads"": {{
                         ""artifact"": {{
@@ -4644,7 +4642,7 @@ public static class ModDownloadLib
                     }}
                 }}"));
             OutputJson["libraries"] = OutputLibraries;
-            OutputJson.Add("labymod_data", JObject.Parse($@"{{
+            OutputJson.Add("labymod_data", JsonNode.Parse($@"{{
                 ""channelType"": ""{LabyModChannel}"",
                 ""commitReference"": ""{LabyModCore["commitReference"]}"",
                 ""version"": ""{LabyModCore["labyModVersion"]}"",

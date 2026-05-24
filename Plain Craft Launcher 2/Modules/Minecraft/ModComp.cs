@@ -6,13 +6,13 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Dapper;
 using Microsoft.Data.Sqlite;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -271,7 +271,7 @@ public static class ModComp
                 _FavoritesList = value;
                 foreach (var item in _FavoritesList)
                     item.Notes = item.Notes.Where(n => !string.IsNullOrWhiteSpace(n.Value)).ToDictionary();
-                var RawList = JArray.FromObject(_FavoritesList);
+                var RawList = JsonSerializer.Serialize(_FavoritesList);
                 States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList);
             }
         }
@@ -497,9 +497,9 @@ public static class ModComp
                 await Task.Run(() =>
                 {
                     var RawProjectsData =
-                        ModDownload.DlModRequest<JArray>($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]");
+                        ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]");
                     foreach (var RawData in (IEnumerable)RawProjectsData)
-                        Res.Add(new CompProject((JObject)RawData));
+                        Res.Add(new CompProject((JsonObject)RawData));
                 });
             }
             catch (Exception ex)
@@ -526,21 +526,21 @@ public static class ModComp
                     // 构建请求 Body，建议使用 string.Join
                     var jsonBody = "{\"modIds\": [" + string.Join(",", ids) + "]}";
 
-                    // DlModRequest 返回 object，先强转 JObject，再获取 "data" 并强转为 JArray
-                    var response = ModDownload.DlModRequest<JObject>(
+                    // DlModRequest 返回 object，先强转 JsonObject，再获取 "data" 并强转为 JsonArray
+                    var response = ModDownload.DlModRequest<JsonObject>(
                         "https://api.curseforge.com/v1/mods",
                         "POST",
                         jsonBody,
                         "application/json"
                     );
 
-                    var rawProjectsData = (JArray)response["data"];
+                    var rawProjectsData = (JsonArray)response["data"];
 
                     // 2. 使用 LINQ 快速转换并填充列表
                     if (rawProjectsData != null)
                     {
                         var projectList = rawProjectsData
-                            .Cast<JObject>()
+                            .Cast<JsonObject>()
                             .Select(data => new CompProject(data))
                             .ToList();
 
@@ -624,13 +624,13 @@ public static class ModComp
                         slug = parts[3];
 
                         // 获取资源信息
-                        var json = ModDownload.DlModRequest<JObject>(
+                        var json = ModDownload.DlModRequest<JsonObject>(
                             $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}");
-                        var dataArray = (JArray)json["data"];
+                        var dataArray = (JsonArray)json["data"];
 
                         if (dataArray.Any())
                         {
-                            var firstData = (JObject)dataArray[0];
+                            var firstData = (JsonObject)dataArray[0];
                             var receivedClassId = firstData["classId"]?.ToString();
 
                             // 映射分类 ID
@@ -646,9 +646,9 @@ public static class ModComp
                                 receivedClassId != targetClassId)
                             {
                                 // 如果分类不匹配，带上 classId 重新搜索
-                                json = ModDownload.DlModRequest<JObject>(
+                                json = ModDownload.DlModRequest<JsonObject>(
                                     $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}");
-                                dataArray = (JArray)json["data"];
+                                dataArray = (JsonArray)json["data"];
                             }
 
                             if (dataArray.Any()) projectId = dataArray[0]["id"]?.ToString();
@@ -661,7 +661,7 @@ public static class ModComp
                         if (parts.Length < 3) return;
 
                         slug = parts[2];
-                        var json = ModDownload.DlModRequest<JObject>($"https://api.modrinth.com/v2/project/{slug}");
+                        var json = ModDownload.DlModRequest<JsonObject>($"https://api.modrinth.com/v2/project/{slug}");
                         projectId = json["id"]?.ToString();
                     }
                     else
@@ -971,7 +971,7 @@ public static class ModComp
         /// <summary>
         ///     从工程 Json 中初始化实例。若出错会抛出异常。
         /// </summary>
-        public CompProject(JObject data)
+        public CompProject(JsonObject data)
         {
             var result = data.ContainsKey("Tags")
                 ? _BuildFromCompJson(data)
@@ -1030,7 +1030,7 @@ public static class ModComp
             public List<int> Drops = [];
         }
 
-        private static CompProjectBuildResult _BuildFromCompJson(JObject data)
+        private static CompProjectBuildResult _BuildFromCompJson(JsonObject data)
         {
             var result = new CompProjectBuildResult
             {
@@ -1042,29 +1042,29 @@ public static class ModComp
                 Description = (string)data["Description"],
                 Website = (string)data["Website"],
                 DownloadCount = (int)data["DownloadCount"],
-                Tags = ((JArray)data["Tags"]).Select(t => t.ToString()).ToList()
+                Tags = ((JsonArray)data["Tags"]).Select(t => t.ToString()).ToList()
             };
 
-            if (data.TryGetValue("CurseForgeFileIds", out var id))
-                result.CurseForgeFileIds = ((JArray)id).Select(t => t.ToObject<int>()).ToList();
+            if (data.TryGetPropertyValue("CurseForgeFileIds", out var id))
+                result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
 
-            if (data.TryGetValue("LastUpdate", out var last))
+            if (data.TryGetPropertyValue("LastUpdate", out var last))
                 result.LastUpdate = (DateTime?)last;
 
-            if (data.TryGetValue("ModLoaders", out var loaders))
-                result.ModLoaders = ((JArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
+            if (data.TryGetPropertyValue("ModLoaders", out var loaders))
+                result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
                     .ToList();
 
-            if (data.TryGetValue("LogoUrl", out var url))
+            if (data.TryGetPropertyValue("LogoUrl", out var url))
                 result.LogoUrl = (string)url;
 
-            if (data.TryGetValue("Drops", out var drops))
-                result.Drops = ((JArray)drops).Select(t => t.ToObject<int>()).ToList();
+            if (data.TryGetPropertyValue("Drops", out var drops))
+                result.Drops = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
 
             return result;
         }
 
-        private static CompProjectBuildResult _BuildFromCurseForge(JObject data)
+        private static CompProjectBuildResult _BuildFromCurseForge(JsonObject data)
         {
             var result = new CompProjectBuildResult
             {
@@ -1080,7 +1080,7 @@ public static class ModComp
                 DownloadCount = (int)data["downloadCount"]
             };
 
-            if (data["logo"] is JObject { Count: > 0 } logo)
+            if (data["logo"] is JsonObject { Count: > 0 } logo)
                 result.LogoUrl = string.IsNullOrEmpty((string)logo["thumbnailUrl"])
                     ? (string)logo["url"]
                     : (string)logo["thumbnailUrl"];
@@ -1094,9 +1094,9 @@ public static class ModComp
             // FileIndexes / VanillaMajorVersions / ModLoaders
             var files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
 
-            foreach (var file in data["latestFiles"] ?? new JArray())
+            foreach (var file in (data["latestFiles"] as JsonArray) ?? [])
             {
-                var newFile = new CompFile((JObject)file, result.Type);
+                var newFile = new CompFile((JsonObject)file, result.Type);
                 if (!newFile.Available)
                     continue;
 
@@ -1110,7 +1110,7 @@ public static class ModComp
             }
 
             files.AddRange(
-                from File in data["latestFilesIndexes"] ?? new JArray()
+                from File in (data["latestFilesIndexes"] as JsonArray) ?? []
                 let GameVersion = File["gameVersion"]?.ToString() ?? ""
                 where ModMinecraft.McInstanceInfo.IsFormatFit(GameVersion)
                 select new KeyValuePair<int, List<string>>((int)File["fileId"], new[] { GameVersion }.ToList())
@@ -1135,8 +1135,8 @@ public static class ModComp
                 .ToList();
 
             // Tags
-            var categories = (data["categories"] ?? new JArray())
-                .Select(t => t["id"]?.Value<int?>())
+            var categories = ((data["categories"] as JsonArray) ?? [])
+                .Select(t => t["id"]?.GetValue<int?>())
                 .Where(t => t.HasValue)
                 .Select(t => t.Value)
                 .Distinct()
@@ -1149,7 +1149,7 @@ public static class ModComp
             return result;
         }
 
-        private static CompProjectBuildResult _BuildFromModrinth(JObject data)
+        private static CompProjectBuildResult _BuildFromModrinth(JsonObject data)
         {
             var projectType = data["project_type"]?.ToString() ?? "";
             var slug = (string)data["slug"];
@@ -1183,7 +1183,7 @@ public static class ModComp
 
             // GameVersions
             // 搜索结果的键为 versions，获取特定工程的键为 game_versions
-            result.Drops = ((data["game_versions"] ?? data["versions"]) as JArray ?? [])
+            result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
                 .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v))
                 .Where(v => v > 0)
                 .Distinct()
@@ -1191,11 +1191,11 @@ public static class ModComp
                 .ToList();
 
             // Tags & ModLoaders
-            foreach (var category in data["loaders"]?.Select(t => t.ToString()) ?? [])
+            foreach (var category in (data["loaders"] as JsonArray)?.Select(t => t.ToString()) ?? [])
                 if (ModrinthLoaderTypes.TryGetValue(category ?? "", out var loader))
                     result.ModLoaders.Add(loader);
 
-            foreach (var category in data["categories"]?.Select(t => t.ToString()) ?? [])
+            foreach (var category in (data["categories"] as JsonArray)?.Select(t => t.ToString()) ?? [])
             {
                 if (string.IsNullOrEmpty(category)) continue;
                 // 加载器
@@ -1482,7 +1482,7 @@ public static class ModComp
 
             try
             {
-                var jsonObject = (JObject)await 
+                var jsonObject = (JsonObject)await 
                     Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
                 if (jsonObject.ContainsKey("translated"))
                 {
@@ -1511,15 +1511,15 @@ public static class ModComp
         /// <summary>
         ///     将当前实例转为可用于保存缓存的 Json。
         /// </summary>
-        public JObject ToJson()
+        public JsonObject ToJson()
         {
-            var Json = new JObject();
+            var Json = new JsonObject();
             Json["DataSource"] = FromCurseForge ? "CurseForge" : "Modrinth";
             Json["Type"] = (int)Type;
             Json["Slug"] = Slug;
             Json["Id"] = Id;
             if (CurseForgeFileIds is not null)
-                Json["CurseForgeFileIds"] = new JArray(CurseForgeFileIds);
+                Json["CurseForgeFileIds"] = new JsonArray(CurseForgeFileIds.Select(i => (JsonNode)i).ToArray());
             Json["RawName"] = RawName;
             Json["Description"] = Description;
             Json["Website"] = Website;
@@ -1527,12 +1527,12 @@ public static class ModComp
                 Json["LastUpdate"] = LastUpdate;
             Json["DownloadCount"] = DownloadCount;
             if (ModLoaders is not null && ModLoaders.Any())
-                Json["ModLoaders"] = new JArray(ModLoaders.Select(m => (int)m));
-            Json["Tags"] = new JArray(Tags);
+                Json["ModLoaders"] = new JsonArray(ModLoaders.Select(m => (JsonNode)(int)m).ToArray());
+            Json["Tags"] = new JsonArray(Tags.Select(s => (JsonNode)s).ToArray());
             if (LogoUrl is not null)
                 Json["LogoUrl"] = LogoUrl;
             if (Drops.Any())
-                Json["Drops"] = new JArray(Drops);
+                Json["Drops"] = new JsonArray(Drops.Select(i => (JsonNode)i).ToArray());
             Json["CacheTime"] = DateTime.Now; // 用于检查缓存时间
             return Json;
         }
@@ -2386,8 +2386,8 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
-                        var json = ModDownload.DlModRequest<JObject>(curseForgeUrl);
-                        var projects = json["data"].Select(j => new CompProject((JObject)j))
+                        var json = ModDownload.DlModRequest<JsonObject>(curseForgeUrl);
+                        var projects = json["data"].AsArray().Select(j => new CompProject((JsonObject)j))
                             .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
                             .ToList();
                         lock (resultsLock)
@@ -2412,8 +2412,8 @@ public static class ModComp
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 Modrinth 获取列表：" + modrinthUrl);
-                        var json = ModDownload.DlModRequest<JObject>(modrinthUrl);
-                        var projects = json["hits"].Select(j => new CompProject((JObject)j)).ToList();
+                        var json = ModDownload.DlModRequest<JsonObject>(modrinthUrl);
+                        var projects = json["hits"].AsArray().Select(j => new CompProject((JsonObject)j)).ToList();
                         lock (resultsLock)
                         {
                             rawResults.AddRange(projects);
@@ -2643,7 +2643,7 @@ public static class ModComp
         /// <summary>
         ///     从文件 Json 中初始化实例。若出错会抛出异常。
         /// </summary>
-        public CompFile(JObject Data, CompType DefaultType)
+        public CompFile(JsonObject Data, CompType DefaultType)
         {
             Type = DefaultType;
             if (Data.ContainsKey("FromCurseForge"))
@@ -2690,8 +2690,8 @@ public static class ModComp
                     #region CurseForge
 
                     // 简单信息
-                    Id = (string)Data["id"];
-                    ProjectId = (string)Data["modId"];
+                    Id = Data["id"].ToString();
+                    ProjectId = Data["modId"].ToString();
                     DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
                     Version = null;
                     ReleaseDate = (DateTime)Data["fileDate"];
@@ -2699,10 +2699,10 @@ public static class ModComp
                     DownloadCount = (int)Data["downloadCount"];
                     FileName = (string)Data["fileName"];
                     Hash =
-                        (string)((JArray)Data["hashes"]).ToList().FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
+                        (string)((JsonArray)Data["hashes"]).ToList().FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
                             "value"];
                     if (Hash is null)
-                        Hash = (string)((JArray)Data["hashes"]).ToList()
+                        Hash = (string)((JsonArray)Data["hashes"]).ToList()
                             .FirstOrDefault(s => s["algo"].ToObject<int>() == 2)?["value"];
                     // DownloadAddress
                     var Url = Data["downloadUrl"].ToString();
@@ -2716,12 +2716,12 @@ public static class ModComp
                     // Dependencies
                     if (Data.ContainsKey("dependencies"))
                     {
-                        RawDependencies = Data["dependencies"]
+                        RawDependencies = Data["dependencies"].AsArray()
                             .Where(d => d["relationType"].ToObject<int>() == 3 &&
                                         d["modId"].ToObject<int>() != 306612 && d["modId"].ToObject<int>() != 634179)
                             .Select(d => d["modId"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
-                        RawOptionalDependencies = Data["dependencies"]
+                        RawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => d["relationType"].ToObject<int>() == 2 &&
                                         d["modId"].ToObject<int>() != 306612 && d["modId"].ToObject<int>() != 634179)
                             .Select(d => d["modId"].ToString()).ToList(); // 种类为可选依赖
@@ -2729,7 +2729,7 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    RawGameVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
+                    RawGameVersions = Data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
                         .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
                     if (GameVersions.Count > 1)
@@ -2774,7 +2774,7 @@ public static class ModComp
                     Status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
                         Data["version_type"].ToString() == "beta" ? CompFileStatus.Beta : CompFileStatus.Alpha;
                     DownloadCount = (int)Data["downloads"];
-                    if (((JArray)Data["files"]).Any()) // 可能为空
+                    if (((JsonArray)Data["files"]).Any()) // 可能为空
                     {
                         var File = Data["files"][0];
                         FileName = (string)File["filename"];
@@ -2784,7 +2784,7 @@ public static class ModComp
 
                     // ModLoaders
                     // 结果可能混杂着 Mod、数据包和服务端插件
-                    var RawLoaders = Data["loaders"].Select(v => v.ToString()).ToList();
+                    var RawLoaders = Data["loaders"].AsArray().Select(v => v.ToString()).ToList();
                     ModLoaders = new List<CompLoaderType>();
                     if (Type == CompType.Mod) // 以尽量宽容的方式检测加载器，以免同时兼容两种的项被删除
                     {
@@ -2851,14 +2851,14 @@ public static class ModComp
                     // Dependencies
                     if (Data.ContainsKey("dependencies"))
                     {
-                        RawDependencies = Data["dependencies"]
+                        RawDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "required" &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
                                         (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……
-                        RawOptionalDependencies = Data["dependencies"]
+                        RawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "optional" &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
                                         (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
@@ -2868,7 +2868,7 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    RawGameVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
+                    RawGameVersions = Data["game_versions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
                         v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
@@ -2949,9 +2949,9 @@ public static class ModComp
         /// <summary>
         ///     将当前实例转为可用于保存缓存的 Json。
         /// </summary>
-        public JObject ToJson()
+        public JsonObject ToJson()
         {
-            var Json = new JObject();
+            var Json = new JsonObject();
             Json.Add("FromCurseForge", FromCurseForge);
             Json.Add("Id", Id);
             if (Version is not null)
@@ -2959,20 +2959,20 @@ public static class ModComp
             Json.Add("DisplayName", DisplayName);
             Json.Add("ReleaseDate", ReleaseDate);
             Json.Add("DownloadCount", DownloadCount);
-            Json.Add("ModLoaders", new JArray(ModLoaders.Select(m => (int)m)));
-            Json.Add("RawGameVersions", new JArray(RawGameVersions));
-            Json.Add("GameVersions", new JArray(GameVersions));
+            Json.Add("ModLoaders", new JsonArray(ModLoaders.Select(m => (JsonNode)(int)m).ToArray()));
+            Json.Add("RawGameVersions", new JsonArray(RawGameVersions.Select(s => (JsonNode)s).ToArray()));
+            Json.Add("GameVersions", new JsonArray(GameVersions.Select(s => (JsonNode)s).ToArray()));
             Json.Add("Status", (int)Status);
             if (FileName is not null)
                 Json.Add("FileName", FileName);
             if (DownloadUrls is not null)
-                Json.Add("DownloadUrls", new JArray(DownloadUrls));
+                Json.Add("DownloadUrls", new JsonArray(DownloadUrls.Select(s => (JsonNode)s).ToArray()));
             if (Hash is not null)
                 Json.Add("Hash", Hash);
-            Json.Add("RawDependencies", new JArray(RawDependencies));
-            Json.Add("RawOptionalDependencies", new JArray(RawOptionalDependencies));
-            Json.Add("Dependencies", new JArray(Dependencies));
-            Json.Add("OptionalDependencies", new JArray(OptionalDependencies));
+            Json.Add("RawDependencies", new JsonArray(RawDependencies.Select(s => (JsonNode)s).ToArray()));
+            Json.Add("RawOptionalDependencies", new JsonArray(RawOptionalDependencies.Select(s => (JsonNode)s).ToArray()));
+            Json.Add("Dependencies", new JsonArray(Dependencies.Select(s => (JsonNode)s).ToArray()));
+            Json.Add("OptionalDependencies", new JsonArray(OptionalDependencies.Select(s => (JsonNode)s).ToArray()));
             return Json;
         }
 
@@ -3073,12 +3073,12 @@ public static class ModComp
                 : $"https://api.modrinth.com/v2/project/{ProjectId}";
             if (FromCurseForge)
             {
-                var json = ModDownload.DlModRequest<JObject>(url);
-                TargetProject = new CompProject((JObject)json["data"]);
+                var json = ModDownload.DlModRequest<JsonObject>(url);
+                TargetProject = new CompProject((JsonObject)json["data"]);
             }
             else
             {
-                TargetProject = new CompProject(ModDownload.DlModRequest<JObject>(url));
+                TargetProject = new CompProject(ModDownload.DlModRequest<JsonObject>(url));
             }
             // 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         }
@@ -3087,23 +3087,23 @@ public static class ModComp
         if (!CompFilesCache.ContainsKey(ProjectId))
         {
             ModBase.Log("[Comp] 开始获取文件列表：" + ProjectId);
-            JArray ResultJsonArray;
+            JsonArray ResultJsonArray;
             if (FromCurseForge)
             {
                 // 注意：若 pageSize=10000 失效，需考虑分页逻辑
-                var response = ModDownload.DlModRequest<JObject>(
+                var response = ModDownload.DlModRequest<JsonObject>(
                     $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000"
                 );
 
-                ResultJsonArray = (JArray)response["data"];
+                ResultJsonArray = (JsonArray)response["data"];
             }
             else
             {
                 ResultJsonArray =
-                    ModDownload.DlModRequest<JArray>($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false");
+                    ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false");
             }
 
-            CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JObject)a, TargetProject.Type))
+            CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JsonObject)a, TargetProject.Type))
                 .Where(a => a.Available).GroupBy(a => a.Id).Select(g => g.First())
                 .ToList(); // 使用 GroupBy 实现更高效的 Distinct
         }
@@ -3119,11 +3119,11 @@ public static class ModComp
         if (UndoneDeps.Any())
         {
             ModBase.Log($"[Comp] {ProjectId} 需要补全信息的依赖项共 {UndoneDeps.Count} 个");
-            JArray Projects;
+            JsonArray Projects;
             if (FromCurseForge)
             {
-                // 1. 获取响应并转为 JObject
-                var response = ModDownload.DlModRequest<JObject>(
+                // 1. 获取响应并转为 JsonObject
+                var response = ModDownload.DlModRequest<JsonObject>(
                     "https://api.curseforge.com/v1/mods",
                     "POST",
                     "{\"modIds\": [" + string.Join(",", UndoneDeps) + "]}",
@@ -3131,16 +3131,16 @@ public static class ModComp
                 );
 
                 // 2. 提取 data 数组
-                Projects = (JArray)response["data"];
+                Projects = (JsonArray)response["data"];
             }
             else
             {
-                Projects = ModDownload.DlModRequest<JArray>(
+                Projects = ModDownload.DlModRequest<JsonArray>(
                     $"https://api.modrinth.com/v2/projects?ids=[\"{UndoneDeps.Join("\",\"")}\"]");
             }
 
             foreach (var Project in Projects)
-                new CompProject((JObject)Project);
+                new CompProject((JsonObject)Project);
         }
 
         // 5. 建立文件与依赖工程的关联映射

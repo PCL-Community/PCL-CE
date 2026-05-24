@@ -832,7 +832,7 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            // 更改动画
+            var customHeight = 20d; // 修改左侧神秘动画条的高度
 
             if (IsLoaded && ModAnimation.AniControlEnabled == 0 && anime) // 防止默认属性变更触发动画
             {
@@ -840,16 +840,26 @@ public partial class MyListItem : IMyRadio
                 if (Checked)
                 {
                     // 由无变有
-                    if (!(RectCheck == null))
+                    if (RectCheck is not null)
                     {
-                        var Delta = 20;
-                        Anim.Add(ModAnimation.AaHeight(RectCheck, Delta * 0.4d, 200,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-                        Anim.Add(ModAnimation.AaHeight(RectCheck, Delta * 0.6d, 300,
-                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
-                        Anim.Add(ModAnimation.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
+                        // 统一静态属性：固定高度、居中对齐、无额外边距
+                        RectCheck.Height = customHeight;
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                        RectCheck.Opacity = 1d;
+
+                        // 初始化缩放中心为正中心
+                        var scale = new ScaleTransform(1d, 0d);
+                        RectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                        RectCheck.RenderTransform = scale;
+
+                        // 动画：让 ScaleY 从 0 弹性放大到 1
+                        Anim.Add(ModAnimation.AaDouble(
+                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
+                            1d - scale.ScaleY,
+                            300,
+                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)
+                        ));
                     }
 
                     Anim.Add(ModAnimation.AaColor(this, ForegroundProperty,
@@ -858,13 +868,24 @@ public partial class MyListItem : IMyRadio
                 else
                 {
                     // 由有变无
-                    if (!(RectCheck == null))
+                    if (RectCheck is not null)
                     {
-                        // Anim.Add(AaWidth(RectCheck, -RectCheck.Width, 120,, New AniEaseInFluent))
-                        Anim.Add(ModAnimation.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
+                        if (!(RectCheck.RenderTransform is ScaleTransform))
+                        {
+                            RectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                            RectCheck.RenderTransform = new ScaleTransform(1d, 1d);
+                        }
+
+                        var scale = (ScaleTransform)RectCheck.RenderTransform;
+
+                        // 动画：让 ScaleY 从当前值缩减到 0
+                        Anim.Add(ModAnimation.AaDouble(
+                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
+                            -scale.ScaleY,
+                            120,
+                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
+                        ));
                         Anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
                     }
 
                     Anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
@@ -878,31 +899,32 @@ public partial class MyListItem : IMyRadio
                 ModAnimation.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
-                    if (!(RectCheck == null))
+                    if (RectCheck != null)
                     {
-                        RectCheck.Height = double.NaN;
-                        RectCheck.Margin = new Thickness(-1, 6d, 0d, 6d);
+                        RectCheck.Height = customHeight; // 应用自定义固定高度
+                        RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
                         RectCheck.Opacity = 1d;
-                        RectCheck.VerticalAlignment = VerticalAlignment.Stretch;
+                        RectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
+                        RectCheck.RenderTransform = null; // 清除缩放
                     }
 
                     SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
                 }
                 else
                 {
-                    if (!(RectCheck == null))
+                    if (RectCheck != null)
                     {
                         RectCheck.Height = 0d;
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
                         RectCheck.Opacity = 0d;
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
+                        RectCheck.RenderTransform = null;
                     }
 
                     SetResourceReference(ForegroundProperty, "ColorBrush1");
                 }
             }
         }
-
         catch (Exception ex)
         {
             ModBase.Log(ex, "设置 Checked 失败");

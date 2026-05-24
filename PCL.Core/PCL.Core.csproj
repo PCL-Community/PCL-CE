@@ -57,8 +57,6 @@
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->
         <PackageReference Include="System.Text.Json" Version="10.0.3" />
-        <!-- TODO: 暂时添加 Newtonsoft.Json，等主项目全部迁移至 System.Text.Json 后移除并合并 PR -->
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />
         <PackageReference Include="LiteDB" Version="5.0.21" />

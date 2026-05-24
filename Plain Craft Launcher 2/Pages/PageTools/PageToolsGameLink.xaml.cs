@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link;
 using PCL.Core.Link.EasyTier;
@@ -362,7 +361,7 @@ public partial class PageToolsGameLink
             try
             {
                 var serverNumber = 0;
-                JObject jObj = null;
+                JsonObject jObj = null;
 
                 #region 多服务器轮询获取公告
 
@@ -382,7 +381,7 @@ public partial class PageToolsGameLink
                         if (cacheVer == States.Link.AnnounceCacheVer)
                         {
                             LogWrapper.Info("[Link] Using cached announcement data");
-                            jObj = (JObject)ModBase.GetJson(States.Link.AnnounceCache);
+                            jObj = (JsonObject)ModBase.GetJson(States.Link.AnnounceCache);
                         }
                         else
                         {
@@ -395,7 +394,7 @@ public partial class PageToolsGameLink
                                     ContentType = "application/json",
                                     Timeout = 7000
                                 });
-                            jObj = (JObject)ModBase.GetJson(received);
+                            jObj = (JsonObject)ModBase.GetJson(received);
 
                             // 更新缓存
                             States.Link.AnnounceCache = received;
@@ -438,8 +437,8 @@ public partial class PageToolsGameLink
 
                 #region 解析公告列表 (Notices)
 
-                var notices = (JArray)jObj["notices"];
-                foreach (JObject notice in notices)
+                var notices = (JsonArray)jObj["notices"];
+                foreach (JsonObject notice in notices)
                 {
                     var content = notice["content"]?.ToString();
                     if (string.IsNullOrWhiteSpace(content)) continue;
@@ -467,7 +466,7 @@ public partial class PageToolsGameLink
 
                 #region 解析中继服务器 (Relays)
 
-                var relays = (JArray)jObj["relays"];
+                var relays = (JsonArray)jObj["relays"];
                 ETRelay.RelayList = new List<ETRelay>();
                 foreach (var relay in relays)
                     ETRelay.RelayList.Add(new ETRelay

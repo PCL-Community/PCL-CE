@@ -1,6 +1,5 @@
 using System;
-// using System.Text.Json.Nodes;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -13,9 +12,6 @@ public enum McVersionCategory
     AprilFools
 }
 
-/// <summary>
-/// TODO: 暂时使用 Newtonesoft.Json。在主项目迁移到 System.Text.Json 后方可删除依赖并合并。
-/// </summary>
 public static class McVersionClassifier
 {
     public static string GetCategoryDisplayName(McVersionCategory cat)
@@ -30,12 +26,10 @@ public static class McVersionClassifier
         };
     }
 
-    public static McVersionCategory ClassifyVersion(/* JsonObject */JObject version)
+    public static McVersionCategory ClassifyVersion(JsonObject version)
     {
-        var type = version.Value<string>("type") ?? "";
-        var idLower = (version.Value<string>("id") ?? "").ToLowerInvariant();
-        // var type = _GetString(version, "type");
-        // var idLower = _GetString(version, "id").ToLowerInvariant();
+        var type = _GetString(version, "type");
+        var idLower = _GetString(version, "id").ToLowerInvariant();
 
         return type switch
         {
@@ -46,13 +40,12 @@ public static class McVersionClassifier
         };
     }
 
-    public static DateTime GetReleaseTime(/* JsonObject */JObject version)
+    public static DateTime GetReleaseTime(JsonObject version)
     {
-        // return version["releaseTime"]?.GetValue<DateTime>() ?? DateTime.MinValue;
-        return version["releaseTime"]?.Value<DateTime>() ?? DateTime.MinValue;
+        return version["releaseTime"]?.GetValue<DateTime>() ?? DateTime.MinValue;
     }
 
-    private static McVersionCategory _ClassifySnapshotOrPending(/* JsonObject */JObject version, string idLower)
+    private static McVersionCategory _ClassifySnapshotOrPending(JsonObject version, string idLower)
     {
         var category = McVersionCategory.Snapshot;
 
@@ -74,7 +67,7 @@ public static class McVersionClassifier
             : category;
     }
 
-    private static bool _TryMarkAprilFoolsVersion(/* JsonObject */JObject version, string idLower)
+    private static bool _TryMarkAprilFoolsVersion(JsonObject version, string idLower)
     {
         switch (idLower)
         {
@@ -114,7 +107,7 @@ public static class McVersionClassifier
         }
     }
 
-    private static void _MarkAsAprilFools(/* JsonObject */JObject version, bool addLore)
+    private static void _MarkAsAprilFools(JsonObject version, bool addLore)
     {
         version["type"] = "special";
 
@@ -166,8 +159,8 @@ public static class McVersionClassifier
         };
     }
 
-    private static string _GetString(/* JsonObject */JObject obj, string key)
+    private static string _GetString(JsonObject obj, string key)
     {
-        return obj[key]?.Value<string>() ?? "";
+        return obj[key]?.GetValue<string>() ?? "";
     }
 }

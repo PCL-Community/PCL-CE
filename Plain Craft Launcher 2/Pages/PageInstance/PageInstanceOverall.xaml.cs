@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using FluentValidation;
 using Microsoft.VisualBasic.FileIO;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
@@ -323,10 +322,10 @@ public partial class PageInstanceOverall
             var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName);
             var IsCaseChangedOnly = (NewName.ToLower() ?? "") == (OldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
-            JObject JsonObject;
+            JsonObject JsonObject;
             try
             {
-                JsonObject = (JObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
+                JsonObject = (JsonObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
                                                                        PageInstanceLeft.Instance.Name + ".json"));
             }
             catch (Exception ex)

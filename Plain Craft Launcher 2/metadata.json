@@ -20,12 +20,6 @@
       "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
     },
     {
-      "name": "Newtonsoft.Json",
-      "info": "Copyright © 2007 James Newton-King\nLicensed under the MIT License.",
-      "website": "https://www.newtonsoft.com/json",
-      "license": "https://opensource.org/licenses/MIT"
-    },
-    {
       "name": "NAudio",
       "info": "Copyright © 2015 Mark Heath (mark.heath@gmail.com)\nLicensed under the MIT License.",
       "website": "https://github.com/naudio/NAudio",

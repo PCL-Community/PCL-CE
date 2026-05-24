@@ -8,7 +8,6 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using FluentValidation;
 using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
@@ -343,7 +342,7 @@ public partial class PageDownloadInstall
     public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs e)
     {
         _vanillaName = sender.Title;
-        _vanillaData = (JObject)(dynamic)sender.Tag;
+        _vanillaData = (JsonObject)(dynamic)sender.Tag;
         _vanillaIcon = sender.Logo;
         EnterSelectPage();
     }
@@ -354,7 +353,7 @@ public partial class PageDownloadInstall
 
     // Minecraft
     private string? _vanillaName;
-    private JObject? _vanillaData;
+    private JsonObject? _vanillaData;
     private string? _vanillaIcon;
     private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
 
@@ -995,7 +994,7 @@ public partial class PageDownloadInstall
 
         try
         {
-            if (ModDownload.DlClientListLoader.Output.Value["versions"] is not JArray versions)
+            if (ModDownload.DlClientListLoader.Output.Value["versions"] is not JsonArray versions)
                 return;
 
             var categoryOrder = new[]
@@ -1008,10 +1007,10 @@ public partial class PageDownloadInstall
 
             var dict = categoryOrder.ToDictionary(
                 category => category,
-                _ => new List<JObject>()
+                _ => new List<JsonObject>()
             );
 
-            foreach (JObject version in versions)
+            foreach (JsonObject version in versions)
             {
                 var category = McVersionClassifier.ClassifyVersion(version);
                 dict[category].Add(version);
@@ -1031,9 +1030,9 @@ public partial class PageDownloadInstall
 
             ModBase.Log("[Download] 自动选择 MC 版本：" + McVersionWaitingForSelect);
 
-            foreach (JObject version1 in versions)
+            foreach (JsonObject version1 in versions)
             {
-                if ((version1.Value<string>("id") ?? "") != McVersionWaitingForSelect)
+                if (((string)version1["id"] ?? "") != McVersionWaitingForSelect)
                     continue;
 
                 var item = ModDownloadLib.McDownloadListItem(version1, (_, _) => { }, false);
@@ -1047,16 +1046,16 @@ public partial class PageDownloadInstall
         }
     }
 
-    private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JObject>> dict)
+    private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JsonObject>> dict)
     {
         var latestRelease = dict[McVersionCategory.Release].FirstOrDefault();
         var latestSnapshot = dict[McVersionCategory.Snapshot].FirstOrDefault();
 
-        var latestVersions = new List<JObject>();
+        var latestVersions = new List<JsonObject>();
 
         if (latestRelease is not null)
         {
-            var release = (JObject)latestRelease.DeepClone();
+            var release = (JsonObject)latestRelease.DeepClone();
             release["lore"] = Lang.Text(
                 "Download.Version.Latest.Release",
                 Lang.Date(McVersionClassifier.GetReleaseTime(release), "g")
@@ -1065,9 +1064,10 @@ public partial class PageDownloadInstall
         }
 
         if (latestSnapshot is not null &&
-            (latestRelease is null || McVersionClassifier.GetReleaseTime(latestRelease) < McVersionClassifier.GetReleaseTime(latestSnapshot)))
+            (latestRelease is null || McVersionClassifier.GetReleaseTime(latestRelease) <
+                McVersionClassifier.GetReleaseTime(latestSnapshot)))
         {
-            var snapshot = (JObject)latestSnapshot.DeepClone();
+            var snapshot = (JsonObject)latestSnapshot.DeepClone();
             snapshot["lore"] = Lang.Text(
                 "Download.Version.Latest.Development",
                 Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g")
@@ -1092,7 +1092,7 @@ public partial class PageDownloadInstall
     }
 
     private void _AddCategoryCards(
-        Dictionary<McVersionCategory, List<JObject>> dict,
+        Dictionary<McVersionCategory, List<JsonObject>> dict,
         IEnumerable<McVersionCategory> categoryOrder)
     {
         foreach (var category in categoryOrder)
@@ -1120,7 +1120,7 @@ public partial class PageDownloadInstall
         }
     }
 
-    private static StackPanel _CreateVersionStack(IEnumerable<JObject> versions)
+    private static StackPanel _CreateVersionStack(IEnumerable<JsonObject> versions)
     {
         return new StackPanel
         {
@@ -1136,7 +1136,7 @@ public partial class PageDownloadInstall
         foreach (var item in (IEnumerable)stack.Tag)
             stack.Children.Add(
                 ModDownloadLib.McDownloadListItem(
-                    (JObject)item,
+                    (JsonObject)item,
                     (sender, e) => ModMain.FrmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
                     false
                 )
@@ -1648,7 +1648,7 @@ public partial class PageDownloadInstall
         if (GetLoaderError(LoadFabric) is not null)
             return GetLoaderError(LoadFabric);
         // 检查版本
-        foreach (JObject version in ModDownload.DlFabricListLoader.Output.Value["game"])
+        foreach (JsonObject version in ModDownload.DlFabricListLoader.Output.Value["game"].AsArray())
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -1677,7 +1677,7 @@ public partial class PageDownloadInstall
             if (ModDownload.DlFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
+            var versions = (JsonArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
             if (!versions.Any())
                 return;
             // 可视化
@@ -1688,7 +1688,7 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)stack.Tag)
                     stack.Children.Add(
-                        ModDownloadLib.FabricDownloadListItem((JObject)item,
+                        ModDownloadLib.FabricDownloadListItem((JsonObject)item,
                             (a, b) => this.Fabric_Selected((dynamic)a, b)));
             };
         }
@@ -1859,7 +1859,7 @@ public partial class PageDownloadInstall
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
             return Lang.Text("Download.Install.State.GetVersionListFailed",
                 ((dynamic)LoadLegacyFabric.State).Error.Message);
-        foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
+        foreach (JsonObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
                 if (SelectedLiteLoader is not null)
@@ -1889,7 +1889,7 @@ public partial class PageDownloadInstall
             if (ModDownload.DlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
+            var Versions = (JsonArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -1899,7 +1899,7 @@ public partial class PageDownloadInstall
             CardLegacyFabric.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)item,
+                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
                         (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             };
         }
@@ -2074,7 +2074,7 @@ public partial class PageDownloadInstall
         if (GetLoaderError(LoadQuilt) is not null)
             return GetLoaderError(LoadQuilt);
         // 检查版本
-        foreach (JObject version in ModDownload.DlQuiltListLoader.Output.Value["game"])
+        foreach (JsonObject version in ModDownload.DlQuiltListLoader.Output.Value["game"].AsArray())
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -2103,7 +2103,7 @@ public partial class PageDownloadInstall
             if (ModDownload.DlQuiltListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
+            var Versions = (JsonArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -2114,7 +2114,7 @@ public partial class PageDownloadInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JObject)item,
+                        ModDownloadLib.QuiltDownloadListItem((JsonObject)item,
                             (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
         }
@@ -2429,10 +2429,10 @@ public partial class PageDownloadInstall
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
         if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "LabyMod"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", SelectedLoaderName);
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"])
+        foreach (JsonObject Version in ModDownload.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"])
+        foreach (JsonObject Version in ModDownload.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
         return Lang.Text("Download.Install.State.NoVersion");
@@ -2459,24 +2459,24 @@ public partial class PageDownloadInstall
             if (Versions is null || Versions["production"] is null || Versions["snapshot"] is null)
                 return;
             // 可视化
-            var ProcessedVersions = new JArray();
-            foreach (JObject Production in Versions["production"]["minecraftVersions"])
+            var ProcessedVersions = new JsonArray();
+            foreach (JsonObject Production in Versions["production"]["minecraftVersions"].AsArray())
                 if ((Production["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
-                    var ProductionVersion = new JObject();
-                    ProductionVersion.Add("version", Versions["production"]["labyModVersion"]);
+                    var ProductionVersion = new JsonObject();
+                    ProductionVersion.Add("version", Versions["production"]["labyModVersion"].ToString());
                     ProductionVersion.Add("channel", "production");
-                    ProductionVersion.Add("commitReference", Versions["production"]["commitReference"]);
+                    ProductionVersion.Add("commitReference", Versions["production"]["commitReference"].ToString());
                     ProcessedVersions.Add(ProductionVersion);
                 }
 
-            foreach (JObject Snapshot in Versions["snapshot"]["minecraftVersions"])
+            foreach (JsonObject Snapshot in Versions["snapshot"]["minecraftVersions"].AsArray())
                 if ((Snapshot["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
-                    var SnapshotVersion = new JObject();
-                    SnapshotVersion.Add("version", Versions["production"]["labyModVersion"]);
+                    var SnapshotVersion = new JsonObject();
+                    SnapshotVersion.Add("version", Versions["production"]["labyModVersion"].ToString());
                     SnapshotVersion.Add("channel", "snapshot");
-                    SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"]);
+                    SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"].ToString());
                     ProcessedVersions.Add(SnapshotVersion);
                 }
 
@@ -2486,7 +2486,7 @@ public partial class PageDownloadInstall
             CardLabyMod.SwapControl = PanLabyMod;
             CardLabyMod.InstallMethod = Stack =>
             {
-                foreach (JObject item in (IEnumerable)Stack.Tag)
+                foreach (JsonObject item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
                         ModDownloadLib.LabyModDownloadListItem(item, (a, b) => this.LabyMod_Selected((dynamic)a, b)));
             };

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Newtonsoft.Json.Linq;
 using PCL.Network;
 using PCL.Core.App.Localization;
 
@@ -43,11 +42,11 @@ public partial class PageDownloadClient
 
             var Dict = categoryOrder.ToDictionary(
                 category => category,
-                _ => new List<JObject>()
+                _ => new List<JsonObject>()
             );
 
-            var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
-            foreach (JObject Version in Versions)
+            var Versions = (JsonArray)ModDownload.DlClientListLoader.Output.Value["versions"];
+            foreach (JsonObject Version in Versions)
             {
                 var cat = McVersionClassifier.ClassifyVersion(Version);
                 Dict[cat].Add(Version);
@@ -61,13 +60,13 @@ public partial class PageDownloadClient
             PanMain.Children.Clear();
 
             var CardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 0d, 0d, 15d) };
-            var TopestVersions = new List<JObject>();
-            var Release = (JObject)Dict[McVersionCategory.Release][0].DeepClone();
+            var TopestVersions = new List<JsonObject>();
+            var Release = (JsonObject)Dict[McVersionCategory.Release][0].DeepClone();
             Release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(McVersionClassifier.GetReleaseTime(Release), "g"));
             TopestVersions.Add(Release);
             if (McVersionClassifier.GetReleaseTime(Dict[McVersionCategory.Release][0]) < McVersionClassifier.GetReleaseTime(Dict[McVersionCategory.Snapshot][0]))
             {
-                var Snapshot = (JObject)Dict[McVersionCategory.Snapshot][0].DeepClone();
+                var Snapshot = (JsonObject)Dict[McVersionCategory.Snapshot][0].DeepClone();
                 Snapshot["lore"] = Lang.Text("Download.Version.Latest.Development",
                                    Lang.Date(McVersionClassifier.GetReleaseTime(Snapshot), "g"));
                 TopestVersions.Add(Snapshot);
@@ -82,7 +81,7 @@ public partial class PageDownloadClient
             void PutMethod(StackPanel Stack)
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JObject)item,
+                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                         ModDownloadLib.McDownloadMenuSave, true));
             }
 

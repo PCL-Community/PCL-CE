@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
@@ -241,7 +240,7 @@ public static class ModJava
             var UserSetup = Config.Launch.SelectedJava;
             if (UserSetup.StartsWith("{")) // 旧版本 Json 格式
             {
-                var js = JToken.Parse(UserSetup);
+                var js = JsonNode.Parse(UserSetup);
                 UserSetup = $"{js["Path"]}java.exe";
                 Config.Launch.SelectedJava = UserSetup;
             }
@@ -371,45 +370,49 @@ public static class ModJava
                     "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
                 }), IsJson: true);
         // 查找要下载的目标 Java
-        JProperty TargetEntry = null;
+        string? targetName = null;
+        JsonNode? targetValue = null;
         var Components =
-            (JObject)((JObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(ModBase.Is32BitSystem ? "86" : "64")}"];
+            (JsonObject)((JsonObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(ModBase.Is32BitSystem ? "86" : "64")}"];
         if (Components.ContainsKey(Loader.Input)) // 精确匹配
         {
-            TargetEntry = Components.Property(Loader.Input);
+            targetName = Loader.Input;
+            targetValue = Components[Loader.Input];
         }
         else // 模糊匹配
         {
-            TargetEntry = Components.Properties().FirstOrDefault(c =>
-                c.Value?.ToArray().FirstOrDefault()?["version"]["name"].ToString().StartsWithF(Loader.Input) ?? false);
-            if (TargetEntry is null)
+            var match = Components.FirstOrDefault(c =>
+                c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(Loader.Input) ?? false);
+            targetName = match.Key;
+            targetValue = match.Value;
+            if (targetName is null)
                 throw new Exception($"未能找到所需的 Java {Loader.Input}");
         }
 
-        var TargetComponent = TargetEntry.Value.ToArray().FirstOrDefault();
+        var TargetComponent = targetValue?.AsArray().FirstOrDefault();
         if (TargetComponent is null)
             throw new Exception($"Mojang 未提供所需的 Java {Loader.Input}");
         // 获取文件列表
         var Address = (string)TargetComponent["manifest"]["url"];
-        ModLaunch.McLaunchLog($"准备下载 Java {TargetComponent["version"]["name"]}（{TargetEntry.Name}）：{Address}");
-        var ListFileStr = (JObject)Requester.FetchJson(
+        ModLaunch.McLaunchLog($"准备下载 Java {TargetComponent["version"]["name"]}（{targetName}）：{Address}");
+        var ListFileStr = (JsonObject)Requester.FetchJson(
             ModDownload.DlSourceOrder(new[] { Address },
                 new[] { Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
         LastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            ".minecraft", "runtime", TargetEntry.Name);
-        var Results = new List<DownloadFile>(ListFileStr["files"].Count());
-        foreach (JProperty File in ListFileStr["files"])
+            ".minecraft", "runtime", targetName);
+        var Results = new List<DownloadFile>(ListFileStr["files"].AsObject().Count);
+        foreach (var File in ListFileStr["files"].AsObject())
         {
-            if (((JObject)File.Value)["downloads"]?["raw"] is null)
+            if (File.Value?.AsObject()?["downloads"]?["raw"] is null)
                 continue;
 
-            var Info = (JObject)((JObject)File.Value)["downloads"]["raw"];
+            var Info = File.Value["downloads"]["raw"].AsObject();
             var checkHash = Info["sha1"];
             if (IgnoreHash.Contains((string)checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
             var Checker = new ModBase.FileChecker(ActualSize: (long)Info["size"], Hash: (string)Info["sha1"]);
-            var filePath = Path.GetFullPath(Path.Combine(LastJavaBaseDir, File.Name));
+            var filePath = Path.GetFullPath(Path.Combine(LastJavaBaseDir, File.Key));
             if (!Files.IsPathWithinDirectory(filePath, LastJavaBaseDir))
                 throw new Exception($"{filePath} 不在 {LastJavaBaseDir} 中");
 
