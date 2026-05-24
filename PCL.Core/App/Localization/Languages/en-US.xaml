@@ -419,8 +419,9 @@
     <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
-    <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">incompatible with Forge</sys:String>
-    <sys:String x:Key="Download.Version.Optifine.CompatibleForge">compatible with Forge {0}</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Type">Type: {0}</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">Incompatible with Forge</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.CompatibleForge">Compatible with Forge {0}</sys:String>
     <sys:String x:Key="Download.Version.Fresh.Latest">Latest</sys:String>
 
     <!-- Download.Install Warning -->

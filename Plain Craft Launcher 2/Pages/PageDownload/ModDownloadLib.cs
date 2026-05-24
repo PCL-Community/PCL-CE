@@ -1145,7 +1145,21 @@ public static class ModDownloadLib
     public static MyListItem OptiFineDownloadListItem(ModDownload.DlOptiFineListEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
-        // 建立控件
+        var infoParts = new List<string>
+        {
+            Entry.IsPreview
+                ? Lang.Text("Download.Version.Type.Preview")
+                : Lang.Text("Download.Version.Type.Release")
+        };
+
+        if (!string.IsNullOrEmpty(Entry.ReleaseTime))
+            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime));
+
+        if (Entry.RequiredForgeVersion is null)
+            infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
+        else if (!string.IsNullOrEmpty(Entry.RequiredForgeVersion))
+            infoParts.Add(Lang.Text("Download.Version.Optifine.CompatibleForge", Entry.RequiredForgeVersion));
+
         var NewItem = new MyListItem
         {
             Title = Entry.DisplayName,
@@ -1153,19 +1167,15 @@ public static class ModDownloadLib
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = (Entry.IsPreview ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Release")) +
-                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime)) +
-                   (Entry.RequiredForgeVersion is null ? Lang.Text("Download.Version.Optifine.IncompatibleForge") :
-                       string.IsNullOrEmpty(Entry.RequiredForgeVersion) ? "" :
-                       Lang.Text("Download.Version.Optifine.CompatibleForge", Entry.RequiredForgeVersion)),
+            Info = string.Join("  |  ", infoParts),
             Logo = ModBase.PathImage + "Blocks/GrassPath.png"
         };
+
         NewItem.Click += OnClick;
         // 建立菜单
-        if (IsSaveOnly)
-            NewItem.ContentHandler = OptiFineSaveContMenuBuild;
-        else
-            NewItem.ContentHandler = OptiFineContMenuBuild;
+        NewItem.ContentHandler = IsSaveOnly
+            ? OptiFineSaveContMenuBuild
+            : OptiFineContMenuBuild;
         // 结束
         return NewItem;
     }
@@ -1176,7 +1186,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(BtnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnInfo, 30d);
         ToolTipService.SetHorizontalOffset(BtnInfo, 2d);
-        BtnInfo.Click += static (sender, e) => OptiFineSaveContMenuBuild(sender, e);
+        BtnInfo.Click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
         ((dynamic)sender).Buttons = new[] { BtnInfo };
     }
 
@@ -1449,6 +1459,16 @@ public static class ModDownloadLib
     public static MyListItem LiteLoaderDownloadListItem(ModDownload.DlLiteLoaderListEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
+        var infoParts = new List<string>
+        {
+            Entry.IsPreview
+                ? Lang.Text("Download.Version.Type.Preview")
+                : Lang.Text("Download.Version.Type.Stable")
+        };
+
+        if (!string.IsNullOrEmpty(Entry.ReleaseTime))
+            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime));
+
         // 建立控件
         var NewItem = new MyListItem
         {
@@ -1457,16 +1477,15 @@ public static class ModDownloadLib
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = (Entry.IsPreview ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable")) +
-                   (string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime)),
+            Info = string.Join("  |  ", infoParts),
             Logo = ModBase.PathImage + "Blocks/Egg.png"
         };
+
         NewItem.Click += OnClick;
         // 建立菜单
-        if (IsSaveOnly)
-            NewItem.ContentHandler = LiteLoaderSaveContMenuBuild;
-        else
-            NewItem.ContentHandler = LiteLoaderContMenuBuild;
+        NewItem.ContentHandler = IsSaveOnly
+            ? LiteLoaderSaveContMenuBuild
+            : LiteLoaderContMenuBuild;
         // 结束
         return NewItem;
     }
@@ -2348,14 +2367,14 @@ public static class ModDownloadLib
         if (RecommendedVersion is not null)
         {
             var Recommended = ForgeDownloadListItem(RecommendedVersion, OnClick, IsSaveOnly);
-            Recommended.Info = Lang.Text("Download.Version.Type.Recommended") + (string.IsNullOrEmpty(Recommended.Info) ? "" : "，" + Recommended.Info);
+            Recommended.Info = Lang.Text("Download.Version.Type.Recommended") + (string.IsNullOrEmpty(Recommended.Info) ? "" : "  |  " + Recommended.Info);
             Stack.Children.Add(Recommended);
         }
 
         if (FreshVersion is not null)
         {
             var Fresh = ForgeDownloadListItem(FreshVersion, OnClick, IsSaveOnly);
-            Fresh.Info = Lang.Text("Download.Version.Latest.Title") + (string.IsNullOrEmpty(Fresh.Info) ? "" : "，" + Fresh.Info);
+            Fresh.Info = Lang.Text("Download.Version.Latest.Title") + (string.IsNullOrEmpty(Fresh.Info) ? "" : "  |  " + Fresh.Info);
             Stack.Children.Add(Fresh);
         }
 
@@ -2370,6 +2389,14 @@ public static class ModDownloadLib
     public static MyListItem ForgeDownloadListItem(ModDownload.DlForgeVersionEntry Entry,
         MyListItem.ClickEventHandler OnClick, bool IsSaveOnly)
     {
+        var infoParts = new List<string>();
+
+        if (!string.IsNullOrEmpty(Entry.ReleaseTime))
+            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime));
+
+        if (ModBase.ModeDebug)
+            infoParts.Add(Lang.Text("Download.Version.Forge.Type", Entry.Category));
+
         // 建立控件
         var NewItem = new MyListItem
         {
@@ -2378,13 +2405,10 @@ public static class ModDownloadLib
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = Entry,
-            Info = new[]
-            {
-                string.IsNullOrEmpty(Entry.ReleaseTime) ? "" : Lang.Text("Download.Version.ReleaseDate", Entry.ReleaseTime),
-                ModBase.ModeDebug ? "种类：" + Entry.Category : ""
-            }.Where(d => !string.IsNullOrEmpty(d)).Join("，"),
+            Info = string.Join("  |  ", infoParts),
             Logo = ModBase.PathImage + "Blocks/Anvil.png"
         };
+
         NewItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
@@ -2555,7 +2579,7 @@ public static class ModDownloadLib
             var Fresh = NeoForgeDownloadListItem(FreshStableVersion, OnClick, IsSaveOnly);
             Fresh.Info = string.IsNullOrEmpty(Fresh.Info)
                 ? Lang.Text("Download.Version.Fresh.Stable")
-                : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
+                : Lang.Text("Download.Version.Fresh.Latest") + "  |  " + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
@@ -2564,7 +2588,7 @@ public static class ModDownloadLib
             var Fresh = NeoForgeDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
             Fresh.Info = string.IsNullOrEmpty(Fresh.Info)
                 ? Lang.Text("Download.Version.Fresh.Development")
-                : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
+                : Lang.Text("Download.Version.Fresh.Latest") + "  |  " + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 
@@ -2666,7 +2690,7 @@ public static class ModDownloadLib
         if (FreshBetaVersion is not null)
         {
             var Fresh = CleanroomDownloadListItem(FreshBetaVersion, OnClick, IsSaveOnly);
-            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : Lang.Text("Download.Version.Fresh.Latest") + Fresh.Info;
+            Fresh.Info = string.IsNullOrEmpty(Fresh.Info) ? Lang.Text("Download.Version.Fresh.Development") : Lang.Text("Download.Version.Fresh.Latest") + "  |  " + Fresh.Info;
             Stack.Children.Add(Fresh);
         }
 

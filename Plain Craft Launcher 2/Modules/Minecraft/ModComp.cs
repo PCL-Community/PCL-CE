@@ -3018,7 +3018,7 @@ public static class ModComp
                         Height = 42,
                         Type = MyListItem.CheckType.Clickable,
                         Tag = this,
-                        Info = string.Join("，", info),
+                        Info = string.Join("  |  ", info),
                         // 使用 switch 表达式精简 Logo 选择喵！
                         Logo = Status switch
                         {

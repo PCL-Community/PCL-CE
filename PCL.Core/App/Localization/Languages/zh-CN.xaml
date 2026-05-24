@@ -413,6 +413,7 @@
     <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">发布于 {0}</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Type">类型：{0}</sys:String>
     <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">不兼容 Forge</sys:String>
     <sys:String x:Key="Download.Version.Optifine.CompatibleForge">兼容 Forge {0}</sys:String>
     <sys:String x:Key="Download.Version.Fresh.Latest">最新</sys:String>
