@@ -131,7 +131,8 @@ public class LoaderDownload : ModLoader.LoaderBase
         {
             file.IsCopy = true;
             file.State = PCL.Network.NetState.Finished;
-            file.TotalSize = new FileInfo(file.LocalPath).Length;
+            try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
+            catch (IOException) { file.TotalSize = -1; }
             file.DownloadedBytes = file.TotalSize;
             file.Speed = 0;
             file.ActiveThreads = 0;
@@ -141,9 +142,27 @@ public class LoaderDownload : ModLoader.LoaderBase
 
         file.State = PCL.Network.NetState.Connecting;
         var enableParallelChunks = Files.Count <= 1;
-        await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
-            cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
-        file.TotalSize = File.Exists(file.LocalPath) ? new FileInfo(file.LocalPath).Length : -1;
+        for (var retry = 0; retry < 4; retry++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
+                    cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
+                break;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (retry < 3)
+            {
+                ModBase.Log(ex, $"[Download] 重试 {retry + 1}/3：{file.LocalPath}", ModBase.LogLevel.Debug);
+                Thread.Sleep(RandomUtils.NextInt(300, 500 + retry * 300));
+            }
+        }
+        try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
+        catch (IOException) { file.TotalSize = -1; }
         file.IsUnknownSize = file.TotalSize < 0;
         file.DownloadedBytes = Math.Max(0, file.TotalSize);
         file.Speed = 0;

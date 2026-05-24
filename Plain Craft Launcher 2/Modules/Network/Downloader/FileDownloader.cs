@@ -204,6 +204,10 @@ public static class FileDownloader
         if (!File.Exists(localPath))
             throw new IOException($"下载未产生任何文件：{localPath}");
 
+        var finalSize = new FileInfo(localPath).Length;
+        if (finalSize <= 0)
+            throw new IOException($"下载的文件大小为 0：{localPath}");
+
         ModBase.Log($"[Download] 下载成功：{localPath}");
     }
 
@@ -245,7 +249,7 @@ public static class FileDownloader
                     File.Delete(path);
                 return;
             }
-            catch (IOException)
+            catch (Exception)
             {
                 Thread.Sleep(100);
             }
