@@ -2500,9 +2500,9 @@ public partial class PageDownloadInstall
                 if ((Production["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
                     var ProductionVersion = new JsonObject();
-                    ProductionVersion.Add("version", Versions["production"]["labyModVersion"]);
+                    ProductionVersion.Add("version", Versions["production"]["labyModVersion"].ToString());
                     ProductionVersion.Add("channel", "production");
-                    ProductionVersion.Add("commitReference", Versions["production"]["commitReference"]);
+                    ProductionVersion.Add("commitReference", Versions["production"]["commitReference"].ToString());
                     ProcessedVersions.Add(ProductionVersion);
                 }
 
@@ -2510,9 +2510,9 @@ public partial class PageDownloadInstall
                 if ((Snapshot["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
                     var SnapshotVersion = new JsonObject();
-                    SnapshotVersion.Add("version", Versions["production"]["labyModVersion"]);
+                    SnapshotVersion.Add("version", Versions["production"]["labyModVersion"].ToString());
                     SnapshotVersion.Add("channel", "snapshot");
-                    SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"]);
+                    SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"].ToString());
                     ProcessedVersions.Add(SnapshotVersion);
                 }
 
