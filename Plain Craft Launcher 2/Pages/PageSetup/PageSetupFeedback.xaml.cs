@@ -70,7 +70,7 @@ public partial class PageSetupFeedback
                 Content = i["body"].ToString(),
                 Time = DateTime.Parse(i["created_at"].ToString()),
                 User = i["user"]["login"].ToString(),
-                ID = (string)i["number"],
+                ID = i["number"].ToString(),
                 Open = i["state"].ToString().Equals("open"),
                 IsPullRequest = false
             };
@@ -87,7 +87,7 @@ public partial class PageSetupFeedback
 
             var thisTags = (JsonArray)i["labels"];
             foreach (JsonObject thisTag in thisTags)
-                item.Tags.Add((string)thisTag["id"]);
+                item.Tags.Add(thisTag["id"].ToString());
             res.Add(item);
         }
 
