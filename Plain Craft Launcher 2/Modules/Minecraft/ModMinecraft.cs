@@ -37,7 +37,7 @@ public static class ModMinecraft
             // 进行提示
             if (version is null)
                 return;
-            var time = (DateTime)version["releaseTime"];
+            var time = version["releaseTime"].ToObject<DateTime>();
             var msgBoxText = $"新版本：{versionName}{"\r\n"}" + ((DateTime.Now - time).TotalDays > 1d
                 ? "更新时间：" + Lang.Date(time, "G")
                 : "更新于：" + Lang.TimeSpan(time - DateTime.Now));

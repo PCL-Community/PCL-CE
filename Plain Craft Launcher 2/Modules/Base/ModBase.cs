@@ -21,6 +21,7 @@ using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -1586,14 +1587,20 @@ public static class ModBase
     {
         try
         {
-            return JsonNode.Parse(Data)!;
+            return JsonNode.Parse(Data,
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip
+                })!;
         }
         catch (Exception ex)
         {
             var Length = (Data ?? "").Length;
             throw new Exception("格式化 JSON 失败：" + (Length > 2000
                 ? Data.Substring(0, 500) + $"...(全长 {Length} 个字符)..." + Strings.Right(Data, 500)
-                : Data));
+                : Data), ex);
         }
     }
 

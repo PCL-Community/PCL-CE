@@ -945,7 +945,7 @@ public static class ModComp
                 Description = (string)Data["Description"];
                 Website = (string)Data["Website"];
                 if (Data.ContainsKey("LastUpdate"))
-                    LastUpdate = (DateTime?)Data["LastUpdate"];
+                    LastUpdate = Data["LastUpdate"]?.ToObject<DateTime>();
                 DownloadCount = (int)Data["DownloadCount"];
                 if (Data.ContainsKey("ModLoaders"))
                     ModLoaders = ((JsonArray)Data["ModLoaders"]).Select(t => (CompLoaderType)t.ToObject<int>()).ToList();
@@ -975,14 +975,13 @@ public static class ModComp
                     RawName = (string)Data["name"];
                     Description = (string)Data["summary"];
                     Website = Data["links"]["websiteUrl"].ToString().TrimEnd('/');
-                    LastUpdate = (DateTime?)Data["dateReleased"]; // #1194
+                    LastUpdate = Data["dateReleased"]?.ToObject<DateTime>(); // #1194
                     DownloadCount = (int)Data["downloadCount"];
-                    if (Data["logo"].AsObject().Count > 0)
+                    if (Data["logo"] is JsonObject logo && logo.Count > 0)
                     {
-                        if (Data["logo"]["thumbnailUrl"] is null || (string)Data["logo"]["thumbnailUrl"] == "")
-                            LogoUrl = (string)Data["logo"]["url"];
-                        else
-                            LogoUrl = (string)Data["logo"]["thumbnailUrl"];
+                        var thumbnailUrl = logo["thumbnailUrl"]?.ToString();
+                        var url = logo["url"]?.ToString();
+                        LogoUrl = string.IsNullOrEmpty(thumbnailUrl) ? url : thumbnailUrl;
                     }
 
                     if (string.IsNullOrEmpty(LogoUrl))
@@ -1420,7 +1419,7 @@ public static class ModComp
                     Slug = (string)Data["slug"];
                     RawName = (string)Data["title"];
                     Description = (string)Data["description"];
-                    LastUpdate = (DateTime?)Data["date_modified"];
+                    LastUpdate = Data["date_modified"]?.ToObject<DateTime>();
                     DownloadCount = (int)Data["downloads"];
                     LogoUrl = (string)Data["icon_url"];
                     if (string.IsNullOrEmpty(LogoUrl))
@@ -3070,7 +3069,7 @@ public static class ModComp
                     ProjectId = Data["modId"].ToString();
                     DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
                     Version = null;
-                    ReleaseDate = (DateTime)Data["fileDate"];
+                    ReleaseDate = Data["fileDate"].ToObject<DateTime>();
                     Status = (CompFileStatus)Data["releaseType"].ToObject<int>();
                     DownloadCount = (int)Data["downloadCount"];
                     FileName = (string)Data["fileName"];
@@ -3146,7 +3145,7 @@ public static class ModComp
                     ProjectId = (string)Data["project_id"];
                     DisplayName = Data["name"].ToString().Replace("	", "").Trim(' ');
                     Version = (string)Data["version_number"];
-                    ReleaseDate = (DateTime)Data["date_published"];
+                    ReleaseDate = Data["date_published"].ToObject<DateTime>();
                     Status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
                         Data["version_type"].ToString() == "beta" ? CompFileStatus.Beta : CompFileStatus.Alpha;
                     DownloadCount = (int)Data["downloads"];

@@ -1364,7 +1364,7 @@ pause";
                 VersionJson.Add("arguments",
                     (JsonNode)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + DownloadInfo.JsonToken["tweakClass"] +
                                             "\"]}"));
-                VersionJson.Add("libraries", DownloadInfo.JsonToken["libraries"]);
+                VersionJson.Add("libraries", DownloadInfo.JsonToken["libraries"]?.DeepClone());
                 VersionJson["libraries"].AsArray().Add(ModBase.GetJson("{\"name\": \"com.mumfrey:liteloader:" +
                                                                             DownloadInfo.JsonToken["version"] +
                                                                             "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
