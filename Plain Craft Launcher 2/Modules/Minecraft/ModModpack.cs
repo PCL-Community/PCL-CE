@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
@@ -95,7 +94,7 @@ public static class ModModpack
 
                     if (Archive.GetEntry("manifest.json") is not null)
                     {
-                        var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Archive.GetEntry("manifest.json").Open(),
+                        var Json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Archive.GetEntry("manifest.json").Open(),
                             Encoding.UTF8));
                         if (Json["addons"] is null)
                         {
@@ -153,7 +152,7 @@ public static class ModModpack
 
                         if (FullNames[1] == "manifest.json")
                         {
-                            var Json = (JObject)ModBase.GetJson(ModBase.ReadFile(Entry.Open(), Encoding.UTF8));
+                            var Json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Entry.Open(), Encoding.UTF8));
                             if (Json["addons"] is null)
                             {
                                 PackType = 0;
@@ -344,10 +343,10 @@ public static class ModModpack
         bool isOnlineInstall = false)
     {
         // 读取 Json 文件
-        JObject Json;
+        JsonObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
+            Json = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "manifest.json").Open()));
         }
         catch (Exception ex)
@@ -376,7 +375,7 @@ public static class ModModpack
         string NeoForgeVersion = null;
         string FabricVersion = null;
         string QuiltVersion = null;
-        foreach (var Entry in (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JToken>())
+        foreach (var Entry in (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JsonNode>())
         {
             var Id = (Entry["id"] ?? "").ToString().ToLower();
             if (Id.StartsWithF("forge-"))
@@ -442,7 +441,7 @@ public static class ModModpack
         // 获取 Mod 列表
         var ModList = new List<int>();
         var ModOptionalList = new List<int>();
-        foreach (var ModEntry in (dynamic)Json["files"] ?? Array.Empty<JToken>())
+        foreach (var ModEntry in (dynamic)Json["files"] ?? Array.Empty<JsonNode>())
         {
             if (ModEntry["projectID"] is null || ModEntry["fileID"] is null)
             {
@@ -459,15 +458,15 @@ public static class ModModpack
         {
             var ModDownloadLoaders = new List<LoaderBase>();
             // 获取 Mod 下载信息
-            ModDownloadLoaders.Add(new LoaderTask<int, JArray>("获取 Mod 下载信息", Task =>
+            ModDownloadLoaders.Add(new LoaderTask<int, JsonArray>("获取 Mod 下载信息", Task =>
             {
                 var allowMirror = true;
-                JArray ret;
+                JsonArray ret;
                 var tryCount = 0;
                 do
                 {
                     tryCount += 1;
-                    ret = (JArray)((JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    ret = (JsonArray)((JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
                         "POST", "{\"fileIds\": [" + ModList.Join(",") + "]}", "application/json",
                         allowMirror)))["data"];
@@ -488,7 +487,7 @@ public static class ModModpack
                 ProgressWeight = ModList.Count / 10d
             }); // 每 10 Mod 需要 1s
             // 构造 NetFile
-            ModDownloadLoaders.Add(new LoaderTask<JArray, List<DownloadFile>>("构造 Mod 下载信息", Task =>
+            ModDownloadLoaders.Add(new LoaderTask<JsonArray, List<DownloadFile>>("构造 Mod 下载信息", Task =>
             {
                 var FileList = new Dictionary<int, DownloadFile>();
                 foreach (var ModJson in Task.Input)
@@ -505,9 +504,9 @@ public static class ModModpack
                     // 根据 modules 和文件名后缀判断资源类型
                     string TargetFolder;
                     ModComp.CompType Type;
-                    if (ModJson["modules"].Any()) // modules 可能返回 null（#1006）
+                    if (ModJson["modules"].AsArray().Any()) // modules 可能返回 null（#1006）
                     {
-                        var ModuleNames = ((JArray)ModJson["modules"]).Select(l => l["name"].ToString()).ToList();
+                        var ModuleNames = ((JsonArray)ModJson["modules"]).Select(l => l["name"].ToString()).ToList();
                         if (ModuleNames.Contains("META-INF") || ModuleNames.Contains("mcmod.info") ||
                             (ModJson?["FileName"]?.ToString()?.EndsWithF(".jar", true)).GetValueOrDefault())
                         {
@@ -537,7 +536,7 @@ public static class ModModpack
                     }
 
                     // 建立 CompFile
-                    var File = new ModComp.CompFile((JObject)ModJson, Type);
+                    var File = new ModComp.CompFile((JsonObject)ModJson, Type);
                     if (!File.Available)
                         continue;
                     // 实际的添加
@@ -655,10 +654,10 @@ public static class ModModpack
         bool isOnlineInstall = false)
     {
         // 读取 Json 文件
-        JObject Json;
+        JsonObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
+            Json = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modrinth.index.json").Open()));
         }
         catch (Exception ex)
@@ -674,43 +673,43 @@ public static class ModModpack
         string NeoForgeVersion = null;
         string FabricVersion = null;
         string QuiltVersion = null;
-        foreach (JProperty Entry in (dynamic)Json["dependencies"] ?? Array.Empty<JToken>())
-            switch (Entry.Name.ToLower() ?? "")
+        foreach (var Entry in Json["dependencies"]?.AsObject() ?? new JsonObject())
+            switch (Entry.Key.ToLower() ?? "")
             {
                 case "minecraft":
                 {
-                    MinecraftVersion = Entry.Value.ToString();
+                    MinecraftVersion = Entry.Value?.GetValue<string>();
                     break;
                 }
                 case "forge": // eg. 14.23.5.2859 / 1.19-41.1.0
                 {
-                    ForgeVersion = Entry.Value.ToString();
+                    ForgeVersion = Entry.Value?.GetValue<string>();
                     ModBase.Log("[ModPack] 整合包 Forge 版本：" + ForgeVersion);
                     break;
                 }
                 case "neoforge":
                 case "neo-forge": // eg. 20.6.98-beta
                 {
-                    NeoForgeVersion = Entry.Value.ToString();
+                    NeoForgeVersion = Entry.Value?.GetValue<string>();
                     ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + NeoForgeVersion);
                     break;
                 }
                 case "fabric-loader": // eg. 0.14.14
                 {
-                    FabricVersion = Entry.Value.ToString();
+                    FabricVersion = Entry.Value?.GetValue<string>();
                     ModBase.Log("[ModPack] 整合包 Fabric 版本：" + FabricVersion);
                     break;
                 }
                 case "quilt-loader": // eg. 0.26.0
                 {
-                    QuiltVersion = Entry.Value.ToString();
+                    QuiltVersion = Entry.Value?.GetValue<string>();
                     ModBase.Log("[ModPack] 整合包 Quilt 版本：" + QuiltVersion);
                     break;
                 }
 
                 default:
                 {
-                    ModMain.Hint($"无法安装整合包，其中出现了未知的 Mod 加载器 {Entry.Name}（版本为 {Entry.Value}）！",
+                    ModMain.Hint($"无法安装整合包，其中出现了未知的 Mod 加载器 {Entry.Key}（版本为 {Entry.Value}）！",
                         ModMain.HintType.Critical);
                     break;
                 }
@@ -746,7 +745,7 @@ public static class ModModpack
         }); // 每 6M 需要 1s
         // 获取下载文件列表
         var FileList = new List<DownloadFile>();
-        foreach (var File in (dynamic)Json["files"] ?? Array.Empty<JToken>())
+        foreach (var File in (dynamic)Json["files"] ?? Array.Empty<JsonNode>())
         {
             // 检查是否需要该文件
             if (File["env"] is not null)
@@ -766,8 +765,8 @@ public static class ModModpack
                 }
 
             // 添加下载文件
-            var Urls = ((JArray)File["downloads"])
-                .OfType<JToken>()
+            var Urls = ((JsonArray)File["downloads"])
+                .OfType<JsonNode>()
                 .Select(x => ModComp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
                 .ToList();
             // 镜像源
@@ -884,10 +883,10 @@ public static class ModModpack
     private static LoaderCombo<string> InstallPackHMCL(string FileAddress, ZipArchive Archive, string ArchiveBaseFolder)
     {
         // 读取 Json 文件
-        JObject Json;
+        JsonObject Json;
         try
         {
-            Json = (JObject)ModBase.GetJson(
+            Json = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
         }
         catch (Exception ex)
@@ -960,7 +959,7 @@ public static class ModModpack
         string ArchiveBaseFolder, string InstanceName = null)
     {
         // 读取 Json 文件
-        JObject Json;
+        JsonObject Json;
         try
         {
             // VB 的 If(a, b) 在 C# 中如果是 null 合并则用 ??，如果是三元运算则用 ?:
@@ -968,7 +967,7 @@ public static class ModModpack
                         Archive.GetEntry(ArchiveBaseFolder + "manifest.json");
             using (var stream = Entry.Open())
             {
-                Json = (JObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
+                Json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
             }
         }
         catch (Exception ex)
@@ -1007,7 +1006,7 @@ public static class ModModpack
             // JVM 参数处理
             if (Json["launchInfo"] != null)
             {
-                var LaunchInfo = (JObject)Json["launchInfo"];
+                var LaunchInfo = (JsonObject)Json["launchInfo"];
                 Config.Instance.JvmArgs[VersionFolder] = string.Join(" ", LaunchInfo["javaArgument"]);
                 Config.Instance.GameArgs[VersionFolder] = string.Join(" ", LaunchInfo["launchArgument"]);
             }
@@ -1024,7 +1023,7 @@ public static class ModModpack
         if (Json["addons"] == null) throw new Exception("该 MCBBS 整合包未提供游戏版本附加信息，无法安装！");
 
         var Addons = new Dictionary<string, string>();
-        foreach (var Entry in Json["addons"]) Addons.Add(Entry["id"].ToString(), Entry["version"].ToString());
+        foreach (var EntryNode in Json["addons"].AsArray()) { var Entry = EntryNode.AsObject(); Addons.Add(Entry["id"].ToString(), Entry["version"].ToString()); }
 
         if (!Addons.ContainsKey("game"))
         {
@@ -1239,7 +1238,7 @@ public static class ModModpack
 
     public class MMCPackInfo
     {
-        public JObject AdditionalJson = new();
+        public JsonObject AdditionalJson = new();
         public bool IsCleanroomOverrided;
         public bool IsFabricOverrided;
         public bool IsForgeOverrided;
@@ -1247,21 +1246,21 @@ public static class ModModpack
         public bool IsMinecraftOverrided;
         public bool IsNeoForgeOverrided;
         public bool IsQuiltOverrided;
-        public JArray JvmArgs = new();
-        public JArray Libraries = new();
-        public JObject OverridedJson = new();
+        public JsonArray JvmArgs = new();
+        public JsonArray Libraries = new();
+        public JsonObject OverridedJson = new();
         public string Tweakers = null;
     }
 
     private static LoaderCombo<string> InstallPackMMC(string FileAddress, ZipArchive Archive, string ArchiveBaseFolder)
     {
         // 读取 Json 文件
-        JObject PackJson;
+        JsonObject PackJson;
         string PackInstance;
         MMCPackInfo PackInfo = null;
         try
         {
-            PackJson = (JObject)ModBase.GetJson(
+            PackJson = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
             PackInstance = ModBase.ReadFile(Archive.GetEntry(ArchiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
 
@@ -1277,17 +1276,17 @@ public static class ModModpack
                         break;
                     ModBase.Log("[ModPack] 安装的 MultiMC 整合包存在 JSON Patches");
                     // 排序预处理
-                    var Patches = new List<KeyValuePair<JObject, int>>();
+                    var Patches = new List<KeyValuePair<JsonObject, int>>();
                     foreach (var entry in Archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(ArchiveBaseFolder + "patches/"))
                         {
-                            var Patch = (JObject)ModBase.GetJson(ModBase.ReadFile(
-                                Archive.GetEntry(ArchiveBaseFolder + "patches/" + entry.Name).Open(), Encoding.UTF8));
-                            Patches.Add(new KeyValuePair<JObject, int>(Patch,
+                            var Patch = (JsonObject)ModBase.GetJson(ModBase.ReadFile(
+                                Archive.GetEntry(entry.FullName).Open(), Encoding.UTF8));
+                            Patches.Add(new KeyValuePair<JsonObject, int>(Patch,
                                 (int)(Patch["order"] is not null ? Patch["order"] : 0)));
                         }
 
-                    var Components = (JArray)PackJson["components"];
+                    var Components = (JsonArray)PackJson["components"];
                     foreach (var Patch in Patches)
                     {
                         // 检查 Patch 是否在 mmc-pack.json 中
@@ -1311,13 +1310,13 @@ public static class ModModpack
                     PackInfo = new MMCPackInfo();
 
                     string Tweakers = null;
-                    JObject AssetIndex = null;
-                    JObject JavaVerJson = null;
+                    JsonObject AssetIndex = null;
+                    JsonObject JavaVerJson = null;
                     string MainClass = null;
-                    var GameArguments = new JArray();
-                    var JvmArguments = new JArray();
-                    var LibJson = new JArray();
-                    var AddLibJson = new JArray();
+                    var GameArguments = new JsonArray();
+                    var JvmArguments = new JsonArray();
+                    var LibJson = new JsonArray();
+                    var AddLibJson = new JsonArray();
                     foreach (var Patch in Patches)
                     {
                         var PatchJson = Patch.Key;
@@ -1355,11 +1354,11 @@ public static class ModModpack
                         // Libraries
                         if (PatchJson["libraries"] is not null || PatchJson["+libraries"] is not null)
                         {
-                            var Libs = new JArray();
+                            var Libs = new JsonArray();
                             if (PatchJson["libraries"] is not null)
-                                foreach (var Library in PatchJson["libraries"])
+                                foreach (var Library in PatchJson["libraries"].AsArray())
                                 {
-                                    var LibJobj = (JObject)Library;
+                                    var LibJobj = (JsonObject)Library;
                                     if (LibJobj["MMC-hint"] is not null)
                                     {
                                         LibJobj.Add("hint", LibJobj["MMC-hint"]);
@@ -1370,9 +1369,9 @@ public static class ModModpack
                                 }
 
                             if (PatchJson["+libraries"] is not null)
-                                foreach (var Library in PatchJson["+libraries"]) // TODO: 此处处理不严谨，但也能用吧
+                                foreach (var Library in PatchJson["+libraries"].AsArray()) // TODO: 此处处理不严谨，但也能用吧
                                 {
-                                    var LibJobj = (JObject)Library;
+                                    var LibJobj = (JsonObject)Library;
                                     if (LibJobj["MMC-hint"] is not null)
                                     {
                                         LibJobj.Add("hint", LibJobj["MMC-hint"]);
@@ -1396,7 +1395,7 @@ public static class ModModpack
                         // AssetIndex
                         if (PatchJson["assetIndex"] is not null)
                         {
-                            AssetIndex = (JObject)PatchJson["assetIndex"];
+                            AssetIndex = (JsonObject)PatchJson["assetIndex"];
                             ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 AssetIndex");
                         }
 
@@ -1422,7 +1421,7 @@ public static class ModModpack
                         {
                             var JavaVersion = 0;
                             string JavaComponent = null;
-                            var JavaMajors = (JArray)PatchJson["compatibleJavaMajors"];
+                            var JavaMajors = (JsonArray)PatchJson["compatibleJavaMajors"];
                             foreach (var Java in JavaMajors)
                             {
                                 if (JavaVersion > ModBase.Val(Java))
@@ -1456,13 +1455,13 @@ public static class ModModpack
                                 JavaComponent = null;
                             }
 
-                            JavaVerJson = new JObject { { "majorVersion", JavaVersion } };
+                            JavaVerJson = new JsonObject { { "majorVersion", JavaVersion } };
                             if (JavaComponent is not null) JavaVerJson.Add("component", JavaComponent);
                             ModBase.Log($"[ModPack] JSON-Patch {PatchJson["uid"]} 要求 Java 版本: " + JavaVersion);
                         }
                     }
 
-                    JObject JsonArguments = null;
+                    JsonObject JsonArguments = null;
                     if (!string.IsNullOrWhiteSpace(Tweakers))
                     {
                         GameArguments.Add("--tweakClass");
@@ -1476,10 +1475,10 @@ public static class ModModpack
                         JvmArguments.Insert(2, "-Dminecraft.launcher.version=${launcher_version}");
                         JvmArguments.Insert(3, "-cp");
                         JvmArguments.Insert(4, "${classpath}");
-                        JsonArguments = new JObject { { "game", GameArguments }, { "jvm", JvmArguments } };
+                        JsonArguments = new JsonObject { { "game", GameArguments }, { "jvm", JvmArguments } };
                     }
 
-                    PackInfo.OverridedJson = new JObject();
+                    PackInfo.OverridedJson = new JsonObject();
                     if (JsonArguments is not null)
                         PackInfo.OverridedJson.Add("arguments", JsonArguments);
                     if (MainClass is not null)
@@ -1628,7 +1627,7 @@ public static class ModModpack
             TargetInstanceName = InstanceName,
             TargetInstanceFolder = $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\"
         };
-        foreach (var Component in PackJson["components"])
+        foreach (var Component in PackJson["components"].AsArray())
             switch ((Component["uid"] ?? "").ToString() ?? "")
             {
                 case "org.lwjgl":

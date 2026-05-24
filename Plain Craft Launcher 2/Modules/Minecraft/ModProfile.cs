@@ -6,8 +6,6 @@ using System.Text;
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.VisualBasic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net;
 using PCL.Core.Utils;
@@ -60,7 +58,7 @@ public static class ModProfile
         // 正版档案
         if (States.Game.LegacyProfile.LoginMsJson != "{}")
         {
-            var oldMsJson = (JObject)ModBase.GetJson(States.Game.LegacyProfile.LoginMsJson);
+            var oldMsJson = (JsonObject)ModBase.GetJson(States.Game.LegacyProfile.LoginMsJson);
             ProfileLog($"找到 {oldMsJson.Count} 个旧版正版档案信息");
             foreach (var Profile in oldMsJson)
             {
@@ -163,13 +161,13 @@ public static class ModProfile
         // 从官网获取
         try
         {
-            JObject gotJson = null;
+            JsonObject gotJson = null;
             var finished = false;
             ModBase.RunInNewThread(() =>
                 {
                     try
                     {
-                        gotJson = (JObject)ModNet.NetGetCodeByRequestRetry(
+                        gotJson = (JsonObject)ModNet.NetGetCodeByRequestRetry(
                             "https://api.mojang.com/users/profiles/minecraft/" + name, IsJson: true);
                     }
                     catch (Exception ex)
@@ -294,9 +292,9 @@ public static class ModProfile
                 ModBase.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
             }
 
-            var profileJobj = JObject.Parse(ModBase.ReadFile(profilePath));
+            var profileJobj = JsonNode.Parse(ModBase.ReadFile(profilePath));
             LastUsedProfile = (int)profileJobj["lastUsed"];
-            var profileListJobj = (JArray)profileJobj["profiles"];
+            var profileListJobj = (JsonArray)profileJobj["profiles"];
             foreach (var Profile in profileListJobj)
             {
                 McProfile newProfile = null;
@@ -363,23 +361,23 @@ public static class ModProfile
     /// <summary>
     ///     以当前的档案列表写入配置文件
     /// </summary>
-    public static void SaveProfile(JArray listJson = null)
+    public static void SaveProfile(JsonArray listJson = null)
     {
         try
         {
-            var json = new JObject();
+            var json = new JsonObject();
             if (listJson is not null)
             {
-                json = new JObject { { "lastUsed", LastUsedProfile }, { "profiles", listJson } };
+                json = new JsonObject { { "lastUsed", LastUsedProfile }, { "profiles", listJson } };
             }
             else
             {
-                var list = new JArray();
+                var list = new JsonArray();
                 foreach (var Profile in ProfileList)
                 {
-                    JObject profileJobj = null;
+                    JsonObject profileJobj = null;
                     if (Profile.Type == ModLaunch.McLoginType.Ms)
-                        profileJobj = new JObject
+                        profileJobj = new JsonObject
                         {
                             { "type", "microsoft" }, { "uuid", Profile.Uuid }, { "username", Profile.Username },
                             { "accessToken", EncryptHelper.SecretEncrypt(Profile.AccessToken) },
@@ -389,7 +387,7 @@ public static class ModProfile
                             { "skinHeadId", Profile.SkinHeadId }
                         };
                     else if (Profile.Type == ModLaunch.McLoginType.Auth)
-                        profileJobj = new JObject
+                        profileJobj = new JsonObject
                         {
                             { "type", "authlib" }, { "uuid", Profile.Uuid }, { "username", Profile.Username },
                             { "accessToken", EncryptHelper.SecretEncrypt(Profile.AccessToken) },
@@ -401,7 +399,7 @@ public static class ModProfile
                             { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }
                         };
                     else
-                        profileJobj = new JObject
+                        profileJobj = new JsonObject
                         {
                             { "type", "offline" }, { "uuid", Profile.Uuid }, { "username", Profile.Username },
                             { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }
@@ -410,13 +408,13 @@ public static class ModProfile
                 }
 
                 ProfileLog($"开始保存档案，共 {list.Count} 个");
-                json = new JObject { { "lastUsed", LastUsedProfile }, { "profiles", list } };
+                json = new JsonObject { { "lastUsed", LastUsedProfile }, { "profiles", list } };
             }
 
             var actualFile = Path.Combine(ModBase.PathAppdataConfig, "profiles.json");
             var tempFile = actualFile + ".tmp";
             var bakFile = actualFile + ".bak";
-            File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToString(Formatting.None)));
+            File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToJsonString()));
             if (File.Exists(actualFile))
                 File.Replace(tempFile, actualFile, bakFile);
             else
@@ -533,7 +531,7 @@ public static class ModProfile
             {
                 try
                 {
-                    var checkResult = (JObject)ModBase.GetJson(Requester.Fetch(
+                    var checkResult = (JsonObject)ModBase.GetJson(Requester.Fetch(
                         $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", 
                         new FetchParam
                         {
@@ -561,7 +559,7 @@ public static class ModProfile
                             Headers = new Dictionary<string, string>
                                 { { "Authorization", "Bearer " + SelectedProfile.AccessToken } }
                         });
-                    var resultJson = (JObject)ModBase.GetJson(result);
+                    var resultJson = (JsonObject)ModBase.GetJson(result);
                     ModMain.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), ModMain.HintType.Finish);
                     ProfileList.Remove(SelectedProfile);
                     SelectedProfile.Username = (string)resultJson["name"];
@@ -1153,22 +1151,22 @@ public static class ModProfile
                 if (res.Contains("\"error\""))
                 {
                     ModMain.Hint(
-                        $"更改皮肤失败：{((JObject)ModBase.GetJson(res))["error"]}",
+                        $"更改皮肤失败：{((JsonObject)ModBase.GetJson(res))["error"]}",
                         ModMain.HintType.Critical);
                     return;
                 }
 
                 ModBase.Log("[Skin] 皮肤修改返回值：" + "\r\n" + res);
-                var resultJson = (JObject)ModBase.GetJson(res);
+                var resultJson = (JsonObject)ModBase.GetJson(res);
                 if (resultJson.ContainsKey("errorMessage")) throw new Exception(resultJson["errorMessage"].ToString());
-                foreach (JObject skin in resultJson["skins"])
+                foreach (var skinNode in resultJson["skins"].AsArray()) { var skin = skinNode.AsObject();
                     if (skin["state"].ToString() == "ACTIVE")
                     {
                         MySkin.ReloadCache((string)skin["url"]);
                         return;
-                    }
+                    } }
 
-                throw new Exception("未知错误（" + res + "）");
+                 throw new Exception("未知错误（" + res + "）");
             }
             catch (Exception ex)
             {

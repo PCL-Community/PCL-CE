@@ -11,7 +11,6 @@ using System.Windows.Threading;
 using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -1011,7 +1010,7 @@ public static class ModMain
         public HelpEntry(string FilePath)
         {
             RawPath = FilePath;
-            var JsonData = (JObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
+            var JsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
             if (JsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + FilePath, FilePath);
             // 加载常规信息
