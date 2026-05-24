@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Core.App.Localization;
@@ -48,8 +47,8 @@ public partial class PageSetupFeedback
 
     public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
     {
-        JArray list;
-        list = (JArray)Requester.FetchJson(
+        JsonArray list;
+        list = (JsonArray)Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
             new RequestParam
             {
@@ -59,10 +58,10 @@ public partial class PageSetupFeedback
         if (list is null)
             throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
-        foreach (JObject i in list)
+        foreach (JsonObject i in list)
         {
             var pullRequestToken = i["pull_request"];
-            if (pullRequestToken is not null && pullRequestToken.Type != JTokenType.Null) continue;
+            if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
 
             var item = new Feedback
             {
@@ -71,14 +70,14 @@ public partial class PageSetupFeedback
                 Content = i["body"].ToString(),
                 Time = DateTime.Parse(i["created_at"].ToString()),
                 User = i["user"]["login"].ToString(),
-                ID = (string)i["number"],
+                ID = i["number"].ToString(),
                 Open = i["state"].ToString().Equals("open"),
                 IsPullRequest = false
             };
 
             var issueType = Lang.Text("Setup.Feedback.Uncategorized");
             var typeToken = i["type"];
-            if (typeToken is not null && typeToken.Type == JTokenType.Object)
+            if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
             {
                 var typeNameToken = typeToken["name"];
                 if (typeNameToken is not null) issueType = typeNameToken.ToString().ToLower();
@@ -86,9 +85,9 @@ public partial class PageSetupFeedback
 
             item.Type = issueType;
 
-            var thisTags = (JArray)i["labels"];
-            foreach (JObject thisTag in thisTags)
-                item.Tags.Add((string)thisTag["id"]);
+            var thisTags = (JsonArray)i["labels"];
+            foreach (JsonObject thisTag in thisTags)
+                item.Tags.Add(thisTag["id"].ToString());
             res.Add(item);
         }
 

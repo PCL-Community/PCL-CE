@@ -5,7 +5,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Network;
@@ -366,8 +365,8 @@ public partial class MySkin
 
                 var AccessToken = ModLaunch.McLoginMsLoader.Output.AccessToken;
                 var Uuid = ModLaunch.McLoginMsLoader.Output.Uuid;
-                var SkinData = (JObject)ModBase.GetJson(ModLaunch.McLoginMsLoader.Output.ProfileJson);
-                foreach (var itemSkin in SkinData["capes"])
+                var SkinData = (JsonObject)ModBase.GetJson(ModLaunch.McLoginMsLoader.Output.ProfileJson);
+                foreach (var itemSkin in SkinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)
                         continue;
@@ -403,7 +402,7 @@ public partial class MySkin
                                 Info = "Null"
                             }
                         };
-                        SelectionControl.AddRange(from Cape in SkinData["capes"]
+                        SelectionControl.AddRange(from Cape in SkinData["capes"].AsArray()
                             let CapeAlias = Cape["alias"].ToString()
                             let CapeName = _GetCapeDisplayName(CapeAlias)
                             let state = Cape["state"]
@@ -435,7 +434,7 @@ public partial class MySkin
                         Method = SelId is 0 ? "DELETE" : "PUT",
                         Content = SelId is 0
                             ? ""
-                            : new JObject(new JProperty("capeId", SkinData["capes"][SelId - 1]["id"])).ToString(0),
+                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"] }.ToJsonString(),
                         ContentType = "application/json",
                         Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } }
                     }
@@ -443,7 +442,7 @@ public partial class MySkin
                 if (Result.Contains("\"errorMessage\""))
                     ModMain.Hint(
                         Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JObject)ModBase.GetJson(Result))["errorMessage"]), ModMain.HintType.Critical);
+                            ((JsonObject)ModBase.GetJson(Result))["errorMessage"]), ModMain.HintType.Critical);
                 else
                     ModMain.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), ModMain.HintType.Finish);
             }

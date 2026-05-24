@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
@@ -64,7 +63,7 @@ public static class UpdateManager
         }
     }
     
-    public static ModLoader.LoaderCombo<JObject> UpdateLoader;
+    public static ModLoader.LoaderCombo<JsonObject> UpdateLoader;
 
     public static void UpdateStart(UpdateEnums.UpdateType type, string receivedKey = null, bool forceValidated = false)
     {
@@ -138,7 +137,7 @@ public static class UpdateManager
                     Show = false
                 });
                 // 启动
-                UpdateLoader = new ModLoader.LoaderCombo<JObject>("启动器更新", loaders);
+                UpdateLoader = new ModLoader.LoaderCombo<JsonObject>("启动器更新", loaders);
                 UpdateLoader.Start();
                 if (type == UpdateEnums.UpdateType.UpdateNow)
                 {

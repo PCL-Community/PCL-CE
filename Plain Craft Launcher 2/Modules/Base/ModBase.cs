@@ -20,7 +20,7 @@ using System.Xaml;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
-using Newtonsoft.Json;
+using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
@@ -1581,12 +1581,11 @@ public static class ModBase
     /// <summary>
     ///     获取 JSON 对象。
     /// </summary>
-    public static object GetJson(string Data)
+    public static JsonNode GetJson(string Data)
     {
         try
         {
-            return JsonConvert.DeserializeObject(Data,
-                new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Local });
+            return JsonNode.Parse(Data)!;
         }
         catch (Exception ex)
         {

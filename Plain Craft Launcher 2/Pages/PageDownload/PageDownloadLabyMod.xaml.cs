@@ -1,4 +1,3 @@
-using Newtonsoft.Json.Linq;
 
 namespace PCL;
 
@@ -30,10 +29,10 @@ public partial class PageDownloadLabyMod
             var Versions = ModDownload.DlLabyModListLoader.Output.Value;
             if (Versions is null)
                 return;
-            var ProductionEntry = new JObject();
+            var ProductionEntry = new JsonObject();
             ProductionEntry.Add("channel", "production");
             ProductionEntry.Add("version", Versions["production"]["labyModVersion"].ToString());
-            var SnapshotEntry = new JObject();
+            var SnapshotEntry = new JsonObject();
             SnapshotEntry.Add("channel", "snapshot");
             SnapshotEntry.Add("version", Versions["snapshot"]["labyModVersion"].ToString());
             PanVersions.Children.Clear();

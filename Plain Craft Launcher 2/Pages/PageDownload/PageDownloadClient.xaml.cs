@@ -2,7 +2,6 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Newtonsoft.Json.Linq;
 using PCL.Network;
 using PCL.Core.App.Localization;
 
@@ -33,13 +32,13 @@ public partial class PageDownloadClient
         try
         {
             // 归类
-            var Dict = new Dictionary<string, List<JObject>>
+            var Dict = new Dictionary<string, List<JsonObject>>
             {
-                { "正式版", new List<JObject>() }, { "预览版", new List<JObject>() }, { "远古版", new List<JObject>() },
-                { "愚人节版", new List<JObject>() }
+                { "正式版", new List<JsonObject>() }, { "预览版", new List<JsonObject>() }, { "远古版", new List<JsonObject>() },
+                { "愚人节版", new List<JsonObject>() }
             };
-            var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
-            foreach (JObject Version in Versions)
+            var Versions = (JsonArray)ModDownload.DlClientListLoader.Output.Value["versions"];
+            foreach (JsonObject Version in Versions)
             {
                 // 确定分类
                 var Type = (string)Version["type"];
@@ -110,7 +109,7 @@ public partial class PageDownloadClient
 
                             default:
                             {
-                                var ReleaseDate = Version["releaseTime"].Value<DateTime>().ToUniversalTime()
+                                var ReleaseDate = Version["releaseTime"].GetValue<DateTime>().ToUniversalTime()
                                     .AddHours(2d);
                                 if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
                                 {
@@ -145,21 +144,21 @@ public partial class PageDownloadClient
             // 排序
             for (int i = 0, loopTo = Dict.Keys.Count - 1; i <= loopTo; i++)
                 Dict[Dict.Keys.ElementAtOrDefault(i)] = Dict.Values.ElementAtOrDefault(i)
-                    .OrderByDescending(v => v["releaseTime"].Value<DateTime>()).ToList();
+                    .OrderByDescending(v => v["releaseTime"].GetValue<DateTime>()).ToList();
             // 清空当前
             PanMain.Children.Clear();
             // 添加最新版本
             var CardInfo = new MyCard { Title = "最新版本", Margin = new Thickness(0d, 0d, 0d, 15d) };
-            var TopestVersions = new List<JObject>();
-            var Release = (JObject)Dict["正式版"][0].DeepClone();
+            var TopestVersions = new List<JsonObject>();
+            var Release = (JsonObject)Dict["正式版"][0].DeepClone();
             Release["lore"] =
-                "最新正式版，发布于 " + Lang.Date(Release["releaseTime"].Value<DateTime>(), "g");
+                "最新正式版，发布于 " + Lang.Date(Release["releaseTime"].GetValue<DateTime>(), "g");
             TopestVersions.Add(Release);
-            if (Dict["正式版"][0]["releaseTime"].Value<DateTime>() < Dict["预览版"][0]["releaseTime"].Value<DateTime>())
+            if (Dict["正式版"][0]["releaseTime"].GetValue<DateTime>() < Dict["预览版"][0]["releaseTime"].GetValue<DateTime>())
             {
-                var Snapshot = (JObject)Dict["预览版"][0].DeepClone();
+                var Snapshot = (JsonObject)Dict["预览版"][0].DeepClone();
                 Snapshot["lore"] = "最新预览版，发布于 " +
-                                   Lang.Date(Snapshot["releaseTime"].Value<DateTime>(), "g");
+                                   Lang.Date(Snapshot["releaseTime"].GetValue<DateTime>(), "g");
                 TopestVersions.Add(Snapshot);
             }
 
@@ -172,7 +171,7 @@ public partial class PageDownloadClient
             void PutMethod(StackPanel Stack)
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JObject)item,
+                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                         ModDownloadLib.McDownloadMenuSave, true));
             }
 
