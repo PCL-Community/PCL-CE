@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
@@ -182,6 +183,45 @@ public static class ModComp
         World = 7
     }
 
+    public static string GetCompTypeName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.Type.Mod",
+        CompType.ModPack => "Download.Comp.Type.Modpack",
+        CompType.ResourcePack => "Download.Comp.Type.ResourcePack",
+        CompType.Shader => "Download.Comp.Type.Shader",
+        CompType.DataPack => "Download.Comp.Type.DataPack",
+        CompType.Plugin => "Download.Comp.Type.Plugin",
+        CompType.World => "Download.Comp.Type.World",
+        CompType.Schematic => "Download.Comp.Type.Schematic",
+        _ => "Download.Comp.Type.Unknown"
+    });
+
+    public static string GetCompLoadingName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.List.Loading.Mod",
+        CompType.ModPack => "Download.Comp.List.Loading.Modpack",
+        CompType.ResourcePack => "Download.Comp.List.Loading.ResourcePack",
+        CompType.Shader => "Download.Comp.List.Loading.Shader",
+        CompType.DataPack => "Download.Comp.List.Loading.DataPack",
+        CompType.Plugin => "Download.Comp.List.Loading.Plugin",
+        CompType.World => "Download.Comp.List.Loading.World",
+        CompType.Schematic => "Download.Comp.List.Loading.Schematic",
+        _ => "Download.Comp.List.Loading.Unknown"
+    });
+
+    public static string GetCompSearchName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.List.Search.Mod",
+        CompType.ModPack => "Download.Comp.List.Search.Modpack",
+        CompType.ResourcePack => "Download.Comp.List.Search.ResourcePack",
+        CompType.Shader => "Download.Comp.List.Search.Shader",
+        CompType.DataPack => "Download.Comp.List.Search.DataPack",
+        CompType.Plugin => "Download.Comp.List.Search.Plugin",
+        CompType.World => "Download.Comp.List.Search.World",
+        CompType.Schematic => "Download.Comp.List.Search.Schematic",
+        _ => "Download.Comp.List.Search.Unknown"
+    });
+
     #region CompFavorites | 收藏
 
     public class CompFavorites
@@ -210,7 +250,7 @@ public static class ModComp
                         try
                         {
                             var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData);
-                            if (Migrate is not null) RawList = new List<FavData> { GetNewFav("默认", Migrate) };
+                            if (Migrate is not null) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), Migrate) };
                         }
                         catch (Exception ex2)
                         {
@@ -219,7 +259,7 @@ public static class ModComp
                     }
 
                     // 最终兜底：确保至少有一个收藏夹
-                    if (RawList is null || RawList.Count == 0) RawList = new List<FavData> { GetNewFav("默认", null) };
+                    if (RawList is null || RawList.Count == 0) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), null) };
                     _FavoritesList = RawList;
                     Save();
                 }
@@ -279,12 +319,12 @@ public static class ModComp
                 var HasFavs = i.Favs.Contains(Project.Id);
                 if (HasFavs)
                 {
-                    Item.Header = $"取消收藏 {i.Name}";
+                    Item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
                     Item.Icon = Icon.IconButtonLikeFill;
                 }
                 else
                 {
-                    Item.Header = $"收藏到 {i.Name}";
+                    Item.Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name);
                     Item.Icon = Icon.IconButtonLikeLine;
                 }
 
@@ -295,12 +335,12 @@ public static class ModComp
                         if (HasFavs)
                         {
                             i.Favs.Remove(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
                         else
                         {
                             i.Favs.Add(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
 
                         Save();
@@ -330,7 +370,7 @@ public static class ModComp
                 var Item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = $"收藏到 {i.Name}"
+                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name)
                 };
                 Item.Click += (_, _) =>
                 {
@@ -342,7 +382,9 @@ public static class ModComp
                         var SuccessCount = i.Favs.Count - Count;
                         var FailedCount = Project.Count - SuccessCount;
                         ModMain.Hint(
-                            $"已将 {SuccessCount} 个资源添加到 {i.Name} 中{(FailedCount > 0 ? $"，{FailedCount} 个资源已添加" : "")}！",
+                            Lang.Text(FailedCount > 0
+                                ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
+                                : "Download.Comp.Detail.Favorites.BulkAdd", SuccessCount, i.Name, FailedCount),
                             ModMain.HintType.Finish);
                     }
                     catch (Exception ex)
@@ -929,877 +971,459 @@ public static class ModComp
         /// <summary>
         ///     从工程 Json 中初始化实例。若出错会抛出异常。
         /// </summary>
-        public CompProject(JsonObject Data)
+        public CompProject(JsonObject data)
         {
-            if (Data.ContainsKey("Tags"))
-            {
-                #region CompJson
+            var result = data.ContainsKey("Tags")
+                ? _BuildFromCompJson(data)
+                : data.ContainsKey("summary")
+                    ? _BuildFromCurseForge(data)
+                    : _BuildFromModrinth(data);
 
-                FromCurseForge = (string)Data["DataSource"] == "CurseForge";
-                Type = (CompType)Data["Type"].ToObject<int>();
-                Slug = (string)Data["Slug"];
-                Id = (string)Data["Id"];
-                if (Data.ContainsKey("CurseForgeFileIds"))
-                    CurseForgeFileIds = ((JsonArray)Data["CurseForgeFileIds"]).Select(t => t.ToObject<int>()).ToList();
-                RawName = (string)Data["RawName"];
-                Description = (string)Data["Description"];
-                Website = (string)Data["Website"];
-                if (Data.ContainsKey("LastUpdate"))
-                    LastUpdate = (DateTime?)Data["LastUpdate"];
-                DownloadCount = (int)Data["DownloadCount"];
-                if (Data.ContainsKey("ModLoaders"))
-                    ModLoaders = ((JsonArray)Data["ModLoaders"]).Select(t => (CompLoaderType)t.ToObject<int>()).ToList();
-                else
-                    ModLoaders = new List<CompLoaderType>();
-                Tags = ((JsonArray)Data["Tags"]).Select(t => t.ToString()).ToList();
-                if (Data.ContainsKey("LogoUrl"))
-                    LogoUrl = (string)Data["LogoUrl"];
-                if (Data.ContainsKey("Drops"))
-                    Drops = ((JsonArray)Data["Drops"]).Select(t => t.ToObject<int>()).ToList();
-                else
-                    Drops = new List<int>();
+            if (!data.ContainsKey("Tags"))
+            {
+                if (result.Tags.Count == 0)
+                    result.Tags.Add(Lang.Text("Download.Comp.Category.Other"));
+
+                result.Tags = result.Tags.Distinct().ToList();
+                result.Tags.Sort();
+
+                result.ModLoaders = result.ModLoaders
+                    .Distinct()
+                    .OrderBy(t => t)
+                    .ToList();
             }
 
-            #endregion
-
-            else
-            {
-                FromCurseForge = Data.ContainsKey("summary");
-                if (FromCurseForge)
-                {
-                    #region CurseForge
-
-                    // 简单信息
-                    Id = Data["id"].ToString();
-                    Slug = (string)Data["slug"];
-                    RawName = (string)Data["name"];
-                    Description = (string)Data["summary"];
-                    Website = Data["links"]["websiteUrl"].ToString().TrimEnd('/');
-                    LastUpdate = (DateTime?)Data["dateReleased"]; // #1194
-                    DownloadCount = (int)Data["downloadCount"];
-                    if (Data["logo"].AsObject().Count > 0)
-                    {
-                        if (Data["logo"]["thumbnailUrl"] is null || (string)Data["logo"]["thumbnailUrl"] == "")
-                            LogoUrl = (string)Data["logo"]["url"];
-                        else
-                            LogoUrl = (string)Data["logo"]["thumbnailUrl"];
-                    }
-
-                    if (string.IsNullOrEmpty(LogoUrl))
-                        LogoUrl = null;
-                    // Type
-                    if (Website.Contains("/mc-mods/") || Website.Contains("/mod/"))
-                        Type = CompType.Mod;
-                    else if (Website.Contains("/modpacks/"))
-                        Type = CompType.ModPack;
-                    else if (Website.Contains("/resourcepacks/"))
-                        Type = CompType.ResourcePack;
-                    else if (Website.Contains("/texture-packs/"))
-                        Type = CompType.ResourcePack;
-                    else if (Website.Contains("/shaders/"))
-                        Type = CompType.Shader;
-                    else if (Website.Contains("/worlds/"))
-                        Type = CompType.World;
-                    else
-                        Type = CompType.DataPack;
-                    // FileIndexes / VanillaMajorVersions / ModLoaders
-                    ModLoaders = new List<CompLoaderType>();
-                    var Files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
-                    foreach (var File in (Data["latestFiles"] ?? new JsonArray()).AsArray())
-                    {
-                        var NewFile = new CompFile((JsonObject)File, Type);
-                        if (!NewFile.Available)
-                            continue;
-                        ModLoaders.AddRange(NewFile.ModLoaders);
-                        var GameVersions = File["gameVersions"].ToObject<List<string>>();
-                        if (!GameVersions.Any(v => ModMinecraft.McInstanceInfo.IsFormatFit(v)))
-                            continue;
-                        Files.Add(new KeyValuePair<int, List<string>>((int)File["id"], GameVersions));
-                    }
-
-                    foreach (var File in (Data["latestFilesIndexes"] ?? new JsonArray()).AsArray()) // 这俩玩意儿包含的文件不一样，见 #3599
-                    {
-                        if (!ModMinecraft.McInstanceInfo.IsFormatFit((string)File["gameVersion"]))
-                            continue;
-                        Files.Add(new KeyValuePair<int, List<string>>((int)File["fileId"],
-                            new[] { File["gameVersion"].ToString() }.ToList()));
-                    }
-
-                    CurseForgeFileIds = Files.Select(f => f.Key).Distinct().ToList();
-                    Drops = Files.SelectMany(f => f.Value).Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
-                        .Where(v => v > 0).Distinct().OrderByDescending(v => v).ToList();
-                    ModLoaders = ModLoaders.Distinct().OrderBy(t => t).ToList();
-                    // Tags
-                    Tags = new List<string>();
-                    foreach (var Category in ((Data["categories"] ?? new JsonArray()).AsArray()).Select(t => (int)t["id"]).Distinct()
-                             .OrderByDescending(c => c)) // 镜像源 API 可能丢失此字段 (4267#issuecomment-2254590831)
-                        switch (Category)
-                        {
-                            // Mod
-                            case 406:
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
-                            case 407:
-                            {
-                                Tags.Add("生物群系");
-                                break;
-                            }
-                            case 410:
-                            {
-                                Tags.Add("维度");
-                                break;
-                            }
-                            case 408:
-                            {
-                                Tags.Add("矿物/资源");
-                                break;
-                            }
-                            case 409:
-                            {
-                                Tags.Add("天然结构");
-                                break;
-                            }
-                            case 412:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 415:
-                            {
-                                Tags.Add("管道/物流");
-                                break;
-                            }
-                            case 4843:
-                            {
-                                Tags.Add("自动化");
-                                break;
-                            }
-                            case 417:
-                            {
-                                Tags.Add("能源");
-                                break;
-                            }
-                            case 4558:
-                            {
-                                Tags.Add("红石");
-                                break;
-                            }
-                            case 436:
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
-                            case 416:
-                            {
-                                Tags.Add("农业");
-                                break;
-                            }
-                            case 414:
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
-                            case 420:
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
-                            case 419:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 422:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 424:
-                            {
-                                Tags.Add("装饰");
-                                break;
-                            }
-                            case 411:
-                            {
-                                Tags.Add("生物");
-                                break;
-                            }
-                            case 434:
-                            {
-                                Tags.Add("装备");
-                                break;
-                            }
-                            case 6814:
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
-                            case 9026:
-                            {
-                                Tags.Add("创造模式");
-                                break;
-                            }
-                            case 423:
-                            {
-                                Tags.Add("信息显示");
-                                break;
-                            }
-                            case 435:
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
-                            case 5191:
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
-                            case 421:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            // 整合包
-                            case 4484:
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
-                            case 4479:
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
-                            case 4483:
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case 4478:
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
-                            case 4472:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 4473:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 4475:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 4476:
-                            {
-                                Tags.Add("探索");
-                                break;
-                            }
-                            case 4477:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
-                            case 4471:
-                            {
-                                Tags.Add("科幻");
-                                break;
-                            }
-                            case 4736:
-                            {
-                                Tags.Add("空岛");
-                                break;
-                            }
-                            case 5128:
-                            {
-                                Tags.Add("原版改良");
-                                break;
-                            }
-                            case 4487:
-                            {
-                                Tags.Add("FTB");
-                                break;
-                            }
-                            case 4480:
-                            {
-                                Tags.Add("基于地图");
-                                break;
-                            }
-                            case 4481:
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
-                            case 4482:
-                            {
-                                Tags.Add("大型");
-                                break;
-                            }
-                            // 资源包
-                            case 403:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            case 400:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            case 401:
-                            {
-                                Tags.Add("现代风");
-                                break;
-                            }
-                            case 402:
-                            {
-                                Tags.Add("中世纪");
-                                break;
-                            }
-                            case 399:
-                            {
-                                Tags.Add("蒸汽朋克");
-                                break;
-                            }
-                            case 5244:
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
-                            case 404:
-                            {
-                                Tags.Add("动态效果");
-                                break;
-                            }
-                            case 4465:
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
-                            case 393:
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
-                            case 394:
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
-                            case 395:
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
-                            case 396:
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
-                            case 397:
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
-                            case 398:
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
-                            case 5193:
-                            {
-                                Tags.Add("数据包"); // 有这个 Tag 的项会从资源包请求中被移除
-                                break;
-                            }
-                            // 光影包
-                            case 6553:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            case 6554:
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
-                            case 6555:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            // 数据包
-                            case 6948:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 6949:
-                            {
-                                Tags.Add("幻想");
-                                break;
-                            }
-                            case 6950:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            case 6952:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 6946:
-                            {
-                                Tags.Add("Mod 相关");
-                                break;
-                            }
-                            case 6951:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 6953:
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
-                            // 世界
-                            case 248:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 249:
-                            {
-                                Tags.Add("创造");
-                                break;
-                            }
-                            case 250:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
-                            case 251:
-                            {
-                                Tags.Add("跑酷");
-                                break;
-                            }
-                            case 252:
-                            {
-                                Tags.Add("解谜");
-                                break;
-                            }
-                            case 253:
-                            {
-                                Tags.Add("生存");
-                                break;
-                            }
-                            case 4464:
-                            {
-                                Tags.Add("Mod 世界");
-                                break;
-                            }
-                        }
-                }
-
-                #endregion
-
-                else
-                {
-                    #region Modrinth
-
-                    // 简单信息
-                    Id = (string)(Data["project_id"] ?? Data["id"]); // 两个 API 会返回的 key 不一样
-                    Slug = (string)Data["slug"];
-                    RawName = (string)Data["title"];
-                    Description = (string)Data["description"];
-                    LastUpdate = (DateTime?)Data["date_modified"];
-                    DownloadCount = (int)Data["downloads"];
-                    LogoUrl = (string)Data["icon_url"];
-                    if (string.IsNullOrEmpty(LogoUrl))
-                        LogoUrl = null;
-                    Website = $"https://modrinth.com/{Data["project_type"]}/{Slug}";
-                    // GameVersions
-                    // 搜索结果的键为 versions，获取特定工程的键为 game_versions
-                    Drops = ((JsonArray)(Data["game_versions"] ?? Data["versions"]) ?? new JsonArray())
-                        .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v)).Where(v => v > 0).Distinct()
-                        .OrderByDescending(v => v).ToList();
-                    // Type
-                    switch (Data["project_type"].ToString() ?? "")
-                    {
-                        case "modpack":
-                        {
-                            Type = CompType.ModPack;
-                            break;
-                        }
-                        case "resourcepack":
-                        {
-                            Type = CompType.ResourcePack;
-                            break;
-                        }
-                        case "shader":
-                        {
-                            Type = CompType.Shader;
-                            break;
-                        }
-
-                        default:
-                        {
-                            Type = CompType.Mod; // Modrinth 将数据包标为 Mod
-                            break;
-                        }
-                    }
-
-                    // Tags & ModLoaders
-                    Tags = new List<string>();
-                    ModLoaders = new List<CompLoaderType>();
-                    if (Data?["loaders"] is not null)
-                        foreach (var Category in Data["loaders"].AsArray().Select(t => t.ToString()))
-                            switch (Category ?? "")
-                            {
-                                case "forge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Forge);
-                                    break;
-                                }
-                                case "fabric":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Fabric);
-                                    break;
-                                }
-                                case "quilt":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Quilt);
-                                    break;
-                                }
-                                case "neoforge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.NeoForge);
-                                    break;
-                                }
-                            }
-
-                    foreach (var Category in Data["categories"].AsArray().Select(t => t.ToString()))
-                        switch (Category ?? "")
-                        {
-                            // 加载器
-                            case "forge":
-                            {
-                                ModLoaders.Add(CompLoaderType.Forge);
-                                break;
-                            }
-                            case "fabric":
-                            {
-                                ModLoaders.Add(CompLoaderType.Fabric);
-                                break;
-                            }
-                            case "quilt":
-                            {
-                                ModLoaders.Add(CompLoaderType.Quilt);
-                                break;
-                            }
-                            case "neoforge":
-                            {
-                                ModLoaders.Add(CompLoaderType.NeoForge);
-                                break;
-                            }
-                            case "datapack":
-                            {
-                                Type = CompType.DataPack; // 若包含数据包版本，则优先标为 DataPack
-                                break;
-                            }
-                            // 共用
-                            case "technology":
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case "magic":
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case "adventure":
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case "utility":
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
-                            case "optimization":
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
-                            case "vanilla-like":
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            case "realistic":
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            // Mod/数据包
-                            case "worldgen":
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
-                            case "food":
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
-                            case "game-mechanics":
-                            {
-                                Tags.Add("游戏机制");
-                                break;
-                            }
-                            case "transportation":
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
-                            case "storage":
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
-                            case "decoration":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装饰");
-                                break;
-                            }
-                            case "mobs":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("生物");
-                                break;
-                            }
-                            case "equipment":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装备");
-                                break;
-                            }
-                            case "social":
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
-                            case "library":
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            // 整合包
-                            case "multiplayer":
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
-                            case "challenging":
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
-                            case "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case "quests":
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
-                            case "kitchen-sink":
-                            {
-                                Tags.Add("水槽包");
-                                break;
-                            }
-                            case "lightweight":
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
-                            // 资源包
-                            case "simplistic":
-                            {
-                                Tags.Add("简洁");
-                                break;
-                            }
-                            case var @case when @case == "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case "tweaks":
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
-
-                            case "8x-":
-                            {
-                                Tags.Add("极简");
-                                break;
-                            }
-                            case "16x":
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
-                            case "32x":
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
-                            case "48x":
-                            {
-                                Tags.Add("48x");
-                                break;
-                            }
-                            case "64x":
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
-                            case "128x":
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
-                            case "256x":
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
-                            case "512x+":
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
-
-                            case "audio":
-                            {
-                                Tags.Add("含声音");
-                                break;
-                            }
-                            case "fonts":
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
-                            case "models":
-                            {
-                                Tags.Add("含模型");
-                                break;
-                            }
-                            case "gui":
-                            {
-                                Tags.Add("含 UI");
-                                break;
-                            }
-                            case "locale":
-                            {
-                                Tags.Add("含语言");
-                                break;
-                            }
-                            case "core-shaders":
-                            {
-                                Tags.Add("核心着色器");
-                                break;
-                            }
-                            case "modded":
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
-                            // 光影包
-                            case "fantasy":
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
-                            case "semi-realistic":
-                            {
-                                Tags.Add("半写实风");
-                                break;
-                            }
-                            case "cartoon":
-                            {
-                                Tags.Add("卡通风");
-                                break;
-                            }
-                            // 暂时不添加性能负荷 Tag
-                            // Case "potato" : Tags.Add("极低")
-                            // Case "low" : Tags.Add("低")
-                            // Case "medium" : Tags.Add("中")
-                            // Case "high" : Tags.Add("高")
-                            case "colored-lighting":
-                            {
-                                Tags.Add("彩色光照");
-                                break;
-                            }
-                            case "path-tracing":
-                            {
-                                Tags.Add("路径追踪");
-                                break;
-                            }
-                            case "pbr":
-                            {
-                                Tags.Add("PBR");
-                                break;
-                            }
-                            case "reflections":
-                            {
-                                Tags.Add("反射");
-                                break;
-                            }
-
-                            case "iris":
-                            {
-                                Tags.Add("Iris");
-                                break;
-                            }
-                            case "optifine":
-                            {
-                                Tags.Add("OptiFine");
-                                break;
-                            }
-                            case "vanilla":
-                            {
-                                Tags.Add("原版可用");
-                                break;
-                            }
-                        }
-
-                    #endregion
-                }
-
-                if (!Tags.Any())
-                    Tags.Add("其他");
-                Tags.Sort();
-                ModLoaders.Sort();
-            }
+            FromCurseForge = result.FromCurseForge;
+            Type = result.Type;
+            Slug = result.Slug;
+            Id = result.Id;
+            CurseForgeFileIds = result.CurseForgeFileIds;
+            RawName = result.RawName;
+            Description = result.Description;
+            Website = result.Website;
+            LastUpdate = result.LastUpdate;
+            DownloadCount = result.DownloadCount;
+            ModLoaders = result.ModLoaders;
+            Tags = result.Tags;
+            LogoUrl = result.LogoUrl;
+            Drops = result.Drops;
 
             // 保存缓存
             CompProjectCache[Id] = this;
         }
+
+        private sealed class CompProjectBuildResult
+        {
+            public bool FromCurseForge;
+            public CompType Type;
+            public string Slug;
+            public string Id;
+            public List<int> CurseForgeFileIds = [];
+            public string RawName;
+            public string Description;
+            public string Website;
+            public DateTime? LastUpdate;
+            public int DownloadCount;
+            public List<CompLoaderType> ModLoaders = [];
+            public List<string> Tags = [];
+            public string LogoUrl;
+            public List<int> Drops = [];
+        }
+
+        private static CompProjectBuildResult _BuildFromCompJson(JsonObject data)
+        {
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = (string)data["DataSource"] == "CurseForge",
+                Type = (CompType)data["Type"].ToObject<int>(),
+                Slug = (string)data["Slug"],
+                Id = (string)data["Id"],
+                RawName = (string)data["RawName"],
+                Description = (string)data["Description"],
+                Website = (string)data["Website"],
+                DownloadCount = (int)data["DownloadCount"],
+                Tags = ((JsonArray)data["Tags"]).Select(t => t.ToString()).ToList()
+            };
+
+            if (data.TryGetPropertyValue("CurseForgeFileIds", out var id))
+                result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
+
+            if (data.TryGetPropertyValue("LastUpdate", out var last))
+                result.LastUpdate = (DateTime?)last;
+
+            if (data.TryGetPropertyValue("ModLoaders", out var loaders))
+                result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
+                    .ToList();
+
+            if (data.TryGetPropertyValue("LogoUrl", out var url))
+                result.LogoUrl = (string)url;
+
+            if (data.TryGetPropertyValue("Drops", out var drops))
+                result.Drops = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
+
+            return result;
+        }
+
+        private static CompProjectBuildResult _BuildFromCurseForge(JsonObject data)
+        {
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = true,
+
+                // 简单信息
+                Id = (string)data["id"],
+                Slug = (string)data["slug"],
+                RawName = (string)data["name"],
+                Description = (string)data["summary"],
+                Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
+                LastUpdate = (DateTime?)data["dateReleased"], // #1194
+                DownloadCount = (int)data["downloadCount"]
+            };
+
+            if (data["logo"] is JsonObject { Count: > 0 } logo)
+                result.LogoUrl = string.IsNullOrEmpty((string)logo["thumbnailUrl"])
+                    ? (string)logo["url"]
+                    : (string)logo["thumbnailUrl"];
+
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
+
+            // Type
+            result.Type = _GetCurseForgeTypeByWebsite(result.Website);
+
+            // FileIndexes / VanillaMajorVersions / ModLoaders
+            var files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
+
+            foreach (var file in (data["latestFiles"] as JsonArray) ?? [])
+            {
+                var newFile = new CompFile((JsonObject)file, result.Type);
+                if (!newFile.Available)
+                    continue;
+
+                result.ModLoaders.AddRange(newFile.ModLoaders);
+
+                var gameVersions = file["gameVersions"]?.ToObject<List<string>>() ?? [];
+                if (!gameVersions.Any(ModMinecraft.McInstanceInfo.IsFormatFit))
+                    continue;
+
+                files.Add(new KeyValuePair<int, List<string>>((int)file["id"], gameVersions));
+            }
+
+            files.AddRange(
+                from File in (data["latestFilesIndexes"] as JsonArray) ?? []
+                let GameVersion = File["gameVersion"]?.ToString() ?? ""
+                where ModMinecraft.McInstanceInfo.IsFormatFit(GameVersion)
+                select new KeyValuePair<int, List<string>>((int)File["fileId"], new[] { GameVersion }.ToList())
+            );
+
+            result.CurseForgeFileIds = files
+                .Select(f => f.Key)
+                .Distinct()
+                .ToList();
+
+            result.Drops = files
+                .SelectMany(f => f.Value)
+                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
+                .Where(v => v > 0)
+                .Distinct()
+                .OrderByDescending(v => v)
+                .ToList();
+
+            result.ModLoaders = result.ModLoaders
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
+
+            // Tags
+            var categories = ((data["categories"] as JsonArray) ?? [])
+                .Select(t => t["id"]?.GetValue<int?>())
+                .Where(t => t.HasValue)
+                .Select(t => t.Value)
+                .Distinct()
+                .OrderByDescending(t => t);
+
+            foreach (var category in categories)
+                if (CurseForgeCategoryLangKeys.TryGetValue(category, out var langKey))
+                    _AddTag(result.Tags, langKey);
+
+            return result;
+        }
+
+        private static CompProjectBuildResult _BuildFromModrinth(JsonObject data)
+        {
+            var projectType = data["project_type"]?.ToString() ?? "";
+            var slug = (string)data["slug"];
+
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = false,
+
+                // 简单信息
+                Id = (string)(data["project_id"] ?? data["id"]), // 两个 API 会返回的 key 不一样
+                Slug = slug,
+                RawName = (string)data["title"],
+                Description = (string)data["description"],
+                LastUpdate = (DateTime?)data["date_modified"],
+                DownloadCount = (int)data["downloads"],
+                LogoUrl = (string)data["icon_url"],
+                Website = $"https://modrinth.com/{projectType}/{slug}",
+
+                // Type
+                Type = projectType switch
+                {
+                    "modpack" => CompType.ModPack,
+                    "resourcepack" => CompType.ResourcePack,
+                    "shader" => CompType.Shader,
+                    _ => CompType.Mod // Modrinth 将数据包标为 Mod
+                }
+            };
+
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
+
+            // GameVersions
+            // 搜索结果的键为 versions，获取特定工程的键为 game_versions
+            result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
+                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v))
+                .Where(v => v > 0)
+                .Distinct()
+                .OrderByDescending(v => v)
+                .ToList();
+
+            // Tags & ModLoaders
+            foreach (var category in (data["loaders"] as JsonArray)?.Select(t => t.ToString()) ?? [])
+                if (ModrinthLoaderTypes.TryGetValue(category ?? "", out var loader))
+                    result.ModLoaders.Add(loader);
+
+            foreach (var category in (data["categories"] as JsonArray)?.Select(t => t.ToString()) ?? [])
+            {
+                if (string.IsNullOrEmpty(category)) continue;
+                // 加载器
+                if (ModrinthLoaderTypes.TryGetValue(category, out var loader))
+                {
+                    result.ModLoaders.Add(loader);
+                }
+                else
+                {
+                    // Modrinth 将数据包标为 Mod，若包含数据包版本，则优先标为 DataPack
+                    if (category.Equals("datapack", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Type = CompType.DataPack;
+                    }
+                    else
+                    {
+                        // 这些分类在资源包中不显示
+                        if (ResourcePackHiddenCategoryLangKeys.TryGetValue(category, out var hiddenLangKey))
+                        {
+                            if (result.Type != CompType.ResourcePack)
+                                _AddTag(result.Tags, hiddenLangKey);
+                        }
+                        else
+                        {
+                            if (ModrinthCategoryLangKeys.TryGetValue(category, out var langKey))
+                                _AddTag(result.Tags, langKey);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static CompType _GetCurseForgeTypeByWebsite(string website)
+        {
+            var websiteLower = (website ?? "").ToLowerInvariant();
+
+            if (websiteLower.Contains("/mc-mods/") || websiteLower.Contains("/mod/"))
+                return CompType.Mod;
+            if (websiteLower.Contains("/modpacks/"))
+                return CompType.ModPack;
+            if (websiteLower.Contains("/resourcepacks/") || websiteLower.Contains("/texture-packs/"))
+                return CompType.ResourcePack;
+            if (websiteLower.Contains("/shaders/"))
+                return CompType.Shader;
+            if (websiteLower.Contains("/worlds/"))
+                return CompType.World;
+
+            return CompType.DataPack;
+        }
+
+        private static void _AddTag(List<string> tags, string langKey)
+        {
+            var tag = Lang.Text(langKey);
+
+            if (!tags.Contains(tag))
+                tags.Add(tag);
+        }
+
+        private static readonly Dictionary<string, CompLoaderType> ModrinthLoaderTypes =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["forge"] = CompLoaderType.Forge,
+                ["fabric"] = CompLoaderType.Fabric,
+                ["quilt"] = CompLoaderType.Quilt,
+                ["neoforge"] = CompLoaderType.NeoForge
+            };
+        
+        private static readonly Dictionary<int, string> CurseForgeCategoryLangKeys =
+            new()
+            {
+                // Mod
+                [406] = "Download.Comp.Category.WorldGen",
+                [407] = "Download.Comp.Category.Biomes",
+                [410] = "Download.Comp.Category.Dimensions",
+                [408] = "Download.Comp.Category.OresResources",
+                [409] = "Download.Comp.Category.Structures",
+                [412] = "Download.Comp.Category.Technology",
+                [415] = "Download.Comp.Category.PipesLogistics",
+                [4843] = "Download.Comp.Category.Automation",
+                [417] = "Download.Comp.Category.Energy",
+                [4558] = "Download.Comp.Category.Redstone",
+                [436] = "Download.Comp.Category.FoodCooking",
+                [416] = "Download.Comp.Category.Farming",
+                [414] = "Download.Comp.Category.Transportation",
+                [420] = "Download.Comp.Category.Storage",
+                [419] = "Download.Comp.Category.Magic",
+                [422] = "Download.Comp.Category.Adventure",
+                [424] = "Download.Comp.Category.Decoration",
+                [411] = "Download.Comp.Category.Mobs",
+                [434] = "Download.Comp.Category.Equipment",
+                [6814] = "Download.Comp.Category.Optimization",
+                [9026] = "Download.Comp.Category.Creative",
+                [423] = "Download.Comp.Category.Display",
+                [435] = "Download.Comp.Category.Server",
+                [5191] = "Download.Comp.Category.Tweaks",
+                [421] = "Download.Comp.Category.Library",
+
+                // 整合包
+                [4484] = "Download.Comp.Category.Multiplayer",
+                [4479] = "Download.Comp.Category.Modpack.Hardcore",
+                [4483] = "Download.Comp.Category.Combat",
+                [4478] = "Download.Comp.Category.Modpack.Quests",
+                [4472] = "Download.Comp.Category.Technology",
+                [4473] = "Download.Comp.Category.Magic",
+                [4475] = "Download.Comp.Category.Adventure",
+                [4476] = "Download.Comp.Category.Modpack.Exploration",
+                [4477] = "Download.Comp.Category.Modpack.MiniGame",
+                [4471] = "Download.Comp.Category.Modpack.SciFi",
+                [4736] = "Download.Comp.Category.Modpack.Skyblock",
+                [5128] = "Download.Comp.Category.Modpack.VanillaPlus",
+                [4487] = "Download.Comp.Category.Modpack.Ftb",
+                [4480] = "Download.Comp.Category.Modpack.MapBased",
+                [4481] = "Download.Comp.Category.Modpack.SmallLight",
+                [4482] = "Download.Comp.Category.Modpack.ExtraLarge",
+
+                // 资源包
+                [403] = "Download.Comp.Category.VanillaLike",
+                [400] = "Download.Comp.Category.Realistic",
+                [401] = "Download.Comp.Category.Modern",
+                [402] = "Download.Comp.Category.Medieval",
+                [399] = "Download.Comp.Category.Steampunk",
+                [5244] = "Download.Comp.Category.Fonts",
+                [404] = "Download.Comp.Category.Animated",
+                [4465] = "Download.Comp.Category.ModSupport",
+                [393] = "Download.Comp.Category.ResourcePack.Resolution16x",
+                [394] = "Download.Comp.Category.ResourcePack.Resolution32x",
+                [395] = "Download.Comp.Category.ResourcePack.Resolution64x",
+                [396] = "Download.Comp.Category.ResourcePack.Resolution128x",
+                [397] = "Download.Comp.Category.ResourcePack.Resolution256x",
+                [398] = "Download.Comp.Category.ResourcePack.Resolution512xOrHigher",
+                [5193] = "Download.Comp.Type.DataPack", // 有这个 Tag 的项会从资源包请求中被移除
+
+                // 光影包
+                [6553] = "Download.Comp.Category.Realistic",
+                [6554] = "Download.Comp.Category.Fantasy",
+                [6555] = "Download.Comp.Category.VanillaLike",
+
+                // 数据包
+                [6948] = "Download.Comp.Category.Adventure",
+                [6949] = "Download.Comp.Category.DataPack.Fantasy",
+                [6950] = "Download.Comp.Category.Library",
+                [6952] = "Download.Comp.Category.Magic",
+                [6946] = "Download.Comp.Category.Mod.ModRelated",
+                [6951] = "Download.Comp.Category.Technology",
+                [6953] = "Download.Comp.Category.Utility",
+
+                // 世界
+                [248] = "Download.Comp.Category.Adventure",
+                [249] = "Download.Comp.Category.World.Creative",
+                [250] = "Download.Comp.Category.Modpack.MiniGame",
+                [251] = "Download.Comp.Category.World.Parkour",
+                [252] = "Download.Comp.Category.World.Puzzle",
+                [253] = "Download.Comp.Category.World.Survival",
+                [4464] = "Download.Comp.Category.World.ModWorld"
+            };
+
+        private static readonly Dictionary<string, string> ResourcePackHiddenCategoryLangKeys =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["decoration"] = "Download.Comp.Category.Decoration",
+                ["mobs"] = "Download.Comp.Category.Mobs",
+                ["equipment"] = "Download.Comp.Category.Equipment"
+            };
+
+        private static readonly Dictionary<string, string> ModrinthCategoryLangKeys =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                // 共用
+                ["technology"] = "Download.Comp.Category.Technology",
+                ["magic"] = "Download.Comp.Category.Magic",
+                ["adventure"] = "Download.Comp.Category.Adventure",
+                ["utility"] = "Download.Comp.Category.Utility",
+                ["optimization"] = "Download.Comp.Category.Optimization",
+                ["vanilla-like"] = "Download.Comp.Category.VanillaLike",
+                ["realistic"] = "Download.Comp.Category.Realistic",
+
+                // Mod / 数据包
+                ["worldgen"] = "Download.Comp.Category.WorldGen",
+                ["food"] = "Download.Comp.Category.FoodCooking",
+                ["game-mechanics"] = "Download.Comp.Category.GameMechanics",
+                ["transportation"] = "Download.Comp.Category.Transportation",
+                ["storage"] = "Download.Comp.Category.Storage",
+                ["social"] = "Download.Comp.Category.Server",
+                ["library"] = "Download.Comp.Category.Library",
+
+                // 整合包
+                ["multiplayer"] = "Download.Comp.Category.Multiplayer",
+                ["challenging"] = "Download.Comp.Category.Modpack.Hardcore",
+                ["combat"] = "Download.Comp.Category.Combat",
+                ["quests"] = "Download.Comp.Category.Modpack.Quests",
+                ["kitchen-sink"] = "Download.Comp.Category.Modpack.KitchenSink",
+                ["lightweight"] = "Download.Comp.Category.Modpack.SmallLight",
+
+                // 资源包
+                ["simplistic"] = "Download.Comp.Category.Simplistic",
+                ["tweaks"] = "Download.Comp.Category.Tweaks",
+                ["8x-"] = "Download.Comp.Category.ResourcePack.Resolution8xOrLower",
+                ["16x"] = "Download.Comp.Category.ResourcePack.Resolution16x",
+                ["32x"] = "Download.Comp.Category.ResourcePack.Resolution32x",
+                ["48x"] = "Download.Comp.Category.ResourcePack.Resolution48x",
+                ["64x"] = "Download.Comp.Category.ResourcePack.Resolution64x",
+                ["128x"] = "Download.Comp.Category.ResourcePack.Resolution128x",
+                ["256x"] = "Download.Comp.Category.ResourcePack.Resolution256x",
+                ["512x+"] = "Download.Comp.Category.ResourcePack.Resolution512xOrHigher",
+                ["audio"] = "Download.Comp.Category.Audio",
+                ["fonts"] = "Download.Comp.Category.Fonts",
+                ["models"] = "Download.Comp.Category.Models",
+                ["gui"] = "Download.Comp.Category.Gui",
+                ["locale"] = "Download.Comp.Category.Locale",
+                ["core-shaders"] = "Download.Comp.Category.CoreShaders",
+                ["modded"] = "Download.Comp.Category.ModSupport",
+
+                // 光影包
+                ["fantasy"] = "Download.Comp.Category.Fantasy",
+                ["semi-realistic"] = "Download.Comp.Category.SemiRealistic",
+                ["cartoon"] = "Download.Comp.Category.Cartoon",
+                // 暂时不添加性能负荷 Tag：
+                // potato / low / medium / high
+                ["colored-lighting"] = "Download.Comp.Category.ColoredLighting",
+                ["path-tracing"] = "Download.Comp.Category.PathTracing",
+                ["pbr"] = "Download.Comp.Category.Pbr",
+                ["reflections"] = "Download.Comp.Category.Reflections",
+                ["iris"] = "Download.Comp.Category.Iris",
+                ["optifine"] = "Download.Comp.Category.Optifine",
+                ["vanilla"] = "Download.Comp.Filter.Loader.VanillaAvailable"
+            };
 
         /// <summary>
         ///     关联的数据库条目。若为 Nothing 则没有。
@@ -1870,7 +1494,7 @@ public static class ModComp
             {
                 if (ex.Message.Contains("404"))
                 {
-                    ModMain.MyMsgBox("当前资源的简介暂无译文", "获取译文失败", "我知道了");
+                    ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"), Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"), Lang.Text("Download.Comp.Detail.KnownButton"));
                     return null;
                 }
 
@@ -1922,7 +1546,7 @@ public static class ModComp
             string gameVersionDescription;
             if (Drops == null || !Drops.Any())
             {
-                gameVersionDescription = "仅快照版本";
+                gameVersionDescription = Lang.Text("Download.Comp.Detail.CompItem.SnapshotOnly");
             }
             else
             {
@@ -1961,7 +1585,7 @@ public static class ModComp
                         if (endDrop < 100)
                         {
                             segments.Clear();
-                            segments.Add("全版本");
+                            segments.Add(Lang.Text("Download.Comp.Detail.CompItem.AllVersions"));
                             break;
                         }
 
@@ -1992,8 +1616,8 @@ public static class ModComp
 
             var (fullDesc, partDesc) = modLoadersForDesc.Count switch
             {
-                0 => ModLoaders.Count == 1 ? ($"仅 {ModLoaders.Single()}", ModLoaders.Single().ToString()) : ("未知", ""),
-                1 => ($"仅 {modLoadersForDesc.Single()}", modLoadersForDesc.Single().ToString()),
+                0 => ModLoaders.Count == 1 ? (Lang.Text("Download.Comp.Type.Only", ModLoaders.Single().ToString()), ModLoaders.Single().ToString()) : (Lang.Text("Download.Comp.Type.Unknown"), ""),
+                1 => (Lang.Text("Download.Comp.Type.Only", modLoadersForDesc.Single().ToString()), modLoadersForDesc.Single().ToString()),
                 _ => GetMultiLoaderDesc()
             };
 
@@ -2008,7 +1632,7 @@ public static class ModComp
                              Config.Download.Comp.IgnoreQuilt);
 
                 var joined = string.Join(" / ", modLoadersForDesc);
-                return isAny ? ("任意", "") : (joined, joined);
+                return isAny ? (Lang.Text("Download.Comp.Type.Any"), "") : (joined, joined);
             }
 
             // --- 3. 实例化 UI (精简布局逻辑) ---
@@ -2177,7 +1801,7 @@ public static class ModComp
                     lowerEx.Replace("forge", "").Replace("fabric", "").Replace("quilt", "").Length <= 3)
                     ex = ex.Replace("Edition", "", StringComparison.OrdinalIgnoreCase)
                         .Replace("edition", "", StringComparison.OrdinalIgnoreCase)
-                        .Trim().Capitalize() + " 版";
+                        .Trim().Capitalize() + Lang.Text("Download.Comp.Detail.CompItem.EditionSuffix");
 
                 // 规范化名称大小写
                 ex = ex.Replace("forge", "Forge").Replace("neo", "Neo").Replace("fabric", "Fabric")
@@ -2593,7 +2217,7 @@ public static class ModComp
 
         if (!request.CanContinue)
         {
-            if (!storage.Results.Any()) throw new Exception("没有符合条件的结果");
+            if (!storage.Results.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoMatchingResults"));
             LogWrapper.Info(
                 $"[Comp] 已有 {storage.Results.Count} 个结果，少于所需的 {request.TargetResultCount} 个结果，但无法继续获取，结束处理");
             return;
@@ -2602,7 +2226,7 @@ public static class ModComp
         // 拒绝不支持的版本
         if (request.ModLoader == CompLoaderType.Quilt &&
             ModMinecraft.CompareVersion(request.GameVersion ?? "1.15", "1.14") == -1)
-            throw new Exception($"Quilt 不支持 Minecraft {request.GameVersion}");
+                throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.GameVersion));
 
         #endregion
 
@@ -2639,7 +2263,7 @@ public static class ModComp
             }
 
             var searchResults = ModBase.Search(searchEntries, request.SearchText, 40, 0.2);
-            if (!searchResults.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
+            if (!searchResults.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             string[] ExtractWords(ModBase.SearchEntry<CompDatabaseEntry> Result)
             {
@@ -2677,7 +2301,7 @@ public static class ModComp
                 }
             }
 
-            if (!WordWeights.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
+            if (!WordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             var SortedWords = WordWeights.OrderByDescending(w => w.Value).ToList();
             if (SortedWords.First().Value >= 100000)
@@ -2764,7 +2388,7 @@ public static class ModComp
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
                         var json = ModDownload.DlModRequest<JsonObject>(curseForgeUrl);
                         var projects = json["data"].AsArray().Select(j => new CompProject((JsonObject)j))
-                            .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains("数据包")))
+                            .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
                             .ToList();
                         lock (resultsLock)
                         {
@@ -2819,7 +2443,7 @@ public static class ModComp
             {
                 if (lastError != null) throw lastError;
                 // 处理各平台不兼容报错... (此处省略具体 Exception 文本以保持简略)
-                throw new Exception("没有搜索结果");
+                throw new Exception(Lang.Text("Download.Comp.List.NoResultsSimple"));
             }
 
             #region 去重与分页判断
@@ -3107,7 +2731,7 @@ public static class ModComp
                     // GameVersions
                     RawGameVersions = Data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
-                        .Select(v => v.Replace("-snapshot", " 预览版")).Distinct().ToList();
+                        .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3120,7 +2744,7 @@ public static class ModComp
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        GameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     // ModLoaders
@@ -3246,7 +2870,7 @@ public static class ModComp
                     // GameVersions
                     RawGameVersions = Data["game_versions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
-                        v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).Distinct().ToList();
+                        v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3263,7 +2887,7 @@ public static class ModComp
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        GameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     #endregion
@@ -3282,16 +2906,16 @@ public static class ModComp
                 {
                     case CompFileStatus.Release:
                     {
-                        return "正式版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Release");
                     }
                     case CompFileStatus.Beta:
                     {
-                        return ModBase.ModeDebug ? "Beta 版" : "测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Beta");
                     }
 
                     default:
                     {
-                        return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Alpha");
                     }
                 }
             }
@@ -3370,18 +2994,18 @@ public static class ModComp
                         info.Add(FileName.BeforeLast("."));
 
                     if (Dependencies.Any())
-                        info.Add($"{Dependencies.Count()} 项前置");
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.DependencyCount", Dependencies.Count()));
 
                     // 简化后的游戏版本逻辑喵
                     var snapshotKeywords = new[] { "w", "snapshot", "rc", "pre", "experimental", "-" };
                     if (GameVersions.All(ver =>
                             !ver.Contains('.') || snapshotKeywords.Any(s => ver.ContainsF(s, true))))
-                        info.Add($"游戏版本 {string.Join("、", GameVersions)}");
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion", string.Join("、", GameVersions)));
 
                     if (DownloadCount > 0)
                         info.Add(Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(DownloadCount)));
 
-                    info.Add($"更新于 {Lang.TimeSpan(ReleaseDate - DateTime.Now)}");
+                    info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated", Lang.TimeSpan(ReleaseDate - DateTime.Now)));
 
                     if (Status != CompFileStatus.Release)
                         info.Add(StatusDescription);
@@ -3394,7 +3018,7 @@ public static class ModComp
                         Height = 42,
                         Type = MyListItem.CheckType.Clickable,
                         Tag = this,
-                        Info = string.Join("，", info),
+                        Info = string.Join("  |  ", info),
                         // 使用 switch 表达式精简 Logo 选择喵！
                         Logo = Status switch
                         {
@@ -3408,7 +3032,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick != null)
                     {
-                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
@@ -3592,7 +3216,7 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "必要前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3616,7 +3240,7 @@ public static class ModComp
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "可选前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
@@ -3630,7 +3254,7 @@ public static class ModComp
         // 添加结尾间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "版本列表", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 12d, 0d, 5d)
         });
     }

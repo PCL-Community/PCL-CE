@@ -1,5 +1,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -192,7 +193,7 @@ public partial class PageDownloadLeft : IRefreshable
             }
         }
 
-        ModMain.Hint("正在刷新……", Log: false);
+        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), Log: false);
     }
 
     // 点击返回
@@ -359,7 +360,7 @@ public partial class PageDownloadLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的下载子页面种类：" + (int)ID);
+                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)ID));
             }
         }
     }

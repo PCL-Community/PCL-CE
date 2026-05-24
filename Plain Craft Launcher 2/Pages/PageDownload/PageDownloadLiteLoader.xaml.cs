@@ -2,6 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -12,6 +13,7 @@ public partial class PageDownloadLiteLoader
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.LiteLoader.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -34,14 +36,14 @@ public partial class PageDownloadLiteLoader
             var Dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
             for (var VersionCode = 30; VersionCode >= 0; VersionCode -= 1)
                 Dict.Add("1." + VersionCode, new List<ModDownload.DlLiteLoaderListEntry>());
-            Dict.Add("未知版本", new List<ModDownload.DlLiteLoaderListEntry>());
+            Dict.Add(ModMinecraft.UNKNOWN_VERSION_KEY, []);
             foreach (var Version in ModDownload.DlLiteLoaderListLoader.Output.Value)
             {
                 var MainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (Dict.ContainsKey(MainVersion))
                     Dict[MainVersion].Add(Version);
                 else
-                    Dict["未知版本"].Add(Version);
+                    Dict[ModMinecraft.UNKNOWN_VERSION_KEY].Add(Version);
             }
 
             // 清空当前
@@ -53,7 +55,12 @@ public partial class PageDownloadLiteLoader
                     continue;
                 // 增加卡片
                 var NewCard = new MyCard
-                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                {
+                    Title = (Pair.Key == ModMinecraft.UNKNOWN_VERSION_KEY
+                        ? Lang.Text("Minecraft.Version.Unknown")
+                        : Pair.Key) + " (" + Pair.Value.Count + ")",
+                    Margin = new Thickness(0d, 0d, 0d, 15d)
+                };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),

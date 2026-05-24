@@ -1,3 +1,4 @@
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -8,6 +9,7 @@ public partial class PageDownloadQuilt
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.Quilt.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -32,7 +34,7 @@ public partial class PageDownloadQuilt
                 PanVersions.Children.Add(
                     ModDownloadLib.QuiltDownloadListItem((JsonObject)Version,
                         (a, b) => this.Quilt_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

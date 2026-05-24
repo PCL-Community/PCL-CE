@@ -8,16 +8,18 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public static class ModMinecraft
 {
+    public const string UNKNOWN_VERSION_KEY = "UnknownVersion";
+
     /// <summary>
     ///     发送 Minecraft 更新提示。
     /// </summary>
@@ -38,11 +40,13 @@ public static class ModMinecraft
             if (version is null)
                 return;
             var time = (DateTime)version["releaseTime"];
-            var msgBoxText = $"新版本：{versionName}{"\r\n"}" + ((DateTime.Now - time).TotalDays > 1d
-                ? "更新时间：" + Lang.Date(time, "G")
-                : "更新于：" + Lang.TimeSpan(time - DateTime.Now));
-            var msgResult = ModMain.MyMsgBox(msgBoxText, "Minecraft 更新提示", Lang.Text("Common.Action.Confirm"), "下载",
-                (DateTime.Now - time).TotalHours > 3d ? "更新日志" : "",
+            var msgBoxText = Lang.Text("Minecraft.Update.NewVersion", versionName) + "\r\n" +
+                             ((DateTime.Now - time).TotalDays > 1d
+                                 ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
+                                 : Lang.Text("Minecraft.Update.UpdatedAt") + Lang.TimeSpan(time - DateTime.Now));
+            var msgResult = ModMain.MyMsgBox(msgBoxText, Lang.Text("Minecraft.Update.Title"),
+                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Download"),
+                (DateTime.Now - time).TotalHours > 3d ? Lang.Text("Common.Action.UpdateLog") : "",
                 Button3Action: () => ModDownloadLib.McUpdateLogShow(version));
             // 弹窗结果
             if (msgResult == 2)
@@ -77,13 +81,13 @@ public static class ModMinecraft
     /// </summary>
     public static int CompareVersion(string left, string right)
     {
-        if (left == "未知版本" || right == "未知版本")
+        if (left == Lang.Text("Minecraft.Version.Unknown") || right == Lang.Text("Minecraft.Version.Unknown"))
         {
-            if (left == "未知版本" && right != "未知版本")
+            if (left == Lang.Text("Minecraft.Version.Unknown") && right != Lang.Text("Minecraft.Version.Unknown"))
                 return 1;
-            if (left == "未知版本" && right == "未知版本")
+            if (left == Lang.Text("Minecraft.Version.Unknown") && right == Lang.Text("Minecraft.Version.Unknown"))
                 return 0;
-            if (left != "未知版本" && right == "未知版本")
+            if (left != Lang.Text("Minecraft.Version.Unknown") && right == Lang.Text("Minecraft.Version.Unknown"))
                 return -1;
         }
 
@@ -757,7 +761,7 @@ public static class ModMinecraft
                 {
                     ModBase.Log(ex, "识别 Minecraft 版本时出错");
                     _info.VanillaName = "Unknown";
-                    Desc = "无法识别：" + ex.Message;
+                    Desc = Lang.Text("Minecraft.Error.Unrecognizable", ex.Message);
                 }
 
                 #endregion
@@ -818,7 +822,8 @@ public static class ModMinecraft
                         }
                         else
                         {
-                            throw new Exception($"未找到实例 JSON 文件：{PathInstance}{Name}.json");
+                            throw new Exception(Lang.Text("Minecraft.Error.InstanceJsonNotFound",
+                                $"{PathInstance}{Name}.json"));
                         }
                     }
 
@@ -923,7 +928,8 @@ public static class ModMinecraft
                                     // 继续循环
                                     if (Equals(inheritInstance.InheritInstanceName,
                                             inheritInstanceName))
-                                    throw new Exception("版本依赖项出现嵌套：" + inheritInstanceName);
+                                        throw new Exception(Lang.Text("Minecraft.Error.DependencyRecursion",
+                                            inheritInstanceName));
                                     inheritInstanceName = inheritInstance.InheritInstanceName;
                                     // 合并
                                     inheritInstance.JsonObject.Merge(_jsonObject);
@@ -939,7 +945,7 @@ public static class ModMinecraft
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("初始化实例 JSON 时失败（" + (Name ?? "null") + "）", ex);
+                        throw new Exception(Lang.Text("Minecraft.Error.InitInstanceJsonFailed", Name ?? "null"), ex);
                     }
                 }
 
@@ -1070,13 +1076,13 @@ public static class ModMinecraft
             try
             {
                 if (string.IsNullOrEmpty(Info.VanillaName))
-                    throw new Exception("无法获取版本号，结果为空");
+                    throw new Exception(Lang.Text("Minecraft.Error.VersionNumberEmpty"));
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, "版本号获取失败（" + Name + "）");
                 State = McInstanceState.Error;
-                Desc = "版本号获取失败：" + ex;
+                Desc = Lang.Text("Minecraft.Error.VersionNumberFetchFailed", ex);
                 return false;
             }
 
@@ -1134,7 +1140,7 @@ public static class ModMinecraft
                         var realJson = JsonObject != null ? JsonObject.ToString() : JsonText;
                         // 愚人节与快照版本
                         if ((JsonObject["type"] ?? "").ToString() == "fool" ||
-                            !string.IsNullOrEmpty(GetMcFoolName(Info.VanillaName)))
+                            !string.IsNullOrEmpty(McVersionClassifier.GetMcFoolName(Info.VanillaName)))
                             State = McInstanceState.Fool;
                         else if (IsSnapshot()) State = McInstanceState.Snapshot;
                         // OptiFine
@@ -1142,7 +1148,8 @@ public static class ModMinecraft
                         {
                             State = McInstanceState.OptiFine;
                             Info.HasOptiFine = true;
-                            Info.OptiFine = realJson.RegexSeek(RegexPatterns.OptiFineVersion) ?? "未知版本";
+                            Info.OptiFine = realJson.RegexSeek(RegexPatterns.OptiFineVersion) ??
+                                            Lang.Text("Minecraft.Version.Unknown");
                         }
 
                         // LiteLoader
@@ -1164,7 +1171,8 @@ public static class ModMinecraft
                             State = McInstanceState.LegacyFabric;
                             Info.HasLegacyFabric = true;
                             Info.LegacyFabric =
-                                (realJson.RegexSeek(RegexPatterns.LegacyFabricVersion) ?? "未知版本")
+                                (realJson.RegexSeek(RegexPatterns.LegacyFabricVersion) ??
+                                 Lang.Text("Minecraft.Version.Unknown"))
                                 .Replace("+build", "");
                         }
                         else if (realJson.Contains("net.fabricmc:fabric-loader"))
@@ -1172,29 +1180,32 @@ public static class ModMinecraft
                             State = McInstanceState.Fabric;
                             Info.HasFabric = true;
                             Info.Fabric =
-                                (realJson.RegexSeek(RegexPatterns.FabricVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.FabricVersion) ??
+                                 Lang.Text("Minecraft.Version.Unknown")).Replace("+build", "");
                         }
                         else if (realJson.Contains("org.quiltmc:quilt-loader"))
                         {
                             State = McInstanceState.Quilt;
                             Info.HasQuilt = true;
                             Info.Quilt =
-                                (realJson.RegexSeek(RegexPatterns.QuiltVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.QuiltVersion) ??
+                                 Lang.Text("Minecraft.Version.Unknown")).Replace("+build", "");
                         }
                         else if (realJson.Contains("com.cleanroommc:cleanroom:"))
                         {
                             State = McInstanceState.Cleanroom;
                             Info.HasCleanroom = true;
                             Info.Cleanroom =
-                                (realJson.RegexSeek(RegexPatterns.CleanroomVersion) ?? "未知版本").Replace("+build", "");
+                                (realJson.RegexSeek(RegexPatterns.CleanroomVersion) ??
+                                 Lang.Text("Minecraft.Version.Unknown")).Replace("+build", "");
                         }
                         else if (realJson.Contains("minecraftforge") && !realJson.Contains("net.neoforge"))
                         {
                             State = McInstanceState.Forge;
                             Info.HasForge = true;
-                            Info.Forge = realJson.RegexSeek(RegexPatterns.ForgeMainVersion);
-                            if (Info.Forge is null)
-                                Info.Forge = realJson.RegexSeek(RegexPatterns.ForgeLibVersion) ?? "未知版本";
+                            Info.Forge = realJson.RegexSeek(RegexPatterns.ForgeMainVersion) ??
+                                         realJson.RegexSeek(RegexPatterns.ForgeLibVersion) ??
+                                         Lang.Text("Minecraft.Version.Unknown");
                         }
                         else if (realJson.Contains("net.neoforge"))
                         {
@@ -1202,7 +1213,8 @@ public static class ModMinecraft
                             // 1.20.2+ JSON 范例："--fml.neoForgeVersion", "20.6.119-beta"
                             State = McInstanceState.NeoForge;
                             Info.HasNeoForge = true;
-                            Info.NeoForge = realJson.RegexSeek(RegexPatterns.NeoForgeVersion) ?? "未知版本";
+                            Info.NeoForge = realJson.RegexSeek(RegexPatterns.NeoForgeVersion) ??
+                                            Lang.Text("Minecraft.Version.Unknown");
                         }
 
                         break;
@@ -1362,22 +1374,36 @@ public static class ModMinecraft
             // Mod Loader 信息
             var ModLoaderInfo = "";
             if (this.Info.HasForge)
-                ModLoaderInfo += ", Forge" + (this.Info.Forge == "未知版本" ? "" : " " + this.Info.Forge);
+                ModLoaderInfo += ", Forge" + (this.Info.Forge == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.Forge);
             if (this.Info.HasNeoForge)
-                ModLoaderInfo += ", NeoForge" + (this.Info.NeoForge == "未知版本" ? "" : " " + this.Info.NeoForge);
+                ModLoaderInfo += ", NeoForge" + (this.Info.NeoForge == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.NeoForge);
             if (this.Info.HasCleanroom)
-                ModLoaderInfo += ", Cleanroom" + (this.Info.Cleanroom == "未知版本" ? "" : " " + this.Info.Cleanroom);
+                ModLoaderInfo += ", Cleanroom" + (this.Info.Cleanroom == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.Cleanroom);
             if (this.Info.HasLabyMod)
-                ModLoaderInfo += ", LabyMod" + (this.Info.LabyMod == "未知版本" ? "" : " " + this.Info.LabyMod);
+                ModLoaderInfo += ", LabyMod" + (this.Info.LabyMod == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.LabyMod);
             if (this.Info.HasFabric)
-                ModLoaderInfo += ", Fabric" + (this.Info.Fabric == "未知版本" ? "" : " " + this.Info.Fabric);
+                ModLoaderInfo += ", Fabric" + (this.Info.Fabric == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.Fabric);
             if (this.Info.HasQuilt)
-                ModLoaderInfo += ", Quilt" + (this.Info.Quilt == "未知版本" ? "" : " " + this.Info.Quilt);
+                ModLoaderInfo += ", Quilt" + (this.Info.Quilt == Lang.Text("Minecraft.Version.Unknown")
+                    ? ""
+                    : " " + this.Info.Quilt);
             if (this.Info.HasLegacyFabric)
                 ModLoaderInfo += ", Legacy Fabric" +
-                                 (this.Info.LegacyFabric == "未知版本" ? "" : " " + this.Info.LegacyFabric);
+                                 (this.Info.LegacyFabric == Lang.Text("Minecraft.Version.Unknown")
+                                     ? ""
+                                     : " " + this.Info.LegacyFabric);
             if (this.Info.HasOptiFine)
-                ModLoaderInfo += ", OptiFine" + (this.Info.OptiFine == "未知版本"
+                ModLoaderInfo += ", OptiFine" + (this.Info.OptiFine == Lang.Text("Minecraft.Version.Unknown")
                     ? ""
                     : " " + this.Info.OptiFine.Replace("-", " ").Replace("_", " "));
             if (this.Info.HasLiteLoader)
@@ -1621,7 +1647,7 @@ public static class ModMinecraft
         {
             get
             {
-                if (string.IsNullOrEmpty(OptiFine) || OptiFine == "未知版本")
+                if (string.IsNullOrEmpty(OptiFine) || OptiFine == Lang.Text("Minecraft.Version.Unknown"))
                     return 0;
                 // 字母编号，如 G2 中的 G（7）
                 var result = Strings.Asc(OptiFine.ToUpper().First()) - Strings.Asc('A') + 1;
@@ -1667,8 +1693,8 @@ public static class ModMinecraft
             {
                 if (!HasForgelike)
                     return 0;
-                if ((string.IsNullOrEmpty(Forge) || Forge == "未知版本") &&
-                    (string.IsNullOrEmpty(NeoForge) || NeoForge == "未知版本"))
+                if ((string.IsNullOrEmpty(Forge) || Forge == Lang.Text("Minecraft.Version.Unknown")) &&
+                    (string.IsNullOrEmpty(NeoForge) || NeoForge == Lang.Text("Minecraft.Version.Unknown")))
                     return 0;
                 var segments = (HasForge ? Forge : NeoForge).RegexSearch(@"\d+");
                 switch (segments.Count)
@@ -1713,24 +1739,28 @@ public static class ModMinecraft
             string ToStringRet = default;
             ToStringRet = "";
             if (HasForge)
-                ToStringRet += ", Forge" + (Forge == "未知版本" ? "" : " " + Forge);
+                ToStringRet += ", Forge" + (Forge == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Forge);
             if (HasNeoForge)
-                ToStringRet += ", NeoForge" + (NeoForge == "未知版本" ? "" : " " + NeoForge);
+                ToStringRet += ", NeoForge" +
+                               (NeoForge == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + NeoForge);
             if (HasCleanroom)
-                ToStringRet += ", Cleanroom" + (Cleanroom == "未知版本" ? "" : " " + Cleanroom);
+                ToStringRet += ", Cleanroom" +
+                               (Cleanroom == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Cleanroom);
             if (HasFabric)
-                ToStringRet += ", Fabric" + (Fabric == "未知版本" ? "" : " " + Fabric);
+                ToStringRet += ", Fabric" + (Fabric == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Fabric);
             if (HasLegacyFabric)
-                ToStringRet += ", LegacyFabric" + (LegacyFabric == "未知版本" ? "" : " " + LegacyFabric);
+                ToStringRet += ", LegacyFabric" +
+                               (LegacyFabric == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + LegacyFabric);
             if (HasQuilt)
-                ToStringRet += ", Quilt" + (Quilt == "未知版本" ? "" : " " + Quilt);
+                ToStringRet += ", Quilt" + (Quilt == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Quilt);
             if (HasLabyMod)
-                ToStringRet += ", LabyMod" + (LabyMod == "未知版本" ? "" : " " + LabyMod);
+                ToStringRet += ", LabyMod" + (LabyMod == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + LabyMod);
             if (HasOptiFine)
-                ToStringRet += ", OptiFine" + (OptiFine == "未知版本" ? "" : " " + OptiFine);
+                ToStringRet += ", OptiFine" +
+                               (OptiFine == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + OptiFine);
             if (HasLiteLoader)
                 ToStringRet += ", LiteLoader";
-            if (string.IsNullOrEmpty(ToStringRet)) return "原版 " + VanillaName;
+            if (string.IsNullOrEmpty(ToStringRet)) return Lang.Text("Minecraft.Version.Vanilla") + " " + VanillaName;
 
             return VanillaName + ToStringRet;
         }
@@ -1787,41 +1817,6 @@ public static class ModMinecraft
     /// <summary>
     ///     根据版本名获取对应的愚人节版本描述。非愚人节版本会返回空字符串。
     /// </summary>
-    public static string GetMcFoolName(string name)
-    {
-        name = name.ToLower();
-        if (name.StartsWithF("2.0") || name.StartsWithF("2point0"))
-        {
-            var tag = "";
-            if (name.EndsWith("red"))
-                tag = "（红色版本）";
-            else if (name.EndsWith("blue"))
-                tag = "（蓝色版本）";
-            else if (name.EndsWith("purple")) tag = "（紫色版本）";
-            return "2013 | 这个秘密计划了两年的更新将游戏推向了一个新高度！" + tag;
-        }
-
-        if (name == "15w14a") return "2015 | 作为一款全年龄向的游戏，我们需要和平，需要爱与拥抱。";
-
-        if (name == "1.rv-pre1") return "2016 | 是时候将现代科技带入 Minecraft 了！";
-
-        if (name == "3d shareware v1.34") return "2019 | 我们从地下室的废墟里找到了这个开发于 1994 年的杰作！";
-
-        if (name.StartsWithF("20w14inf") || name == "20w14∞") return "2020 | 我们加入了 20 亿个新的维度，让无限的想象变成了现实！";
-
-        if (name == "22w13oneblockatatime") return "2022 | 一次一个方块更新！迎接全新的挖掘、合成与骑乘玩法吧！";
-
-        if (name == "23w13a_or_b") return "2023 | 研究表明：玩家喜欢作出选择——越多越好！";
-
-        if (name == "24w14potato") return "2024 | 毒马铃薯一直都被大家忽视和低估，于是我们超级加强了它！";
-
-        if (name == "25w14craftmine") return "2025 | 你可以合成任何东西——包括合成你的世界！";
-
-        if (name == "26w14a") return "2026 | 为什么需要物品栏？让方块们跟着你走吧！";
-
-        return "";
-    }
-
     /// <summary>
     ///     当前按卡片分类的所有版本列表。
     /// </summary>
@@ -1867,7 +1862,7 @@ public static class ModMinecraft
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"无法读取实例文件夹，可能是由于没有权限（{versionsPath}）", ex);
+                    throw new Exception(Lang.Text("Minecraft.Error.CannotReadInstanceFolder", versionsPath), ex);
                 }
 
             // 如果没有可用实例，清空缓存并跳过后续处理
@@ -2477,10 +2472,10 @@ public static class ModMinecraft
     public static string McSkinGetAddress(string uuid, string type)
     {
         if (string.IsNullOrEmpty(uuid))
-            throw new Exception("Uuid 为空。");
+            throw new Exception(Lang.Text("Minecraft.Skin.Error.UuidEmpty"));
 
         if (uuid.StartsWith("00000"))
-            throw new Exception("离线 Uuid 无正版皮肤文件。");
+            throw new Exception(Lang.Text("Minecraft.Skin.Error.OfflineNoSkin"));
 
         // 尝试读取缓存
         var cachePath = Path.Combine(ModBase.PathTemp, $"Cache\\Skin\\Index{type}.ini");
@@ -2495,12 +2490,12 @@ public static class ModMinecraft
             "Ms" => "https://sessionserver.mojang.com/session/minecraft/profile/",
             "Auth" => ModProfile.SelectedProfile.Server.Replace("/authserver", "") +
                       "/sessionserver/session/minecraft/profile/",
-            _ => throw new ArgumentException($"皮肤地址种类无效：{type ?? "null"}")
+            _ => throw new ArgumentException(Lang.Text("Minecraft.Skin.Error.InvalidSkinType", type ?? "null"))
         };
 
         var skinString = ModNet.NetGetCodeByRequestRetry(url + uuid);
         if (string.IsNullOrEmpty((string?)skinString))
-            throw new Exception("皮肤返回值为空，可能是未设置自定义皮肤的用户");
+            throw new Exception(Lang.Text("Minecraft.Skin.Error.SkinReturnEmpty"));
 
         // 解析皮肤 Property
         string skinValue = null;
@@ -2515,14 +2510,14 @@ public static class ModMinecraft
                 }
 
             if (skinValue == null)
-                throw new Exception("未从皮肤返回值中找到符合条件的 Property");
+                throw new Exception(Lang.Text("Minecraft.Skin.Error.PropertyNotFound"));
         }
         catch (Exception ex)
         {
             ModBase.Log(ex,
                 $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
                 ModBase.LogLevel.Developer);
-            throw new Exception("皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户", ex);
+            throw new Exception(Lang.Text("Minecraft.Skin.Error.NoSkinData"), ex);
         }
 
         // 解码 Base64 并解析 JSON
@@ -2530,7 +2525,7 @@ public static class ModMinecraft
         var skinJson = (JsonObject)ModBase.GetJson(decoded.ToLowerInvariant());
 
         if (skinJson["textures"]?["skin"]?["url"] == null)
-            throw new Exception("用户未设置自定义皮肤");
+            throw new Exception(Lang.Text("Minecraft.Skin.Error.NoCustomSkin"));
 
         var skinUrl = skinJson["textures"]["skin"]["url"].ToString();
         skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
@@ -3288,7 +3283,7 @@ public static class ModMinecraft
         }
         // End If
 
-        throw new Exception("该实例不存在资源文件索引信息");
+        throw new Exception(Lang.Text("Minecraft.Error.NoAssetIndexInfo"));
     }
 
     /// <summary>
@@ -3356,7 +3351,7 @@ public static class ModMinecraft
         {
             // 初始化
             if (!File.Exists($@"{McFolderSelected}assets\indexes\{indexName}.json"))
-                throw new FileNotFoundException("未找到 Asset Index",
+                throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                     Path.Combine(McFolderSelected, "assets", "indexes", indexName + ".json"));
             var result = new List<McAssetsToken>();
             var json = (JsonObject)JsonNode.Parse(
