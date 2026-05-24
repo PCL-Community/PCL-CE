@@ -6,8 +6,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
@@ -897,7 +895,7 @@ public partial class PageInstanceExport : IRefreshable
                     try
                     {
                         var ModrinthHashes = Loader.Input.Select(m => m.ModrinthHash);
-                        var ModrinthRaw = (JObject)ModBase.GetJson(ModDownload.DlModRequest(
+                        var ModrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                             "https://api.modrinth.com/v2/version_files", "POST",
                             $"{{\"hashes\": [\"{ModrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
                             "application/json"));
@@ -933,14 +931,14 @@ public partial class PageInstanceExport : IRefreshable
                     {
                         if (ModrinthUploadMode) return;
                         var CurseForgeHashes = Loader.Input.Select(m => m.CurseForgeHash);
-                        var CurseForgeRaw = (JContainer)((JObject)ModBase.GetJson(
+                        var CurseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
                             ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
                                 $"{{\"fingerprints\": [{CurseForgeHashes.Join(",")}]}}", "application/json")))["data"][
                             "exactMatches"];
-                        foreach (JObject ResultJson in CurseForgeRaw)
+                        foreach (JsonObject ResultJson in CurseForgeRaw.AsArray())
                         {
                             if (!ResultJson.ContainsKey("file")) continue;
-                            var File = (JObject)ResultJson["file"];
+                            var File = (JsonObject)ResultJson["file"];
                             if (string.IsNullOrEmpty((string)File["downloadUrl"])) continue;
                             var ModFile = Loader.Input.FirstOrDefault(m =>
                                 m.CurseForgeHash == File["fileFingerprint"].ToObject<uint>());
@@ -949,7 +947,7 @@ public partial class PageInstanceExport : IRefreshable
                                 ModComp.CompFile.HandleCurseForgeDownloadUrls(File["downloadUrl"].ToString()));
                         }
 
-                        ModBase.Log($"[Export] 从 CurseForge 获取到 {CurseForgeRaw.Count} 个本地资源项的对应信息");
+                        ModBase.Log($"[Export] 从 CurseForge 获取到 {CurseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
                     }
                     catch (Exception ex)
                     {
@@ -1000,21 +998,21 @@ public partial class PageInstanceExport : IRefreshable
             Loader =>
             {
                 // 整理文件列表
-                var Files = new JArray();
+                var Files = new JsonArray();
                 foreach (var Pair in Loader.Input)
                 {
                     var ModFile = Pair.Key;
-                    Files.Add(new JObject
+                    Files.Add(new JsonObject
                     {
                         { "path", ModFile.Path.AfterFirst(OverridesFolder).Replace(@"\", "/") },
                         {
                             "hashes",
-                            new JObject
+                            new JsonObject
                             {
                                 { "sha1", ModFile.ModrinthHash }, { "sha512", ModBase.GetFileSHA512(ModFile.Path) }
                             }
                         },
-                        { "downloads", new JArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com"))) },
+                        { "downloads", new JsonArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com")).Select(s => (JsonNode)s).ToArray()) },
                         { "fileSize", new FileInfo(ModFile.Path).Length }
                     });
                     File.Delete(ModFile.Path);
@@ -1022,20 +1020,20 @@ public partial class PageInstanceExport : IRefreshable
 
                 Loader.Progress = 0.2d;
                 // 导出最终 JSON 文件
-                var Dependencies = new JObject { { "minecraft", McInstance.Info.VanillaName } };
+                var Dependencies = new JsonObject { { "minecraft", McInstance.Info.VanillaName } };
                 if (McInstance.Info.HasForge)
                     Dependencies.Add("forge", McInstance.Info.Forge);
                 if (McInstance.Info.HasFabric)
                     Dependencies.Add("fabric-loader", McInstance.Info.Fabric);
                 if (McInstance.Info.HasNeoForge)
                     Dependencies.Add("neoforge", McInstance.Info.NeoForge);
-                var ResultJson = new JObject
+                var ResultJson = new JsonObject
                 {
                     { "game", "minecraft" }, { "formatVersion", 1 }, { "versionId", PackVersion }, { "name", PackName },
                     { "summary", McInstance.Desc }, { "files", Files }, { "dependencies", Dependencies }
                 };
                 File.WriteAllText(Path.Combine(CacheFolder, "modpack", "modrinth.index.json"),
-                    ResultJson.ToString(Formatting.Indented));
+                    ResultJson.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
                 // 打包
                 Directory.CreateDirectory(ModBase.GetPathFromFullPath(PackPath));
                 if (File.Exists(PackPath))
