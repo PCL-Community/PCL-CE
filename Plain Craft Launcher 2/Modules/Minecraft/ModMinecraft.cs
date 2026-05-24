@@ -764,6 +764,11 @@ public static class ModMinecraft
 
                 VersionSearchFinish: ;
 
+                if (_info.VanillaName.StartsWithF("20.") || _info.VanillaName.StartsWithF("21."))
+                {
+                    _info.VanillaName = "1." + _info.VanillaName;
+                }
+                
                 _info.VanillaName = _info.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "");
                 // 获取版本号
                 if (_info.VanillaName.StartsWithF("1."))
