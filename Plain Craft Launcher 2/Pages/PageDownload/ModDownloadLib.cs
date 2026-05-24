@@ -3720,7 +3720,7 @@ public static class ModDownloadLib
                 ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Success")}", ModMain.HintType.Finish);
                 break;
             case ModBase.LoadState.Failed:
-                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Failure")}：{loader.Error.Message}", ModMain.HintType.Critical);
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", ModMain.HintType.Critical);
                 break;
             case ModBase.LoadState.Aborted:
                 ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Cancelled")}");
@@ -3756,7 +3756,7 @@ public static class ModDownloadLib
             case ModBase.LoadState.Failed:
             {
                 ModMain.Hint(
-                    $"{loader.Name}{Lang.Text("Common.Status.Failure")}：{loader.Error.Message}",
+                    $"{loader.Name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
                     ModMain.HintType.Critical);
                 break;
             }
