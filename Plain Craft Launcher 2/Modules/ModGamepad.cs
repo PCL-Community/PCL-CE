@@ -22,7 +22,8 @@ public static class ModGamepad
     private static Point _lastMousePos;
     private static bool _gamepadActive;
 
-    private static bool _pendingPageFocus;
+    private static bool _pendingPageFocus = true;
+    private static DependencyPropertyDescriptor? _pageChildProp;
 
     private static double _scrollAccumulator;
 
@@ -59,7 +60,6 @@ public static class ModGamepad
             }
 
             RunOnUiThread(CreateHighlightOverlay);
-            _pendingPageFocus = true;
 
             _isRunning = true;
             var thread = new Thread(PollLoop)
@@ -80,11 +80,21 @@ public static class ModGamepad
     public static void Shutdown()
     {
         _isRunning = false;
+        RunOnUiThread(RemovePageChangeHandler);
+    }
+
+    private static void RemovePageChangeHandler()
+    {
+        if (_pageChildProp is null) return;
+        var frm = GetForm();
+        if (frm is null) return;
+        _pageChildProp.RemoveValueChanged(frm.PanMainLeft, OnPageChildChanged);
+        _pageChildProp.RemoveValueChanged(frm.PanMainRight, OnPageChildChanged);
     }
 
     private static void CreateHighlightOverlay()
     {
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
 
         _highlightCanvas = new Canvas
@@ -121,6 +131,7 @@ public static class ModGamepad
         var childProp = DependencyPropertyDescriptor.FromName("Child", typeof(Border), typeof(Border));
         if (childProp is not null)
         {
+            _pageChildProp = childProp;
             childProp.AddValueChanged(frm.PanMainLeft, OnPageChildChanged);
             childProp.AddValueChanged(frm.PanMainRight, OnPageChildChanged);
         }
@@ -136,16 +147,25 @@ public static class ModGamepad
         _pendingPageFocus = true;
     }
 
-    private static void OnAnyMouseDown(object sender, MouseButtonEventArgs e)
+    private static void HideHighlight()
     {
-        _gamepadActive = false;
         if (_highlightBorder is not null)
             _highlightBorder.Visibility = Visibility.Collapsed;
     }
 
+    private static FormMain? GetForm() => ModMain.FrmMain;
+
+    private static void OnAnyMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _gamepadActive = false;
+        HideHighlight();
+    }
+
     private static void OnAnyMouseMove(object sender, MouseEventArgs e)
     {
-        var pos = e.GetPosition(ModMain.FrmMain);
+        var frm = GetForm();
+        if (frm is null) return;
+        var pos = e.GetPosition(frm);
         var dx = pos.X - _lastMousePos.X;
         var dy = pos.Y - _lastMousePos.Y;
         _lastMousePos = pos;
@@ -153,8 +173,7 @@ public static class ModGamepad
         if (_gamepadActive && (Math.Abs(dx) > MouseHideThreshold || Math.Abs(dy) > MouseHideThreshold))
         {
             _gamepadActive = false;
-            if (_highlightBorder is not null)
-                _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
         }
     }
 
@@ -162,40 +181,39 @@ public static class ModGamepad
     {
         if (_isSimulatingInput) return;
         _gamepadActive = false;
-        if (_highlightBorder is not null)
-            _highlightBorder.Visibility = Visibility.Collapsed;
+        HideHighlight();
     }
 
     private static void UpdateHighlightFromFocus()
     {
         if (_highlightBorder is null) return;
 
-        var frm = ModMain.FrmMain;
-        if (frm is null) return;
-
         if (_isTitleBarMode)
             UpdateTitleBarHighlight();
         else if (_gamepadActive)
             UpdateNormalHighlight();
         else
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
     }
 
     private static void UpdateTitleBarHighlight()
     {
-        var btn = GetTitleBarButton(0);
+        var btn = GetTitleBarButton();
         if (btn is null || !btn.IsVisible || !btn.IsEnabled)
         {
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
             return;
         }
+
+        var frm = GetForm();
+        if (frm is null) return;
 
         _highlightBorder.BorderBrush = _titleBarBorderBrush;
         _highlightBorder.Background = _titleBarBackground;
 
         try
         {
-            var transform = btn.TransformToAncestor(ModMain.FrmMain.PanForm);
+            var transform = btn.TransformToAncestor(frm.PanForm);
             var position = transform.Transform(new Point(0, 0));
 
             _highlightBorder.Width = Math.Max(btn.ActualWidth, 4);
@@ -208,7 +226,7 @@ public static class ModGamepad
         }
         catch
         {
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
         }
     }
 
@@ -216,18 +234,20 @@ public static class ModGamepad
     {
         if (!_gamepadActive)
         {
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
             return;
         }
 
-        var frm = ModMain.FrmMain;
         var focused = Keyboard.FocusedElement as FrameworkElement;
         if (focused is null || !focused.IsVisible || !focused.IsEnabled
             || !KeyControllAbility.GetCanSelect(focused))
         {
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
             return;
         }
+
+        var frm = GetForm();
+        if (frm is null) return;
 
         _highlightBorder.BorderBrush = _highlightBorderBrush;
         _highlightBorder.Background = _highlightBackground;
@@ -249,34 +269,38 @@ public static class ModGamepad
         }
         catch
         {
-            _highlightBorder.Visibility = Visibility.Collapsed;
+            HideHighlight();
         }
     }
 
-    private static MyIconButton? GetTitleBarButton(int direction)
+    private static MyIconButton? GetTitleBarButton()
     {
-        if (_btnTitleMin is null && _btnTitleHelp is null && _btnTitleClose is null)
-            return null;
-
-        var visible = new List<int>();
-        if (_btnTitleMin is { Visibility: Visibility.Visible }) visible.Add(0);
-        if (_btnTitleHelp is { Visibility: Visibility.Visible }) visible.Add(1);
-        if (_btnTitleClose is { Visibility: Visibility.Visible }) visible.Add(2);
-
+        var visible = GetVisibleTitleBarButtons();
         if (visible.Count == 0) return null;
 
-        if (direction == 0)
-        {
-            var idx = visible.IndexOf(_titleBarIndex);
-            return idx >= 0 ? GetButtonByIndex(_titleBarIndex) : GetButtonByIndex(visible[0]);
-        }
+        var idx = visible.IndexOf(_titleBarIndex);
+        return idx >= 0 ? GetButtonByIndex(_titleBarIndex) : GetButtonByIndex(visible[0]);
+    }
+
+    private static void MoveTitleBarIndex(int direction)
+    {
+        var visible = GetVisibleTitleBarButtons();
+        if (visible.Count == 0) return;
 
         var currentPos = visible.IndexOf(_titleBarIndex);
         if (currentPos < 0) currentPos = -direction;
 
         var newPos = (currentPos + direction + visible.Count) % visible.Count;
         _titleBarIndex = visible[newPos];
-        return GetButtonByIndex(_titleBarIndex);
+    }
+
+    private static List<int> GetVisibleTitleBarButtons()
+    {
+        var visible = new List<int>(3);
+        if (_btnTitleMin is { Visibility: Visibility.Visible }) visible.Add(0);
+        if (_btnTitleHelp is { Visibility: Visibility.Visible }) visible.Add(1);
+        if (_btnTitleClose is { Visibility: Visibility.Visible }) visible.Add(2);
+        return visible;
     }
 
     private static MyIconButton? GetButtonByIndex(int idx) => idx switch
@@ -295,7 +319,7 @@ public static class ModGamepad
         _focusScopeStack.Clear();
         _preTitleBarFocused = Keyboard.FocusedElement as UIElement;
 
-        var btn = GetTitleBarButton(0);
+        var btn = GetTitleBarButton();
         if (btn is not null)
             btn.Focus();
     }
@@ -319,26 +343,23 @@ public static class ModGamepad
         if (!_pendingPageFocus)
             return;
 
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
 
-        foreach (var page in new DependencyObject?[] { frm.PageLeft, frm.PageRight })
+        var first = KeyControllAbility.FindFirstSelectable(frm.PageLeft)
+            ?? KeyControllAbility.FindFirstSelectable(frm.PageRight);
+        if (first is not null)
         {
-            var first = KeyControllAbility.FindFirstSelectable(page);
-            if (first is not null)
-            {
-                first.Focus();
-                _pendingPageFocus = false;
-                if (_gamepadActive)
-                    UpdateHighlightFromFocus();
-                return;
-            }
+            first.Focus();
+            _pendingPageFocus = false;
+            if (_gamepadActive)
+                UpdateHighlightFromFocus();
         }
     }
 
     private static bool IsFocusOnLeftPage()
     {
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return true;
 
         var focused = Keyboard.FocusedElement as DependencyObject;
@@ -445,7 +466,7 @@ public static class ModGamepad
         if (delta == 0) return;
         _isSimulatingInput = true;
 
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
         var source = PresentationSource.FromVisual(frm);
         if (source is null) return;
@@ -459,21 +480,18 @@ public static class ModGamepad
         _isSimulatingInput = false;
     }
 
-    private static bool IsDPadDirection(GamepadButtonFlags btn)
-    {
-        return btn is GamepadButtonFlags.DPadUp or GamepadButtonFlags.DPadDown
-            or GamepadButtonFlags.DPadLeft or GamepadButtonFlags.DPadRight;
-    }
-
     private static void RunOnUiThread(Action action)
     {
-        if (ModMain.FrmMain is null) return;
-        ModMain.FrmMain.Dispatcher.Invoke(action);
+        GetForm()?.Dispatcher.Invoke(action);
     }
+
+    private static bool IsDPadDirection(GamepadButtonFlags btn) => btn
+        is GamepadButtonFlags.DPadUp or GamepadButtonFlags.DPadDown
+        or GamepadButtonFlags.DPadLeft or GamepadButtonFlags.DPadRight;
 
     private static void HandleButtonPress(GamepadButtonFlags buttons)
     {
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
         if (!frm.IsActive) return;
 
@@ -584,16 +602,12 @@ public static class ModGamepad
     {
         if (buttons is GamepadButtonFlags.DPadLeft or GamepadButtonFlags.DPadRight)
         {
-            var dir = buttons == GamepadButtonFlags.DPadRight ? 1 : -1;
-            GetTitleBarButton(dir);
-            var btn = GetTitleBarButton(0);
-            if (btn is not null)
-                btn.Focus();
-            UpdateHighlightFromFocus();
+            MoveTitleBarIndex(buttons == GamepadButtonFlags.DPadRight ? 1 : -1);
+            GetTitleBarButton()?.Focus();
         }
         else if (buttons.HasFlag(GamepadButtonFlags.A))
         {
-            var btn = GetTitleBarButton(0);
+            var btn = GetTitleBarButton();
             if (btn is not null && btn.IsVisible && btn.IsEnabled)
                 KeyControllAbility.Activate(btn);
             ExitTitleBarMode();
@@ -602,8 +616,6 @@ public static class ModGamepad
         {
             ExitTitleBarMode();
         }
-
-        UpdateHighlightFromFocus();
     }
 
     private static void TryFocusOnPage(DependencyObject? page)
@@ -611,9 +623,10 @@ public static class ModGamepad
         var first = KeyControllAbility.FindFirstSelectable(page);
         if (first is null)
         {
-            var opposite = ReferenceEquals(page, ModMain.FrmMain?.PageLeft)
-                ? (DependencyObject?)ModMain.FrmMain?.PageRight
-                : (DependencyObject?)ModMain.FrmMain?.PageLeft;
+            var frm = GetForm();
+            var opposite = ReferenceEquals(page, frm?.PageLeft)
+                ? (DependencyObject?)frm?.PageRight
+                : (DependencyObject?)frm?.PageLeft;
             if (opposite != page)
                 first = KeyControllAbility.FindFirstSelectable(opposite);
         }
@@ -626,9 +639,16 @@ public static class ModGamepad
         var prevFocus = Keyboard.FocusedElement;
         var focused = prevFocus as UIElement;
 
-        bool moved = focused is not null
-            ? focused.MoveFocus(request)
-            : ModMain.FrmMain is not null && ((UIElement)ModMain.FrmMain).MoveFocus(request);
+        bool moved;
+        if (focused is not null)
+        {
+            moved = focused.MoveFocus(request);
+        }
+        else
+        {
+            var frm = GetForm();
+            moved = frm is not null && ((UIElement)frm).MoveFocus(request);
+        }
 
         if (!moved)
             return false;
@@ -641,7 +661,7 @@ public static class ModGamepad
 
     private static void NavigateTitleTab(int direction)
     {
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
 
         if (frm.PanTitleMain.Visibility != Visibility.Visible)
@@ -666,7 +686,7 @@ public static class ModGamepad
     private static void SimulateKey(Key key)
     {
         _isSimulatingInput = true;
-        var frm = ModMain.FrmMain;
+        var frm = GetForm();
         if (frm is null) return;
         var source = PresentationSource.FromVisual(frm);
         if (source is null) return;
