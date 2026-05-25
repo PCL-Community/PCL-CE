@@ -1991,4 +1991,102 @@
     <sys:String x:Key="Instance.Mod.Disabled.Message">You need to install a mod loader such as Forge, Fabric, etc. to use mods. Please go to the download page to install one.&#x0a;If you have already installed a mod loader, you may have selected the wrong instance. Please switch to the correct instance.</sys:String>
     <sys:String x:Key="Instance.Mod.Disabled.GoDownload">Go to the download page</sys:String>
     <sys:String x:Key="Instance.Mod.Disabled.SelectInstance">Select an instance</sys:String>
+
+    <!-- Instance.Overall -->
+    <sys:String x:Key="Instance.Overall.Info.Title">Properties</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.Loading">Loading information...</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.LaunchCount.Title">Times launched</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.LaunchCount.Never">Never launched</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.LaunchCount.Count">Launched {0} times</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.ModpackVersion">Modpack version</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.Installed">Installed</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.LoadModpackInfoTask">Loading modpack info</sys:String>
+    <sys:String x:Key="Instance.Overall.Info.LoadInstanceInfoTask">Loading instance info</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Personalization.Title">Personalization</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Title">Icon</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Cobblestone">Cobblestone</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.CommandBlock">Command Block</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.GoldBlock">Gold Block</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.GrassBlock">Grass Block</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.DirtPath">Dirt Path</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Anvil">Anvil</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.RedstoneBlock">Redstone Block</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOn">Redstone Lamp (On)</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOff">Redstone Lamp (Off)</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Egg">Egg</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.NeoForgeFox">NeoForge</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Category.Title">Category</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.Hidden">Hidden</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.Hidden.ToolTip">This instance will not be shown in the instance list by default.&#x0a;Press F11 in the instance list page to view all hidden instances.</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.Modable">Mod-supported</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.Regular">Regular</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.LessUsed">Less-used</sys:String>
+    <sys:String x:Key="Instance.Overall.Category.AprilFools">April Fools'</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Rename">Rename instance</sys:String>
+    <sys:String x:Key="Instance.Overall.EditDescription">Edit description</sys:String>
+    <sys:String x:Key="Instance.Overall.Favorite">Add to favorites</sys:String>
+    <sys:String x:Key="Instance.Overall.Unfavorite">Remove from favorites</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Hide.ConfirmTitle">Hide instance</sys:String>
+    <sys:String x:Key="Instance.Overall.Hide.ConfirmMessage">Are you sure you want to hide this instance from the instance list? After hiding it will no longer appear in the displayed instance list.&#x0a;Press F11 in the instance list page to view hidden instances.</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Description.EditTitle">Edit description</sys:String>
+    <sys:String x:Key="Instance.Overall.Description.EditMessage">Edit the description text for this instance. Leave empty to use PCL's default description.</sys:String>
+    <sys:String x:Key="Instance.Overall.Description.Default">Default description</sys:String>
+    <sys:String x:Key="Instance.Overall.Name.EditTitle">Rename instance</sys:String>
+    <sys:String x:Key="Instance.Overall.Name.RenameSuccess">Renamed successfully!</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Icon.SelectFile.Filter">Common image files(*.png;*.jpg;*.gif)|*.png;*.jpg;*.gif</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.SelectFile.Title">Select image</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Shortcuts.Title">Shortcuts</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">Instance folder</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">Saves folder</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.ModsFolder">Mods folder</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Manage.Title">Advanced options</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.ExportLaunchScript">Export launch script</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.TestGame">Test game</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.RepairFiles">Repair files</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.RepairFiles.ToolTip">Check whether the dependencies of the instance are intact, and re-download the missing or corrupted index and assets files.&#x0a;If you encounter missing sounds in game, try this option.</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.Reinstall.ToolTip">Re-download installation information for this instance from the internet and perform automatic installation.&#x0a;Your saves, mods, resource packs, etc. will not be lost.&#x0a;If the game cannot start due to missing Libraries or other resources, try this option.</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.Delete">Delete instance</sys:String>
+    <sys:String x:Key="Instance.Overall.Manage.PatchCore">Patch core</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">Select where to save the script</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file(*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">Please wait for the current launch task to finish first!</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.ExportFailed">Export launch script failed</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Repair.DisableVerificationHint">Please first disable [Instance settings → Settings → Advanced startup options → Disable file verification], then try repairing the files!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Processing">Processing, please wait...</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.TaskName">File repair</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Success">Success!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Failed">Failed: </sys:String>
+
+    <sys:String x:Key="Instance.Overall.Delete.ConfirmTitle">Delete instance confirmation</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.ConfirmMessage">Are you sure you want to delete instance {0}?</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.ConfirmMessagePermanent">Are you sure you want to permanently delete instance {0}?</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.ConfirmMessageIsolated">Are you sure you want to delete instance {0}?&#x0a;Since instance isolation is enabled for this instance, the corresponding saves, resource packs, mods, etc. will also be deleted!</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.ConfirmMessageIsolatedPermanent">Are you sure you want to permanently delete instance {0}?&#x0a;Since instance isolation is enabled for this instance, the corresponding saves, resource packs, mods, etc. will also be deleted!</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.PermanentSuccess">Instance {0} has been permanently deleted!</sys:String>
+    <sys:String x:Key="Instance.Overall.Delete.RecycleBinSuccess">Instance {0} has been moved to the recycle bin!</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">Reset instance confirmation</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#x0a;PCL will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.NotSupported">This instance does not support reset yet!</sys:String>
+
+    <sys:String x:Key="Instance.Overall.Patch.ConfirmTitle">Patching notice</sys:String>
+    <sys:String x:Key="Instance.Overall.Patch.ConfirmMessage">Are you sure you want to patch the core of {0}?&#x0a;Patching the game core may cause crashes or other issues.&#x0a;After patching, file verification will be automatically disabled.</sys:String>
+    <sys:String x:Key="Instance.Overall.Patch.Patching">Patching game core, this may take a while</sys:String>
+    <sys:String x:Key="Instance.Overall.Patch.Success">Game core patched successfully</sys:String>
+    <sys:String x:Key="Instance.Overall.Patch.SelectFile.Filter">Archive files(*.jar;*.zip)|*.jar;*.zip</sys:String>
+    <sys:String x:Key="Instance.Overall.Patch.SelectFile.Title">Select file for core patching</sys:String>
 </ResourceDictionary>
