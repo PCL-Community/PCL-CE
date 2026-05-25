@@ -2116,7 +2116,13 @@ public static class ModLaunch
                     if (item.GetValueKind() == JsonValueKind.String)
                         _features.Add(item.ToString());
                     else if (item.GetValueKind() == JsonValueKind.Object)
-                        _features.AddRange(item["value"].AsArray().Select(x => x.ToString()));
+                    {
+                        var valueNode = item["value"];
+                        if (valueNode.GetValueKind() == JsonValueKind.Array)
+                            _features.AddRange(valueNode.AsArray().Select(x => x.ToString()));
+                        else if (valueNode.GetValueKind() == JsonValueKind.String)
+                            _features.Add(valueNode.ToString());
+                    }
         }
 
         public object HasArguments(string key)
