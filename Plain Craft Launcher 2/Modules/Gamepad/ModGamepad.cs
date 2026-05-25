@@ -6,7 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using SharpDX.XInput;
 
-namespace PCL;
+namespace PCL.Modules.Gamepad;
 
 public static partial class ModGamepad
 {

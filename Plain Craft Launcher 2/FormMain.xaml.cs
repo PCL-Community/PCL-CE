@@ -18,6 +18,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using PCL.Modules.Gamepad;
 
 namespace PCL;
 

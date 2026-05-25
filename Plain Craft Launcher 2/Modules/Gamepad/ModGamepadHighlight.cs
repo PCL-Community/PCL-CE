@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace PCL;
+namespace PCL.Modules.Gamepad;
 
 public static partial class ModGamepad
 {
