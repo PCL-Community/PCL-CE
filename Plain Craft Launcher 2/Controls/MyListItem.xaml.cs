@@ -1008,6 +1008,33 @@ public partial class MyListItem : IMyRadio
 
     #region 点击
 
+    public void PerformClick()
+    {
+        Click?.Invoke(this, null);
+
+        if (CustomEventService.GetEventType(this) != CustomEvent.EventType.None)
+        {
+            ModMain.RaiseCustomEvent(this);
+            return;
+        }
+
+        switch (Type)
+        {
+            case CheckType.Clickable:
+                ModBase.Log("[Control] 按下单击列表项：" + Title);
+                break;
+            case CheckType.RadioBox:
+                ModBase.Log("[Control] 按下单选列表项：" + Title);
+                if (!Checked)
+                    SetChecked(true, true, true);
+                break;
+            case CheckType.CheckBox:
+                ModBase.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
+                SetChecked(!Checked, true, true);
+                break;
+        }
+    }
+
     // 触发点击事件
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {

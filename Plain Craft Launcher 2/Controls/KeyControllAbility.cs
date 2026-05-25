@@ -67,6 +67,12 @@ public static class KeyControllAbility
             return;
         }
 
+        if (target is MyListItem item)
+        {
+            item.PerformClick();
+            return;
+        }
+
         var clickTarget = (target as FrameworkElement)?.FindName("PanClick") as UIElement ?? target;
 
         if (!clickTarget.IsEnabled || !clickTarget.IsVisible)
