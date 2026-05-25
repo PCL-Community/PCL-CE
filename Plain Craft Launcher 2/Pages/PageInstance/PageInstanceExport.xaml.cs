@@ -153,6 +153,7 @@ public partial class PageInstanceExport : IRefreshable
                             GetExportOption(shaderCheckBox).Rules += "|" + ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}");
                             Panel.Children.Add(new MyCheckBox
                             {
+                                Margin = new Thickness(30, 0, 0, 0),
                                 Tag = new ExportOption
                                 {
                                     Title = $"{shaderConfig.Name} (光影配置文件)", DefaultChecked = true,
