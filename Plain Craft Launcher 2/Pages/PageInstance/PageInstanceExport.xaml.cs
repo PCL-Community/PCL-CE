@@ -135,21 +135,22 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     if (SubOptionBlackList.Any(b => File.Name.ContainsF(b)))
                         continue;
-                    Panel.Children.Add(new MyCheckBox
+                    var shaderCheckBox = new MyCheckBox
                     {
                         Tag = new ExportOption
                         {
                             Title = File.Name, DefaultChecked = true,
                             Rules = ModBase.EscapeLikePattern($"{Folder}/{File.Name}")
                         }
-                    });
+                    };
+                    Panel.Children.Add(shaderCheckBox);
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
                     {
                         var shaderConfig = new FileInfo(Path.Combine(File.Directory.FullName,
                             $"{File.Name}.txt"));
                         if (shaderConfig.Exists)
                         {
-                            GetExportOption((MyCheckBox)Panel.Children[^1]).Rules += "|" + ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}");
+                            GetExportOption(shaderCheckBox).Rules += "|" + ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}");
                             Panel.Children.Add(new MyCheckBox
                             {
                                 Tag = new ExportOption
