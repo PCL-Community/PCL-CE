@@ -488,6 +488,8 @@ public partial class MyListItem : IMyRadio
     public MyListItem()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         SizeChanged += (_, _) => OnSizeChanged();
         PreviewMouseLeftButtonUp += Button_MouseUp;

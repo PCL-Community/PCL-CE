@@ -37,6 +37,8 @@ public partial class MyExtraButton
         Loaded += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         PanClick.MouseLeave += (_, _) => Button_MouseLeave();
     }
 

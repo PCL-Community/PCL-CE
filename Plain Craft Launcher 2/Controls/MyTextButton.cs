@@ -39,6 +39,8 @@ public class MyTextButton : Label
 
     public MyTextButton()
     {
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         SetResourceReference(ForegroundProperty, "ColorBrush1");
         Background = ThemeManager.ColorSemiTransparent;
         PreviewMouseLeftButtonDown += MyTextButton_MouseLeftButtonDown;

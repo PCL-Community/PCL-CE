@@ -55,6 +55,8 @@ public partial class MyCheckBox
     public MyCheckBox()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         MouseLeftButtonUp += (_, _) => Checkbox_MouseUp();
         MouseLeftButtonDown += (_, _) => Checkbox_MouseDown();

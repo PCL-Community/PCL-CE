@@ -236,6 +236,8 @@ public partial class FormMain
         // Timer 启动
         ModAnimation.AniStart();
         ModMain.TimerMainStart();
+        // 手柄启动
+        ModGamepad.Initialize();
         // 特殊版本提示
         ModBase.RunInNewThread(() =>
         {
@@ -555,6 +557,8 @@ public partial class FormMain
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         // 存储上次使用的档案编号
         ModProfile.SaveProfile();
+        // 关闭手柄
+        ModGamepad.Shutdown();
         // 关闭
         ModBase.RunInUiWait(() =>
         {

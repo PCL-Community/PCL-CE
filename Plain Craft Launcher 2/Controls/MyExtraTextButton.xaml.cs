@@ -37,6 +37,8 @@ public partial class MyExtraTextButton
     public MyExtraTextButton()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         Loaded += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();

@@ -46,6 +46,8 @@ public partial class MyButton
     public MyButton()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;

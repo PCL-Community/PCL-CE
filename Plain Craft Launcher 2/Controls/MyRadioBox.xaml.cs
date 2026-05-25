@@ -48,6 +48,8 @@ public partial class MyRadioBox : IMyRadio
     public MyRadioBox()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();
         MouseLeftButtonDown += (_, _) => Radiobox_MouseDown();
         MouseLeave += (_, _) => Radiobox_MouseLeave();

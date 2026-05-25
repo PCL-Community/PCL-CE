@@ -34,6 +34,8 @@ public partial class MyIconButton
     public MyIconButton()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;

@@ -49,6 +49,8 @@ public partial class MyRadioButton
     public MyRadioButton()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
 
         Loaded += (_, _) =>
         {
