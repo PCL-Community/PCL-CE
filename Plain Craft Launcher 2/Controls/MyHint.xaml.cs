@@ -45,6 +45,8 @@ public partial class MyHint
     public MyHint()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         UpdateUI();
         Loaded += (_, _) => UpdateUI();
         Loaded += MyHint_Loaded;

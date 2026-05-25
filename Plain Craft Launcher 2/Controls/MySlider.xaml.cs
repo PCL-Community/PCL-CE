@@ -28,6 +28,8 @@ public partial class MySlider
     public MySlider()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         SizeChanged += RefreshWidth;
         MouseLeftButtonDown += DragStart;
         IsEnabledChanged += (_, _) => RefreshColor();

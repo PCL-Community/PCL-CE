@@ -15,7 +15,12 @@ public static class KeyControllAbility
             new PropertyMetadata(false));
 
     public static bool GetCanSelect(DependencyObject obj) => (bool)obj.GetValue(CanSelectProperty);
-    public static void SetCanSelect(DependencyObject obj, bool value) => obj.SetValue(CanSelectProperty, value);
+    public static void SetCanSelect(DependencyObject obj, bool value)
+    {
+        obj.SetValue(CanSelectProperty, value);
+        if (value && obj is UIElement { Focusable: false } ui)
+            ui.Focusable = true;
+    }
 
     public static bool GetCanActivate(DependencyObject obj) => (bool)obj.GetValue(CanActivateProperty);
     public static void SetCanActivate(DependencyObject obj, bool value) => obj.SetValue(CanActivateProperty, value);
@@ -41,8 +46,27 @@ public static class KeyControllAbility
         return null;
     }
 
+    public static FrameworkElement? FindFirstSelectableChild(DependencyObject parent)
+    {
+        var count = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            var found = FindFirstSelectable(child);
+            if (found is not null)
+                return found;
+        }
+        return null;
+    }
+
     public static void Activate(UIElement target)
     {
+        if (target is MyCard { SwapControl: not null } card)
+        {
+            card.ToggleSwap();
+            return;
+        }
+
         var clickTarget = (target as FrameworkElement)?.FindName("PanClick") as UIElement ?? target;
 
         if (!clickTarget.IsEnabled || !clickTarget.IsVisible)

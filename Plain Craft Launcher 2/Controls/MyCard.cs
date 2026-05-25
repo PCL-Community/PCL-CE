@@ -49,6 +49,7 @@ public class MyCard : AnimatedBackgroundGrid
         MouseLeftButtonDown += MyCard_MouseLeftButtonDown;
         MouseLeftButtonUp += MyCard_MouseLeftButtonUp;
         MouseLeave += MyCard_MouseLeave_Swap;
+        KeyControllAbility.SetCanSelect(this, true);
     }
 
     public MyDropShadow MainChrome { get; }
@@ -135,6 +136,7 @@ public class MyCard : AnimatedBackgroundGrid
 
         if (CanSwap || SwapControl is not null)
         {
+            KeyControllAbility.SetCanActivate(this, true);
             if (SwapControl is null && Children.Count > 3)
                 SwapControl = Children[3];
             MainSwap = new Path
@@ -406,6 +408,20 @@ public class MyCard : AnimatedBackgroundGrid
     public delegate void SwapEventHandler(object sender, ModBase.RouteEventArgs e);
 
     public const int SwapedHeight = 40;
+
+    public void ToggleSwap()
+    {
+        if (SwapControl is null) return;
+
+        ModMain.RaiseCustomEvent(this);
+
+        var e2 = new ModBase.RouteEventArgs(true);
+        PreviewSwap?.Invoke(this, e2);
+        if (e2.Handled) return;
+
+        IsSwapped = !IsSwapped;
+        Swap?.Invoke(this, e2);
+    }
 
     private void MyCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {

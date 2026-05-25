@@ -19,6 +19,8 @@ public class MyComboBoxItem : ComboBoxItem
 
     public MyComboBoxItem()
     {
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         Style = (Style)FindResource("MyComboBoxItem");
         Unselected += (_, _) => RefreshColor();
         MouseMove += (_, _) => RefreshColor();

@@ -32,6 +32,8 @@ public class MyComboBox : ComboBox
 
     public MyComboBox()
     {
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         _Text = SelectedItem?.ToString() ?? "";
         PreviewMouseLeftButtonDown += MyComboBox_PreviewMouseLeftButtonDown;
         PreviewMouseLeftButtonUp += MyComboBox_PreviewMouseLeftButtonUp;

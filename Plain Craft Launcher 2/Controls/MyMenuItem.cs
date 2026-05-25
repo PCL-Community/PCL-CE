@@ -20,6 +20,8 @@ public class MyMenuItem : MenuItem
 
     public MyMenuItem()
     {
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         Loaded += MyMenuItem_Loaded;
         MouseEnter += (_, _) => RefreshColor();
         MouseLeave += (_, _) => RefreshColor();

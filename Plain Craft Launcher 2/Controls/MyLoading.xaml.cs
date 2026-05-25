@@ -37,6 +37,8 @@ public partial class MyLoading
     public MyLoading()
     {
         InitializeComponent();
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         SetResourceReference(ForegroundProperty, "ColorBrush3");
         IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();

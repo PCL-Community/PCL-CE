@@ -53,6 +53,8 @@ public class MyTextBox : TextBox
 
     public MyTextBox()
     {
+        KeyControllAbility.SetCanSelect(this, true);
+        KeyControllAbility.SetCanActivate(this, true);
         Loaded += (_, _) => Validate();
         TextChanged += (a, b) => MyTextBox_TextChanged((MyTextBox)a, b);
         IsEnabledChanged += (_, _) => RefreshColor();
