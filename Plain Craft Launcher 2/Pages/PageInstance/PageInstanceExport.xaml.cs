@@ -4,8 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
+using DotNet.Globbing;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
@@ -240,7 +239,7 @@ public partial class PageInstanceExport : IRefreshable
                 // 检查前两级
                 try
                 {
-                    if (AllEntries.Any(Entry => LikeOperator.LikeString(Entry, Rule, CompareMethod.Binary)))
+                    if (AllEntries.Any(Entry => LikeString(Entry, Rule)))
                         return true;
                 }
                 catch (Exception ex)
@@ -312,18 +311,15 @@ public partial class PageInstanceExport : IRefreshable
     {
         foreach (var Element in PanOptions.Children)
         {
-            if (!IncludeHidden && 
-                Conversions.ToBoolean(Operators.ConditionalCompareObjectNotEqual(((UIElement)Element).Visibility, 
-                Visibility.Visible, false)))
+            if (!IncludeHidden &&
+                ((UIElement)Element).Visibility != Visibility.Visible)
                 continue;
             if (Element is MyCheckBox)
                 yield return (MyCheckBox)Element;
             else if (Element is StackPanel)
                 foreach (var SubElement in ((StackPanel)Element).Children)
                 {
-                    if (!IncludeHidden && Conversions.ToBoolean(
-                        Operators.ConditionalCompareObjectNotEqual(((UIElement)SubElement).Visibility, 
-                        Visibility.Visible, false)))
+                    if (!IncludeHidden && ((UIElement)SubElement).Visibility != Visibility.Visible)
                         continue;
                     if (SubElement is MyCheckBox)
                         yield return (MyCheckBox)SubElement;
@@ -556,13 +552,13 @@ public partial class PageInstanceExport : IRefreshable
             TextExportName.Text = Ini.GetOrDefault("Name", "");
             TextExportVersion.Text = Ini.GetOrDefault("Version", "");
             CheckOptionsPcl.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncher", Conversions.ToString(true)));
+                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncher", true.ToString()));
             CheckOptionsPclCustom.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncherCustom", Conversions.ToString(true)));
+                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncherCustom", true.ToString()));
             CheckAdvancedModrinth.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("ModrinthUploadMode", Conversions.ToString(false)));
+                Convert.ToBoolean(Ini.GetOrDefault("ModrinthUploadMode", false.ToString()));
             CheckAdvancedInclude.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("DontCheckHostedAssets", Conversions.ToString(false)));
+                Convert.ToBoolean(Ini.GetOrDefault("DontCheckHostedAssets", false.ToString()));
             ConfigPackPath = Ini.GetOrDefault("PackPath");
 
             // === 解析导出内容段 ===
@@ -623,7 +619,7 @@ public partial class PageInstanceExport : IRefreshable
 
             // 验证：仅允许单个.txt文件
             if (files.Length == 1 &&
-                files[0].EndsWithF(".txt", Conversions.ToBoolean(StringComparison.OrdinalIgnoreCase)))
+                files[0].EndsWithF(".txt", true))
                 e.Effects = DragDropEffects.Copy; // 设置拖放效果为“复制”
             else
                 e.Effects = DragDropEffects.None; // 不允许拖放
@@ -782,7 +778,7 @@ public partial class PageInstanceExport : IRefreshable
                     foreach (var Rule in AllRules)
                     {
                         var Revert = Rule.StartsWith("!");
-                        if (LikeOperator.LikeString(RelativePath, Rule.TrimStart('!'), CompareMethod.Binary))
+                        if (LikeString(RelativePath, Rule.TrimStart('!')))
                             ShouldKeep = !Revert;
                     }
 
@@ -1076,4 +1072,12 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     #endregion
+
+    private static bool LikeString(string input, string pattern)
+    {
+        pattern = pattern.Replace("#", "[0-9]");
+        var options = new GlobOptions { Evaluation = { CaseInsensitive = true } };
+        var glob = Glob.Parse(pattern, options);
+        return glob.IsMatch(input);
+    }
 }
