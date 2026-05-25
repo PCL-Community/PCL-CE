@@ -2089,4 +2089,115 @@
     <sys:String x:Key="Instance.Overall.Patch.Success">Game core patched successfully</sys:String>
     <sys:String x:Key="Instance.Overall.Patch.SelectFile.Filter">Archive files(*.jar;*.zip)|*.jar;*.zip</sys:String>
     <sys:String x:Key="Instance.Overall.Patch.SelectFile.Title">Select file for core patching</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Hint">These settings only apply to this game instance and do not affect other instances.</sys:String>
+    <sys:String x:Key="Instance.Setup.LaunchOptions.Title">Launch Options</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation">Version Isolation</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled">Enabled</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled.ToolTip">Saves, mods, and other files are kept separate from other instances, without interfering with each other.&#x0a;This prevents cross-instance save sharing, but can help avoid mod conflicts.</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Disabled.ToolTip">Share saves, mods, and other files with instances that have isolation disabled.&#x0a;If multiple instances with mods are present, mod conflicts may cause crashes.</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle">Game Window Title</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.ToolTip">Customize the game window title. Leave empty to follow the global setting.&#x0a;The following replacement tokens are supported:&#x0a; · {user}: Player name&#x0a; · {login}: Player login method&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: Game vanilla version&#x0a;Note: If your instance uses the Modern UI mod, this setting will be ineffective.</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Template">{name} | Player: {user} | Logged in via {login}</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Default">Default window title</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Default.ToolTip">Whether the game window title should keep the default.</sys:String>
+    <sys:String x:Key="Instance.Setup.CustomInfo">Custom Info</sys:String>
+    <sys:String x:Key="Instance.Setup.CustomInfo.ToolTip">This info is displayed at the bottom-left of the game's main screen and the top-left of the F3 debug screen.&#x0a;Leave empty to follow the global setting.</sys:String>
+    <sys:String x:Key="Instance.Setup.FollowGlobal">Follow global settings</sys:String>
+    <sys:String x:Key="Instance.Setup.GameJava">Game Java</sys:String>
+    <sys:String x:Key="Instance.Setup.GameJava.ToolTip">If Java is placed in the game or PCL folder, PCL will prefer selecting it during auto-detection.</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.Loading">Loading…</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Memory.Title">Game Memory</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Java32Warning">32-bit Java can only allocate up to 1 GB of memory. We strongly recommend switching to 64-bit Java!</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.TooMuchWarning">You have allocated too much memory for the game, which may cause crashes. Consider using the "Auto" option!</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.FollowGlobal">Follow global settings</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Auto">Auto</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Auto.ToolTip">Dynamically adjusts game memory based on installed mod count and available system memory</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Used">Used Memory</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Allocated">Game Allocation</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Available">Available {0} GB</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Server.Title">Server</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginLockHint">The authentication method for this instance has been locked and cannot be changed. Please use the required authentication method to launch the game.</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.SslWarning">Disabling SSL certificate verification may expose your login credentials to third-party interception.&#x0a;Unless you have a specific reason, always keep SSL certificate verification enabled!</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.HttpWarning">Using HTTP for login operations may expose your credentials in plaintext.&#x0a;Unless you have a specific reason, always use HTTPS!</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.RestrictLogin">Restrict Login Method</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.Unlimited">No restriction</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOnly">Microsoft login only</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.AuthOnly">Third-party login only (Authlib-Injector)</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOrAuth">Microsoft or third-party login (Authlib-Injector)</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AuthServer">Target Auth Server</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AuthServer.Hint">Full address of the Yggdrasil API authentication server</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Register">Registration Link</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Register.Hint">Web address for account registration, e.g. https://xxxxx.xxx/auth/register</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Name">Server Name</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Name.Hint">Server name displayed on the login page</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin">Auto-Join Server</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin.ToolTip">Automatically join a server after Minecraft opens.&#x0a;Separate IP and port with an English colon, e.g. 233.233.233.233:12345.</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.SetLittleSkin">Set to LittleSkin</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LockLoginMethod">Lock Login Method</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.CreateProfile">Create Profile</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Advanced.Title">Advanced Launch Options</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer">Renderer</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.FollowGlobal">Follow global settings</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Default">Game default</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Llvmpipe">Software renderer (llvmpipe)</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.JvmArgs">JVM Arguments Header</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.JvmArgs.ToolTip">Additional JVM arguments used when launching Minecraft. Do not modify unless you are certain what you are doing.&#x0a;Supports substitution tokens from the Minecraft instance JSON, e.g. ${library_directory}.&#x0a;&#x0a;Leave empty to follow the global setting.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.GameArgs">Game Arguments Tail</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">Content in this text box will be appended directly to the end of the launch arguments.&#x0a;For example, entering --demo will launch the game in demo mode.&#x0a;Supports substitution tokens from the Minecraft instance JSON, e.g. ${library_directory}.&#x0a;&#x0a;Leave empty to follow the global setting.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Classpath">Classpath Header Append</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">Content will be added as Classpath entries at the head of this instance's launch arguments.&#x0a;Absolute paths are required. Separate multiple entries with English semicolons (;).</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand">Pre-launch Command</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">This does not override the global setting: the global command runs first, then the instance command.&#x0a;&#x0a;Executes a command or program before launching Minecraft, using Windows command prompt syntax.&#x0a;&#x0a;The following substitution tokens can be used for relative paths (paths end with \):&#x0a; · {path}: PCL executable folder&#x0a; · {minecraft}: .minecraft folder&#x0a; · {verpath}: Instance folder (.minecraft\versions\instance-name\)&#x0a; · {verindie}: Version folder when isolation is on, .minecraft folder otherwise&#x0a; · {java}: Java runtime folder&#x0a;&#x0a;Additionally, these tokens are also supported:&#x0a; · {user}: Player name&#x0a; · {login}: Player login method&#x0a; · {uuid}: Player UUID&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: Game vanilla version&#x0a;&#x0a;Examples:&#x0a; · &quot;{verpath}test.exe&quot; : Run test.exe in the instance folder&#x0a; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; : Run test.jar from the instance folder with Java&#x0a; · notepad &quot;{verindie}options.txt&quot; : Open the instance settings file with Notepad&#x0a;&#x0a;Always wrap paths in double quotes to avoid failures caused by spaces.&#x0a;The working directory when executing the command is the current .minecraft folder.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.WaitPreLaunchCommand">Wait for command to finish before continuing to launch</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">Ignore Java compatibility warning</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">If a manually selected Java is incompatible with this instance, automatically skip the compatibility warning popup and force the use of the manually selected Java.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">Disable file verification</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification.ToolTip">Do not modify Assets at all; do not verify Libraries, third-party login libraries, or the instance main Jar file for modifications.&#x0a;Do not enable this unless you have modified related files.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy">Follow launcher network proxy settings</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy.ToolTip">Use the proxy configured in [Settings - Misc - Network - HTTP Proxy] to launch the game.&#x0a;Incorrect global settings will prevent login!</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper">Disable Java Launch Wrapper</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.ToolTip">PCL uses Java Launch Wrapper to fix issues with launching older Java versions from paths containing Chinese characters.&#x0a;If this is blocked by anti-cheat software or causes other issues, you can disable it.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.Arm64ToolTip">Do not use Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is running on ARM64 architecture.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper">Disable RetroWrapper</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper.ToolTip">PCL uses RetroWrapper when launching versions 1.5.x and below to improve the legacy game experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseDebugLog4j">Use debug-level log4j configuration</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#x0a;PCL uses LWJGL Unsafe Agent to fix this and resolve potential performance issues.&#x0a;There is generally no need to disable this option, but if you encounter additional problems, you can try temporarily disabling it for troubleshooting.&#x0a;&#x0a;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
+    <sys:String x:Key="Instance.Setup.OpenGlobalSettings">Global Settings</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Initialize.Success">Instance settings initialized!</sys:String>
+    <sys:String x:Key="Instance.Setup.AuthServer.AutoFormatted">Auth server address automatically formatted!</sys:String>
+
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Title">Setting Override Confirmation</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Message">Your third-party login settings will be overridden with LittleSkin login.&#x0a;Do not proceed unless you are the server owner, or the server owner has instructed you to do so.&#x0a;&#x0a;Are you sure you want to override the current settings?</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Continue">Continue</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Name">LittleSkin Login</sys:String>
+
+    <sys:String x:Key="Instance.Setup.LockLoginMethod.Title">Lock Login Method Confirmation</sys:String>
+    <sys:String x:Key="Instance.Setup.LockLoginMethod.Message">You are about to lock the login method for this instance. Once locked, the login method requirement cannot be changed, and the game must be launched using the specified login method.&#x0a;This feature may help some server owners.&#x0a;Continue?</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Java.FollowGlobal">Follow global settings</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.AutoSelect">Auto-select suitable Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative">Select Java in launcher directory</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative.Invalid">Select Java in launcher directory (current path is invalid)</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative.WithJava">Java in launcher directory | {0}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.RelativePathToolTip">Relative path: {0}&#x0a;Resolved path: {1}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.InvalidPathToolTip">Invalid path: {0}&#x0a;Click this item to re-select a valid Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelativeToolTip">Select a Java path relative to the instance directory</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.ToolTip">Path: {0}&#x0a;Version: {1}&#x0a;Source: {2}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.PathOutOfRange">Path is out of allowed range. Please select a file within or under the launcher directory.</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectFile.Title">Select Java Program</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectFile.Filter">Java Program(java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.LoadFailed">Failed to load list, please retry</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.NoRuntime">No available Java runtime detected</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.NoRuntime.ToolTip">Please manually specify a Java path in settings, or click 'Scan' to re-detect</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Warning.Confirm">I know what I'm doing</sys:String>
+    <sys:String x:Key="Instance.Setup.IsolationWarning.Message">After changing version isolation, you may need to manually migrate save files, mods, and other files to the new game folder.&#x0a;If you find your saves are missing after the change, reverting this setting will restore them.&#x0a;If you don't know how to migrate saves, it is not recommended to change this setting!</sys:String>
+    <sys:String x:Key="Instance.Setup.RendererWarning.Message">Changing this option can severely affect game stability and performance. Do not change it if you don't know what you're doing!&#x0a;Are you sure you want to continue?</sys:String>
+    <sys:String x:Key="Instance.Setup.Log4jWarning.Message">This option changes the game log level to the minimum, which may consume substantial disk space and potentially affect game performance. It may also pose some security risks. Do not change this option if you don't know what you're doing!&#x0a;Are you sure you want to continue?</sys:String>
 </ResourceDictionary>

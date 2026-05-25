@@ -2084,4 +2084,115 @@
     <sys:String x:Key="Instance.Overall.Patch.Success">修补游戏核心成功</sys:String>
     <sys:String x:Key="Instance.Overall.Patch.SelectFile.Filter">压缩文件(*.jar;*.zip)|*.jar;*.zip</sys:String>
     <sys:String x:Key="Instance.Overall.Patch.SelectFile.Title">选择用于修补核心的文件</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Hint">这些设置只对该游戏实例生效，不影响其他实例。</sys:String>
+    <sys:String x:Key="Instance.Setup.LaunchOptions.Title">启动选项</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation">版本隔离</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled">开启</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled.ToolTip">与其他实例的存档、Mod 等文件相互独立，互不干涉。&#x0a;这会使你无法跨实例共享存档，但可以规避 Mod 冲突问题。</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Disabled.ToolTip">与其余关闭隔离的实例共享存档、Mod 等文件。&#x0a;若存在多个安装了 Mod 的实例，可能会由于 Mod 冲突而导致崩溃。</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle">游戏窗口标题</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.ToolTip">自定义游戏窗口的标题，若留空则跟随全局设置的值。&#x0a;支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Template">{name} | 玩家 : {user} | 使用 {login} 登录</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Default">默认窗口标题</sys:String>
+    <sys:String x:Key="Instance.Setup.WindowTitle.Default.ToolTip">游戏窗口标题是否保留默认。</sys:String>
+    <sys:String x:Key="Instance.Setup.CustomInfo">自定义信息</sys:String>
+    <sys:String x:Key="Instance.Setup.CustomInfo.ToolTip">该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角。&#x0a;若留空，则跟随全局设置的值。</sys:String>
+    <sys:String x:Key="Instance.Setup.FollowGlobal">跟随全局设置</sys:String>
+    <sys:String x:Key="Instance.Setup.GameJava">游戏 Java</sys:String>
+    <sys:String x:Key="Instance.Setup.GameJava.ToolTip">若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL 会尽量优先选择它</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.Loading">加载中……</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Memory.Title">游戏内存</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Java32Warning">32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.TooMuchWarning">你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.FollowGlobal">跟随全局设置</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Auto">自动配置</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Auto.ToolTip">根据安装的 Mod 量与电脑剩余内存动态调整为游戏分配的内存</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Used">已使用内存</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Allocated">游戏分配</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Available">可用 {0} GB</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Server.Title">服务器</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginLockHint">当前实例的验证方式已锁定，无法再次更改。请使用要求的验证方式启动游戏。</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.SslWarning">未启用 SSL 证书验证可能导致登录密码面临被第三方截获的安全风险。&#x0a;如果没有特殊需求，请始终考虑启用 SSL 证书验证！</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.HttpWarning">使用 HTTP 协议进行登录操作可能面临登录密码在未加密的情况下被明文传输的安全风险。&#x0a;如果没有特殊需求，请始终考虑使用 HTTPS 协议！</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.RestrictLogin">限制验证方式</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.Unlimited">无限制</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOnly">仅正版验证</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.AuthOnly">仅第三方验证（Authlib-Injector）</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOrAuth">正版验证与第三方验证（Authlib-Injector）</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AuthServer">目标验证服务器</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AuthServer.Hint">Yggdrasil API 认证服务器的完整地址</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Register">注册链接</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Register.Hint">注册账号的网页地址，如 https://xxxxx.xxx/auth/register</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Name">服务器名称</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Name.Hint">显示在登录页面的服务器名称</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin">自动进入服务器</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin.ToolTip">在打开 Minecraft 后自动进入某服务器。&#x0a;用英文冒号间隔 IP 与端口，例如 233.233.233.233:12345。</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.SetLittleSkin">设置为 LittleSkin</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LockLoginMethod">锁定验证方式</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.CreateProfile">新建档案</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Advanced.Title">高级启动选项</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer">渲染器</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.FollowGlobal">跟随全局设置</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Default">游戏默认</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Llvmpipe">软渲染（llvmpipe）</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.JvmArgs">JVM 参数头部</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.JvmArgs.ToolTip">启动 Minecraft 时使用的额外 JVM 参数，在没有确定把握的情况下请不要尝试修改。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#x0a;&#x0a;若留空，则跟随全局设置的值。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.GameArgs">游戏参数尾部</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#x0a;例如，输入 --demo 则会以试玩模式启动游戏。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#x0a;&#x0a;若留空，则跟随全局设置的值。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Classpath">Classpath 头部附加</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">文本框中的内容将被作为 Classpath 添加到该实例的启动参数中的 Classpath 头部。&#x0a;需要使用绝对路径。若有多个，请以半角 (英文) 分号分隔。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand">启动前执行命令</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">该项不会覆盖全局设置：启动时会先执行全局设置的命令，再执行实例设置的命令。&#x0a;&#x0a;在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启版本隔离时等同版本文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · &quot;{verpath}test.exe&quot; ：运行实例文件夹下的 test.exe 程序&#x0a; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad &quot;{verindie}options.txt&quot; ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.WaitPreLaunchCommand">等待命令执行完成后再继续启动</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">忽略 Java 兼容性警告</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">如果手动选择了与当前实例不兼容的 Java，则自动跳过兼容性警告弹窗，强制使用手动选择的 Java。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">关闭文件校验</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification.ToolTip">完全不更改 Assets；不校验 Libraries、第三方登录库与实例主 Jar 文件是否被修改。&#x0a;如果你没有修改相关文件，请勿勾选此项。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy">跟随启动器网络代理设置</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy.ToolTip">使用 [设置-其他-网络-HTTP 代理] 中填写的代理来启动游戏。&#x0a;错误的全局配置将会导致无法登录！</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper">禁用 Java Launch Wrapper</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.ToolTip">PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#x0a;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.Arm64ToolTip">在启动游戏时不使用 Java Wrapper 进行包装。&#x0a;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper">禁用 RetroWrapper</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.UseDebugLog4j">使用调试级别 log4j 配置文件</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent">禁用 LWJGL Unsafe Agent</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#x0a;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#x0a;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#x0a;&#x0a;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
+    <sys:String x:Key="Instance.Setup.OpenGlobalSettings">全局设置</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Initialize.Success">已初始化实例独立设置！</sys:String>
+    <sys:String x:Key="Instance.Setup.AuthServer.AutoFormatted">已自动格式化验证服务器地址！</sys:String>
+
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Title">设置覆盖确认</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Message">即将把第三方登录设置覆盖为 LittleSkin 登录。&#x0a;除非你是服主，或者服主要求你这样做，否则请不要继续。&#x0a;&#x0a;是否确实需要覆盖当前设置？</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Continue">继续</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Name">LittleSkin 登录</sys:String>
+
+    <sys:String x:Key="Instance.Setup.LockLoginMethod.Title">锁定验证方式确认</sys:String>
+    <sys:String x:Key="Instance.Setup.LockLoginMethod.Message">你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。&#x0a;此功能可能会帮助一些服主吧。&#x0a;是否继续？</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Java.FollowGlobal">跟随全局设置</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.AutoSelect">自动选择合适的 Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative">选择启动器目录下的 Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative.Invalid">选择启动器目录下的 Java（当前路径无效）</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelative.WithJava">启动器目录下的 Java | {0}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.RelativePathToolTip">相对路径: {0}&#x0a;解析路径: {1}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.InvalidPathToolTip">无效路径: {0}&#x0a;点击此项重新选择有效 Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectRelativeToolTip">将选择相对于实例目录的 Java 路径</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.ToolTip">路径: {0}&#x0a;版本: {1}&#x0a;来源: {2}</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.PathOutOfRange">超出路径允许范围，请选择启动器文件夹或其子文件夹下的文件</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectFile.Title">选择 Java 程序</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.SelectFile.Filter">Java 程序(java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.LoadFailed">列表加载失败，请重试</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.NoRuntime">未检测到可用的 Java 运行时</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.NoRuntime.ToolTip">请在设置中手动指定 Java 路径，或点击'扫描'按钮重新检测</sys:String>
+
+    <sys:String x:Key="Instance.Setup.Warning.Confirm">我知道我在做什么</sys:String>
+    <sys:String x:Key="Instance.Setup.IsolationWarning.Message">调整版本隔离后，你可能得把游戏存档、Mod 等文件手动迁移到新的游戏文件夹中。&#x0a;如果修改后发现存档消失，把这项设置改回来就能恢复。&#x0a;如果你不会迁移存档，不建议修改这项设置！</sys:String>
+    <sys:String x:Key="Instance.Setup.RendererWarning.Message">修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
+    <sys:String x:Key="Instance.Setup.Log4jWarning.Message">本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
 </ResourceDictionary>
