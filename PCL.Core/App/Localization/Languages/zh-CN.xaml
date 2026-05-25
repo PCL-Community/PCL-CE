@@ -1962,4 +1962,28 @@
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">你需要安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">你需要安装 Java 8u141 ~ 8u320 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">你需要安装 Java 8u141 或更高版本的 Java 8 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+
+    <!-- Instance.Left -->
+    <sys:String x:Key="Instance.Left.Game">游戏本体</sys:String>
+    <sys:String x:Key="Instance.Left.Overview">概览</sys:String>
+    <sys:String x:Key="Instance.Left.Settings">设置</sys:String>
+    <sys:String x:Key="Instance.Left.Mod">模组</sys:String>
+    <sys:String x:Key="Instance.Left.Install">修改</sys:String>
+    <sys:String x:Key="Instance.Left.Export">导出</sys:String>
+    <sys:String x:Key="Instance.Left.Resources">游戏资源</sys:String>
+    <sys:String x:Key="Instance.Left.Saves">存档</sys:String>
+    <sys:String x:Key="Instance.Left.Screenshots">截图</sys:String>
+    <sys:String x:Key="Instance.Left.ResourcePacks">资源包</sys:String>
+    <sys:String x:Key="Instance.Left.Shaders">光影包</sys:String>
+    <sys:String x:Key="Instance.Left.Schematics">投影原理图</sys:String>
+    <sys:String x:Key="Instance.Left.Servers">服务器</sys:String>
+    <sys:String x:Key="Instance.Left.InitializeSettings.ConfirmTitle">初始化确认</sys:String>
+    <sys:String x:Key="Instance.Left.InitializeSettings.ConfirmMessage">是否要初始化该实例的实例独立设置？该操作不可撤销。</sys:String>
+    <sys:String x:Key="Instance.Left.Refreshing">刷新中……</sys:String>
+
+    <!-- Instance.Mod -->
+    <sys:String x:Key="Instance.Mod.Disabled.Title">该实例不可使用模组</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.Message">你需要先安装 Forge、Fabric 等模组加载器才能使用模组，请在下载页面安装这些实例。&#x0a;如果你已经安装过了模组加载器，那么你很可能选择了错误的实例，请点击实例选择按钮切换实例。</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.GoDownload">转到下载页面</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.SelectInstance">实例选择</sys:String>
 </ResourceDictionary>

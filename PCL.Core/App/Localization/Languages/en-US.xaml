@@ -1967,4 +1967,28 @@
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">You need to install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">You need to install Java 8u141 ~ 8u320 to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">You need to install Java 8u141 or later to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
+
+    <!-- Instance.Left -->
+    <sys:String x:Key="Instance.Left.Game">Game</sys:String>
+    <sys:String x:Key="Instance.Left.Overview">Overview</sys:String>
+    <sys:String x:Key="Instance.Left.Settings">Settings</sys:String>
+    <sys:String x:Key="Instance.Left.Mod">Mods</sys:String>
+    <sys:String x:Key="Instance.Left.Install">Modify</sys:String>
+    <sys:String x:Key="Instance.Left.Export">Export</sys:String>
+    <sys:String x:Key="Instance.Left.Resources">Game resources</sys:String>
+    <sys:String x:Key="Instance.Left.Saves">Saves</sys:String>
+    <sys:String x:Key="Instance.Left.Screenshots">Screenshots</sys:String>
+    <sys:String x:Key="Instance.Left.ResourcePacks">Resource packs</sys:String>
+    <sys:String x:Key="Instance.Left.Shaders">Shaders</sys:String>
+    <sys:String x:Key="Instance.Left.Schematics">Schematics</sys:String>
+    <sys:String x:Key="Instance.Left.Servers">Servers</sys:String>
+    <sys:String x:Key="Instance.Left.InitializeSettings.ConfirmTitle">Initialize confirmation</sys:String>
+    <sys:String x:Key="Instance.Left.InitializeSettings.ConfirmMessage">Do you want to initialize per-instance settings for this instance? This action cannot be undone.</sys:String>
+    <sys:String x:Key="Instance.Left.Refreshing">Refreshing...</sys:String>
+
+    <!-- Instance.Mod -->
+    <sys:String x:Key="Instance.Mod.Disabled.Title">This instance cannot use mods</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.Message">You need to install a mod loader such as Forge, Fabric, etc. to use mods. Please go to the download page to install one.&#x0a;If you have already installed a mod loader, you may have selected the wrong instance. Please switch to the correct instance.</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.GoDownload">Go to the download page</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.SelectInstance">Select an instance</sys:String>
 </ResourceDictionary>
