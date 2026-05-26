@@ -138,7 +138,7 @@ public partial class PageInstanceSetup
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
-                CheckAdvanceDisableJLW.ToolTip = Lang.Text("Instance.Setup.Advanced.DisableJavaLaunchWrapper.Arm64ToolTip");
+                CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64ToolTip");
             }
             else
             {
@@ -298,7 +298,7 @@ public partial class PageInstanceSetup
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(RamGame, "N1")} GB{(RamGame != RamGameActual ? $" ({Lang.Text("Instance.Setup.Memory.Available", Lang.Number(RamGameActual, "N1"))})" : "")}";
+        LabRamGame.Text = $"{Lang.Number(RamGame, "N1")} GB{(RamGame != RamGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(RamGameActual, "N1"))})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(RamUsed, "N1")} GB";
         LabRamTotal.Text = $" / {Lang.Number(RamTotal, "N1")} GB";
         LabRamWarn.Visibility =
@@ -927,7 +927,7 @@ public partial class PageInstanceSetup
         else if (selectedItem.Tag is UseRelativePath)
         {
             // 相对路径：需要用户选择实际文件
-            var ret = SystemDialogs.SelectFile(Lang.Text("Instance.Setup.Java.SelectFile.Filter"), Lang.Text("Instance.Setup.Java.SelectFile.Title"), Basics.ExecutableDirectory);
+            var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Launch.Java.SelectFile.Filter"), Lang.Text("Setup.Launch.Java.SelectFile.Title"), Basics.ExecutableDirectory);
             if (string.IsNullOrWhiteSpace(ret))
                 // 用户取消，不保存配置，保持原选择
                 return;
@@ -976,7 +976,7 @@ public partial class PageInstanceSetup
             return;
         if (ModMain.MyMsgBox(
                 Lang.Text("Instance.Setup.IsolationWarning.Message"),
-                Lang.Text("Common.Dialog.Warning"), Lang.Text("Instance.Setup.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
         {
             IsReverting = true;
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -1021,9 +1021,9 @@ public partial class PageInstanceSetup
 
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
-            if (ModMain.MyMsgBox(Lang.Text("Instance.Setup.RendererWarning.Message"),
+            if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
                     Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Instance.Setup.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
             }
@@ -1050,7 +1050,7 @@ public partial class PageInstanceSetup
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Instance.Setup.Log4jWarning.Message"),
-                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Instance.Setup.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 checkBox.Checked = false;
             }

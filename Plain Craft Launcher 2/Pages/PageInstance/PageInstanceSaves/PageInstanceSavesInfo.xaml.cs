@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using fNbt;
+using Humanizer;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
@@ -353,10 +354,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     PanSettingsList.Children.Add(difficultyPanel);
                 }
 
-                AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"),
-                    new DateTime(1970, 1, 1, 0, 0, 0)
-                        .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
-                        .ToLocalTime().ToString());
+                var lastPlayed = new DateTime(1970, 1, 1, 0, 0, 0)
+                    .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
+                    .ToLocalTime();
+                AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"), Lang.Date(lastPlayed, "g"));
 
                 NbtInt spawnX = null;
                 if (gameLevel.TryGet("SpawnX", out spawnX))
@@ -450,13 +451,17 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         isHardcore.Value == 1 ? Lang.Text("Common.Option.Yes") :
                         lockedElement is not null ? Lang.Text("Common.Option.No") : Lang.Text("Instance.Saves.Info.GetFailed");
                     if (Hintversion1_8.Visibility != Visibility.Visible)
-                        AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"), $"{difficultyName}{Lang.Text("Instance.Saves.Info.DifficultyLocked", isDifficultyLocked)}");
+                        AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"), $"{difficultyName}  |  {Lang.Text("Instance.Saves.Info.DifficultyLocked", isDifficultyLocked)}");
                 }
 
                 var totalTicks = long.Parse(gameLevel.Get<NbtLong>("Time").Value.ToString());
-                var totalSeconds = totalTicks / 20.0d;
-                var playTime = TimeSpan.FromSeconds(totalSeconds);
-                var formattedPlayTime = Lang.Text("Instance.Saves.Info.TimeFormat", playTime.Days, playTime.Hours, playTime.Minutes);
+                var formattedPlayTime = Lang.TimeSpan(
+                    TimeSpan.FromSeconds(totalTicks / 20.0d),
+                    precision: 3,
+                    addAffixes: false,
+                    maxUnit: TimeUnit.Day,
+                    minUnit: TimeUnit.Second);
+
                 AddInfoTable(Lang.Text("Instance.Saves.Info.PlayTime"), formattedPlayTime);
                 PanContent.Visibility = Visibility.Visible;
             }

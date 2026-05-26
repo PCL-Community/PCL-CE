@@ -54,7 +54,7 @@
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Relevance}" Tag="2" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Downloads}" Tag="3" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Follows}" Tag="4" />
-                        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Newest}" Tag="5" />
+                        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Latest}" Tag="5" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Updated}" Tag="6" />
                     </local:MyComboBox>
                     <!--版本-->

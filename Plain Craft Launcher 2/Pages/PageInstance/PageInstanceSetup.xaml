@@ -13,7 +13,7 @@
             <local:MyHint Text="{DynamicResource Instance.Setup.Hint}" Theme="Blue" Margin="0,0,0,15"
                           CanClose="True" RelativeSetup="HintIndieSetup" />
             <local:MyCard x:Name="CardArgument" Margin="0,0,0,15"
-                          Title="{DynamicResource Instance.Setup.LaunchOptions.Title}">
+                          Title="{DynamicResource Setup.Launch.Options.Title}">
                 <StackPanel Margin="25,40,25,21">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -49,13 +49,13 @@
                                                   ToolTipService.HorizontalOffset="100" />
                         </local:MyComboBox>
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Instance.Setup.WindowTitle}"
+                                   Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False"
                                           ToolTip="{DynamicResource Instance.Setup.WindowTitle.ToolTip}">
-                            <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.WindowTitle.Template}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
                         <local:MyCheckBox x:Name="CheckArgumentTitleEmpty" Margin="0,0,0,9" Grid.Row="4"
                                           Grid.ColumnSpan="3"
@@ -64,7 +64,7 @@
                                           Grid.Column="0"
                                           ToolTip="{DynamicResource Instance.Setup.WindowTitle.Default.ToolTip}" />
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Instance.Setup.CustomInfo}"
+                                   Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="6" Grid.ColumnSpan="2"
                                          Tag="VersionArgumentInfo" Grid.Column="1"
@@ -91,12 +91,12 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Setup.Memory.Title}">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
                 <StackPanel Margin="25,40,25,15">
-                    <local:MyHint x:Name="LabRamWarn" Text="{DynamicResource Instance.Setup.Memory.Java32Warning}"
+                    <local:MyHint x:Name="LabRamWarn" Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}"
                                   Theme="Yellow" Margin="0,0,0,12" />
                     <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
-                                  Text="{DynamicResource Instance.Setup.Memory.TooMuchWarning}" Margin="0,0,0,12"
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     <Grid Margin="0,0,0,3">
                         <Grid.ColumnDefinitions>
@@ -120,12 +120,12 @@
 
                         <local:MyRadioBox
                             Grid.Row="1" Grid.Column="0"
-                            Text="{DynamicResource Instance.Setup.Memory.Auto}"
+                            Text="{DynamicResource Setup.Launch.Memory.Auto}"
                             Width="110"
                             x:Name="RadioRamType0"
                             Tag="VersionRamType/0"
                             Margin="0,0,20,0"
-                            ToolTip="{DynamicResource Instance.Setup.Memory.Auto.ToolTip}"
+                            ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}"
                             ToolTipService.Placement="Right"
                             ToolTipService.HorizontalOffset="-10"
                             ToolTipService.VerticalOffset="-3" />
@@ -173,7 +173,7 @@
                         <TextBlock x:Name="LabRamUsedTitle" Text="{DynamicResource Instance.Setup.Memory.Used}"
                                    Grid.ColumnSpan="3" Opacity="0.7"
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
-                        <TextBlock x:Name="LabRamGameTitle" Text="{DynamicResource Instance.Setup.Memory.Allocated}"
+                        <TextBlock x:Name="LabRamGameTitle" Text="{DynamicResource Setup.Launch.Memory.GameAllocation}"
                                    Opacity="0.7" Grid.ColumnSpan="3"
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
@@ -290,7 +290,7 @@
                 </StackPanel>
             </local:MyCard>
             <local:MyCard x:Name="CardAdvance" Margin="0,0,0,15"
-                          Title="{DynamicResource Instance.Setup.Advanced.Title}" IsSwapped="True" CanSwap="True">
+                          Title="{DynamicResource Setup.Launch.Advanced.Title}" IsSwapped="True" CanSwap="True">
                 <Grid Margin="25,40,25,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
@@ -311,20 +311,20 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{DynamicResource Instance.Setup.Advanced.Renderer}"
+                               Text="{DynamicResource Setup.Launch.Advanced.Renderer.Label}"
                                Margin="0,0,25,0" />
                     <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                                       Tag="VersionAdvanceRenderer">
                         <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Advanced.Renderer.FollowGlobal}"
                                               IsSelected="True" />
-                        <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Advanced.Renderer.Default}" />
-                        <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Advanced.Renderer.Llvmpipe}" />
-                        <local:MyComboBoxItem Content="DirectX12（d3d12）" />
-                        <local:MyComboBoxItem Content="Vulkan（zink）" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.GameDefault}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Software}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.DirectX12}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Vulkan}" />
                     </local:MyComboBox>
 
                     <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{DynamicResource Instance.Setup.Advanced.JvmArgs}"
+                               Text="{DynamicResource Setup.Launch.Advanced.JvmHead}"
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceJvm" Grid.Row="2" Grid.ColumnSpan="2" Tag="VersionAdvanceJvm"
                                      Grid.Column="1" MaxLength="4000"
@@ -334,7 +334,7 @@
                                      VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto" />
 
                     <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{DynamicResource Instance.Setup.Advanced.GameArgs}"
+                               Text="{DynamicResource Setup.Launch.Advanced.GameTail}"
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="VersionAdvanceGame"
                                      Grid.Column="1"
@@ -349,7 +349,7 @@
                                      ToolTip="{DynamicResource Instance.Setup.Advanced.Classpath.ToolTip}" />
 
                     <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{DynamicResource Instance.Setup.Advanced.PreLaunchCommand}"
+                               Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand}"
                                Margin="0,0,25,3" />
                     <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="8" Grid.ColumnSpan="2" Tag="VersionAdvanceRun"
                                      Grid.Column="1" HintText="" Margin="0,0,0,3"
@@ -358,7 +358,7 @@
                     <StackPanel Margin="0,8,0,4" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" x:Name="CheckAdvanceRunWait" Tag="VersionAdvanceRunWait"
                                           Visibility="Collapsed"
-                                          Text="{DynamicResource Instance.Setup.Advanced.WaitPreLaunchCommand}" />
+                                          Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility}"
                                           x:Name="CheckAdvanceJava"
@@ -377,27 +377,27 @@
                                           ToolTipService.Placement="Right"
                                           ToolTip="{DynamicResource Instance.Setup.Advanced.UseGlobalProxy.ToolTip}" />
                         <local:MyCheckBox Height="28"
-                                          Text="{DynamicResource Instance.Setup.Advanced.DisableJavaLaunchWrapper}"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}"
                                           x:Name="CheckAdvanceDisableJLW"
                                           Tag="VersionAdvanceDisableJLW"
                                           ToolTipService.Placement="Right"
-                                          ToolTip="{DynamicResource Instance.Setup.Advanced.DisableJavaLaunchWrapper.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28"
-                                          Text="{DynamicResource Instance.Setup.Advanced.DisableRetroWrapper}"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableRw}"
                                           x:Name="CheckAdvanceDisableRW"
                                           Tag="VersionAdvanceDisableRW"
                                           ToolTipService.Placement="Right"
-                                          ToolTip="{DynamicResource Instance.Setup.Advanced.DisableRetroWrapper.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseDebugLog4j}"
                                           x:Name="CheckUseDebugLog4j2Config"
                                           Tag="VersionUseDebugLog4j2Config"
                                           ToolTipService.Placement="Right" />
                         <local:MyCheckBox Height="28"
-                                          Text="{DynamicResource Instance.Setup.Advanced.DisableLwjglUnsafeAgent}"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}"
                                           x:Name="CheckAdvanceDisableLwjglUnsafeAgent"
                                           Tag="VersionAdvanceDisableLwjglUnsafeAgent"
                                           ToolTipService.Placement="Right"
-                                          ToolTip="{DynamicResource Instance.Setup.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                     </StackPanel>
                 </Grid>
             </local:MyCard>

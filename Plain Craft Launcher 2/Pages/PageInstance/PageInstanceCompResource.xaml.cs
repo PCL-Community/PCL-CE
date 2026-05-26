@@ -1870,7 +1870,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         if ((ModBase.GetFileMD5(ModEntity.Path) ?? "") != (ModBase.GetFileMD5(NewPath) ?? ""))
                         {
                             ModMain.MyMsgBox(
-                                Lang.Text("Instance.Resource.Ed.FileConflict.Message", "\r\n", NewPath, ModEntity.Path),
+                                Lang.Text("Instance.Resource.Ed.FileConflict.Message", NewPath, ModEntity.Path),
                                 Lang.Text("Instance.Resource.Ed.FileConflict"));
                             continue;
                         }
@@ -2446,7 +2446,9 @@ public partial class PageInstanceCompResource : IRefreshable
                     {
                         DebugInfo.Add(Lang.Text("Instance.Resource.Item.Info.Dependency"));
                         foreach (var Dep in ModEntry.Dependencies)
-                            DebugInfo.Add(" - " + Dep.Key + (Dep.Value is null ? "" : Lang.Text("Instance.Resource.Item.Info.DependencyVersion", Dep.Value)));
+                            DebugInfo.Add(" - " + (Dep.Value is null
+                                ? Dep.Key
+                                : Lang.Text("Instance.Resource.Item.Info.DependencyVersion", Dep.Key, Dep.Value)));
                     }
 
                     if (DebugInfo.Any())
@@ -2492,12 +2494,12 @@ public partial class PageInstanceCompResource : IRefreshable
                     // 其他资源类型保留百科搜索功能
                     else if (ModEntry.Url is null)
                     {
-                        if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, Lang.Text("Instance.Resource.Item.Info.Encyclopedia"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
+                        if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, Lang.Text("Instance.Resource.Item.Info.McMod"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
                             ModBase.OpenWebsite("https://www.mcmod.cn/s?key=" + ModSearchName + "&site=all&filter=0");
                     }
                     else
                     {
-                        switch (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Encyclopedia"),
+                        switch (ModMain.MyMsgBox(ContentLines.Join("\r\n"), ModEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.McMod"),
                                     Lang.Text("Instance.Resource.Item.Info.Return")))
                         {
                             case 1:
@@ -2698,7 +2700,8 @@ public partial class PageInstanceCompResource : IRefreshable
         // 显示区域数量
         if (ModEntry.LitematicRegionCount.HasValue) ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.RegionCount") + ModEntry.LitematicRegionCount.Value);
 
-        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType.Sponge"));
+        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType",
+            Lang.Text("Instance.Resource.Item.Schematic.FileType.Sponge")));
     }
 
     /// <summary>
@@ -2719,7 +2722,8 @@ public partial class PageInstanceCompResource : IRefreshable
         if (ModEntry.LitematicTotalVolume.HasValue)
             ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.TotalVolume") + Lang.Number(ModEntry.LitematicTotalVolume.Value, "N0"));
 
-        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType.Mcedit"));
+        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType",
+            Lang.Text("Instance.Resource.Item.Schematic.FileType.Mcedit")));
     }
 
     /// <summary>
@@ -2751,7 +2755,8 @@ public partial class PageInstanceCompResource : IRefreshable
         // 显示区域数量
         if (ModEntry.LitematicRegionCount.HasValue) ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.RegionCount") + ModEntry.LitematicRegionCount.Value);
 
-        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType.Nbt"));
+        ContentLines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType",
+            Lang.Text("Instance.Resource.Item.Schematic.FileType.Nbt")));
     }
 
     #endregion
@@ -2762,9 +2767,11 @@ public partial class PageInstanceCompResource : IRefreshable
         if (ModEntry.ModId is not null) DebugInfo.Add(Lang.Text("Instance.Resource.Item.Info.ModId", ModEntry.ModId));
         if (ModEntry.Dependencies.Any())
         {
-            DebugInfo.Add(Lang.Text("Instance.Resource.Item.Info.DependsOn"));
+            DebugInfo.Add(Lang.Text("Instance.Resource.Item.Info.Dependency"));
             foreach (var Dep in ModEntry.Dependencies)
-                DebugInfo.Add(" - " + Dep.Key + (Dep.Value is null ? "" : "，版本：" + Dep.Value));
+                DebugInfo.Add(" - " + Dep.Key + (Dep.Value is null
+                    ? Dep.Key
+                    : Lang.Text("Instance.Resource.Item.Info.DependencyVersion", Dep.Key, Dep.Value)));
         }
 
         if (DebugInfo.Any())

@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -82,7 +82,7 @@
     <!-- Common.Hint / Error -->
 
     <sys:String x:Key="Common.Hint.DoNotShowAgain">Do not show again</sys:String>
-    <sys:String x:Key="Common.Error.InvalidJson">Not a valid Json file</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">Not a valid JSON file</sys:String>
 
     <!-- Application -->
 
@@ -94,7 +94,7 @@
     <sys:String x:Key="Application.EnvironmentWarning.Title">Environment warning</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">I see</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">PCL path: {0}</sys:String>
-    <sys:String x:Key="Application.InitializationError.PathUnavailable">Failed to obtain</sys:String>
+    <sys:String x:Key="Application.InitializationError.PathUnavailable">Unable to obtain</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL initialization error</sys:String>
 
     <!-- Main.Title / Navigation -->
@@ -104,7 +104,7 @@
     <sys:String x:Key="Main.TopTitle.Settings">Settings</sys:String>
     <sys:String x:Key="Main.TopTitle.Tools">Tools</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">Selection</sys:String>
-    <sys:String x:Key="Main.Title.TaskManager">Task Manager</sys:String>
+    <sys:String x:Key="Main.Title.TaskManager">Task manager</sys:String>
     <sys:String x:Key="Main.Title.GameLog">Launch log</sys:String>
     <sys:String x:Key="Main.Title.InstanceSetup">Properties - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">Resource download - {0}</sys:String>
@@ -114,7 +114,7 @@
     <!-- Main.Extra Buttons -->
 
     <sys:String x:Key="Main.Extra.BackToTop.ToolTip">Back to top</sys:String>
-    <sys:String x:Key="Main.Extra.TaskManager.ToolTip">Task Manager</sys:String>
+    <sys:String x:Key="Main.Extra.TaskManager.ToolTip">Task manager</sys:String>
     <sys:String x:Key="Main.Extra.GiveUp.ToolTip">Surrender</sys:String>
     <sys:String x:Key="Main.Extra.ShutdownMinecraft.ToolTip">Close Minecraft</sys:String>
     <sys:String x:Key="Main.Extra.GameLog.ToolTip">Launch log</sys:String>
@@ -210,17 +210,17 @@
     <sys:String x:Key="Launch.Account.LoginDialog.Title">Test title text</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">Copy code</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Login to Minecraft</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Log in to Minecraft</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">The login page will open automatically. Enter the authorization code {0} (it will be copied automatically).&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be filled in automatically.&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;If the code is not filled in automatically, paste this authorization code {0} manually (it will be copied automatically).&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in through the webpage!</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in from the webpage!</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.PollingFailed">Microsoft login polling failed</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Error.Init">Failed to initialize Microsoft login dialog</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Error.Load">Failed to load Microsoft login dialog</sys:String>
 
     <!-- Launch.Account.Microsoft -->
 
-    <sys:String x:Key="Launch.Account.Microsoft.Start">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Start">Log in</sys:String>
     <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  Purchase</sys:String>
     <sys:String x:Key="Launch.Account.Microsoft.Website">»  Website</sys:String>
     <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">Microsoft login authentication failed.&#x0a;Please consider disabling the &quot;Verify SSL certificates for Microsoft login&quot; option in &quot;Settings → Miscellaneous&quot; and try again.&#x0a;&#x0a;Original error message:</sys:String>
@@ -238,7 +238,7 @@
     <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ForgotPassword">Forgot password</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Back">Back</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.Login">Log in</sys:String>
     <sys:String x:Key="Launch.Account.Auth.EmptyFields">Authentication server, username, and password cannot be empty!</sys:String>
     <sys:String x:Key="Launch.Account.Auth.InvalidServer">The authentication server address is invalid.</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Cancelled">Login canceled!</sys:String>
@@ -358,7 +358,7 @@
     <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft</sys:String>
     <sys:String x:Key="Launch.Account.Type.ThirdParty">Third-party</sys:String>
     <sys:String x:Key="Launch.Account.Back">«  Back</sys:String>
-    <sys:String x:Key="Launch.Account.Login">Login</sys:String>
+    <sys:String x:Key="Launch.Account.Login">Log in</sys:String>
     <sys:String x:Key="Launch.Account.LoginCancelled">Login canceled!</sys:String>
     <sys:String x:Key="Launch.Account.Error.SwitchPage">Failed to switch login page. ({0})</sys:String>
 
@@ -395,7 +395,7 @@
     <!-- Launch.Skin.Cape -->
 
     <sys:String x:Key="Launch.Skin.Cape.Changing">Changing cape, please wait!</sys:String>
-    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">Failed to login, and the cape cannot be changed!</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.LoginFailed">Failed to log in, and the cape cannot be changed!</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.FetchingList">Getting the list of capes, please wait...</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.None">None</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.SelectTitle">Choose a cape</sys:String>
@@ -674,7 +674,7 @@
 
     <!-- Minecraft.Launch.Login.Microsoft -->
 
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to be banned by Microsoft and cannot log in.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to have been banned by Microsoft and cannot log in.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register one first and then log in.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to Microsoft accounts.&#x0a;Please use an accelerator or VPN.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
@@ -711,7 +711,7 @@
     <sys:String x:Key="Minecraft.Launch.DemoMode">The game will launch in demo mode!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Title">Password required</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Message">During login, please select {0}Other Sign-in Methods{1}, then select {0}Use My Password{1}.&#x0a;If this option is not available, please select {0}Set Password{1}, then log in after setting it up.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">Relogin</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.Relogin">Log in again</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.PasswordRequired.SetPassword">Set password</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Title">Failed to refresh account information</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.RefreshAccountFailed.Message">The launcher encountered a network error while trying to refresh account information.&#x0a;You can cancel, check your network, and try again, or ignore the error and continue launching, but some servers may not be playable.</sys:String>
@@ -858,7 +858,7 @@
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">Requires OptiFine</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">Requires OptiFine &amp; Fabric</sys:String>
     <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">Incompatible with older versions of Fabric, please download OptiFabric Origins manually.</sys:String>
-    <sys:String x:Key="Download.Install.StartDownload">Start download</sys:String>
+    <sys:String x:Key="Download.Install.StartDownload">Download</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">Click the Minecraft tile to return!</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">Instance isolation is not enabled, causing multiple instances to share the same mods folder.&#x0a;As a result, Minecraft may crash when switching instances due to incompatible mods being loaded.&#x0a;It is strongly recommended to enable instance isolation under "Settings → Launch options → Instance isolation" before proceeding with the installation.</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">Instance isolation</sys:String>
@@ -884,7 +884,7 @@
     <sys:String x:Key="Download.Comp.Sort.Relevance">Relevance</sys:String>
     <sys:String x:Key="Download.Comp.Sort.Downloads">Downloads</sys:String>
     <sys:String x:Key="Download.Comp.Sort.Follows">Follows</sys:String>
-    <sys:String x:Key="Download.Comp.Sort.Newest">Newest</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Latest">Latest</sys:String>
     <sys:String x:Key="Download.Comp.Sort.Updated">Recently updated</sys:String>
     <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">Unable to connect to Modrinth; only contents from CurseForge are being displayed. Results might be incomplete.&#x0a;Please check your internet and try again.</sys:String>
 
@@ -1367,7 +1367,7 @@
     <sys:String x:Key="Setup.Left.Item.Log">Logs</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Title">Initialization confirmation</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Launch.Message">Do you want to initialize all settings on the Game – Launch page? This action cannot be undone.</sys:String>
-    <sys:String x:Key="Setup.Left.Reset.Ui.Message">Do you want to initialize all settings on the Launcher – Personalization page? This action cannot be undone.&#x0a;(Background images, musics, homepage files, and other external files will not be deleted.)</sys:String>
+    <sys:String x:Key="Setup.Left.Reset.Ui.Message">Do you want to initialize all settings on the Launcher – Personalization page? This action cannot be undone.&#x0a;(Background images, music, homepage files, and other external files will not be deleted.)</sys:String>
     <sys:String x:Key="Setup.Left.Reset.GameManage.Message">Do you want to initialize all settings on the Game – Management page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Reset.GameLink.Message">Do you want to initialize all settings on the Tools – Multiplayer page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Language.Message">Do you want to initialize all settings on the Launcher – Language page? This action cannot be undone.</sys:String>
@@ -1464,11 +1464,11 @@
     <sys:String x:Key="Setup.Ui.Music.Smtc.ToolTip">When enabled, you can use the system control center and shortcuts to control PCL's media playback.&#x0a;Can be used with software such as Lyricify Lite or FluentFlyout.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.OpenFolder.ToolTip">Put the music in this folder, and PCL will play all of them.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Refresh">Refresh</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.Refresh.ToolTip">Refresh the playlist and play musics on the list.</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.Refresh.ToolTip">Refresh the playlist and play music on the list.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Clear">Clear all</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Clear.Confirm.Message">All files in the music folder are about to be deleted. This operation is irrevocable. Are you sure?</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.Deleting">Deleting the musics...</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.Delete.Success">The musics have been deleted!</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.Deleting">Deleting music...</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.Delete.Success">The music has been deleted!</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Title">Title bar</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">None</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">Text</sys:String>
@@ -1502,7 +1502,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. Click the &quot;Generate docs&quot; button, which will generate the &quot;Custom.xaml&quot; layout file in the PCL folder.&#x0a;2. Modify the file with tools like Notepad, and remember to save it after the modification.&#x0a;3. Click the &quot;Refresh&quot; button to see what the homepage looks like now.&#x0a;&#x0a;You can directly refresh the homepage after generating the documentation file and make changes accordingly, which will be more helpful for you to understand.&#x0a;You can also load the homepage file directly by dragging it into the PCL window.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">Homepage custom tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">Trivia</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (Removed)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.SimpleHomepage">Simple Homepage (Author: MFn233)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">Daily Modpack Recommendation (Author: wkea)</sys:String>
@@ -1639,7 +1639,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.Title">Advanced launch options</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Label">Renderer</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.GameDefault">Game default</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Software">Software rendering (llvmpipe)</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.Renderer.Software">Software renderer (llvmpipe)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX 12 (d3d12)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Vulkan">Vulkan (zink)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">Changing this setting will seriously affect game stability and performance. If you do not know what you are doing, do not change this option!&#x0a;Are you sure you want to continue?</sys:String>
@@ -1824,7 +1824,7 @@
     <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 8 Runtime</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Title">Other update options - upgrade to AquaCL</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Placeholder">AquaCL 3 is the first major update of PCL CE. It brings a refreshing new design, uses the latest development technologies, completely rebuilds the core experience, and adds support for macOS, Linux, and other platforms.</sys:String>
-    <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version info, please check your network connection</sys:String>
+    <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version information. Please check your network connection.</sys:String>
 
     <!-- Setup.Misc.System / Network -->
 
@@ -1837,7 +1837,7 @@
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Message">If you choose this option, you will not receive relevant notifications even when serious issues occur in the future.&#x0a;For example, if a critical bug is found in a certain game version, you may miss the notification and face unpredictable consequences.&#x0a;&#x0a;In general, choosing &quot;Show announcements only when important&quot; should keep you mostly undisturbed.&#x0a;Unless you are creating a server modpack or frequently update the launcher manually, this option is strongly discouraged!</sys:String>
     <sys:String x:Key="Setup.Misc.System.Announcement.Disabled.Warning.Confirm">I know what I am doing</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps">Maximum animation FPS</sys:String>
-    <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">If you have disabled hardware acceleration, it is recommended to lower the max animation FPS to prevent excessive resource usage</sys:String>
+    <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">If you have disabled hardware acceleration, it is recommended to lower the maximum animation FPS to prevent excessive resource usage.</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">Real-time log lines</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">Maximum number of lines displayed in the real-time log feature. Old logs are automatically deleted when exceeded.</sys:String>
     <sys:String x:Key="Setup.Misc.System.DisableHardwareAcceleration">Disable hardware acceleration</sys:String>
@@ -1878,7 +1878,7 @@
     <sys:String x:Key="Setup.Misc.Log.Export">Export log</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportAll">Export all logs</sys:String>
     <sys:String x:Key="Setup.Misc.Log.OpenDirectory">Open log folder</sys:String>
-    <sys:String x:Key="Setup.Misc.Log.ClearHistory">Clear history logs</sys:String>
+    <sys:String x:Key="Setup.Misc.Log.ClearHistory">Clear historical logs</sys:String>
     <sys:String x:Key="Setup.Misc.Log.AllLogs">All logs</sys:String>
     <sys:String x:Key="Setup.Misc.Log.CurrentSuffix">{0} (current)</sys:String>
     <sys:String x:Key="Setup.Misc.Log.TempStored">Temporarily stored logs ({0})</sys:String>
@@ -1887,8 +1887,8 @@
     <sys:String x:Key="Setup.Misc.Log.ExportFilter">PCL CE log archive|*.zip</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportSuccess">Log saved successfully!</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportFailed">Failed to save log</sys:String>
-    <sys:String x:Key="Setup.Misc.Log.Clear.Confirm.Message">Do you want to delete all history logs?</sys:String>
-    <sys:String x:Key="Setup.Misc.Log.Clear.Confirm.Title">Clear history logs</sys:String>
+    <sys:String x:Key="Setup.Misc.Log.Clear.Confirm.Message">Do you want to delete all historical logs?</sys:String>
+    <sys:String x:Key="Setup.Misc.Log.Clear.Confirm.Title">Clear historical logs</sys:String>
     <sys:String x:Key="Setup.Misc.Log.Clear.Success">Log files cleaned successfully!</sys:String>
 
     <!-- Setup.Misc.Import / Export -->
@@ -1970,7 +1970,7 @@
     <sys:String x:Key="Setup.About.EasterEgg.Tired.NotTired">Not really tired</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.StopClicking">Then stop clicking... There's really, really, really nothing behind this!</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message2">Aren't you really, really tired?</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.Tired.Title2">Super Friendly Reminder</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.Tired.Title2">Super friendly reminder</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message3">Aren't you really, really, really tired?</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Title3">SUPER SUPER FRIENDLY REMINDER</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.ReallyNotTired">Really really really not tired</sys:String>
@@ -2038,8 +2038,8 @@
     <sys:String x:Key="Instance.Overall.Icon.DirtPath">Dirt Path</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.Anvil">Anvil</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.RedstoneBlock">Redstone Block</sys:String>
-    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOn">Redstone Lamp (On)</sys:String>
-    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOff">Redstone Lamp (Off)</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOn">Redstone Lamp (on)</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.RedstoneLampOff">Redstone Lamp (off)</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.Egg">Egg</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.Fabric">Fabric (Fabric)</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.Quilt">Patch (Quilt)</sys:String>
@@ -2054,8 +2054,8 @@
     <sys:String x:Key="Instance.Overall.Category.AprilFools">April Fools'</sys:String>
     <sys:String x:Key="Instance.Overall.Rename">Rename instance</sys:String>
     <sys:String x:Key="Instance.Overall.EditDescription">Edit description</sys:String>
-    <sys:String x:Key="Instance.Overall.Favorite">Add to favorites</sys:String>
-    <sys:String x:Key="Instance.Overall.Unfavorite">Remove from favorites</sys:String>
+    <sys:String x:Key="Instance.Overall.Favorite">Favorite</sys:String>
+    <sys:String x:Key="Instance.Overall.Unfavorite">Unfavorite</sys:String>
     <sys:String x:Key="Instance.Overall.Hide.ConfirmTitle">Hide instance</sys:String>
     <sys:String x:Key="Instance.Overall.Hide.ConfirmMessage">Are you sure you want to hide this instance from the instance list? After hiding it will no longer appear in the displayed instance list.&#x0a;Press F11 in the instance list page to view hidden instances.</sys:String>
     <sys:String x:Key="Instance.Overall.Description.EditTitle">Edit description</sys:String>
@@ -2107,15 +2107,8 @@
 
     <!-- Instance.Setup.Memory -->
 
-    <sys:String x:Key="Instance.Setup.Memory.Title">Game Memory</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Java32Warning">32-bit Java can only allocate up to 1 GB of memory. We strongly recommend switching to 64-bit Java!</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.TooMuchWarning">You have allocated too much memory for the game, which may cause crashes. Consider using the "Auto" option!</sys:String>
     <sys:String x:Key="Instance.Setup.Memory.FollowGlobal">Follow global settings</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Auto">Auto</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Auto.ToolTip">Dynamically adjusts game memory based on installed mod count and available system memory</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Used">Used Memory</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Allocated">Game Allocation</sys:String>
-    <sys:String x:Key="Instance.Setup.Memory.Available">Available {0} GB</sys:String>
+    <sys:String x:Key="Instance.Setup.Memory.Used">Memory used</sys:String>
 
     <!-- Instance.Setup.Server -->
 
@@ -2123,84 +2116,65 @@
     <sys:String x:Key="Instance.Setup.Server.LoginLockHint">The authentication method for this instance has been locked and cannot be changed. Please use the required authentication method to launch the game.</sys:String>
     <sys:String x:Key="Instance.Setup.Server.SslWarning">Disabling SSL certificate verification may expose your login credentials to third-party interception.&#x0a;Unless you have a specific reason, always keep SSL certificate verification enabled!</sys:String>
     <sys:String x:Key="Instance.Setup.Server.HttpWarning">Using HTTP for login operations may expose your credentials in plaintext.&#x0a;Unless you have a specific reason, always use HTTPS!</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.RestrictLogin">Restrict Login Method</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.RestrictLogin">Restrict login method</sys:String>
     <sys:String x:Key="Instance.Setup.Server.LoginMethod.Unlimited">No restriction</sys:String>
     <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOnly">Microsoft login only</sys:String>
     <sys:String x:Key="Instance.Setup.Server.LoginMethod.AuthOnly">Third-party login only (Authlib-Injector)</sys:String>
     <sys:String x:Key="Instance.Setup.Server.LoginMethod.MicrosoftOrAuth">Microsoft or third-party login (Authlib-Injector)</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.AuthServer">Target Auth Server</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AuthServer">Target auth server</sys:String>
     <sys:String x:Key="Instance.Setup.Server.AuthServer.Hint">Full address of the Yggdrasil API authentication server</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.Register">Registration Link</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Register">Registration link</sys:String>
     <sys:String x:Key="Instance.Setup.Server.Register.Hint">Web address for account registration, e.g. https://xxxxx.xxx/auth/register</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.Name">Server Name</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.Name">Server name</sys:String>
     <sys:String x:Key="Instance.Setup.Server.Name.Hint">Server name displayed on the login page</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.AutoJoin">Auto-Join Server</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.AutoJoin.ToolTip">Automatically join a server after Minecraft opens.&#x0a;Separate IP and port with an English colon, e.g. 233.233.233.233:12345.</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin">Automatic join</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.AutoJoin.ToolTip">Automatically join a server after Minecraft opens.&#x0a;Separate IP and port with an colon, e.g. 233.233.233.233:12345.</sys:String>
     <sys:String x:Key="Instance.Setup.Server.SetLittleSkin">Set to LittleSkin</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.LockLoginMethod">Lock Login Method</sys:String>
-    <sys:String x:Key="Instance.Setup.Server.CreateProfile">Create Profile</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.LockLoginMethod">Lock login method</sys:String>
+    <sys:String x:Key="Instance.Setup.Server.CreateProfile">Create profile</sys:String>
 
     <!-- Instance.Setup.Advanced -->
 
-    <sys:String x:Key="Instance.Setup.Advanced.Title">Advanced Launch Options</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.Renderer">Renderer</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.Renderer.FollowGlobal">Follow global settings</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Default">Game default</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.Renderer.Llvmpipe">Software renderer (llvmpipe)</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.JvmArgs">JVM Arguments Header</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.JvmArgs.ToolTip">Additional JVM arguments used when launching Minecraft. Do not modify unless you are certain what you are doing.&#x0a;Supports substitution tokens from the Minecraft instance JSON, e.g. ${library_directory}.&#x0a;&#x0a;Leave empty to follow the global setting.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.GameArgs">Game Arguments Tail</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">Content in this text box will be appended directly to the end of the launch arguments.&#x0a;For example, entering --demo will launch the game in demo mode.&#x0a;Supports substitution tokens from the Minecraft instance JSON, e.g. ${library_directory}.&#x0a;&#x0a;Leave empty to follow the global setting.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.Classpath">Classpath Header Append</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.Classpath">Additional classpath prefix</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">Content will be added as Classpath entries at the head of this instance's launch arguments.&#x0a;Absolute paths are required. Separate multiple entries with English semicolons (;).</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand">Pre-launch Command</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">This does not override the global setting: the global command runs first, then the instance command.&#x0a;&#x0a;Executes a command or program before launching Minecraft, using Windows command prompt syntax.&#x0a;&#x0a;The following substitution tokens can be used for relative paths (paths end with \):&#x0a; · {path}: PCL executable folder&#x0a; · {minecraft}: .minecraft folder&#x0a; · {verpath}: Instance folder (.minecraft\versions\instance-name\)&#x0a; · {verindie}: Version folder when isolation is on, .minecraft folder otherwise&#x0a; · {java}: Java runtime folder&#x0a;&#x0a;Additionally, these tokens are also supported:&#x0a; · {user}: Player name&#x0a; · {login}: Player login method&#x0a; · {uuid}: Player UUID&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: Game vanilla version&#x0a;&#x0a;Examples:&#x0a; · &quot;{verpath}test.exe&quot; : Run test.exe in the instance folder&#x0a; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; : Run test.jar from the instance folder with Java&#x0a; · notepad &quot;{verindie}options.txt&quot; : Open the instance settings file with Notepad&#x0a;&#x0a;Always wrap paths in double quotes to avoid failures caused by spaces.&#x0a;The working directory when executing the command is the current .minecraft folder.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.WaitPreLaunchCommand">Wait for command to finish before continuing to launch</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">Ignore Java compatibility warning</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">If a manually selected Java is incompatible with this instance, automatically skip the compatibility warning popup and force the use of the manually selected Java.</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">Disable file verification</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification.ToolTip">Do not modify Assets at all; do not verify Libraries, third-party login libraries, or the instance main Jar file for modifications.&#x0a;Do not enable this unless you have modified related files.</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy">Follow launcher network proxy settings</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy.ToolTip">Use the proxy configured in [Settings - Misc - Network - HTTP Proxy] to launch the game.&#x0a;Incorrect global settings will prevent login!</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper">Disable Java Launch Wrapper</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.ToolTip">PCL uses Java Launch Wrapper to fix issues with launching older Java versions from paths containing Chinese characters.&#x0a;If this is blocked by anti-cheat software or causes other issues, you can disable it.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableJavaLaunchWrapper.Arm64ToolTip">Do not use Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is running on ARM64 architecture.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper">Disable RetroWrapper</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableRetroWrapper.ToolTip">PCL uses RetroWrapper when launching versions 1.5.x and below to improve the legacy game experience and fix compatibility issues.</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseDebugLog4j">Use debug-level log4j configuration</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#x0a;PCL uses LWJGL Unsafe Agent to fix this and resolve potential performance issues.&#x0a;There is generally no need to disable this option, but if you encounter additional problems, you can try temporarily disabling it for troubleshooting.&#x0a;&#x0a;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
 
     <!-- Instance.Setup.Core -->
 
     <sys:String x:Key="Instance.Setup.Hint">These settings only apply to this game instance and do not affect other instances.</sys:String>
-    <sys:String x:Key="Instance.Setup.LaunchOptions.Title">Launch Options</sys:String>
-    <sys:String x:Key="Instance.Setup.InstanceIsolation">Version Isolation</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation">Instance isolation</sys:String>
     <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled">Enabled</sys:String>
     <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled.ToolTip">Saves, mods, and other files are kept separate from other instances, without interfering with each other.&#x0a;This prevents cross-instance save sharing, but can help avoid mod conflicts.</sys:String>
     <sys:String x:Key="Instance.Setup.InstanceIsolation.Disabled.ToolTip">Share saves, mods, and other files with instances that have isolation disabled.&#x0a;If multiple instances with mods are present, mod conflicts may cause crashes.</sys:String>
-    <sys:String x:Key="Instance.Setup.WindowTitle">Game Window Title</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.ToolTip">Customize the game window title. Leave empty to follow the global setting.&#x0a;The following replacement tokens are supported:&#x0a; · {user}: Player name&#x0a; · {login}: Player login method&#x0a; · {name}: Game instance name&#x0a; · {date}, {time}: Current system time&#x0a; · {version}: Game vanilla version&#x0a;Note: If your instance uses the Modern UI mod, this setting will be ineffective.</sys:String>
-    <sys:String x:Key="Instance.Setup.WindowTitle.Template">{name} | Player: {user} | Logged in via {login}</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.Default">Default window title</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.Default.ToolTip">Whether the game window title should keep the default.</sys:String>
-    <sys:String x:Key="Instance.Setup.CustomInfo">Custom Info</sys:String>
     <sys:String x:Key="Instance.Setup.CustomInfo.ToolTip">This info is displayed at the bottom-left of the game's main screen and the top-left of the F3 debug screen.&#x0a;Leave empty to follow the global setting.</sys:String>
     <sys:String x:Key="Instance.Setup.FollowGlobal">Follow global settings</sys:String>
     <sys:String x:Key="Instance.Setup.GameJava">Game Java</sys:String>
     <sys:String x:Key="Instance.Setup.GameJava.ToolTip">If Java is placed in the game or PCL folder, PCL will prefer selecting it during auto-detection.</sys:String>
     <sys:String x:Key="Instance.Setup.Java.Loading">Loading…</sys:String>
-    <sys:String x:Key="Instance.Setup.OpenGlobalSettings">Global Settings</sys:String>
+    <sys:String x:Key="Instance.Setup.OpenGlobalSettings">Global settings</sys:String>
     <sys:String x:Key="Instance.Setup.Initialize.Success">Instance settings initialized!</sys:String>
     <sys:String x:Key="Instance.Setup.AuthServer.AutoFormatted">Auth server address automatically formatted!</sys:String>
-    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Title">Setting Override Confirmation</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Override.Title">Confirm setting override</sys:String>
     <sys:String x:Key="Instance.Setup.LittleSkin.Override.Message">Your third-party login settings will be overridden with LittleSkin login.&#x0a;Do not proceed unless you are the server owner, or the server owner has instructed you to do so.&#x0a;&#x0a;Are you sure you want to override the current settings?</sys:String>
     <sys:String x:Key="Instance.Setup.LittleSkin.Override.Continue">Continue</sys:String>
-    <sys:String x:Key="Instance.Setup.LittleSkin.Name">LittleSkin Login</sys:String>
-    <sys:String x:Key="Instance.Setup.LockLoginMethod.Title">Lock Login Method Confirmation</sys:String>
+    <sys:String x:Key="Instance.Setup.LittleSkin.Name">LittleSkin login</sys:String>
+    <sys:String x:Key="Instance.Setup.LockLoginMethod.Title">Confirm login method lock</sys:String>
     <sys:String x:Key="Instance.Setup.LockLoginMethod.Message">You are about to lock the login method for this instance. Once locked, the login method requirement cannot be changed, and the game must be launched using the specified login method.&#x0a;This feature may help some server owners.&#x0a;Continue?</sys:String>
     <sys:String x:Key="Instance.Setup.Java.FollowGlobal">Follow global settings</sys:String>
-    <sys:String x:Key="Instance.Setup.Java.AutoSelect">Auto-select suitable Java</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.AutoSelect">Auto-select</sys:String>
     <sys:String x:Key="Instance.Setup.Java.SelectRelative">Select Java in launcher directory</sys:String>
     <sys:String x:Key="Instance.Setup.Java.SelectRelative.Invalid">Select Java in launcher directory (current path is invalid)</sys:String>
     <sys:String x:Key="Instance.Setup.Java.SelectRelative.WithJava">Java in launcher directory | {0}</sys:String>
@@ -2209,20 +2183,16 @@
     <sys:String x:Key="Instance.Setup.Java.SelectRelativeToolTip">Select a Java path relative to the instance directory</sys:String>
     <sys:String x:Key="Instance.Setup.Java.ToolTip">Path: {0}&#x0a;Version: {1}&#x0a;Source: {2}</sys:String>
     <sys:String x:Key="Instance.Setup.Java.PathOutOfRange">Path is out of allowed range. Please select a file within or under the launcher directory.</sys:String>
-    <sys:String x:Key="Instance.Setup.Java.SelectFile.Title">Select Java Program</sys:String>
-    <sys:String x:Key="Instance.Setup.Java.SelectFile.Filter">Java Program(java.exe)|java.exe</sys:String>
     <sys:String x:Key="Instance.Setup.Java.LoadFailed">Failed to load list, please retry</sys:String>
     <sys:String x:Key="Instance.Setup.Java.NoRuntime">No available Java runtime detected</sys:String>
-    <sys:String x:Key="Instance.Setup.Java.NoRuntime.ToolTip">Please manually specify a Java path in settings, or click 'Scan' to re-detect</sys:String>
-    <sys:String x:Key="Instance.Setup.Warning.Confirm">I know what I'm doing</sys:String>
-    <sys:String x:Key="Instance.Setup.IsolationWarning.Message">After changing version isolation, you may need to manually migrate save files, mods, and other files to the new game folder.&#x0a;If you find your saves are missing after the change, reverting this setting will restore them.&#x0a;If you don't know how to migrate saves, it is not recommended to change this setting!</sys:String>
-    <sys:String x:Key="Instance.Setup.RendererWarning.Message">Changing this option can severely affect game stability and performance. Do not change it if you don't know what you're doing!&#x0a;Are you sure you want to continue?</sys:String>
+    <sys:String x:Key="Instance.Setup.Java.NoRuntime.ToolTip">Please manually specify a Java path in settings, or click "Scan" to re-detect</sys:String>
+    <sys:String x:Key="Instance.Setup.IsolationWarning.Message">After changing instance isolation, you may need to manually migrate save files, mods, and other files to the new game folder.&#x0a;If you find your saves are missing after the change, reverting this setting will restore them.&#x0a;If you don't know how to migrate saves, it is not recommended to change this setting!</sys:String>
     <sys:String x:Key="Instance.Setup.Log4jWarning.Message">This option changes the game log level to the minimum, which may consume substantial disk space and potentially affect game performance. It may also pose some security risks. Do not change this option if you don't know what you're doing!&#x0a;Are you sure you want to continue?</sys:String>
 
     <!-- Instance.Install -->
 
-    <sys:String x:Key="Instance.Install.Action.StartModify">Start Modify</sys:String>
-    <sys:String x:Key="Instance.Install.Action.StartReset">Start Reset</sys:String>
+    <sys:String x:Key="Instance.Install.Action.StartModify">Modify</sys:String>
+    <sys:String x:Key="Instance.Install.Action.StartReset">Reset</sys:String>
     <sys:String x:Key="Instance.Install.Action.ModifyLabel">Modify</sys:String>
     <sys:String x:Key="Instance.Install.NoExtraInstall">No extra installation</sys:String>
     <sys:String x:Key="Instance.Install.Reset.Title">Reset this instance</sys:String>
@@ -2230,7 +2200,7 @@
 
     <!-- Instance.Mod -->
 
-    <sys:String x:Key="Instance.Mod.Disabled.Title">This instance cannot use mods</sys:String>
+    <sys:String x:Key="Instance.Mod.Disabled.Title">This instance cannot install mods</sys:String>
     <sys:String x:Key="Instance.Mod.Disabled.Message">You need to install a mod loader such as Forge, Fabric, etc. to use mods. Please go to the download page to install one.&#x0a;If you have already installed a mod loader, you may have selected the wrong instance. Please switch to the correct instance.</sys:String>
     <sys:String x:Key="Instance.Mod.Disabled.GoDownload">Go to the download page</sys:String>
     <sys:String x:Key="Instance.Mod.Disabled.SelectInstance">Select an instance</sys:String>
@@ -2240,12 +2210,12 @@
     <sys:String x:Key="Instance.Resource.Filter.All">All</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.Enabled">Enabled</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.Disabled">Disabled</sys:String>
-    <sys:String x:Key="Instance.Resource.Filter.Updatable">Can Update</sys:String>
+    <sys:String x:Key="Instance.Resource.Filter.Updatable">Updatable</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.Error">Error</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.Duplicate">Duplicate</sys:String>
-    <sys:String x:Key="Instance.Resource.Filter.SearchResult">Search Results</sys:String>
+    <sys:String x:Key="Instance.Resource.Filter.SearchResult">Search results</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.AllWithCount">All ({0})</sys:String>
-    <sys:String x:Key="Instance.Resource.Filter.UpdatableWithCount">Can Update ({0})</sys:String>
+    <sys:String x:Key="Instance.Resource.Filter.UpdatableWithCount">Updatable ({0})</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.EnabledWithCount">Enabled ({0})</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.DisabledWithCount">Disabled ({0})</sys:String>
     <sys:String x:Key="Instance.Resource.Filter.ErrorWithCount">Error ({0})</sys:String>
@@ -2256,64 +2226,64 @@
     <sys:String x:Key="Instance.Resource.Install.RestoreFromRecycleBin">Please restore the file from the recycle bin first before trying to install!</sys:String>
     <sys:String x:Key="Instance.Resource.Install.SelectModableInstance">To install a mod, please first select a mod-compatible instance!</sys:String>
     <sys:String x:Key="Instance.Resource.Install.UnsupportedFormat">Unsupported file format: {0}. {1} supported formats: {2}</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.OverwriteConfirm.Title">File Overwrite Confirmation</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.OverwriteConfirm.Title">Confirm file overwrite</sys:String>
     <sys:String x:Key="Instance.Resource.Install.OverwriteConfirm.Message">A file with the name {0} already exists. Overwrite?</sys:String>
     <sys:String x:Key="Instance.Resource.Install.SuccessSingle">Successfully installed {0}!</sys:String>
     <sys:String x:Key="Instance.Resource.Install.SuccessMultiple">Successfully installed {0} {1}(s)!</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.ModConfirm.Title">Mod Installation Confirmation</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.ModConfirm.Title">Confirm mod installation</sys:String>
     <sys:String x:Key="Instance.Resource.Install.ModConfirm.Message">Do you want to install these files as a Mod to {0}?</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.GenericConfirm.Title">{0} Installation Confirmation</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.GenericConfirm.Title">Confirm {0} installation</sys:String>
     <sys:String x:Key="Instance.Resource.Install.GenericConfirm.Message">Do you want to install these files as {0} to {1}?</sys:String>
 
     <!-- Instance.Resource.Export -->
 
-    <sys:String x:Key="Instance.Resource.Export.Mode.Title">Select Export Mode</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.Mode.Title">Select export mode</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Message">TXT format: Only export the current resource file name info, usually sufficient for others to get installed resource info&#x0a;CSV format: Export detailed resource info, including file name, project ID, version info, and other details</sys:String>
-    <sys:String x:Key="Instance.Resource.Export.Mode.Txt">TXT Format</sys:String>
-    <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV Format</sys:String>
-    <sys:String x:Key="Instance.Resource.Export.SelectSaveLocation">Select Save Location</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.Mode.Txt">TXT format</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV format</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.SelectSaveLocation">Select save location</sys:String>
     <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file(*.txt)|*.txt|CSV file(*.csv)|*.csv</sys:String>
 
     <!-- Instance.Resource.Datapack -->
 
-    <sys:String x:Key="Instance.Resource.Datapack.Search.Hint">Search datapacks | Name / Description / Tags</sys:String>
-    <sys:String x:Key="Instance.Resource.Datapack.Loading">Loading datapack list</sys:String>
-    <sys:String x:Key="Instance.Resource.Datapack.Empty.Title">No datapacks installed</sys:String>
-    <sys:String x:Key="Instance.Resource.Datapack.Empty.Description">You can install datapacks from previously downloaded files.&#x0a;Datapacks need to be placed in the save's datapacks folder to take effect.</sys:String>
-    <sys:String x:Key="Instance.Resource.Datapack.DownloadNew">Download New Datapacks</sys:String>
-    <sys:String x:Key="Instance.Resource.Datapack.ExportInfo.ToolTip">Export detailed datapack info</sys:String>
+    <sys:String x:Key="Instance.Resource.Datapack.Loading">Loading data pack list</sys:String>
+    <sys:String x:Key="Instance.Resource.Datapack.Empty.Title">No data packs installed</sys:String>
+    <sys:String x:Key="Instance.Resource.Datapack.Empty.Description">You can install data packs from previously downloaded files.&#x0a;Data packs need to be placed in the save's datapacks folder to take effect.</sys:String>
+    <sys:String x:Key="Instance.Resource.Datapack.DownloadNew">Download new data packs</sys:String>
+    <sys:String x:Key="Instance.Resource.Datapack.ExportInfo.ToolTip">Export detailed data pack info</sys:String>
 
     <!-- Instance.Resource.Item.Schematic -->
 
-    <sys:String x:Key="Instance.Resource.Item.Schematic.DetailInfo">Details:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.OriginalName">Original Name:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.Version">Schematic Version:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.EnclosingSize">Enclosing Size:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.TotalBlocks">Total Blocks:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.TotalVolume">Total Volume:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.RegionCount">Region Count:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.CreatedTime">Created:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.ModifiedTime">Modified:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.GameVersion">Game Version:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.SpongeVersion">Sponge Version:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.DataVersion">Data Version:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.EnclosingDimensions">Enclosing Dimensions:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.Size">Size:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Sponge">File Type: Sponge Schematic</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Mcedit">File Type: MCEdit/WorldEdit Schematic</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Nbt">File Type: Vanilla Structure</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.DetailInfo">Details: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.OriginalName">Original name: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.Version">Schematic version: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.EnclosingSize">Enclosing size: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.TotalBlocks">Total blocks: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.TotalVolume">Total volume: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.RegionCount">Region count: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.CreatedTime">Created: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.ModifiedTime">Modified: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.GameVersion">Game version: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.SpongeVersion">Sponge version: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.DataVersion">Data version: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.EnclosingDimensions">Enclosing dimensions: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.Size">Size: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType">File type: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Sponge">Sponge schematic</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Mcedit">MCEdit/WorldEdit schematic</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Schematic.FileType.Nbt">Vanilla structure</sys:String>
 
     <!-- Instance.Resource.Item -->
 
-    <sys:String x:Key="Instance.Resource.Item.UpdateCompare">Current version: {0} ({1})&#x0a;Newest version: {2} ({3})</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.UpdateCompare">Current version: {0} ({1})&#x0a;Latest version: {2} ({3})</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateToolTip">Click to update, right-click to view changelog.</sys:String>
     <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Error, unable to get information</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">Folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [Error]</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">Update Confirmation</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">Confirm update</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Message">Update {0}?</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Update">Update</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.ViewChangelog">View Changelog</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.ViewChangelog">View changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">Failed to open changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedTitle">Failed to Read Resource</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read info for this resource.</sys:String>
@@ -2326,33 +2296,30 @@
     <sys:String x:Key="Instance.Resource.Item.Info.File">File: {0} ({1})</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.Version">Version: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.ModId">Mod ID: {0}</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.Dependency">Depends on:</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.Dependency">Depends on: </sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.Return">Return</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.OpenWebsite">Open Website</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.Encyclopedia">Encyclopedia Search</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.DetailedError">Detailed error:</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.DependencyVersion">, Version: {0}</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.OpenWebsite">Open website</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.McMod">Search on MCMod</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.DetailedError">Detailed error: </sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.DependencyVersion">{0}, version: {1}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.LoadingDetail">Loading details...</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.DependsOn">Depends on:</sys:String>
 
     <!-- Instance.Resource.Core -->
 
-    <sys:String x:Key="Instance.Resource.Search.Hint">Search resources: Name / Description / Tags</sys:String>
-    <sys:String x:Key="Instance.Resource.BackToParent">Back to Parent</sys:String>
-    <sys:String x:Key="Instance.Resource.BackToParent.Alt">Back to Parent</sys:String>
-    <sys:String x:Key="Instance.Resource.InstallFromFiles">Install from Files</sys:String>
-    <sys:String x:Key="Instance.Resource.InstallFromFiles.Alt">Install Resource from Files</sys:String>
-    <sys:String x:Key="Instance.Resource.DownloadNew">Download New</sys:String>
-    <sys:String x:Key="Instance.Resource.SelectAll">Select All</sys:String>
-    <sys:String x:Key="Instance.Resource.ExportInfo">Export Info</sys:String>
+    <sys:String x:Key="Instance.Resource.Search.Hint">Search resources: name / description / tags</sys:String>
+    <sys:String x:Key="Instance.Resource.BackToParent">Back to parent</sys:String>
+    <sys:String x:Key="Instance.Resource.InstallFromFiles">Install from files</sys:String>
+    <sys:String x:Key="Instance.Resource.DownloadNew">Download new</sys:String>
+    <sys:String x:Key="Instance.Resource.SelectAll">Select all</sys:String>
+    <sys:String x:Key="Instance.Resource.ExportInfo">Export info</sys:String>
     <sys:String x:Key="Instance.Resource.ExportInfo.ToolTip">Export detailed version info for resources</sys:String>
-    <sys:String x:Key="Instance.Resource.CheckMods">Check Mods</sys:String>
+    <sys:String x:Key="Instance.Resource.CheckMods">Check mods</sys:String>
     <sys:String x:Key="Instance.Resource.CheckMods.ToolTip">Quickly check mod version requirements, duplicates, missing dependencies, etc.&#x0a;Results are for reference only and may be inaccurate due to incorrect information in some mods.</sys:String>
-    <sys:String x:Key="Instance.Resource.Sort.FileName">File Name</sys:String>
-    <sys:String x:Key="Instance.Resource.Sort.ResourceName">Resource Name</sys:String>
-    <sys:String x:Key="Instance.Resource.Sort.TagCount">Tag Count</sys:String>
-    <sys:String x:Key="Instance.Resource.Sort.AddTime">Date Added</sys:String>
-    <sys:String x:Key="Instance.Resource.Sort.FileSize">File Size</sys:String>
+    <sys:String x:Key="Instance.Resource.Sort.FileName">File name</sys:String>
+    <sys:String x:Key="Instance.Resource.Sort.ResourceName">Resource name</sys:String>
+    <sys:String x:Key="Instance.Resource.Sort.TagCount">Tag count</sys:String>
+    <sys:String x:Key="Instance.Resource.Sort.AddTime">Date added</sys:String>
+    <sys:String x:Key="Instance.Resource.Sort.FileSize">File size</sys:String>
     <sys:String x:Key="Instance.Resource.Sort.Text">Sort: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Loading">Loading resource list</sys:String>
     <sys:String x:Key="Instance.Resource.Empty.Title">No resources installed</sys:String>
@@ -2361,82 +2328,82 @@
     <sys:String x:Key="Instance.Resource.EmptyFolder.Title">This folder is empty</sys:String>
     <sys:String x:Key="Instance.Resource.EmptyFolder.Description">You can install resources from previously downloaded files</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">Schematics unavailable for this instance</sys:String>
-    <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">You may need to install a schematic mod first. If you have already installed one, please launch the game once.&#x0a;Alternatively, you may have selected the wrong instance. Please use the instance selection button to switch instances.</sys:String>
-    <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">Download Schematic Mod</sys:String>
+    <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">You may need to install the Litematica mod first. If you have already installed one, please launch the game once.&#x0a;Alternatively, you may have selected the wrong instance. Please use the instance selection button to switch instances.</sys:String>
+    <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">Download Litematica</sys:String>
     <sys:String x:Key="Instance.Resource.SelectedCount">{0} file(s) selected</sys:String>
     <sys:String x:Key="Instance.Resource.Update">Update</sys:String>
     <sys:String x:Key="Instance.Resource.Enable">Enable</sys:String>
     <sys:String x:Key="Instance.Resource.Disable">Disable</sys:String>
     <sys:String x:Key="Instance.Resource.Favorite">Favorite</sys:String>
-    <sys:String x:Key="Instance.Resource.ShareSelected">Share Selected</sys:String>
-    <sys:String x:Key="Instance.Resource.CancelSelection">Cancel Selection</sys:String>
+    <sys:String x:Key="Instance.Resource.ShareSelected">Share</sys:String>
+    <sys:String x:Key="Instance.Resource.CancelSelection">Cancel</sys:String>
     <sys:String x:Key="Instance.Resource.Ed.ToggleFailed">Mod status toggle failed. Please try closing any running games and try again!</sys:String>
-    <sys:String x:Key="Instance.Resource.Ed.FileConflict">File Conflict</sys:String>
+    <sys:String x:Key="Instance.Resource.Ed.FileConflict">File conflict</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.PermanentSingle">Permanently deleted {0}!</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.PermanentMultiple">Permanently deleted {0} items!</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.RecycleSingle">Moved {0} to the recycle bin!</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.RecycleMultiple">Moved {0} items to the recycle bin!</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.Failed">Deletion failed due to file being in use. Please try closing any running games and try again!</sys:String>
-    <sys:String x:Key="Instance.Resource.Update.Warning.Title">Mod Update Warning</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Warning.Title">Mod update warning</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Message">Newer versions of mods may be incompatible with old saves or other mods, which could cause game crashes or even permanently corrupt your saves!&#x0a;If you are playing a modpack, do NOT update mods on your own!&#x0a;&#x0a;Before updating, please back up your saves and check the mod's changelog.&#x0a;If problems arise after updating, you can retrieve the previous mod version from the recycle bin.</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">Successfully updated {0}!</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">Successfully updated {0} resources!</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Failed">Resource update failed: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Aborted">Resource update aborted!</sys:String>
-    <sys:String x:Key="Instance.Resource.Ed.FileConflict.Message">There are currently two Mod files (enabled and disabled) present:{0} - {1}{0} - {2}{0}{0}These two files have different content.{0}You must manually delete or rename one of them before proceeding.</sys:String>
+    <sys:String x:Key="Instance.Resource.Ed.FileConflict.Message">There are currently two mod files (enabled and disabled):&#x0a; - {0}&#x0a; - {1}&#x0a;&#x0a;These two files have different content.&#x0a;You must manually delete or rename one of them before proceeding.</sys:String>
 
     <!-- Instance.Saves.Datapack -->
 
-    <sys:String x:Key="Instance.Saves.Datapack.Install.Title">Datapack Installation Confirmation</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Install.Message">Do you want to install these files as a datapack to the current save?</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">Datapack Update Warning</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of datapacks may be incompatible with old saves or other datapacks, which could cause game crashes or save corruption!&#x0a;&#x0a;Before updating, please back up your save.&#x0a;If problems arise after updating, you can retrieve the previous datapack version from the recycle bin.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.Title">Confirm data pack installation</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.Message">Do you want to install these files as data packs to the current save?</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">Data pack update warning</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of data packs may be incompatible with old saves or other data packs, which could cause game crashes or save corruption!&#x0a;&#x0a;Before updating, please back up your save.&#x0a;If problems arise after updating, you can retrieve the previous data pack version from the recycle bin.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Datapack status toggle failed. Please try closing any running games and try again!</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT format: Only export the current datapack file name info&#x0a;CSV format: Export detailed datapack info, including file name, project ID, version info, and other details</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read datapack info.</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">Datapack Read Failed</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Data pack status toggle failed. Please try closing any running games and try again!</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT format: Only export the current data pack file name information&#x0a;CSV format: Export detailed data pack information, including file name, project ID, version information, and other details</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack info.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">Data pack read failed</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Author">Author: </sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.File">File: </sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Version">Version: </sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Info.DatapackId">Datapack ID: </sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Info.DatapackId">Data pack ID: </sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Replace.FileNameConflict">A file with the same name already exists: {0}. Please handle that file first and try again.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Delete.FileOccupied">Deletion failed because the file is in use. Try closing the running game first!</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Delete.PermanentSingle">Permanently deleted {0}!</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Delete.PermanentMultiple">Permanently deleted {0} items!</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Delete.RecycleSingle">Moved {0} to Recycle Bin!</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Delete.RecycleMultiple">Moved {0} items to Recycle Bin!</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.RecycleSingle">Moved {0} to the recycle bin!</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.RecycleMultiple">Moved {0} items to the recycle bin!</sys:String>
 
     <!-- Instance.Saves.Info -->
 
-    <sys:String x:Key="Instance.Saves.Info.Details.Title">Save Details</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.Settings.Title">Save Settings</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.LevelName">Save Name</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.Version">Save Version</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Details.Title">Save details</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Settings.Title">Save settings</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.LevelName">Save name</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Version">Save version</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Seed">Seed</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GetFailed">Failed to get</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.LastPlayed">Last Played</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.SpawnPoint">Spawn Point (X/Y/Z)</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.GameMode">Game Mode</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.LastPlayed">Last played</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.SpawnPoint">Spawn point (X/Y/Z)</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.GameMode">Game mode</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GameMode.Hardcore">Hardcore</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GameMode.Survival">Survival</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GameMode.Creative">Creative</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GameMode.Adventure">Adventure</sys:String>
     <sys:String x:Key="Instance.Saves.Info.GameMode.Spectator">Spectator</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Hardness">Difficulty</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.DifficultyLocked"> (Difficulty Locked: {0})</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.PlayTime">Play Time</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.TimeFormat">{0} day(s) {1} hour(s) {2} minute(s)</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.DifficultyLocked">Difficulty locked: {0}</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.PlayTime">Play time</sys:String>
+
     <sys:String x:Key="Instance.Saves.Info.Difficulty.Peaceful">Peaceful</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Difficulty.Easy">Easy</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Difficulty.Normal">Normal</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Difficulty.Hard">Hard</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.AllowCommands">Allow Commands</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.AllowCommands">Allow commands</sys:String>
     <sys:String x:Key="Instance.Saves.Info.AllowCommands.Allowed">Allowed</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.AllowCommands.NotAllowed">Not Allowed</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.GameDifficultyLabel">Game Difficulty</sys:String>
-    <sys:String x:Key="Instance.Saves.Info.LockDifficulty">Lock Difficulty</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.AllowCommands.NotAllowed">Not allowed</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.GameDifficultyLabel">Game difficulty</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.LockDifficulty">Lock difficulty</sys:String>
     <sys:String x:Key="Instance.Saves.Info.LockDifficulty.ToolTip">Lock current difficulty, preventing changes in-game</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.BeforeSave">Make sure the save is not open in-game before modifying settings</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.CheatSuccess">Cheat settings modified successfully</sys:String>
@@ -2450,43 +2417,43 @@
 
     <!-- Instance.Saves.Backup -->
 
-    <sys:String x:Key="Instance.Saves.Backup.CleanUseless">Clean Useless Records</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.CleanUseless">Clean unused records</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.Create">Create</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ListTitle">Backup List</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Empty">No Backups Yet</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.ListTitle">Backup list</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.Empty">No backups yet</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.EmptyHint">Backups are tied to saves; deleting a save will also delete its backups :(</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.RestoreToolTip">Restore to this snapshot</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.RestoreConfirm">Are you sure you want to apply this backup? Ensure the current save is backed up or you are certain you no longer need it!</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.ApplyingSnapshot">Applying snapshot, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchApply">Search and Apply Files</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyTitle">Backup Apply</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.SearchApply">Search and apply files</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.ApplyTitle">Apply backup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.ApplyError">Error occurred while applying snapshot</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportToolTip">Export to Archive</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.ExportToolTip">Export to archive</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.SelectExportPath">Select backup export location</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.ExportingSnapshot">Exporting snapshot, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.MakeArchive">Create Archive</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportTitle">Export Backup</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.MakeArchive">Create archive</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.ExportTitle">Export backup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.ExportError">Error occurred while exporting backup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmMessage">Are you sure you want to delete backup {0}?\nDescription: {1}\nCreated: {2}</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmTitle">Delete Confirmation</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmTitle">Delete confirmation</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.Deleted">Deleted!</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.DeleteFailed">Failed to execute delete task</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.InfoToolTip">Info</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.LoadFailed">Failed to get backup info</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.NameInputPrompt">Please enter a name</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.NotHotBackup">Backup does not support hot backup; ensure no files in the save are in use!</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.PleaseNote">Please Note!</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.PleaseNote">Attention!</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.StartingBackup">Starting backup task, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchAndCreate">Search and Create Backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CreateTitle">Create Backup</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.SearchAndCreate">Search and create backup</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.CreateTitle">Create backup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.CreateError">Error occurred during backup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.CleanDescription">This feature cleans up unneeded files in the backup, recommended for use after deleting backups.</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanConfirmTitle">Confirm Usage?</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.FindAndClean">Find and Clean Backup Files</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanTitle">Backup Cleanup</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.CleanConfirmTitle">Confirm</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.FindAndClean">Find and clean backup files</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.CleanTitle">Backup cleanup</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.InfoDescription">Description</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoCreatedTime">Created Time</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoSaveSize">Save Size</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.InfoCreatedTime">Created time</sys:String>
+    <sys:String x:Key="Instance.Saves.Backup.InfoSaveSize">Save size</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.InfoObjectCount">{0} objects</sys:String>
     <sys:String x:Key="Instance.Saves.Backup.InfoDialog">Description: {0}&#x0a;Created: {1}&#x0a;Size: {2} ({3} objects)</sys:String>
 
@@ -2494,28 +2461,28 @@
 
     <sys:String x:Key="Instance.Saves.Left.Info">Info</sys:String>
     <sys:String x:Key="Instance.Saves.Left.Backup">Backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Left.Datapack">Datapack</sys:String>
-    <sys:String x:Key="Instance.Saves.Left.QuickActions">Quick Actions</sys:String>
+    <sys:String x:Key="Instance.Saves.Left.Datapack">Data pack</sys:String>
+    <sys:String x:Key="Instance.Saves.Left.QuickActions">Quick actions</sys:String>
     <sys:String x:Key="Instance.Saves.Left.UnknownSubPage">Unknown instance settings sub-page type: {0}</sys:String>
     <sys:String x:Key="Instance.Saves.Left.SwitchFailed">Failed to switch sub-page (ID {0})</sys:String>
     <sys:String x:Key="Instance.Saves.Left.Refreshing">Refreshing...</sys:String>
 
     <!-- Instance.Saves.Core -->
 
-    <sys:String x:Key="Instance.Saves.Folder.DoubleClickHint.Title">Operation Notice</sys:String>
+    <sys:String x:Key="Instance.Saves.Folder.DoubleClickHint.Title">Operation notice</sys:String>
     <sys:String x:Key="Instance.Saves.Folder.DoubleClickHint.Message">Double-click a folder to enter it.</sys:String>
     <sys:String x:Key="Instance.Saves.Folder.NotFound">Folder does not exist or has been deleted</sys:String>
-    <sys:String x:Key="Instance.Saves.OpenFileLocation">Open File Location</sys:String>
+    <sys:String x:Key="Instance.Saves.OpenFileLocation">Open file location</sys:String>
     <sys:String x:Key="Instance.Saves.Detail">Details</sys:String>
-    <sys:String x:Key="Instance.Saves.Empty.Title">No Save Files Yet</sys:String>
+    <sys:String x:Key="Instance.Saves.Empty.Title">No saves yet</sys:String>
     <sys:String x:Key="Instance.Saves.Empty.Message">You can view the current instance's saves here</sys:String>
-    <sys:String x:Key="Instance.Saves.OpenFolder">Open Saves Folder</sys:String>
-    <sys:String x:Key="Instance.Saves.PasteFile">Paste Clipboard File</sys:String>
-    <sys:String x:Key="Instance.Saves.SearchHint">Search Save Name</sys:String>
-    <sys:String x:Key="Instance.Saves.QuickActions">Quick Actions</sys:String>
-    <sys:String x:Key="Instance.Saves.ListTitle">Save List</sys:String>
-    <sys:String x:Key="Instance.Saves.SortBy">Sort By: {0}</sys:String>
-    <sys:String x:Key="Instance.Saves.CreationTime">Created: {0}, Last Modified: {1}</sys:String>
+    <sys:String x:Key="Instance.Saves.OpenFolder">Open saves folder</sys:String>
+    <sys:String x:Key="Instance.Saves.PasteFile">Paste clipboard file</sys:String>
+    <sys:String x:Key="Instance.Saves.SearchHint">Search save name</sys:String>
+    <sys:String x:Key="Instance.Saves.QuickActions">Quick actions</sys:String>
+    <sys:String x:Key="Instance.Saves.ListTitle">Save list</sys:String>
+    <sys:String x:Key="Instance.Saves.SortBy">Sort by: {0}</sys:String>
+    <sys:String x:Key="Instance.Saves.CreationTime">Created: {0}, last modified: {1}</sys:String>
     <sys:String x:Key="Instance.Saves.Deleting">Deleting...</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedToRecycleBin">Save moved to recycle bin!</sys:String>
     <sys:String x:Key="Instance.Saves.DeleteFailed">Failed to delete save!</sys:String>
@@ -2524,17 +2491,17 @@
     <sys:String x:Key="Instance.Saves.FolderNotFound">Save folder not found!</sys:String>
     <sys:String x:Key="Instance.Saves.CopyFailed">Copy failed...</sys:String>
     <sys:String x:Key="Instance.Saves.Details">Details</sys:String>
-    <sys:String x:Key="Instance.Saves.QuickPlay">Quick Launch</sys:String>
+    <sys:String x:Key="Instance.Saves.QuickPlay">Quick launch</sys:String>
     <sys:String x:Key="Instance.Saves.DuplicateFolder">Found duplicate folder, cannot paste: {0}</sys:String>
     <sys:String x:Key="Instance.Saves.SourceNotFolder">Source folder does not exist or is not a folder</sys:String>
     <sys:String x:Key="Instance.Saves.PasteFolderFailed">Failed to paste save folder</sys:String>
     <sys:String x:Key="Instance.Saves.PastedCount">Pasted {0} folder(s)</sys:String>
-    <sys:String x:Key="Instance.Saves.CopySave">Copy Save</sys:String>
-    <sys:String x:Key="Instance.Saves.SaveListTitle">Save List ({0})</sys:String>
-    <sys:String x:Key="Instance.Saves.SearchResultTitle">Search Results ({0})</sys:String>
-    <sys:String x:Key="Instance.Saves.SortFileName">File Name</sys:String>
-    <sys:String x:Key="Instance.Saves.SortCreateTime">Creation Time</sys:String>
-    <sys:String x:Key="Instance.Saves.SortModifyTime">Modification Time</sys:String>
+    <sys:String x:Key="Instance.Saves.CopySave">Copy save</sys:String>
+    <sys:String x:Key="Instance.Saves.SaveListTitle">Save list ({0})</sys:String>
+    <sys:String x:Key="Instance.Saves.SearchResultTitle">Search results ({0})</sys:String>
+    <sys:String x:Key="Instance.Saves.SortFileName">File name</sys:String>
+    <sys:String x:Key="Instance.Saves.SortCreateTime">Creation time</sys:String>
+    <sys:String x:Key="Instance.Saves.SortModifyTime">Modification time</sys:String>
     <sys:String x:Key="Instance.Saves.RefreshUiFailed">Failed to refresh save UI</sys:String>
     <sys:String x:Key="Instance.Saves.LoadListFailed">Failed to load save list</sys:String>
     <sys:String x:Key="Instance.Saves.SearchError">Error occurred during search</sys:String>
@@ -2542,13 +2509,13 @@
 
     <!-- Instance.Server.Card -->
 
-    <sys:String x:Key="Instance.Server.Card.CopyAddress">Copy Address</sys:String>
+    <sys:String x:Key="Instance.Server.Card.CopyAddress">Copy address</sys:String>
     <sys:String x:Key="Instance.Server.Card.Edit">Edit</sys:String>
     <sys:String x:Key="Instance.Server.Card.Remove">Remove</sys:String>
     <sys:String x:Key="Instance.Server.Card.Connecting">Connecting</sys:String>
     <sys:String x:Key="Instance.Server.Card.ConnectingDots">Connecting...</sys:String>
     <sys:String x:Key="Instance.Server.Card.Offline">Offline</sys:String>
-    <sys:String x:Key="Instance.Server.Card.ServerOffline">Server Offline</sys:String>
+    <sys:String x:Key="Instance.Server.Card.ServerOffline">Server offline</sys:String>
     <sys:String x:Key="Instance.Server.Card.RefreshingStatus">Refreshing server {0} status...</sys:String>
     <sys:String x:Key="Instance.Server.Card.ConnectingTo">Connecting to server {0}...</sys:String>
     <sys:String x:Key="Instance.Server.Card.LaunchFailed">Failed to launch server</sys:String>
@@ -2556,27 +2523,27 @@
     <sys:String x:Key="Instance.Server.Card.AddressCopied">Server address copied: {0}</sys:String>
     <sys:String x:Key="Instance.Server.Card.CopyAddressFailed">Failed to copy server address</sys:String>
     <sys:String x:Key="Instance.Server.Card.EditFailed">Failed to edit server info: {0}</sys:String>
-    <sys:String x:Key="Instance.Server.Card.RemoveConfirmTitle">Remove Server Confirmation</sys:String>
+    <sys:String x:Key="Instance.Server.Card.RemoveConfirmTitle">Confirm server removal</sys:String>
     <sys:String x:Key="Instance.Server.Card.RemoveConfirmMessage">Are you sure you want to remove server {0}?\n'{1}' will be removed from your list, including the in-game list, and cannot be recovered.</sys:String>
 
     <!-- Instance.Server -->
 
-    <sys:String x:Key="Instance.Server.Empty.Title">No Servers Yet</sys:String>
+    <sys:String x:Key="Instance.Server.Empty.Title">No servers yet</sys:String>
     <sys:String x:Key="Instance.Server.Empty.Message">No servers found. Add a server in-game or click the button below to add one.</sys:String>
-    <sys:String x:Key="Instance.Server.RefreshInfo">Refresh Server Info</sys:String>
-    <sys:String x:Key="Instance.Server.AddServer">Add New Server</sys:String>
-    <sys:String x:Key="Instance.Server.QuickActions">Quick Actions</sys:String>
-    <sys:String x:Key="Instance.Server.RefreshAll">Refresh All Servers</sys:String>
+    <sys:String x:Key="Instance.Server.RefreshInfo">Refresh server info</sys:String>
+    <sys:String x:Key="Instance.Server.AddServer">Add new server</sys:String>
+    <sys:String x:Key="Instance.Server.QuickActions">Quick actions</sys:String>
+    <sys:String x:Key="Instance.Server.RefreshAll">Refresh all servers</sys:String>
     <sys:String x:Key="Instance.Server.IndexNotFound">Unable to find server index in list</sys:String>
     <sys:String x:Key="Instance.Server.ReadDataFailed">Unable to read server data file</sys:String>
     <sys:String x:Key="Instance.Server.WriteDataFailed">Unable to write server data file</sys:String>
-    <sys:String x:Key="Instance.Server.Removed">Server Removed</sys:String>
-    <sys:String x:Key="Instance.Server.Updated">Server Info Updated</sys:String>
+    <sys:String x:Key="Instance.Server.Removed">Server removed</sys:String>
+    <sys:String x:Key="Instance.Server.Updated">Server info updated</sys:String>
     <sys:String x:Key="Instance.Server.RefreshFailed">Failed to refresh server list</sys:String>
     <sys:String x:Key="Instance.Server.NoFrequentRefresh">Please do not refresh too frequently!</sys:String>
     <sys:String x:Key="Instance.Server.RefreshingList">Refreshing server list, please wait...</sys:String>
     <sys:String x:Key="Instance.Server.DefaultName">Minecraft Server</sys:String>
-    <sys:String x:Key="Instance.Server.EditTitle">Edit Server Info</sys:String>
+    <sys:String x:Key="Instance.Server.EditTitle">Edit server info</sys:String>
     <sys:String x:Key="Instance.Server.NamePrompt">Please enter new server name:</sys:String>
     <sys:String x:Key="Instance.Server.AddressPrompt">Please enter new server address:</sys:String>
     <sys:String x:Key="Instance.Server.ReadFileFailed">Failed to read servers.dat file</sys:String>
@@ -2585,10 +2552,10 @@
 
     <!-- Instance.Screenshot -->
 
-    <sys:String x:Key="Instance.Screenshot.Empty.Title">No Screenshots Yet</sys:String>
+    <sys:String x:Key="Instance.Screenshot.Empty.Title">No screenshots yet</sys:String>
     <sys:String x:Key="Instance.Screenshot.Empty.Message">Press the screenshot key (default F2) in-game to view saved screenshots here</sys:String>
-    <sys:String x:Key="Instance.Screenshot.OpenFolder">Open Screenshots Folder</sys:String>
-    <sys:String x:Key="Instance.Screenshot.QuickActions">Quick Actions</sys:String>
+    <sys:String x:Key="Instance.Screenshot.OpenFolder">Open screenshots folder</sys:String>
+    <sys:String x:Key="Instance.Screenshot.QuickActions">Quick actions</sys:String>
     <sys:String x:Key="Instance.Screenshot.Deleted">Screenshot moved to recycle bin!</sys:String>
     <sys:String x:Key="Instance.Screenshot.DeleteFailed">Failed to delete screenshot!</sys:String>
     <sys:String x:Key="Instance.Screenshot.CopiedToClipboard">Screenshot copied to clipboard!</sys:String>
@@ -2599,67 +2566,67 @@
     <!-- Instance.Export.Option -->
 
     <sys:String x:Key="Instance.Export.Option.Game">Game</sys:String>
-    <sys:String x:Key="Instance.Export.Option.GameSettings">Game Settings</sys:String>
+    <sys:String x:Key="Instance.Export.Option.GameSettings">Game settings</sys:String>
     <sys:String x:Key="Instance.Export.Option.GameSettings.Desc">Key bindings, volume, video settings, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.GameProfile">Game Profile</sys:String>
+    <sys:String x:Key="Instance.Export.Option.GameProfile">Game profile</sys:String>
     <sys:String x:Key="Instance.Export.Option.GameProfile.Desc">Command history, saved hotbar</sys:String>
-    <sys:String x:Key="Instance.Export.Option.OptiFine">OptiFine Settings</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OptiFine">OptiFine settings</sys:String>
     <sys:String x:Key="Instance.Export.Option.Mod">Mod</sys:String>
     <sys:String x:Key="Instance.Export.Option.Mod.Desc">Mod files</sys:String>
-    <sys:String x:Key="Instance.Export.Option.DisabledMod">Disabled Mods</sys:String>
-    <sys:String x:Key="Instance.Export.Option.ImportantData">Important Modpack Data</sys:String>
-    <sys:String x:Key="Instance.Export.Option.ImportantData.Desc">Scripts, built-in resource packs, datapacks, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.ModSettings">Mod Settings</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Maps">Saved Maps</sys:String>
+    <sys:String x:Key="Instance.Export.Option.DisabledMod">Disabled mods</sys:String>
+    <sys:String x:Key="Instance.Export.Option.ImportantData">Important modpack data</sys:String>
+    <sys:String x:Key="Instance.Export.Option.ImportantData.Desc">Scripts, built-in resource packs, data packs, etc.</sys:String>
+    <sys:String x:Key="Instance.Export.Option.ModSettings">Mod settings</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Maps">Saved maps</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps.Desc">Maps, waypoints, etc. saved by map mods</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Jei">JEI Profile</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Jei">JEI profile</sys:String>
     <sys:String x:Key="Instance.Export.Option.Jei.Desc">Item favorites, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Emi">EMI Profile</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Emi">EMI profile</sys:String>
     <sys:String x:Key="Instance.Export.Option.Emi.Desc">Item favorites, default recipes, recipe history, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Patchouli">Patchouli Profile</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Patchouli">Patchouli profile</sys:String>
     <sys:String x:Key="Instance.Export.Option.Patchouli.Desc">Read records, bookmarks, reading history, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.ResourcePacks">Resource Packs</sys:String>
+    <sys:String x:Key="Instance.Export.Option.ResourcePacks">Resource packs</sys:String>
     <sys:String x:Key="Instance.Export.Option.ResourcePacks.Desc">Texture packs</sys:String>
-    <sys:String x:Key="Instance.Export.Option.ShaderPacks">Shader Packs</sys:String>
+    <sys:String x:Key="Instance.Export.Option.ShaderPacks">Shader packs</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">Screenshots</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Structures">Exported Structures</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Structures">Exported structures</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures.Desc">schematics folder</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Replay">Replay Recordings</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay Mod recordings</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Saves">Singleplayer Saves</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Replay">Replay recordings</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay mod recordings</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Saves">Singleplayer saves</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">Worlds / maps</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Servers">Multiplayer Server List</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Servers">Multiplayer server list</sys:String>
     <sys:String x:Key="Instance.Export.Option.Launcher">PCL Launcher</sys:String>
     <sys:String x:Key="Instance.Export.Option.Launcher.Desc">Bundle PCL Community Edition for players without a launcher</sys:String>
-    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL Custom Content</sys:String>
+    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL custom content</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom.Desc">Feature toggle settings, homepage, background music and images, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.OptionListTitle">Export Content List</sys:String>
-    <sys:String x:Key="Instance.Export.OptionList.FromConfig">Read from Config File</sys:String>
+    <sys:String x:Key="Instance.Export.OptionListTitle">Export content list</sys:String>
+    <sys:String x:Key="Instance.Export.OptionList.FromConfig">Read from config file</sys:String>
 
     <!-- Instance.Export.Advanced -->
 
-    <sys:String x:Key="Instance.Export.Advanced.Title">Advanced Options</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.BundleHint">Only bundle resource files when you cannot reliably connect to CurseForge or Modrinth.&#xa;Do not publicly distribute modpacks with bundled resource files, as this may violate some mods' usage terms!</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.BundleFiles">Bundle resource files to avoid downloading on import</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.BundleFiles.ToolTip">Place Mods, resource packs, and shader packs directly into the modpack so they don't need to be downloaded during import.&#xa;Only consider this when you cannot reliably connect to CurseForge or Modrinth.</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Modrinth">Modrinth Upload Mode</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.Title">Advanced options</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.BundleHint">Only bundle resource files when you cannot reliably connect to CurseForge or Modrinth.&#xa;Do not publicly distribute modpacks with bundled resource files, as this may violate some mods' ToS!</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.BundleFiles">Bundle resource files to avoid downloading them on import</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.BundleFiles.ToolTip">Place Mods, resource packs, and shader packs directly into the modpack so they do not need to be downloaded during import.&#xa;Only consider this when you cannot reliably connect to CurseForge or Modrinth.</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.Modrinth">Modrinth upload mode</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">Enable this if you plan to upload to Modrinth to generate fully Modrinth-compliant modpack files.&#xa;Due to Modrinth requirements, resources only available from CurseForge cannot be downloaded online and will be bundled directly.&#xa;Additionally, the PCL launcher files cannot be included in the modpack when this is enabled.</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.ConfigHint">The configuration file contains more advanced options, such as precise control over exported files and modpack storage location.&#xa;To modify these options, click "Save Config" first, then import after editing the configuration file.</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import Config</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export Config</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Guide">Modpack Creation Guide</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.ConfigHint">The configuration file contains more advanced options, such as precise control over exported files and modpack storage location.&#x0a;To modify these options, click "Save config" first, then import after editing the configuration file.</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import config</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export config</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.Guide">Creation guide</sys:String>
 
     <!-- Instance.Export.Network -->
 
     <sys:String x:Key="Instance.Export.NetCheckPartialFailed.Message">Failed to obtain info for some files online. Continue export?&#x0a;&#x0a;If you continue, files without info will be bundled directly.&#x0a;Since redistribution may violate usage terms, please avoid publishing the exported modpack!</sys:String>
-    <sys:String x:Key="Instance.Export.NetCheckPartialFailed.Title">Partial File Info Retrieval Failed</sys:String>
+    <sys:String x:Key="Instance.Export.NetCheckPartialFailed.Title">Partial file info retrieval failed</sys:String>
     <sys:String x:Key="Instance.Export.NetCheckAllFailed.Message">Failed to obtain file info online. Continue export?&#x0a;&#x0a;If you continue, all files will be bundled directly.&#x0a;Since redistribution may violate usage terms, please avoid publishing the exported modpack!</sys:String>
-    <sys:String x:Key="Instance.Export.NetCheckAllFailed.Title">File Info Retrieval Failed</sys:String>
+    <sys:String x:Key="Instance.Export.NetCheckAllFailed.Title">File info retrieval failed</sys:String>
 
     <!-- Instance.Export.Config -->
 
     <sys:String x:Key="Instance.Export.ConfigInvalid">Config file is invalid or empty!</sys:String>
-    <sys:String x:Key="Instance.Export.ConfigFileFilter">Modpack Export Config (*.txt)|*.txt</sys:String>
+    <sys:String x:Key="Instance.Export.ConfigFileFilter">Modpack export config (*.txt)|*.txt</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncher">Whether to bundle the stable version of PCL so players without a launcher can install the modpack.</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncherCustom">Whether to bundle PCL custom content, such as feature toggle settings, homepage, background music and images, etc.</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.BundleFiles">Whether to place Mods, resource packs, and shader packs directly into the modpack so they don't need to be downloaded during import.</sys:String>
@@ -2676,7 +2643,7 @@
     <sys:String x:Key="Instance.Export.ConfigComment.ExcludedFiles">Excluded files</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.ExtraFiles">If you want to automatically place additional files in the root of the archive, write their paths below.</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.ExtraFiles2">Must be absolute paths. In each line, ending with \\ indicates a folder; not ending with \\ indicates a file.</sys:String>
-    <sys:String x:Key="Instance.Export.ShaderConfigSuffix"> (Shader Config)</sys:String>
+    <sys:String x:Key="Instance.Export.ShaderConfigSuffix">(Shader config)</sys:String>
     <sys:String x:Key="Instance.Export.ConfigFolderNotFound">Folder specified in config not found: {0}</sys:String>
     <sys:String x:Key="Instance.Export.ConfigFileNotFound">File specified in config not found: {0}</sys:String>
 
@@ -2684,18 +2651,18 @@
 
     <sys:String x:Key="Instance.Export.PathError">Specified path: {0}</sys:String>
     <sys:String x:Key="Instance.Export.ModrinthWarning">Due to Modrinth modpack specifications, exported modpacks will not include OptiFine.</sys:String>
-    <sys:String x:Key="Instance.Export.PackName">Modpack Name</sys:String>
-    <sys:String x:Key="Instance.Export.PackVersion">Modpack Version</sys:String>
-    <sys:String x:Key="Instance.Export.StartExport">Start Export</sys:String>
-    <sys:String x:Key="Instance.Export.ExportTask.Prefix">Export Modpack: </sys:String>
+    <sys:String x:Key="Instance.Export.PackName">Modpack name</sys:String>
+    <sys:String x:Key="Instance.Export.PackVersion">Modpack version</sys:String>
+    <sys:String x:Key="Instance.Export.StartExport">Export</sys:String>
+    <sys:String x:Key="Instance.Export.ExportTask.Prefix">Export modpack:</sys:String>
     <sys:String x:Key="Instance.Export.SaveSuccess">Config file saved: {0}</sys:String>
     <sys:String x:Key="Instance.Export.ReadSuccess">Config file loaded: {0}</sys:String>
     <sys:String x:Key="Instance.Export.ReadFailed">Failed to read config file: {0}</sys:String>
-    <sys:String x:Key="Instance.Export.SelectSaveLocation">Select Export Location</sys:String>
-    <sys:String x:Key="Instance.Export.SelectFileLocation">Select File Location</sys:String>
-    <sys:String x:Key="Instance.Export.SelectConfigFile">Select Config File</sys:String>
-    <sys:String x:Key="Instance.Export.ZipFilter">Zip File (*.zip)|*.zip</sys:String>
-    <sys:String x:Key="Instance.Export.MrpackFilter">Modrinth Modpack File (*.mrpack)|*.mrpack</sys:String>
-    <sys:String x:Key="Instance.Export.PackPathInvalid.Title">Cannot Use the Export Path Specified in Config</sys:String>
+    <sys:String x:Key="Instance.Export.SelectSaveLocation">Select export location</sys:String>
+    <sys:String x:Key="Instance.Export.SelectFileLocation">Select file location</sys:String>
+    <sys:String x:Key="Instance.Export.SelectConfigFile">Select config file</sys:String>
+    <sys:String x:Key="Instance.Export.ZipFilter">ZIP file (*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Export.MrpackFilter">Modrinth modpack file (*.mrpack)|*.mrpack</sys:String>
+    <sys:String x:Key="Instance.Export.PackPathInvalid.Title">Cannot use the export path specified in config</sys:String>
 
 </ResourceDictionary>

@@ -10,7 +10,7 @@
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   x:Name="PanBack">
                 <StackPanel x:Name="PanMain" Margin="25,10,25,10" Grid.IsSharedSizeScope="True">
-                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Datapack.Search.Hint}" x:Name="SearchBox" />
+                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Search.Hint}" x:Name="SearchBox" />
                     <local:MyCard Margin="0,0,0,15" x:Name="PanManage">
                         <WrapPanel Margin="15,8,0,15">
                             <local:MyButton x:Name="BtnManageOpen" MinWidth="110" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,7"

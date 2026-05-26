@@ -35,18 +35,6 @@ public static class TimeUtils
     }
 
     /// <summary>
-    ///     将时间间隔转换为易于阅读的形式。
-    /// </summary>
-    /// <param name="span">要转换的时间间隔。</param>
-    /// <param name="isShortForm">如果为 true，则使用简短格式。</param>
-    /// <returns>格式化后的时间间隔字符串。</returns>
-    [Obsolete("已被迁移至 Lang.TimeSpan()")]
-    public static string GetTimeSpanString(TimeSpan span, bool isShortForm)
-    {
-        return Lang.TimeSpan(span, isShortForm);
-    }
-
-    /// <summary>
     ///     获取十进制 Unix 时间戳（秒）。
     /// </summary>
     /// <returns>当前时间的 Unix 时间戳。</returns>
