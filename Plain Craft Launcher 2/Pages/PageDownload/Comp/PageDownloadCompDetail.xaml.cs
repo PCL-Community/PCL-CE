@@ -634,22 +634,24 @@ public partial class PageDownloadCompDetail
         GroupedDrop = false;
         GroupedOld = false;
         updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = false;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = false;
-        GroupedOld = true;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = true;
-        updateFilters();
-        GroupDone: ;
+        if (instanceFilters.Count >= 9)
+        {
+            GroupedDrop = true;
+            GroupedOld = false;
+            updateFilters();
+            if (instanceFilters.Count >= 9)
+            {
+                GroupedDrop = false;
+                GroupedOld = true;
+                updateFilters();
+                if (instanceFilters.Count >= 9)
+                {
+                    GroupedDrop = true;
+                    GroupedOld = true;
+                    updateFilters();
+                }
+            }
+        }
 
 
         // UI 化筛选器
