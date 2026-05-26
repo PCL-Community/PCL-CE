@@ -2415,52 +2415,9 @@
     <sys:String x:Key="Instance.Saves.Info.Chunkbase.UnknownVersion">Unable to determine save version, cannot open in Chunkbase</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Chunkbase.PreviewVersion">Save version '{0}' may be a preview version, unsupported, cannot open in Chunkbase</sys:String>
 
-    <!-- Instance.Saves.Backup -->
-
-    <sys:String x:Key="Instance.Saves.Backup.CleanUseless">Clean unused records</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Create">Create</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ListTitle">Backup list</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Empty">No backups yet</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.EmptyHint">Backups are tied to saves; deleting a save will also delete its backups :(</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.RestoreToolTip">Restore to this snapshot</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.RestoreConfirm">Are you sure you want to apply this backup? Ensure the current save is backed up or you are certain you no longer need it!</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyingSnapshot">Applying snapshot, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchApply">Search and apply files</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyTitle">Apply backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyError">Error occurred while applying snapshot</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportToolTip">Export to archive</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SelectExportPath">Select backup export location</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportingSnapshot">Exporting snapshot, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.MakeArchive">Create archive</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportTitle">Export backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportError">Error occurred while exporting backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmMessage">Are you sure you want to delete backup {0}?\nDescription: {1}\nCreated: {2}</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmTitle">Delete confirmation</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Deleted">Deleted!</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteFailed">Failed to execute delete task</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoToolTip">Info</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.LoadFailed">Failed to get backup info</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.NameInputPrompt">Please enter a name</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.NotHotBackup">Backup does not support hot backup; ensure no files in the save are in use!</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.PleaseNote">Attention!</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.StartingBackup">Starting backup task, please wait...</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchAndCreate">Search and create backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CreateTitle">Create backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CreateError">Error occurred during backup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanDescription">This feature cleans up unneeded files in the backup, recommended for use after deleting backups.</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanConfirmTitle">Confirm</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.FindAndClean">Find and clean backup files</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanTitle">Backup cleanup</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoDescription">Description</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoCreatedTime">Created time</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoSaveSize">Save size</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoObjectCount">{0} objects</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoDialog">Description: {0}&#x0a;Created: {1}&#x0a;Size: {2} ({3} objects)</sys:String>
-
     <!-- Instance.Saves.Left -->
 
     <sys:String x:Key="Instance.Saves.Left.Info">Info</sys:String>
-    <sys:String x:Key="Instance.Saves.Left.Backup">Backup</sys:String>
     <sys:String x:Key="Instance.Saves.Left.Datapack">Data pack</sys:String>
     <sys:String x:Key="Instance.Saves.Left.QuickActions">Quick actions</sys:String>
     <sys:String x:Key="Instance.Saves.Left.UnknownSubPage">Unknown instance settings sub-page type: {0}</sys:String>

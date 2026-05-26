@@ -2415,52 +2415,9 @@
     <sys:String x:Key="Instance.Saves.Info.Chunkbase.UnknownVersion">当前存档版本无法确定，因此无法跳转到 Chunkbase</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Chunkbase.PreviewVersion">当前存档版本 '{0}' 可能是预览版，不受支持，无法跳转到 Chunkbase</sys:String>
 
-    <!-- Instance.Saves.Backup -->
-
-    <sys:String x:Key="Instance.Saves.Backup.CleanUseless">清理无用记录</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Create">创建</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ListTitle">备份列表</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Empty">暂时没有备份</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.EmptyHint">存档备份和存档是绑定的，删除存档备份也会没有 :(</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.RestoreToolTip">回到到此快照</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.RestoreConfirm">确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyingSnapshot">应用快照中，请勿执行其他操作！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchApply">搜寻并应用文件</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyTitle">备份应用</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ApplyError">应用快照过程中出现错误</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportToolTip">导出到压缩包</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SelectExportPath">选择保存备份导出的位置</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportingSnapshot">快照导出中，请勿执行其他操作！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.MakeArchive">制作压缩包</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportTitle">导出备份</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.ExportError">备份导出过程中出现错误</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmMessage">你确定要删除备份 {0} 吗？&#10;描述：{1}&#10;创建时间：{2}</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteConfirmTitle">删除确认</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.Deleted">已删除！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.DeleteFailed">执行删除任务失败</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoToolTip">信息</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.LoadFailed">获取备份信息失败</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.NameInputPrompt">请输入名称</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.NotHotBackup">备份功能不具备热备份功能，请确你没有在使用存档内的任何文件！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.PleaseNote">请注意！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.StartingBackup">开始备份任务，请勿执行其他操作！</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.SearchAndCreate">搜寻并制作备份</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CreateTitle">制作备份</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CreateError">备份过程中出现错误</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanDescription">此功能可以清理备份文件中已不再需要的文件，建议在发生备份删除后使用。</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanConfirmTitle">确定使用吗？</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.FindAndClean">寻找并清理备份文件</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.CleanTitle">备份清理</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoDescription">描述</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoCreatedTime">创建时间</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoSaveSize">存档大小</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoObjectCount">{0} 个对象</sys:String>
-    <sys:String x:Key="Instance.Saves.Backup.InfoDialog">描述：{0}&#x0a;创建时间：{1}&#x0a;存档大小：{2}（{3} 个对象）</sys:String>
-
     <!-- Instance.Saves.Left -->
 
     <sys:String x:Key="Instance.Saves.Left.Info">信息</sys:String>
-    <sys:String x:Key="Instance.Saves.Left.Backup">备份</sys:String>
     <sys:String x:Key="Instance.Saves.Left.Datapack">数据包</sys:String>
     <sys:String x:Key="Instance.Saves.Left.QuickActions">快捷操作</sys:String>
     <sys:String x:Key="Instance.Saves.Left.UnknownSubPage">未知的实例设置子页面种类：{0}</sys:String>
