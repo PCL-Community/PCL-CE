@@ -1656,7 +1656,7 @@ public partial class PageInstanceInstall
             if (SelectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
                 ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
                 return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine"); // 1.13 ~ 1.14.3 OptiFine 检查
-            if (SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version)))
+            if (SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version))
                 continue;
             return null;
         }
