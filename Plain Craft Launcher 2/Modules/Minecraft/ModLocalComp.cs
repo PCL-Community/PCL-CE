@@ -2396,7 +2396,7 @@ public static class ModLocalComp
             var lowerFilePath = file.ToLower(); // 统一转为小写
             if (!RegexIsJarFile.IsMatch(lowerFilePath))
                 continue; // 检查是否是 jar 文件
-            if ((keywords.Length > 0) & !keywords.Any(keyword => lowerFilePath.Contains(keyword)))
+            if ((keywords.Length > 0) && !keywords.Any(keyword => lowerFilePath.Contains(keyword)))
                 continue; // 检查是否包含关键字
             var localComp = new LocalCompFile(file);
             localComp.Load();

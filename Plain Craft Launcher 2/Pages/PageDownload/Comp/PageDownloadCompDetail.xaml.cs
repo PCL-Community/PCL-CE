@@ -775,7 +775,7 @@ public partial class PageDownloadCompDetail
             var index = _pageType == ModComp.CompType.Mod ? 1 : 0;
             if (instanceToCheck is null)
                 instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[index];
-            if (modLoaderToCheck is null & (_pageType == ModComp.CompType.Mod))
+            if (modLoaderToCheck is null && (_pageType == ModComp.CompType.Mod))
                 modLoaderToCheck = (MyRadioButton)PanModLoaderFilter.Children[index];
             instanceToCheck.Checked = true;
             if (_pageType == ModComp.CompType.Mod)
