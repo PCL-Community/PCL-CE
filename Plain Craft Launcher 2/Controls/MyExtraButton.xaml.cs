@@ -207,7 +207,7 @@ public partial class MyExtraButton
     {
         if (!IsRightMouseHeld)
             RefreshScaleAfterRelease();
-        if (IsLeftMouseHeld) ControlVisualHelpers.RaiseCustomEvent(this);
+        if (IsLeftMouseHeld) ModMain.RaiseCustomEvent(this);
         IsLeftMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }

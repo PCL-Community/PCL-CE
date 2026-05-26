@@ -87,7 +87,7 @@ public class MyTextButton : Label
         IsMouseDown = false;
         ModBase.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
-        ControlVisualHelpers.RaiseCustomEvent(this);
+        ModMain.RaiseCustomEvent(this);
         e.Handled = true;
     }
 

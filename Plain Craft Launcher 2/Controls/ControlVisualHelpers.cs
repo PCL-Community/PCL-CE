@@ -9,11 +9,6 @@ internal static class ControlVisualHelpers
         return control.IsLoaded && ModAnimation.AniControlEnabled == 0 && !false.Equals(animationOverride);
     }
 
-    internal static void RaiseCustomEvent(FrameworkElement control)
-    {
-        ModMain.RaiseCustomEvent(control);
-    }
-
     internal static void AnimateColorOrSetResource(FrameworkElement target, DependencyProperty property,
         string resourceKey, int duration, string animationKey, bool shouldAnimate)
     {

@@ -89,7 +89,7 @@ public partial class MyIconButton
         return new ModBase.MyColor(0d, 255d, 255d, 255d);
     }
 
-    private ModBase.MyColor GetBaseFillColor()
+    private ModBase.MyColor? GetBaseFillColor()
     {
         return Theme switch
         {
@@ -214,7 +214,7 @@ public partial class MyIconButton
         Click?.Invoke(sender, e);
         e.Handled = true;
         Button_MouseUp();
-        ControlVisualHelpers.RaiseCustomEvent(this);
+        ModMain.RaiseCustomEvent(this);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
