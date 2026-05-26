@@ -304,7 +304,8 @@ public partial class FormMain
                     ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
                 }
 
-                SystemInfo.GetSystemInfo();
+                SystemInfo.GetCPUInfo();
+                SystemInfo.GetGPUInfo();
             }
             catch (Exception ex)
             {
