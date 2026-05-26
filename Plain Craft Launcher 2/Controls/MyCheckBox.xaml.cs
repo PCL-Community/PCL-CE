@@ -129,7 +129,7 @@ public partial class MyCheckBox
 
             // 更改动画
             SyncUI();
-            ModMain.RaiseCustomEvent(this);
+            ControlVisualHelpers.RaiseCustomEvent(this);
         }
         catch (Exception ex)
         {
@@ -139,7 +139,7 @@ public partial class MyCheckBox
 
     private void SyncUI()
     {
-        if (ModAnimation.AniControlEnabled == 0 && IsLoaded) // 防止默认属性变更触发动画
+        if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
         {
             AllowMouseDown = false;
 

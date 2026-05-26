@@ -162,7 +162,7 @@ public partial class MyRadioBox : IMyRadio
                 if (Checked)
                     Check?.Invoke(this, new ModBase.RouteEventArgs(user));
                 Changed?.Invoke(this, new ModBase.RouteEventArgs(user));
-                ModMain.RaiseCustomEvent(this);
+                ControlVisualHelpers.RaiseCustomEvent(this);
             }
 
             // 更改动画
@@ -176,7 +176,7 @@ public partial class MyRadioBox : IMyRadio
 
     private void SyncUI()
     {
-        if (ModAnimation.AniControlEnabled == 0 && IsLoaded) // 防止默认属性变更触发动画
+        if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
         {
             if (Checked)
             {
@@ -300,7 +300,7 @@ public partial class MyRadioBox : IMyRadio
 
     private void Radiobox_IsEnabledChanged()
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+        if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
         {
             // 有动画
             if (IsEnabled)
@@ -345,7 +345,7 @@ public partial class MyRadioBox : IMyRadio
     {
         if (!IsEnabled)
             return; // MouseLeave 比 IsEnabledChanged 后执行，所以如果自定义事件修改了 IsEnabled，将导致显示错误
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0)
+        if (ControlVisualHelpers.ShouldAnimate(this))
         {
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,

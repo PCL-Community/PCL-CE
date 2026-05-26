@@ -133,7 +133,7 @@ public partial class MyExtraTextButton
         ModBase.Log("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(sender, e);
         e.Handled = true;
-        ModMain.RaiseCustomEvent(this);
+        ControlVisualHelpers.RaiseCustomEvent(this);
         Button_LeftMouseUp();
     }
 
@@ -191,7 +191,7 @@ public partial class MyExtraTextButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (!IsEnabled)
                     // 禁用
@@ -212,13 +212,10 @@ public partial class MyExtraTextButton
 
             else
             {
-                ModAnimation.AniStop("MyExtraTextButton Color " + Uuid);
-                if (!IsEnabled)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrushGray4");
-                else if (IsMouseOver)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush4");
-                else
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush3");
+                ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
+                    !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
+                    !IsEnabled || IsMouseOver ? AnimationColorIn : AnimationColorOut,
+                    "MyExtraTextButton Color " + Uuid, false);
             }
         }
         catch (Exception ex)

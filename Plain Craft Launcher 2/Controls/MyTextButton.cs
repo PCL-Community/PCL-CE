@@ -78,7 +78,7 @@ public class MyTextButton : Label
         IsMouseDown = false;
         ModBase.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
-        ModMain.RaiseCustomEvent(this);
+        ControlVisualHelpers.RaiseCustomEvent(this);
         e.Handled = true;
     }
 
@@ -108,17 +108,7 @@ public class MyTextButton : Label
             return;
         ColorName = ForeName;
         // 触发颜色动画
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
-        {
-            // 有动画
-            ModAnimation.AniStart(ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time),
-                "MyTextButton Color " + Uuid);
-        }
-        else
-        {
-            // 无动画
-            ModAnimation.AniStop("MyTextButton Color " + Uuid);
-            SetResourceReference(ForegroundProperty, ForeName);
-        }
+        ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
+            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
     }
 }

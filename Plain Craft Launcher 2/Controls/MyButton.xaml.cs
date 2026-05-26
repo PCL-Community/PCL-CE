@@ -101,7 +101,7 @@ public partial class MyButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (IsEnabled)
                     switch (ColorType)
@@ -231,7 +231,7 @@ public partial class MyButton
             return;
         ModBase.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
-        ModMain.RaiseCustomEvent(this);
+        ControlVisualHelpers.RaiseCustomEvent(this);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)

@@ -112,7 +112,7 @@ public partial class MyIconTextButton
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
         IsMouseDown = false;
         Click?.Invoke(this, new ModBase.RouteEventArgs(true));
-        ModMain.RaiseCustomEvent(this);
+        ControlVisualHelpers.RaiseCustomEvent(this);
         RefreshColor();
     }
 
@@ -132,8 +132,7 @@ public partial class MyIconTextButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0 &&
-                !false.Equals(e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
+            if (ControlVisualHelpers.ShouldAnimate(this, e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
             {
                 switch (ColorType)
                 {

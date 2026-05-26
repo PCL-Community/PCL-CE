@@ -92,7 +92,7 @@ public partial class MyIconButton
         Click?.Invoke(sender, e);
         e.Handled = true;
         Button_MouseUp();
-        ModMain.RaiseCustomEvent(this);
+        ControlVisualHelpers.RaiseCustomEvent(this);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
@@ -140,7 +140,7 @@ public partial class MyIconButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (PanBack.Background is null)
                     PanBack.Background = new ModBase.MyColor(0d, 255d, 255d, 255d);
