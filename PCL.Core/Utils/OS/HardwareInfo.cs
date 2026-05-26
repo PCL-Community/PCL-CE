@@ -25,11 +25,6 @@ public static class HardwareInfo
     /// </summary>
     public static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 
-    /// <summary>
-    /// 系统信息描述，例如 Microsoft Windows 11 专业工作站版 10.0.22635.0
-    /// </summary>
-    public static string OSInfo = RuntimeInformation.OSDescription + " " + Environment.OSVersion.Version;
-
     public class GPUInfo
     {
         public string Name { get; init; } = null!;
