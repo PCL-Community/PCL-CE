@@ -105,7 +105,9 @@ public partial class MyIconButton
     private void EnsureBaseBrushes()
     {
         PanBack.Background ??= GetTransparentBackground();
-        Path.Fill ??= GetBaseFillColor();
+        var baseFill = GetBaseFillColor();
+        if (baseFill is not null)
+            Path.Fill ??= baseFill;
     }
 
     private List<ModAnimation.AniData> GetHoverAnimations()
