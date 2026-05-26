@@ -997,16 +997,16 @@ public partial class PageInstanceInstall
 
         var loaderInfos = new (string NameKey, string? Version)[]
         {
-            ("Common.LoaderName.Fabric", SelectedFabric?.Replace("+build", "")),
-            ("Common.LoaderName.LegacyFabric", SelectedLegacyFabric),
-            ("Common.LoaderName.Quilt", SelectedQuilt),
-            ("Common.LoaderName.Forge", SelectedForge?.VersionName),
-            ("Common.LoaderName.NeoForge",
+            ("Common.Installation.Fabric", SelectedFabric?.Replace("+build", "")),
+            ("Common.Installation.LegacyFabric", SelectedLegacyFabric),
+            ("Common.Installation.Quilt", SelectedQuilt),
+            ("Common.Installation.Forge", SelectedForge?.VersionName),
+            ("Common.Installation.NeoForge",
                 SelectedNeoForge?.VersionName ?? VersionOrNull(SelectedNeoForgeVersion)),
-            ("Common.LoaderName.Cleanroom",
+            ("Common.Installation.Cleanroom",
                 SelectedCleanroom?.VersionName ?? VersionOrNull(SelectedCleanroomVersion)),
-            ("Common.LoaderName.LabyMod", SelectedLabyModVersion),
-            ("Common.LoaderName.OptiFine",
+            ("Common.Installation.LabyMod", SelectedLabyModVersion),
+            ("Common.Installation.OptiFine",
                 SelectedOptiFine?.DisplayName.Replace(_vanillaName + " ", ""))
         };
 
@@ -1016,7 +1016,7 @@ public partial class PageInstanceInstall
                 .Select(info => $"{Lang.Text(info.NameKey)} {info.Version}")
         );
 
-        if (SelectedLiteLoader is not null) parts.Add(Lang.Text("Common.LoaderName.LiteLoader"));
+        if (SelectedLiteLoader is not null) parts.Add(Lang.Text("Common.Installation.LiteLoader"));
 
         if (parts.Count == 1) parts.Add(Lang.Text("Instance.Install.NoExtraInstall"));
 

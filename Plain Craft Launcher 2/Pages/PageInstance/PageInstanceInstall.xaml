@@ -23,16 +23,16 @@
                         </StackPanel.RenderTransform>
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyOptiFabric}"
                                       Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Theme="Yellow" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricAPI}"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricApi}"
                                       Margin="0,10,0,0"
                                       x:Name="HintLegacyFabricAPI" Theme="Red" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricAPI}"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}"
                                        Margin="0,1,0,7"
                                        x:Name="HintFabricAPI" IsWarn="True" />
                         <local:MyHint
-                            Text="{DynamicResource Download.Install.Warning.QSL}"
+                            Text="{DynamicResource Download.Install.Warning.Qsl}"
                             Margin="0,1,0,7" x:Name="HintQSL" IsWarn="True" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricAPI}"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricApi}"
                                       Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" IsWarn="False" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}"
                                       Margin="0,1,0,7"
@@ -48,7 +48,7 @@
                                                   Height="42" SnapsToDevicePixels="True" Type="None" />
                             </StackPanel>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.GameName.Minecraft}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Minecraft}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardMinecraft"
                                       PreviewSwap="CardMinecraft_PreviewSwap">
                             <Grid x:Name="PanMinecraftInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top">
@@ -75,7 +75,7 @@
                                            Foreground="{StaticResource ColorBrushGray4}" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.Forge}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardForge" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
@@ -103,7 +103,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.Cleanroom}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardCleanroom"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardCleanroom_PreviewSwap">
@@ -132,7 +132,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.NeoForge}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardNeoForge"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardNeoForge_PreviewSwap">
@@ -161,7 +161,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.Fabric}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardFabric" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
@@ -189,7 +189,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.LegacyFabric}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardLegacyFabric"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLegacyFabric_PreviewSwap">
@@ -218,7 +218,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.FabricApi}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardFabricApi"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardFabricApi_PreviewSwap">
@@ -247,7 +247,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.LegacyFabricApi}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40"
                                       Margin="0,12,0,0"
                                       x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLegacyFabricApi_PreviewSwap">
@@ -276,7 +276,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.Quilt}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Quilt}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardQuilt" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQuilt_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQuilt" />
@@ -304,7 +304,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.QfapiQsl}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.QfapiQsl}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardQSL"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardQSL_PreviewSwap">
@@ -333,7 +333,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.LabyMod}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardLabyMod"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLabyMod_PreviewSwap">
@@ -363,7 +363,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.OptiFine}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardOptiFine"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
@@ -394,7 +394,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.OptiFabric}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardOptiFabric"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardOptiFabric_PreviewSwap">
@@ -423,7 +423,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.LoaderName.LiteLoader}" Height="40"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardLiteLoader"
                                       PreviewSwap="CardLiteLoader_PreviewSwap"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">

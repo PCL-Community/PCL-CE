@@ -85,10 +85,10 @@
                     <local:MyComboBox x:Name="ComboSearchLoader" Grid.Row="2" Grid.Column="3" MaxDropDownHeight="320">
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.Any}"
                                               IsSelected="True" Tag="0" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.Forge}" Tag="1" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.NeoForge}" Tag="6" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.Fabric}" Tag="4" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.Quilt}" Tag="5" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Forge}" Tag="1" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.NeoForge}" Tag="6" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Fabric}" Tag="4" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Quilt}" Tag="5" />
                     </local:MyComboBox>
                     <local:MyComboBox x:Name="ComboSearchShaderLoader" Visibility="Collapsed" Grid.Row="2"
                                       Grid.Column="3" MaxDropDownHeight="320">
@@ -97,8 +97,8 @@
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.VanillaAvailable}"
                                               Tag="/vanilla"
                                               ToolTip="{DynamicResource Download.Comp.Filter.Loader.VanillaAvailable.ToolTip}" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.Iris}" Tag="/iris" />
-                        <local:MyComboBoxItem Content="{DynamicResource Common.LoaderName.OptiFine}" Tag="/optifine" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Iris}" Tag="/iris" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.OptiFine}" Tag="/optifine" />
                     </local:MyComboBox>
                     <!--按钮-->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="6">

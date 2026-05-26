@@ -831,7 +831,7 @@ public partial class PageDownloadCompFavorites
             }
 
             var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Action.No"), Button2: Lang.Text("Common.Action.Yes"), Button3: Lang.Text("Common.Action.No"));
+            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Option.No"), Button2: Lang.Text("Common.Option.Yes"), Button3: Lang.Text("Common.Option.No"));
             if (res == 2)
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
