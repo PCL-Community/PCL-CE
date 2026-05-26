@@ -255,7 +255,7 @@ public partial class PageToolsTest
                     }
 
                     num += ModBase.DeleteDirectory(ModBase.PathTemp, true);
-                    num += ModBase.DeleteDirectory( SystemPaths.DriveLetter + @"ProgramData\PCL\", true);
+                    num += ModBase.DeleteDirectory(SystemPaths.DriveLetter + @"ProgramData\PCL\", true);
                     if (num != 0)
                     {
                         ModMain.MyMsgBox($"""
