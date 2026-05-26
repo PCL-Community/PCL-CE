@@ -87,7 +87,6 @@ public static class ModMain
     public static PageInstanceServer? FrmInstanceServer;
     public static PageInstanceSavesLeft? FrmInstanceSavesLeft;
     public static PageInstanceSavesInfo? FrmInstanceSavesInfo;
-    public static PageInstanceSavesBackup? FrmInstanceSavesBackup;
     public static PageInstanceSavesDatapack? FrmInstanceSavesDatapack;
     public static PageDownloadCompDetail? FrmDownloadCompDetail;
     public static PageHomepageNewsView? FrmHomepageNews;

@@ -517,7 +517,7 @@ public class MyPageRight : AdornerDecorator
             case ModBase.LoadState.Aborted:
             case ModBase.LoadState.Waiting:
             {
-                if (!(OldState == ModBase.LoadState.Failed || OldState == ModBase.LoadState.Loading))
+                if (OldState != ModBase.LoadState.Failed && OldState != ModBase.LoadState.Loading)
                     return;
                 if (ModBase.ModeDebug)
                     ModBase.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
@@ -567,7 +567,7 @@ public class MyPageRight : AdornerDecorator
             {
                 // 还原被隐藏的卡片的消失动画
                 Control.IsHitTestVisible = true;
-                if (Control.RenderTransform is not null && Control.RenderTransform is TranslateTransform)
+                if (Control.RenderTransform is TranslateTransform)
                     Control.RenderTransform = null;
             }
 
@@ -593,7 +593,7 @@ public class MyPageRight : AdornerDecorator
         var Scroll = GetFirstScrollViewer(RealElements);
         if (Scroll is not null)
         {
-            if (!(Scroll.RenderTransform is TranslateTransform))
+            if (Scroll.RenderTransform is not TranslateTransform)
                 Scroll.RenderTransform = new TranslateTransform(10d, 0d);
             AniList.Add(ModAnimation.AaTranslateX(Scroll, -((TranslateTransform)Scroll.RenderTransform).X, 350, 0,
                 new ModAnimation.AniEaseOutFluent()));
@@ -628,7 +628,7 @@ public class MyPageRight : AdornerDecorator
         var Scroll = GetFirstScrollViewer(RealElements);
         if (Scroll is not null)
         {
-            if (!(Scroll.RenderTransform is TranslateTransform))
+            if (Scroll.RenderTransform is not TranslateTransform)
                 Scroll.RenderTransform = new TranslateTransform();
             AniList.Add(ModAnimation.AaTranslateX(Scroll, 10d - ((TranslateTransform)Scroll.RenderTransform).X, 90, 0,
                 new ModAnimation.AniEaseInFluent()));
@@ -671,9 +671,9 @@ public class MyPageRight : AdornerDecorator
         }
         else if (Element is ContentControl)
         {
-            var Content = ((ContentControl)Element).Content;
-            if (Content is not null && Content is FrameworkElement)
-                _GetAllAnimControls((FrameworkElement)Content, ref AllControls, IgnoreInvisibility);
+                var Content = ((ContentControl)Element).Content;
+                if (Content is FrameworkElement)
+                    _GetAllAnimControls((FrameworkElement)Content, ref AllControls, IgnoreInvisibility);
         }
         else if (Element is Panel)
         {

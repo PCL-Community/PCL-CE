@@ -19,7 +19,6 @@ using System.Windows.Threading;
 using System.Xaml;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
@@ -250,10 +249,10 @@ public static class ModBase
             }
             else
             {
-                A = Conversions.ToDouble(((dynamic)obj).A);
-                R = Conversions.ToDouble(((dynamic)obj).R);
-                G = Conversions.ToDouble(((dynamic)obj).G);
-                B = Conversions.ToDouble(((dynamic)obj).B);
+                A = Convert.ToDouble(((dynamic)obj).A);
+                R = Convert.ToDouble(((dynamic)obj).R);
+                G = Convert.ToDouble(((dynamic)obj).G);
+                B = Convert.ToDouble(((dynamic)obj).B);
             }
         }
 
@@ -429,7 +428,7 @@ public static class ModBase
 
         public override bool Equals(object obj)
         {
-            return Operators.ConditionalCompareObjectEqual(this, obj, false);
+            return obj is MyColor other && A == other.A && R == other.R && G == other.G && B == other.B;
         }
     }
 
@@ -562,7 +561,7 @@ public static class ModBase
         // 转换为十进制
         var RealNum = 0L;
         var Scale = 1L;
-        foreach (var Digit in Input.Reverse().Select(l => Digits.IndexOfF(Conversions.ToString(l))))
+        foreach (var Digit in Input.Reverse().Select(l => Digits.IndexOfF(l.ToString())))
         {
             RealNum += Digit * Scale;
             Scale *= FromRadix;
@@ -1093,7 +1092,7 @@ public static class ModBase
             // 获取 MD5
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(MD5Provider.Instance.ComputeHash(fs)));
+                return (string)GetHexString(MD5Provider.Instance.ComputeHash(fs));
             }
         }
         catch (Exception ex)
@@ -1126,7 +1125,7 @@ public static class ModBase
             // 获取 SHA512
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(SHA512Provider.Instance.ComputeHash(fs)));
+                return (string)GetHexString(SHA512Provider.Instance.ComputeHash(fs));
             }
         }
         catch (Exception ex)
@@ -1159,7 +1158,7 @@ public static class ModBase
             // 获取 SHA256
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(SHA256Provider.Instance.ComputeHash(fs)));
+                return (string)GetHexString(SHA256Provider.Instance.ComputeHash(fs));
             }
         }
         catch (Exception ex)
@@ -1190,7 +1189,7 @@ public static class ModBase
             // 获取 SHA1
             using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Conversions.ToString(GetHexString(SHA1Provider.Instance.ComputeHash(fs)));
+                return (string)GetHexString(SHA1Provider.Instance.ComputeHash(fs));
             }
         }
         catch (Exception ex)
@@ -1215,7 +1214,7 @@ public static class ModBase
     {
         try
         {
-            return Conversions.ToString(GetHexString(SHA1Provider.Instance.ComputeHash(inputStream)));
+            return (string)GetHexString(SHA1Provider.Instance.ComputeHash(inputStream));
         }
         catch (Exception ex)
         {
@@ -1355,7 +1354,7 @@ public static class ModBase
         Directory.CreateDirectory(DestDirectory);
         DestDirectory = Path.GetFullPath(DestDirectory);
         if (!DestDirectory.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            DestDirectory += Conversions.ToString(Path.DirectorySeparatorChar);
+            DestDirectory += Path.DirectorySeparatorChar.ToString();
         if (CompressFilePath.EndsWithF(".gz", true))
             // 以 gz 方式解压
             using (var compressedFile = new FileStream(CompressFilePath, FileMode.Open, FileAccess.Read))
@@ -1614,7 +1613,7 @@ public static class ModBase
     {
         if (Str.Length > Length)
             return Strings.Mid(Str, 1, Length);
-        return Strings.Mid(Str.PadRight(Length, Conversions.ToChar(Code)), Str.Length + 1) + Str;
+        return Strings.Mid(Str.PadRight(Length, Code[0]), Str.Length + 1) + Str;
     }
 
     /// <summary>
@@ -1633,8 +1632,8 @@ public static class ModBase
     {
         if (RemoveQuote)
             Str = Str.Split("（")[0].Split("：")[0].Split("(")[0].Split(":")[0];
-        return Str.Trim('.', '。', '！', ' ', '!', '?', '？', Conversions.ToChar("\r"),
-            Conversions.ToChar("\n"));
+        return Str.Trim('.', '。', '！', ' ', '!', '?', '？', '\r',
+            '\n');
     }
 
     /// <summary>
@@ -1684,7 +1683,7 @@ public static class ModBase
     /// </summary>
     public static string GetStringMD5(string Str)
     {
-        return Conversions.ToString(GetHexString(MD5Provider.Instance.ComputeHash(Str)));
+        return (string)GetHexString(MD5Provider.Instance.ComputeHash(Str));
     }
 
     /// <summary>
@@ -2427,7 +2426,7 @@ public static class ModBase
             if (data[i] is ICollection)
                 GetFullListRet.AddRange((IEnumerable<T>)data[i]);
             else
-                GetFullListRet.Add(Conversions.ToGenericParameter<T>(data[i]));
+                GetFullListRet.Add((T)data[i]);
 
         return GetFullListRet;
     }
@@ -3202,8 +3201,7 @@ public static class ModBase
                     {
                         if (Reader.Type is not null && BlackListType.IsAssignableFrom(Reader.Type.UnderlyingType))
                             throw new UnauthorizedAccessException($"不允许使用 {BlackListType.Name} 类型。");
-                        if (Reader.Value is not null && Conversions.ToBoolean(
-                                Operators.ConditionalCompareObjectEqual(Reader.Value, BlackListType.Name, false)))
+                        if (Reader.Value is not null && Equals(Reader.Value, BlackListType.Name))
                             throw new UnauthorizedAccessException($"不允许使用 {BlackListType.Name} 值。");
                     }
 
@@ -3681,7 +3679,7 @@ public class InverseBooleanToVisibilityConverter : IValueConverter
         if (value is null)
             return false;
         return value is Visibility
-            ? Operators.ConditionalCompareObjectNotEqual(value, Visibility.Visible, false)
+            ? (Visibility)value != Visibility.Visible
             : false;
     }
 }

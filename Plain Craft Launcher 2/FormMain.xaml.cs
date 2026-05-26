@@ -1481,8 +1481,7 @@ public partial class FormMain
         VersionInstall = 10,
         VersionServer = 11,
         VersionSavesInfo = 0,
-        VersionSavesBackup = 1,
-        VersionSavesDatapack = 2
+        VersionSavesDatapack = 1
     }
 
     /// <summary>
