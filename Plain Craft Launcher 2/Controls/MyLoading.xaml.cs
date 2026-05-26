@@ -296,9 +296,6 @@ public partial class MyLoading
                 AniLoop();
             }, After: true)
         }, "MyLoader Loop " + Uuid + "/" + ModBase.GetUuid());
-        if (ShowProgress)
-        {
-        }
     }
 
     /// <summary>
