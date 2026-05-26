@@ -32,10 +32,10 @@ public static class HardwareInfo
 
     public class GPUInfo
     {
-        public string Name = null!;
-        public string DriverVersion = null!;
+        public string Name { get; init; } = null!;
+        public string DriverVersion { get; init; } = null!;
         /// <summary> 显存大小，单位 MB </summary>
-        public long Memory;
+        public long Memory { get; init; }
     }
 
     /// <summary>
@@ -44,13 +44,14 @@ public static class HardwareInfo
     public static void GetHardwareInfo()
     {
         // CPU
+        var cpuName = (string?)null;
         try
         {
             using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
             foreach (ManagementObject queryObj in searcher.Get())
             {
-                CPUName = queryObj["Name"].ToString().Trim();
-                break; // 通常只需要第一个CPU的信息
+                cpuName = queryObj["Name"]?.ToString()?.Trim();
+                break;
             }
         }
         catch (Exception ex)
@@ -58,32 +59,36 @@ public static class HardwareInfo
             LogWrapper.Warn(ex, "获取 CPU 信息时出错");
         }
 
+        // GPU
+        var gpuList = new List<GPUInfo>();
+        try
+        {
+            using var searcher =
+                new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
+            foreach (ManagementObject queryObj in searcher.Get())
+            {
+                var gpuInfo = new GPUInfo
+                {
+                    Name = queryObj["Name"]?.ToString() ?? "",
+                    DriverVersion = queryObj["DriverVersion"]?.ToString() ?? "",
+                    Memory = queryObj["AdapterRAM"] is not null and not DBNull
+                        ? Convert.ToInt64(queryObj["AdapterRAM"]) / (1024 * 1024)
+                        : 0
+                };
+                gpuList.Add(gpuInfo);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "获取 GPU 信息时出错");
+        }
+
         lock (_lock)
         {
-            // GPU
-            try
-            {
-                GPUs.Clear();
-                using var searcher =
-                    new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
-                foreach (ManagementObject queryObj in searcher.Get())
-                {
-                    var gpuInfo = new GPUInfo();
-
-                    if (queryObj["Name"] is not null)
-                        gpuInfo.Name = queryObj["Name"].ToString();
-                    if (queryObj["AdapterRAM"] is not null and not DBNull)
-                        gpuInfo.Memory = Convert.ToInt64(queryObj["AdapterRAM"]) / (1024 * 1024);
-                    if (queryObj["DriverVersion"] is not null)
-                        gpuInfo.DriverVersion = queryObj["DriverVersion"].ToString();
-
-                    GPUs.Add(gpuInfo);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogWrapper.Warn(ex, "获取 GPU 信息时出错");
-            }
+            if (cpuName is not null)
+                CPUName = cpuName;
+            GPUs.Clear();
+            GPUs.AddRange(gpuList);
         }
         LogWrapper.Info("已获取系统硬件信息");
     }
