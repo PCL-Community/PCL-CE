@@ -1658,14 +1658,14 @@ public static class ModMinecraft
                 // 末尾数字，如 C5 beta4 中的 5
                 result *= 100;
                 result = (int)Math.Round(result +
-                                         ModBase.Val(OptiFine.Substring(1).RegexSeek("[0-9]+")));
+                                         ModBase.Val(OptiFine[1..].RegexSeek("[0-9]+")));
                 // 测试标记（正式版为 99，Pre[x] 为 50+x，Beta[x] 为 x）
                 result *= 100;
                 if (OptiFine.ContainsF("pre", true))
                     result += 50;
                 if (OptiFine.ContainsF("pre", true) || OptiFine.ContainsF("beta", true))
                 {
-                    var LastChar = OptiFine.Substring(OptiFine.Length - 1);
+                    var LastChar = OptiFine[^1..];
                     if (ModBase.Val(LastChar) == 0d && LastChar != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
@@ -3346,6 +3346,16 @@ public static class ModMinecraft
         }
     }
 
+    private static string McAssetsHashPrefix(string hash)
+    {
+        return hash[..2];
+    }
+
+    private static string McAssetsUrl(string hash)
+    {
+        return $"https://resources.download.minecraft.net/{McAssetsHashPrefix(hash)}/{hash}";
+    }
+
     /// <summary>
     ///     获取 Minecraft 的资源文件列表。失败会抛出异常。
     /// </summary>
@@ -3367,7 +3377,6 @@ public static class ModMinecraft
             {
                 string localPath;
                 var hash = file.Value["hash"].ToString();
-                var hashPrefix = hash[..2];
                 if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
                     // Remap
                     localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
@@ -3377,7 +3386,7 @@ public static class ModMinecraft
                 else
                 {
                     // 正常
-                    localPath = Path.Combine(McFolderSelected, "assets", "objects", hashPrefix, hash);
+                    localPath = Path.Combine(McFolderSelected, "assets", "objects", McAssetsHashPrefix(hash), hash);
                 }
                 result.Add(new McAssetsToken
                 {
@@ -3410,9 +3419,8 @@ public static class ModMinecraft
             return McAssetsListGet(instance).Select(token =>
             {
                 var hash = token.Hash;
-                var hashPrefix = hash[..2];
                 return new DownloadFile(
-                    ModDownload.DlSourceAssetsGet($"https://resources.download.minecraft.net/{hashPrefix}/{hash}"),
+                    ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                     token.LocalPath,
                     new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash));
             }).ToList();
@@ -3438,9 +3446,8 @@ public static class ModMinecraft
                     continue;
                 // 文件不存在，添加下载
                 var hash = token.Hash;
-                var hashPrefix = hash[..2];
                 result.Add(new DownloadFile(
-                    ModDownload.DlSourceAssetsGet($"https://resources.download.minecraft.net/{hashPrefix}/{hash}"),
+                    ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                     token.LocalPath,
                     new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash)));
             }
