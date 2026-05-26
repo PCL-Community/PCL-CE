@@ -156,7 +156,8 @@ public partial class PageInstanceExport : IRefreshable
                                 Margin = new Thickness(30, 0, 0, 0),
                                 Tag = new ExportOption
                                 {
-                                    Title = $"{shaderConfig.Name} (光影配置文件)", DefaultChecked = true,
+                                    Title = $"{shaderConfig.Name}", DefaultChecked = true,
+                                    Description = "光影配置文件",
                                     Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
