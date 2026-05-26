@@ -6,7 +6,7 @@ using PCL.Core.Logging;
 
 namespace PCL.Core.Utils.OS;
 
-public class HardwareInfo
+public static class HardwareInfo
 {
     private static readonly object _lock = new();
     

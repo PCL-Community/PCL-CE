@@ -9,15 +9,15 @@ public static class SystemInfo
     /// <summary>
     /// 是否为 32 位系统。
     /// </summary>
-    public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
+    public static readonly bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
 
     /// <summary>
     /// 是否为 ARM64 架构。
     /// </summary>
-    public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
+    public static readonly bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
 
     /// <summary>
     /// 是否使用 GBK 编码。
     /// </summary>
-    public static bool IsGBKEncoding = Encoding.Default.CodePage == 936;
+    public static readonly bool IsGBKEncoding = Encoding.Default.CodePage == 936;
 }
