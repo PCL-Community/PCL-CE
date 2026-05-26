@@ -857,7 +857,7 @@ public partial class PageInstanceInstall
         else
             HintQuiltFabricAPI.Visibility = Visibility.Collapsed;
 
-        if (SelectedFabric is not null | SelectedLegacyFabric is not null && SelectedOptiFine is not null &&
+        if ((SelectedFabric is not null || SelectedLegacyFabric is not null) && SelectedOptiFine is not null &&
             SelectedOptiFabric is null)
         {
             if (VanillaDrop >= 140 && VanillaDrop <= 150)
