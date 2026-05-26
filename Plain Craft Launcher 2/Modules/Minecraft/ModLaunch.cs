@@ -2809,8 +2809,7 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : ArgumentInfo);
         GameArguments.Add("${game_directory}",
-            ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie.Substring(0,
-                ModMinecraft.McInstanceSelected.PathIndie.Length - 1)));
+            ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie[..^1]));
         GameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "assets"));
         GameArguments.Add("${user_properties}", "{}");
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name);

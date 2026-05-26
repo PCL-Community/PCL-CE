@@ -171,9 +171,8 @@ public static class ModMinecraft
         if (AccessToken is not null && AccessToken.Length >= 10 && Raw.ContainsF(AccessToken, true) &&
             (ModLaunch.McLoginLoader.Output.Uuid ?? "") !=
             (ModLaunch.McLoginLoader.Output.AccessToken ?? "")) // UUID 和 AccessToken 一样则不打码
-            Raw = Raw.Replace(AccessToken,
-                AccessToken.Substring(0, 5) + new string(FilterChar, AccessToken.Length - 10) +
-                AccessToken.Substring(AccessToken.Length - 5));
+            Raw = Raw.Replace(AccessToken, AccessToken[..5] + new string(FilterChar, AccessToken.Length - 10) +
+                                           AccessToken[^5..]);
         return Raw;
     }
 
@@ -3367,6 +3366,8 @@ public static class ModMinecraft
             foreach (var file in json["objects"].AsObject())
             {
                 string localPath;
+                var hash = file.Value["hash"].ToString();
+                var hashPrefix = hash[..2];
                 if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
                     // Remap
                     localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
@@ -3374,13 +3375,15 @@ public static class ModMinecraft
                     // Virtual
                     localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else
+                {
                     // 正常
-                    localPath = Path.Combine(McFolderSelected, "assets", "objects", file.Value["hash"].ToString().Substring(0, 2), file.Value["hash"].ToString());
+                    localPath = Path.Combine(McFolderSelected, "assets", "objects", hashPrefix, hash);
+                }
                 result.Add(new McAssetsToken
                 {
                     LocalPath = localPath,
                     SourcePath = file.Key,
-                    Hash = file.Value["hash"].ToString(),
+                    Hash = hash,
                     Size = long.Parse(file.Value["size"].ToString())
                 });
             }
@@ -3404,11 +3407,15 @@ public static class ModMinecraft
     {
         // 如果需要检查 Hash，则留到下载时处理，以借助多线程加快检查速度
         if (checkHash)
-            return McAssetsListGet(instance).Select(token => new DownloadFile(
-                ModDownload.DlSourceAssetsGet(
-                    $"https://resources.download.minecraft.net/{token.Hash.Substring(0, 2)}/{token.Hash}"),
-                token.LocalPath,
-                new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
+            return McAssetsListGet(instance).Select(token =>
+            {
+                var hash = token.Hash;
+                var hashPrefix = hash[..2];
+                return new DownloadFile(
+                    ModDownload.DlSourceAssetsGet($"https://resources.download.minecraft.net/{hashPrefix}/{hash}"),
+                    token.LocalPath,
+                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash));
+            }).ToList();
         // 如果不检查 Hash，则立即处理
         var result = new List<DownloadFile>();
 
@@ -3430,11 +3437,12 @@ public static class ModMinecraft
                 if (file.Exists && (token.Size == 0L || token.Size == file.Length))
                     continue;
                 // 文件不存在，添加下载
+                var hash = token.Hash;
+                var hashPrefix = hash[..2];
                 result.Add(new DownloadFile(
-                    ModDownload.DlSourceAssetsGet(
-                        $"https://resources.download.minecraft.net/{token.Hash.Substring(0, 2)}/{token.Hash}"),
+                    ModDownload.DlSourceAssetsGet($"https://resources.download.minecraft.net/{hashPrefix}/{hash}"),
                     token.LocalPath,
-                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));
+                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash)));
             }
         }
         catch (Exception ex)
