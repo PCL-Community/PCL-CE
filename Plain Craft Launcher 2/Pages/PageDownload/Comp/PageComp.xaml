@@ -12,7 +12,7 @@
     </local:MyScrollViewer.Resources>
     <StackPanel Orientation="Vertical" Margin="25">
         <StackPanel x:Name="PanAlways">
-            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" />
+            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" HintText="{DynamicResource Download.Comp.Search.Hint}" />
             <local:MyCard Margin="0,0,0,15">
                 <Grid Margin="7" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>

@@ -25,15 +25,23 @@ public partial class MySearchBox : MyCard
     // 属性
     public string HintText
     {
-        get => TextBox.HintText;
-        set => TextBox.HintText = value;
+        get => (string)GetValue(HintTextProperty);
+        set => SetValue(HintTextProperty, value);
     }
+
+    public static readonly DependencyProperty HintTextProperty =
+        DependencyProperty.Register("HintText", typeof(string), typeof(MySearchBox),
+            new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.HintText = (string)e.NewValue));
 
     public string Text
     {
-        get => TextBox.Text;
-        set => TextBox.Text = value;
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
+
+    public static readonly DependencyProperty TextProperty =
+        DependencyProperty.Register("Text", typeof(string), typeof(MySearchBox),
+            new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.Text = (string)e.NewValue));
 
     public Visibility SearchButtonVisibility
     {

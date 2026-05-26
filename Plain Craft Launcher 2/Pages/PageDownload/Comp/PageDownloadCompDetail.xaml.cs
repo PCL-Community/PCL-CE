@@ -490,7 +490,6 @@ public partial class PageDownloadCompDetail
         Loaded += (_, _) => LoadTargetFromAdditional();
         PageEnter += Init;
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.LoadingList");
         Load.StateChanged += Load_State;
         BtnIntroWeb.Click += BtnIntroWeb_Click;
         BtnIntroWiki.Click += BtnIntroWiki_Click;

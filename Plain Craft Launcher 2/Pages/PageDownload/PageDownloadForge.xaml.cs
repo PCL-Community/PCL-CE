@@ -14,7 +14,6 @@ public partial class PageDownloadForge
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.Forge.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 

@@ -80,23 +80,23 @@ public partial class PageInstanceSavesBackup : IRefreshable
                 var btnApply = new MyIconButton
                 {
                     Logo = Icon.IconPlayGame,
-                    ToolTip = "回到到此快照"
+                    ToolTip = Lang.Text("Instance.Saves.Backup.RestoreToolTip")
                 };
 
                 btnApply.Click += (_, _) =>
                 {
                     try
                     {
-                        if (ModMain.MyMsgBox("确定要应用此备份吗？请确保当前的存档已完成备份或者十分确定不再使用！", Button1: Lang.Text("Common.Action.Confirm"), Button2: Lang.Text("Common.Action.Cancel")) == 2)
+                        if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Backup.RestoreConfirm"), Button1: Lang.Text("Common.Action.Confirm"), Button2: Lang.Text("Common.Action.Cancel")) == 2)
                             return;
-                        ModMain.Hint("应用快照中，请勿执行其他操作！");
+                        ModMain.Hint(Lang.Text("Instance.Saves.Backup.ApplyingSnapshot"));
                         var loaders = new List<ModLoader.LoaderBase>();
-                        loaders.Add(new ModLoader.LoaderTask<int, int>("搜寻并应用文件", load =>
+                        loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Saves.Backup.SearchApply"), load =>
                         {
                             load.Progress = 0.2d;
                             load.Progress = 1d;
                         }));
-                        var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - 备份应用", loaders)
+                        var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - {Lang.Text("Instance.Saves.Backup.ApplyTitle")}", loaders)
                             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
                         loader.Start(1);
                         ModLoader.LoaderTaskbarAdd(loader);
@@ -105,33 +105,33 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "应用快照过程中出现错误", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.ApplyError"), ModBase.LogLevel.Msgbox);
                     }
                 };
 
                 var btnExport = new MyIconButton
                 {
                     Logo = Icon.IconButtonSave,
-                    ToolTip = "导出到压缩包"
+                    ToolTip = Lang.Text("Instance.Saves.Backup.ExportToolTip")
                 };
 
                 btnExport.Click += (_, _) =>
                 {
                     try
                     {
-                        var savePath = SystemDialogs.SelectSaveFile("选择保存备份导出的位置", $"{item.Name}.zip",
+                        var savePath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Saves.Backup.SelectExportPath"), $"{item.Name}.zip",
                             "压缩文件(*.zip)|*.zip", ModBase.ExePath);
                         if (string.IsNullOrEmpty(savePath))
                             return;
-                        ModMain.Hint("快照导出中，请勿执行其他操作！");
+                        ModMain.Hint(Lang.Text("Instance.Saves.Backup.ExportingSnapshot"));
                         var loaders = new List<ModLoader.LoaderBase>();
-                        loaders.Add(new ModLoader.LoaderTask<int, int>("制作压缩包", load =>
+                        loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Saves.Backup.MakeArchive"), load =>
                         {
                             load.Progress = 0.2d;
                             ;
                             load.Progress = 1d;
                         }));
-                        var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - 导出备份", loaders)
+                        var loader = new ModLoader.LoaderCombo<int>($"{item.Name} - {Lang.Text("Instance.Saves.Backup.ExportTitle")}", loaders)
                             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
                         loader.Start(1);
                         ModLoader.LoaderTaskbarAdd(loader);
@@ -140,7 +140,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "备份导出过程中出现错误", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.ExportError"), ModBase.LogLevel.Msgbox);
                     }
                 };
 
@@ -155,26 +155,28 @@ public partial class PageInstanceSavesBackup : IRefreshable
                     try
                     {
                         if (ModMain.MyMsgBox(
-                                $"你确定要删除备份 {item.Name} 吗？{"\r\n"}描述：{item.Desc}{"\r\n"}创建时间：{item.Created}",
-                                "删除确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2) return;
+                                Lang.Text("Instance.Saves.Backup.DeleteConfirmMessage", item.Name, item.Desc,
+                                    item.Created),
+                                Lang.Text("Instance.Saves.Backup.DeleteConfirmTitle"),
+                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2) return;
                         using (var snap = new SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave))
                         {
                             snap.DeleteVersion(item.NodeId);
                         }
 
                         RefreshList();
-                        ModMain.Hint("已删除！", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Instance.Saves.Backup.Deleted"), ModMain.HintType.Finish);
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "执行删除任务失败");
+                        ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.DeleteFailed"));
                     }
                 };
 
                 var btnInfo = new MyIconButton
                 {
                     Logo = Icon.IconButtonInfo,
-                    ToolTip = "信息"
+                    ToolTip = Lang.Text("Instance.Saves.Backup.InfoToolTip")
                 };
 
 
@@ -189,13 +191,14 @@ public partial class PageInstanceSavesBackup : IRefreshable
                         }
 
                         var totalSize = data.Select(x => x.Length).Sum();
-                        ModMain.MyMsgBox($@"描述: {item.Desc}
-                            创建时间: {item.Created}
-                            存档大小: {ByteStream.GetReadableLength(totalSize, provider: Lang.Culture)} ({data.Count} 个对象)", item.Name);
+                        ModMain.MyMsgBox(
+                            Lang.Text("Instance.Saves.Backup.InfoDialog", item.Desc, item.Created,
+                                ByteStream.GetReadableLength(totalSize, provider: Lang.Culture), data.Count),
+                            item.Name);
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "执行删除任务失败");
+                        ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.DeleteFailed"));
                     }
                 };
                 newItem.Buttons = [btnDelete, btnExport, btnInfo, btnApply];
@@ -205,7 +208,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取备份信息失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.LoadFailed"), ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -213,24 +216,24 @@ public partial class PageInstanceSavesBackup : IRefreshable
     {
         try
         {
-            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: DateTime.Now.ToString("yyyy/MM/dd-HH:mm:ss", CultureInfo.InvariantCulture));
+            var input = ModMain.MyMsgBoxInput(Lang.Text("Instance.Saves.Backup.NameInputPrompt"), DefaultInput: DateTime.Now.ToString("yyyy/MM/dd-HH:mm:ss", CultureInfo.InvariantCulture));
             if (input is null)
                 return;
             if (string.IsNullOrWhiteSpace(input))
                 input = null;
-            if (ModMain.MyMsgBox("备份功能不具备热备份功能，请确你没有在使用存档内的任何文件！", "请注意！", "继续", "返回") == 2)
+            if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Backup.NotHotBackup"), Lang.Text("Instance.Saves.Backup.PleaseNote"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Back")) == 2)
                 return;
             BtnCreate.IsEnabled = false;
-            ModMain.Hint("开始备份任务，请勿执行其他操作！");
+            ModMain.Hint(Lang.Text("Instance.Saves.Backup.StartingBackup"));
             var loaders = new List<ModLoader.LoaderBase>();
-            loaders.Add(new ModLoader.LoaderTask<int, int>("搜寻并制作备份", load =>
+            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Saves.Backup.SearchAndCreate"), load =>
             {
                 load.Progress = 0.2d;
 
                 load.Progress = 1d;
                 ModBase.RunInUi(() => RefreshList());
             }));
-            var loader = new ModLoader.LoaderCombo<int>($"{input} - 制作备份", loaders)
+            var loader = new ModLoader.LoaderCombo<int>($"{input} - {Lang.Text("Instance.Saves.Backup.CreateTitle")}", loaders)
                 { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
             loader.Start(1);
             ModLoader.LoaderTaskbarAdd(loader);
@@ -240,17 +243,17 @@ public partial class PageInstanceSavesBackup : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "备份过程中出现错误", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Backup.CreateError"), ModBase.LogLevel.Msgbox);
         }
     }
 
     private void BtnClean_Click()
     {
-        if (ModMain.MyMsgBox("此功能可以清理备份文件中已不再需要的文件，建议在发生备份删除后使用。", "确定使用吗？", Lang.Text("Common.Action.Confirm"), "返回") == 2)
+        if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Backup.CleanDescription"), Lang.Text("Instance.Saves.Backup.CleanConfirmTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Back")) == 2)
             return;
         var loaders = new List<ModLoader.LoaderBase>
         {
-            new ModLoader.LoaderTask<int, int>("寻找并清理备份文件", load =>
+            new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Saves.Backup.FindAndClean"), load =>
             {
                 load.Progress = 0.2d;
                 ;
@@ -258,7 +261,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
             })
         };
         var loader =
-            new ModLoader.LoaderCombo<int>($"{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - 备份清理",
+            new ModLoader.LoaderCombo<int>($"{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.CurrentSave)} - {Lang.Text("Instance.Saves.Backup.CleanTitle")}",
                 loaders) { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);

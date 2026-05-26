@@ -13,7 +13,6 @@ namespace PCL
         public PageHomePageMarket()
         {
             InitializeComponent();
-            Load.Text = Lang.Text("Setup.Ui.HomepageMarket.Loading");
             Loaded += Page_Loaded;
         }
 

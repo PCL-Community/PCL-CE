@@ -29,7 +29,6 @@ public partial class PageSetupFeedback
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Load.Text = Lang.Text("Setup.Feedback.Loading");
         Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }

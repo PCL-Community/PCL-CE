@@ -12,7 +12,7 @@
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Info.Title}">
                 <StackPanel x:Name="PanInfo" Margin="15,40,25,5">
-                    <local:MyLoading x:Name="LabInfoLoading" Text="正在获取信息" Margin="0,0,0,10" />
+                    <local:MyLoading x:Name="LabInfoLoading" Text="{DynamicResource Instance.Overall.Info.Loading}" Margin="0,0,0,10" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Personalization.Title}" x:Name="PanDisplay">

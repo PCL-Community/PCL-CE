@@ -51,7 +51,7 @@ public partial class PageInstanceSaves : IRefreshable
         if (ModMain.FrmInstanceSaves is not null)
             ModMain.FrmInstanceSaves.Reload();
         ModMain.FrmInstanceLeft.ItemWorld.Checked = true;
-        ModMain.Hint("正在刷新……", Log: false);
+        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -72,6 +72,7 @@ public partial class PageInstanceSaves : IRefreshable
         // 初始化文件系统监视器和排序按钮
         SetupFileSystemWatcher();
         BtnSort.Click += BtnSortClick;
+        SetSortMethod(_currentSortMethod);
     }
 
     private string GetFolderNameFromPath(string fullPath)
@@ -150,11 +151,11 @@ public partial class PageInstanceSaves : IRefreshable
             if (IsSearching)
             {
                 var resultCount = _searchResult is null ? 0 : _searchResult.Count;
-                PanListBack.Title = $"搜索结果 ({resultCount})";
+                PanListBack.Title = Lang.Text("Instance.Saves.SearchResultTitle", resultCount.ToString());
             }
             else
             {
-                PanListBack.Title = $"存档列表 ({saveFolders.Count})";
+                PanListBack.Title = Lang.Text("Instance.Saves.SaveListTitle", saveFolders.Count.ToString());
             }
 
             if (saveFolders.Count == 0)
@@ -204,7 +205,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = saveLogo,
                         Title = GetFolderNameFromPath(curFolder),
                         Info =
-                            $"创建时间：{Lang.Date(Directory.GetCreationTime(curFolder), "d")}，最后修改时间：{Lang.Date(Directory.GetLastWriteTime(curFolder), "d")}",
+                            Lang.Text("Instance.Saves.CreationTime", Lang.Date(Directory.GetCreationTime(curFolder), "d"), Lang.Date(Directory.GetLastWriteTime(curFolder), "d")),
                         Type = MyListItem.CheckType.Clickable
                     };
                     worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
@@ -224,19 +225,19 @@ public partial class PageInstanceSaves : IRefreshable
                     BtnDelete.Click += (_, _) =>
                     {
                         worldItem.IsEnabled = false;
-                        worldItem.Info = "删除中……";
+                        worldItem.Info = Lang.Text("Instance.Saves.Deleting");
                         ModBase.RunInNewThread(() =>
                         {
                             try
                             {
                                 FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                ModMain.Hint("已将存档移至回收站！");
+                                ModMain.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
                                 ModBase.RunInUiWait(() => RemoveItem(worldItem));
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "删除存档失败！", ModBase.LogLevel.Hint);
+                                ModBase.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), ModBase.LogLevel.Hint);
                                 ModBase.RunInUiWait(() => Reload());
                             }
                         });
@@ -253,23 +254,23 @@ public partial class PageInstanceSaves : IRefreshable
                             if (Directory.Exists(tmpCurFolder))
                             {
                                 Clipboard.SetFileDropList(new StringCollection { tmpCurFolder });
-                                ModMain.Hint("已复制存档文件夹到剪贴板！");
-                                ModMain.Hint("注意！在粘贴之前进行删除操作会导致存档丢失！");
+                                ModMain.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
+                                ModMain.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
                             }
                             else
                             {
-                                ModMain.Hint("存档文件夹不存在！");
+                                ModMain.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
                             }
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "复制失败……", ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), ModBase.LogLevel.Hint);
                         }
                     };
                     var BtnInfo = new MyIconButton
                     {
                         Logo = Icon.IconButtonInfo,
-                        ToolTip = "详情"
+                        ToolTip = Lang.Text("Instance.Saves.Details")
                     };
                     BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
                         { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
@@ -277,7 +278,7 @@ public partial class PageInstanceSaves : IRefreshable
                     var BtnLaunch = new MyIconButton
                     {
                         Logo = Icon.IconPlayGame,
-                        ToolTip = "快捷启动"
+                        ToolTip = Lang.Text("Instance.Saves.QuickPlay")
                     };
                     BtnLaunch.Click += (_, _) =>
                     {
@@ -303,7 +304,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新存档UI失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.RefreshUiFailed"), ModBase.LogLevel.Hint);
         }
     }
 
@@ -348,7 +349,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "载入存档列表失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.LoadListFailed"), ModBase.LogLevel.Hint);
         }
     }
 
@@ -379,7 +380,7 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         if (Directory.Exists(WorldPath + GetFolderNameFromPath(i)))
                         {
-                            ModMain.Hint("发现同名文件夹，无法粘贴：" + GetFolderNameFromPath(i));
+                            ModMain.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
                         }
                         else
                         {
@@ -389,19 +390,19 @@ public partial class PageInstanceSaves : IRefreshable
                     }
                     else
                     {
-                        ModMain.Hint("源文件夹不存在或源目标不是文件夹");
+                        ModMain.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "粘贴存档文件夹失败", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint);
                 }
 
             if (Copied > 0)
-                ModMain.Hint("已粘贴 " + Copied + " 个文件夹", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", Copied.ToString()), ModMain.HintType.Finish);
             ModBase.RunInUi(() => Reload());
         }));
-        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.Instance.Name} - 复制存档", loaders)
+        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.Instance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
@@ -429,20 +430,20 @@ public partial class PageInstanceSaves : IRefreshable
         {
             case SortMethod.FileName:
             {
-                return "文件名";
+                return Lang.Text("Instance.Saves.SortFileName");
             }
             case SortMethod.CreateTime:
             {
-                return "创建时间";
+                return Lang.Text("Instance.Saves.SortCreateTime");
             }
             case SortMethod.ModifyTime:
             {
-                return "修改时间";
+                return Lang.Text("Instance.Saves.SortModifyTime");
             }
 
             default:
             {
-                return "文件名";
+                return Lang.Text("Instance.Saves.SortFileName");
             }
         }
     }
@@ -450,7 +451,7 @@ public partial class PageInstanceSaves : IRefreshable
     private void SetSortMethod(SortMethod target)
     {
         _currentSortMethod = target;
-        BtnSort.Text = $"排序：{GetSortName(target)}";
+        BtnSort.Text = Lang.Text("Instance.Saves.SortBy", GetSortName(target));
         RefreshUI();
     }
 
@@ -508,7 +509,7 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "搜索过程中发生异常");
+            ModBase.Log(ex, Lang.Text("Instance.Saves.SearchError"));
         }
     }
 

@@ -207,8 +207,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             else
             {
                 // 根据组件类型设置 PanEmpty 的文本内容
-                TxtEmptyTitle.Text = "尚未安装数据包";
-                TxtEmptyDescription.Text = "你可以从已经下载好的文件安装数据包。" + "\r\n" + "数据包需要放置在存档的 datapacks 文件夹中才能生效。";
+                TxtEmptyTitle.Text = Lang.Text("Instance.Resource.Datapack.Empty.Title");
+                TxtEmptyDescription.Text = Lang.Text("Instance.Resource.Datapack.Empty.Description");
 
                 PanEmpty.Visibility = Visibility.Visible;
                 PanBack.Visibility = Visibility.Collapsed;
@@ -278,14 +278,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         // 图标按钮
         var BtnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
-        BtnOpen.ToolTip = "打开文件位置";
+        BtnOpen.ToolTip = Lang.Text("Instance.Saves.OpenFileLocation");
         ToolTipService.SetPlacement(BtnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnOpen, 30d);
         ToolTipService.SetHorizontalOffset(BtnOpen, 2d);
         BtnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
         var BtnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
-        BtnCont.ToolTip = "详情";
+        BtnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
         ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(BtnCont, 30d);
         ToolTipService.SetHorizontalOffset(BtnCont, 2d);
@@ -302,7 +302,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
             var BtnDisable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonStop, Tag = sender };
-            BtnDisable.ToolTip = "禁用";
+            BtnDisable.ToolTip = Lang.Text("Instance.Resource.Disable");
             ToolTipService.SetPlacement(BtnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnDisable, 30d);
             ToolTipService.SetHorizontalOffset(BtnDisable, 2d);
@@ -312,7 +312,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
             var BtnEnable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonCheck, Tag = sender };
-            BtnEnable.ToolTip = "启用";
+            BtnEnable.ToolTip = Lang.Text("Instance.Resource.Enable");
             ToolTipService.SetPlacement(BtnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(BtnEnable, 30d);
             ToolTipService.SetHorizontalOffset(BtnEnable, 2d);
@@ -407,20 +407,20 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
             });
             // 显示
-            BtnFilterAll.Text = (IsSearching ? "搜索结果" : "全部") + $" ({AnyCount})";
-            BtnFilterCanUpdate.Text = $"可更新 ({UpdateCount})";
+            BtnFilterAll.Text = IsSearching ? Lang.Text("Instance.Resource.Filter.SearchResult") : Lang.Text("Instance.Resource.Filter.AllWithCount", AnyCount);
+            BtnFilterCanUpdate.Text = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", UpdateCount);
             BtnFilterCanUpdate.Visibility = Filter == FilterType.CanUpdate || UpdateCount > 0
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-            BtnFilterEnabled.Text = $"启用 ({EnabledCount})";
+            BtnFilterEnabled.Text = Lang.Text("Instance.Resource.Filter.EnabledWithCount", EnabledCount);
             BtnFilterEnabled.Visibility = Filter == FilterType.Enabled || (EnabledCount > 0 && EnabledCount < AnyCount)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-            BtnFilterDisabled.Text = $"禁用 ({DisabledCount})";
+            BtnFilterDisabled.Text = Lang.Text("Instance.Resource.Filter.DisabledWithCount", DisabledCount);
             BtnFilterDisabled.Visibility = Filter == FilterType.Disabled || DisabledCount > 0
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-            BtnFilterError.Text = $"错误 ({UnavalialeCount})";
+            BtnFilterError.Text = Lang.Text("Instance.Resource.Filter.ErrorWithCount", UnavalialeCount);
             BtnFilterError.Visibility = Filter == FilterType.Unavailable || UnavalialeCount > 0
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -433,7 +433,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var NewCount = SelectedDatapacks.Count;
             var Selected = NewCount > 0;
             if (Selected)
-                LabSelect.Text = $"已选择 {NewCount} 个文件";
+                LabSelect.Text = Lang.Text("Instance.Resource.SelectedCount", NewCount);
 
             // 按钮可用性
             if (Selected)
@@ -588,14 +588,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 检查文件扩展名
         if (Extension != "zip")
         {
-            ModMain.Hint($"不支持的文件格式：{Extension}，数据包支持的格式：zip", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", Extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), ModMain.HintType.Critical);
             return;
         }
 
         // 检查回收站
         if (FilePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            ModMain.Hint("请先将文件从回收站还原，再尝试安装！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), ModMain.HintType.Critical);
             return;
         }
 
@@ -604,7 +604,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 确认安装
         if (!(ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup &&
               ModMain.FrmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
-            if (ModMain.MyMsgBox($"是否要将这{(FilePathList.Count() == 1 ? "个" : "些")}文件作为数据包安装到当前存档？", "数据包安装确认", Lang.Text("Common.Action.Confirm"),
+            if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Install.Message"),
+                    Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
                     Lang.Text("Common.Action.Cancel")) != 1)
                 return;
 
@@ -620,16 +621,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 var DestFile = DatapackFolder + NewFileName;
 
                 if (File.Exists(DestFile))
-                    if (ModMain.MyMsgBox($"已存在同名文件：{NewFileName}，是否要覆盖？", "文件覆盖确认", Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
+                    if (ModMain.MyMsgBox(Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", NewFileName), Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
                         continue;
 
                 ModBase.CopyFile(FilePath, DestFile);
             }
 
             if (FilePathList.Count() == 1)
-                ModMain.Hint($"已安装 {ModBase.GetFileNameFromPath(FilePathList.First())}！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(FilePathList.First())), ModMain.HintType.Finish);
             else
-                ModMain.Hint($"已安装 {FilePathList.Count()} 个数据包！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", FilePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), ModMain.HintType.Finish);
 
             // 刷新列表
             if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup &&
@@ -659,15 +660,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
     {
         var Choice =
-            ModMain.MyMsgBox("TXT 格式：仅导出当前的数据包文件名称信息" + "\r\n" + "CSV 格式：导出详细的数据包信息，包括文件名、工程 ID、版本信息等详细信息",
-                "选择导出模式", "TXT 格式", "CSV 格式", Lang.Text("Common.Action.Cancel"));
+            ModMain.MyMsgBox(
+                Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
+                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"), Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
 
         void ExportText(string Content, string FileName)
         {
             try
             {
                 var savePath =
-                    SystemDialogs.SelectSaveFile("选择保存位置", FileName, "文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv");
+                    SystemDialogs.SelectSaveFile(Lang.Text("Instance.Resource.Export.SelectSaveLocation"), FileName, Lang.Text("Instance.Resource.Export.FilesFilter"));
                 if (string.IsNullOrWhiteSpace(savePath)) return;
                 File.WriteAllText(savePath, Content, Encoding.UTF8);
                 ModBase.OpenExplorer(savePath);
@@ -879,7 +881,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void SetSortMethod(SortMethod Target)
     {
         CurrentSortMethod = Target;
-        BtnSort.Text = $"排序：{GetSortName(Target)}";
+        BtnSort.Text = Lang.Text("Instance.Resource.Sort.Text", GetSortName(Target));
         DoSort();
     }
 
@@ -897,24 +899,24 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         {
             case SortMethod.FileName:
             {
-                return "文件名";
+                return Lang.Text("Instance.Resource.Sort.FileName");
             }
             case SortMethod.CompName:
             {
-                return "资源名称";
+                return Lang.Text("Instance.Resource.Sort.ResourceName");
             }
             case SortMethod.CreateTime:
             {
-                return "加入时间";
+                return Lang.Text("Instance.Resource.Sort.AddTime");
             }
             case SortMethod.DatapackFileSize:
             {
-                return "文件大小";
+                return Lang.Text("Instance.Resource.Sort.FileSize");
             }
 
             default:
             {
-                return "资源名称";
+                return Lang.Text("Instance.Resource.Sort.ResourceName");
             }
         }
 
@@ -1069,7 +1071,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             {
                 if (File.Exists(NewPath))
                 {
-                    ModMain.MyMsgBox($"已存在同名文件：{ModBase.GetFileNameFromPath(NewPath)}，请先处理该文件再重试。");
+                    ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", ModBase.GetFileNameFromPath(NewPath)));
                     continue;
                 }
 
@@ -1130,7 +1132,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else
         {
-            ModMain.Hint("由于文件被占用，数据包的状态切换失败，请尝试关闭正在运行的游戏后再试！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), ModMain.HintType.Critical);
             ReloadDatapackFileList(true);
         }
 
@@ -1159,8 +1161,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         if (!States.Hint.FunctionDatapackUpdate || DatapackList.Count() >= 15)
         {
             if (ModMain.MyMsgBox(
-                    $"新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！{"\r\n"}{"\r\n"}在更新前，请先备份存档。{"\r\n"}如果更新后出现问题，你也可以在回收站找回更新前的数据包。",
-                    "数据包更新警告", "我已了解风险，继续更新", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
+                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"), Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 States.Hint.FunctionDatapackUpdate = true;
             else
                 return;
@@ -1247,13 +1249,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                             }
                             case 1:
                             {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Single()}！", ModMain.HintType.Finish);
+                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", FinishedFileNames.Single()), ModMain.HintType.Finish);
                                 break;
                             }
 
                             default:
                             {
-                                ModMain.Hint($"已成功更新 {FinishedFileNames.Count} 个数据包！", ModMain.HintType.Finish);
+                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", FinishedFileNames.Count), ModMain.HintType.Finish);
                                 break;
                             }
                         }
@@ -1262,12 +1264,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint("数据包更新失败：" + Loader.Error.Message, ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Failed", Loader.Error.Message), ModMain.HintType.Critical);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        ModMain.Hint("数据包更新已中止！");
+                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
                         break;
                     }
 
@@ -1372,7 +1374,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             RefreshBars();
             if (!IsSuccessful)
             {
-                ModMain.Hint("由于文件被占用，删除失败，请尝试关闭正在运行的游戏后再试！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), ModMain.HintType.Critical);
                 ReloadDatapackFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -1389,17 +1391,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (IsShiftPressed)
             {
                 if (DatapackList.Count() == 1)
-                    ModMain.Hint($"已彻底删除 {DatapackList.Single().FileName}！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", DatapackList.Single().FileName), ModMain.HintType.Finish);
                 else
-                    ModMain.Hint($"已彻底删除 {DatapackList.Count()} 个项目！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", DatapackList.Count()), ModMain.HintType.Finish);
             }
             else if (DatapackList.Count() == 1)
             {
-                ModMain.Hint($"已将 {DatapackList.Single().FileName} 删除到回收站！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", DatapackList.Single().FileName), ModMain.HintType.Finish);
             }
             else
             {
-                ModMain.Hint($"已将 {DatapackList.Count()} 个项目删除到回收站！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", DatapackList.Count()), ModMain.HintType.Finish);
             }
         }
         catch (OperationCanceledException ex)
@@ -1454,8 +1456,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (DatapackEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
                 ModMain.MyMsgBox(
-                    "无法读取此数据包的信息。" + "\r\n" + "\r\n" + "详细的错误信息：" +
-                    DatapackEntry.FileUnavailableReason.Message, "数据包读取失败");
+                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailed") + "\r\n" + "\r\n" + Lang.Text("Instance.Resource.Item.Info.DetailedError") +
+                    DatapackEntry.FileUnavailableReason.Message, Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
                 return;
             }
 
@@ -1477,14 +1479,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 if (DatapackEntry.Description is not null)
                     ContentLines.Add(DatapackEntry.Description + "\r\n");
                 if (DatapackEntry.Authors is not null)
-                    ContentLines.Add("作者：" + DatapackEntry.Authors);
-                ContentLines.Add("文件：" + DatapackEntry.FileName + "（" +
+                    ContentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Author") + DatapackEntry.Authors);
+                ContentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.File") + DatapackEntry.FileName + "（" +
                                  ModBase.GetString(GetDatapackFileInfo(DatapackEntry.Path).Length) + "）");
                 if (DatapackEntry.Version is not null)
-                    ContentLines.Add("版本：" + DatapackEntry.Version);
+                    ContentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Version") + DatapackEntry.Version);
 
                 var DebugInfo = new List<string>();
-                if (DatapackEntry.ModId is not null) DebugInfo.Add("数据包 ID：" + DatapackEntry.ModId);
+                if (DatapackEntry.ModId is not null) DebugInfo.Add(Lang.Text("Instance.Saves.Datapack.Info.DatapackId") + DatapackEntry.ModId);
                 if (DebugInfo.Any())
                 {
                     ContentLines.Add("");
@@ -1493,8 +1495,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
                 // 显示详情信息
                 if (DatapackEntry.Url is null)
-                    ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, "返回");
-                else if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, "打开官网", "返回") == 1)
+                    ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
+                else if (ModMain.MyMsgBox(ContentLines.Join("\r\n"), DatapackEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
                     ModBase.OpenWebsite(DatapackEntry.Url);
             }
         }
