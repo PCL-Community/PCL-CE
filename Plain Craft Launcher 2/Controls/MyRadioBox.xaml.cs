@@ -99,9 +99,9 @@ public partial class MyRadioBox : IMyRadio
 
             // 自定义属性基础
             var IsChanged = false;
-            if (IsLoaded && !(value == Checked))
+            if (IsLoaded && value != Checked)
                 PreviewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
-            if (!(value == Checked))
+            if (value != Checked)
             {
                 SetValue(CheckedProperty, value);
                 IsChanged = true;
@@ -202,12 +202,10 @@ public partial class MyRadioBox : IMyRadio
                             (int)Math.Round(AnimationTimeOfCheck * 0.5d), (int)Math.Round(AnimationTimeOfCheck * 0.6d))
                     }, "MyRadioBox Dot " + Uuid);
                 ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
-                            IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush2" : "ColorBrushGray4",
-                            AnimationTimeOfCheck)
-                    }, "MyRadioBox BorderColor " + Uuid);
+                    ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
+                        IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush2" : "ColorBrushGray4",
+                        AnimationTimeOfCheck),
+                    "MyRadioBox BorderColor " + Uuid);
             }
             else
             {
@@ -227,12 +225,10 @@ public partial class MyRadioBox : IMyRadio
                             (int)Math.Round(AnimationTimeOfCheck * 0.5d), (int)Math.Round(AnimationTimeOfCheck * 0.2d))
                     }, "MyRadioBox Dot " + Uuid);
                 ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
-                            IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush1" : "ColorBrushGray4",
-                            AnimationTimeOfCheck)
-                    }, "MyRadioBox BorderColor " + Uuid);
+                    ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
+                        IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush1" : "ColorBrushGray4",
+                        AnimationTimeOfCheck),
+                    "MyRadioBox BorderColor " + Uuid);
             }
         }
         else
