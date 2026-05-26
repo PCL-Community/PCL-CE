@@ -691,7 +691,7 @@ public class MyPageRight : AdornerDecorator
             if (Element is MyScrollViewer Viewer)
             {
                 if (Viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
-                    return null;
+                    continue;
                 return Viewer.ScrollBar;
             }
 
