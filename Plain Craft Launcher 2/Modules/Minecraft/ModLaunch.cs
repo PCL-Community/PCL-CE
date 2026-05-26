@@ -3029,12 +3029,12 @@ public static class ModLaunch
     private static string GetNativesFolder()
     {
         var Result = Path.Combine(ModMinecraft.McInstanceSelected.PathInstance, ModMinecraft.McInstanceSelected.Name + "-natives");
-        if (ModBase.IsGBKEncoding || Result.IsASCII())
+        if (SystemInfo.IsGBKEncoding || Result.IsASCII())
             return Result;
         Result = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "bin", "natives");
         if (Result.IsASCII())
             return Result;
-        return Path.Combine(ModBase.OsDrive, "ProgramData", "PCL", "natives");
+        return Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives");
     }
 
     #endregion

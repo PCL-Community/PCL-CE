@@ -11,6 +11,7 @@ using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
 using System.Globalization;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -1291,7 +1292,7 @@ public class CrashAnalyzer
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
                     var LaunchScript = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "启动脚本.bat"));
                     EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                    EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
+                    EnvInfo += $"识别码：{Identify.LauncherId}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
                     EnvInfo +=
                         $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
@@ -1303,14 +1304,14 @@ public class CrashAnalyzer
                     EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
                     EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
                     EnvInfo +=
-                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
-                    EnvInfo += $"CPU：{SystemInfo.CPUName}{"\r\n"}";
+                        $"操作系统：{HardwareInfo.OSInfo}（64 位：{!SystemInfo.Is32BitSystem}, ARM64: {SystemInfo.IsArm64System}）{"\r\n"}";
+                    EnvInfo += $"CPU：{HardwareInfo.CPUName}{"\r\n"}";
                     EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(SystemInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(SystemInfo.SystemMemorySize, "N0")} MB){"\r\n"}";
-                    foreach (var GPU in SystemInfo.GPUs)
+                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(HardwareInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(HardwareInfo.SystemMemorySize, "N0")} MB){"\r\n"}";
+                    foreach (var GPU in HardwareInfo.GPUs)
                     {
                         EnvInfo +=
-                            $"显卡 {SystemInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
+                            $"显卡 {HardwareInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
                         EnvInfo += "\r\n";
                     }
 

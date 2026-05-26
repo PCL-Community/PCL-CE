@@ -16,6 +16,8 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -1470,7 +1472,7 @@ public static class ModMain
     text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
     text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
     text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
-    text = text.Replace("{identify}", replacer(ModBase.UniqueAddress));
+    text = text.Replace("{identify}", replacer(Identify.LauncherId));
     text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
     text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
     text = text.Replace("{path_temp}", replacer(ModBase.PathTemp));
@@ -1573,7 +1575,7 @@ public static class ModMain
             try
             {
                 ModBase.Log("[System] 开始清理任务缓存文件夹");
-                ModBase.DeleteDirectory($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\");
+                ModBase.DeleteDirectory($@"{SystemPaths.DriveLetter}ProgramData\PCL\TaskTemp\");
                 ModBase.DeleteDirectory($@"{ModBase.PathTemp}TaskTemp\");
                 ModBase.Log("[System] 已清理任务缓存文件夹");
             }
@@ -1621,7 +1623,7 @@ public static class ModMain
 
         // 使用备用路径
         ResultFolder =
-            $@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+            $@"{SystemPaths.DriveLetter}ProgramData\PCL\TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
         Directory.CreateDirectory(ResultFolder);
         ModBase.CheckPermission(ResultFolder);
         return ResultFolder;

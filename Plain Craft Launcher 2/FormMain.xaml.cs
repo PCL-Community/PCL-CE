@@ -230,7 +230,7 @@ public partial class FormMain
                 RenderTransform = null;
                 IsWindowLoadFinished = true;
                 ModBase.Log(
-                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ModBase.ExePathWithName}");
+                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
             }, After: true)
         }, "Form Show");
         // Timer 启动
@@ -304,7 +304,7 @@ public partial class FormMain
                     ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
                 }
 
-                SystemInfo.GetSystemInfo();
+                HardwareInfo.GetHardwareInfo();
             }
             catch (Exception ex)
             {

@@ -73,11 +73,6 @@ public static class ModBase
         : Basics.ExecutableDirectory + @"\");
 
     /// <summary>
-    ///     程序可执行文件完整路径。
-    /// </summary>
-    public static readonly string ExePathWithName = Basics.ExecutablePath;
-
-    /// <summary>
     ///     程序内嵌图片文件夹路径，以“/”结尾。
     /// </summary>
     public static readonly string PathImage = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
@@ -103,35 +98,9 @@ public static class ModBase
     public static DateTime ApplicationOpenTime = DateTime.Now;
 
     /// <summary>
-    ///     识别码。
-    /// </summary>
-    public static string UniqueAddress = Identify.LauncherId;
-
-    /// <summary>
     ///     程序是否已结束。
     /// </summary>
     public static bool IsProgramEnded = false;
-
-    /// <summary>
-    ///     是否为 32 位系统。
-    /// </summary>
-    public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
-
-    /// <summary>
-    ///     是否为 ARM64 架构。
-    /// </summary>
-    public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
-
-    /// <summary>
-    ///     是否使用 GBK 编码。
-    /// </summary>
-    public static bool IsGBKEncoding = Encoding.Default.CodePage == 936;
-
-    /// <summary>
-    ///     系统盘盘符，以 \ 结尾。例如 “C:\”。
-    /// </summary>
-    public static string OsDrive =
-        Environment.GetLogicalDrives().Where(p => Directory.Exists(p)).First().ToUpper().First() + @":\"; // #3799
 
     /// <summary>
     ///     程序的缓存文件夹路径，以 \ 结尾。
@@ -2363,7 +2332,7 @@ public static class ModBase
 
         if (PathTemp.IsASCII()) return PathTemp;
 
-        return OsDrive + @"ProgramData\PCL\";
+        return  SystemPaths.DriveLetter + @"ProgramData\PCL\";
     }
 
     /// <summary>
@@ -3554,7 +3523,7 @@ public static class ModBase
 
             // Build diagnostic information string
             var info = $"[System] Diagnostic Information:{"\r\n"}" +
-                       $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){"\r\n"}" +
+                       $"OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem}){"\r\n"}" +
                        $"Memory: {availableMb} MB / {totalMb} MB{"\r\n"}" +
                        $"DPI: {DPI} ({dpiScale * 100}%){"\r\n"}" +
                        $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{"\r\n"}" +

@@ -134,7 +134,7 @@ public partial class PageInstanceSetup
             CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance];
             CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance];
-            if (ModBase.IsArm64System)
+            if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -302,7 +302,7 @@ public partial class PageInstanceSetup
         LabRamUsed.Text = $"{Lang.Number(RamUsed, "N1")} GB";
         LabRamTotal.Text = $" / {Lang.Number(RamTotal, "N1")} GB";
         LabRamWarn.Visibility =
-            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !ModBase.Is32BitSystem &&
+            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !SystemInfo.Is32BitSystem &&
             ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
