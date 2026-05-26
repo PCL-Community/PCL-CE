@@ -14,7 +14,7 @@ public partial class PageDownloadClient
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.Client.LoadingList");
+        Load.Text = Lang.Text("Download.Version.LoadingList");
     }
 
     private void LoaderInit()

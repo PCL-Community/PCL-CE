@@ -52,7 +52,7 @@
                                                   Tag="pack://application:,,,/images/Blocks/Quilt.png" />
                             <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.NeoForgeFox}"
                                                   Tag="pack://application:,,,/images/Blocks/NeoForge.png" />
-                            <local:MyComboBoxItem Content="Cleanroom"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cleanroom}"
                                                   Tag="pack://application:,,,/images/Blocks/Cleanroom.png" />
                         </local:MyComboBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Category.Title}"

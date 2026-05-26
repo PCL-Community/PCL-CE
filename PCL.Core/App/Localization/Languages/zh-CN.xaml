@@ -344,7 +344,6 @@
     <sys:String x:Key="Download.Version.SaveInstaller">保存安装器</sys:String>
 
     <!-- Download.Version Client -->
-    <sys:String x:Key="Download.Version.Client.LoadingList">正在获取版本列表</sys:String>
 
     <!-- Download.Version Forge -->
     <sys:String x:Key="Download.Version.Forge.Intro.Title">Forge 简介</sys:String>
@@ -455,7 +454,6 @@
 
     <!-- Download.Install -->
     <sys:String x:Key="Download.Install.StartDownload">开始下载</sys:String>
-    <sys:String x:Key="Download.Install.LoadingVersionList">正在获取版本列表</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
 
     <!-- Download.Install InstanceIsolation -->
@@ -645,7 +643,6 @@
     <sys:String x:Key="Download.Comp.Detail.TranslateDescription">翻译简介</sys:String>
     <sys:String x:Key="Download.Comp.Detail.Favorite">收藏</sys:String>
     <sys:String x:Key="Download.Comp.Detail.Unfavorite">取消收藏</sys:String>
-    <sys:String x:Key="Download.Comp.Detail.LoadingVersions">正在获取版本列表</sys:String>
 
     <!-- Download.Comp.Detail Install -->
     <sys:String x:Key="Download.Comp.Detail.InputInstanceName">输入实例名称</sys:String>
@@ -1638,6 +1635,25 @@
     <sys:String x:Key="Common.Action.Back">返回</sys:String>
     <sys:String x:Key="Common.Action.Continue">继续</sys:String>
 
+    <!-- Common.GameName -->
+    <sys:String x:Key="Common.GameName.Minecraft">Minecraft</sys:String>
+
+    <!-- Common.LoaderName -->
+    <sys:String x:Key="Common.LoaderName.Forge">Forge</sys:String>
+    <sys:String x:Key="Common.LoaderName.NeoForge">NeoForge</sys:String>
+    <sys:String x:Key="Common.LoaderName.Cleanroom">Cleanroom</sys:String>
+    <sys:String x:Key="Common.LoaderName.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Common.LoaderName.LegacyFabric">Legacy Fabric</sys:String>
+    <sys:String x:Key="Common.LoaderName.FabricApi">Fabric API</sys:String>
+    <sys:String x:Key="Common.LoaderName.LegacyFabricApi">Legacy Fabric API</sys:String>
+    <sys:String x:Key="Common.LoaderName.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Common.LoaderName.QfapiQsl">QFAPI / QSL</sys:String>
+    <sys:String x:Key="Common.LoaderName.LabyMod">LabyMod</sys:String>
+    <sys:String x:Key="Common.LoaderName.OptiFine">OptiFine</sys:String>
+    <sys:String x:Key="Common.LoaderName.OptiFabric">OptiFabric</sys:String>
+    <sys:String x:Key="Common.LoaderName.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Common.LoaderName.Iris">Iris</sys:String>
+
     <!-- Launch.Skin.MySkin -->
     <sys:String x:Key="Launch.Skin.SaveAs">另存为</sys:String>
     <sys:String x:Key="Launch.Skin.ChangeCape">更换披风</sys:String>
@@ -2013,6 +2029,7 @@
     <sys:String x:Key="Instance.Overall.Icon.Fabric">布料（Fabric）</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.Quilt">方格（Quilt）</sys:String>
     <sys:String x:Key="Instance.Overall.Icon.NeoForgeFox">狐狸（NeoForge）</sys:String>
+    <sys:String x:Key="Instance.Overall.Icon.Cleanroom">Cleanroom</sys:String>
 
     <sys:String x:Key="Instance.Overall.Category.Title">分类</sys:String>
     <sys:String x:Key="Instance.Overall.Category.Hidden">从实例列表中隐藏</sys:String>
@@ -2195,4 +2212,11 @@
     <sys:String x:Key="Instance.Setup.IsolationWarning.Message">调整版本隔离后，你可能得把游戏存档、Mod 等文件手动迁移到新的游戏文件夹中。&#x0a;如果修改后发现存档消失，把这项设置改回来就能恢复。&#x0a;如果你不会迁移存档，不建议修改这项设置！</sys:String>
     <sys:String x:Key="Instance.Setup.RendererWarning.Message">修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
     <sys:String x:Key="Instance.Setup.Log4jWarning.Message">本选项会修改游戏日志级别修改为最低，大量日志输出会消耗大量磁盘空间并可能影响游戏性能。这也可能带来一定安全风险。如果你不知道你在做什么，不要修改此选项！&#x0a;你确定要继续修改吗？</sys:String>
+
+    <sys:String x:Key="Instance.Install.Action.StartModify">开始修改</sys:String>
+    <sys:String x:Key="Instance.Install.Action.StartReset">开始重置</sys:String>
+    <sys:String x:Key="Instance.Install.Action.ModifyLabel">修改</sys:String>
+    <sys:String x:Key="Instance.Install.NoExtraInstall">无附加安装</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Title">重置此实例</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装 Mod 加载器（如有）。&#x0a;此操作不会丢失你的存档、Mod、资源包等。</sys:String>
 </ResourceDictionary>
