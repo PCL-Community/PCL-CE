@@ -2,7 +2,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
-using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -480,7 +479,7 @@ public static class ModDownload
             // 确认版本格式标准
             Id = Id.Replace("_", "-"); // 1.7.10_pre4 在版本列表中显示为 1.7.10-pre4
             if (Id != "1.0" && Id.EndsWithF(".0"))
-                Id = Strings.Left(Id, Id.Length - 2); // OptiFine 1.8 的下载会触发此问题，显示版本为 1.8.0
+                Id = Id.Substring(0, Id.Length - 2); // OptiFine 1.8 的下载会触发此问题，显示版本为 1.8.0
             // 获取 Minecraft 版本列表
             switch (DlClientListLoader.State)
             {
@@ -588,7 +587,7 @@ public static class ModDownload
             set
             {
                 if (value.EndsWithF(".0"))
-                    value = Strings.Left(value, value.Length - 2);
+                    value = value.Substring(0, value.Length - 2);
                 _inherit = value;
             }
         }
@@ -1052,7 +1051,7 @@ public static class ModDownload
         try
         {
             // 分割版本信息
-            var VersionCodes = Strings.Mid(Result, 1, Result.LastIndexOfF("</table>"))
+            var VersionCodes = Result.Substring(0, Result.LastIndexOfF("</table>"))
                 .Split("<td class=\"download-version");
             // 获取所有版本信息
             for (int i = 1, loopTo = VersionCodes.Count() - 1; i <= loopTo; i++)

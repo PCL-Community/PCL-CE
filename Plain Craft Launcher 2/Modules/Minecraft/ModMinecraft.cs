@@ -172,8 +172,8 @@ public static class ModMinecraft
             (ModLaunch.McLoginLoader.Output.Uuid ?? "") !=
             (ModLaunch.McLoginLoader.Output.AccessToken ?? "")) // UUID 和 AccessToken 一样则不打码
             Raw = Raw.Replace(AccessToken,
-                Strings.Left(AccessToken, 5) + new string(FilterChar, AccessToken.Length - 10) +
-                Strings.Right(AccessToken, 5));
+                AccessToken.Substring(0, 5) + new string(FilterChar, AccessToken.Length - 10) +
+                AccessToken.Substring(AccessToken.Length - 5));
         return Raw;
     }
 
@@ -1655,18 +1655,19 @@ public static class ModMinecraft
                 if (string.IsNullOrEmpty(OptiFine) || OptiFine == Lang.Text("Minecraft.Version.Unknown"))
                     return 0;
                 // 字母编号，如 G2 中的 G（7）
-                var result = Strings.Asc(OptiFine.ToUpper().First()) - Strings.Asc('A') + 1;
+                var result = char.ToUpperInvariant(OptiFine.First()) - 'A' + 1;
                 // 末尾数字，如 C5 beta4 中的 5
                 result *= 100;
                 result = (int)Math.Round(result +
-                                         ModBase.Val(Strings.Right(OptiFine, OptiFine.Length - 1).RegexSeek("[0-9]+")));
+                                         ModBase.Val(OptiFine.Substring(1).RegexSeek("[0-9]+")));
                 // 测试标记（正式版为 99，Pre[x] 为 50+x，Beta[x] 为 x）
                 result *= 100;
                 if (OptiFine.ContainsF("pre", true))
                     result += 50;
                 if (OptiFine.ContainsF("pre", true) || OptiFine.ContainsF("beta", true))
                 {
-                    if (ModBase.Val(Strings.Right(OptiFine, 1)) == 0d && Strings.Right(OptiFine, 1) != "0")
+                    var LastChar = OptiFine.Substring(OptiFine.Length - 1);
+                    if (ModBase.Val(LastChar) == 0d && LastChar != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
                         result =
@@ -3142,7 +3143,7 @@ public static class ModMinecraft
                 if (token.Url.Contains("maven"))
                 {
                     var bmclapiUrl = token.Url
-                        .Replace(Strings.Mid(token.Url, 1, token.Url.IndexOfF("maven")),
+                        .Replace(token.Url.Substring(0, token.Url.IndexOfF("maven")),
                             "https://bmclapi2.bangbang93.com/").Replace("maven.fabricmc.net", "maven")
                         .Replace("maven.minecraftforge.net", "maven").Replace("maven.neoforged.net/releases", "maven");
                     if (ModDownload.DlSourcePreferMojang)
@@ -3374,7 +3375,7 @@ public static class ModMinecraft
                     localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else
                     // 正常
-                    localPath = Path.Combine(McFolderSelected, "assets", "objects", Strings.Left(file.Value["hash"].ToString(), 2), file.Value["hash"].ToString());
+                    localPath = Path.Combine(McFolderSelected, "assets", "objects", file.Value["hash"].ToString().Substring(0, 2), file.Value["hash"].ToString());
                 result.Add(new McAssetsToken
                 {
                     LocalPath = localPath,
@@ -3405,7 +3406,7 @@ public static class ModMinecraft
         if (checkHash)
             return McAssetsListGet(instance).Select(token => new DownloadFile(
                 ModDownload.DlSourceAssetsGet(
-                    $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
+                    $"https://resources.download.minecraft.net/{token.Hash.Substring(0, 2)}/{token.Hash}"),
                 token.LocalPath,
                 new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
         // 如果不检查 Hash，则立即处理
@@ -3431,7 +3432,7 @@ public static class ModMinecraft
                 // 文件不存在，添加下载
                 result.Add(new DownloadFile(
                     ModDownload.DlSourceAssetsGet(
-                        $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
+                        $"https://resources.download.minecraft.net/{token.Hash.Substring(0, 2)}/{token.Hash}"),
                     token.LocalPath,
                     new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));
             }

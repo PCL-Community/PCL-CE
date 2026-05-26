@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
-using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
@@ -2810,8 +2809,8 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : ArgumentInfo);
         GameArguments.Add("${game_directory}",
-            ModBase.ShortenPath(Strings.Left(ModMinecraft.McInstanceSelected.PathIndie,
-                ModMinecraft.McInstanceSelected.PathIndie.Count() - 1)));
+            ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie.Substring(0,
+                ModMinecraft.McInstanceSelected.PathIndie.Length - 1)));
         GameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "assets"));
         GameArguments.Add("${user_properties}", "{}");
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name);
