@@ -145,13 +145,13 @@ public partial class PageInstanceInstall
         if (!ModDownloadLib.McInstall(Request, BtnSelectStart.Text.AfterFirst("开始")))
             return;
         // 删除旧的独立 API 文件
-        if (SelectedFabricApi is not null & _currentFabricApiPath is not null)
+        if (SelectedFabricApi is not null && _currentFabricApiPath is not null)
             File.Delete(_currentFabricApiPath);
-        if (SelectedLegacyFabricApi is not null & _currentLegacyFabricApiPath is not null)
+        if (SelectedLegacyFabricApi is not null && _currentLegacyFabricApiPath is not null)
             File.Delete(_currentLegacyFabricApiPath);
-        if (SelectedQSL is not null & _currentQslPath is not null)
+        if (SelectedQSL is not null && _currentQslPath is not null)
             File.Delete(_currentQslPath);
-        if (SelectedOptiFabric is not null & _currentOptiFabricPath is not null)
+        if (SelectedOptiFabric is not null && _currentOptiFabricPath is not null)
             File.Delete(_currentOptiFabricPath);
         // 返回主页
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
