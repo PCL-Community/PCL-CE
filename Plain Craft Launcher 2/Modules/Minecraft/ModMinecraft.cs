@@ -45,10 +45,9 @@ public static class ModMinecraft
                                  ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
                                  : Lang.Text("Minecraft.Update.UpdatedAt") + Lang.TimeSpan(time - DateTime.Now));
             var msgResult = ModMain.MyMsgBox(msgBoxText, Lang.Text("Minecraft.Update.Title"),
+                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Download"),
                 (DateTime.Now - time).TotalHours > 3d ? Lang.Text("Common.Action.UpdateLog") : "",
-                Lang.Text("Common.Action.Download"),
-                Lang.Text("Common.Action.Close"),
-                Button1Action: () => ModDownloadLib.McUpdateLogShow(version));
+                Button3Action: () => ModDownloadLib.McUpdateLogShow(version));
             // 弹窗结果
             if (msgResult == 2)
                 // 下载
