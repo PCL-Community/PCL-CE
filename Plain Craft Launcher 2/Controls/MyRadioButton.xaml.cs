@@ -100,7 +100,7 @@ public partial class MyRadioButton
         set
         {
             _LogoScale = value;
-            if (!(ShapeLogo == null))
+            if (ShapeLogo != null)
                 ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }

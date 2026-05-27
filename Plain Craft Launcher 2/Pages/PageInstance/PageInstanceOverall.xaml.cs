@@ -738,7 +738,7 @@ public partial class PageInstanceOverall
             case 1:
             {
                 var UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
-                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
+                if (UserInput is null || string.IsNullOrWhiteSpace(UserInput))
                     return;
                 ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
                 ModBase.RunInNewThread(() =>

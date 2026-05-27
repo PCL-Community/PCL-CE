@@ -86,8 +86,8 @@ public static class ModVideoBack
     {
         ModBase.RunInUi(() =>
         {
-            if (ModMain.FrmMain.VideoBack.Source is not null & !IsMinimized)
-                if (!IsGaming | ForcePlay)
+            if (ModMain.FrmMain.VideoBack.Source is not null && !IsMinimized)
+                if (!IsGaming || ForcePlay)
                     try
                     {
                         ModMain.FrmMain.VideoBack.Play();

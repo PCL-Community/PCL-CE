@@ -126,6 +126,28 @@ public partial class MyExtraTextButton
     // 声明
     public event ClickEventHandler? Click;
 
+    private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
+                    800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
+                    Ease: new ModAnimation.AniEaseOutFluent())
+            }, "MyExtraTextButton Scale " + Uuid);
+    }
+
+    private void RefreshScaleAfterRelease()
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
+                    Ease: new ModAnimation.AniEaseOutBack())
+            }, "MyExtraTextButton Scale " + Uuid);
+    }
+
     // 触发点击事件
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
@@ -140,25 +162,14 @@ public partial class MyExtraTextButton
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                        800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaScaleTransform(PanScale, -0.05d, 60, Ease: new ModAnimation.AniEaseOutFluent())
-                }, "MyExtraTextButton Scale " + Uuid);
+            StartScaleAnimation(0.85d, -0.05d);
         IsLeftMouseHeld = true;
         Focus();
     }
 
     private void Button_LeftMouseUp()
     {
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                    Ease: new ModAnimation.AniEaseOutBack())
-            }, "MyExtraTextButton Scale " + Uuid);
+        RefreshScaleAfterRelease();
         IsLeftMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
@@ -166,12 +177,7 @@ public partial class MyExtraTextButton
     private void Button_RightMouseUp(object sender, MouseEventArgs e)
     {
         if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                        Ease: new ModAnimation.AniEaseOutBack())
-                }, "MyExtraTextButton Scale " + Uuid);
+            RefreshScaleAfterRelease();
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -191,7 +197,7 @@ public partial class MyExtraTextButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (!IsEnabled)
                     // 禁用
@@ -212,13 +218,10 @@ public partial class MyExtraTextButton
 
             else
             {
-                ModAnimation.AniStop("MyExtraTextButton Color " + Uuid);
-                if (!IsEnabled)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrushGray4");
-                else if (IsMouseOver)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush4");
-                else
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush3");
+                ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
+                    !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
+                    !IsEnabled || IsMouseOver ? AnimationColorIn : AnimationColorOut,
+                    "MyExtraTextButton Color " + Uuid, false);
             }
         }
         catch (Exception ex)

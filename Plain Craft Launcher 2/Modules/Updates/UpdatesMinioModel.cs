@@ -186,7 +186,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     {
         var cacheFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
-        return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).Hours < 1 &&
+        return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1 &&
                (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
     }
 

@@ -6,7 +6,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -15,6 +14,8 @@ using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.IO.Net.Http;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -173,7 +174,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.ObtainVanillaJsonUrl"), task =>
             {
-                var jsonAddress = Conversions.ToString(ModDownload.DlClientListGet(id));
+                var jsonAddress = ModDownload.DlClientListGet(id)?.ToString();
                 task.Output = new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonAddress), Path.Combine(instanceFolder, instanceName + ".json"))
@@ -197,7 +198,7 @@ public static class ModDownloadLib
         {
             Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
-            if (Conversions.ToBoolean(id == "1.16.5" && Config.Download.FixAuthLib != null)) // 1.16.5 Authlib 修复
+            if (id == "1.16.5" && Config.Download.FixAuthLib != null) // 1.16.5 Authlib 修复
                 try
                 {
                     var json = ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json"));
@@ -693,8 +694,8 @@ public static class ModDownloadLib
 
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
-        if (Conversions.ToBoolean(UseJavaWrapper &&
-                                  !(dynamic)Config.Launch.DisableJlw)) // dynamic!
+        if (UseJavaWrapper &&
+                                  !(dynamic)Config.Launch.DisableJlw) // dynamic!
             Arguments =
                 $"-Doolloo.jlw.tmpdir=\"{ModBase.PathPure.TrimEnd('\\')}\" -Duser.home=\"{BaseMcFolderHome.TrimEnd('\\')}\" -cp \"{Target}\" -jar \"{ModLaunch.ExtractJavaWrapper()}\" optifine.Installer";
         else
@@ -1492,7 +1493,7 @@ public static class ModDownloadLib
 
     private static void LiteLoaderSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        if (Conversions.ToBoolean(((dynamic)sender.Tag).IsLegacy))
+        if ((bool)((dynamic)sender.Tag).IsLegacy)
         {
             sender.Buttons = Array.Empty<MyIconButton>();
         }
@@ -1514,7 +1515,7 @@ public static class ModDownloadLib
         ToolTipService.SetVerticalOffset(BtnSave, 30d);
         ToolTipService.SetHorizontalOffset(BtnSave, 2d);
         BtnSave.Click += (sender, e) => LiteLoaderSave_Click(sender, (RoutedEventArgs)e);
-        if (Conversions.ToBoolean(((dynamic)sender.Tag).IsLegacy))
+        if ((bool)((dynamic)sender.Tag).IsLegacy)
         {
             sender.Buttons = [BtnSave];
         }
@@ -1665,7 +1666,7 @@ public static class ModDownloadLib
 
         // 添加 Java Wrapper 作为主 Jar
         string Arguments;
-        if (Conversions.ToBoolean(UseJavaWrapper && !Config.Launch.DisableJlw))
+        if (UseJavaWrapper && !Config.Launch.DisableJlw)
             Arguments =
                 $@"-Doolloo.jlw.tmpdir=""{ModBase.PathPure.TrimEnd('\\')}"" -cp ""{ModBase.PathTemp}Cache\forge_installer.jar;{Target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{McFolder}";
         else
@@ -2000,7 +2001,7 @@ public static class ModDownloadLib
             { ProgressWeight = 9d });
 
         // 安装（仅在新版安装时需要原版 Jar）
-        if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge || Conversions.ToDouble(LoaderVersion.BeforeFirst(".")) >= 20d)
+        if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge || Convert.ToDouble(LoaderVersion.BeforeFirst(".")) >= 20d)
         {
             ModBase.Log($"[Download] 检测为{(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + ForgeType)}：" + LoaderVersion);
             List<ModMinecraft.McLibToken> Libs = null;
@@ -2019,7 +2020,7 @@ public static class ModDownloadLib
                     var Json2 = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Installer.GetEntry("version.json").Open()));
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
-                    if (Conversions.ToBoolean(Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib))
+                    if (Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
                         Json = (JsonObject)JsonNode.Parse(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
@@ -2034,7 +2035,7 @@ public static class ModDownloadLib
                         Task.Progress = 0.4d;
                         var RawJson = (JsonObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
                             ModDownload.DlSourceLauncherOrMetaGet(
-                                Conversions.ToString(ModDownload.DlClientListGet(Inherit))), IsJson: true));
+                                ModDownload.DlClientListGet(Inherit)?.ToString()), IsJson: true));
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
                         var OriginalName = Json["data"]["MOJMAPS"]["client"].ToString().Trim("[]".ToCharArray())
                             .BeforeFirst("@");
@@ -3712,33 +3713,18 @@ public static class ModDownloadLib
     /// </summary>
     public static void LoaderStateChangedHintOnly(object Loader)
     {
-        switch (((dynamic)Loader).State)
+        var loader = (ModLoader.LoaderBase)Loader;
+        switch (loader.State)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, ModBase.LoadState.Finished, false):
-            {
-                ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Name,
-                        Lang.Text("Common.Status.Success"))),
-                    ModMain.HintType.Finish);
+            case ModBase.LoadState.Finished:
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Success")}", ModMain.HintType.Finish);
                 break;
-            }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, ModBase.LoadState.Failed, false):
-            {
-                ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(
-                        Operators.ConcatenateObject(((dynamic)Loader).Name, Lang.Text("Common.Status.Failure")),
-                        ((dynamic)Loader).Error.Message)),
-                    ModMain.HintType.Critical);
+            case ModBase.LoadState.Failed:
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", ModMain.HintType.Critical);
                 break;
-            }
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, ModBase.LoadState.Aborted, false):
-            {
-                ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Name,
-                        Lang.Text("Common.Status.Cancelled"))),
-                    ModMain.HintType.Info);
+            case ModBase.LoadState.Aborted:
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
-            }
         }
     }
 
@@ -3747,62 +3733,54 @@ public static class ModDownloadLib
     /// </summary>
     public static void McInstallState(object Loader)
     {
-        switch (((dynamic)Loader).State)
+        var loader = (ModLoader.LoaderBase)Loader;
+        var combo = (ModLoader.LoaderCombo)Loader;
+        switch (loader.State)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, ModBase.LoadState.Finished, false):
+            case ModBase.LoadState.Finished:
             {
-                if (Conversions.ToBoolean(Config.Download.AutoSelectInstance))
+                if (Config.Download.AutoSelectInstance)
                 {
-                    string VersionName = ((dynamic)Loader).Name.ToString();
+                    var versionName = loader.Name;
                     ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
-                        VersionName.Remove(VersionName.Length - 3, 3));
+                        versionName.Remove(versionName.Length - 3, 3));
                 }
 
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
-                ModBase.DeleteDirectory(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"PCLInstallBackups\")));
-                ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Name,
-                        Lang.Text("Common.Status.Success"))),
+                ModBase.DeleteDirectory($"{combo.Input}PCLInstallBackups\\");
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Success")}",
                     ModMain.HintType.Finish);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, ModBase.LoadState.Failed, false):
+            case ModBase.LoadState.Failed:
             {
                 ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(
-                        Operators.ConcatenateObject(((dynamic)Loader).Name, Lang.Text("Common.Status.Failure")),
-                        ((dynamic)Loader).Error.Message)),
+                    $"{loader.Name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
                     ModMain.HintType.Critical);
                 break;
             }
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, ModBase.LoadState.Aborted, false):
+            case ModBase.LoadState.Aborted:
             {
-                ModMain.Hint(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Name,
-                        Lang.Text("Common.Status.Cancelled"))),
-                    ModMain.HintType.Info);
+                ModMain.Hint($"{loader.Name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
             }
-            case var case3 when Operators.ConditionalCompareObjectEqual(case3, ModBase.LoadState.Loading, false):
+            case ModBase.LoadState.Loading:
             {
                 return; // 不重新加载实例列表
             }
         }
 
-        if (Conversions.ToBoolean(
-                !Operators.ConditionalCompareObjectEqual(((dynamic)Loader).State, ModBase.LoadState.Finished, false) &&
+        if (loader.State != ModBase.LoadState.Finished &&
                 Directory.Exists(
-                    Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input,
-                        @"PCLInstallBackups\"))))) // 实例修改失败回滚
+                    $"{combo.Input}PCLInstallBackups\\")) // 实例修改失败回滚
         {
             ModBase.CopyDirectory(
-                Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"PCLInstallBackups\")),
-                Conversions.ToString(((dynamic)Loader).Input));
-            File.Delete(Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, ".pclignore")));
+                $"{combo.Input}PCLInstallBackups\\",
+                (string)combo.Input);
+            File.Delete($"{combo.Input}.pclignore");
             ModBase.DeleteDirectory(
-                Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"PCLInstallBackups\")));
+                $"{combo.Input}PCLInstallBackups\\");
         }
         else
         {
@@ -3818,31 +3796,26 @@ public static class ModDownloadLib
         try
         {
             Thread.Sleep(1000); // 防止存在尚未完全释放的文件，导致清理失败（例如整合包安装）
-            if (Conversions.ToBoolean(
-                    Operators.ConditionalCompareObjectEqual(((dynamic)Loader).State, ModBase.LoadState.Failed,
-                        false)) || Conversions.ToBoolean(
-                    Operators.ConditionalCompareObjectEqual(((dynamic)Loader).State, ModBase.LoadState.Aborted, false)))
+            if (((ModLoader.LoaderBase)Loader).State == ModBase.LoadState.Failed ||
+                ((ModLoader.LoaderBase)Loader).State == ModBase.LoadState.Aborted)
             {
                 // 删除实例文件夹
                 if (Directory.Exists(
-                        Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"saves\"))) ||
+                        $"{((ModLoader.LoaderCombo)Loader).Input}saves\\") ||
                     Directory.Exists(
-                        Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"versions\"))) ||
+                        $"{((ModLoader.LoaderCombo)Loader).Input}versions\\") ||
                     Directory.Exists(
-                        Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, @"mods\"))) ||
-                    File.Exists(
-                        Conversions.ToString(Operators.ConcatenateObject(((dynamic)Loader).Input, "server.dat"))))
+                        $"{((ModLoader.LoaderCombo)Loader).Input}mods\\") ||
+                    File.Exists($"{((ModLoader.LoaderCombo)Loader).Input}server.dat"))
                 {
                     ModBase.Log(
-                        Conversions.ToString(Operators.ConcatenateObject("[Download] 由于实例已被独立启动，不清理实例文件夹：",
-                            ((dynamic)Loader).Input)), ModBase.LogLevel.Developer);
+                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((ModLoader.LoaderCombo)Loader).Input}", ModBase.LogLevel.Developer);
                 }
                 else
                 {
                     ModBase.Log(
-                        Conversions.ToString(Operators.ConcatenateObject("[Download] 由于下载失败或取消，清理实例文件夹：",
-                            ((dynamic)Loader).Input)), ModBase.LogLevel.Developer);
-                    ModBase.DeleteDirectory(Conversions.ToString(((dynamic)Loader).Input));
+                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)Loader).Input}", ModBase.LogLevel.Developer);
+                    ModBase.DeleteDirectory((string)((ModLoader.LoaderCombo)Loader).Input);
                 }
             }
         }
@@ -4193,7 +4166,7 @@ public static class ModDownloadLib
         // 补全文件
         if (!DontFixLibraries && (Request.OptiFineEntry is not null ||
                                   (Request.ForgeVersion is not null &&
-                                   Conversions.ToDouble(Request.ForgeVersion.BeforeFirst(".")) >= 20d) ||
+                                   Convert.ToDouble(Request.ForgeVersion.BeforeFirst(".")) >= 20d) ||
                                   Request.NeoForgeVersion is not null || Request.FabricVersion is not null ||
                                   Request.QuiltVersion is not null || Request.CleanroomVersion is not null ||
                                   Request.LiteLoaderEntry is not null || Request.LabyModCommitRef is not null))

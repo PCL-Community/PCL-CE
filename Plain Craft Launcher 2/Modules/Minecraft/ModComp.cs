@@ -2472,6 +2472,13 @@ public static class ModComp
 
         #region 排序与最终输出
 
+        if (request.Sort != CompSortType.Default)
+        {
+            if (task.IsAborted) throw new ThreadInterruptedException();
+            storage.Results.AddRange(realResults); // 遵从API返回顺序
+            return;
+        }
+        
         var scores = new Dictionary<CompProject, double>();
         Func<CompProject, double> getDownloadCountMult = p =>
         {

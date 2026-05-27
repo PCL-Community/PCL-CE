@@ -1262,7 +1262,7 @@ public partial class FormMain
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
-                if (Config.Preference.Theme.ColorMode == ColorMode.System &
+                if (Config.Preference.Theme.ColorMode == ColorMode.System &&
                     (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }
@@ -1481,8 +1481,7 @@ public partial class FormMain
         VersionInstall = 10,
         VersionServer = 11,
         VersionSavesInfo = 0,
-        VersionSavesBackup = 1,
-        VersionSavesDatapack = 2
+        VersionSavesDatapack = 1
     }
 
     /// <summary>

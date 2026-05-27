@@ -54,18 +54,7 @@ public partial class MySearchBox : MyCard
 
     private void Text_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (string.IsNullOrEmpty(TextBox.Text))
-        {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, -BtnClear.Opacity, 90),
-                "MySearchBox ClearBtn " + Uuid);
-            BtnClear.IsHitTestVisible = false;
-        }
-        else
-        {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, 1d - BtnClear.Opacity, 90),
-                "MySearchBox ClearBtn " + Uuid);
-            BtnClear.IsHitTestVisible = true;
-        }
+        UpdateClearButtonState();
 
         TextChanged?.Invoke(sender, e);
     }
@@ -81,5 +70,13 @@ public partial class MySearchBox : MyCard
     private void BtnSearch_Click(object sender, MouseButtonEventArgs e)
     {
         Search?.Invoke(sender, e);
+    }
+
+    private void UpdateClearButtonState()
+    {
+        var hasText = !string.IsNullOrEmpty(TextBox.Text);
+        ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, hasText ? 1d - BtnClear.Opacity : -BtnClear.Opacity, 90),
+            "MySearchBox ClearBtn " + Uuid);
+        BtnClear.IsHitTestVisible = hasText;
     }
 }

@@ -406,7 +406,7 @@ public partial class MySkin
                             let CapeAlias = Cape["alias"].ToString()
                             let CapeName = _GetCapeDisplayName(CapeAlias)
                             let state = Cape["state"]
-                            let active = state is not null & state.ToString().ToUpper().Equals("ACTIVE")
+                            let active = state is not null && state.ToString().ToUpper().Equals("ACTIVE")
                             select new MyListItem
                             {
                                 Title = CapeName,

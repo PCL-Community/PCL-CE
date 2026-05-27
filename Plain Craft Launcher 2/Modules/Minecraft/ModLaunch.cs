@@ -8,8 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
@@ -19,7 +17,6 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
-using PCL;
 using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 using System.Globalization;
 
@@ -408,23 +405,23 @@ public static class ModLaunch
         catch (Exception ex)
         {
             var CurrentEx = ex;
-            NextInner: ;
-
-            if (CurrentEx.Message.StartsWithF("$"))
+            while (CurrentEx is not null)
             {
-                // 若有以 $ 开头的错误信息，则以此为准显示提示
-                // 若错误信息为 $$，则不提示
-                if (!(CurrentEx.Message == "$$"))
-                    ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
-                        CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
-                throw;
-            }
+                if (CurrentEx.Message.StartsWithF("$"))
+                {
+                    // 若有以 $ 开头的错误信息，则以此为准显示提示
+                    // 若错误信息为 $$，则不提示
+                    if (!(CurrentEx.Message == "$$"))
+                        ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
+                            CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+                    throw;
+                }
 
-            if (CurrentEx.InnerException is not null)
-            {
+                if (CurrentEx.InnerException is null)
+                    break;
+
                 // 检查下一级错误
                 CurrentEx = CurrentEx.InnerException;
-                goto NextInner;
             }
 
             // 没有特殊处理过的错误信息
@@ -2507,31 +2504,31 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
-
-        if (currentInstance.JsonObject["arguments"] is not null &&
-            currentInstance.JsonObject["arguments"]["jvm"] is not null)
-            foreach (var SubJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
-                if (SubJson.GetValueKind() == JsonValueKind.String)
-                {
-                    // 字符串类型
-                    DataList.Add(SubJson.ToString());
-                }
-                // 非字符串类型
-                else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
-                {
-                    // 满足准则
-                    if (SubJson["value"].GetValueKind() == JsonValueKind.String)
-                        DataList.Add(SubJson["value"].ToString());
-                    else
-                        foreach (var value in SubJson["value"].AsArray())
-                            DataList.Add(value.ToString());
-                }
-
-        if (!string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+        while (true)
         {
+            if (currentInstance.JsonObject["arguments"] is not null &&
+                currentInstance.JsonObject["arguments"]["jvm"] is not null)
+                foreach (var SubJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
+                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                    {
+                        // 字符串类型
+                        DataList.Add(SubJson.ToString());
+                    }
+                    // 非字符串类型
+                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    {
+                        // 满足准则
+                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
+                            DataList.Add(SubJson["value"].ToString());
+                        else
+                            foreach (var value in SubJson["value"].AsArray())
+                                DataList.Add(value.ToString());
+                    }
+
+            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+                break;
+
             currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
-            goto NextInstance;
         }
 
         // 内存、Log4j 防御参数等
@@ -2545,7 +2542,7 @@ public static class ModLaunch
             var Server = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "");
             try
             {
-                var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
+                var Response = ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8)?.ToString();
                 DataList.Insert(0,
                     "-javaagent:\"" + Path.Combine(ModBase.PathPure, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
@@ -2708,31 +2705,31 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
-
-        if (currentInstance.JsonObject["arguments"] is not null &&
-            currentInstance.JsonObject["arguments"]["game"] is not null)
-            foreach (var SubJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
-                if (SubJson.GetValueKind() == JsonValueKind.String)
-                {
-                    // 字符串类型
-                    dataList.Add(SubJson.ToString());
-                }
-                // 非字符串类型
-                else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
-                {
-                    // 满足准则
-                    if (SubJson["value"].GetValueKind() == JsonValueKind.String)
-                        dataList.Add(SubJson["value"].ToString());
-                    else
-                        foreach (var value in SubJson["value"].AsArray())
-                            dataList.Add(value.ToString());
-                }
-
-        if (!string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+        while (true)
         {
+            if (currentInstance.JsonObject["arguments"] is not null &&
+                currentInstance.JsonObject["arguments"]["game"] is not null)
+                foreach (var SubJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
+                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                    {
+                        // 字符串类型
+                        dataList.Add(SubJson.ToString());
+                    }
+                    // 非字符串类型
+                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    {
+                        // 满足准则
+                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
+                            dataList.Add(SubJson["value"].ToString());
+                        else
+                            foreach (var value in SubJson["value"].AsArray())
+                                dataList.Add(value.ToString());
+                    }
+
+            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+                break;
+
             currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
-            goto NextInstance;
         }
 
         // 将 "-XXX" 与后面 "XXX" 合并到一起
@@ -2812,8 +2809,7 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : ArgumentInfo);
         GameArguments.Add("${game_directory}",
-            ModBase.ShortenPath(Strings.Left(ModMinecraft.McInstanceSelected.PathIndie,
-                ModMinecraft.McInstanceSelected.PathIndie.Count() - 1)));
+            ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie[..^1]));
         GameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "assets"));
         GameArguments.Add("${user_properties}", "{}");
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name);

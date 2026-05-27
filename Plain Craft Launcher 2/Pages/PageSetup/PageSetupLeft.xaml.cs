@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 

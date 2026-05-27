@@ -634,22 +634,24 @@ public partial class PageDownloadCompDetail
         GroupedDrop = false;
         GroupedOld = false;
         updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = false;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = false;
-        GroupedOld = true;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = true;
-        updateFilters();
-        GroupDone: ;
+        if (instanceFilters.Count >= 9)
+        {
+            GroupedDrop = true;
+            GroupedOld = false;
+            updateFilters();
+            if (instanceFilters.Count >= 9)
+            {
+                GroupedDrop = false;
+                GroupedOld = true;
+                updateFilters();
+                if (instanceFilters.Count >= 9)
+                {
+                    GroupedDrop = true;
+                    GroupedOld = true;
+                    updateFilters();
+                }
+            }
+        }
 
 
         // UI 化筛选器
@@ -775,7 +777,7 @@ public partial class PageDownloadCompDetail
             var index = _pageType == ModComp.CompType.Mod ? 1 : 0;
             if (instanceToCheck is null)
                 instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[index];
-            if (modLoaderToCheck is null & (_pageType == ModComp.CompType.Mod))
+            if (modLoaderToCheck is null && (_pageType == ModComp.CompType.Mod))
                 modLoaderToCheck = (MyRadioButton)PanModLoaderFilter.Children[index];
             instanceToCheck.Checked = true;
             if (_pageType == ModComp.CompType.Mod)

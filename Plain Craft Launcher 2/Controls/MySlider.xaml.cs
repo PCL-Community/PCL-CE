@@ -149,11 +149,8 @@ public partial class MySlider
         RefreshColor();
         ModMain.FrmMain.DragDoing();
         ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(ShapeDot, 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
-                    Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MySlider Scale " + Uuid);
+            ModAnimation.AaScaleTransform(ShapeDot, 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
+                Ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + Uuid);
         RefreshPopup();
         ModAnimation.AniStop("MySlider KeyPopup " + Uuid);
     }
@@ -164,7 +161,7 @@ public partial class MySlider
             ModBase.MathClamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width), 0d,
                 1d);
         var NewValue = (int)Math.Round(Percent * MaxValue);
-        if (!(NewValue == Value)) Value = NewValue;
+        if (NewValue != Value) Value = NewValue;
         RefreshPopup();
     }
     
@@ -179,11 +176,8 @@ public partial class MySlider
         if (IsMouseCaptured) ReleaseMouseCapture();
         RefreshColor();
         ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(ShapeDot, 1d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 200,
-                    Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MySlider Scale " + Uuid);
+            ModAnimation.AaScaleTransform(ShapeDot, 1d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 200,
+                Ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + Uuid);
         Popup.IsOpen = false;
     }
 
@@ -211,13 +205,7 @@ public partial class MySlider
             int AnimationTime;
             if (IsEnabled)
             {
-                if (!(ModMain.DragControl == null) && ModMain.DragControl.Equals(this))
-                {
-                    ForegroundName = "ColorBrush3";
-                    DotFillName = "ColorBrush3";
-                    AnimationTime = 40;
-                }
-                else if (IsMouseOver)
+                if (ModMain.DragControl != null && ModMain.DragControl.Equals(this) || IsMouseOver)
                 {
                     ForegroundName = "ColorBrush3";
                     DotFillName = "ColorBrush3";
