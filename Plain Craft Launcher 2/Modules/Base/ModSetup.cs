@@ -21,7 +21,7 @@ public class ModSetup
 
         // === Launch ===
         Config.Launch.MemoryAllocationModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => LaunchRamType(ValueOrDefault<int>(e))));
+            e => LaunchRamType((int)e.Value!)));
         States.Game.SelectedFolderConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => LaunchFolderSelect((string)(e.Value ?? ""))));
         States.Game.SelectedInstanceConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -29,31 +29,31 @@ public class ModSetup
 
         // === Tool ===
         Config.Download.ThreadLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => ToolDownloadThread(ValueOrDefault<int>(e))));
+            e => ToolDownloadThread((int)e.Value!)));
         Config.Download.SpeedLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => ToolDownloadSpeed(ValueOrDefault<int>(e))));
+            e => ToolDownloadSpeed((int)e.Value!)));
 
         // === UI - Launcher ===
         Config.Preference.Theme.WindowOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLauncherTransparent(ValueOrDefault<int>(e))));
+            e => UiLauncherTransparent((int)e.Value!)));
         Config.Preference.Theme.ThemeSelectedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLauncherTheme(ValueOrDefault<int>(e))));
+            e => UiLauncherTheme((int)e.Value!)));
         Config.Preference.Background.BackgroundColorfulConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundColorful(ValueOrDefault<bool>(e))));
+            e => UiBackgroundColorful((bool)e.Value!)));
         Config.Preference.LockWindowSizeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLockWindowSize(ValueOrDefault<bool>(e))));
+            e => UiLockWindowSize((bool)e.Value!)));
 
         // UI - Video Background
         Config.Preference.Background.AutoPauseVideoConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiAutoPauseVideo(ValueOrDefault<bool>(e))));
+            e => UiAutoPauseVideo((bool)e.Value!)));
 
         // UI - Background Image
         Config.Preference.Background.WallpaperOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundOpacity(ValueOrDefault<int>(e))));
+            e => UiBackgroundOpacity((int)e.Value!)));
         Config.Preference.Background.WallpaperBlurRadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundBlur(ValueOrDefault<int>(e))));
+            e => UiBackgroundBlur((int)e.Value!)));
         Config.Preference.Background.WallpaperSuitModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundSuit(ValueOrDefault<int>(e))));
+            e => UiBackgroundSuit((int)e.Value!)));
 
         // UI - Font
         Config.Preference.FontConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -61,35 +61,35 @@ public class ModSetup
 
         // UI - Homepage
         Config.Preference.Homepage.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiCustomType(ValueOrDefault<int>(e))));
+            e => UiCustomType((int)e.Value!)));
 
         // UI - Blur
         Config.Preference.Blur.IsEnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlur(ValueOrDefault<bool>(e))));
+            e => UiBlur((bool)e.Value!)));
         Config.Preference.Blur.RadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurValue(ValueOrDefault<int>(e))));
+            e => UiBlurValue((int)e.Value!)));
         Config.Preference.Blur.SamplingRateConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurSamplingRate(ValueOrDefault<int>(e))));
+            e => UiBlurSamplingRate((int)e.Value!)));
         Config.Preference.Blur.KernelTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurType(ValueOrDefault<int>(e))));
+            e => UiBlurType((int)e.Value!)));
 
         // UI - Title Bar
         Config.Preference.WindowTitleTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLogoType(ValueOrDefault<int>(e))));
+            e => UiLogoType((int)e.Value!)));
         Config.Preference.WindowTitleCustomTextConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => UiLogoText((string)(e.Value ?? ""))));
         Config.Preference.TopBarLeftAlignConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLogoLeft(ValueOrDefault<bool>(e))));
+            e => UiLogoLeft((bool)e.Value!)));
 
         // === System ===
         Config.Debug.EnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemDebugMode(ValueOrDefault<bool>(e))));
+            e => SystemDebugMode((bool)e.Value!)));
         Config.Debug.AnimationSpeedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemDebugAnim(ValueOrDefault<int>(e))));
+            e => SystemDebugAnim((int)e.Value!)));
         Config.Network.HttpProxy.CustomAddressConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemHttpProxy((string)(e.Value ?? ""))));
         Config.Network.HttpProxy.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemHttpProxyType(ValueOrDefault<int>(e))));
+            e => SystemHttpProxyType((int)e.Value!)));
         Config.Network.HttpProxy.CustomUsernameConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemHttpProxyCustomUsername((string)(e.Value ?? ""))));
         Config.Network.HttpProxy.CustomPasswordConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -97,9 +97,9 @@ public class ModSetup
 
         // === Version ===
         Config.Instance.MemorySolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => VersionRamType(ValueOrDefault<int>(e))));
+            e => VersionRamType((int)e.Value!)));
         Config.InstanceAuth.LoginRequirementSolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => VersionServerLogin(ValueOrDefault<int>(e))));
+            e => VersionServerLogin((int)e.Value!)));
     }
 
     /// <summary>
@@ -163,21 +163,6 @@ public class ModSetup
         SystemHttpProxyType(Config.Network.HttpProxy.Type);
         SystemHttpProxyCustomUsername(Config.Network.HttpProxy.CustomUsername);
         SystemHttpProxyCustomPassword(Config.Network.HttpProxy.CustomPassword);
-    }
-
-    private static T ValueOrDefault<T>(ConfigEventArgs e)
-    {
-        var value = e.Value ?? e.Item.DefaultValueNoType;
-        var targetType = typeof(T);
-
-        return value switch
-        {
-            T typed => typed,
-            null => default!,
-            Enum enumValue when targetType == typeof(int) => (T)(object)Convert.ToInt32(enumValue),
-            _ when targetType.IsEnum => (T)Enum.ToObject(targetType, Convert.ToInt32(value)),
-            _ => (T)Convert.ChangeType(value, targetType)
-        };
     }
 
     #region Launch
