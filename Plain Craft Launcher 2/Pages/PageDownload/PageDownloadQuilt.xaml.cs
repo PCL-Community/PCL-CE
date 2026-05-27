@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,6 +9,7 @@ public partial class PageDownloadQuilt
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.Quilt.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -27,13 +28,13 @@ public partial class PageDownloadQuilt
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["installer"];
+            var Versions = (JsonArray)ModDownload.DlQuiltListLoader.Output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(
-                    ModDownloadLib.QuiltDownloadListItem((JObject)Version,
+                    ModDownloadLib.QuiltDownloadListItem((JsonObject)Version,
                         (a, b) => this.Quilt_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {
@@ -43,7 +44,7 @@ public partial class PageDownloadQuilt
 
     private void Quilt_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadQuiltLoaderSave((JObject)sender.Tag);
+        ModDownloadLib.McDownloadQuiltLoaderSave((JsonObject)sender.Tag);
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)

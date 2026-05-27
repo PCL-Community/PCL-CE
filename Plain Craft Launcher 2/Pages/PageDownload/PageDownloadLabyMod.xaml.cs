@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,6 +9,7 @@ public partial class PageDownloadLabyMod
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.LabyMod.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -30,10 +31,10 @@ public partial class PageDownloadLabyMod
             var Versions = ModDownload.DlLabyModListLoader.Output.Value;
             if (Versions is null)
                 return;
-            var ProductionEntry = new JObject();
+            var ProductionEntry = new JsonObject();
             ProductionEntry.Add("channel", "production");
             ProductionEntry.Add("version", Versions["production"]["labyModVersion"].ToString());
-            var SnapshotEntry = new JObject();
+            var SnapshotEntry = new JsonObject();
             SnapshotEntry.Add("channel", "snapshot");
             SnapshotEntry.Add("version", Versions["snapshot"]["labyModVersion"].ToString());
             PanVersions.Children.Clear();
@@ -41,7 +42,7 @@ public partial class PageDownloadLabyMod
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(SnapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {

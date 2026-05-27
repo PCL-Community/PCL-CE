@@ -6,8 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -85,10 +83,8 @@ public partial class PageInstanceInstall
     {
         // 确认版本隔离
         if (SelectedLoaderName is not null &&
-            (Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 0, false)) ||
-             Conversions.ToBoolean(
-                 Operators.ConditionalCompareObjectEqual(Config.Launch.IndieSolutionV2, 2, false))))
+            (Config.Launch.IndieSolutionV2 == 0 ||
+             Config.Launch.IndieSolutionV2 == 2))
             if (ModMain.MyMsgBox(
                     "你尚未开启版本隔离，这会导致多个 MC 共用同一个 Mod 文件夹。" + "\r\n" +
                     "因此在切换 MC 实例时，MC 会因为读取到与当前实例不符的 Mod 而崩溃。" + "\r\n" +
@@ -355,7 +351,7 @@ public partial class PageInstanceInstall
     public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs e)
     {
         _vanillaName = sender.Title;
-        _vanillaData = (JObject)sender.Tag;
+        _vanillaData = (JsonObject)sender.Tag;
         _vanillaIcon = sender.Logo;
         EnterSelectPage();
     }
@@ -372,7 +368,7 @@ public partial class PageInstanceInstall
 
     // Minecraft
     private string? _vanillaName;
-    private JObject? _vanillaData;
+    private JsonObject? _vanillaData;
     private string? _vanillaIcon;
     private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
 
@@ -931,7 +927,7 @@ public partial class PageInstanceInstall
     // 信息栏动画
     private void SetPanelVisibility(Grid panel, bool visible)
     {
-        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(panel.Tag, visible.ToString(), false)))
+        if (Equals(panel.Tag, visible.ToString()))
             return;
         panel.Tag = visible.ToString();
         if (visible)
@@ -1186,13 +1182,13 @@ public partial class PageInstanceInstall
         {
             try
             {
-                var Dict = new Dictionary<string, List<JObject>>
+                var Dict = new Dictionary<string, List<JsonObject>>
                 {
-                    { "正式版", new List<JObject>() }, { "预览版", new List<JObject>() }, { "远古版", new List<JObject>() },
-                    { "愚人节版", new List<JObject>() }
+                    { "正式版", new List<JsonObject>() }, { "预览版", new List<JsonObject>() }, { "远古版", new List<JsonObject>() },
+                    { "愚人节版", new List<JsonObject>() }
                 };
-                var Versions = (JArray)ModDownload.DlClientListLoader.Output.Value["versions"];
-                foreach (JObject Version in Versions)
+                var Versions = (JsonArray)ModDownload.DlClientListLoader.Output.Value["versions"];
+                foreach (JsonObject Version in Versions)
                 {
                     // 确定分类
                     var Type = Version["type"].ToString();
@@ -1231,7 +1227,7 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["id"] = Version["id"].ToString().Replace("point", ".");
                                     Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
                                     break;
                                 }
                                 case "20w14infinite":
@@ -1240,7 +1236,7 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["id"] = "20w14∞";
                                     Version["type"] = "special";
-                                    Version.Add("lore", ModMinecraft.GetMcFoolName((string)Version["id"]));
+                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
                                     break;
                                 }
                                 case "3d shareware v1.34":
@@ -1256,13 +1252,13 @@ public partial class PageInstanceInstall
                                     Type = "愚人节版";
                                     Version["type"] = "special";
                                     Version.Add("lore",
-                                        ModMinecraft.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
+                                        McVersionClassifier.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
                                     break;
                                 }
 
                                 default:
                                 {
-                                    var ReleaseDate = Version["releaseTime"].Value<DateTime>().ToUniversalTime()
+                                    var ReleaseDate = Version["releaseTime"].GetValue<DateTime>().ToUniversalTime()
                                         .AddHours(2d);
                                     if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
                                     {
@@ -1296,21 +1292,21 @@ public partial class PageInstanceInstall
 
                 // 排序
                 foreach (var Pair in Dict.ToList())
-                    Dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].Value<DateTime>()).ToList();
+                    Dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].GetValue<DateTime>()).ToList();
                 // 清空当前
                 PanMinecraft.Children.Clear();
                 // 添加最新版本
                 var CardInfo = new MyCard { Title = "最新版本", Margin = new Thickness(0d, 15d, 0d, 15d) };
-                var TopestVersions = new List<JObject>();
-                var Release = (JObject)Dict["正式版"][0].DeepClone();
+                var TopestVersions = new List<JsonObject>();
+                var Release = (JsonObject)Dict["正式版"][0].DeepClone();
                 Release["lore"] = "最新正式版，发布于 " +
-                                  Lang.Date(Release["releaseTime"].Value<DateTime>(), "g");
+                                  Lang.Date(Release["releaseTime"].GetValue<DateTime>(), "g");
                 TopestVersions.Add(Release);
-                if (Dict["正式版"][0]["releaseTime"].Value<DateTime>() < Dict["预览版"][0]["releaseTime"].Value<DateTime>())
+                if (Dict["正式版"][0]["releaseTime"].GetValue<DateTime>() < Dict["预览版"][0]["releaseTime"].GetValue<DateTime>())
                 {
-                    var Snapshot = (JObject)Dict["预览版"][0].DeepClone();
+                    var Snapshot = (JsonObject)Dict["预览版"][0].DeepClone();
                     Snapshot["lore"] = "最新预览版，发布于 " +
-                                       Lang.Date(Snapshot["releaseTime"].Value<DateTime>(), "g");
+                                       Lang.Date(Snapshot["releaseTime"].GetValue<DateTime>(), "g");
                     TopestVersions.Add(Snapshot);
                 }
 
@@ -1324,7 +1320,7 @@ public partial class PageInstanceInstall
                 void StackInstall(StackPanel Stack)
                 {
                     foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.McDownloadListItem((JObject)item,
+                        Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                             (sender, e) => MinecraftSelected((MyListItem)sender, e), false));
                 }
 
@@ -1358,7 +1354,7 @@ public partial class PageInstanceInstall
                 if (McVersionWaitingForSelect is null)
                     break;
                 ModBase.Log("[Download] 自动选择 MC 版本：" + McVersionWaitingForSelect);
-                foreach (JObject Version in Versions)
+                foreach (JsonObject Version in Versions)
                 {
                     if ((Version["id"].ToString() ?? "") != (McVersionWaitingForSelect ?? ""))
                         continue;
@@ -1392,8 +1388,7 @@ public partial class PageInstanceInstall
         if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadOptiFine.State).Error.Message));
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadOptiFine.State).Error.Message}";
         // 是否有 Cleanroom
         if (SelectedCleanroom is not null)
             return "与 Cleanroom 不兼容";
@@ -1416,7 +1411,7 @@ public partial class PageInstanceInstall
             HasAny = true;
             if (SelectedForge is null)
                 return null; // 未选择 Forge
-            if (Conversions.ToBoolean(IsOptiFineSuitForForge(OptiFineVersion, SelectedForge)))
+            if ((bool)IsOptiFineSuitForForge(OptiFineVersion, SelectedForge))
                 return null; // 该版本可用
             if (OptiFineVersion.RequiredForgeVersion is not null)
                 HasRequiredVersion = true;
@@ -1443,7 +1438,7 @@ public partial class PageInstanceInstall
             return ModMinecraft.CompareVersion(Forge.Version.ToString(), OptiFine.RequiredForgeVersion) == 0;
 
         // XXXX
-        return Forge.Version.Revision == Conversions.ToDouble(OptiFine.RequiredForgeVersion);
+        return Forge.Version.Revision == Convert.ToDouble(OptiFine.RequiredForgeVersion);
     }
 
     // 限制展开
@@ -1467,8 +1462,8 @@ public partial class PageInstanceInstall
             var Versions = new List<ModDownload.DlOptiFineListEntry>();
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
             {
-                if (Conversions.ToBoolean(SelectedForge is not null &&
-                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge)))
+                if (SelectedForge is not null &&
+                                          !(bool)IsOptiFineSuitForForge(Version, SelectedForge))
                     continue;
                 if (Version.DisplayName.StartsWith(_vanillaName + " "))
                     Versions.Add(Version);
@@ -1483,7 +1478,7 @@ public partial class PageInstanceInstall
                     return true;
                 if (Left.IsPreview && !Right.IsPreview)
                     return false;
-                return Conversions.ToBoolean(ModMinecraft.CompareVersion(Left.DisplayName, Right.DisplayName));
+                return ModMinecraft.CompareVersion(Left.DisplayName, Right.DisplayName) != 0;
             });
             // 可视化
             PanOptiFine.Children.Clear();
@@ -1502,8 +1497,8 @@ public partial class PageInstanceInstall
     private void OptiFine_Selected(MyListItem sender, EventArgs e)
     {
         SelectedOptiFine = (ModDownload.DlOptiFineListEntry)sender.Tag;
-        if (Conversions.ToBoolean(SelectedForge is not null &&
-                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+        if (SelectedForge is not null &&
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge))
             SelectedForge = null;
         OptiFabric_Loaded();
         Forge_Loaded();
@@ -1626,8 +1621,7 @@ public partial class PageInstanceInstall
             if (SelectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
                 ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
                 return "与 OptiFine 不兼容"; // 1.13 ~ 1.14.3 OptiFine 检查
-            if (Conversions.ToBoolean(
-                    SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version)))
+            if (SelectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(SelectedOptiFine, Version))
                 continue;
             return null;
         }
@@ -1665,8 +1659,8 @@ public partial class PageInstanceInstall
             {
                 if (v.Category == "universal" || v.Category == "client")
                     return false; // 跳过无法自动安装的版本
-                if (Conversions.ToBoolean(SelectedOptiFine is not null &&
-                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v)))
+                if (SelectedOptiFine is not null &&
+                                          !(bool)IsOptiFineSuitForForge(SelectedOptiFine, v))
                     return false;
                 return true;
             }).OrderByDescending(v => v).ToList();
@@ -1688,8 +1682,8 @@ public partial class PageInstanceInstall
         SelectedForge = (ModDownload.DlForgeVersionEntry)sender.Tag;
         SelectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
-        if (Conversions.ToBoolean(SelectedOptiFine is not null &&
-                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge)))
+        if (SelectedOptiFine is not null &&
+                                  !(bool)IsOptiFineSuitForForge(SelectedOptiFine, SelectedForge))
             SelectedOptiFine = null;
         OptiFine_Loaded();
         ReloadSelected();
@@ -1880,7 +1874,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadFabric) is not null)
             return GetLoaderError(LoadFabric);
         // 检查版本
-        foreach (JObject version in ModDownload.DlFabricListLoader.Output.Value["game"])
+        foreach (JsonObject version in ModDownload.DlFabricListLoader.Output.Value["game"].AsArray())
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -1909,7 +1903,7 @@ public partial class PageInstanceInstall
             if (ModDownload.DlFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
+            var versions = (JsonArray)ModDownload.DlFabricListLoader.Output.Value["loader"];
             if (!versions.Any())
                 return;
             // 可视化
@@ -1920,7 +1914,7 @@ public partial class PageInstanceInstall
             {
                 foreach (var item in (IEnumerable)stack.Tag)
                     stack.Children.Add(
-                        ModDownloadLib.FabricDownloadListItem((JObject)item,
+                        ModDownloadLib.FabricDownloadListItem((JsonObject)item,
                             (a, b) => this.Fabric_Selected((dynamic)a, b)));
             };
         }
@@ -2125,9 +2119,8 @@ public partial class PageInstanceInstall
         if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLegacyFabric.State).Error.Message));
-        foreach (JObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"])
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLegacyFabric.State).Error.Message}";
+        foreach (JsonObject Version in ModDownload.DlLegacyFabricListLoader.Output.Value["game"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
             {
                 if (SelectedLiteLoader is not null)
@@ -2157,7 +2150,7 @@ public partial class PageInstanceInstall
             if (ModDownload.DlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
+            var Versions = (JsonArray)ModDownload.DlLegacyFabricListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -2167,7 +2160,7 @@ public partial class PageInstanceInstall
             CardLegacyFabric.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)item,
+                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
                         (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             };
         }
@@ -2229,8 +2222,7 @@ public partial class PageInstanceInstall
         if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLegacyFabricApi.State).Error.Message));
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLegacyFabricApi.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "Legacy Fabric API"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlLegacyFabricApiLoader.Output is null)
@@ -2342,7 +2334,7 @@ public partial class PageInstanceInstall
         if (GetLoaderError(LoadQuilt) is not null)
             return GetLoaderError(LoadQuilt);
         // 检查版本
-        foreach (JObject version in ModDownload.DlFabricListLoader.Output.Value["game"])
+        foreach (JsonObject version in ModDownload.DlFabricListLoader.Output.Value["game"].AsArray())
             if ((version["version"].ToString() ?? "") ==
                 (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
             {
@@ -2371,7 +2363,7 @@ public partial class PageInstanceInstall
             if (ModDownload.DlQuiltListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var Versions = (JArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
+            var Versions = (JsonArray)ModDownload.DlQuiltListLoader.Output.Value["loader"];
             if (!Versions.Any())
                 return;
             // 可视化
@@ -2382,7 +2374,7 @@ public partial class PageInstanceInstall
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JObject)item,
+                        ModDownloadLib.QuiltDownloadListItem((JsonObject)item,
                             (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
         }
@@ -2445,8 +2437,7 @@ public partial class PageInstanceInstall
         if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "正在获取版本列表……";
         if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadQSL.State).Error.Message));
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadQSL.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
             return $"与 {SelectedAPIName} 不兼容";
         if (ModDownload.DlQSLLoader.Output is null)
@@ -2688,8 +2679,7 @@ public partial class PageInstanceInstall
         if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
             return "加载中……";
         if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Conversions.ToString(Operators.ConcatenateObject("获取版本列表失败：",
-                ((dynamic)LoadLabyMod.State).Error.Message));
+            return $"获取版本列表失败：{((ModLoader.LoaderBase)LoadLabyMod.State).Error.Message}";
         // 检查 Loader
         if (GetLoaderError(LoadLabyMod) is not null)
             return GetLoaderError(LoadLabyMod);
@@ -2697,10 +2687,10 @@ public partial class PageInstanceInstall
             return "与 OptiFine 不兼容";
         if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "LabyMod"))
             return $"与 {SelectedLoaderName} 不兼容";
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"])
+        foreach (JsonObject Version in ModDownload.DlLabyModListLoader.Output.Value["production"]["minecraftVersions"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
-        foreach (JObject Version in ModDownload.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"])
+        foreach (JsonObject Version in ModDownload.DlLabyModListLoader.Output.Value["snapshot"]["minecraftVersions"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 return null;
         return "无可用版本";
@@ -2727,21 +2717,21 @@ public partial class PageInstanceInstall
             if (Versions is null || Versions["production"] is null || Versions["snapshot"] is null)
                 return;
             // 可视化
-            var ProcessedVersions = new JArray();
-            foreach (JObject Production in Versions["production"]["minecraftVersions"])
+            var ProcessedVersions = new JsonArray();
+            foreach (JsonObject Production in Versions["production"]["minecraftVersions"].AsArray())
                 if ((Production["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
-                    var ProductionVersion = new JObject();
+                    var ProductionVersion = new JsonObject();
                     ProductionVersion.Add("version", Versions["production"]["labyModVersion"]);
                     ProductionVersion.Add("channel", "production");
                     ProductionVersion.Add("commitReference", Versions["production"]["commitReference"]);
                     ProcessedVersions.Add(ProductionVersion);
                 }
 
-            foreach (JObject Snapshot in Versions["snapshot"]["minecraftVersions"])
+            foreach (JsonObject Snapshot in Versions["snapshot"]["minecraftVersions"].AsArray())
                 if ((Snapshot["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
-                    var SnapshotVersion = new JObject();
+                    var SnapshotVersion = new JsonObject();
                     SnapshotVersion.Add("version", Versions["production"]["labyModVersion"]);
                     SnapshotVersion.Add("channel", "snapshot");
                     SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"]);
@@ -2754,7 +2744,7 @@ public partial class PageInstanceInstall
             CardLabyMod.SwapControl = PanLabyMod;
             CardLabyMod.InstallMethod = Stack =>
             {
-                foreach (JObject item in (IEnumerable)Stack.Tag)
+                foreach (JsonObject item in (IEnumerable)Stack.Tag)
                     Stack.Children.Add(
                         ModDownloadLib.LabyModDownloadListItem(item, (a, b) => this.LabyMod_Selected((dynamic)a, b)));
             };

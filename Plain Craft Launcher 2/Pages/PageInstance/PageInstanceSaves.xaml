@@ -28,10 +28,10 @@
                                Fill="{DynamicResource ColorBrush3}" />
                     <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5" Text="可以在此处查看当前实例的存档"
                                TextWrapping="Wrap" HorizontalAlignment="Center" />
-                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center"
+                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" Click="BtnOpenFolder_Click"
                                     MinWidth="140" Text="打开存档文件夹" Margin="10,10,10,0"
                                     Padding="13,0" ColorType="Highlight" />
-                    <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center"
+                    <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" Click="BtnPaste_Click"
                                     MinWidth="140" Text="粘贴剪贴板文件" Margin="10,10,10,0"
                                     Padding="13,0" />
 
@@ -47,9 +47,9 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开存档文件夹" Padding="13,0" Margin="0,0,20,0"
+                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开存档文件夹" Padding="13,0" Margin="0,0,20,0" Click="BtnOpenFolder_Click"
                                         HorizontalAlignment="Left" ColorType="Highlight" />
-                        <local:MyButton Grid.Column="1" MinWidth="140" Text="粘贴剪贴板文件" Padding="13,0" Margin="0,0,20,0"
+                        <local:MyButton Grid.Column="1" MinWidth="140" Text="粘贴剪贴板文件" Padding="13,0" Margin="0,0,20,0" Click="BtnPaste_Click"
                                         HorizontalAlignment="Left" />
                     </Grid>
                 </local:MyCard>

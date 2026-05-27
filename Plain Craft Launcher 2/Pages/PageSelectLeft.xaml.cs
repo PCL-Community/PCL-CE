@@ -341,7 +341,7 @@ public partial class PageSelectLeft : IRefreshable
     private void Restore_Click(object sender, RoutedEventArgs e)
     {
         var folder =
-            (ModMinecraft.McFolder)((MyListItem)((Popup)((ContextMenu)((MyListItem)sender).Parent).Parent)
+            (ModMinecraft.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                 .PlacementTarget)
             .Tag;
         var index = ModMinecraft.McFolderList.IndexOf(folder);

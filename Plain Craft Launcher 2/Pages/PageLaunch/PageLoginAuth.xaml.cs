@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -152,7 +151,7 @@ public partial class PageLoginAuth
                 serverUri = await ApiLocation.TryRequestAsync(serverUriInput);
                 using var resp = await HttpRequest.Create(serverUri).SendAsync();
                 var responseText = await resp.AsStringAsync();
-                serverName = await Task.Run(() => JObject.Parse(responseText)["meta"]["serverName"].ToString());
+                serverName = await Task.Run(() => JsonNode.Parse(responseText)["meta"]["serverName"].ToString());
             }
             catch (Exception ex)
             {

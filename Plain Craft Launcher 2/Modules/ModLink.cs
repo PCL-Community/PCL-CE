@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
@@ -310,7 +309,7 @@ public static class ModLink
 
     #region EasyTier
 
-    public static ModLoader.LoaderCombo<JObject> DlEasyTierLoader;
+    public static ModLoader.LoaderCombo<JsonObject> DlEasyTierLoader;
 
     public static int DownloadEasyTier()
     {
@@ -356,7 +355,7 @@ public static class ModLink
                 ) { Show = false });
 
                 // Start loader combo
-                DlEasyTierLoader = new ModLoader.LoaderCombo<JObject>("大厅初始化", loaders);
+                DlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
                 DlEasyTierLoader.Start();
 
                 // Taskbar and UI notification

@@ -78,7 +78,7 @@ public partial class PageComp
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
+                if (ErrorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
                     ModBase.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", ModBase.LogLevel.Debug);
                     ((MyPageRight)Parent).PageLoaderRestart();
@@ -170,37 +170,12 @@ public partial class PageComp
     /// <summary>
     ///     英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
     /// </summary>
-    public string TypeName
-    {
-        get => _TypeName;
-        set
-        {
-            if ((_TypeName ?? "") == (value ?? ""))
-                return;
-            _TypeName = value;
-            Loader.Name = $"社区资源获取：{value}";
-        }
-    }
-
-    private string _TypeName = "";
+    public string TypeName => ModComp.GetCompTypeName(PageType);
 
     /// <summary>
     ///     英文前后含一个空格的可读资源类型名，例如 " Mod "、"整合包"。
     /// </summary>
-    public string TypeNameSpaced
-    {
-        get => _TypeNameSpaced;
-        set
-        {
-            if ((_TypeNameSpaced ?? "") == (value ?? ""))
-                return;
-            _TypeNameSpaced = value;
-            PanSearchBox.HintText = $"搜索{value}";
-            Load.Text = $"正在获取{value}列表";
-        }
-    }
-
-    private string _TypeNameSpaced = "";
+    public string TypeNameSpaced => TypeName;
 
     /// <summary>
     ///     该页面对应的资源类型。
@@ -215,6 +190,9 @@ public partial class PageComp
             _Type = value;
             BtnSearchInstallModPack.Visibility =
                 value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
+            Loader.Name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
+            PanSearchBox.HintText = ModComp.GetCompSearchName(value);
+            Load.Text = ModComp.GetCompLoadingName(value);
         }
     }
 
@@ -236,11 +214,12 @@ public partial class PageComp
 
     public PageComp()
     {
-        Loader = new ModLoader.LoaderTask<ModComp.CompProjectRequest, int>("社区资源获取：XXX", ModComp.CompProjectsGet,
+        Loader = new ModLoader.LoaderTask<ModComp.CompProjectRequest, int>(Lang.Text("Download.Comp.List.Source.ResourceFetch", "XXX"), ModComp.CompProjectsGet,
             LoaderInput) { ReloadTimeout = 60 * 1000 };
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
+        PanSearchBox.HintText = Lang.Text("Download.Comp.Search.Hint");
         Load.StateChanged += Load_State;
         BtnPageFirst.Click += BtnPageFirst_Click;
         BtnPageLeft.Click += BtnPageLeft_Click;
@@ -329,7 +308,7 @@ public partial class PageComp
     private ModComp.CompProjectRequest LoaderInput()
     {
         var Request = new ModComp.CompProjectRequest(PageType, Storage, (Page + 1) * PageSize);
-        var GameVersion = TextSearchVersion.Text == "全部 (也可自行输入)" ? null :
+        var GameVersion = TextSearchVersion.Text == Lang.Text("Download.Comp.Filter.Version.AllInputAvailable") ? null :
             TextSearchVersion.Text.Contains(".") || TextSearchVersion.Text.Contains("w") ? TextSearchVersion.Text :
             null;
         var ModLoader = ModComp.CompLoaderType.Any;
@@ -385,7 +364,7 @@ public partial class PageComp
     private void ResetFilter()
     {
         PanSearchBox.Text = "";
-        TextSearchVersion.Text = "全部 (也可自行输入)";
+        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
         TextSearchVersion.SelectedIndex = 0;
         ComboSearchSource.SelectedIndex = 0;
         ComboSearchTag.SelectedIndex = 0;

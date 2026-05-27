@@ -194,9 +194,9 @@ public class MyCard : AnimatedBackgroundGrid
         if (!HasMouseAnimation)
             return;
         var AniList = new List<ModAnimation.AniData>();
-        if (!(MainTextBlock == null))
+        if (MainTextBlock is not null)
             AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90));
-        if (!(MainSwap == null))
+        if (MainSwap is not null)
             AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush2", 90));
         AniList.AddRange(new[]
         {
@@ -212,9 +212,9 @@ public class MyCard : AnimatedBackgroundGrid
         if (!HasMouseAnimation)
             return;
         var AniList = new List<ModAnimation.AniData>();
-        if (!(MainTextBlock == null))
+        if (MainTextBlock is not null)
             AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90));
-        if (!(MainSwap == null))
+        if (MainSwap is not null)
             AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush1", 90));
         AniList.AddRange(new[]
         {

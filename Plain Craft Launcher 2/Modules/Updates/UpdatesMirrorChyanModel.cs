@@ -1,5 +1,4 @@
 using System.Net.Http;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -28,7 +27,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                    .GetAwaiter()
                    .GetResult())
         {
-            var ret = (JObject)ModBase.GetJson(response.AsString());
+            var ret = (JsonObject)ModBase.GetJson(response.AsString());
             if ((int)ret["code"] != 0)
                 throw new Exception("Mirror 酱获取数据不成功");
             var data = ret["data"];
@@ -67,7 +66,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
         var loaders = new List<ModLoader.LoaderBase>();
         loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取下载信息", load =>
         {
-            var ret = (JObject)Requester.FetchJson(GetUrl(channel, arch), RequestParam.WithRetry);
+            var ret = (JsonObject)Requester.FetchJson(GetUrl(channel, arch), RequestParam.WithRetry);
             var dlUrl = ret["data"]["url"]?.ToString();
             if (dlUrl is null)
                 throw new Exception("Mirror 酱下载源不可用");
