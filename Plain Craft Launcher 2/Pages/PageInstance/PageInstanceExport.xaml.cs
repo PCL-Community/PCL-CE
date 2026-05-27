@@ -135,22 +135,19 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     if (SubOptionBlackList.Any(b => File.Name.ContainsF(b)))
                         continue;
-                    var shaderCheckBox = new MyCheckBox
+                    Panel.Children.Add(new MyCheckBox
                     {
                         Tag = new ExportOption
                         {
                             Title = File.Name, DefaultChecked = true,
                             Rules = ModBase.EscapeLikePattern($"{Folder}/{File.Name}")
                         }
-                    };
-                    Panel.Children.Add(shaderCheckBox);
+                    });
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
                     {
                         var shaderConfig = new FileInfo(Path.Combine(File.Directory.FullName,
                             $"{File.Name}.txt"));
                         if (shaderConfig.Exists)
-                        {
-                            GetExportOption(shaderCheckBox).Rules += "|" + ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}");
                             Panel.Children.Add(new MyCheckBox
                             {
                                 Margin = new Thickness(30, 0, 0, 0),
@@ -161,7 +158,6 @@ public partial class PageInstanceExport : IRefreshable
                                     Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
-                        }
                     }
                 }
 
