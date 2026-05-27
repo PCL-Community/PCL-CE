@@ -1308,10 +1308,11 @@ public class CrashAnalyzer
                     EnvInfo += $"CPU：{HardwareInfo.CPUName}{"\r\n"}";
                     EnvInfo +=
                         $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(HardwareInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(HardwareInfo.SystemMemorySize, "N0")} MB){"\r\n"}";
-                    foreach (var GPU in HardwareInfo.GPUs)
+                    for (int i = 0; i < HardwareInfo.GPUs.Count; i++)
                     {
+                        var GPU = HardwareInfo.GPUs[i];
                         EnvInfo +=
-                            $"显卡 {HardwareInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
+                            $"显卡 {i}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
                         EnvInfo += "\r\n";
                     }
 

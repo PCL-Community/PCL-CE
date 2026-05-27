@@ -13,12 +13,12 @@ public static class HardwareInfo
     /// <summary>
     /// 系统 CPU 信息
     /// </summary>
-    public static string CPUName = null!;
+    public static string CPUName = "Unknown";
 
     /// <summary>
     /// 系统 GPU 信息
     /// </summary>
-    public static List<GPUInfo> GPUs = new();
+    public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
 
     /// <summary>
     /// 已安装物理内存大小，单位 MB
@@ -82,8 +82,8 @@ public static class HardwareInfo
         {
             if (cpuName is not null)
                 CPUName = cpuName;
-            GPUs.Clear();
-            GPUs.AddRange(gpuList);
+            if (gpuList.Count > 0)
+                GPUs = gpuList;
         }
         LogWrapper.Info("已获取系统硬件信息");
     }
