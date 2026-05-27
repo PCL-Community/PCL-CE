@@ -22,6 +22,10 @@ public class ModSetup
         // === Launch ===
         Config.Launch.MemoryAllocationModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => LaunchRamType(ValueOrDefault<int>(e))));
+        States.Game.SelectedFolderConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => LaunchFolderSelect((string)(e.Value ?? ""))));
+        States.Game.SelectedInstanceConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => LaunchInstanceSelect((string)(e.Value ?? ""))));
 
         // === Tool ===
         Config.Download.ThreadLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -105,6 +109,8 @@ public class ModSetup
     {
         // Launch
         LaunchRamType(Config.Launch.MemoryAllocationMode);
+        LaunchFolderSelect(States.Game.SelectedFolder);
+        LaunchInstanceSelect(States.Game.SelectedInstance);
 
         // Tool
         ToolDownloadThread(Config.Download.ThreadLimit);
@@ -164,6 +170,19 @@ public class ModSetup
         e.Value is T value ? value : (T)e.Item.DefaultValueNoType;
 
     #region Launch
+
+    // 切换选择
+    public static void LaunchInstanceSelect(string Value)
+    {
+        ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
+        ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", Value);
+    }
+
+    public static void LaunchFolderSelect(string Value)
+    {
+        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + Value.Replace("$", ModBase.ExePath));
+        ModMinecraft.McFolderSelected = Value.Replace("$", ModBase.ExePath);
+    }
 
     // 游戏内存
     public static void LaunchRamType(int Type)
