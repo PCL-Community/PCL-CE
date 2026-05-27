@@ -7,6 +7,7 @@ using PCL.Core.UI;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
+using PCL.Core.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -805,7 +806,7 @@ public static class Files {
                     using var document = JsonDocument.Parse(content);
                     // 简单验证 JSON 有效性
                 } catch (JsonException ex) {
-                    throw new Exception("不是有效的 Json 文件", ex);
+                    throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
                 }
             }
 

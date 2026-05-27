@@ -40,34 +40,32 @@ public class LazyLoadBehavior : Behavior<FrameworkElement>
 
     private void OnLayoutUpdated(object sender, EventArgs e)
     {
-        if (AssociatedObject.RenderSize.Width < double.Epsilon)
-            return;
-        if (!AssociatedObject.IsVisible)
+        var element = AssociatedObject;
+        if (element is null || element.RenderSize.Width < double.Epsilon || !element.IsVisible)
             return;
 
-        var scrollViewer = FindParentScrollViewer(AssociatedObject);
+        var scrollViewer = FindParentScrollViewer(element);
         if (scrollViewer is null)
             return;
 
-        var elementBounds = AssociatedObject.TransformToAncestor(scrollViewer)
-            .TransformBounds(new Rect(new Point(0d, 0d), AssociatedObject.RenderSize));
+        var elementBounds = element.TransformToAncestor(scrollViewer)
+            .TransformBounds(new Rect(new Point(0d, 0d), element.RenderSize));
         var viewport = new Rect(0d, 0d, scrollViewer.ViewportWidth, scrollViewer.ViewportHeight);
 
-        if (viewport.IntersectsWith(elementBounds))
-        {
-            Action?.Invoke();
-            // 仅执行一次
-            AssociatedObject.LayoutUpdated -= OnLayoutUpdated;
-        }
+        if (!viewport.IntersectsWith(elementBounds))
+            return;
+
+        Action?.Invoke();
+        // 仅执行一次
+        element.LayoutUpdated -= OnLayoutUpdated;
     }
 
-    private ScrollViewer FindParentScrollViewer(DependencyObject d)
+    private static ScrollViewer FindParentScrollViewer(DependencyObject d)
     {
-        while (d is not null)
+        for (var current = d; current is not null; current = VisualTreeHelper.GetParent(current))
         {
-            if (d is ScrollViewer)
-                return (ScrollViewer)d;
-            d = VisualTreeHelper.GetParent(d);
+            if (current is ScrollViewer scrollViewer)
+                return scrollViewer;
         }
 
         return null;

@@ -19,6 +19,8 @@
     <sys:String x:Key="Common.Action.Delete">删除</sys:String>
     <sys:String x:Key="Common.Action.Agree">同意</sys:String>
     <sys:String x:Key="Common.Action.Decline">拒绝</sys:String>
+    <sys:String x:Key="Common.Action.Yes">是</sys:String>
+    <sys:String x:Key="Common.Action.No">否</sys:String>
     <sys:String x:Key="Common.Action.Overwrite">覆盖</sys:String>
     <sys:String x:Key="Common.Action.OpenFolder">打开文件夹</sys:String>
     <sys:String x:Key="Common.Dialog.Title">提示</sys:String>
@@ -26,6 +28,7 @@
     <sys:String x:Key="Common.State.Loading">加载中...</sys:String>
     <sys:String x:Key="Common.State.Unknown">未知</sys:String>
     <sys:String x:Key="Common.Option.Default">默认</sys:String>
+    <sys:String x:Key="Common.Option.All">全部</sys:String>
     <sys:String x:Key="Common.Option.Auto">自动</sys:String>
     <sys:String x:Key="Common.Option.Customize">自定义</sys:String>
     <sys:String x:Key="Common.Option.IDontKnow">我不知道</sys:String>
@@ -305,6 +308,711 @@
     <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">开启此选项后，PCL 将会读取你的剪贴板并识别其中的资源链接，并询问你是否要跳转到详情页面。</sys:String>
     <sys:String x:Key="Setup.GameManage.Initialized">已初始化其他页设置！</sys:String>
     <sys:String x:Key="Setup.GameManage.Error.InitFailed">初始化其他页设置失败</sys:String>
+
+    <!-- Download.Left -->
+    <sys:String x:Key="Download.Left.CommunityResources">社区资源</sys:String>
+    <sys:String x:Key="Download.Left.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Left.Modpack">整合包</sys:String>
+    <sys:String x:Key="Download.Left.DataPack">数据包</sys:String>
+    <sys:String x:Key="Download.Left.ResourcePack">资源包</sys:String>
+    <sys:String x:Key="Download.Left.Shader">光影包</sys:String>
+    <sys:String x:Key="Download.Left.World">世界</sys:String>
+    <sys:String x:Key="Download.Left.Favorites">收藏夹</sys:String>
+    <sys:String x:Key="Download.Left.Installation">安装包</sys:String>
+    <sys:String x:Key="Download.Left.Minecraft">Minecraft</sys:String>
+    <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Left.Forge">Forge</sys:String>
+    <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
+    <sys:String x:Key="Download.Left.Cleanroom">Cleanroom</sys:String>
+    <sys:String x:Key="Download.Left.Fabric">Fabric</sys:String>
+    <sys:String x:Key="Download.Left.LegacyFabric">Legacy Fabric</sys:String>
+    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
+    <sys:String x:Key="Download.Left.LabyMod">LabyMod</sys:String>
+    <sys:String x:Key="Download.Left.LiteLoader">LiteLoader</sys:String>
+    <sys:String x:Key="Download.Left.Hint.Refreshing">正在刷新……</sys:String>
+    <sys:String x:Key="Download.Left.Error.UnknownSubPageType">未知的下载子页面种类：{0}</sys:String>
+
+    <!-- Download.Version Common -->
+    <sys:String x:Key="Download.Version.VersionList">版本列表</sys:String>
+    <sys:String x:Key="Download.Version.VersionListCount">版本列表（{0}）</sys:String>
+    <sys:String x:Key="Download.Version.OpenWebsite">打开官网</sys:String>
+    <sys:String x:Key="Download.Version.LoadingList">正在获取版本列表</sys:String>
+    <sys:String x:Key="Download.Version.Changelog">更新日志</sys:String>
+    <sys:String x:Key="Download.Version.SaveAs">另存为</sys:String>
+    <sys:String x:Key="Download.Version.DownloadServer">下载服务端</sys:String>
+    <sys:String x:Key="Download.Version.ViewAllVersions">查看全部版本</sys:String>
+    <sys:String x:Key="Download.Version.SaveInstaller">保存安装器</sys:String>
+
+    <!-- Download.Version Client -->
+    <sys:String x:Key="Download.Version.Client.LoadingList">正在获取版本列表</sys:String>
+
+    <!-- Download.Version Forge -->
+    <sys:String x:Key="Download.Version.Forge.Intro.Title">Forge 简介</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Intro.Description">Forge 是一个 Mod 加载器，你需要先安装 Forge 才能安装各种 Forge 模组。</sys:String>
+    <sys:String x:Key="Download.Version.Forge.LoadingList">正在获取 Forge 列表</sys:String>
+
+    <!-- Download.Version NeoForge -->
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Title">NeoForge 简介</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge 是 Minecraft 1.20.1+ 的 Mod 加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。&#x0a;本页面提供 NeoForge 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.LoadingList">正在获取 NeoForge 列表</sys:String>
+
+    <!-- Download.Version Cleanroom -->
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Cleanroom 简介</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom 是针对 1.12.2 基于 Forge 二次开发的 Mod 加载器，理论上与 99% 的 Forge Mod 兼容。</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.LoadingList">正在获取 Cleanroom 列表</sys:String>
+
+    <!-- Download.Version LiteLoader -->
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Title">LiteLoader 简介</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.Intro.Description">与 Forge 类似，LiteLoader 可以用于加载老版本 Minecraft 中的 LiteLoader 模组。</sys:String>
+    <sys:String x:Key="Download.Version.LiteLoader.LoadingList">正在获取 LiteLoader 列表</sys:String>
+
+    <!-- Download.Version Fabric -->
+    <sys:String x:Key="Download.Version.Fabric.Intro.Title">Fabric 简介</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader 是新版 Minecraft 下的轻量化 Mod 加载器，你需要先安装它才能安装各种 Fabric 模组。&#x0a;本页面提供 Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.LoadingList">正在获取 Fabric 列表</sys:String>
+
+    <!-- Download.Version LegacyFabric -->
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Title">Legacy Fabric 简介</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.Intro.Description">Legacy Fabric 是 Fabric 的旧版本移植，你需要先安装它才能安装各种 Legacy Fabric 模组。&#x0a;本页面提供 Legacy Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.LegacyFabric.LoadingList">正在获取 Legacy Fabric 列表</sys:String>
+
+    <!-- Download.Version Quilt -->
+    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Quilt 简介</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader 是新版 Minecraft 下的轻量模块化 Mod 加载器，你需要先安装它才能安装各种 Quilt 模组。&#x0a;本页面提供 Quilt 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.LoadingList">正在获取 Quilt 列表</sys:String>
+
+    <!-- Download.Version LabyMod -->
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Title">LabyMod 简介</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod 是 Minecraft 下的优化客户端。&#x0a;本页面提供 LabyMod 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.LabyMod.LoadingList">正在获取 LabyMod 列表</sys:String>
+
+    <!-- Download.Version OptiFine -->
+    <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine 简介</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与 Mod 的兼容性不佳。</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.LoadingList">正在获取 OptiFine 列表</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Snapshot">快照版本</sys:String>
+
+    <!-- Download.Version Types -->
+    <sys:String x:Key="Download.Version.AllVersions">全部版本 ({0})</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Title">最新版本</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Release">最新正式版，发布于 {0}</sys:String>
+    <sys:String x:Key="Download.Version.Latest.Development">最新预览版，发布于 {0}</sys:String>
+    <sys:String x:Key="Download.Version.Type.Release">正式版</sys:String>
+    <sys:String x:Key="Download.Version.Type.Development">预览版</sys:String>
+    <sys:String x:Key="Download.Version.Type.BeforeRelease">远古版</sys:String>
+    <sys:String x:Key="Download.Version.Type.AprilFools">愚人节版</sys:String>
+    <sys:String x:Key="Download.Version.Type.Snapshot">快照版</sys:String>
+    <sys:String x:Key="Download.Version.Type.Stable">稳定版</sys:String>
+    <sys:String x:Key="Download.Version.Type.Recommended">推荐版</sys:String>
+    <sys:String x:Key="Download.Version.Type.Preview">测试版</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Stable">最新稳定版</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Development">最新测试版</sys:String>
+    <sys:String x:Key="Download.Version.SelectSaveLocation">选择保存位置</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric 安装器 (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">LegacyFabric 安装器 (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt 安装器 (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod 安装器 (*.jar)|*.jar</sys:String>
+    <sys:String x:Key="Download.Version.ReleaseDate">发布于 {0}</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Type">类型：{0}</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.IncompatibleForge">不兼容 Forge</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.CompatibleForge">兼容 Forge {0}</sys:String>
+    <sys:String x:Key="Download.Version.Fresh.Latest">最新</sys:String>
+
+    <!-- Download.Install Warning -->
+    <sys:String x:Key="Download.Install.Warning.FabricAPI">如果不安装 Fabric API，大多数 Mod 都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricAPI">如果不安装 Legacy Fabric API，大多数 Mod 都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在 Mod 下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在 Mod 下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分 Mod 的兼容性不佳，请谨慎安装。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QSL">如果不安装 QFAPI / QSL，大多数 Mod 都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.QuiltFabricAPI">你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。</sys:String>
+
+    <!-- Download.Install State -->
+    <sys:String x:Key="Download.Install.State.Getting">获取中……</sys:String>
+    <sys:String x:Key="Download.Install.State.Loading">加载中……</sys:String>
+    <sys:String x:Key="Download.Install.State.CanAdd">可以添加</sys:String>
+    <sys:String x:Key="Download.Install.State.NoAvailableVersion">没有可用版本</sys:String>
+    <sys:String x:Key="Download.Install.State.NoVersion">无可用版本</sys:String>
+    <sys:String x:Key="Download.Install.State.GetFailed">获取失败：{0}</sys:String>
+    <sys:String x:Key="Download.Install.State.GetVersionListFailed">获取版本列表失败：{0}</sys:String>
+    <sys:String x:Key="Download.Install.State.UnknownUnloaded">未知错误，状态为 Unloaded</sys:String>
+
+    <!-- Download.Install Compat -->
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">与 Forge 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">与 Fabric 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">与 OptiFine 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">与 Cleanroom 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">与 LiteLoader 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">与 {0} 不兼容</sys:String>
+    <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">仅兼容特定版本的 Forge</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresFabric">需要安装 Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">需要安装 LegacyFabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">需要安装 Quilt</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">需要安装 OptiFine</sys:String>
+    <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">需要安装 OptiFine 与 Fabric</sys:String>
+    <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">不兼容老版本 Fabric，请手动下载 OptiFabric Origins</sys:String>
+
+    <!-- Download.Install -->
+    <sys:String x:Key="Download.Install.StartDownload">开始下载</sys:String>
+    <sys:String x:Key="Download.Install.LoadingVersionList">正在获取版本列表</sys:String>
+    <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
+
+    <!-- Download.Install InstanceIsolation -->
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">你尚未开启版本隔离，多个 MC 实例会共用同一个 Mod 文件夹。&#13;因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。&#13;推荐先在 设置 → 启动选项 → 默认版本隔离 中开启版本隔离！</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">版本隔离提示</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Cancel">取消下载</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Continue">继续</sys:String>
+
+    <!-- Download.Comp Search -->
+    <sys:String x:Key="Download.Comp.Search.Hint">搜索资源</sys:String>
+
+    <!-- Download.Comp Filter -->
+    <sys:String x:Key="Download.Comp.Filter.Source">来源</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Tag">标签</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Sort">排序方式</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version">版本</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader">加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Version.AllInputAvailable">全部 (也可自行输入)</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.AnyShader">任意加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable">原版可用</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Loader.VanillaAvailable.ToolTip">作为资源包加载，可以直接在原版游戏里使用。</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.Reset">重置条件</sys:String>
+    <sys:String x:Key="Download.Comp.Filter.InstallModpack.ToolTip">在当前选择的 Minecraft 文件夹下安装整合包</sys:String>
+
+    <!-- Download.Comp Sort -->
+    <sys:String x:Key="Download.Comp.Sort.Relevance">相关性</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Downloads">下载量</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Follows">关注量</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Newest">最新发布</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Updated">最近更新</sys:String>
+
+    <!-- Download.Comp Type -->
+    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Modpack">整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.ResourcePack">资源包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Shader">光影包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.DataPack">数据包</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Plugin">插件</sys:String>
+    <sys:String x:Key="Download.Comp.Type.World">世界</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Schematic">投影原理图</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Unknown">未知</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Only">仅 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Any">任意</sys:String>
+
+    <!-- Download.Comp List -->
+    <sys:String x:Key="Download.Comp.List.Loading.Mod">正在获取 Mod 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Modpack">正在获取 整合包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.ResourcePack">正在获取 资源包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Shader">正在获取 光影包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.DataPack">正在获取 数据包 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Plugin">正在获取 插件 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.World">正在获取 世界 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Schematic">正在获取 投影原理图 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Unknown">正在获取 未知 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Mod">搜索 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Modpack">搜索 整合包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.ResourcePack">搜索 资源包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Shader">搜索 光影包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.DataPack">搜索 数据包</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Plugin">搜索 插件</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.World">搜索 世界</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Schematic">搜索 投影原理图</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Unknown">搜索 未知</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ResourceFetch">社区资源获取：{0}</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">无法连接到 CurseForge，所以目前仅显示了来自 Modrinth 的内容，搜索结果可能不全。&#x0a;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResults">无搜索结果，请尝试搜索英文名称</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoMatchingResults">没有符合条件的结果</sys:String>
+    <sys:String x:Key="Download.Comp.List.NoResultsSimple">没有搜索结果</sys:String>
+    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">无法连接到 Modrinth，所以目前仅显示了来自 CurseForge 的内容，搜索结果可能不全。&#xa;请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+
+    <!-- Download.Comp.Category Shared -->
+    <sys:String x:Key="Download.Comp.Category.WorldGen">世界元素</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Biomes">生物群系</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Dimensions">维度</sys:String>
+    <sys:String x:Key="Download.Comp.Category.OresResources">矿物与资源</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Structures">天然结构</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Technology">科技</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PipesLogistics">管道与物流</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Automation">自动化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Energy">能源</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Redstone">红石</sys:String>
+    <sys:String x:Key="Download.Comp.Category.FoodCooking">食物与烹饪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Farming">农业</sys:String>
+    <sys:String x:Key="Download.Comp.Category.GameMechanics">游戏机制</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Transportation">运输</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Storage">仓储</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Magic">魔法</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Adventure">冒险</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Decoration">装饰</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mobs">生物</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Utility">实用</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Equipment">装备与工具</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Creative">创造模式</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optimization">性能优化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Display">信息显示</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Server">服务器</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Library">支持库</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Combat">战斗</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Multiplayer">多人</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Tweaks">改良</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaLike">原版风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Realistic">写实风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modern">现代风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Medieval">中世纪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Steampunk">蒸汽朋克</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fantasy">幻想风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.SemiRealistic">半写实风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cartoon">卡通风</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Simplistic">简洁</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Themed">主题化</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cursed">鬼畜</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Entities">含实体</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Audio">含声音</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Fonts">含字体</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Models">含模型</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Locale">含语言</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Gui">含 UI</sys:String>
+    <sys:String x:Key="Download.Comp.Category.CoreShaders">核心着色器</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Animated">动态效果</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ModSupport">兼容 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ColoredLighting">彩色光照</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PathTracing">路径追踪</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Pbr">PBR</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Reflections">反射</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Iris">Iris</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
+    <sys:String x:Key="Download.Comp.Category.VanillaAvailable">原版可用</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Other">其他</sys:String>
+
+    <!-- Download.Comp.Category Mod -->
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod 相关</sys:String>
+
+    <!-- Download.Comp.Category Modpack -->
+    <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">硬核</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Quests">任务</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.KitchenSink">水槽包</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Exploration">探索</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MiniGame">小游戏</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SciFi">科幻</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Skyblock">空岛</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.VanillaPlus">原版改良</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb">FTB</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.Ftb.ToolTip">由 FTB 官方发布</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.MapBased">基于地图</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.SmallLight">轻量整合</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Modpack.ExtraLarge">大型整合</sys:String>
+
+    <!-- Download.Comp.Category ResourcePack -->
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution8xOrLower">8x 或更低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution16x">16x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution32x">32x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution48x">48x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution64x">64x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution128x">128x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution256x">256x</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ResourcePack.Resolution512xOrHigher">512x 或更高</sys:String>
+
+    <!-- Download.Comp.Category Section Headers -->
+    <sys:String x:Key="Download.Comp.Category.Style">风格</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Feature">特性</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Performance">性能负荷</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Resolution">分辨率</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformancePotato">极低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceLow">低</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceMedium">中</sys:String>
+    <sys:String x:Key="Download.Comp.Category.PerformanceHigh">高</sys:String>
+
+    <!-- Download.Comp.Category World -->
+    <sys:String x:Key="Download.Comp.Category.World.Creative">创造</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Parkour">跑酷</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Puzzle">解谜</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Survival">生存</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.ModWorld">Mod 世界</sys:String>
+    <sys:String x:Key="Download.Comp.Category.World.Adventure">冒险</sys:String>
+
+    <!-- Download.Comp.Category DataPack -->
+    <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">幻想</sys:String>
+
+    <!-- Download.Comp.Detail -->
+    <sys:String x:Key="Download.Comp.Detail.McMod">MC 百科</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyName">复制名称</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyLink">复制链接</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.TranslateDescription">翻译简介</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorite">收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Unfavorite">取消收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoadingVersions">正在获取版本列表</sys:String>
+
+    <!-- Download.Comp.Detail Install -->
+    <sys:String x:Key="Download.Comp.Detail.InputInstanceName">输入实例名称</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadModpackFile">下载整合包文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.PrepareModpackInstall">准备安装整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadWorldFile">下载世界文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstallWorld">安装世界</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CleanCache">清理缓存</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadFile">下载文件</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadResource">{0}下载：{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FindingApplicableInstance">正在查找适合的游戏实例……</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.NoApplicableInstance">当前 MC 文件夹中没有找到适合此资源文件的实例！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">选择世界安装位置 (saves 文件夹)</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">世界文件|*.zip</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">选择保存位置</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0}文件|*.*</sys:String>
+
+    <!-- Download.Comp.Detail Filter -->
+    <sys:String x:Key="Download.Comp.Detail.InstanceFilter">实例筛选：</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.LoaderFilter">模组加载器筛选：</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.SelectedVersion">所选版本：{0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionRecognitionDelayHint">由于版本信息更新缓慢，可能无法识别刚更新的 MC 版本。几天后即可正常识别。</sys:String>
+
+    <!-- Download.Comp.Detail VersionGroup -->
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Other">其他</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Snapshot">快照版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">远古版</sys:String>
+
+    <!-- Download.Comp.Detail Translation -->
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslating">正在获取 {0} 的简介译文……</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">当前资源的简介暂无译文</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationFailed">获取译文失败</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationResult">原文：{0}&#x0a;译文：{1}</sys:String>
+
+    <!-- Download.Comp.Detail Favorites -->
+    <sys:String x:Key="Download.Comp.Detail.Favorites.DefaultName">默认</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Remove">已将 {0} 从 {1} 中删除</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Add">已将 {0} 添加到 {1} 中</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAdd">已将 {0} 个资源添加到 {1} 中！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAddWithFailures">已将 {0} 个资源添加到 {1} 中，{2} 个资源已添加！</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.UnfavoriteContextMenu">取消收藏 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.FavoriteContextMenu">收藏到 {0}</sys:String>
+
+    <!-- Download.Comp.Detail FileList -->
+    <sys:String x:Key="Download.Comp.Detail.FileList.DependencyCount">{0} 项前置</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.GameVersion">游戏版本 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.Updated">更新于 {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">必要前置资源</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">可选前置资源</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">版本列表</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">正式版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">测试版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Alpha">早期测试版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ModpackDownload">整合包下载</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.WorldDownload">世界下载</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.OriginalModpack">原始整合包</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.KnownButton">我知道了</sys:String>
+
+    <!-- Download.Comp.Detail CompItem -->
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AllVersions">全版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.SnapshotOnly">仅快照版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Unknown">未知</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.Any">任意</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.UnknownVersion">未知版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.AncientVersion">远古版本</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.EditionSuffix"> 版</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CompItem.PreviewSuffix"> 预览版</sys:String>
+
+    <!-- Download.Comp.Favorites -->
+    <sys:String x:Key="Download.Comp.Favorites.Search.Hint">搜索收藏夹内容</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Manage">管理</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.GetInfoFailed">部分资源在线信息获取失败，点此查看详情</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Empty.Title">还没有收藏内容</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Empty.Description">在资源详细信息界面中可以点击收藏按钮进行收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Selection.Placeholder">已选择 8 个文件</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Cancel">取消收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Share">分享所选</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Download">下载所选</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Deselect">取消选择</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Loading">正在加载收藏夹列表</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.CardTitle">{0} ({1})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.SearchResults.Title">搜索结果 ({0})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.UnknownType">未分类类型</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.EditNote">修改备注</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Action.Unfavorite">取消收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Action.Manage">管理</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Share">分享当前收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Import">导入收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.New">新建收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Rename">重命名收藏夹名称</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Menu.Delete">删除当前收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.EditNote.Title">修改备注</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.BulkDownload.Title">确定使用此功能？</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.BulkDownload.Content">批量下载功能仍旧处于测试状态。&#x0a;使用此功能下载模组不会自动下载前置项。&#x0a;请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.SelectLoader.Title">选择期望的加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.SelectVersion.Title">选择期望的游戏版本</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Input">输入分享的收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Hint">例如 ["23333"]</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.Type">你希望将分享的收藏加入到当前收藏夹还是新的收藏夹中？</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.New">新收藏夹名称</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.NewHint">请输入新收藏夹名称</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.NewPrompt">请输入新收藏夹名称</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.New.Title">新建收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Rename.Title">输入新名称</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Delete.Title">删除确认</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Delete.Confirm">确认删除 {0} 收藏夹？&#x0a;此收藏夹有 {1} 个收藏项目&#x0a;收藏夹 ID 为 {2}&#x0a;此操作不可逆！</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Title">部分收藏项目获取失败</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Content">由于在线资源被删除或者网络问题等因素导致以下资源未获取成功（以资源的 ID 展示）</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.LastCollection">您不能删除最后一个收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.Deleted">已删除收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.Removed">已移除相关收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectLoader">所选模组不支持相同的加载器</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.LoadingVersions">请稍后，正在查询详细版本支持中，这可能需要一段时间……</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.NoResource">不存在指定加载器并且同版本的资源</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectSaveLocation">已选择 {0} 版本，下面请选择保存位置</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.SelectedCount">已选择 {0} 个收藏项目</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.NewFolder">新的收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.Import.CurrentFolder">当前收藏夹</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.CopyIds">复制这些 ID</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Dialog.GetFailed.Remove">移除这些收藏</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.QueryInfo">查询资源信息</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">批量下载合适资源</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">批量下载资源（{0}）</sys:String>
+
+    <!-- Minecraft.Download Stage -->
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex">分析资源文件索引地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Background">后台分析资源文件索引地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeAssetsIndex.Side">分析资源文件索引地址（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeCoreJarUrl">分析核心 Jar 文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeFabricLibraries">分析 Fabric 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeGameLibrariesSide">分析游戏支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLabyModLibraries">分析 LabyMod 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLegacyFabricLibraries">分析 Legacy Fabric 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLiteLoaderLibraries">分析 LiteLoader 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeLoaderLibraries">分析 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">分析缺失资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">分析缺失支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">分析 OptiFine 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">分析 Quilt 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">分析所需资源文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">分析原版与 LabyMod 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">分析原版支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.AddIgnoreFlag">添加忽略标识</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.BuildServer">构建服务端</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.CopyAssetsIndex.Background">后台复制资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DeleteIgnoreFlag">删除忽略标识</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets">下载资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.MainLoader">下载资源文件（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssets.Side">下载资源文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex">下载资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Background">后台下载资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadAssetsIndex.Side">下载资源文件索引（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadCoreJar">下载核心 Jar 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadFabricAPI">下载 Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibraries">下载游戏支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadGameLibrariesSide">下载游戏支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadInstanceJson">下载实例 JSON 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLabyModClientJson">下载 LabyMod 客户端 Json 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLegacyFabricAPI">下载 Legacy Fabric API</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries">下载支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLibraries.MainLoader">下载支持库文件（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLiteLoaderLibraries">下载 LiteLoader 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries">下载 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderLibraries.Side">下载 {0} 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadLoaderMainFile">下载 {0} 主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadMainFile">下载主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">下载 OptiFabric</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">下载 OptiFine 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">下载 OptiFine 主文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadQFAPI_QSL">下载 QFAPI / QSL</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">下载服务端文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">下载原版与 LabyMod 支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">下载原版资源文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaLibraries.Side">下载原版支持库文件（副加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.FabricInstallerDownload">Fabric {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeDownload">{0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ForgelikeInstallerFilter">{0} 安装器 (*.{1})|*.{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.GetLoaderLibraries">获取 {0} 支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodA">安装 Forge（方式 A）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForge.MethodB">安装 Forge（方式 B）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallForgeType">安装 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallGame">安装游戏</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallLiteLoader">安装 LiteLoader</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodA">安装 OptiFine（方式 A）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.InstallOptiFine.MethodB">安装 OptiFine（方式 B）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LabyModInstallerDownload">LabyMod 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LegacyFabricInstallerDownload">Legacy Fabric {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderDownload">LiteLoader {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LiteLoaderInstallerDownload">LiteLoader {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderDownloadCombo">{0} {1} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.LoaderInstallerDownload">下载 {0} {1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftDownload">Minecraft {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.MinecraftServerDownload">Minecraft {0} 服务端下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainFabricMainFileUrl">获取 Fabric 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLabyModClientUrl">获取 LabyMod 客户端文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLegacyFabricMainFileUrl">获取 Legacy Fabric 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">获取 {0} 详细信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">获取 OptiFine 下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">获取 OptiFine 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">获取 Quilt 主文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">获取原版 Json 文件下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} 下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">准备下载 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} 安装器下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">启动 LiteLoader 依赖实例下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">后台更新资源文件索引</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">下载原版 Json 文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.VanillaLibrariesDownload">下载原版支持库文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Stage.WaitVanillaDownload">等待原版下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Loader.NewForge">新版 Forge</sys:String>
+
+    <!-- Minecraft.Download Error -->
+    <sys:String x:Key="Minecraft.Download.Error.AddClientVersionFailed">添加客户端版本失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.AssetIndexAnalysisFailed">分析资源文件索引地址失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.BmclapiMissingTargetVersion">BMCLAPI 源未包含目标版本 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.FabricMetaDownloadFailed">Fabric meta 下载失败: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeOldInstallFailed">非新版方式安装 Forge 失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgePromosResultTooShort">获取的结果过短（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ForgeRecommendedTooFew">获取的推荐版本数过少（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallationCanceled">已取消安装。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists">实例 {0} 已存在，是否重新下载？{1}这会覆盖实例的 Json 和 Jar 文件，但不会影响版本隔离的文件。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceAlreadyExists.Title">实例已存在</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstanceDownloading">该实例正在下载中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.InstallerFailedLastLine">安装器运行出错，末行为 {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaNotFoundInstallCanceled">由于未找到 Java，已取消安装。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JavaVersionRequired">Java 8 或更高版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.JsonInvalid">{0} Json 有误，地址：{1}，前段内容：{2}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LiteLoaderInstallFailed">安装新 LiteLoader 实例失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderDetailsNotFound">未能找到 {0} {1}-{2} 的详细信息！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallFailed">安装新 {0} 实例失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerFailedLastLine">{0} 安装器出错，日志结束部分为：{1}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderInstallerRunFailed">运行 {0} 安装器失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.LoaderLibraryListFailed">获取{0}支持库列表失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoAvailableVersion">没有可用版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJarDownloadInfo">底层实例 {0} 中无 Jar 文件下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoJsonDownloadAddress">无对应的 json 下载地址</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoOfficialServerDownload">Mojang 没有给 Minecraft {0} 提供官方服务端下载，没法下，撤退！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NoVanillaLoaderSpecified">如果没有指定原版下载器，则不能指定 MC 安装文件夹</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.NotFound">无可用版本</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineForgeCompatMismatch">版本与 Forge 兼容数据无法对应</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodA">安装 OptiFine（方式 A）失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallFailed.MethodB">安装 OptiFine（方式 B）失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineInstallerRunFailed">运行 OptiFine 安装器失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.OptiFineTimeDataMismatch">版本与发布时间数据无法对应</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.ServerDownloading">该服务端正在下载中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.Timeout">下载源连接超时</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.UnknownMinecraftVersion">未知的 Minecraft 版本（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Error.VersionListOperationFailed">{0} 版本列表解析失败（{1}）</sys:String>
+
+    <!-- Minecraft.Download ServerBatch -->
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">如果提示 "You need to agree to the EULA"，请编辑 eula.txt 同意协议!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服务端立即停止，请右键编辑该脚本，使用!JAVA_HOME!替换%JAVA_HOME%</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">你可以在 PCL 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">服务端已停止。</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} 原版服务端</sys:String>
+
+    <!-- Download Source -->
+    <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom 官方源</sys:String>
+    <sys:String x:Key="Download.Source.FabricOfficial">Fabric 官方源</sys:String>
+    <sys:String x:Key="Download.Source.ForgeOfficial">Forge 官方源</sys:String>
+    <sys:String x:Key="Download.Source.LegacyFabricOfficial">LegacyFabric 官方源</sys:String>
+    <sys:String x:Key="Download.Source.LiteLoaderOfficial">LiteLoader 官方源</sys:String>
+    <sys:String x:Key="Download.Source.MojangOfficial">Mojang 官方源</sys:String>
+    <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge 官方源</sys:String>
+    <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine 官方源</sys:String>
+    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt 官方源</sys:String>
+
+    <!-- Download Tag & Type -->
+    <sys:String x:Key="Download.Tag.Uvmc">UVMC 特供下载</sys:String>
+    <sys:String x:Key="Download.Version.Type.Installer">安装器</sys:String>
+
+    <!-- Common Status & Actions (additions) -->
+    <sys:String x:Key="Common.Action.Download">下载</sys:String>
+    <sys:String x:Key="Common.Action.Install">安装</sys:String>
+    <sys:String x:Key="Common.Action.UpdateLog">更新日志</sys:String>
+    <sys:String x:Key="Common.Status.Cancelled">已取消！</sys:String>
+    <sys:String x:Key="Common.Status.Failure">失败：</sys:String>
+    <sys:String x:Key="Common.Status.Success">成功！</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">不是有效的 Json 文件</sys:String>
+
+    <!-- Minecraft Version -->
+    <sys:String x:Key="Minecraft.Version.Unknown">未知版本</sys:String>
+    <sys:String x:Key="Minecraft.Version.Vanilla">原版</sys:String>
+
+    <!-- Minecraft Update -->
+    <sys:String x:Key="Minecraft.Update.NewVersion">新版本：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Update.Title">Minecraft 更新提示</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdateTime">更新时间：</sys:String>
+    <sys:String x:Key="Minecraft.Update.UpdatedAt">更新于：</sys:String>
+
+    <!-- Minecraft Error -->
+    <sys:String x:Key="Minecraft.Error.AssetIndexNotFound">未找到 Asset Index</sys:String>
+    <sys:String x:Key="Minecraft.Error.CannotReadInstanceFolder">无法读取实例文件夹，可能是由于没有权限（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Error.DependencyRecursion">版本依赖项出现嵌套：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.InitInstanceJsonFailed">初始化实例 JSON 时失败（{0}）</sys:String>
+    <sys:String x:Key="Minecraft.Error.InstanceJsonNotFound">未找到实例 JSON 文件：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.NoAssetIndexInfo">该实例不存在资源文件索引信息</sys:String>
+    <sys:String x:Key="Minecraft.Error.Unrecognizable">无法识别：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberEmpty">无法获取版本号，结果为空</sys:String>
+    <sys:String x:Key="Minecraft.Error.VersionNumberFetchFailed">版本号获取失败：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Error.QuiltUnsupported">Quilt 不支持 Minecraft {0}</sys:String>
+
+    <!-- Minecraft Skin Error -->
+    <sys:String x:Key="Minecraft.Skin.Error.InvalidSkinType">皮肤地址种类无效：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoCustomSkin">用户未设置自定义皮肤</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.NoSkinData">皮肤返回值中不包含皮肤数据项，可能是未设置自定义皮肤的用户</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.OfflineNoSkin">离线 Uuid 无正版皮肤文件。</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.PropertyNotFound">未从皮肤返回值中找到符合条件的 Property</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.SkinReturnEmpty">皮肤返回值为空，可能是未设置自定义皮肤的用户</sys:String>
+    <sys:String x:Key="Minecraft.Skin.Error.UuidEmpty">Uuid 为空。</sys:String>
+
+    <!-- Minecraft April Fools -->
+    <sys:String x:Key="Minecraft.Fool.Description.2013">2013 | 这个秘密计划了两年的更新将游戏推向了一个新高度！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2015">2015 | 作为一款全年龄向的游戏，我们需要和平，需要爱与拥抱。</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2016">2016 | 是时候将现代科技带入 Minecraft 了！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2019">2019 | 我们从地下室的废墟里找到了这个开发于 1994 年的杰作！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2020">2020 | 我们加入了 20 亿个新的维度，让无限的想象变成了现实！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2022">2022 | 一次一个方块更新！迎接全新的挖掘、合成与骑乘玩法吧！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2023">2023 | 研究表明：玩家喜欢作出选择——越多越好！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2024">2024 | 毒马铃薯一直都被大家忽视和低估，于是我们超级加强了它！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2025">2025 | 你可以合成任何东西——包括合成你的世界！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Description.2026">2026 | 为什么需要物品栏？让方块们跟着你走吧！</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Blue">（蓝色版本）</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Purple">（紫色版本）</sys:String>
+    <sys:String x:Key="Minecraft.Fool.Tag.Red">（红色版本）</sys:String>
+
+    <!-- Minecraft.Download.Modpack -->
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">选择整合包压缩文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">游戏路径中不能含有感叹号或分号：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL 无法处理加密的压缩包，请在解压后重新压缩为不加密的 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OpenFailed">打开整合包文件失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">打开整合包文件失败，文件可能损坏或为不支持的压缩包格式</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">解压整合包文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">获取 Mod 下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">构造 Mod 下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">下载 Mod</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">下载 Mod（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ModpackInstall">整合包安装</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.GameInstall">游戏安装</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.FinalizeFiles">最终整理文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadAdditions">下载额外文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractArchive">解压压缩包</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">输入实例名称</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">某项 Mod 缺少必要信息，已跳过：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Message">是否要下载整合包中的可选文件 {0}？</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">下载可选文件</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Download">下载</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Skip">跳过</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！&#13;&#10;错误的文件：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Installing">该整合包正在安装中！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的 Mod 加载器 {0}（版本为 {1}）！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">该 HMCL 整合包未提供游戏版本信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">该 MCBBS 整合包未提供游戏版本附加信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">该整合包未提供游戏版本信息，无法安装！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">请选择一个空文件夹作为安装目标！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">整合包里似乎自带了启动器，是否换用它继续安装？&#13;&#10;即将打开：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">换用整合包启动器？</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">换用</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.DoNotUse">不换用</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">未能找到适合的文件结构，这可能不是一个 MC 压缩包</sys:String>
 
     <!-- Setup.GameLink -->
     <sys:String x:Key="Setup.GameLink.RestartRequired">修改此处的设置后，需要重新启动大厅以使设置生效。</sys:String>

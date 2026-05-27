@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -13,6 +14,7 @@ public partial class PageDownloadForge
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        Load.Text = Lang.Text("Download.Version.Forge.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 
@@ -49,7 +51,7 @@ public partial class PageDownloadForge
                 NewCard.SwapControl = NewStack;
                 NewCard.InstallMethod = Stack =>
                 {
-                    var LoadingPickaxe = new MyLoading { Text = "正在获取版本列表", Margin = new Thickness(5d) };
+                    var LoadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
                     var Loader =
                         new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>("DlForgeVersion Main",
                             ModDownload.DlForgeVersionMain);

@@ -63,7 +63,7 @@ public partial class MyIconTextButton
         set
         {
             if (ShapeLogo == null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
         }
     }
 
@@ -101,9 +101,37 @@ public partial class MyIconTextButton
     public event CheckEventHandler? Check;
     public event ChangeEventHandler? Change;
 
+    private string CheckedAnimationKey => "MyIconTextButton Checked " + Uuid;
+    private string ColorAnimationKey => "MyIconTextButton Color " + Uuid;
+
     // 点击事件
 
     public event ClickEventHandler? Click;
+
+    private string GetDefaultForegroundResourceKey()
+    {
+        return ColorType == ColorState.Highlight ? "ColorBrush3" : "ColorBrush1";
+    }
+
+    private void StartForegroundAnimation(string resourceKey, int duration)
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
+                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
+            }, CheckedAnimationKey);
+    }
+
+    private void StartBackgroundAnimation(string resourceKey, int duration)
+    {
+        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, resourceKey, duration), ColorAnimationKey);
+    }
+
+    private void StartBackgroundAnimation(ModBase.MyColor delta, int duration)
+    {
+        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, delta, duration), ColorAnimationKey);
+    }
 
     private void MyIconTextButton_MouseUp()
     {
@@ -128,156 +156,42 @@ public partial class MyIconTextButton
         RefreshColor();
     }
 
-    private void RefreshColor(object obj = null, object e = null)
+    private void RefreshColor(object? obj = null, object? e = null)
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0 &&
-                !false.Equals(e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
+            if (ControlVisualHelpers.ShouldAnimate(this, e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
             {
-                switch (ColorType)
+                if (IsMouseDown)
                 {
-                    case ColorState.Black:
-                    {
-                        if (IsMouseDown)
-                        {
-                            // 按下
-                            ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else if (IsMouseOver)
-                        {
-                            // 指向
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseIn),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseIn)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty, "ColorBrushBg1", AnimationTimeOfMouseIn),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else if (IsEnabled)
-                        {
-                            // 正常
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush1",
-                                        AnimationTimeOfMouseOut),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush1",
-                                        AnimationTimeOfMouseOut)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty,
-                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else
-                        {
-                            // 禁用
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrushGray5", 100),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty,
-                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-
-                        break;
-                    }
-                    case ColorState.Highlight:
-                    {
-                        if (IsMouseDown)
-                        {
-                            // 按下
-                            ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", 70),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else if (IsMouseOver)
-                        {
-                            // 指向
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseIn),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseIn)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty, "ColorBrushBg1", AnimationTimeOfMouseIn),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else if (IsEnabled)
-                        {
-                            // 正常
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseOut),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
-                                        AnimationTimeOfMouseOut)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty,
-                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-                        else
-                        {
-                            // 禁用
-                            ModAnimation.AniStart(
-                                new[]
-                                {
-                                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, "ColorBrushGray5", 100),
-                                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrushGray5", 100)
-                                }, "MyIconTextButton Checked " + Uuid);
-                            ModAnimation.AniStart(
-                                ModAnimation.AaColor(this, BackgroundProperty,
-                                    ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut),
-                                "MyIconTextButton Color " + Uuid);
-                        }
-
-                        break;
-                    }
+                    StartBackgroundAnimation("ColorBrush6", 70);
+                }
+                else if (IsMouseOver)
+                {
+                    StartForegroundAnimation("ColorBrush3", AnimationTimeOfMouseIn);
+                    StartBackgroundAnimation("ColorBrushBg1", AnimationTimeOfMouseIn);
+                }
+                else if (IsEnabled)
+                {
+                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), AnimationTimeOfMouseOut);
+                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
+                }
+                else
+                {
+                    StartForegroundAnimation("ColorBrushGray5", 100);
+                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
                 }
             }
 
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyIconTextButton Checked " + Uuid);
-                ModAnimation.AniStop("MyIconTextButton Color " + Uuid);
-                switch (ColorType)
-                {
-                    case ColorState.Black:
-                    {
-                        Background = ThemeManager.ColorSemiTransparent;
-                        ShapeLogo.SetResourceReference(Shape.FillProperty,
-                            IsEnabled ? "ColorBrush1" : "ColorBrushGray5");
-                        LabText.SetResourceReference(TextBlock.ForegroundProperty,
-                            IsEnabled ? "ColorBrush1" : "ColorBrushGray5");
-                        break;
-                    }
-                    case ColorState.Highlight:
-                    {
-                        Background = ThemeManager.ColorSemiTransparent;
-                        ShapeLogo.SetResourceReference(Shape.FillProperty,
-                            IsEnabled ? "ColorBrush3" : "ColorBrushGray5");
-                        LabText.SetResourceReference(TextBlock.ForegroundProperty,
-                            IsEnabled ? "ColorBrush3" : "ColorBrushGray5");
-                        break;
-                    }
-                }
+                ModAnimation.AniStop(CheckedAnimationKey);
+                ModAnimation.AniStop(ColorAnimationKey);
+                Background = ThemeManager.ColorSemiTransparent;
+                var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
+                ShapeLogo.SetResourceReference(Shape.FillProperty, foregroundKey);
+                LabText.SetResourceReference(TextBlock.ForegroundProperty, foregroundKey);
             }
         }
         catch (Exception ex)

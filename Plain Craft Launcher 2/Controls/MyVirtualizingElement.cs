@@ -21,7 +21,7 @@ public class MyVirtualizingElement<T> : FrameworkElement where T : FrameworkElem
         var element = _initializer();
         if (Parent is not null)
         {
-            if (!(Parent is Panel))
+            if (Parent is not Panel)
                 throw new Exception("MyVirtualizingElement 的父级必须是一个 Panel");
             var parentPanel = (Panel)Parent;
             var currentIndex = parentPanel.Children.IndexOf(this);
@@ -57,7 +57,7 @@ public class MyVirtualizingElement : FrameworkElement
         var element = _initializer();
         if (Parent is not null)
         {
-            if (!(Parent is Panel))
+            if (Parent is not Panel)
                 throw new Exception("MyVirtualizingElement 的父级必须是一个 Panel");
             var parentPanel = (Panel)Parent;
             var currentIndex = parentPanel.Children.IndexOf(this);

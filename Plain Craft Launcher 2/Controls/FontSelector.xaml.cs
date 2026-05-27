@@ -127,8 +127,7 @@ public partial class FontSelector
             return;
         }
 
-        var defaultFont = CustomFontCollection.FirstOrDefault(i => string.IsNullOrEmpty(i.Tag));
-        defaultFont?.Font = LocalizationFontService.BuildLaunchFontFamily();
+        GetDefaultFont()?.Font = LocalizationFontService.BuildLaunchFontFamily();
     }
 
     private void LoadFonts()
@@ -196,6 +195,11 @@ public partial class FontSelector
     private void ComboFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_isInitializing) SelectionChanged?.Invoke(sender, e);
+    }
+
+    private CustomFontProperties? GetDefaultFont()
+    {
+        return CustomFontCollection.FirstOrDefault(i => string.IsNullOrEmpty(i.Tag));
     }
 
     public class CustomFontProperties : INotifyPropertyChanged

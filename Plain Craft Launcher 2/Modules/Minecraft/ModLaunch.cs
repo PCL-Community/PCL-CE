@@ -8,9 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
@@ -20,7 +17,6 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
-using PCL;
 using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 using System.Globalization;
 
@@ -28,6 +24,7 @@ namespace PCL;
 
 public static class ModLaunch
 {
+    public const string MesaLoaderWindowsVersion = "26.0.4";
 
     #region 预检测
 
@@ -408,23 +405,23 @@ public static class ModLaunch
         catch (Exception ex)
         {
             var CurrentEx = ex;
-            NextInner: ;
-
-            if (CurrentEx.Message.StartsWithF("$"))
+            while (CurrentEx is not null)
             {
-                // 若有以 $ 开头的错误信息，则以此为准显示提示
-                // 若错误信息为 $$，则不提示
-                if (!(CurrentEx.Message == "$$"))
-                    ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
-                        CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
-                throw;
-            }
+                if (CurrentEx.Message.StartsWithF("$"))
+                {
+                    // 若有以 $ 开头的错误信息，则以此为准显示提示
+                    // 若错误信息为 $$，则不提示
+                    if (!(CurrentEx.Message == "$$"))
+                        ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
+                            CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+                    throw;
+                }
 
-            if (CurrentEx.InnerException is not null)
-            {
+                if (CurrentEx.InnerException is null)
+                    break;
+
                 // 检查下一级错误
                 CurrentEx = CurrentEx.InnerException;
-                goto NextInner;
             }
 
             // 没有特殊处理过的错误信息
@@ -868,7 +865,7 @@ public static class ModLaunch
         Retry: ;
 
         McLaunchLog("开始正版验证 Step 1/6（原始登录）");
-        JObject PrepareJson;
+        JsonObject PrepareJson;
         var parameters = new Dictionary<string, string>
         {
             { "client_id", Secrets.MSOAuthClientId },
@@ -884,7 +881,7 @@ public static class ModLaunch
                    .GetResult())
         {
             response.EnsureSuccessStatusCode();
-            PrepareJson = (JObject)ModBase.GetJson(response.AsString());
+            PrepareJson = (JsonObject)ModBase.GetJson(response.AsString());
         }
 
         McLaunchLog("网页登录地址：" + PrepareJson["verification_uri"]);
@@ -967,7 +964,7 @@ public static class ModLaunch
             if (IsIgnore) return new[] { "Ignore", "" };
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JsonObject)ModBase.GetJson(Result);
         var AccessToken = ResultJson["access_token"].ToString();
         var RefreshToken = ResultJson["refresh_token"].ToString();
         return new[] { AccessToken, RefreshToken };
@@ -1039,7 +1036,7 @@ public static class ModLaunch
             if (IsIgnore) return "Ignore";
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JsonObject)ModBase.GetJson(Result);
         var XBLToken = ResultJson["Token"].ToString();
         return XBLToken;
     }
@@ -1152,7 +1149,7 @@ public static class ModLaunch
             }
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(result);
+        var ResultJson = (JsonObject)ModBase.GetJson(result);
         var XSTSToken = ResultJson["Token"].ToString();
         var UHS = ResultJson["DisplayClaims"]["xui"][0]["uhs"].ToString();
         return new[] { XSTSToken, UHS };
@@ -1218,7 +1215,7 @@ public static class ModLaunch
             throw;
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JsonObject)ModBase.GetJson(Result);
         var AccessToken = ResultJson["access_token"].ToString();
         if (string.IsNullOrWhiteSpace(AccessToken))
             throw new Exception("获取到的 Minecraft AccessToken 为空，登录流程异常！");
@@ -1248,8 +1245,8 @@ public static class ModLaunch
                 result = response.AsString();
             }
 
-            var ResultJson = (JObject)ModBase.GetJson(result);
-            if (!(ResultJson.ContainsKey("items") && ResultJson["items"].Any(x =>
+            var ResultJson = (JsonObject)ModBase.GetJson(result);
+            if (!(ResultJson.ContainsKey("items") && ResultJson["items"].AsArray().Any(x =>
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
                 switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
@@ -1343,7 +1340,7 @@ public static class ModLaunch
             throw;
         }
 
-        var ResultJson = (JObject)ModBase.GetJson(Result);
+        var ResultJson = (JsonObject)ModBase.GetJson(Result);
         var UUID = ResultJson["id"].ToString();
         var UserName = ResultJson["name"].ToString();
         return new[] { UUID, UserName, Result };
@@ -1526,13 +1523,12 @@ public static class ModLaunch
         }
 
         // 发送登录请求
-        var RequestData = new JObject(new JProperty("accessToken", AccessToken),
-            new JProperty("clientToken", ClientToken));
+        var RequestData = new JsonObject { ["accessToken"] = AccessToken, ["clientToken"] = ClientToken };
         Requester.Fetch(Data.Input.BaseUrl + "/validate",
             new FetchParam
             {
                 Method = "POST",
-                Content = RequestData.ToString(0),
+                Content = RequestData.ToJsonString(),
                 Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
                 ContentType = "application/json"
             }); // 没有返回值的
@@ -1552,18 +1548,18 @@ public static class ModLaunch
         try
         {
 
-            var RefreshInfo = new JObject();
-            var SelectProfile = new JObject
+            var RefreshInfo = new JsonObject();
+            var SelectProfile = new JsonObject
                 { { "name", ModProfile.SelectedProfile.Username }, { "id", ModProfile.SelectedProfile.Uuid } };
             RefreshInfo.Add("selectedProfile", SelectProfile);
-            RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
-            RefreshInfo.Add(new JProperty("requestUser", true));
+            RefreshInfo.Add("accessToken", ModProfile.SelectedProfile.AccessToken);
+            RefreshInfo.Add("requestUser", true);
             ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
+            var LoginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
                 new FetchParam
                 {
                     Method = "POST",
-                    Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
+                    Content = RefreshInfo.ToJsonString(),
                     Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
                     ContentType = "application/json",
                     RequireContent = true
@@ -1601,38 +1597,41 @@ public static class ModLaunch
         {
             var NeedRefresh = false;
             ModProfile.ProfileLog("登录开始（Login, Authlib）");
-            var RequestData = new JObject(
-                new JProperty("agent", new JObject(new JProperty("name", "Minecraft"), new JProperty("version", 1))),
-                new JProperty("username", Data.Input.UserName), new JProperty("password", Data.Input.Password),
-                new JProperty("requestUser", true));
-            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
+            var RequestData = new JsonObject
+            {
+                ["agent"] = new JsonObject { ["name"] = "Minecraft", ["version"] = 1 },
+                ["username"] = Data.Input.UserName,
+                ["password"] = Data.Input.Password,
+                ["requestUser"] = true
+            };
+            var LoginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
                 new FetchParam
                 {
                     Method = "POST",
-                    Content = RequestData.ToString(0),
+                    Content = RequestData.ToJsonString(),
                     Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
                     ContentType = "application/json",
                     RequireContent = true
                 }));
             // 检查登录结果
-            if (LoginJson["availableProfiles"].Count() == 0)
+            if (LoginJson["availableProfiles"].AsArray().Count == 0)
             {
                 if (Data.Input.ForceReselectProfile)
                     ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
-            if (Data.Input.ForceReselectProfile && LoginJson["availableProfiles"].Count() == 1)
+            if (Data.Input.ForceReselectProfile && LoginJson["availableProfiles"].AsArray().Count == 1)
                 ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
             string SelectedName = null;
             string SelectedId = null;
             if ((LoginJson["selectedProfile"] is null || Data.Input.ForceReselectProfile) &&
-                LoginJson["availableProfiles"].Count() > 1)
+                LoginJson["availableProfiles"].AsArray().Count > 1)
             {
                 // 要求选择档案；优先从缓存读取
                 NeedRefresh = true;
                 var CacheId = ModProfile.SelectedProfile is not null ? ModProfile.SelectedProfile.Uuid : "";
-                foreach (var Profile in LoginJson["availableProfiles"])
+                foreach (var Profile in LoginJson["availableProfiles"].AsArray())
                     if ((Profile["id"].ToString() ?? "") == (CacheId ?? ""))
                     {
                         SelectedName = Profile["name"].ToString();
@@ -1647,8 +1646,8 @@ public static class ModLaunch
                     ModBase.RunInUiWait(() =>
                     {
                         var SelectionControl = new List<IMyRadio>();
-                        var SelectionJson = new List<JToken>();
-                        foreach (var Profile in LoginJson["availableProfiles"])
+                        var SelectionJson = new List<JsonNode>();
+                        foreach (var Profile in LoginJson["availableProfiles"].AsArray())
                         {
                             SelectionControl.Add(new MyRadioBox { Text = Profile["name"].ToString() });
                             SelectionJson.Add(Profile);
@@ -1677,7 +1676,7 @@ public static class ModLaunch
             // 获取服务器信息
             var Response =
                 Requester.FetchString(Data.Input.BaseUrl.Replace("/authserver", ""));
-            var ServerName = JObject.Parse(Response)["meta"]["serverName"].ToString();
+            var ServerName = JsonNode.Parse(Response)["meta"]["serverName"].ToString();
             // 保存缓存
             if (Data.Input.IsExist)
             {
@@ -2110,11 +2109,11 @@ public static class ModLaunch
             if (Minecraft.IsOldJson)
                 _features = Minecraft.JsonObject["minecraftArguments"].ToString().Split(' ').ToList();
             else
-                foreach (var item in Minecraft.JsonObject["arguments"]["game"])
-                    if (item.Type == JTokenType.String)
+                foreach (var item in Minecraft.JsonObject["arguments"]["game"].AsArray())
+                    if (item.GetValueKind() == JsonValueKind.String)
                         _features.Add(item.ToString());
-                    else if (item.Type == JTokenType.Object)
-                        _features.AddRange(item["value"].Select(x => x.ToString()));
+                    else if (item.GetValueKind() == JsonValueKind.Object)
+                        _features.AddRange(item["value"].AsArray().Select(x => x.ToString()));
         }
 
         public object HasArguments(string key)
@@ -2457,7 +2456,6 @@ public static class ModLaunch
             Renderer = instanceRenderer - 1;
         else
             Renderer = Config.Launch.Renderer;
-        var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
@@ -2506,31 +2504,31 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
-
-        if (currentInstance.JsonObject["arguments"] is not null &&
-            currentInstance.JsonObject["arguments"]["jvm"] is not null)
-            foreach (var SubJson in currentInstance.JsonObject["arguments"]["jvm"])
-                if (SubJson.Type == JTokenType.String)
-                {
-                    // 字符串类型
-                    DataList.Add(SubJson.ToString());
-                }
-                // 非字符串类型
-                else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
-                {
-                    // 满足准则
-                    if (SubJson["value"].Type == JTokenType.String)
-                        DataList.Add(SubJson["value"].ToString());
-                    else
-                        foreach (var value in SubJson["value"])
-                            DataList.Add(value.ToString());
-                }
-
-        if (!string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+        while (true)
         {
+            if (currentInstance.JsonObject["arguments"] is not null &&
+                currentInstance.JsonObject["arguments"]["jvm"] is not null)
+                foreach (var SubJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
+                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                    {
+                        // 字符串类型
+                        DataList.Add(SubJson.ToString());
+                    }
+                    // 非字符串类型
+                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    {
+                        // 满足准则
+                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
+                            DataList.Add(SubJson["value"].ToString());
+                        else
+                            foreach (var value in SubJson["value"].AsArray())
+                                DataList.Add(value.ToString());
+                    }
+
+            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+                break;
+
             currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
-            goto NextInstance;
         }
 
         // 内存、Log4j 防御参数等
@@ -2544,7 +2542,7 @@ public static class ModLaunch
             var Server = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "");
             try
             {
-                var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
+                var Response = ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8)?.ToString();
                 DataList.Insert(0,
                     "-javaagent:\"" + Path.Combine(ModBase.PathPure, "authlib-injector.jar") + "\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
@@ -2579,7 +2577,6 @@ public static class ModLaunch
             Renderer = instanceRenderer - 1;
         else
             Renderer = Config.Launch.Renderer;
-        var MesaLoaderWindowsVersion = "25.3.5";
         var MesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.PathPure, "mesa-loader-windows", MesaLoaderWindowsVersion, "Loader.jar");
 
@@ -2708,31 +2705,31 @@ public static class ModLaunch
 
         // 获取 Json 中的 DataList
         var currentInstance = instance;
-        NextInstance: ;
-
-        if (currentInstance.JsonObject["arguments"] is not null &&
-            currentInstance.JsonObject["arguments"]["game"] is not null)
-            foreach (var SubJson in currentInstance.JsonObject["arguments"]["game"])
-                if (SubJson.Type == JTokenType.String)
-                {
-                    // 字符串类型
-                    dataList.Add(SubJson.ToString());
-                }
-                // 非字符串类型
-                else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
-                {
-                    // 满足准则
-                    if (SubJson["value"].Type == JTokenType.String)
-                        dataList.Add(SubJson["value"].ToString());
-                    else
-                        foreach (var value in SubJson["value"])
-                            dataList.Add(value.ToString());
-                }
-
-        if (!string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+        while (true)
         {
+            if (currentInstance.JsonObject["arguments"] is not null &&
+                currentInstance.JsonObject["arguments"]["game"] is not null)
+                foreach (var SubJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
+                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                    {
+                        // 字符串类型
+                        dataList.Add(SubJson.ToString());
+                    }
+                    // 非字符串类型
+                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    {
+                        // 满足准则
+                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
+                            dataList.Add(SubJson["value"].ToString());
+                        else
+                            foreach (var value in SubJson["value"].AsArray())
+                                dataList.Add(value.ToString());
+                    }
+
+            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+                break;
+
             currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
-            goto NextInstance;
         }
 
         // 将 "-XXX" 与后面 "XXX" 合并到一起
@@ -2812,8 +2809,7 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : ArgumentInfo);
         GameArguments.Add("${game_directory}",
-            ModBase.ShortenPath(Strings.Left(ModMinecraft.McInstanceSelected.PathIndie,
-                ModMinecraft.McInstanceSelected.PathIndie.Count() - 1)));
+            ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie[..^1]));
         GameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "assets"));
         GameArguments.Add("${user_properties}", "{}");
         GameArguments.Add("${auth_player_name}", McLoginLoader.Output.Name);
@@ -3104,10 +3100,10 @@ public static class ModLaunch
                 ""profile"": ""66666555554444433333222221111100""
               }
             }";
-                var ReplaceJson = (JObject)ModBase.GetJson(ReplaceJsonString);
+                var ReplaceJson = (JsonObject)ModBase.GetJson(ReplaceJsonString);
                 // 更新文件
                 var Profiles =
-                    (JObject)ModBase.GetJson(
+                    (JsonObject)ModBase.GetJson(
                         ModBase.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
                 Profiles.Merge(ReplaceJson);
                 ModBase.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),
@@ -3140,10 +3136,10 @@ public static class ModLaunch
                         ""profile"": ""66666555554444433333222221111100""
                       }
                     }";
-                    var ReplaceJson = (JObject)ModBase.GetJson(ReplaceJsonString);
+                    var ReplaceJson = (JsonObject)ModBase.GetJson(ReplaceJsonString);
                     // 更新文件
                     var Profiles =
-                        (JObject)ModBase.GetJson(
+                        (JsonObject)ModBase.GetJson(
                             ModBase.ReadFile(ModMinecraft.McFolderSelected + "launcher_profiles.json"));
                     Profiles.Merge(ReplaceJson);
                     ModBase.WriteFile(ModMinecraft.McFolderSelected + "launcher_profiles.json", Profiles.ToString(),

@@ -97,79 +97,34 @@ public partial class MyButton
     // 声明
     public event ClickEventHandler? Click;
 
+    private string GetBorderBrushResourceKey()
+    {
+        return ColorType switch
+        {
+            ColorState.Normal => IsMouseOver ? "ColorBrush3" : "ColorBrush1",
+            ColorState.Highlight => IsMouseOver ? "ColorBrush3" : "ColorBrush2",
+            ColorState.Red => IsMouseOver ? "ColorBrushRedLight" : "ColorBrushRedDark",
+            _ => "ColorBrush1"
+        };
+    }
+
+    private void StartBorderBrushAnimation(string resourceKey, int duration)
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaColor(PanFore, BorderBrushProperty, resourceKey, duration)
+            }, "MyButton Color " + Uuid);
+    }
+
     private void RefreshColor(object obj = null, object e = null)
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (IsEnabled)
-                    switch (ColorType)
-                    {
-                        case ColorState.Normal:
-                        {
-                            if (IsMouseOver)
-                                // 指向（Main 3）
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush3",
-                                            AnimationColorIn)
-                                    }, "MyButton Color " + Uuid);
-                            else
-                                // 普通（Main 1）
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush1",
-                                            AnimationColorOut)
-                                    }, "MyButton Color " + Uuid);
-
-                            break;
-                        }
-                        case ColorState.Highlight:
-                        {
-                            if (IsMouseOver)
-                                // 指向（Main 3）
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush3",
-                                            AnimationColorIn)
-                                    }, "MyButton Color " + Uuid);
-                            else
-                                // 高亮（Main 2）
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrush2",
-                                            AnimationColorOut)
-                                    }, "MyButton Color " + Uuid);
-
-                            break;
-                        }
-                        case ColorState.Red:
-                        {
-                            if (IsMouseOver)
-                                // 红色指向
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrushRedLight",
-                                            AnimationColorIn)
-                                    }, "MyButton Color " + Uuid);
-                            else
-                                // 红色
-                                ModAnimation.AniStart(
-                                    new[]
-                                    {
-                                        ModAnimation.AaColor(PanFore, BorderBrushProperty, "ColorBrushRedDark",
-                                            AnimationColorOut)
-                                    }, "MyButton Color " + Uuid);
-
-                            break;
-                        }
-                    }
+                    StartBorderBrushAnimation(GetBorderBrushResourceKey(), IsMouseOver ? AnimationColorIn : AnimationColorOut);
                 else
                     // 不可用（Gray 4）
                     ModAnimation.AniStart(
@@ -183,36 +138,7 @@ public partial class MyButton
             {
                 ModAnimation.AniStop("MyButton Color " + Uuid);
                 if (IsEnabled)
-                    switch (ColorType)
-                    {
-                        case ColorState.Normal:
-                        {
-                            if (IsMouseOver)
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush3");
-                            else
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush1");
-
-                            break;
-                        }
-                        case ColorState.Highlight:
-                        {
-                            if (IsMouseOver)
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush3");
-                            else
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrush2");
-
-                            break;
-                        }
-                        case ColorState.Red:
-                        {
-                            if (IsMouseOver)
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrushRedLight");
-                            else
-                                PanFore.SetResourceReference(BorderBrushProperty, "ColorBrushRedDark");
-
-                            break;
-                        }
-                    }
+                    PanFore.SetResourceReference(BorderBrushProperty, GetBorderBrushResourceKey());
                 else
                     PanFore.BorderBrush = ThemeManager.ColorGray4;
             }

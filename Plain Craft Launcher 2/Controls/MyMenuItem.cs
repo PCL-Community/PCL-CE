@@ -26,6 +26,15 @@ public class MyMenuItem : MenuItem
         IsEnabledChanged += (_, _) => RefreshColor();
     }
 
+    private (string BackName, string ForeName, int Time) GetVisualState()
+    {
+        if (!IsEnabled)
+            return ("ColorBrushTransparent", "ColorBrushGray5", AnimationTimeOut);
+        if (IsMouseOver)
+            return ("ColorBrush6", "ColorBrush2", AnimationTimeIn);
+        return ("ColorBrushTransparent", "ColorBrush1", AnimationTimeOut);
+    }
+
     private void MyMenuItem_Loaded(object sender, RoutedEventArgs e)
     {
         if (Icon is not null)
@@ -41,28 +50,7 @@ public class MyMenuItem : MenuItem
 
     private void RefreshColor()
     {
-        // 判断当前颜色
-        string BackName;
-        string ForeName;
-        int Time;
-        if (!IsEnabled)
-        {
-            BackName = "ColorBrushTransparent";
-            ForeName = "ColorBrushGray5";
-            Time = AnimationTimeOut;
-        }
-        else if (IsMouseOver)
-        {
-            BackName = "ColorBrush6";
-            ForeName = "ColorBrush2";
-            Time = AnimationTimeIn;
-        }
-        else
-        {
-            BackName = "ColorBrushTransparent";
-            ForeName = "ColorBrush1";
-            Time = AnimationTimeOut;
-        }
+        var (BackName, ForeName, Time) = GetVisualState();
 
         // 重复性验证
         if ((ColorName ?? "") == (BackName ?? ""))

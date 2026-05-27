@@ -19,46 +19,14 @@ public partial class MyMsgSelect
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
+            AppendUniqueNameSuffix(Btn1);
+            AppendUniqueNameSuffix(Btn2);
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
-            Btn1.Text = Converter.Button1;
-            if (Converter.IsWarn)
-            {
-                Btn1.ColorType = MyButton.ColorState.Red;
-                LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
-            }
-
-            Btn2.Text = Converter.Button2;
-            Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
+            ConfigurePrimaryButton(Converter.Button1, Converter.IsWarn);
+            ConfigureSecondaryButton(Converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            // 添加选择控件
-            Btn1.IsEnabled = false;
-            foreach (var rawContent in (IEnumerable)Converter.Content)
-            {
-                // 1. Initialize and get the actual element
-                // Note: We use a new variable because 'foreach' variables are read-only
-                var content = MyVirtualizingElement.TryInit((FrameworkElement)rawContent);
-
-                // 2. Interface casting and event subscription
-                if (content is IMyRadio selection)
-                {
-                    PanSelection.Children.Add((UIElement)selection);
-                    selection.Check += (sender, e) => OnChecked((IMyRadio)sender, e);
-
-                    // 3. Property configuration based on specific type
-                    if (selection is MyListItem listItem)
-                    {
-                        listItem.Type = MyListItem.CheckType.RadioBox;
-                        listItem.MinHeight = 24.0;
-                    }
-                    else if (selection is MyRadioBox radioBox)
-                    {
-                        radioBox.MinHeight = 24.0;
-                    }
-                }
-            }
+            InitializeSelectionList(Converter.Content);
         }
 
         catch (Exception ex)
@@ -71,6 +39,57 @@ public partial class MyMsgSelect
         Btn2.Click += Btn2_Click;
         LabTitle.MouseLeftButtonDown += Drag;
         PanBorder.MouseLeftButtonDown += Drag;
+    }
+
+    private void AppendUniqueNameSuffix(FrameworkElement element)
+    {
+        element.Name += ModBase.GetUuid();
+    }
+
+    private void ConfigurePrimaryButton(string text, bool isWarn)
+    {
+        Btn1.Text = text;
+        if (isWarn)
+        {
+            Btn1.ColorType = MyButton.ColorState.Red;
+            LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
+        }
+    }
+
+    private void ConfigureSecondaryButton(string text)
+    {
+        Btn2.Text = text;
+        Btn2.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void InitializeSelectionList(object content)
+    {
+        // 添加选择控件
+        Btn1.IsEnabled = false;
+        foreach (var rawContent in (IEnumerable)content)
+        {
+            // 1. Initialize and get the actual element
+            // Note: We use a new variable because 'foreach' variables are read-only
+            var selectionContent = MyVirtualizingElement.TryInit((FrameworkElement)rawContent);
+
+            // 2. Interface casting and event subscription
+            if (selectionContent is IMyRadio selection)
+            {
+                PanSelection.Children.Add((UIElement)selection);
+                selection.Check += (sender, e) => OnChecked((IMyRadio)sender, e);
+
+                // 3. Property configuration based on specific type
+                if (selection is MyListItem listItem)
+                {
+                    listItem.Type = MyListItem.CheckType.RadioBox;
+                    listItem.MinHeight = 24.0;
+                }
+                else if (selection is MyRadioBox radioBox)
+                {
+                    radioBox.MinHeight = 24.0;
+                }
+            }
+        }
     }
 
     private void Load(object sender, EventArgs e)

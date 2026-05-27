@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using FluentValidation;
 using Microsoft.VisualBasic.FileIO;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
@@ -323,10 +322,10 @@ public partial class PageInstanceOverall
             var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName);
             var IsCaseChangedOnly = (NewName.ToLower() ?? "") == (OldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
-            JObject JsonObject;
+            JsonObject JsonObject;
             try
             {
-                JsonObject = (JObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
+                JsonObject = (JsonObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
                                                                        PageInstanceLeft.Instance.Name + ".json"));
             }
             catch (Exception ex)
@@ -739,7 +738,7 @@ public partial class PageInstanceOverall
             case 1:
             {
                 var UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
-                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
+                if (UserInput is null || string.IsNullOrWhiteSpace(UserInput))
                     return;
                 ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
                 ModBase.RunInNewThread(() =>

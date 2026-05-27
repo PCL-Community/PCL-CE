@@ -35,7 +35,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         InitializeComponent();
         Loaded += Page_Loaded;
-        ItemBackup.Check += PageCheck;
         ItemInfo.Check += PageCheck;
         ItemDatapack.Check += PageCheck;
         BtnOpenFolder.Click += BtnOpenFolder_Click;
@@ -61,12 +60,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
                 if (ModMain.FrmInstanceSavesInfo is null)
                     ModMain.FrmInstanceSavesInfo = new PageInstanceSavesInfo();
                 return ModMain.FrmInstanceSavesInfo;
-            }
-            case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                return ModMain.FrmInstanceSavesBackup;
             }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
@@ -143,17 +136,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         switch (SubType)
         {
-            case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                if (ItemBackup.Checked)
-                    ModMain.FrmInstanceSavesBackup.Refresh();
-                else
-                    ItemBackup.Checked = true;
-
-                break;
-            }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
                 if (ModMain.FrmInstanceSavesDatapack is null)

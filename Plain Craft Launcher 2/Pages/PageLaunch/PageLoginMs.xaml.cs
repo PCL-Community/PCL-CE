@@ -1,6 +1,5 @@
 using System.Security.Authentication;
 using System.Windows;
-using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 
 namespace PCL;
