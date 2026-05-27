@@ -21,7 +21,7 @@ public class ModSetup
 
         // === Launch ===
         Config.Launch.MemoryAllocationModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => LaunchRamType((int)e.Value!)));
+            e => LaunchRamType(ValueOrDefault<int>(e))));
         States.Game.SelectedFolderConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => LaunchFolderSelect((string)(e.Value ?? ""))));
         States.Game.SelectedInstanceConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -29,31 +29,31 @@ public class ModSetup
 
         // === Tool ===
         Config.Download.ThreadLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => ToolDownloadThread((int)e.Value!)));
+            e => ToolDownloadThread(ValueOrDefault<int>(e))));
         Config.Download.SpeedLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => ToolDownloadSpeed((int)e.Value!)));
+            e => ToolDownloadSpeed(ValueOrDefault<int>(e))));
 
         // === UI - Launcher ===
         Config.Preference.Theme.WindowOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLauncherTransparent((int)e.Value!)));
+            e => UiLauncherTransparent(ValueOrDefault<int>(e))));
         Config.Preference.Theme.ThemeSelectedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLauncherTheme((int)e.Value!)));
+            e => UiLauncherTheme(ValueOrDefault<int>(e))));
         Config.Preference.Background.BackgroundColorfulConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundColorful((bool)e.Value!)));
+            e => UiBackgroundColorful(ValueOrDefault<bool>(e))));
         Config.Preference.LockWindowSizeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLockWindowSize((bool)e.Value!)));
+            e => UiLockWindowSize(ValueOrDefault<bool>(e))));
 
         // UI - Video Background
         Config.Preference.Background.AutoPauseVideoConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiAutoPauseVideo((bool)e.Value!)));
+            e => UiAutoPauseVideo(ValueOrDefault<bool>(e))));
 
         // UI - Background Image
         Config.Preference.Background.WallpaperOpacityConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundOpacity((int)e.Value!)));
+            e => UiBackgroundOpacity(ValueOrDefault<int>(e))));
         Config.Preference.Background.WallpaperBlurRadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundBlur((int)e.Value!)));
+            e => UiBackgroundBlur(ValueOrDefault<int>(e))));
         Config.Preference.Background.WallpaperSuitModeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBackgroundSuit((int)e.Value!)));
+            e => UiBackgroundSuit(ValueOrDefault<int>(e))));
 
         // UI - Font
         Config.Preference.FontConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -61,35 +61,35 @@ public class ModSetup
 
         // UI - Homepage
         Config.Preference.Homepage.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiCustomType((int)e.Value!)));
+            e => UiCustomType(ValueOrDefault<int>(e))));
 
         // UI - Blur
         Config.Preference.Blur.IsEnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlur((bool)e.Value!)));
+            e => UiBlur(ValueOrDefault<bool>(e))));
         Config.Preference.Blur.RadiusConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurValue((int)e.Value!)));
+            e => UiBlurValue(ValueOrDefault<int>(e))));
         Config.Preference.Blur.SamplingRateConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurSamplingRate((int)e.Value!)));
+            e => UiBlurSamplingRate(ValueOrDefault<int>(e))));
         Config.Preference.Blur.KernelTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiBlurType((int)e.Value!)));
+            e => UiBlurType(ValueOrDefault<int>(e))));
 
         // UI - Title Bar
         Config.Preference.WindowTitleTypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLogoType((int)e.Value!)));
+            e => UiLogoType(ValueOrDefault<int>(e))));
         Config.Preference.WindowTitleCustomTextConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => UiLogoText((string)(e.Value ?? ""))));
         Config.Preference.TopBarLeftAlignConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => UiLogoLeft((bool)e.Value!)));
+            e => UiLogoLeft(ValueOrDefault<bool>(e))));
 
         // === System ===
         Config.Debug.EnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemDebugMode((bool)e.Value!)));
+            e => SystemDebugMode(ValueOrDefault<bool>(e))));
         Config.Debug.AnimationSpeedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemDebugAnim((int)e.Value!)));
+            e => SystemDebugAnim(ValueOrDefault<int>(e))));
         Config.Network.HttpProxy.CustomAddressConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemHttpProxy((string)(e.Value ?? ""))));
         Config.Network.HttpProxy.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemHttpProxyType((int)e.Value!)));
+            e => SystemHttpProxyType(ValueOrDefault<int>(e))));
         Config.Network.HttpProxy.CustomUsernameConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemHttpProxyCustomUsername((string)(e.Value ?? ""))));
         Config.Network.HttpProxy.CustomPasswordConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -97,9 +97,9 @@ public class ModSetup
 
         // === Version ===
         Config.Instance.MemorySolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => VersionRamType((int)e.Value!)));
+            e => VersionRamType(ValueOrDefault<int>(e))));
         Config.InstanceAuth.LoginRequirementSolutionConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => VersionServerLogin((int)e.Value!)));
+            e => VersionServerLogin(ValueOrDefault<int>(e))));
     }
 
     /// <summary>
@@ -147,6 +147,7 @@ public class ModSetup
         {
             UiBlurValue(0);
         }
+        UiBlur(Config.Preference.Blur.IsEnabled);
 
         // UI - Title Bar
         UiLogoType((int)Config.Preference.WindowTitleType);
@@ -165,14 +166,16 @@ public class ModSetup
         SystemHttpProxyCustomPassword(Config.Network.HttpProxy.CustomPassword);
     }
 
+    private static T ValueOrDefault<T>(ConfigEventArgs e) =>
+        e.Value is T value ? value : (T)e.Item.DefaultValueNoType;
+
     #region Launch
 
     // 切换选择
     public static void LaunchInstanceSelect(string Value)
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
-        ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
-            ModMinecraft.McInstanceSelected == null ? "" : ModMinecraft.McInstanceSelected.Name);
+        ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", Value);
     }
 
     public static void LaunchFolderSelect(string Value)
@@ -560,11 +563,13 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null) 
+                if (ModMain.FrmSetupUI != null)
+                {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
-                ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
-                ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
-                
+                    ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
+                    ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
+                }
+
                 break;
         }
 
