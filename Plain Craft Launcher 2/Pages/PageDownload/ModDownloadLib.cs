@@ -198,7 +198,7 @@ public static class ModDownloadLib
         {
             Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
-            if (id == "1.16.5") // && Config.Download.FixAuthLib != null) // 1.16.5 Authlib 修复 // Config.Download.FixAuthLib 是值类型
+            if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
                     var json = ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json"));
