@@ -650,7 +650,7 @@ public partial class PageInstanceSetup
 
         CardServer.TriggerForceResize();
         // 避免正版验证和离线验证出现此提示
-        if (!(Type == 2 || Type == 3))
+        if (Type != 2 && Type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;

@@ -1905,7 +1905,7 @@ public static class ModDownloadLib
         }
 
         if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom && Info is null) Info = new ModDownload.DlCleanroomListEntry(LoaderVersion);
-        if (!(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge) && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
+        if (ForgeType != ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
         {
             // 类似 1.19.3-41.2.8 格式，优先使用 Version 中要求的版本而非 Inherit（例如 1.19.3 却使用了 1.19 的 Forge）
             Inherit = LoaderVersion.BeforeFirst("-");

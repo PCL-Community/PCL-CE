@@ -1008,7 +1008,7 @@ public static class ModLoader
 
         public override bool Equals(object obj)
         {
-            if (!(obj is LoaderFolderDictionaryEntry))
+            if (obj is not LoaderFolderDictionaryEntry)
                 return false;
             var entry = (LoaderFolderDictionaryEntry)obj;
             return EqualityComparer<DateTime?>.Default.Equals(LastCheckTime, entry.LastCheckTime) &&

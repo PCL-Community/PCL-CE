@@ -114,7 +114,7 @@ public partial class PageInstanceOverall
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
-                if (!(compProjects.Count == 0))
+                if (compProjects.Count > 0)
                     ModBase.RunInUi(() =>
                     {
                         ModpackCompItem = compProjects.First().ToCompItem(false, false);

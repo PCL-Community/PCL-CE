@@ -887,7 +887,7 @@ public partial class PageToolsGameLink
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!(InitLoader.State == ModBase.LoadState.Failed))
+        if (InitLoader.State != ModBase.LoadState.Failed)
             return;
         InitLoader.Start(IsForceRestart: true);
     }

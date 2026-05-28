@@ -230,7 +230,7 @@ public static class ModMinecraft
 
         public override bool Equals(object obj)
         {
-            if (!(obj is McFolder))
+            if (obj is not McFolder)
                 return false;
             var folder = (McFolder)obj;
             return (Name ?? "") == (folder.Name ?? "") && (Location ?? "") == (folder.Location ?? "") &&
@@ -2570,7 +2570,7 @@ public static class ModMinecraft
     /// </summary>
     public static string McSkinSex(string Uuid)
     {
-        if (!(Uuid.Length == 32))
+        if (Uuid.Length != 32)
             return "Steve";
         var a = int.Parse(Uuid[7].ToString(), NumberStyles.AllowHexSpecifier);
         var b = int.Parse(Uuid[15].ToString(), NumberStyles.AllowHexSpecifier);

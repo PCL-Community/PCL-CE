@@ -3153,7 +3153,7 @@ public static class ModBase
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(Width)), (int)Math.Round(GetPixelSize(Height)),
             DPI, DPI, PixelFormats.Default);
         bmp.Render(UI);
-        if (!(Left == 0d && Top == 0d))
+        if (Left != 0d || Top != 0d)
             UI.Arrange(new Rect(Left, Top, Width, Height));
         return new ImageBrush(bmp);
     }
