@@ -422,7 +422,7 @@ public partial class PageToolsGameLink
                 LobbyInfoProvider.RequiresLogin = (bool)jObj["requireLogin"];
                 LobbyInfoProvider.RequiresRealName = (bool)jObj["requireRealname"];
 
-                if (Convert.ToDouble(jObj["version"]) > LobbyInfoProvider.ProtocolVersion)
+                if (jObj["version"]?.GetValue<double>() > LobbyInfoProvider.ProtocolVersion)
                 {
                     ModBase.RunInUi(() =>
                     {
@@ -444,8 +444,8 @@ public partial class PageToolsGameLink
                     if (string.IsNullOrWhiteSpace(content)) continue;
 
                     // 版本过滤
-                    var minVer = Convert.ToDouble(notice["minVer"]);
-                    var maxVer = Convert.ToDouble(notice["maxVer"]);
+                    var minVer = notice["minVer"]?.GetValue<double>() ?? 0;
+                    var maxVer = notice["maxVer"]?.GetValue<double>() ?? double.MaxValue;
                     if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
 
                     // 类型映射
