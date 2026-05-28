@@ -451,7 +451,7 @@ public static class ModModpack
             }
 
             ModList.Add((int)ModEntry["fileID"]);
-            if (ModEntry["required"] is not null && !ModEntry["required"].ToObject<bool>())
+            if (ModEntry["required"] is JsonValue { } jv && !jv.GetValue<bool>())
                 ModOptionalList.Add((int)ModEntry["fileID"]);
         }
 

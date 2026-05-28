@@ -661,7 +661,7 @@
     <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">选择世界安装位置 (saves 文件夹)</sys:String>
     <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">世界文件|*.zip</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">选择保存位置</sys:String>
-    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0}文件|*.*</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0}文件</sys:String>
 
     <!-- Download.Comp.Detail Filter -->
     <sys:String x:Key="Download.Comp.Detail.InstanceFilter">实例筛选：</sys:String>

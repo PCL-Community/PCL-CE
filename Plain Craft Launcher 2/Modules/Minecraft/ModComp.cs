@@ -1071,7 +1071,7 @@ public static class ModComp
                 FromCurseForge = true,
 
                 // 简单信息
-                Id = (string)data["id"],
+                Id = data["id"]?.ToString(),
                 Slug = (string)data["slug"],
                 RawName = (string)data["name"],
                 Description = (string)data["summary"],
@@ -2712,7 +2712,7 @@ public static class ModComp
                         Hash = (string)((JsonArray)Data["hashes"]).ToList()
                             .FirstOrDefault(s => s["algo"].ToObject<int>() == 2)?["value"];
                     // DownloadAddress
-                    var Url = Data["downloadUrl"].ToString();
+                    var Url = Data["downloadUrl"]?.ToString() ?? "";
                     // TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
                     if (string.IsNullOrWhiteSpace(Url))
                         Url =
@@ -2861,14 +2861,14 @@ public static class ModComp
                         RawDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "required" &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……
                         RawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "optional" &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为可选依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……

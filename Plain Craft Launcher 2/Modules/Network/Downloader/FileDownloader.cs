@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
 using System.IO;
-using System.Net.Http;
-using System.Threading;
 using Downloader;
 using PCL.Core.IO.Net;
-using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Network;
 
@@ -12,12 +10,6 @@ public static class FileDownloader
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> PathLocks =
         new(StringComparer.OrdinalIgnoreCase);
-
-    private static SemaphoreSlim GetPathLock(string localPath)
-    {
-        var key = NormalizePathKey(localPath);
-        return PathLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-    }
 
     private static string NormalizePathKey(string localPath)
     {
@@ -72,7 +64,8 @@ public static class FileDownloader
 
         Directory.CreateDirectory(Path.GetDirectoryName(localPath) ?? throw new ArgumentException("下载路径无效", nameof(localPath)));
 
-        var pathLock = GetPathLock(localPath);
+        var pathKey = NormalizePathKey(localPath);
+        var pathLock = PathLocks.GetOrAdd(pathKey, _ => new SemaphoreSlim(1, 1));
         await pathLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -118,6 +111,10 @@ public static class FileDownloader
         finally
         {
             pathLock.Release();
+            if (pathLock.Wait(0))
+            {
+                PathLocks.CompareAndRemove(pathKey, pathLock);
+            }
         }
     }
 
