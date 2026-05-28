@@ -39,7 +39,7 @@ public static class ModMinecraft
             // 进行提示
             if (version is null)
                 return;
-            var time = (DateTime)version["releaseTime"];
+            var time = version["releaseTime"].ToObject<DateTime>();
             var msgBoxText = Lang.Text("Minecraft.Update.NewVersion", versionName) + "\r\n" +
                              ((DateTime.Now - time).TotalDays > 1d
                                  ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)

@@ -434,7 +434,7 @@ public partial class MySkin
                         Method = SelId is 0 ? "DELETE" : "PUT",
                         Content = SelId is 0
                             ? ""
-                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"] }.ToJsonString(),
+                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"]?.ToString() }.ToJsonString(),
                         ContentType = "application/json",
                         Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } }
                     }

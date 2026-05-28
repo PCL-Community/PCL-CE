@@ -2466,7 +2466,7 @@ public partial class PageDownloadInstall
                 if ((Snapshot["version"].ToString() ?? "") == (_vanillaName ?? ""))
                 {
                     var SnapshotVersion = new JsonObject();
-                    SnapshotVersion.Add("version", Versions["production"]["labyModVersion"].ToString());
+                    SnapshotVersion.Add("version", Versions["snapshot"]["labyModVersion"].ToString());
                     SnapshotVersion.Add("channel", "snapshot");
                     SnapshotVersion.Add("commitReference", Versions["snapshot"]["commitReference"].ToString());
                     ProcessedVersions.Add(SnapshotVersion);
