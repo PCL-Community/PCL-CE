@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows.Controls;
-using Microsoft.VisualBasic;
 using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;

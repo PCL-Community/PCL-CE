@@ -1390,10 +1390,11 @@ public static class ModModpack
                             if (PatchJson["libraries"] is not null)
                                 foreach (var Library in PatchJson["libraries"].AsArray())
                                 {
-                                    var LibJobj = (JsonObject)Library;
+                                    if (Library is not JsonObject LibraryObj) continue;
+                                    var LibJobj = LibraryObj.DeepClone().AsObject();
                                     if (LibJobj["MMC-hint"] is not null)
                                     {
-                                        LibJobj.Add("hint", LibJobj["MMC-hint"]);
+                                        LibJobj.Add("hint", LibJobj["MMC-hint"]?.DeepClone());
                                         LibJobj.Remove("MMC-hint");
                                     }
 
@@ -1403,10 +1404,11 @@ public static class ModModpack
                             if (PatchJson["+libraries"] is not null)
                                 foreach (var Library in PatchJson["+libraries"].AsArray()) // TODO: 此处处理不严谨，但也能用吧
                                 {
-                                    var LibJobj = (JsonObject)Library;
+                                    if (Library is not JsonObject LibraryObj) continue;
+                                    var LibJobj = LibraryObj.DeepClone().AsObject();
                                     if (LibJobj["MMC-hint"] is not null)
                                     {
-                                        LibJobj.Add("hint", LibJobj["MMC-hint"]);
+                                        LibJobj.Add("hint", LibJobj["MMC-hint"]?.DeepClone());
                                         LibJobj.Remove("MMC-hint");
                                     }
 
@@ -1427,7 +1429,7 @@ public static class ModModpack
                         // AssetIndex
                         if (PatchJson["assetIndex"] is not null)
                         {
-                            AssetIndex = (JsonObject)PatchJson["assetIndex"];
+                            AssetIndex = PatchJson["assetIndex"]?.DeepClone().AsObject();
                             ModBase.Log($"[ModPack] 已应用 JSON-Patch {PatchJson["uid"]} 的 AssetIndex");
                         }
 

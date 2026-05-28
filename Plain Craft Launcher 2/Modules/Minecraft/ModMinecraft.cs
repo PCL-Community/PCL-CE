@@ -39,7 +39,7 @@ public static class ModMinecraft
             // 进行提示
             if (version is null)
                 return;
-            var time = (DateTime)version["releaseTime"];
+            var time = version["releaseTime"].ToObject<DateTime>();
             var msgBoxText = Lang.Text("Minecraft.Update.NewVersion", versionName) + "\r\n" +
                              ((DateTime.Now - time).TotalDays > 1d
                                  ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
@@ -171,9 +171,8 @@ public static class ModMinecraft
         if (AccessToken is not null && AccessToken.Length >= 10 && Raw.ContainsF(AccessToken, true) &&
             (ModLaunch.McLoginLoader.Output.Uuid ?? "") !=
             (ModLaunch.McLoginLoader.Output.AccessToken ?? "")) // UUID 和 AccessToken 一样则不打码
-            Raw = Raw.Replace(AccessToken,
-                Strings.Left(AccessToken, 5) + new string(FilterChar, AccessToken.Length - 10) +
-                Strings.Right(AccessToken, 5));
+            Raw = Raw.Replace(AccessToken, AccessToken[..5] + new string(FilterChar, AccessToken.Length - 10) +
+                                           AccessToken[^5..]);
         return Raw;
     }
 
@@ -1655,18 +1654,19 @@ public static class ModMinecraft
                 if (string.IsNullOrEmpty(OptiFine) || OptiFine == Lang.Text("Minecraft.Version.Unknown"))
                     return 0;
                 // 字母编号，如 G2 中的 G（7）
-                var result = Strings.Asc(OptiFine.ToUpper().First()) - Strings.Asc('A') + 1;
+                var result = char.ToUpperInvariant(OptiFine.First()) - 'A' + 1;
                 // 末尾数字，如 C5 beta4 中的 5
                 result *= 100;
                 result = (int)Math.Round(result +
-                                         ModBase.Val(Strings.Right(OptiFine, OptiFine.Length - 1).RegexSeek("[0-9]+")));
+                                         ModBase.Val(OptiFine[1..].RegexSeek("[0-9]+")));
                 // 测试标记（正式版为 99，Pre[x] 为 50+x，Beta[x] 为 x）
                 result *= 100;
                 if (OptiFine.ContainsF("pre", true))
                     result += 50;
                 if (OptiFine.ContainsF("pre", true) || OptiFine.ContainsF("beta", true))
                 {
-                    if (ModBase.Val(Strings.Right(OptiFine, 1)) == 0d && Strings.Right(OptiFine, 1) != "0")
+                    var LastChar = OptiFine[^1..];
+                    if (ModBase.Val(LastChar) == 0d && LastChar != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
                         result =
@@ -3142,7 +3142,7 @@ public static class ModMinecraft
                 if (token.Url.Contains("maven"))
                 {
                     var bmclapiUrl = token.Url
-                        .Replace(Strings.Mid(token.Url, 1, token.Url.IndexOfF("maven")),
+                        .Replace(token.Url.Substring(0, token.Url.IndexOfF("maven")),
                             "https://bmclapi2.bangbang93.com/").Replace("maven.fabricmc.net", "maven")
                         .Replace("maven.minecraftforge.net", "maven").Replace("maven.neoforged.net/releases", "maven");
                     if (ModDownload.DlSourcePreferMojang)
@@ -3346,6 +3346,16 @@ public static class ModMinecraft
         }
     }
 
+    private static string McAssetsHashPrefix(string hash)
+    {
+        return hash[..2];
+    }
+
+    private static string McAssetsUrl(string hash)
+    {
+        return $"https://resources.download.minecraft.net/{McAssetsHashPrefix(hash)}/{hash}";
+    }
+
     /// <summary>
     ///     获取 Minecraft 的资源文件列表。失败会抛出异常。
     /// </summary>
@@ -3366,6 +3376,7 @@ public static class ModMinecraft
             foreach (var file in json["objects"].AsObject())
             {
                 string localPath;
+                var hash = file.Value["hash"].ToString();
                 if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
                     // Remap
                     localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
@@ -3373,13 +3384,15 @@ public static class ModMinecraft
                     // Virtual
                     localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else
+                {
                     // 正常
-                    localPath = Path.Combine(McFolderSelected, "assets", "objects", Strings.Left(file.Value["hash"].ToString(), 2), file.Value["hash"].ToString());
+                    localPath = Path.Combine(McFolderSelected, "assets", "objects", McAssetsHashPrefix(hash), hash);
+                }
                 result.Add(new McAssetsToken
                 {
                     LocalPath = localPath,
                     SourcePath = file.Key,
-                    Hash = file.Value["hash"].ToString(),
+                    Hash = hash,
                     Size = long.Parse(file.Value["size"].ToString())
                 });
             }
@@ -3403,11 +3416,14 @@ public static class ModMinecraft
     {
         // 如果需要检查 Hash，则留到下载时处理，以借助多线程加快检查速度
         if (checkHash)
-            return McAssetsListGet(instance).Select(token => new DownloadFile(
-                ModDownload.DlSourceAssetsGet(
-                    $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
-                token.LocalPath,
-                new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
+            return McAssetsListGet(instance).Select(token =>
+            {
+                var hash = token.Hash;
+                return new DownloadFile(
+                    ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
+                    token.LocalPath,
+                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash));
+            }).ToList();
         // 如果不检查 Hash，则立即处理
         var result = new List<DownloadFile>();
 
@@ -3429,11 +3445,11 @@ public static class ModMinecraft
                 if (file.Exists && (token.Size == 0L || token.Size == file.Length))
                     continue;
                 // 文件不存在，添加下载
+                var hash = token.Hash;
                 result.Add(new DownloadFile(
-                    ModDownload.DlSourceAssetsGet(
-                        $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
+                    ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                     token.LocalPath,
-                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash)));
+                    new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: hash)));
             }
         }
         catch (Exception ex)

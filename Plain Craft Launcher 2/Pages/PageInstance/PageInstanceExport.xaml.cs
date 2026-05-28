@@ -163,13 +163,15 @@ public partial class PageInstanceExport : IRefreshable
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
                     {
                         var shaderConfig = new FileInfo(Path.Combine(File.Directory.FullName,
-                            $"{Path.GetFileNameWithoutExtension(File.Name)}.txt"));
+                            $"{File.Name}.txt"));
                         if (shaderConfig.Exists)
                             Panel.Children.Add(new MyCheckBox
                             {
+                                Margin = new Thickness(30, 0, 0, 0),
                                 Tag = new ExportOption
                                 {
-                                    Title = shaderConfig.Name + Lang.Text("Instance.Export.ShaderConfigSuffix"), DefaultChecked = true,
+                                    Title = $"{shaderConfig.Name}", DefaultChecked = true,
+                                    Description = Lang.Text("Instance.Export.ShaderConfigSuffix"),
                                     Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
@@ -195,6 +197,22 @@ public partial class PageInstanceExport : IRefreshable
                         GetExportOption(NewCheckBox).Description =
                             Lang.Date(SubFolder.LastWriteTime, "g");
                     Panel.Children.Add(NewCheckBox);
+                    if (Folder == "shaderpacks") // 处理文件夹形式光影包的配置文件
+                    {
+                        var shaderConfig = new FileInfo(Path.Combine(TargetFolder.FullName,
+                            $"{SubFolder.Name}.txt"));
+                        if (shaderConfig.Exists)
+                            Panel.Children.Add(new MyCheckBox
+                            {
+                                Margin = new Thickness(30, 0, 0, 0),
+                                Tag = new ExportOption
+                                {
+                                    Title = $"{shaderConfig.Name}", DefaultChecked = true,
+                                    Description = "光影配置文件",
+                                    Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                }
+                            });
+                    }
                 }
         }
     }

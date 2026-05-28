@@ -74,7 +74,7 @@ public partial class PageLogRight
         PanAllBack.Visibility = Visibility.Visible;
         CardOperation.Visibility = Visibility.Visible;
         BtnOperationKill.IsEnabled = !ModMain.FrmLogLeft.CurrentLog.GameProcess.HasExited;
-        BtnOperationExportStackDump.IsEnabled = !ModMain.FrmLogLeft.CurrentLog.GameProcess.HasExited &
+        BtnOperationExportStackDump.IsEnabled = !ModMain.FrmLogLeft.CurrentLog.GameProcess.HasExited &&
                                                 !string.IsNullOrWhiteSpace(ModMain.FrmLogLeft.CurrentLog.JStackPath);
         SliderMaxLog.Value = Config.System.MaxGameLog;
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)

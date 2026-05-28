@@ -1049,7 +1049,7 @@ public static class ModComp
                 result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
 
             if (data.TryGetPropertyValue("LastUpdate", out var last))
-                result.LastUpdate = (DateTime?)last;
+                result.LastUpdate = last?.ToObject<DateTime>();
 
             if (data.TryGetPropertyValue("ModLoaders", out var loaders))
                 result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
@@ -1071,12 +1071,12 @@ public static class ModComp
                 FromCurseForge = true,
 
                 // 简单信息
-                Id = (string)data["id"],
+                Id = data["id"].ToString(),
                 Slug = (string)data["slug"],
                 RawName = (string)data["name"],
                 Description = (string)data["summary"],
                 Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
-                LastUpdate = (DateTime?)data["dateReleased"], // #1194
+                LastUpdate = data["dateReleased"]?.ToObject<DateTime>(), // #1194
                 DownloadCount = (int)data["downloadCount"]
             };
 
@@ -1163,7 +1163,7 @@ public static class ModComp
                 Slug = slug,
                 RawName = (string)data["title"],
                 Description = (string)data["description"],
-                LastUpdate = (DateTime?)data["date_modified"],
+                LastUpdate = data["date_modified"]?.ToObject<DateTime>(),
                 DownloadCount = (int)data["downloads"],
                 LogoUrl = (string)data["icon_url"],
                 Website = $"https://modrinth.com/{projectType}/{slug}",
@@ -2701,7 +2701,7 @@ public static class ModComp
                     ProjectId = Data["modId"].ToString();
                     DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
                     Version = null;
-                    ReleaseDate = (DateTime)Data["fileDate"];
+                    ReleaseDate = Data["fileDate"].ToObject<DateTime>();
                     Status = (CompFileStatus)Data["releaseType"].ToObject<int>();
                     DownloadCount = (int)Data["downloadCount"];
                     FileName = (string)Data["fileName"];
@@ -2777,7 +2777,7 @@ public static class ModComp
                     ProjectId = (string)Data["project_id"];
                     DisplayName = Data["name"].ToString().Replace("	", "").Trim(' ');
                     Version = (string)Data["version_number"];
-                    ReleaseDate = (DateTime)Data["date_published"];
+                    ReleaseDate = Data["date_published"].ToObject<DateTime>();
                     Status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
                         Data["version_type"].ToString() == "beta" ? CompFileStatus.Beta : CompFileStatus.Alpha;
                     DownloadCount = (int)Data["downloads"];

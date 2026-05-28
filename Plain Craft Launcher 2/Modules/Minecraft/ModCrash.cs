@@ -2,7 +2,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.VisualBasic;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -765,7 +764,7 @@ public class CrashAnalyzer
                 AppendReason(CrashReason.Mod缺少前置或MC版本错误,
                     LogMc.RegexSearch(@"(?<=Missing or unsupported mandatory dependencies:)([\n\r]+\t(.*))+",
                             RegexOptions.IgnoreCase)
-                        .Select(s => s.Trim(("\r\n" + Constants.vbTab + " ").ToCharArray())).Distinct()
+                        .Select(s => s.Trim(("\r\n\t ").ToCharArray())).Distinct()
                         .ToList());
         }
 
@@ -812,7 +811,7 @@ public class CrashAnalyzer
                 else
                     AppendReason(CrashReason.Mod加载器报错,
                         (LogCrash.RegexSeek(@"(?<=Failure message: )[\w\W]+?(?=\tMod)") ?? "")
-                        .Replace(Constants.vbTab, " ").TrimEnd(("\r\n" + " ").ToCharArray()));
+                        .Replace("\t", " ").TrimEnd(("\r\n" + " ").ToCharArray()));
             }
 
             if (LogCrash.Contains("Multiple entries with same key: "))
@@ -954,11 +953,11 @@ public class CrashAnalyzer
         // 崩溃报告分析
         if (LogCrash is not null)
         {
-            if (LogCrash.Contains(Constants.vbTab + "Block location: World: "))
+            if (LogCrash.Contains("\tBlock location: World: "))
                 AppendReason(CrashReason.特定方块导致崩溃,
                     (LogCrash.RegexSeek(@"(?<=\tBlock: Block\{)[^\}]+") ?? "") + " " +
                     (LogCrash.RegexSeek(@"(?<=\tBlock location: World: )\([^\)]+\)") ?? ""));
-            if (LogCrash.Contains(Constants.vbTab + "Entity's Exact location: "))
+            if (LogCrash.Contains("\tEntity's Exact location: "))
                 AppendReason(CrashReason.特定实体导致崩溃,
                     (LogCrash.RegexSeek(@"(?<=\tEntity Type: )[^\n]+(?= \()") ?? "") + " (" +
                     (LogCrash.RegexSeek(@"(?<=\tEntity's Exact location: )[^\n]+") ?? "").TrimEnd(
@@ -1089,7 +1088,7 @@ public class CrashAnalyzer
             var ModNameLines = new List<string>();
             foreach (var Line in Details.Split("\n"))
                 if ((Line.ContainsF(".jar", true) && Line.Length - Line.Replace(".jar", "").Length == 4) ||
-                    (IsFabricDetail && Line.StartsWithF(Constants.vbTab + Constants.vbTab) &&
+                    (IsFabricDetail && Line.StartsWithF("\t\t") &&
                      !Line.RegexCheck(@"\t\tfabric[\w-]*: Fabric"))) // 只有一个 .jar
                     ModNameLines.Add(Line);
             ModBase.Log("[Crash] 崩溃报告中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");

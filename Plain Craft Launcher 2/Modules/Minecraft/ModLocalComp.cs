@@ -454,7 +454,7 @@ public static class ModLocalComp
             set
             {
                 if (_Name is null && value is not null && !value.Contains("modname") && value.ToLower() != "name" &&
-                    value.Count() > 1 && (ModBase.Val(value).ToString() ?? "") != (value ?? "")) _Name = value;
+                    value.Length > 1 && (ModBase.Val(value).ToString() ?? "") != (value ?? "")) _Name = value;
             }
         }
 
@@ -476,12 +476,12 @@ public static class ModLocalComp
             }
             set
             {
-                if (_Description is null && value is not null && value.Count() > 2)
+                if (_Description is null && value is not null && value.Length > 2)
                 {
                     _Description = value.Trim('\n');
                     // 优化显示：若以 [a-zA-Z0-9] 结尾，加上小数点句号
                     if (_Description.ToLower().LastIndexOfAny("qwertyuiopasdfghjklzxcvbnm0123456789".ToCharArray()) ==
-                        _Description.Count() - 1)
+                        _Description.Length - 1)
                         _Description += ".";
                 }
             }
@@ -573,7 +573,7 @@ public static class ModLocalComp
                 if (value is null)
                     return;
                 value = value.RegexSeek(RegexPatterns.ModIdMatch);
-                if (value is null || value.Count() <= 1 || (ModBase.Val(value).ToString() ?? "") == (value ?? ""))
+                if (value is null || value.Length <= 1 || (ModBase.Val(value).ToString() ?? "") == (value ?? ""))
                     return;
                 if (value.ContainsF("name", true) || value.ContainsF("modid", true))
                     return;
@@ -833,7 +833,7 @@ public static class ModLocalComp
         private void AddDependency(string ModID, string VersionRequirement = null)
         {
             // 确保信息正确
-            if (ModID is null || ModID.Count() < 2)
+            if (ModID is null || ModID.Length < 2)
                 return;
             ModID = ModID.ToLower();
             if (ModID == "name" || (ModBase.Val(ModID).ToString() ?? "") == (ModID ?? ""))
@@ -1548,7 +1548,7 @@ public static class ModLocalComp
                         if (value is null)
                             break;
                         value = value.ToLower().RegexSeek(RegexPatterns.ModIdMatch);
-                        if (value is not null && value.ToLower() != "name" && value.Count() > 1 &&
+                        if (value is not null && value.ToLower() != "name" && value.Length > 1 &&
                             (ModBase.Val(value).ToString() ?? "") != (value ?? ""))
                             if (!PossibleModId.Contains(value))
                                 PossibleModId.Add(value);
@@ -2396,7 +2396,7 @@ public static class ModLocalComp
             var lowerFilePath = file.ToLower(); // 统一转为小写
             if (!RegexIsJarFile.IsMatch(lowerFilePath))
                 continue; // 检查是否是 jar 文件
-            if ((keywords.Length > 0) & !keywords.Any(keyword => lowerFilePath.Contains(keyword)))
+            if ((keywords.Length > 0) && !keywords.Any(keyword => lowerFilePath.Contains(keyword)))
                 continue; // 检查是否包含关键字
             var localComp = new LocalCompFile(file);
             localComp.Load();

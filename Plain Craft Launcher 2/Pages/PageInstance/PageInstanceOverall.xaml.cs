@@ -759,7 +759,7 @@ public partial class PageInstanceOverall
             case 1:
             {
                 var UserInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
-                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
+                if (UserInput is null || string.IsNullOrWhiteSpace(UserInput))
                     return;
                 ModMain.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
                 ModBase.RunInNewThread(() =>
