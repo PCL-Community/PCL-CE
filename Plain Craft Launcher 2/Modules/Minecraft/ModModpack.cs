@@ -799,7 +799,7 @@ public static class ModModpack
             }
 
             FileList.Add(new DownloadFile(Urls, TargetPath,
-                new ModBase.FileChecker(ActualSize: File["fileSize"].ToObject<long>(),
+                new ModBase.FileChecker(ActualSize: ((JsonNode)File["fileSize"]).GetValue<long>(),
                     Hash: File["hashes"]["sha1"].ToString()), true));
         }
 
