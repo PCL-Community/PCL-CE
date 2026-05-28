@@ -158,8 +158,8 @@ public partial class PageLoginAuth
                 ModBase.Log(ex, "从服务器获取名称失败");
             }
 
-            if (serverUri != null) TextServer.Text = serverUri;
-            if (serverName == null)
+            if (serverUri is not null) TextServer.Text = serverUri;
+            if (serverName is null)
             {
                 TextServerName.Visibility = Visibility.Hidden;
             }

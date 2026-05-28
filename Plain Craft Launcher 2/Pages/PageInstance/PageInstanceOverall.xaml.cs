@@ -390,7 +390,7 @@ public partial class PageInstanceOverall
             // 刷新与提示
             ModMain.Hint("重命名成功！", ModMain.HintType.Finish);
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(NewName).Load();
-            if (!(ModMinecraft.McInstanceSelected == null) &&
+            if (ModMinecraft.McInstanceSelected is not null &&
                 ModMinecraft.McInstanceSelected.Equals(PageInstanceLeft.Instance))
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
             Reload();

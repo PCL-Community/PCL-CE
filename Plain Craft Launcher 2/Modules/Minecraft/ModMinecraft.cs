@@ -1141,7 +1141,7 @@ public static class ModMinecraft
 
                     default:
                     {
-                        var realJson = JsonObject != null ? JsonObject.ToString() : JsonText;
+                        var realJson = JsonObject is not null ? JsonObject.ToString() : JsonText;
                         // 愚人节与快照版本
                         if ((JsonObject["type"] ?? "").ToString() == "fool" ||
                             !string.IsNullOrEmpty(McVersionClassifier.GetMcFoolName(Info.VanillaName)))
@@ -1892,7 +1892,7 @@ public static class ModMinecraft
             if (useCache)
             {
                 var cachedResult = InitMcInstanceListWithCache(path);
-                if (cachedResult != null)
+                if (cachedResult is not null)
                     McInstanceList = cachedResult;
                 else
                     useCache = false; // 缓存无效，需要重载
@@ -1930,7 +1930,7 @@ public static class ModMinecraft
                 .SelectMany(kv => kv.Value)
                 .FirstOrDefault(i => i.State != McInstanceState.Error);
 
-            if (firstInstance != null)
+            if (firstInstance is not null)
             {
                 McInstanceSelected = firstInstance;
                 States.Game.SelectedInstance = McInstanceSelected.Name;
@@ -2514,7 +2514,7 @@ public static class ModMinecraft
                     break;
                 }
 
-            if (skinValue == null)
+            if (skinValue is null)
                 throw new Exception(Lang.Text("Minecraft.Skin.Error.PropertyNotFound"));
         }
         catch (Exception ex)
@@ -2529,7 +2529,7 @@ public static class ModMinecraft
         var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(skinValue));
         var skinJson = (JsonObject)ModBase.GetJson(decoded.ToLowerInvariant());
 
-        if (skinJson["textures"]?["skin"]?["url"] == null)
+        if (skinJson["textures"]?["skin"]?["url"] is null)
             throw new Exception(Lang.Text("Minecraft.Skin.Error.NoCustomSkin"));
 
         var skinUrl = skinJson["textures"]["skin"]["url"].ToString();
@@ -2703,9 +2703,9 @@ public static class ModMinecraft
                     IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == ModBase.Is32BitSystem;
             }
 
-            if (!(Rule["features"] == null)) // 标签
+            if (Rule["features"] is not null) // 标签
             {
-                IsRightRule = IsRightRule && Rule["features"]["is_demo_user"] == null; // 反选是否为 Demo 用户
+                IsRightRule = IsRightRule && Rule["features"]["is_demo_user"] is null; // 反选是否为 Demo 用户
                 if (Rule["features"].AsObject().Any(prop => prop.Key.Contains("quick_play")))
                     IsRightRule = false; // 不开 Quick Play，让玩家自己加去
             }

@@ -51,7 +51,7 @@ namespace PCL
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEventCollection GetEvents(DependencyObject d)
         {
-            if (d.GetValue(EventsProperty) == null)
+            if (d.GetValue(EventsProperty) is null)
                 d.SetValue(EventsProperty, new CustomEventCollection());
             return (CustomEventCollection)d.GetValue(EventsProperty);
         }
@@ -187,7 +187,7 @@ namespace PCL
                     case EventType.启动游戏:
                         if (args[0] == "\\current")
                         {
-                            if (ModMinecraft.McInstanceSelected == null)
+                            if (ModMinecraft.McInstanceSelected is null)
                             {
                                 ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
                                 return;

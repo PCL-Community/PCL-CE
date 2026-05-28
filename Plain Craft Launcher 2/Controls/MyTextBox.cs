@@ -70,11 +70,7 @@ public class MyTextBox : TextBox
     public CornerRadius CornerRadius
     {
         get => (CornerRadius)GetValue(CornerRadiusProperty);
-        set
-        {
-            if (value == null) return;
-            SetValue(CornerRadiusProperty, value);
-        }
+        set => SetValue(CornerRadiusProperty, value);
     }
 
     private TextBlock labWrong
@@ -151,7 +147,7 @@ public class MyTextBox : TextBox
     private void OnValidatedTextChanged(object sender, TextChangedEventArgs e)
     {
         foreach (var handler in ChangedEventList)
-            if (!(handler == null))
+            if (handler is not null)
                 handler.Invoke(sender, e);
     }
 

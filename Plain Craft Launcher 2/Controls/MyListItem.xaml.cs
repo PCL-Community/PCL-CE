@@ -533,7 +533,7 @@ public partial class MyListItem : IMyRadio
     private void UpdateLogo(string _Logo)
     {
         // 删除旧 Logo
-            if (PathLogo != null)
+            if (PathLogo is not null)
             Children.Remove(PathLogo);
         // 添加新 Logo
         if (!string.IsNullOrEmpty(_Logo))
@@ -625,7 +625,7 @@ public partial class MyListItem : IMyRadio
         set
         {
             _LogoScale = value;
-        if (PathLogo != null)
+        if (PathLogo is not null)
                 PathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
@@ -664,7 +664,7 @@ public partial class MyListItem : IMyRadio
             if (_Type == CheckType.None || _Type == CheckType.Clickable)
             {
                 // 移除竖条控件
-                if (RectCheck != null)
+                if (RectCheck is not null)
                 {
                     Children.Remove(RectCheck);
                     RectCheck = null;
@@ -673,7 +673,7 @@ public partial class MyListItem : IMyRadio
                 SetChecked(false, false, false);
             }
             // 添加竖条控件
-            else if (RectCheck == null)
+            else if (RectCheck is null)
             {
                 RectCheck = new Border
                 {
@@ -777,7 +777,7 @@ public partial class MyListItem : IMyRadio
 
             if (Type == CheckType.RadioBox)
             {
-                if (Parent == null)
+                if (Parent is null)
                     return;
                 var RadioboxList = new List<MyListItem>();
                 var CheckedCount = 0;
@@ -898,7 +898,7 @@ public partial class MyListItem : IMyRadio
                 ModAnimation.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         RectCheck.Height = customHeight; // 应用自定义固定高度
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
@@ -911,7 +911,7 @@ public partial class MyListItem : IMyRadio
                 }
                 else
                 {
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         RectCheck.Height = 0d;
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);

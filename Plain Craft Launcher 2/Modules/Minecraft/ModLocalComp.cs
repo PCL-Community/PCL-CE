@@ -1224,13 +1224,13 @@ public static class ModLocalComp
                 {
                     var FabricEntry = Jar.GetEntry("fabric.mod.json");
                     string FabricText = null;
-                    if (FabricEntry != null)
+                    if (FabricEntry is not null)
                     {
                         FabricText = ModBase.ReadFile(FabricEntry.Open(), Encoding.UTF8);
                         if (!FabricText.Contains("schemaVersion")) FabricText = null;
                     }
 
-                    if (FabricText == null) break;
+                    if (FabricText is null) break;
 
                     var FabricObject = (JsonObject)ModBase.GetJson(FabricText);
 
@@ -1238,11 +1238,11 @@ public static class ModLocalComp
                     if (FabricObject.ContainsKey("version")) Version = FabricObject["version"].ToString();
                     if (FabricObject.ContainsKey("description")) Description = FabricObject["description"].ToString();
                     if (FabricObject.ContainsKey("id")) ModId = FabricObject["id"].ToString();
-                    if (FabricObject.ContainsKey("contact") && FabricObject["contact"]["homepage"] != null)
+                    if (FabricObject.ContainsKey("contact") && FabricObject["contact"]["homepage"] is not null)
                         Url = FabricObject["contact"]["homepage"].ToString();
 
                     var AuthorJson = (JsonArray)FabricObject["authors"];
-                    if (AuthorJson != null)
+                    if (AuthorJson is not null)
                     {
                         var AuthorList = AuthorJson.Select(t => t.ToString()).ToList();
                         if (AuthorList.Any()) Authors = string.Join(", ", AuthorList);
@@ -1252,7 +1252,7 @@ public static class ModLocalComp
                     {
                         var LogoFile = FabricObject["icon"].ToString();
                         var LogoItem = Jar.GetEntry(LogoFile);
-                        if (LogoItem != null)
+                        if (LogoItem is not null)
                         {
                             var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
                             Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
@@ -1346,7 +1346,7 @@ public static class ModLocalComp
                 // 获取 mods.toml 文件
                 var TomlEntry = Jar.GetEntry("META-INF/mods.toml");
                 string TomlText = null;
-                if (TomlEntry != null)
+                if (TomlEntry is not null)
                 {
                     using (var reader = new StreamReader(TomlEntry.Open()))
                     {
@@ -1356,7 +1356,7 @@ public static class ModLocalComp
                     if (TomlText.Length < 15) TomlText = null;
                 }
 
-                if (TomlText != null)
+                if (TomlText is not null)
                 {
                     // 文件标准化：统一换行符为 \n，去除注释、头尾的空格、空行
                     var Lines = new List<string>();
@@ -1453,11 +1453,11 @@ public static class ModLocalComp
                             break;
                         }
 
-                    if (ModEntry != null && ModEntry.ContainsKey("modId"))
+                    if (ModEntry is not null && ModEntry.ContainsKey("modId"))
                     {
                         ModId = ModEntry["modId"].ToString();
                         // 假设 _ModId 是内部属性，如果为 null 说明设置失败
-                        if (_ModId != null)
+                        if (_ModId is not null)
                         {
                             if (ModEntry.ContainsKey("displayName")) Name = ModEntry["displayName"].ToString();
                             if (ModEntry.ContainsKey("description")) Description = ModEntry["description"].ToString();
@@ -2166,13 +2166,13 @@ public static class ModLocalComp
                 var ModrinthMapping = new Dictionary<string, List<LocalCompFile>>();
                 foreach (var Entry in Mods)
                 {
-                    if (ModrinthVersion[Entry.ModrinthHash] == null) continue;
+                    if (ModrinthVersion[Entry.ModrinthHash] is null) continue;
                     if (ModrinthVersion[Entry.ModrinthHash]["files"][0]["hashes"]["sha1"].ToString() !=
                         Entry.ModrinthHash) continue;
 
                     var ProjectId = ModrinthVersion[Entry.ModrinthHash]["project_id"].ToString();
                     // 读取已加载的缓存，加快结果出现速度
-                    if (CompProjectCache.ContainsKey(ProjectId) && Entry.Comp == null)
+                    if (CompProjectCache.ContainsKey(ProjectId) && Entry.Comp is null)
                         Entry.Comp = CompProjectCache[ProjectId];
 
                     if (!ModrinthMapping.ContainsKey(ProjectId)) ModrinthMapping[ProjectId] = new List<LocalCompFile>();
@@ -2180,7 +2180,7 @@ public static class ModLocalComp
 
                     // 记录对应的 CompFile
                     var FileInfo = new CompFile((JsonObject)ModrinthVersion[Entry.ModrinthHash], CompType.Mod);
-                    if (Entry.CompFile == null || Entry.CompFile.ReleaseDate < FileInfo.ReleaseDate)
+                    if (Entry.CompFile is null || Entry.CompFile.ReleaseDate < FileInfo.ReleaseDate)
                         Entry.CompFile = FileInfo;
                 }
 
@@ -2212,7 +2212,7 @@ public static class ModLocalComp
 
                 foreach (var Entry in Mods)
                 {
-                    if (ModrinthUpdate[Entry.ModrinthHash] == null || Entry.CompFile == null) continue;
+                    if (ModrinthUpdate[Entry.ModrinthHash] is null || Entry.CompFile is null) continue;
                     var UpdateFile = new CompFile((JsonObject)ModrinthUpdate[Entry.ModrinthHash], CompType.Mod);
                     if (!UpdateFile.Available) continue;
 
@@ -2222,14 +2222,14 @@ public static class ModLocalComp
                         Entry.CompFile.Hash == UpdateFile.Hash) continue;
 
                     // 设置更新日志与更新文件
-                    if (Entry.UpdateFile != null && UpdateFile.Hash == Entry.UpdateFile.Hash)
+                    if (Entry.UpdateFile is not null && UpdateFile.Hash == Entry.UpdateFile.Hash)
                     {
                         Entry.ChangelogUrls.Add(
                             $"https://modrinth.com/mod/{ModrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={McInstance}");
                         Entry.UpdateFile.DownloadUrls.AddRange(UpdateFile.DownloadUrls);
                         Entry.UpdateFile = UpdateFile;
                     }
-                    else if (Entry.UpdateFile == null || UpdateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate)
+                    else if (Entry.UpdateFile is null || UpdateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate)
                     {
                         Entry.ChangelogUrls = new List<string>
                         {
@@ -2290,7 +2290,7 @@ public static class ModLocalComp
         }
 
         // 保存缓存
-        var CachedMods = Mods.Where(m => m.Comp != null).ToList();
+        var CachedMods = Mods.Where(m => m.Comp is not null).ToList();
         ModBase.Log($"[Mod] 联网获取本地 Mod 信息完成，为 {CachedMods.Count} 个 Mod 更新缓存");
         if (!CachedMods.Any()) return;
 

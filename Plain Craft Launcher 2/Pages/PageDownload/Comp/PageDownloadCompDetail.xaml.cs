@@ -291,7 +291,7 @@ public partial class PageDownloadCompDetail
                     // 判断某个版本是否符合资源要求 (局部函数)
                     Func<ModMinecraft.McInstance, bool> IsVersionSuitable = Version =>
                     {
-                        if (Version == null) return false;
+                        if (Version is null) return false;
                         if (!Version.IsLoaded) Version.Load();
 
                         // 只对 Mod 和数据包进行版本检测
@@ -319,7 +319,7 @@ public partial class PageDownloadCompDetail
                             ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
-                    else if (ModMinecraft.McInstanceSelected != null &&
+                    else if (ModMinecraft.McInstanceSelected is not null &&
                              IsVersionSuitable(ModMinecraft.McInstanceSelected))
                     {
                         DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";

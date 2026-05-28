@@ -78,7 +78,7 @@ public partial class MyExtraButton
         set
         {
             _LogoScale = value;
-            if (!(Path == null))
+            if (Path is not null)
                 Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }

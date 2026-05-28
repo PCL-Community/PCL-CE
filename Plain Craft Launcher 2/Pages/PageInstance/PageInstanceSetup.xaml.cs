@@ -1053,7 +1053,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         var checkBox = sender as MyCheckBox;
-        if (checkBox == null) return;
+        if (checkBox is null) return;
     
         if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {

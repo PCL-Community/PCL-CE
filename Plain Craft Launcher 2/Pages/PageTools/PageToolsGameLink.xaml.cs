@@ -193,17 +193,17 @@ public partial class PageToolsGameLink
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
+                    if (e.NewItems is not null)
                         foreach (PlayerProfile player in e.NewItems)
                             StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    if (e.OldItems != null)
+                    if (e.OldItems is not null)
                         foreach (PlayerProfile player in e.OldItems)
                         {
                             var itemToRemove = StackPlayerList.Children.OfType<MyListItem>()
                                 .FirstOrDefault(item => ((PlayerProfile)item.Tag).MachineId == player.MachineId);
-                            if (itemToRemove != null) StackPlayerList.Children.Remove(itemToRemove);
+                            if (itemToRemove is not null) StackPlayerList.Children.Remove(itemToRemove);
                         }
 
                     break;
@@ -241,7 +241,7 @@ public partial class PageToolsGameLink
                     break;
 
                 case NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
+                    if (e.NewItems is not null)
                         foreach (FoundWorld world in e.NewItems)
                             ComboWorldList.Items.Add(new MyComboBoxItem
                             {
@@ -252,7 +252,7 @@ public partial class PageToolsGameLink
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
-                    if (e.OldItems != null)
+                    if (e.OldItems is not null)
                     {
                         // 使用 HashSet 提高查询效率
                         var portsToRemove = e.OldItems.Cast<FoundWorld>().Select(w => w.Port).ToHashSet();
@@ -413,7 +413,7 @@ public partial class PageToolsGameLink
 
                 #endregion
 
-                if (jObj == null) throw new Exception("Failed to fetch lobby data");
+                if (jObj is null) throw new Exception("Failed to fetch lobby data");
 
                 #region 解析基础状态与版本限制
 

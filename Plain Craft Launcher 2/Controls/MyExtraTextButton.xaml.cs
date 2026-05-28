@@ -78,7 +78,7 @@ public partial class MyExtraTextButton
         get => (string)GetValue(TextProperty);
         set
         {
-            if (value == null) return;
+            if (value is null) return;
             SetValue(TextProperty, value);
         }
     }

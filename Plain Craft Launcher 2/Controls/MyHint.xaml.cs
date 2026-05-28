@@ -26,7 +26,7 @@ public partial class MyHint
             (d, e) =>
             {
                 var f = (MyHint)d;
-                f.Theme = e.NewValue != null ? Themes.Red : Themes.Blue;
+                f.Theme = e.NewValue is not null ? Themes.Red : Themes.Blue;
             }));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
@@ -135,7 +135,7 @@ public partial class MyHint
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
     {
         ThemeService.ColorModeChanged += (v, theme) => _ThemeChanged(v, theme);
-        if (CanClose && ConfigService.TryGetConfigItemNoType(RelativeSetup, out var item) && item.GetValueNoType() != null)
+        if (CanClose && ConfigService.TryGetConfigItemNoType(RelativeSetup, out var item) && item.GetValueNoType() is not null)
             Visibility = Visibility.Collapsed;
     }
 
