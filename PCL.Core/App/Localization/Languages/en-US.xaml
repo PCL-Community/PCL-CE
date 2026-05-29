@@ -1045,7 +1045,7 @@
     <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">Select world install location (saves folder)</sys:String>
     <sys:String x:Key="Download.Comp.Detail.WorldFile.Filter">World file|*.zip</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">Select save location</sys:String>
-    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0} file|*.*</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.ResourceFile.Filter">{0} file</sys:String>
     <sys:String x:Key="Download.Comp.Detail.InstanceFilter">Instance: </sys:String>
     <sys:String x:Key="Download.Comp.Detail.LoaderFilter">Mod loader: </sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectedVersion">Selected version: {0}{1}</sys:String>
