@@ -45,7 +45,7 @@ public class RpcProperty
     {
         Name = name;
         GetValue += (out outValue) => { outValue = onGetValue(); };
-        if (onSetValue != null)
+        if (onSetValue is not null)
         {
             SetValue += (value, ref _) => { onSetValue(value); };
         }

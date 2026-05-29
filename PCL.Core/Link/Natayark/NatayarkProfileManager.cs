@@ -37,7 +37,7 @@ public static class NatayarkProfileManager
 
     public static async Task GetNaidDataAsync(string token, bool isRefresh = false, bool isRetry = false, ushort port = 0)
     {
-        if (_getNaidData != null && !_getNaidData.IsCompleted)
+        if (_getNaidData is not null && !_getNaidData.IsCompleted)
         {
             await _getNaidData;
             return;
@@ -69,7 +69,7 @@ public static class NatayarkProfileManager
                 var accessToken = data?["access_token"]?.ToString();
                 var refreshToken = data?["refresh_token"]?.ToString();
 
-                if (data == null || accessToken == null || refreshToken == null)
+                if (data is null || accessToken is null || refreshToken is null)
                     throw new Exception("获取 AccessToken 与 RefreshToken 失败，解析返回内容失败");
 
                 NaidProfile.AccessToken = accessToken;

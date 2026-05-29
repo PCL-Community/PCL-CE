@@ -34,7 +34,7 @@ public sealed partial class ApplicationService
             Context.Warn("已指定强制关闭，跳过 WPF 标准关闭流程");
             return;
         }
-        if (dispatcher == null || dispatcher.HasShutdownFinished) return;
+        if (dispatcher is null || dispatcher.HasShutdownFinished) return;
         using var exited = new ManualResetEventSlim();
         dispatcher.BeginInvoke(DispatcherPriority.Send, () =>
         {

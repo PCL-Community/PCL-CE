@@ -62,7 +62,7 @@ public sealed partial class EventBusService
     {
         if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
-        if (handler == null) throw new ArgumentNullException(nameof(handler));
+        if (handler is null) throw new ArgumentNullException(nameof(handler));
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
@@ -101,7 +101,7 @@ public sealed partial class EventBusService
                 tgt is IDisposable d)
             {
                 // check if any remaining subscription in this channel still references the same owner
-                var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e => e.OwnerRef != null && e.OwnerRef.TryGetTarget(out var other) && ReferenceEquals(other, tgt)));
+                var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e => e.OwnerRef is not null && e.OwnerRef.TryGetTarget(out var other) && ReferenceEquals(other, tgt)));
 
                 if (stillReferenced) return;
 
@@ -130,7 +130,7 @@ public sealed partial class EventBusService
     {
         if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
-        if (handler == null) throw new ArgumentNullException(nameof(handler));
+        if (handler is null) throw new ArgumentNullException(nameof(handler));
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {

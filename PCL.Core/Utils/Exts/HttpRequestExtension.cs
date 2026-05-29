@@ -18,7 +18,7 @@ public static class HttpRequestExtension
             VersionPolicy = request.VersionPolicy
         };
 
-        if (request.Content != null)
+        if (request.Content is not null)
         {
             clone.Content = await request.Content._DeepCloneAsync().ConfigureAwait(false);
         }

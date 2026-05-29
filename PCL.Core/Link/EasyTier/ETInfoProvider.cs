@@ -97,17 +97,17 @@ public static class ETInfoProvider
     {
         var retryCount = 0;
         var process = ETController.ETProcess;
-        while (process == null && retryCount < 10)
+        while (process is null && retryCount < 10)
         {
             await Task.Delay(1000);
             retryCount++;
         }
-        if (process != null)
+        if (process is not null)
         {
             while (ETController.Status != ETState.Ready)
             {
                 var info = GetPlayerList().Item1?[0];
-                if (info == null)
+                if (info is null)
                 {
                     await Task.Delay(1000);
                     continue;
@@ -147,7 +147,7 @@ public static class ETInfoProvider
             foreach (var p in json)
             {
                 var info = p.Deserialize<ETPeerInfo>();
-                if (info == null) { continue; }
+                if (info is null) { continue; }
                 if (info.Hostname.StartsWith("PublicServer")) { continue; } // 服务器
                 var hostnameSplit = info.Hostname.Split('|');
                 var playerInfo = new ETPlayerInfo

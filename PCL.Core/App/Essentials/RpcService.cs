@@ -49,7 +49,7 @@ public sealed partial class RpcService
     [LifecycleStop]
     private async Task _Stop()
     {
-        if (_pipe != null) await _pipe.DisposeAsync();
+        if (_pipe is not null) await _pipe.DisposeAsync();
     }
 
     [LifecycleDependencyInjection("rpc-function", AttributeTargets.Method)]

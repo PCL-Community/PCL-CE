@@ -132,7 +132,7 @@ public class SemVer(int major, int minor, int patch, string? prerelease = null, 
 
     public bool Equals(SemVer? other)
     {
-        return other != null &&
+        return other is not null &&
                Major == other.Major &&
                Minor == other.Minor &&
                Patch == other.Patch &&
@@ -164,9 +164,9 @@ public class SemVer(int major, int minor, int patch, string? prerelease = null, 
 
     public static bool operator !=(SemVer? left, SemVer? right) => !(left == right);
     public static bool operator <(SemVer? left, SemVer? right) =>
-        left is null ? right != null : left.CompareTo(right) < 0;
+        left is null ? right is not null : left.CompareTo(right) < 0;
     public static bool operator >(SemVer? left, SemVer? right) =>
-        left != null && left.CompareTo(right) > 0;
+        left is not null && left.CompareTo(right) > 0;
     public static bool operator <=(SemVer? left, SemVer? right) =>
         left is null || left.CompareTo(right) <= 0;
     public static bool operator >=(SemVer? left, SemVer? right) =>

@@ -112,10 +112,10 @@ public class ConfigItem<TValue>(
             exists = _Provider.GetValue(Key, out value, argument);
         }
         var e = _TriggerEvent(ConfigEvent.Get, argument, value, true);
-        if (e != null)
+        if (e is not null)
         {
             if (e.Cancelled) return DefaultValue;
-            if (e.NewValueReplacement != null) return (TValue)e.NewValueReplacement;
+            if (e.NewValueReplacement is not null) return (TValue)e.NewValueReplacement;
         }
         if (!exists) value = DefaultValue;
         if (newValue) _ProcessNewCache(value!, argument);
@@ -138,10 +138,10 @@ public class ConfigItem<TValue>(
     public bool SetValue(TValue value, object? argument = null, bool forceNewValue = false, bool bypassCache = false)
     {
         var e = _TriggerEvent(ConfigEvent.Set, argument, value, isPreview: true);
-        if (e != null)
+        if (e is not null)
         {
             if (e.Cancelled) return false;
-            if (e.NewValueReplacement != null) value = (TValue)e.NewValueReplacement;
+            if (e.NewValueReplacement is not null) value = (TValue)e.NewValueReplacement;
         }
         if (bypassCache || _ProcessNewCache(value, argument, forceNewValue))
             _Provider.SetValue(Key, value, argument);
@@ -229,22 +229,22 @@ public class ConfigItem<TValue>(
             where logic > 0
             select observer
         )) {
-            if (e == null)
+            if (e is null)
             {
                 if (isPreview == false && !bypassOldValue) bypassOldValue = true;
                 var currentValue = (fillNewValue || !bypassOldValue) ? _GetValueOrNull(argument) : null;
-                if (newValue == null && fillNewValue) newValue = currentValue ?? DefaultValue;
+                if (newValue is null && fillNewValue) newValue = currentValue ?? DefaultValue;
                 e = new ConfigEventArgs(this, trigger, argument, bypassOldValue ? null : currentValue, newValue);
             }
             observer.Handler(e);
             // 对 preview 的特殊处理
             if (observer.IsPreview)
             {
-                if (e.NewValueReplacement != null) replaceNewValue = true; // 记录替换操作
+                if (e.NewValueReplacement is not null) replaceNewValue = true; // 记录替换操作
                 if (e.Cancelled) return e;
             }
             // 防止非 preview 事件传递替换值
-            else if (!replaceNewValue && e.NewValueReplacement != null) e.NewValueReplacement = null;
+            else if (!replaceNewValue && e.NewValueReplacement is not null) e.NewValueReplacement = null;
         }
         // 防止非 preview 事件传递取消状态
         if (e is { Cancelled: true }) e.Cancelled = false;

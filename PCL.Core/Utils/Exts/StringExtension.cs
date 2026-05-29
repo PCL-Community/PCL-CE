@@ -21,7 +21,7 @@ public static class StringConvertExtension
 
         if (value is null)
         {
-            if (!targetType.IsValueType || Nullable.GetUnderlyingType(targetType) != null) return null;
+            if (!targetType.IsValueType || Nullable.GetUnderlyingType(targetType) is not null) return null;
             return Activator.CreateInstance(targetType);
         }
 
@@ -62,7 +62,7 @@ public static class StringExtension
 {
     public static string? ConvertToString(object? obj)
     {
-        if (obj == null) return null;
+        if (obj is null) return null;
         if (obj is string s) return s;
 
         var converter = TypeDescriptor.GetConverter(obj.GetType());
@@ -228,7 +228,7 @@ public static class StringExtension
         /// <returns>替换后的文本</returns>
         [return: NotNullIfNotNull(nameof(input))]
         public string? Replace(Regex regex, string replacement)
-            => input == null ? null : regex.Replace(input, replacement);
+            => input is null ? null : regex.Replace(input, replacement);
 
         /// <summary>
         /// 判断指定文本是否能成功匹配正则表达式。
@@ -236,7 +236,7 @@ public static class StringExtension
         /// <param name="regex">正则表达式</param>
         /// <returns>若匹配成功则为 <c>true</c>，若文本为 <c>null</c> 或匹配不成功则为 <c>false</c></returns>
         public bool IsMatch(Regex regex)
-            => input != null && regex.IsMatch(input);
+            => input is not null && regex.IsMatch(input);
     }
 
     extension(string str)
