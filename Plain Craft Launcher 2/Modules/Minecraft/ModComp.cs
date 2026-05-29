@@ -2860,6 +2860,7 @@ public static class ModComp
                     {
                         RawDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "required" &&
+                                        d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
                                         (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为必要依赖
@@ -2867,6 +2868,7 @@ public static class ModComp
                         // 有时候真的会空……
                         RawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "optional" &&
+                                        d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
                                         (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为可选依赖
