@@ -557,6 +557,7 @@ public class ModSetup
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI is not null) 
+                {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
