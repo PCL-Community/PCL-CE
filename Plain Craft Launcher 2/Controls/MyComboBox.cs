@@ -204,7 +204,7 @@ public class MyComboBox : ComboBox
     {
         if (IsTextChanging || !IsEditable)
             return;
-        if (SelectedItem == null || Text == SelectedItem.ToString()) return;
+        if (SelectedItem is null || Text == SelectedItem.ToString()) return;
         {
             var RawText = Text;
             var RawSelectionStart = TextBox.SelectionStart;

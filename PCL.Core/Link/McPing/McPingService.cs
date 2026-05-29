@@ -144,7 +144,7 @@ public class McPingService : IMcPingService
         }
 
         var response = JsonSerializer.Deserialize<McPingResult>(retJson);
-        if (response?.Version == null)
+        if (response?.Version is null)
             throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
 
         response = response with
@@ -273,7 +273,7 @@ public class McPingService : IMcPingService
 
     private static string _ConvertJNodeToMcString(JsonNode? jsonNode)
     {
-        if (jsonNode == null) return string.Empty;
+        if (jsonNode is null) return string.Empty;
         StringBuilder result = new();
         Stack<JsonNode> stack = new();
         stack.Push(jsonNode);
@@ -293,7 +293,7 @@ public class McPingService : IMcPingService
                         if (obj.TryGetPropertyValue("extra", out var extraNode) && extraNode is JsonArray extraArray)
                             // 逆序压栈保证原始顺序
                             for (var i = extraArray.Count - 1; i >= 0; i--)
-                                if (extraArray[i] != null)
+                                if (extraArray[i] is not null)
                                     stack.Push(extraArray[i]!);
                         // 检查并处理 text 属性
                         if (obj.TryGetPropertyValue("text", out _))
@@ -325,7 +325,7 @@ public class McPingService : IMcPingService
                         var jArr = current.AsArray();
                         // LogWrapper.Debug("McPing",$"Treat {array} as JArray");
                         for (var i = jArr.Count - 1; i >= 0; i--)
-                            if (jArr[i] != null)
+                            if (jArr[i] is not null)
                                 stack.Push(jArr[i]!);
                         break;
                     }

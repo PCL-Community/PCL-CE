@@ -49,7 +49,7 @@ public partial class PageSelectLeft : IRefreshable
         try
         {
             // 确认数据有变化
-            if (McFolderListLast != null && McFolderListLast.SequenceEqual(ModMinecraft.McFolderList))
+            if (McFolderListLast is not null && McFolderListLast.SequenceEqual(ModMinecraft.McFolderList))
                 return;
 
             McFolderListLast = new List<ModMinecraft.McFolder>(ModMinecraft.McFolderList);
@@ -84,7 +84,7 @@ public partial class PageSelectLeft : IRefreshable
                         Icon = icon,
                         Padding = padding ?? new Thickness(0)
                     };
-                    if (clickHandler != null)
+                    if (clickHandler is not null)
                         item.Click += clickHandler;
                     contMenu.Items.Add(item);
                 }

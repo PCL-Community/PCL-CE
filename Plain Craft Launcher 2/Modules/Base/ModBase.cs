@@ -324,18 +324,18 @@ public static class ModBase
 
         public static bool operator ==(MyColor a, MyColor b)
         {
-            if (a == null && b == null)
+            if (a is null && b is null)
                 return true;
-            if (a == null || b == null)
+            if (a is null || b is null)
                 return false;
             return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
         }
 
         public static bool operator !=(MyColor a, MyColor b)
         {
-            if (a == null && b == null)
+            if (a is null && b is null)
                 return false;
-            if (a == null || b == null)
+            if (a is null || b is null)
                 return true;
             return !(a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B);
         }
@@ -3209,7 +3209,7 @@ public static class ModBase
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(Width)), (int)Math.Round(GetPixelSize(Height)),
             DPI, DPI, PixelFormats.Default);
         bmp.Render(UI);
-        if (!(Left == 0d && Top == 0d))
+        if (Left != 0d || Top != 0d)
             UI.Arrange(new Rect(Left, Top, Width, Height));
         return new ImageBrush(bmp);
     }
@@ -3763,7 +3763,7 @@ public class InverseBooleanConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value == null) return false;
+        if (value is null) return false;
 
         if (bool.TryParse(value.ToString(), out var result)) return !result;
 

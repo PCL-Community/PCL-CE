@@ -40,7 +40,7 @@ public class LogService : ILifecycleLogService
     public async Task StopAsync()
     {
         if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
-        if (_logger != null)
+        if (_logger is not null)
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
@@ -67,10 +67,10 @@ public class LogService : ILifecycleLogService
         // message box
         else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
         {
-            var caption = (ex == null) ? null : "出现异常";
+            var caption = (ex is null) ? null : "出现异常";
             var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
             var message = plain;
-            if (ex != null)
+            if (ex is not null)
                 message += $"\n\n详细信息:\n{ex}";
             if (actionLevel == ActionLevel.MsgBoxErr)
                 message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
@@ -82,7 +82,7 @@ public class LogService : ILifecycleLogService
         else if (actionLevel == ActionLevel.MsgBoxFatal)
         {
             var message = plain;
-            if (ex != null) message += $"\n\n相关异常信息:\n{ex}";
+            if (ex is not null) message += $"\n\n相关异常信息:\n{ex}";
             message += "\n\n如果你认为这是启动器的问题，请提交反馈，否则它可能永远都不会被解决！\n导出日志: 设置 → 查看日志 → 导出全部日志";
             MessageBox.Show(message, "锟斤拷烫烫烫", MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -91,9 +91,9 @@ public class LogService : ILifecycleLogService
     private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
     {
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
-        if (module != null) module = $"[{module}] ";
+        if (module is not null) module = $"[{module}] ";
         var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(level, level.DefaultActionLevel(), (ex == null) ? result : $"{result}\n{ex}", msg, ex);
+        _LogAction(level, level.DefaultActionLevel(), (ex is null) ? result : $"{result}\n{ex}", msg, ex);
     }
 
     public void OnLog(LifecycleLogItem item) =>

@@ -45,7 +45,7 @@ public class CompositeEasing : Easing
     /// <param name="easings">参数元组：(缓动逻辑, 持续时长, 延迟时间, 权重)</param>
     public CompositeEasing(params (IEasing easing, TimeSpan duration, TimeSpan delay, double weight)[] easings)
     {
-        if (easings == null || easings.Length == 0)
+        if (easings is null || easings.Length == 0)
             throw new ArgumentException("至少需要一个缓动", nameof(easings));
 
         _easings = new List<(IEasing, TimeSpan, TimeSpan, double)>(easings.Length);

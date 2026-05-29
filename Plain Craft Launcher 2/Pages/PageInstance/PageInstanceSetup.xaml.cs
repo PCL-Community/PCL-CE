@@ -650,7 +650,7 @@ public partial class PageInstanceSetup
 
         CardServer.TriggerForceResize();
         // 避免正版验证和离线验证出现此提示
-        if (!(Type == 2 || Type == 3))
+        if (Type != 2 && Type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
@@ -1053,7 +1053,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         var checkBox = sender as MyCheckBox;
-        if (checkBox == null) return;
+        if (checkBox is null) return;
     
         if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {

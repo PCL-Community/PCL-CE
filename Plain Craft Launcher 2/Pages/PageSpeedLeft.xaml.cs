@@ -51,7 +51,7 @@ public partial class PageSpeedLeft
 
     private void Watcher()
     {
-        if (!(ModMain.FrmMain.PageCurrent == FormMain.PageType.TaskManager))
+        if (ModMain.FrmMain.PageCurrent != FormMain.PageType.TaskManager)
             return;
         try
         {

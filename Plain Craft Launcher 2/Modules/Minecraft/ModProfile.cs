@@ -136,7 +136,7 @@ public static class ModProfile
             ProfileLog("无旧版第三方验证档案信息");
         }
 
-        if (!(profileCount == 0))
+        if (profileCount > 0)
             ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.AutoMigrate", profileCount));
         ProfileLog("档案迁移结束");
     }
@@ -193,7 +193,7 @@ public static class ModProfile
         }
 
         // 写入缓存
-        if (!((uuid?.Length ?? 0) == 32))
+        if ((uuid?.Length ?? 0) != 32)
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
         ModBase.WriteIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;

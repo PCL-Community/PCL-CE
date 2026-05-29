@@ -108,7 +108,7 @@ public partial class PageToolsHelp : IRefreshable
     {
         ModBase.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
                 ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
             var Entry = new ModMain.HelpEntry(Location);
             ModBase.RunInUi(() =>
@@ -127,7 +127,7 @@ public partial class PageToolsHelp : IRefreshable
     {
         ModBase.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
                 ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
             ModBase.RunInUi(() =>
             {
@@ -143,7 +143,7 @@ public partial class PageToolsHelp : IRefreshable
 
     public static PageOtherHelpDetail GetHelpPage(string Location)
     {
-        if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+        if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
             ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
         var FrmHelpDetail = new PageOtherHelpDetail();
         if (FrmHelpDetail.Init(new ModMain.HelpEntry(Location))) return FrmHelpDetail;

@@ -125,7 +125,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                     entry ??= zip.Entries
                         .FirstOrDefault(x => x.Name.Contains(".exe"));
 
-                    if (entry == null)
+                    if (entry is null)
                         throw new Exception("找不到更新文件");
 
                     // 解压到指定文件（覆盖已存在文件）

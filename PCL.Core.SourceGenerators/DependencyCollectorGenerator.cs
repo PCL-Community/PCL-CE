@@ -53,10 +53,10 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                     foreach (var attrData in ctx.Attributes)
                     {
                         var attrClass = attrData.AttributeClass;
-                        if (attrClass == null || attrClass.GetSimplifiedTypeName() != collectorMarkupAttr) continue;
+                        if (attrClass is null || attrClass.GetSimplifiedTypeName() != collectorMarkupAttr) continue;
                         // 收集注解信息
                         var dependencyType = attrClass.TypeArguments.FirstOrDefault();
-                        if (dependencyType == null) continue;
+                        if (dependencyType is null) continue;
                         var ctorArgs = attrData.ConstructorArguments;
                         if (ctorArgs.Length < 2
                             || ctorArgs[0].Value is not string identifier
@@ -66,7 +66,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                     }
                     return new KeyValuePair<INamedTypeSymbol, List<CollectorInfo>>(attr, infos);
                 })
-            .Where(x => x.Key != null)
+            .Where(x => x.Key is not null)
             .Collect()
             // 此处合并到 dictionary 以优化后续查找性能
             .Select(static (pairs, _) =>
@@ -100,7 +100,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                 var (ctx, validAttrs) = pair;
                 // 从 syntax node 获取对应语义 symbol
                 var symbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.Node, cancelToken);
-                if (symbol == null) return [];
+                if (symbol is null) return [];
                 // 确定目标类型
                 AttributeTargets targetType = default;
                 if (symbol is INamedTypeSymbol) targetType = AttributeTargets.Class;
@@ -111,7 +111,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                 foreach (var attrData in symbol.GetAttributes())
                 {
                     var attr = attrData.AttributeClass;
-                    if (attr == null) continue;
+                    if (attr is null) continue;
                     if (!validAttrs.TryGetValue(attr, out var infos)) continue;
                     results.AddRange(
                         from info in infos
@@ -133,7 +133,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                     var attr = ctx.Attributes.First(x => x.AttributeClass?.GetSimplifiedTypeName() == injectionPointAttr);
                     var attrArgs = attr.ConstructorArguments;
                     var identifier = attrArgs[0].Value?.ToString();
-                    return identifier == null ? default : new InjectionPointInfo(method, identifier);
+                    return identifier is null ? default : new InjectionPointInfo(method, identifier);
                 })
             .Where(x => x != default);
 
@@ -222,7 +222,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                 argTypeList ??= ((Func<string>)(() =>
                 {
                     var ctor = info.CollectorAttrSymbol.InstanceConstructors.FirstOrDefault();
-                    if (ctor == null) return string.Empty;
+                    if (ctor is null) return string.Empty;
                     var args = ctor.Parameters.Select(para => para.Type.GetFullyQualifiedName()).ToList();
                     var cnt = args.Count;
                     if (cnt == 0) return string.Empty;

@@ -55,14 +55,14 @@ public sealed class Logger : IAsyncDisposable
 
         _ = Task.Run(async () =>
         {
-            if (lastWriter != null)
+            if (lastWriter is not null)
                 try
                 {
                     await lastWriter.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception) { /* Don't care */ }
 
-            if (lastFile != null)
+            if (lastFile is not null)
                 try
                 {
                     await lastFile.DisposeAsync().ConfigureAwait(false);
@@ -185,9 +185,9 @@ public sealed class Logger : IAsyncDisposable
         _logChannel.Writer.Complete();
         await _processingTask.ConfigureAwait(false);
 
-        if (_currentStream != null)
+        if (_currentStream is not null)
             await _currentStream.DisposeAsync().ConfigureAwait(false);
-        if (_currentFile != null)
+        if (_currentFile is not null)
             await _currentFile.DisposeAsync().ConfigureAwait(false);
     }
 }

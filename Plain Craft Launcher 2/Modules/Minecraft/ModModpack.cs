@@ -998,7 +998,7 @@ public static class ModModpack
         }
 
         // 获取实例名
-        if (InstanceName == null)
+        if (InstanceName is null)
         {
             InstanceName = Json["name"]?.ToString() ?? "";
             var Validate = new FolderNameValidator(Path.Combine(ModMinecraft.McFolderSelected, "versions"));
@@ -1028,7 +1028,7 @@ public static class ModModpack
                 Task, 0.4);
 
             // JVM 参数处理
-            if (Json["launchInfo"] != null)
+            if (Json["launchInfo"] is not null)
             {
                 var LaunchInfo = (JsonObject)Json["launchInfo"];
                 Config.Instance.JvmArgs[VersionFolder] = string.Join(" ", LaunchInfo["javaArgument"]);
@@ -1036,7 +1036,7 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (Json["version"] != null) States.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
+            if (Json["version"] is not null) States.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
         });
 
         unzipTask.ProgressWeight = new FileInfo(FileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
@@ -1044,7 +1044,7 @@ public static class ModModpack
         InstallLoaders.Add(unzipTask);
 
         // 构造加载器
-        if (Json["addons"] == null)
+        if (Json["addons"] is null)
             throw new Exception(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons"));
 
         var Addons = new Dictionary<string, string>();

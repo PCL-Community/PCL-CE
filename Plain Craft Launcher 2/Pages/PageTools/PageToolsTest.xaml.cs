@@ -178,7 +178,7 @@ public partial class PageToolsTest
     {
         ModBase.RunInUi(() =>
         {
-            if (!(ModMain.FrmToolsTest == null) && !(ModMain.FrmToolsTest.BtnClear == null))
+            if (ModMain.FrmToolsTest is not null && ModMain.FrmToolsTest.BtnClear is not null)
                 ModMain.FrmToolsTest.BtnClear.IsEnabled = false;
         });
         // 只有当没有运行中的Minecraft游戏且启动器不在加载状态时才能清理
@@ -284,7 +284,7 @@ public partial class PageToolsTest
             {
                 ModBase.RunInUiWait(() =>
                 {
-                    if (!(ModMain.FrmToolsTest == null) && !(ModMain.FrmToolsTest.BtnClear == null))
+                    if (ModMain.FrmToolsTest is not null && ModMain.FrmToolsTest.BtnClear is not null)
                         ModMain.FrmToolsTest.BtnClear.IsEnabled = true;
                 });
             }

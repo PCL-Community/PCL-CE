@@ -35,7 +35,7 @@ public static class SharedExtensions
         public bool IsNestedWithin(INamedTypeSymbol potentialContainer)
         {
             var t = type.ContainingType;
-            while (t != null)
+            while (t is not null)
             {
                 if (SymbolEqualityComparer.Default.Equals(t, potentialContainer))
                     return true;
@@ -47,7 +47,7 @@ public static class SharedExtensions
         public bool IsAttribute()
         {
             var baseType = type.BaseType;
-            while (baseType != null)
+            while (baseType is not null)
             {
                 if (baseType.ToDisplayString() == "System.Attribute") return true;
                 baseType = baseType.BaseType;
@@ -58,7 +58,7 @@ public static class SharedExtensions
         public int GenerateTypeHeader(StringBuilder sb)
         {
             var ctnTypes = new Stack<INamedTypeSymbol>();
-            for (var ctnType = type.ContainingType; ctnType != null; ctnType = ctnType.ContainingType) ctnTypes.Push(ctnType);
+            for (var ctnType = type.ContainingType; ctnType is not null; ctnType = ctnType.ContainingType) ctnTypes.Push(ctnType);
             // namespace
             var ns = type.ContainingNamespace?.ToDisplayString();
             var indent = 0;
@@ -90,7 +90,7 @@ public static class SharedExtensions
         if (expr is TypeOfExpressionSyntax toe)
         {
             var type = sm.GetTypeInfo(toe.Type).Type;
-            if (type != null)
+            if (type is not null)
                 return "typeof(" + type.GetFullyQualifiedName() + ")";
             return expr.ToString();
         }
@@ -103,7 +103,7 @@ public static class SharedExtensions
         {
             var targetExpr = inv.ArgumentList.Arguments[0].Expression;
             var sym = sm.GetSymbolInfo(targetExpr).Symbol;
-            if (sym != null)
+            if (sym is not null)
             {
                 return "nameof(" + sym.GetQualifiedSymbolName() + ")";
             }
@@ -136,7 +136,7 @@ public static class SharedExtensions
             var parts = new Stack<string>();
             parts.Push(symbol.Name);
             var t = symbol.ContainingType;
-            while (t != null)
+            while (t is not null)
             {
                 parts.Push(t.Name);
                 t = t.ContainingType;

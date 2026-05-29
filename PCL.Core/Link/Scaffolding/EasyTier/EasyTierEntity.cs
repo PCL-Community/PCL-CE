@@ -515,7 +515,7 @@ public class EasyTierEntity
                 LogWrapper.Debug("Et Cli", "Getting player info.");
 
                 var info = arr.Deserialize<ETPeerInfo>();
-                if (info == null)
+                if (info is null)
                 {
                     LogWrapper.Debug("Et Cli", "Player info is null.");
                     continue;

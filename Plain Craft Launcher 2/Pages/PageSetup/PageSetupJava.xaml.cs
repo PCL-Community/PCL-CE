@@ -162,7 +162,7 @@ public partial class PageSetupJava
             try
             {
                 var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
-                if (target == null)
+                if (target is null)
                 {
                     ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                     return;

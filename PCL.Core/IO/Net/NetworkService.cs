@@ -1,18 +1,22 @@
-using System;
-using System.Net;
-using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.IO.Net.Http.Cache;
 using PCL.Core.Logging;
 using Polly;
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
 
 namespace PCL.Core.IO.Net;
 
 [LifecycleService(LifecycleState.Loading)]
 [LifecycleScope("network", "网络服务")]
-public partial class NetworkService {
+public partial class NetworkService
+{
+    private static HttpCacheRepository _repo = new(Path.Combine(Paths.Temp, "cache", "cache.db"), Path.Combine(Paths.Temp, "cache"));
 
     private static ServiceProvider? _provider;
     private static IHttpClientFactory? _factory;
@@ -20,6 +24,7 @@ public partial class NetworkService {
     [LifecycleStart]
     private static void _Start()
     {
+        _repo.Initialize();
         var services = new ServiceCollection();
         services.AddHttpClient("default")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
@@ -35,14 +40,29 @@ public partial class NetworkService {
                     : null
             }
         );
+        services.AddHttpClient("cache").ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
+            new SocketsHttpHandler
+            {
+                UseProxy = true,
+                UseCookies = false,
+                AutomaticDecompression = DecompressionMethods.All,
+                Proxy = HttpProxyManager.Instance,
+                AllowAutoRedirect = true,
+                MaxAutomaticRedirections = 20,
+                ConnectCallback = Config.Network.EnableDoH
+                ? HostConnectionHandler.Instance.GetConnectionAsync
+                : null
+            }, _repo));
+
 
         _provider = services.BuildServiceProvider();
         _factory = _provider.GetRequiredService<IHttpClientFactory>();
-        
+
     }
 
     [LifecycleStop]
-    private static void _Stop() {
+    private static void _Stop()
+    {
         _provider?.Dispose();
     }
 
@@ -72,7 +92,7 @@ public partial class NetworkService {
     /// <param name="retry">最大重试次数</param>
     /// <param name="retryPolicy">定义重试器行为</param>
     /// <returns>AsyncPolicy</returns>
-    public static AsyncPolicy GetRetryPolicy(int retry = 3, Func<int,TimeSpan>? retryPolicy = null)
+    public static AsyncPolicy GetRetryPolicy(int retry = 3, Func<int, TimeSpan>? retryPolicy = null)
     {
         retryPolicy ??= _DefaultSleepDurationProvider;
 

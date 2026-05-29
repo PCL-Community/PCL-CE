@@ -65,11 +65,11 @@ public static class ModLaunch
         else if (ModMinecraft.McInstanceSelected.Info.HasLabyMod ||
                  Config.InstanceAuth.LoginRequirementSolution[ModMinecraft.McInstanceSelected?.PathInstance] == 1) // 要求正版验证
         {
-            if (!(ModProfile.SelectedProfile.Type == McLoginType.Ms)) CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoft");
+            if (ModProfile.SelectedProfile.Type != McLoginType.Ms) CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoft");
         }
         else if (Config.InstanceAuth.LoginRequirementSolution[ModMinecraft.McInstanceSelected?.PathInstance] == 2) // 要求第三方验证
         {
-            if (!(ModProfile.SelectedProfile.Type == McLoginType.Auth))
+            if (ModProfile.SelectedProfile.Type != McLoginType.Auth)
                 CheckResult = Lang.Text("Minecraft.Launch.Precheck.RequireThirdParty");
             else if (ModProfile.SelectedProfile.Server.BeforeLast("/authserver") !=
                      Config.InstanceAuth.AuthServerAddress[ModMinecraft.McInstanceSelected?.PathInstance])
@@ -89,7 +89,7 @@ public static class ModLaunch
             throw new ArgumentException(CheckResult);
 
 #if BETA
-        if (CurrentLaunchOptions?.SaveBatch == null) // 保存脚本时不提示
+        if (CurrentLaunchOptions?.SaveBatch is null) // 保存脚本时不提示
         {
             ModBase.RunInNewThread(() =>
             {
@@ -411,7 +411,7 @@ public static class ModLaunch
                 {
                     // 若有以 $ 开头的错误信息，则以此为准显示提示
                     // 若错误信息为 $$，则不提示
-                    if (!(CurrentEx.Message == "$$"))
+                    if (CurrentEx.Message != "$$")
                         ModMain.MyMsgBox(CurrentEx.Message.TrimStart('$'),
                             CurrentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
                     throw;
@@ -3078,7 +3078,7 @@ public static class ModLaunch
             try
             {
                 // 确保可用
-                if (!(McLoginLoader.Output.Type == "Microsoft"))
+                if (McLoginLoader.Output.Type != "Microsoft")
                     break;
                 ModMinecraft.McFolderLauncherProfilesJsonCreate(ModMinecraft.McFolderSelected);
                 // 构建需要替换的 Json 对象

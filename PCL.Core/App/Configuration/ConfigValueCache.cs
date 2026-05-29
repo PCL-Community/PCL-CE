@@ -16,7 +16,7 @@ public struct ConfigValueCache<TValue>()
     /// <param name="argument">上下文参数</param>
     public bool Exists(object? argument = null)
     {
-        return (argument == null) ? _hasCachedValue : _cacheWithContext.ContainsKey(argument);
+        return (argument is null) ? _hasCachedValue : _cacheWithContext.ContainsKey(argument);
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public struct ConfigValueCache<TValue>()
         object? argument = null)
     {
         bool result;
-        if (argument != null) result = _cacheWithContext.TryGetValue(argument, out value);
+        if (argument is not null) result = _cacheWithContext.TryGetValue(argument, out value);
         else
         {
             if (_hasCachedValue)
@@ -54,7 +54,7 @@ public struct ConfigValueCache<TValue>()
     /// <param name="argument">上下文参数</param>
     public void Write(TValue value, object? argument = null)
     {
-        if (argument != null)
+        if (argument is not null)
         {
             _cacheWithContext[argument] = value;
             return;
@@ -70,7 +70,7 @@ public struct ConfigValueCache<TValue>()
     /// <param name="argument">上下文参数</param>
     public bool Invalidate(object? argument)
     {
-        if (argument != null) return _cacheWithContext.TryRemove(argument, out _);
+        if (argument is not null) return _cacheWithContext.TryRemove(argument, out _);
         if (!_hasCachedValue) return false;
         _cachedValue = default;
         _hasCachedValue = false;

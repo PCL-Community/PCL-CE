@@ -159,14 +159,14 @@ public partial class MyLoading
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (__State != null)
+            if (__State is not null)
             {
                 __State.ProgressChanged -= (_, _) => RefreshText();
                 __State.LoadingStateChanged -= (_, _) => RefreshState();
             }
 
             __State = value;
-            if (__State != null)
+            if (__State is not null)
             {
                 __State.ProgressChanged += (_, _) => RefreshText();
                 __State.LoadingStateChanged += (_, _) => RefreshState();

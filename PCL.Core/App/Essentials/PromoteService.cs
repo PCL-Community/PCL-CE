@@ -37,7 +37,7 @@ public sealed partial class PromoteService
     /// <summary>
     /// 提权进程是否正在运行。
     /// </summary>
-    public static bool IsPromoteProcessRunning => _promoteProcess != null;
+    public static bool IsPromoteProcessRunning => _promoteProcess is not null;
     
     /// <summary>
     /// 当前进程是否是提权进程。
@@ -70,7 +70,7 @@ public sealed partial class PromoteService
     {
         return AddOperationFunction(name, arg =>
         {
-            if (arg == null) return OperationErrEmpty;
+            if (arg is null) return OperationErrEmpty;
             var obj = JsonSerializer.Deserialize<TValue>(arg);
             return operation(obj);
         });
@@ -90,7 +90,7 @@ public sealed partial class PromoteService
         {
             var split = command.Split([' '], 2);
             _OperationFunctions.TryGetValue(split[0], out var operation);
-            if (operation == null) return OperationErrNotFound;
+            if (operation is null) return OperationErrNotFound;
             try
             {
                 return operation(split.Length > 1 ? split[1] : null) ?? OperationErrEmpty;
@@ -169,7 +169,7 @@ public sealed partial class PromoteService
             writer.WriteLine(command);
             writer.Flush();
             var result = reader.ReadLine();
-            if (result == null)
+            if (result is null)
             {
                 Context.Warn("管道输入流已结束");
                 break;
@@ -188,7 +188,7 @@ public sealed partial class PromoteService
         // 启动提权进程
         _promoteProcess = ProcessInterop.Start(
             Basics.ExecutablePath, $"promote {Basics.CurrentProcessId}", true);
-        if (_promoteProcess == null)
+        if (_promoteProcess is null)
         {
             Context.Warn("提权进程启动失败");
             return false;
@@ -235,7 +235,7 @@ public sealed partial class PromoteService
     [PromoteOperation("kill")]
     public static string? KillProcess(string? arg)
     {
-        if (arg == null) return OperationErrInvalidArgument;
+        if (arg is null) return OperationErrInvalidArgument;
         var split = arg.Split(' ');
         if (!_RunningProcesses.TryGetValue(split[0], out var process)) return null;
         process.Kill();
@@ -254,7 +254,7 @@ public sealed partial class PromoteService
     [PromoteOperation("start")]
     public static string? StartProcess(string? arg)
     {
-        if (arg == null) return OperationErrInvalidArgument;
+        if (arg is null) return OperationErrInvalidArgument;
         var split = arg.Split([" ; "], 2, StringSplitOptions.RemoveEmptyEntries);
         var createNoWindow = false;
         if (split[0].EndsWith('.'))
@@ -280,9 +280,9 @@ public sealed partial class PromoteService
     // return: process id
     private static string? _StartProcessWithInfo(ProcessStartInfo? info)
     {
-        if (info == null) return OperationErrInvalidArgument;
+        if (info is null) return OperationErrInvalidArgument;
         var process = Process.Start(info);
-        if (process == null) return null;
+        if (process is null) return null;
         var id = process.Id.ToString();
         process.Exited += (_, _) => _RunningProcesses.Remove(id);
         _RunningProcesses[id] = process;
@@ -325,12 +325,12 @@ public sealed partial class PromoteService
     [LifecycleStop]
     private static void _Stop()
     {
-        if (_promotePipeServer != null)
+        if (_promotePipeServer is not null)
         {
             Context.Debug("正在结束提权管道服务");
             _promotePipeServer.Dispose();
         }
-        if (_promoteProcess != null && !_promoteProcess.WaitForExit(3000))
+        if (_promoteProcess is not null && !_promoteProcess.WaitForExit(3000))
         {
             Context.Debug("正在结束提权进程");
             ProcessInterop.Kill(_promoteProcess, 0, true);
