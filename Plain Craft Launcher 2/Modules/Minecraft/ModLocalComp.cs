@@ -2005,7 +2005,7 @@ public static class ModLocalComp
                         foreach (var File in ModBase.EnumerateFiles(Loader.Input.CompPath))
                             try
                             {
-                                if ((File.DirectoryName.ToLower() + @"\" ?? "") != (RawName ?? ""))
+                                if ((File.DirectoryName.ToLower() ?? "") != (RawName.TrimEnd('\\') ?? ""))
                                     if (!(PageInstanceLeft.Instance is not null &&
                                           PageInstanceLeft.Instance.Info.HasForge &&
                                           PageInstanceLeft.Instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
