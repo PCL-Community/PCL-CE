@@ -2332,7 +2332,7 @@ public static class ModBase
 
         if (PathTemp.IsASCII()) return PathTemp;
 
-        return SystemPaths.DriveLetter + @"ProgramData\PCL\";
+        return Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL");
     }
 
     /// <summary>

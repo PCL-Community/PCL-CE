@@ -25,13 +25,7 @@ public static class HardwareInfo
     /// </summary>
     public static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 
-    public class GPUInfo
-    {
-        public string Name { get; init; } = null!;
-        public string DriverVersion { get; init; } = null!;
-        /// <summary> 显存大小，单位 MB </summary>
-        public long Memory { get; init; }
-    }
+    public readonly record struct GPUInfo(string Name, string DriverVersion, long Memory);
 
     /// <summary>
     /// 获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
