@@ -2,7 +2,7 @@ using System;
 
 namespace PCL.Core.IO.Storage.Cache.Model;
 
-internal record ComponentCacheRow
+public record ComponentCacheRow
 {
     public string InstancePath { get; init; } = string.Empty; // PK 1
     public string CompType { get; init; } = string.Empty; // PK 2: mods/rp/shader/saves/datapack

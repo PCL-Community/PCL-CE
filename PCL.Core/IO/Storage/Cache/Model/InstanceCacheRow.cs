@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace PCL.Core.IO.Storage.Cache.Model;
 
-internal record InstanceCacheRow
+public record InstanceCacheRow
 {
     public string InstancePath { get; init; } = string.Empty;
     public string InstanceName { get; init; } = string.Empty;
@@ -15,8 +15,6 @@ internal record InstanceCacheRow
     public string? Logo { get; init; }
     public string? Description { get; init; }
     public string? ReleaseTime { get; init; }
-
-    // Info
     public string? VanillaName { get; init; }
     public string? VanillaVersion { get; init; }
     public int DropNumber { get; init; }

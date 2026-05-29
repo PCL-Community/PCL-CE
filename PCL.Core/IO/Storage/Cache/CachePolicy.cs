@@ -41,7 +41,7 @@ public record CachePolicy
     /// <summary>
     /// Tag. Spilited by <c>','</c>. Used for multi-demension grouping.
     /// </summary>
-    public string? Tag { get; init; }
+    public string? Tags { get; init; }
     /// <summary>
     /// Content format version. (Increased when migration is needed.)
     /// </summary>

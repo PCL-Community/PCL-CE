@@ -2,13 +2,13 @@ using System;
 
 namespace PCL.Core.IO.Storage.Cache.Model;
 
-internal record CacheEntry
+public record CacheEntry
 {
     /// <summary>
     /// SHA-256 (Raw key)
     /// </summary>
     public string CacheKey { get; init; } = string.Empty;
-    public EntryType Type { get; init; }
+    public EntryType EntryType { get; init; }
     /// <summary>
     /// MIME
     /// </summary>
@@ -40,7 +40,7 @@ internal record CacheEntry
 
     public DateTime CachedAt { get; init; }
     public DateTime LastAccessAt { get; init; }
-    public DateTime? ExpiredAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
     public long HitCount { get; init; }
 
     public string Tags { get; init; } = string.Empty;
@@ -51,7 +51,7 @@ internal record CacheEntry
     public int Priority { get; init; }
 }
 
-internal enum EntryType
+public enum EntryType
 {
     Inline = 0,
     FileRef = 1
