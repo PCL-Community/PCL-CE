@@ -3522,12 +3522,14 @@ public static class ModBase
             var dpiScale = Math.Round(DPI / 96.0, 2);
 
             // Build diagnostic information string
-            var info = $"[System] Diagnostic Information:{"\r\n"}" +
-                       $"OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem}){"\r\n"}" +
-                       $"Memory: {availableMb} MB / {totalMb} MB{"\r\n"}" +
-                       $"DPI: {DPI} ({dpiScale * 100}%){"\r\n"}" +
-                       $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{"\r\n"}" +
-                       $"Executable Path: {ExePath}";
+            var info = $"""
+                [System] Diagnostic Information:
+                OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
+                Memory: {availableMb} MB / {totalMb} MB
+                DPI: {DPI} ({dpiScale * 100}%)
+                MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}
+                Executable Path: {ExePath}
+                """;
 
             LogWrapper.Info(info);
         }
