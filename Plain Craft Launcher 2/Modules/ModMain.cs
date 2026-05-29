@@ -326,7 +326,7 @@ public static class ModMain
                     }
                 }
 
-                if (DoubleStack != null)
+                if (DoubleStack is not null)
                 {
                     var doubleStackTag = (object[])DoubleStack.Tag;
                     // 有重复提示，且该提示的进入动画已播放
@@ -1454,12 +1454,12 @@ public static class ModMain
     public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
     {
     // 预处理
-    if (text == null) return null;
+    if (text is null) return null;
     
     Func<string, string> replacer = (s) =>
     {
-        if (s == null) return "";
-        if (escapeHandler == null) return s;
+        if (s is null) return "";
+        if (escapeHandler is null) return s;
         if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
         return escapeHandler(s);
     };
@@ -1485,7 +1485,7 @@ public static class ModMain
     text = text.Replace("{java}", replacer(ModLaunch.McLaunchJavaSelected?.Installation.JavaFolder));
     text = text.Replace("{minecraft}", replacer(ModMinecraft.McFolderSelected));
     
-    if (ModMinecraft.McInstanceSelected != null)
+    if (ModMinecraft.McInstanceSelected is not null)
     {
         text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
         text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));

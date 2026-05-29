@@ -198,7 +198,7 @@ public static class ModDownloadLib
         {
             Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
-            if (id == "1.16.5" && Config.Download.FixAuthLib != null) // 1.16.5 Authlib 修复
+            if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
                     var json = ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json"));
@@ -1422,7 +1422,7 @@ public static class ModDownloadLib
                 VersionJson.Add("arguments",
                     (JsonNode)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + DownloadInfo.JsonToken["tweakClass"] +
                                             "\"]}"));
-                VersionJson.Add("libraries", DownloadInfo.JsonToken["libraries"]);
+                VersionJson.Add("libraries", DownloadInfo.JsonToken["libraries"]?.DeepClone());
                 VersionJson["libraries"].AsArray().Add(ModBase.GetJson("{\"name\": \"com.mumfrey:liteloader:" +
                                                                             DownloadInfo.JsonToken["version"] +
                                                                             "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
@@ -1905,7 +1905,7 @@ public static class ModDownloadLib
         }
 
         if (ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom && Info is null) Info = new ModDownload.DlCleanroomListEntry(LoaderVersion);
-        if (!(ForgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge) && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
+        if (ForgeType != ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge && LoaderVersion.StartsWithF("1.") && LoaderVersion.Contains("-"))
         {
             // 类似 1.19.3-41.2.8 格式，优先使用 Version 中要求的版本而非 Inherit（例如 1.19.3 却使用了 1.19 的 Forge）
             Inherit = LoaderVersion.BeforeFirst("-");
@@ -2860,7 +2860,7 @@ public static class ModDownloadLib
                 try
                 {
                     json = Requester.FetchString(url, new RequestParam { UseBrowserUserAgent = true, Timeout = 5000, Retries = 2 });
-                    if (json != null) break;
+                    if (json is not null) break;
                 }
                 catch (Exception ex)
                 {
@@ -2868,7 +2868,7 @@ public static class ModDownloadLib
                 }
             }
 
-            if (json == null)
+            if (json is null)
                 throw new Exception(Lang.Text("Minecraft.Download.Error.FabricMetaDownloadFailed",
                     $"{bmclapiUrl} and {officialUrl}"));
 
@@ -3937,7 +3937,7 @@ public static class ModDownloadLib
         if (OptiFineAsMod)
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
-            if (Request.LiteLoaderEntry != null)
+            if (Request.LiteLoaderEntry is not null)
                 OptiFineFolder = Path.Combine(ModsTempFolder, Request.MinecraftName);
             else
                 OptiFineFolder = ModsTempFolder;

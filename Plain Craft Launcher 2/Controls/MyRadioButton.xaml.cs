@@ -34,7 +34,7 @@ public partial class MyRadioButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is MyRadioButton rb && rb.LabText != null) rb.LabText.Text = (string)e.NewValue;
+            if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Text = (string)e.NewValue;
         }));
 
     private bool _Checked; // 是否选中
@@ -52,7 +52,7 @@ public partial class MyRadioButton
 
         Loaded += (_, _) =>
         {
-            if (LabText != null)
+            if (LabText is not null)
                 LabText.Text = (string)GetValue(TextProperty);
             
             ThemeService.ColorModeChanged += OnColorModeChanged;
@@ -89,7 +89,7 @@ public partial class MyRadioButton
         get => ShapeLogo.Data.ToString();
         set
         {
-            if (ShapeLogo == null) return;
+            if (ShapeLogo is null) return;
             ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
         }
     }
@@ -100,7 +100,7 @@ public partial class MyRadioButton
         set
         {
             _LogoScale = value;
-            if (ShapeLogo != null)
+            if (ShapeLogo is not null)
                 ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
@@ -152,7 +152,7 @@ public partial class MyRadioButton
 
             // 保证只有一个单选框选中
 
-            if (Parent == null) return;
+            if (Parent is null) return;
             var RadioboxList = new List<MyRadioButton>();
             var CheckedCount = 0;
             // 收集控件列表与选中个数

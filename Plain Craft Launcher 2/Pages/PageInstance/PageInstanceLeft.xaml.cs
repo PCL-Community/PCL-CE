@@ -173,7 +173,7 @@ public partial class PageInstanceLeft : IRefreshable
     {
         if (ModMain.MyMsgBox("是否要初始化该实例的实例独立设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
-            if (ModMain.FrmInstanceSetup == null)
+            if (ModMain.FrmInstanceSetup is null)
                 ModMain.FrmInstanceSetup = new PageInstanceSetup();
             ModMain.FrmInstanceSetup.Reset();
             ItemSetup.Checked = true;
@@ -222,7 +222,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionSetup:
             {
-                if (ModMain.FrmInstanceSetup == null)
+                if (ModMain.FrmInstanceSetup is null)
                     ModMain.FrmInstanceSetup = new PageInstanceSetup();
                 return ModMain.FrmInstanceSetup;
             }

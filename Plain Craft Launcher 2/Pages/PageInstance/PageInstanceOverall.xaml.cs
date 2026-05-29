@@ -114,7 +114,7 @@ public partial class PageInstanceOverall
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
-                if (!(compProjects.Count == 0))
+                if (compProjects.Count > 0)
                     ModBase.RunInUi(() =>
                     {
                         ModpackCompItem = compProjects.First().ToCompItem(false, false);
@@ -390,7 +390,7 @@ public partial class PageInstanceOverall
             // 刷新与提示
             ModMain.Hint("重命名成功！", ModMain.HintType.Finish);
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(NewName).Load();
-            if (!(ModMinecraft.McInstanceSelected == null) &&
+            if (ModMinecraft.McInstanceSelected is not null &&
                 ModMinecraft.McInstanceSelected.Equals(PageInstanceLeft.Instance))
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
             Reload();
@@ -738,7 +738,7 @@ public partial class PageInstanceOverall
             case 1:
             {
                 var UserInput = SystemDialogs.SelectFile("压缩文件(*.jar;*.zip)|*.jar;*.zip", "选择用于修补核心的文件");
-                if (UserInput is null | string.IsNullOrWhiteSpace(UserInput))
+                if (UserInput is null || string.IsNullOrWhiteSpace(UserInput))
                     return;
                 ModMain.Hint("正在修补游戏核心，这可能需要一段时间");
                 ModBase.RunInNewThread(() =>

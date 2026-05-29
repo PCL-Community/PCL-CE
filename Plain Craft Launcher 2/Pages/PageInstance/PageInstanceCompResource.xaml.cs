@@ -1030,7 +1030,7 @@ public partial class PageInstanceCompResource : IRefreshable
         if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSetup) targetInstance = PageInstanceLeft.Instance;
 
         // 4. Validate instance status
-        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSelect || targetInstance == null ||
+        if (ModMain.FrmMain.PageCurrent == FormMain.PageType.InstanceSelect || targetInstance is null ||
             !targetInstance.Modable)
         {
             HintWrapper.Show("若要安装 Mod，请先选择一个可以安装 Mod 的实例！");

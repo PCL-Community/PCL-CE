@@ -190,7 +190,7 @@ public static class ModJava
             }
         }
         // 以旧方式读取配置
-        if (preference == null)
+        if (preference is null)
         {
             var trimmed = rawPreference?.Trim();
             if (string.IsNullOrEmpty(trimmed))

@@ -291,7 +291,7 @@ public partial class PageDownloadCompDetail
                     // 判断某个版本是否符合资源要求 (局部函数)
                     Func<ModMinecraft.McInstance, bool> IsVersionSuitable = Version =>
                     {
-                        if (Version == null) return false;
+                        if (Version is null) return false;
                         if (!Version.IsLoaded) Version.Load();
 
                         // 只对 Mod 和数据包进行版本检测
@@ -319,7 +319,7 @@ public partial class PageDownloadCompDetail
                             ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.ExePath);
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{DefaultFolder}");
                     }
-                    else if (ModMinecraft.McInstanceSelected != null &&
+                    else if (ModMinecraft.McInstanceSelected is not null &&
                              IsVersionSuitable(ModMinecraft.McInstanceSelected))
                     {
                         DefaultFolder = $"{ModMinecraft.McInstanceSelected.PathIndie}{SubFolder}";
@@ -634,22 +634,24 @@ public partial class PageDownloadCompDetail
         GroupedDrop = false;
         GroupedOld = false;
         updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = false;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = false;
-        GroupedOld = true;
-        updateFilters();
-        if (instanceFilters.Count < 9)
-            goto GroupDone;
-        GroupedDrop = true;
-        GroupedOld = true;
-        updateFilters();
-        GroupDone: ;
+        if (instanceFilters.Count >= 9)
+        {
+            GroupedDrop = true;
+            GroupedOld = false;
+            updateFilters();
+            if (instanceFilters.Count >= 9)
+            {
+                GroupedDrop = false;
+                GroupedOld = true;
+                updateFilters();
+                if (instanceFilters.Count >= 9)
+                {
+                    GroupedDrop = true;
+                    GroupedOld = true;
+                    updateFilters();
+                }
+            }
+        }
 
 
         // UI 化筛选器
@@ -775,7 +777,7 @@ public partial class PageDownloadCompDetail
             var index = _pageType == ModComp.CompType.Mod ? 1 : 0;
             if (instanceToCheck is null)
                 instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[index];
-            if (modLoaderToCheck is null & (_pageType == ModComp.CompType.Mod))
+            if (modLoaderToCheck is null && (_pageType == ModComp.CompType.Mod))
                 modLoaderToCheck = (MyRadioButton)PanModLoaderFilter.Children[index];
             instanceToCheck.Checked = true;
             if (_pageType == ModComp.CompType.Mod)

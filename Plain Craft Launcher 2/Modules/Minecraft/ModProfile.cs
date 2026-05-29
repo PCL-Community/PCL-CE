@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using FluentValidation;
-using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.IO.Net;
 using PCL.Core.Utils;
@@ -137,7 +136,7 @@ public static class ModProfile
             ProfileLog("无旧版第三方验证档案信息");
         }
 
-        if (!(profileCount == 0))
+        if (profileCount > 0)
             ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.AutoMigrate", profileCount));
         ProfileLog("档案迁移结束");
     }
@@ -156,7 +155,7 @@ public static class ModProfile
             return ModBase.StrFill("", "0", 32);
         // 从缓存获取
         var uuid = ModBase.ReadIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name);
-        if (Strings.Len(uuid) == 32)
+        if ((uuid?.Length ?? 0) == 32)
             return uuid;
         // 从官网获取
         try
@@ -194,7 +193,7 @@ public static class ModProfile
         }
 
         // 写入缓存
-        if (!(Strings.Len(uuid) == 32))
+        if ((uuid?.Length ?? 0) != 32)
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
         ModBase.WriteIni(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;

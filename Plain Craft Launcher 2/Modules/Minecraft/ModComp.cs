@@ -537,7 +537,7 @@ public static class ModComp
                     var rawProjectsData = (JsonArray)response["data"];
 
                     // 2. 使用 LINQ 快速转换并填充列表
-                    if (rawProjectsData != null)
+                    if (rawProjectsData is not null)
                     {
                         var projectList = rawProjectsData
                             .Cast<JsonObject>()
@@ -1049,7 +1049,7 @@ public static class ModComp
                 result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
 
             if (data.TryGetPropertyValue("LastUpdate", out var last))
-                result.LastUpdate = (DateTime?)last;
+                result.LastUpdate = last?.ToObject<DateTime>();
 
             if (data.TryGetPropertyValue("ModLoaders", out var loaders))
                 result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
@@ -1071,12 +1071,12 @@ public static class ModComp
                 FromCurseForge = true,
 
                 // 简单信息
-                Id = (string)data["id"],
+                Id = data["id"].ToString(),
                 Slug = (string)data["slug"],
                 RawName = (string)data["name"],
                 Description = (string)data["summary"],
                 Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
-                LastUpdate = (DateTime?)data["dateReleased"], // #1194
+                LastUpdate = data["dateReleased"]?.ToObject<DateTime>(), // #1194
                 DownloadCount = (int)data["downloadCount"]
             };
 
@@ -1163,7 +1163,7 @@ public static class ModComp
                 Slug = slug,
                 RawName = (string)data["title"],
                 Description = (string)data["description"],
-                LastUpdate = (DateTime?)data["date_modified"],
+                LastUpdate = data["date_modified"]?.ToObject<DateTime>(),
                 DownloadCount = (int)data["downloads"],
                 LogoUrl = (string)data["icon_url"],
                 Website = $"https://modrinth.com/{projectType}/{slug}",
@@ -1544,7 +1544,7 @@ public static class ModComp
         {
             // --- 1. 获取版本描述 (核心算法优化) ---
             string gameVersionDescription;
-            if (Drops == null || !Drops.Any())
+            if (Drops is null || !Drops.Any())
             {
                 gameVersionDescription = Lang.Text("Download.Comp.Detail.CompItem.SnapshotOnly");
             }
@@ -1566,7 +1566,7 @@ public static class ModComp
                     // 查找连续的版本段
                     for (var ii = i + 1; ii < Drops.Count; ii++)
                     {
-                        if (ModDownload.AllDrops == null || ModDownload.AllDrops.IndexOf(Drops[ii]) !=
+                        if (ModDownload.AllDrops is null || ModDownload.AllDrops.IndexOf(Drops[ii]) !=
                             ModDownload.AllDrops.IndexOf(endDrop) + 1) break;
                         endDrop = Drops[ii];
                         i = ii;
@@ -1596,7 +1596,7 @@ public static class ModComp
                         segments.Add(startName + "-");
                         break;
                     }
-                    else if (ModDownload.AllDrops == null ||
+                    else if (ModDownload.AllDrops is null ||
                              ModDownload.AllDrops.IndexOf(endDrop) - ModDownload.AllDrops.IndexOf(startDrop) == 1)
                     {
                         segments.Add($"{startName}, {endName}");
@@ -1673,7 +1673,7 @@ public static class ModComp
 
                     newItem.LabSource.Text = FromCurseForge ? "CurseForge" : "Modrinth";
 
-                    if (LastUpdate != null)
+                    if (LastUpdate is not null)
                     {
                         newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, true);
                     }
@@ -2268,9 +2268,9 @@ public static class ModComp
             string[] ExtractWords(ModBase.SearchEntry<CompDatabaseEntry> Result)
             {
                 var Word = "";
-                if (Result.Item.CurseForgeSlug != null)
+                if (Result.Item.CurseForgeSlug is not null)
                     Word += Result.Item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
-                if (Result.Item.ModrinthSlug != null)
+                if (Result.Item.ModrinthSlug is not null)
                     Word += Result.Item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
                 Word += Result.Item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
                     .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ").Replace("-", " ");
@@ -2380,7 +2380,7 @@ public static class ModComp
             var tasks = new List<Task>();
 
             // CurseForge 线程内嵌
-            if (curseForgeUrl != null)
+            if (curseForgeUrl is not null)
                 tasks.Add(Task.Run(() =>
                 {
                     try
@@ -2406,7 +2406,7 @@ public static class ModComp
                 }));
 
             // Modrinth 线程内嵌
-            if (modrinthUrl != null)
+            if (modrinthUrl is not null)
                 tasks.Add(Task.Run(() =>
                 {
                     try
@@ -2441,7 +2441,7 @@ public static class ModComp
             // 错误检查与空结果处理
             if (!rawResults.Any())
             {
-                if (lastError != null) throw lastError;
+                if (lastError is not null) throw lastError;
                 // 处理各平台不兼容报错... (此处省略具体 Exception 文本以保持简略)
                 throw new Exception(Lang.Text("Download.Comp.List.NoResultsSimple"));
             }
@@ -2457,7 +2457,7 @@ public static class ModComp
             LogWrapper.Info($"[Comp] 去重、筛选后累计新增结果 {processedResults.Count} 个（目前已有结果 {storage.Results.Count} 个）");
 
             if (realResults.Count + storage.Results.Count < request.TargetResultCount && request.CanContinue &&
-                lastError == null)
+                lastError is null)
             {
                 LogWrapper.Info("[Comp] 数量不足，继续加载下一页");
                 continue;
@@ -2701,7 +2701,7 @@ public static class ModComp
                     ProjectId = Data["modId"].ToString();
                     DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
                     Version = null;
-                    ReleaseDate = (DateTime)Data["fileDate"];
+                    ReleaseDate = Data["fileDate"].ToObject<DateTime>();
                     Status = (CompFileStatus)Data["releaseType"].ToObject<int>();
                     DownloadCount = (int)Data["downloadCount"];
                     FileName = (string)Data["fileName"];
@@ -2777,7 +2777,7 @@ public static class ModComp
                     ProjectId = (string)Data["project_id"];
                     DisplayName = Data["name"].ToString().Replace("	", "").Trim(' ');
                     Version = (string)Data["version_number"];
-                    ReleaseDate = (DateTime)Data["date_published"];
+                    ReleaseDate = Data["date_published"].ToObject<DateTime>();
                     Status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
                         Data["version_type"].ToString() == "beta" ? CompFileStatus.Beta : CompFileStatus.Alpha;
                     DownloadCount = (int)Data["downloads"];
@@ -3037,7 +3037,7 @@ public static class ModComp
                     newItem.Click += onClick;
 
                     // 4. 建立另存为按钮
-                    if (onSaveClick != null)
+                    if (onSaveClick is not null)
                     {
                         var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);

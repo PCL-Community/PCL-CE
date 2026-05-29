@@ -20,6 +20,7 @@ using System.Xaml;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -323,18 +324,18 @@ public static class ModBase
 
         public static bool operator ==(MyColor a, MyColor b)
         {
-            if (a == null && b == null)
+            if (a is null && b is null)
                 return true;
-            if (a == null || b == null)
+            if (a is null || b is null)
                 return false;
             return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
         }
 
         public static bool operator !=(MyColor a, MyColor b)
         {
-            if (a == null && b == null)
+            if (a is null && b is null)
                 return false;
-            if (a == null || b == null)
+            if (a is null || b is null)
                 return true;
             return !(a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B);
         }
@@ -822,14 +823,14 @@ public static class ModBase
         {
             // 是文件夹路径
             var IsRight = FilePath.EndsWithF(@"\");
-            FilePath = Strings.Left(FilePath, Strings.Len(FilePath) - 1);
-            GetPathFromFullPathRet = Strings.Left(FilePath, FilePath.LastIndexOfAny(new[] { '\\', '/' })) +
+            FilePath = FilePath.Substring(0, FilePath.Length - 1);
+            GetPathFromFullPathRet = FilePath.Substring(0, FilePath.LastIndexOfAny(new[] { '\\', '/' })) +
                                      (IsRight ? @"\" : "/");
         }
         else
         {
             // 是文件路径
-            GetPathFromFullPathRet = Strings.Left(FilePath, FilePath.LastIndexOfAny(new[] { '\\', '/' }) + 1);
+            GetPathFromFullPathRet = FilePath.Substring(0, FilePath.LastIndexOfAny(new[] { '\\', '/' }) + 1);
             if (string.IsNullOrEmpty(GetPathFromFullPathRet))
                 throw new Exception("不包含路径：" + FilePath);
         }
@@ -873,7 +874,7 @@ public static class ModBase
         if (FolderPath.EndsWithF(@":\") || FolderPath.EndsWithF(@":\\"))
             return FolderPath.Substring(0, 1);
         if (FolderPath.EndsWithF(@"\") || FolderPath.EndsWithF("/"))
-            FolderPath = Strings.Left(FolderPath, FolderPath.Length - 1);
+            FolderPath = FolderPath.Substring(0, FolderPath.Length - 1);
         return GetFileNameFromPath(FolderPath);
     }
 
@@ -1585,14 +1586,21 @@ public static class ModBase
     {
         try
         {
-            return JsonNode.Parse(Data)!;
+            return JsonNode.Parse(Data,
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip
+                })!;
         }
         catch (Exception ex)
         {
-            var Length = (Data ?? "").Length;
+            var DataText = Data ?? "";
+            var Length = DataText.Length;
             throw new Exception("格式化 JSON 失败：" + (Length > 2000
-                ? Data.Substring(0, 500) + $"...(全长 {Length} 个字符)..." + Strings.Right(Data, 500)
-                : Data));
+                ? DataText.Substring(0, 500) + $"...(全长 {Length} 个字符)..." + DataText.Substring(Length - 500)
+                : DataText), ex);
         }
     }
 
@@ -1612,8 +1620,8 @@ public static class ModBase
     public static string StrFill(string Str, string Code, byte Length)
     {
         if (Str.Length > Length)
-            return Strings.Mid(Str, 1, Length);
-        return Strings.Mid(Str.PadRight(Length, Code[0]), Str.Length + 1) + Str;
+            return Str.Substring(0, Length);
+        return Str.PadRight(Length, Code[0]).Substring(Str.Length) + Str;
     }
 
     /// <summary>
@@ -1674,7 +1682,7 @@ public static class ModBase
         ulong GetHashRet = default;
         GetHashRet = 5381UL;
         for (int i = 0, loopTo = Str.Length - 1; i <= loopTo; i++)
-            GetHashRet = (GetHashRet << 5) ^ GetHashRet ^ (ulong)Strings.AscW(Str[i]);
+            GetHashRet = (GetHashRet << 5) ^ GetHashRet ^ Str[i];
         return GetHashRet ^ 0xA98F501BC684032FUL;
     }
 
@@ -1691,7 +1699,7 @@ public static class ModBase
     /// </summary>
     public static bool IsASCII(this string Input)
     {
-        return Input.All(c => Strings.AscW(c) < 128);
+        return Input.All(c => c < 128);
     }
 
     /// <summary>
@@ -3145,7 +3153,7 @@ public static class ModBase
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(Width)), (int)Math.Round(GetPixelSize(Height)),
             DPI, DPI, PixelFormats.Default);
         bmp.Render(UI);
-        if (!(Left == 0d && Top == 0d))
+        if (Left != 0d || Top != 0d)
             UI.Arrange(new Rect(Left, Top, Width, Height));
         return new ImageBrush(bmp);
     }
@@ -3699,7 +3707,7 @@ public class InverseBooleanConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value == null) return false;
+        if (value is null) return false;
 
         if (bool.TryParse(value.ToString(), out var result)) return !result;
 

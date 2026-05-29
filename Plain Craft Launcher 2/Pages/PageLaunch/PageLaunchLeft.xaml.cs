@@ -155,7 +155,7 @@ public partial class PageLaunchLeft
             {
                 // 无效的实例
                 ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (Instance is null ? "null" : Instance.PathInstance),
-                    Instance == null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
+                    Instance is null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
                 if (ModMinecraft.McInstanceListLoader.State != ModBase.LoadState.Finished)
                     ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
@@ -664,31 +664,31 @@ public partial class PageLaunchLeft
         {
             case PageType.Auth:
             {
-                if (ModMain.FrmLoginAuth == null)
+                if (ModMain.FrmLoginAuth is null)
                     ModMain.FrmLoginAuth = new PageLoginAuth();
                 return ModMain.FrmLoginAuth;
             }
             case PageType.Ms:
             {
-                if (ModMain.FrmLoginMs == null)
+                if (ModMain.FrmLoginMs is null)
                     ModMain.FrmLoginMs = new PageLoginMs();
                 return ModMain.FrmLoginMs;
             }
             case PageType.Profile:
             {
-                if (ModMain.FrmLoginProfile == null)
+                if (ModMain.FrmLoginProfile is null)
                     ModMain.FrmLoginProfile = new PageLoginProfile();
                 return ModMain.FrmLoginProfile;
             }
             case PageType.ProfileSkin:
             {
-                if (ModMain.FrmLoginProfileSkin == null)
+                if (ModMain.FrmLoginProfileSkin is null)
                     ModMain.FrmLoginProfileSkin = new PageLoginProfileSkin();
                 return ModMain.FrmLoginProfileSkin;
             }
             case PageType.Offline:
             {
-                if (ModMain.FrmLoginOffline == null)
+                if (ModMain.FrmLoginOffline is null)
                     ModMain.FrmLoginOffline = new PageLoginOffline();
                 return ModMain.FrmLoginOffline;
             }
@@ -722,7 +722,7 @@ public partial class PageLaunchLeft
 
             ModAnimation.AniStop("FrmLogin PageChange");
             // 清除页面关联性
-            if (PageNew is FrameworkElement element && element.Parent != null)
+            if (PageNew is FrameworkElement element && element.Parent is not null)
             {
                 element.SetValue(ContentPresenter.ContentProperty, null);
             }

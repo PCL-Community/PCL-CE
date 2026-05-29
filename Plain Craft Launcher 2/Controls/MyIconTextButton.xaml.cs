@@ -62,7 +62,7 @@ public partial class MyIconTextButton
         get => ShapeLogo.Data.ToString();
         set
         {
-            if (ShapeLogo == null) return;
+            if (ShapeLogo is null) return;
             ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
         }
     }
@@ -73,7 +73,7 @@ public partial class MyIconTextButton
         set
         {
             _LogoScale = value;
-            if (!(ShapeLogo == null))
+            if (ShapeLogo is not null)
                 ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }

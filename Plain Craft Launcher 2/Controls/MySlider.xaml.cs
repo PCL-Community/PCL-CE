@@ -130,7 +130,7 @@ public partial class MySlider
 
     private void RefreshWidth(object sender, SizeChangedEventArgs? e)
     {
-        if (e != null)
+        if (e is not null)
             PanMain.Width = e.NewSize.Width;
         ModAnimation.AniStop("MySlider Progress " + Uuid);
         var NewWidth = _Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
@@ -205,7 +205,7 @@ public partial class MySlider
             int AnimationTime;
             if (IsEnabled)
             {
-                if (ModMain.DragControl != null && ModMain.DragControl.Equals(this) || IsMouseOver)
+                if (ModMain.DragControl is not null && ModMain.DragControl.Equals(this) || IsMouseOver)
                 {
                     ForegroundName = "ColorBrush3";
                     DotFillName = "ColorBrush3";

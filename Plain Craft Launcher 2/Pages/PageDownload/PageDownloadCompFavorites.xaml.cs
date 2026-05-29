@@ -891,7 +891,7 @@ public partial class PageDownloadCompFavorites
             var QueryList = new List<ModBase.SearchEntry<MyListItem>>();
             foreach (var Item in CompItemList)
             {
-                if (!(Item.Tag is ModComp.CompProject))
+                if (Item.Tag is not ModComp.CompProject)
                     continue;
                 var Entry = (ModComp.CompProject)Item.Tag;
                 var SearchSource = new List<ModBase.SearchSource>();

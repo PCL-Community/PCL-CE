@@ -516,27 +516,27 @@ public partial class PageInstanceSetup
             RamDelta = RamTarget1;
             RamGive += Math.Min(RamAvailable, RamDelta);
             RamAvailable -= RamDelta;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段二，T1 ~ T2，70%
-            RamDelta = RamTarget2 - RamTarget1;
-            RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
-            RamAvailable -= RamDelta / 0.7d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段三，T2 ~ T3，40%
-            RamDelta = RamTarget3 - RamTarget2;
-            RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
-            RamAvailable -= RamDelta / 0.4d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段四，T3 ~ T3 * 2，15%
-            RamDelta = RamTarget3;
-            RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
-            RamAvailable -= RamDelta / 0.15d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            PreFin: ;
+            if (RamAvailable >= 0.1d)
+            {
+                // 预分配内存，阶段二，T1 ~ T2，70%
+                RamDelta = RamTarget2 - RamTarget1;
+                RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
+                RamAvailable -= RamDelta / 0.7d;
+                if (RamAvailable >= 0.1d)
+                {
+                    // 预分配内存，阶段三，T2 ~ T3，40%
+                    RamDelta = RamTarget3 - RamTarget2;
+                    RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
+                    RamAvailable -= RamDelta / 0.4d;
+                    if (RamAvailable >= 0.1d)
+                    {
+                        // 预分配内存，阶段四，T3 ~ T3 * 2，15%
+                        RamDelta = RamTarget3;
+                        RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
+                        RamAvailable -= RamDelta / 0.15d;
+                    }
+                }
+            }
 
             // 不低于最低值
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
@@ -650,7 +650,7 @@ public partial class PageInstanceSetup
 
         CardServer.TriggerForceResize();
         // 避免正版验证和离线验证出现此提示
-        if (!(Type == 2 || Type == 3))
+        if (Type != 2 && Type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
@@ -1053,7 +1053,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         var checkBox = sender as MyCheckBox;
-        if (checkBox == null) return;
+        if (checkBox is null) return;
     
         if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {

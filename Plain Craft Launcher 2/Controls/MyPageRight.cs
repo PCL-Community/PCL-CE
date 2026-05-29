@@ -686,29 +686,25 @@ public class MyPageRight : AdornerDecorator
     // 查找列表中的第一个滚动条
     private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> Elements)
     {
-        MyScrollViewer Viewer = null;
         foreach (var Element in Elements)
         {
-            if (Element is MyScrollViewer)
+            if (Element is MyScrollViewer Viewer)
             {
-                Viewer = (MyScrollViewer)Element;
-                goto FindViewer;
+                if (Viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
+                    continue;
+                return Viewer.ScrollBar;
             }
 
             foreach (var Control in LogicalTreeHelper.GetChildren(Element))
-                if (Control is MyScrollViewer)
+                if (Control is MyScrollViewer ChildViewer)
                 {
-                    Viewer = (MyScrollViewer)Control;
-                    goto FindViewer;
+                    if (ChildViewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
+                        return null;
+                    return ChildViewer.ScrollBar;
                 }
         }
 
         return null;
-        FindViewer: ;
-
-        if (Viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
-            return null;
-        return Viewer.ScrollBar;
     }
 
     #endregion

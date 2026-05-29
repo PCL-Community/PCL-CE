@@ -137,9 +137,9 @@ public partial class FormMain
             _helper.DragDrop += (_, _) => FileDrag(_helper.DropFilePaths);
         }
 
-        if (!(ModMain.FrmLaunchLeft.Parent == null))
+        if (ModMain.FrmLaunchLeft.Parent is not null)
             ModMain.FrmLaunchLeft.SetValue(ContentPresenter.ContentProperty, null);
-        if (!(ModMain.FrmLaunchRight.Parent == null))
+        if (ModMain.FrmLaunchRight.Parent is not null)
             ModMain.FrmLaunchRight.SetValue(ContentPresenter.ContentProperty, null);
         PanMainLeft.Child = ModMain.FrmLaunchLeft;
         PageLeft = ModMain.FrmLaunchLeft;
@@ -1253,7 +1253,7 @@ public partial class FormMain
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
-                if (Config.Preference.Theme.ColorMode == ColorMode.System &
+                if (Config.Preference.Theme.ColorMode == ColorMode.System &&
                     (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }
@@ -1957,9 +1957,9 @@ public partial class FormMain
         ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         ModAnimation.AniControlEnabled += 1;
         // 清除新页面关联性
-        if (!(TargetLeft.Parent == null))
+        if (TargetLeft.Parent is not null)
             TargetLeft.SetValue(ContentPresenter.ContentProperty, null);
-        if (!(TargetRight == null) && !(TargetRight.Parent == null))
+        if (TargetRight is not null && TargetRight.Parent is not null)
             TargetRight.SetValue(ContentPresenter.ContentProperty, null);
         PageLeft = (MyPageLeft)TargetLeft;
         PageRight = (MyPageRight)TargetRight;

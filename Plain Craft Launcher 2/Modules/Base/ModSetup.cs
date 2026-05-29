@@ -266,7 +266,7 @@ public class ModSetup
 
     public static void UiBackgroundSuit(int value)
     {
-        if (ModMain.FrmMain.ImgBack.Background == null)
+        if (ModMain.FrmMain.ImgBack.Background is null)
             return;
         var width = ((ImageBrush)ModMain.FrmMain.ImgBack.Background).ImageSource.Width;
         var height = ((ImageBrush)ModMain.FrmMain.ImgBack.Background).ImageSource.Height;
@@ -475,7 +475,7 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Collapsed;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -493,7 +493,7 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -511,7 +511,7 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Visible;
@@ -530,7 +530,7 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -556,8 +556,7 @@ public class ModSetup
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
-                {
+                if (ModMain.FrmSetupUI is not null) 
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
@@ -567,7 +566,7 @@ public class ModSetup
         }
 
         _ = Config.Preference.TopBarLeftAlign;
-        if (ModMain.FrmSetupUI != null)
+        if (ModMain.FrmSetupUI is not null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
 

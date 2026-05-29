@@ -75,7 +75,7 @@ public static class ModLink
                 return false;
             }
 
-            if (!(NatayarkProfileManager.NaidProfile.Status == 0))
+            if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
                 ModMain.Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", ModMain.HintType.Critical);
                 return false;

@@ -181,7 +181,7 @@ public partial class FontSelector
 
             ComboFont.IsEnabled = true;
 
-            if (_pendingFontTag != null)
+            if (_pendingFontTag is not null)
             {
                 var pendingTag = _pendingFontTag;
                 _pendingFontTag = null;

@@ -449,32 +449,20 @@ public partial class PageSetupLaunch
                 RamTarget3 = 4d;
             }
 
-            double RamDelta;
-            // 预分配内存，阶段一，0 ~ T1，100%
-            RamDelta = RamTarget1;
-            RamGive += Math.Min(RamAvailable, RamDelta);
-            RamAvailable -= RamDelta;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段二，T1 ~ T2，70%
-            RamDelta = RamTarget2 - RamTarget1;
-            RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
-            RamAvailable -= RamDelta / 0.7d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段三，T2 ~ T3，40%
-            RamDelta = RamTarget3 - RamTarget2;
-            RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
-            RamAvailable -= RamDelta / 0.4d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段四，T3 ~ T3 * 2，15%
-            RamDelta = RamTarget3;
-            RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
-            RamAvailable -= RamDelta / 0.15d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            PreFin: ;
+            var RamStages = new[]
+            {
+                (Delta: RamTarget1, Ratio: 1d),
+                (Delta: RamTarget2 - RamTarget1, Ratio: 0.7d),
+                (Delta: RamTarget3 - RamTarget2, Ratio: 0.4d),
+                (Delta: RamTarget3, Ratio: 0.15d)
+            };
+            foreach (var (RamDelta, RamRatio) in RamStages)
+            {
+                RamGive += Math.Min(RamAvailable * RamRatio, RamDelta);
+                RamAvailable -= RamDelta / RamRatio;
+                if (RamAvailable < 0.1d)
+                    break;
+            }
 
             // 不低于最低值
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
