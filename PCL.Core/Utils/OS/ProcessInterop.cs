@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
@@ -38,8 +38,13 @@ public class ProcessInterop {
     /// <returns>新的进程实例</returns>
     public static Process? Start(string path, string? arguments = null, bool runAsAdmin = false) {
         var psi = new ProcessStartInfo(path);
-        if (arguments != null) psi.Arguments = arguments;
-        if (runAsAdmin) psi.Verb = "runas";
+        if (arguments is not null) psi.Arguments = arguments;
+        if (runAsAdmin)
+        {
+            psi.UseShellExecute = true;
+            psi.Verb = "runas";
+        }
+
         return Process.Start(psi);
     }
 
@@ -51,7 +56,7 @@ public class ProcessInterop {
     public static string? GetExecutablePath(Process process) {
         try {
             var path = process.MainModule?.FileName;
-            return (path == null) ? null : Path.GetFullPath(path);
+            return (path is null) ? null : Path.GetFullPath(path);
         } catch { return null; }
     }
 
@@ -142,7 +147,7 @@ public class ProcessInterop {
     private static bool GetCurrentGpuPreference(string executable, string regKey, string highPerfValue) {
         try {
             using var readOnlyKey = Registry.CurrentUser.OpenSubKey(regKey, false);
-            if (readOnlyKey == null) {
+            if (readOnlyKey is null) {
                 LogWrapper.Info("System", "GPU 偏好注册表键不存在，将在需要时创建");
                 return false;
             }
@@ -166,11 +171,11 @@ public class ProcessInterop {
             writeKey = Registry.CurrentUser.OpenSubKey(regKey, true);
 
             // 如果键不存在，创建它
-            if (writeKey == null) {
+            if (writeKey is null) {
                 LogWrapper.Info("System", "创建 GPU 偏好注册表键");
                 writeKey = Registry.CurrentUser.CreateSubKey(regKey);
 
-                if (writeKey == null) {
+                if (writeKey is null) {
                     throw new InvalidOperationException($"无法创建注册表键: {regKey}");
                 }
             }

@@ -35,7 +35,7 @@ public partial class NetworkService
                 MaxAutomaticRedirections = 20,
                 UseCookies = false, //禁止自动 Cookie 管理
                 ConnectCallback = Config.Network.EnableDoH
-                    ? HostConnectionHandler.Instance.GetConnectionAsync
+                    ? PCL.Core.IO.Net.Http.HostConnectionHandler.Instance.GetConnectionAsync
                     : null
             }
         );
@@ -101,8 +101,9 @@ public partial class NetworkService
                 attempt => retryPolicy.Invoke(attempt),
                 onRetry: (exception, timeSpan, retryAttempt, context) =>
                 {
-                    LogWrapper.Error(
+                    LogWrapper.Debug(
                         exception,
+                        "Network",
                         $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。"
                         );
                 });

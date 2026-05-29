@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,17 +60,17 @@ public sealed partial class StartupService
         bool registerCallback = false)
     {
         var isCallback = false;
-        if (handler == null)
+        if (handler is null)
         {
             _HandleCallbackMap.TryGetValue(command, out handler);
-            if (handler == null) return false;
+            if (handler is null) return false;
             isCallback = true;
         }
         else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
         lock (_UnhandledCommandMap)
         {
             _UnhandledCommandMap.TryGetValue(command, out var model);
-            if (model == null) return false;
+            if (model is null) return false;
             // remove all related commands
             foreach (var x in _UnhandledCommandMap.Keys.Where(x => x.StartsWith(command)).ToList())
                 _UnhandledCommandMap.Remove(x);
@@ -124,8 +124,9 @@ public sealed partial class StartupService
         while (true)
         {
             _UnhandledCommandMap[prefix.ToString()] = c;
-            if (c.Subcommand == null) break;
-            prefix.Append('.').Append(c.Subcommand.CommandText);
+            if (c.Subcommand is null) break;
+            if (prefix.Length != 0) prefix.Append('.');
+            prefix.Append(c.Subcommand.CommandText);
             c = c.Subcommand;
         }
         _UnhandledCommandMap.Remove("", out c!);
@@ -135,11 +136,11 @@ public sealed partial class StartupService
     [RegisterRpc("cli")]
     public static RpcResponse OnRpcCommand(string? argument, string? content, bool indent)
     {
-        if (content == null) return RpcResponse.Err("Must provide valid JSON model");
+        if (content is null) return RpcResponse.Err("Must provide valid JSON model");
         try
         {
             var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content);
-            if (models == null) return RpcResponse.Err("Invalid JSON: empty/null content");
+            if (models is null) return RpcResponse.Err("Invalid JSON: empty/null content");
             Task.Run(() =>
             {
                 foreach (var (command, model) in models)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -72,7 +72,7 @@ public sealed partial class TelemetryService
         
         SentrySdk.ConfigureScope(scope =>
         {
-            scope.User = new User
+            scope.User = new SentryUser
             {
                 Id = Utils.Secret.Identify.LauncherId
             };
@@ -166,7 +166,7 @@ public sealed partial class TelemetryService
             miWifiIps ??= await Dns.GetHostAddressesAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
         } catch(Exception) { /* Ignore dns error */ }
         
-        if (miWifiIps != null && miWifiIps.Length != 0)
+        if (miWifiIps is not null && miWifiIps.Length != 0)
         {
             natTest = new StunClient5389UDP(new IPEndPoint(miWifiIps.First(), 3478),
                 new IPEndPoint(IPAddress.Any, 0));

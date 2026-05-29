@@ -1,0 +1,217 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using PCL.Core.App;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
+using PCL.Core.App.Localization;
+
+namespace PCL;
+
+public partial class PageSetupJava
+{
+    private bool IsLoad = false;
+
+    public ModLoader.LoaderTask<bool, List<JavaEntry>> Loader;
+
+    public PageSetupJava()
+    {
+        InitializeComponent();
+        PanLoad.Text = Lang.Text("Setup.Launch.Java.Loading");
+        Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
+        Loaded += PageSetupLaunch_Loaded;
+    }
+
+    private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
+    {
+        PageLoaderInit(PanLoad, CardLoad, PanMain, null, Loader, _ => OnLoadFinished(), Load_Input);
+    }
+
+    private object Load_Input()
+    {
+        return false;
+    }
+
+    private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> loader)
+    {
+        if (loader.Input) JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult();
+        loader.Output = ModJava.Javas.GetSortedJavaList();
+    }
+
+    private void OnLoadFinished()
+    {
+        PanContent.Children.Clear();
+        var itemAuto = new MyListItem
+        {
+            Type = MyListItem.CheckType.RadioBox,
+            Title = Lang.Text("Setup.Launch.Java.AutoSelect.Title"),
+            Info = Lang.Text("Setup.Launch.Java.AutoSelect.Info")
+        };
+        itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
+        PanContent.Children.Add(itemAuto);
+        var currentSetJava = Config.Launch.SelectedJava;
+        foreach (var entry in ModJava.Javas.GetSortedJavaList())
+        {
+            var item = ItemBuild(entry);
+            PanContent.Children.Add(item);
+            if (entry.Installation.JavaExePath == currentSetJava)
+                item.SetChecked(true, false, false);
+        }
+
+        if (string.IsNullOrEmpty(currentSetJava))
+            itemAuto.SetChecked(true, false, false);
+    }
+    
+    private MyListItem ItemBuild(JavaEntry J)
+    {
+        var item = new MyListItem();
+        var versionTypeDesc = J.Installation.IsJre ? "JRE" : "JDK";
+        var versionNameDesc = J.Installation.MajorVersion.ToString();
+        item.Title = $"{versionTypeDesc} {versionNameDesc}";
+
+        item.Info = J.Installation.JavaFolder;
+        var displayTags = new List<string>();
+        var displayBits = J.Installation.Is64Bit ? "64 Bit" : "32 Bit";
+        displayTags.Add(displayBits);
+        var DisplayBrand = J.Installation.Brand.ToString();
+        displayTags.Add(DisplayBrand);
+        item.Tags = displayTags;
+
+        item.Type = MyListItem.CheckType.RadioBox;
+        item.Check += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                return;
+            }
+
+            if (J.IsEnabled)
+                Config.Launch.SelectedJava = J.Installation.JavaExePath;
+            else
+            {
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
+                e.Handled = true;
+            }
+        };
+        var btnOpenFolder = new MyIconButton();
+        btnOpenFolder.Logo = Icon.IconButtonOpen;
+        btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
+        btnOpenFolder.Click += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                return;
+            }
+
+            ModBase.OpenExplorer(J.Installation.JavaFolder);
+        };
+        var btnInfo = new MyIconButton();
+        btnInfo.Logo = Icon.IconButtonInfo;
+        btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
+        btnInfo.Click += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                return;
+            }
+
+            ModMain.MyMsgBox(
+                Lang.Text("Setup.Launch.Java.Info.Format",
+                    versionTypeDesc,
+                    J.Installation.Version.ToString(),
+                    J.Installation.Architecture.ToString(),
+                    displayBits,
+                    DisplayBrand,
+                    J.Installation.JavaFolder),
+                Lang.Text("Setup.Launch.Java.Info.Title"));
+        };
+        var btnEnableSwitch = new MyIconButton();
+        
+        item.Buttons = [btnOpenFolder, btnInfo, btnEnableSwitch];
+
+        void UpdateEnableStyle(bool isCurEnable)
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                return;
+            }
+
+            if (isCurEnable)
+            {
+                item.LabTitle.TextDecorations = null;
+                item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
+                btnEnableSwitch.Logo = Icon.IconButtonDisable;
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Disable");
+            }
+            else
+            {
+                item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
+                btnEnableSwitch.Logo = Icon.IconButtonEnable;
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Enable");
+            }
+        }
+        
+        btnEnableSwitch.Click += (_, _) =>
+        {
+            try
+            {
+                var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
+                if (target is null)
+                {
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                    return;
+                }
+
+                if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
+                {
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.DeselectBeforeDisable"));
+                    return;
+                }
+
+                target.IsEnabled = !target.IsEnabled;
+                UpdateEnableStyle(target.IsEnabled);
+                ModJava.Javas.SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, Lang.Text("Setup.Launch.Java.EnableFailed"), ModBase.LogLevel.Hint);
+            }
+        };
+        UpdateEnableStyle(J.IsEnabled);
+
+        return item;
+    }
+
+    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    {
+        var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Launch.Java.SelectFile.Filter"), Lang.Text("Setup.Launch.Java.SelectFile.Title"));
+        if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
+            return;
+        if (ModJava.Javas.Exist(ret))
+            ModMain.Hint(Lang.Text("Setup.Launch.Java.AlreadyExists"));
+        else
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                await Task.Run(() =>
+                {
+                    ModJava.Javas.AddOrGet(ret);
+                    ModJava.Javas.SaveConfig();
+                });
+                if (ModJava.Javas.Exist(ret))
+                {
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
+                    Loader.Start(true, true);
+                }
+                else
+                {
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), ModMain.HintType.Critical);
+                }
+            }));
+    }
+}

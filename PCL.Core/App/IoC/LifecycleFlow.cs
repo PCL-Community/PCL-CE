@@ -147,7 +147,7 @@ partial class Lifecycle
             _StopService(service, service.SupportAsync);
         }
         _WaitStoppingServiceTasks();
-        if (logService != null)
+        if (logService is not null)
         {
             Context.Trace("退出过程已结束，正在停止日志服务");
             // 直接调用 StopAsync() 不使用常规停止实现 以保证正常情况下不会向等待区输出日志

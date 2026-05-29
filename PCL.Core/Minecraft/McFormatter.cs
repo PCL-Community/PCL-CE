@@ -68,12 +68,12 @@ public static class McFormatter {
             return id.Replace("_experimental-snapshot-", "-exp");
         }
 
-        if (id.StartsWith("inf-")) return id.Replace("inf-", "Infdev_");
-        if (id.StartsWith("in-")) return id.Replace("in-", "Indev_");
+        if (id.StartsWith("inf-")) return "Infdev_" + id[4..];
+        if (id.StartsWith("in-")) return "Indev_" + id[3..];
         if (id.StartsWith("rd-")) return "pre-Classic_" + id;
-        if (id.StartsWith('b')) return id.Replace("b", "Beta_");
-        if (id.StartsWith('a')) return id.Replace("a", "Alpha_v");
+        if (id.StartsWith('b')) return "Beta_" + id[1..];
+        if (id.StartsWith('a')) return "Alpha_v" + id[1..];
 
-        return id.StartsWith('c') ? id.Replace("c", "Classic_").Replace("st", "SURVIVAL_TEST") : id;
+        return id.StartsWith('c') ? ("Classic_" + id[1..]).Replace("st", "SURVIVAL_TEST") : id;
     }
 }

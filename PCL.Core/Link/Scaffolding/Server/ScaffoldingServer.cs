@@ -338,7 +338,7 @@ public sealed class ScaffoldingServer : IAsyncDisposable
             await _cts.CancelAsync().ConfigureAwait(false);
         }
 
-        if (_listenTask != null)
+        if (_listenTask is not null)
         {
             try
             {
@@ -355,7 +355,7 @@ public sealed class ScaffoldingServer : IAsyncDisposable
             }
         }
 
-        if (_cleanupTask != null)
+        if (_cleanupTask is not null)
         {
             try
             {

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Clock;
+namespace PCL.Core.UI.Animation.Clock;
 
 /// <summary>
 /// 

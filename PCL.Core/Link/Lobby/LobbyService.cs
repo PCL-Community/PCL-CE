@@ -466,12 +466,12 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             CurrentLobbyCode = null;
             CurrentUserName = null;
 
-            if (_LobbyController.ScfClientEntity?.Client != null)
+            if (_LobbyController.ScfClientEntity?.Client is not null)
             {
                 _LobbyController.ScfClientEntity.Client.Heartbeat -= _ClientOnHeartbeat;
             }
 
-            if (_LobbyController.ScfServerEntity?.Server != null)
+            if (_LobbyController.ScfServerEntity?.Server is not null)
             {
                 _LobbyController.ScfServerEntity.Server.PlayerProfilePing -= _ServerOnPlayerPing;
                 _LobbyController.ScfServerEntity.Server.ServerStarted -= _ServerOnServerStarted;

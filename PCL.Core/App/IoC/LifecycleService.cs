@@ -60,8 +60,8 @@ partial class Lifecycle
     {
 #if DEBUG
         var info = GetServiceInfo(service.Identifier);
-        if (info != null) state = info.StartState;
-        var stateText = (state == null) ? "" : $"{state}/";
+        if (info is not null) state = info.StartState;
+        var stateText = (state is null) ? "" : $"{state}/";
         return $"{service.Name} ({stateText}{service.Identifier})";
 #else
         return service.Name;
@@ -74,7 +74,7 @@ partial class Lifecycle
         // 检测日志服务
         if (service is ILifecycleLogService ls)
         {
-            if (_logService != null) throw new InvalidOperationException("日志服务只能有一个");
+            if (_logService is not null) throw new InvalidOperationException("日志服务只能有一个");
             logService = ls;
         }
         var state = manual ? LifecycleState.Manual : CurrentState;
@@ -122,7 +122,7 @@ partial class Lifecycle
                 _StopService(service, false);
             }
             // 若日志服务已启动则清空日志缓冲
-            if (logService == null) return;
+            if (logService is null) return;
             lock (_PendingLogs)
             {
                 foreach (var item in _PendingLogs) _PushLog(item, logService);
@@ -177,7 +177,7 @@ partial class Lifecycle
     private static void _StartStateFlow(LifecycleState start, LifecycleState? end = null, bool count = true)
     {
         var index = (int)start;
-        var endIndex = end == null ? index : (int)end;
+        var endIndex = end is null ? index : (int)end;
         while (index <= endIndex)
         {
             DateTime? countStart = count ? DateTime.Now : null; //开始计时
@@ -264,7 +264,7 @@ partial class Lifecycle
     /// <returns>服务项信息</returns>
     public static LifecycleServiceInfo? GetServiceInfo(string? identifier)
     {
-        if (identifier == null) return null;
+        if (identifier is null) return null;
         _RunningServiceInfoMap.TryGetValue(identifier, out var info);
         return info;
     }
@@ -289,7 +289,7 @@ partial class Lifecycle
     public static bool StartService(string identifier, bool? async = null)
     {
         _ManualServiceMap.TryGetValue(identifier, out var service);
-        if (service == null || IsServiceRunning(identifier)) return false;
+        if (service is null || IsServiceRunning(identifier)) return false;
         async ??= service.SupportAsync;
         if (async == true) Task.Run(() => _StartServiceTask(service, true));
         else _StartServiceTask(service, true);
@@ -305,7 +305,7 @@ partial class Lifecycle
     public static bool StopService(string identifier, bool async = true)
     {
         _ManualServiceMap.TryGetValue(identifier, out var service);
-        if (service == null || !IsServiceRunning(identifier)) return false;
+        if (service is null || !IsServiceRunning(identifier)) return false;
         _StopService(service, async, true);
         return true;
     }

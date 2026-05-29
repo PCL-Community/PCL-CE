@@ -53,7 +53,7 @@ public sealed class ExpandoObjectConverter : JsonConverter<ExpandoObject>
         ExpandoObject value,
         JsonSerializerOptions options)
     {
-        if (value == null)
+        if (value is null)
         {
             writer.WriteNullValue();
             return;

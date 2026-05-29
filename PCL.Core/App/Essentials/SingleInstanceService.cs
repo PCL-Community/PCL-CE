@@ -61,7 +61,7 @@ public sealed partial class SingleInstanceService
     [LifecycleStop]
     private static void _Stop()
     {
-        if (_lockStream == null) return;
+        if (_lockStream is null) return;
         Context.Debug("正在删除单例锁");
         _lockStream.Dispose();
         File.Delete(_LockFilePath);

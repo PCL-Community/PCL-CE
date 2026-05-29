@@ -16,14 +16,23 @@ public class DnsSrvResource : IDnsResource
     public void WriteBytes(Memory<byte> bytes, ref int offset)
     {
         // 6 Bytes for priority, weight, port and 2 bytes for length
-        var length = 8 + Target.Length;
-        var buf = new byte[length];
-        var span = buf.AsSpan();
-        BinaryPrimitives.WriteUInt16BigEndian(span[..2], (ushort)Priority);
-        BinaryPrimitives.WriteUInt16BigEndian(span[2..4], (ushort)Weight);
-        BinaryPrimitives.WriteUInt16BigEndian(span[4..6], (ushort)Port);
-        BinaryPrimitives.WriteUInt16BigEndian(span[6..8], (ushort)Target.Length);
-        Encoding.UTF8.GetBytes(Target).CopyTo(span[8..]);
+        var buf = bytes.Span[offset..];
+        BinaryPrimitives.WriteUInt16BigEndian(buf[offset..(offset + 2)], (ushort)Priority);
+        offset += 2;
+        BinaryPrimitives.WriteUInt16BigEndian(buf[offset..(offset + 2)], (ushort)Weight);
+        offset += 2;
+        BinaryPrimitives.WriteUInt16BigEndian(buf[offset..(offset + 2)], (ushort)Port);
+        offset += 2;
+        // target string
+        foreach (var seg in Target.Split('.'))
+        {
+            var segBuf = Encoding.UTF8.GetBytes(seg);
+            var segLength = (byte)segBuf.Length;
+            buf[offset] = segLength;
+            offset++;
+            segBuf.CopyTo(buf[offset..]);
+            offset += segBuf.Length;
+        }
     }
 
     public void ReadBytes(ReadOnlyMemory<byte> bytes, ref int offset, int length)

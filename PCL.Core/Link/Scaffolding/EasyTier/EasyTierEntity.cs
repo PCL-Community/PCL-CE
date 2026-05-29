@@ -17,7 +17,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http.Client.Request;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -515,7 +515,7 @@ public class EasyTierEntity
                 LogWrapper.Debug("Et Cli", "Getting player info.");
 
                 var info = arr.Deserialize<ETPeerInfo>();
-                if (info == null)
+                if (info is null)
                 {
                     LogWrapper.Debug("Et Cli", "Player info is null.");
                     continue;

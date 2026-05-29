@@ -32,8 +32,8 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
                 ValidIssuer = meta.Issuer,
                 ValidateAudience = !string.IsNullOrEmpty(clientId),
                 ValidAudience = clientId,
-                ValidateIssuerSigningKey = key != null,
-                IssuerSigningKey = key != null ? new JsonWebKeySet { Keys = { key } }.Keys[0] : null,
+                ValidateIssuerSigningKey = key is not null,
+                IssuerSigningKey = key is not null ? new JsonWebKeySet { Keys = { key } }.Keys[0] : null,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromSeconds(60)
             };
@@ -58,7 +58,7 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
     /// <exception cref="SecurityException">令牌格式无效</exception>
     private JwtSecurityToken _ParseToken()
     {
-        if (_parsedToken != null)
+        if (_parsedToken is not null)
             return _parsedToken;
 
         try
@@ -92,7 +92,7 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
         {
             var jwtToken = _ParseToken();
 
-            if (jwtToken.Payload == null || jwtToken.Payload.Count == 0)
+            if (jwtToken.Payload is null || jwtToken.Payload.Count == 0)
                 throw new InvalidOperationException("令牌 Payload 无效");
 
             if (typeof(T).IsAssignableFrom(typeof(Dictionary<string, object>)))
@@ -128,7 +128,7 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
         {
             var jwtToken = _ParseToken();
 
-            if (jwtToken.Header == null || jwtToken.Header.Count == 0)
+            if (jwtToken.Header is null || jwtToken.Header.Count == 0)
                 throw new InvalidOperationException("令牌中不存在 header 数据");
 
             if (typeof(T).IsAssignableFrom(typeof(Dictionary<string, object>)))
@@ -160,7 +160,7 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
         try
         {
             var result = SecurityTokenValidateCallback.Invoke(meta, token, key, clientId);
-            if (result != null)
+            if (result is not null)
                 _verified = true;
             return result;
         }
@@ -179,7 +179,7 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
         try
         {
             var result = SecurityTokenValidateCallback.Invoke(meta, token, null, null);
-            if (result != null)
+            if (result is not null)
                 _verified = true;
             return result;
         }

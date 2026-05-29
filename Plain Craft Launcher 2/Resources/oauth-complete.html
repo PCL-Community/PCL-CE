@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="robots" content="noindex">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" id="favicon">
+    <meta content="noindex" name="robots">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link id="favicon" rel="icon">
     <title>PCL 社区版提示页</title>
     <style>
         :root {
@@ -23,6 +23,7 @@
                 --bg-panel: #4446;
             }
         }
+
         body {
             --bg-root-url: none;
             display: flex;
@@ -31,22 +32,31 @@
             height: 100vh;
             margin: 0;
             color: var(--fg);
-            background-image:
-                    linear-gradient(to bottom left,
-                        hsl(var(--hue1), var(--sat), var(--light)),
-                        hsl(var(--hue), var(--sat), var(--lighter)),
-                        hsl(var(--hue2), var(--sat), var(--light))),
-                    var(--bg-root-url);
+            background-image: linear-gradient(to bottom left,
+            hsl(var(--hue1), var(--sat), var(--light)),
+            hsl(var(--hue), var(--sat), var(--lighter)),
+            hsl(var(--hue2), var(--sat), var(--light))),
+            var(--bg-root-url);
             background-size: cover;
             background-position: center;
             transition: background-image 0.5s ease-in-out;
         }
+
         @keyframes expand {
-            0%   { transform: scaleY(0%); }
-            30%  { transform: scaleY(0%); }
-            70%  { transform: scaleY(115%) }
-            100% { transform: scaleY(100%); }
+            0% {
+                transform: scaleY(0%);
+            }
+            30% {
+                transform: scaleY(0%);
+            }
+            70% {
+                transform: scaleY(115%)
+            }
+            100% {
+                transform: scaleY(100%);
+            }
         }
+
         .panel {
             max-width: 34em;
             padding: 4em;
@@ -58,6 +68,7 @@
             background-color: var(--bg-panel);
             border-radius: .6em;
         }
+
         .title {
             font-size: 2em;
             font-weight: bold;
@@ -65,9 +76,11 @@
             display: flex;
             align-items: center;
         }
+
         .content {
             font-size: 1.5em;
         }
+
         .stacktrace {
             font-size: .5em;
             font-family: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
@@ -77,11 +90,11 @@
 <body id="root">
 <div class="panel" id="panel">
     <div class="title">
-        <img src="/assets/icon" alt="icon" style="margin-right:.4em" width="64">
+        <img alt="icon" src="/assets/icon" style="margin-right:.4em" width="64">
         <span id="title">加载中...</span>
     </div>
-    <div id="content" class="content">加载中...</div>
-    <div id="stacktrace" class="stacktrace"></div>
+    <div class="content" id="content">加载中...</div>
+    <div class="stacktrace" id="stacktrace"></div>
 </div>
 <script>
     let root = document.getElementById("root");

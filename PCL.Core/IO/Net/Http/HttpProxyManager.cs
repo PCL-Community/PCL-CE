@@ -1,10 +1,13 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Microsoft.Win32;
 using PCL.Core.Logging;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
-namespace PCL.Core.IO.Net.Http.Client;
+namespace PCL.Core.IO.Net.Http;
 
 public class HttpProxyManager : IWebProxy, IDisposable
 {
@@ -19,8 +22,8 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     private readonly object _lock = new();
     private ProxyMode _mode = ProxyMode.SystemProxy;
-    private readonly WebProxy _customWebProxy = new() {BypassProxyOnLocal = true};
-    private readonly WebProxy _systemWebProxy = new() {BypassProxyOnLocal = true};
+    private readonly WebProxy _customWebProxy = new() { BypassProxyOnLocal = true };
+    private readonly WebProxy _systemWebProxy = new() { BypassProxyOnLocal = true };
     private const string ProxyRegPathFull = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
     private const string ProxyRegPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
     private readonly RegistryChangeMonitor _proxyMonitor = new(ProxyRegPath);
@@ -28,12 +31,76 @@ public class HttpProxyManager : IWebProxy, IDisposable
     private HttpProxyManager()
     {
         RefreshSystemProxy(); // 初始化系统代理
-        _proxyMonitor.Changed += _onSystemProxyChanged;
+        _proxyMonitor.Changed += _OnSystemProxyChanged;
     }
 
-    private void _onSystemProxyChanged(object? sender, EventArgs e)
+    private void _OnSystemProxyChanged(object? sender, EventArgs e)
     {
         RefreshSystemProxy();
+    }
+
+    private enum ProxyProtocol
+    {
+        Http,
+        Socks
+    }
+
+    private record ProxyItem
+    {
+        public ProxyProtocol Protocol;
+        public required string Address;
+    }
+
+    private static ProxyItem[] _GetProxyFromString(string? proxyString)
+    {
+        if (proxyString.IsNullOrWhiteSpace()) return [];
+
+        var ret = new List<ProxyItem>();
+
+        // 形式：http=192.168.1.100:8080;socks=192.168.1.100:1080
+        if (proxyString.Contains('='))
+        {
+            foreach (var segment in proxyString.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var eqIndex = segment.IndexOf('=');
+                if (eqIndex <= 0 || eqIndex >= segment.Length - 1)
+                    continue;
+
+                var protocolStr = segment[..eqIndex].Trim();
+                var address = segment[(eqIndex + 1)..].Trim();
+
+                if (string.IsNullOrWhiteSpace(address))
+                    continue;
+
+                ret.Add(new ProxyItem { Protocol = _ParseProtocol(protocolStr), Address = address });
+            }
+
+            return ret.Count > 0 ? [.. ret] : [];
+        }
+
+        // 形式：http://127.0.0.1:1145/ 或者单纯 127.0.0.1:1145
+        if (Uri.TryCreate(proxyString, new UriCreationOptions(), out var proxyAddr))
+        {
+            var address = proxyAddr.Port > 0
+                ? $"{proxyAddr.Host}:{proxyAddr.Port}"
+                : proxyAddr.Host;
+            ret.Add(new ProxyItem { Protocol = _ParseProtocol(proxyAddr.Scheme), Address = address });
+        }
+        else
+        {
+            ret.Add(new ProxyItem { Protocol = ProxyProtocol.Http, Address = proxyString.Trim() });
+        }
+
+        return [.. ret];
+    }
+
+    private static ProxyProtocol _ParseProtocol(string scheme)
+    {
+        return scheme.ToLowerInvariant() switch
+        {
+            "socks" or "socks4" or "socks5" => ProxyProtocol.Socks,
+            _ => ProxyProtocol.Http
+        };
     }
 
     /// <summary>刷新系统代理设置</summary>
@@ -43,14 +110,24 @@ public class HttpProxyManager : IWebProxy, IDisposable
         {
             try
             {
+                // read from reg
                 var isSystemProxyEnabled = (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
-                var systemProxyAddress = Registry.GetValue(ProxyRegPathFull, "ProxyServer", string.Empty) as string;
-                if (systemProxyAddress is not null && !systemProxyAddress.StartsWith("http")) systemProxyAddress = $"http://{systemProxyAddress}/";
-                _systemWebProxy.Address = (string.IsNullOrEmpty(systemProxyAddress) || isSystemProxyEnabled == 0)
+                var systemProxyString = Registry.GetValue(ProxyRegPathFull, "ProxyServer", string.Empty) as string;
+
+                // parse
+                var proxies = _GetProxyFromString(systemProxyString);
+
+                // filter
+                if (proxies.Length == 0 || !proxies.Any(static x => x.Protocol.Equals(ProxyProtocol.Http))) isSystemProxyEnabled = 0;
+                var selectedProxy = proxies.FirstOrDefault(static x => x.Protocol.Equals(ProxyProtocol.Http));
+
+                // apply
+                _systemWebProxy.Address = (isSystemProxyEnabled == 0 || selectedProxy!.Address.IsNullOrEmpty())
                     ? null
-                    : new Uri(systemProxyAddress);
+                    : new Uri($"http://{selectedProxy.Address}");
+
                 LogWrapper.Info("Proxy",
-                    $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyAddress}");
+                    $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyString}");
             }
             catch (Exception ex)
             {

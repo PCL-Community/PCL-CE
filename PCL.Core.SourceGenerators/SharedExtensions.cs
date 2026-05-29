@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,7 +35,7 @@ public static class SharedExtensions
         public bool IsNestedWithin(INamedTypeSymbol potentialContainer)
         {
             var t = type.ContainingType;
-            while (t != null)
+            while (t is not null)
             {
                 if (SymbolEqualityComparer.Default.Equals(t, potentialContainer))
                     return true;
@@ -46,12 +47,38 @@ public static class SharedExtensions
         public bool IsAttribute()
         {
             var baseType = type.BaseType;
-            while (baseType != null)
+            while (baseType is not null)
             {
                 if (baseType.ToDisplayString() == "System.Attribute") return true;
                 baseType = baseType.BaseType;
             }
             return false;
+        }
+
+        public int GenerateTypeHeader(StringBuilder sb)
+        {
+            var ctnTypes = new Stack<INamedTypeSymbol>();
+            for (var ctnType = type.ContainingType; ctnType is not null; ctnType = ctnType.ContainingType) ctnTypes.Push(ctnType);
+            // namespace
+            var ns = type.ContainingNamespace?.ToDisplayString();
+            var indent = 0;
+            if (!string.IsNullOrEmpty(ns))
+            {
+                sb.Append("namespace ").Append(ns).AppendLine();
+                sb.AppendLine("{");
+                indent++;
+            }
+            // outer classes
+            foreach (var containingType in ctnTypes)
+            {
+                sb.Append(' ', indent * 4).Append("partial class ").Append(containingType.Name).AppendLine();
+                sb.Append(' ', indent * 4).AppendLine("{");
+                indent++;
+            }
+            // class
+            sb.Append(' ', indent * 4).Append("partial class ").Append(type.Name).AppendLine();
+            sb.Append(' ', indent * 4).AppendLine("{");
+            return indent + 1;
         }
     }
 
@@ -63,7 +90,7 @@ public static class SharedExtensions
         if (expr is TypeOfExpressionSyntax toe)
         {
             var type = sm.GetTypeInfo(toe.Type).Type;
-            if (type != null)
+            if (type is not null)
                 return "typeof(" + type.GetFullyQualifiedName() + ")";
             return expr.ToString();
         }
@@ -76,7 +103,7 @@ public static class SharedExtensions
         {
             var targetExpr = inv.ArgumentList.Arguments[0].Expression;
             var sym = sm.GetSymbolInfo(targetExpr).Symbol;
-            if (sym != null)
+            if (sym is not null)
             {
                 return "nameof(" + sym.GetQualifiedSymbolName() + ")";
             }
@@ -109,7 +136,7 @@ public static class SharedExtensions
             var parts = new Stack<string>();
             parts.Push(symbol.Name);
             var t = symbol.ContainingType;
-            while (t != null)
+            while (t is not null)
             {
                 parts.Push(t.Name);
                 t = t.ContainingType;
@@ -191,6 +218,12 @@ public static class SharedExtensions
         return owner + "." + prop.Name;
     }
 
+    public static bool IsAwaitable(this IMethodSymbol method)
+    {
+        // TODO this is a very naive implementation.
+        return method.ReturnType.GetSimplifiedTypeName() == "System.Threading.Tasks.Task";
+    }
+
     public static string CorrectConfigTypeName(this string typeName, out string? fullTypeName)
     {
         var isArgConfig = typeName.StartsWith("PCL.Core.App.Configuration.ArgConfig<");
@@ -201,5 +234,19 @@ public static class SharedExtensions
         }
         else fullTypeName = null;
         return typeName;
+    }
+
+    extension(string str)
+    {
+        public string SnakeIdToPascal()
+        {
+            var sb = new StringBuilder();
+            foreach (var part in str.Split('-'))
+            {
+                if (part.Length == 0) continue;
+                sb.Append(char.ToUpper(part[0])).Append(part.Substring(1));
+            }
+            return sb.ToString();
+        }
     }
 }

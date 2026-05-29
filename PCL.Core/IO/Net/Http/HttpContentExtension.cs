@@ -1,10 +1,9 @@
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
-namespace PCL.Core.IO.Net.Http.Client.Request;
+namespace PCL.Core.IO.Net.Http;
 
 public static class HttpContentExtension
 {
