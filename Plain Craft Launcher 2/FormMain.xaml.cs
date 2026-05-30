@@ -1101,7 +1101,7 @@ public partial class FormMain
                             var SaveRoot = WorldImportHelper.GetSaveRootDirectory(ExtractFolder);
                             if (SaveRoot is null)
                             {
-                                ModMain.Hint(Lang.Text("Main.FileDrag.WorldNotFound"), ModMain.HintType.Critical);
+                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), ModMain.HintType.Critical);
                                 return;
                             }
 
@@ -1110,7 +1110,7 @@ public partial class FormMain
                             {
                                 if (Directory.Exists(DestFolder))
                                     ModBase.DeleteDirectory(DestFolder, true);
-                                ModMain.Hint(Lang.Text("Main.FileDrag.WorldInvalid"), ModMain.HintType.Critical);
+                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), ModMain.HintType.Critical);
                                 return;
                             }
                         }
@@ -1118,7 +1118,7 @@ public partial class FormMain
                         {
                             if (Directory.Exists(DestFolder))
                                 ModBase.DeleteDirectory(DestFolder, true);
-                            ModBase.Log(ex, Lang.Text("Main.FileDrag.WorldImportFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(ex, Lang.Text("Main.FileDrag.SaveImportFailed"), ModBase.LogLevel.Hint);
                             return;
                         }
                         finally

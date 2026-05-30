@@ -132,9 +132,9 @@
     <sys:String x:Key="Main.FileDrag.HomepageLoaded">已加载主页自定义文件！</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFolderExists">发现同名文件夹，无法粘贴：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.Imported">已导入 {0}</sys:String>
-    <sys:String x:Key="Main.FileDrag.WorldNotFound">压缩包内没有可导入的 Minecraft 存档！</sys:String>
-    <sys:String x:Key="Main.FileDrag.WorldInvalid">导入后的存档缺少 level.dat！</sys:String>
-    <sys:String x:Key="Main.FileDrag.WorldImportFailed">导入存档失败</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveNotFound">压缩包内没有可导入的 Minecraft 存档！</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveInvalid">导入后的存档缺少 level.dat！</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveImportFailed">导入存档失败</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFileExists">已存在同名文件：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.AuthlibInvalid">输入的 Authlib 验证服务器不符合网址格式（{0}）！</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">是否要创建新的第三方验证档案？&#x0a;验证服务器地址：{0}</sys:String>
