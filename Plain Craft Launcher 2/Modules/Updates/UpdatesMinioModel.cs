@@ -51,7 +51,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         if (_remoteCache is null)
             RefreshCache();
         var latestVersion = GetChannelInfo(channel, arch);
-        return currentVersion >= SemVer.Parse(latestVersion.VersionName);
+        return currentVersion >= SemVer.Parse(latestVersion.versionName);
     }
 
     public VersionAnnouncementDataModel GetAnnouncementList()
@@ -70,7 +70,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{ModBase.PathTemp}Cache\Update\Download\";
+        var tempPath = $@"{ModBase.pathTemp}Cache\Update\Download\";
         loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取版本信息", load =>
         {
             var channelName = GetChannelName(channel, arch);
@@ -87,7 +87,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 patchUpdate = true;
                 tempPath += patchFileName;
-                load.Output = new List<DownloadFile>
+                load.output = new List<DownloadFile>
                     { new(new[] { $"{_baseUrl}static/patch/{patchFileName}" }, tempPath) };
             }
             else
@@ -95,7 +95,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 patchUpdate = false;
 
                 tempPath += $"{deJsonData.sha256}.bin";
-                load.Output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
+                load.output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
             }
         }));
         loaders.Add(new LoaderDownload("下载文件", new List<DownloadFile>()));
@@ -146,17 +146,17 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             throw new NullReferenceException("Can not get remote update info!");
         return new VersionDataModel
         {
-            VersionName = deJsonData.version.name,
-            VersionCode = deJsonData.version.code,
-            SHA256 = deJsonData.sha256,
-            Source = SourceName,
-            Changelog = deJsonData.changelog
+            versionName = deJsonData.version.name,
+            versionCode = deJsonData.version.code,
+            sHA256 = deJsonData.sha256,
+            source = SourceName,
+            changelog = deJsonData.changelog
         };
     }
 
     private JsonNode GetRemoteInfoByName(string name, string path = "")
     {
-        var localInfoFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", $"{name}.json");
+        var localInfoFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", $"{name}.json");
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
@@ -185,7 +185,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     /// <returns></returns>
     private bool IsCacheValid(string path, string hash)
     {
-        var cacheFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", path);
+        var cacheFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1 &&
                (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
@@ -193,23 +193,23 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)
     {
-        var ChannelName = string.Empty;
+        var channelName = string.Empty;
         switch (channel)
         {
             case UpdateChannel.stable:
             {
-                ChannelName += "sr";
+                channelName += "sr";
                 break;
             }
             case UpdateChannel.beta:
             {
-                ChannelName += "fr";
+                channelName += "fr";
                 break;
             }
 
             default:
             {
-                ChannelName += "sr";
+                channelName += "sr";
                 break;
             }
         }
@@ -218,23 +218,23 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         {
             case UpdateArch.x64:
             {
-                ChannelName += "x64";
+                channelName += "x64";
                 break;
             }
             case UpdateArch.arm64:
             {
-                ChannelName += "arm64";
+                channelName += "arm64";
                 break;
             }
 
             default:
             {
-                ChannelName += "x64";
+                channelName += "x64";
                 break;
             }
         }
 
-        return ChannelName;
+        return channelName;
     }
 
     private class MinioUpdateModel

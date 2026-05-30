@@ -8,7 +8,7 @@ namespace PCL
 {
     public partial class PageHomePageMarket : MyPageRight, IRefreshable
     {
-        private ModLoader.LoaderTask<bool, string> Loader;
+        private ModLoader.LoaderTask<bool, string> loader;
 
         public PageHomePageMarket()
         {
@@ -18,21 +18,21 @@ namespace PCL
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            Loader = new ModLoader.LoaderTask<bool, string>("HomepageMarket", HomepageMarketGet);
-            PageLoaderInit(Load, PanLoad, PanMain, PanCustom, Loader, _ => Refresh());
+            loader = new ModLoader.LoaderTask<bool, string>("HomepageMarket", HomepageMarketGet);
+            PageLoaderInit(Load, PanLoad, PanMain, PanCustom, loader, _ => Refresh());
         }
 
         public void Refresh()
         {
-            Loader.Start();
+            loader.Start();
         }
 
         private void HomepageMarketGet(ModLoader.LoaderTask<bool, string> Task)
         {
             try
             {
-                const string HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
-                var content = HttpRequest.Create(HomepageMarketUri).SendAsync().Result.AsStringAsync().Result;
+                const string homepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
+                var content = HttpRequest.Create(homepageMarketUri).SendAsync().Result.AsStringAsync().Result;
                 content = content.Replace("EventType=\"刷新主页\"", "EventType=\"刷新主页市场\"");
 
                 ModBase.RunInUi(() =>
@@ -46,7 +46,7 @@ namespace PCL
                     }
                 });
 
-                Task.Output = content;
+                Task.output = content;
             }
             catch (Exception ex)
             {

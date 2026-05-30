@@ -6,13 +6,13 @@ namespace PCL;
 
 public class AnimatedBackgroundGrid : Grid
 {
-    public static readonly DependencyProperty BackgroundBrushProperty = DependencyProperty.Register("BackgroundBrush",
+    public static readonly DependencyProperty backgroundBrushProperty = DependencyProperty.Register("BackgroundBrush",
         typeof(SolidColorBrush), typeof(AnimatedBackgroundGrid),
         new PropertyMetadata(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), _BackgroundBrushChanged));
 
     private readonly DependencyProperty _animatableBrushProperty;
 
-    public readonly int Uuid = ModBase.GetUuid();
+    public readonly int uuid = ModBase.GetUuid();
 
     private bool _isAnimating;
 
@@ -42,8 +42,8 @@ public class AnimatedBackgroundGrid : Grid
 
     public SolidColorBrush BackgroundBrush
     {
-        get => (SolidColorBrush)GetValue(BackgroundBrushProperty);
-        set => SetValue(BackgroundBrushProperty, value);
+        get => (SolidColorBrush)GetValue(backgroundBrushProperty);
+        set => SetValue(backgroundBrushProperty, value);
     }
 
     private static void _BackgroundBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -64,7 +64,7 @@ public class AnimatedBackgroundGrid : Grid
                 {
                     ModAnimation.AaColor(grid.AnimatableElement, grid._animatableBrushProperty,
                         new ModBase.MyColor(brush) - grid.AnimatableBrush, 300)
-                }, "MyCard Theme " + grid.Uuid);
+                }, "MyCard Theme " + grid.uuid);
             await Task.Delay(300);
             grid.AnimatableBrush = brush;
             grid.IsAnimating = false;

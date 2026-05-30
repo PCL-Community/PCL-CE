@@ -14,7 +14,7 @@ public partial class FontSelector
 {
     public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
 
-    public static readonly DependencyProperty TooltipProperty = DependencyProperty.Register(nameof(Tooltip),
+    public static readonly DependencyProperty tooltipProperty = DependencyProperty.Register(nameof(Tooltip),
         typeof(string), typeof(FontSelector), new PropertyMetadata(null, OnTooltipChanged));
 
     private bool _isInitializing;
@@ -31,8 +31,8 @@ public partial class FontSelector
 
     public string Tooltip
     {
-        get => (string)GetValue(TooltipProperty);
-        set => SetValue(TooltipProperty, value);
+        get => (string)GetValue(tooltipProperty);
+        set => SetValue(tooltipProperty, value);
     }
 
     public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = [];
@@ -83,7 +83,7 @@ public partial class FontSelector
         if (d is FontSelector control) control.ComboFont.ToolTip = e.NewValue;
     }
 
-    public event SelectionChangedEventHandler? SelectionChanged;
+    public event SelectionChangedEventHandler? selectionChanged;
 
     private void FontSelector_Loaded(object sender, RoutedEventArgs e)
     {
@@ -194,7 +194,7 @@ public partial class FontSelector
 
     private void ComboFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_isInitializing) SelectionChanged?.Invoke(sender, e);
+        if (!_isInitializing) selectionChanged?.Invoke(sender, e);
     }
 
     private CustomFontProperties? GetDefaultFont()

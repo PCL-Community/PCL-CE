@@ -18,11 +18,11 @@ public static class ModWorld
     {
         if (File.Exists(SavePath))
         {
-            var ExtractPath = $@"{ModBase.PathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
-            if (Directory.Exists(ExtractPath))
-                ModBase.DeleteDirectory(ExtractPath);
-            ModBase.ExtractFile(SavePath, ExtractPath);
-            SavePath = ExtractPath;
+            var extractPath = $@"{ModBase.pathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
+            if (Directory.Exists(extractPath))
+                ModBase.DeleteDirectory(extractPath);
+            ModBase.ExtractFile(SavePath, extractPath);
+            SavePath = extractPath;
         }
 
         var world = new McWorld(SavePath);
@@ -35,10 +35,10 @@ public static class ModWorld
         }
 
         var sb = new StringBuilder();
-        if (world.VersionName is not null)
-            sb.AppendLine($"存档版本：{world.VersionName}");
-        if (world.VersionId is not null)
-            sb.AppendLine($"存档数据版本：{world.VersionId}");
+        if (world.versionName is not null)
+            sb.AppendLine($"存档版本：{world.versionName}");
+        if (world.versionId is not null)
+            sb.AppendLine($"存档数据版本：{world.versionId}");
         if (sb.Length == 0)
             sb.AppendLine("无法获取存档的版本信息，存档版本可能低于 15w32a（对应正式版 1.9）！");
         ModMain.MyMsgBox(sb.ToString(), "存档版本信息");
@@ -56,17 +56,17 @@ public static class ModWorld
         /// <summary>
         ///     存档路径。文件夹，以 “\” 结尾。
         /// </summary>
-        public string SavePath;
+        public string savePath;
 
         /// <summary>
         ///     版本 ID。
         /// </summary>
-        public string VersionId;
+        public string versionId;
 
         /// <summary>
         ///     版本名。
         /// </summary>
-        public string VersionName;
+        public string versionName;
 
         /// <summary>
         ///     存档。
@@ -76,11 +76,11 @@ public static class ModWorld
         {
             if (!SavePath.EndsWithF(@"\"))
                 SavePath = SavePath + @"\";
-            this.SavePath = SavePath;
+            this.savePath = SavePath;
         }
 
         public string LevelDatPath =>
-            File.Exists(SavePath + "level.dat") ? SavePath + "level.dat" : SavePath + "level.dat_old";
+            File.Exists(savePath + "level.dat") ? savePath + "level.dat" : savePath + "level.dat_old";
 
         /// <summary>
         ///     读取存档。返回是否成功。
@@ -89,7 +89,7 @@ public static class ModWorld
         {
             try
             {
-                ModBase.Log($"[World] 读取存档：{SavePath}");
+                ModBase.Log($"[World] 读取存档：{savePath}");
                 if (!File.Exists(LevelDatPath))
                 {
                     ModBase.Log("[World] 存档没有 level.dat 文件，读取失败");
@@ -107,8 +107,8 @@ public static class ModWorld
                         return false;
                     }
 
-                    VersionName = gameVersion.Get<NbtString>("Name").Value;
-                    VersionId = gameVersion.Get<NbtInt>("Id").Value.ToString();
+                    versionName = gameVersion.Get<NbtString>("Name").Value;
+                    versionId = gameVersion.Get<NbtInt>("Id").Value.ToString();
                 }
 
                 return true;

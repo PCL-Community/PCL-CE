@@ -14,7 +14,7 @@ public static class AnnouncementService
             .Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
             .ToList();
 
-        var showAnnounce = UpdateManager.RemoteServer.GetAnnouncementList().content
+        var showAnnounce = UpdateManager.remoteServer.GetAnnouncementList().content
             .Where(x => !showedAnnounced.Contains(x.id))
             .ToList();
 

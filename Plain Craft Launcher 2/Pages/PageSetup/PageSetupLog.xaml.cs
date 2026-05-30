@@ -77,7 +77,7 @@ public partial class PageSetupLog
                 Info = fullPath,
                 Tag = fullPath
             };
-            ele.Click += (sender, e) =>
+            ele.click += (sender, e) =>
             {
                 var s = (MyListItem)sender;
                 var file = (string)s.Tag;

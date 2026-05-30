@@ -6,7 +6,7 @@ public class MyScrollBar : ScrollBar
 {
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyScrollBar()
     {
@@ -25,32 +25,32 @@ public class MyScrollBar : ScrollBar
         try
         {
             // 判断当前颜色
-            double NewOpacity;
-            string NewColor;
-            int Time;
+            double newOpacity;
+            string newColor;
+            int time;
             if (!IsVisible)
             {
-                NewOpacity = 0d;
-                Time = 20; // 防止错误的尺寸判断导致闪烁
-                NewColor = "ColorBrush4";
+                newOpacity = 0d;
+                time = 20; // 防止错误的尺寸判断导致闪烁
+                newColor = "ColorBrush4";
             }
             else if (IsMouseCaptureWithin)
             {
-                NewOpacity = 1d;
-                NewColor = "ColorBrush4";
-                Time = 50;
+                newOpacity = 1d;
+                newColor = "ColorBrush4";
+                time = 50;
             }
             else if (IsMouseOver)
             {
-                NewOpacity = 0.9d;
-                NewColor = "ColorBrush3";
-                Time = 130;
+                newOpacity = 0.9d;
+                newColor = "ColorBrush3";
+                time = 130;
             }
             else
             {
-                NewOpacity = 0.5d;
-                NewColor = "ColorBrush4";
-                Time = 180;
+                newOpacity = 0.5d;
+                newColor = "ColorBrush4";
+                time = 180;
             }
 
             // 触发颜色动画
@@ -60,16 +60,16 @@ public class MyScrollBar : ScrollBar
                 ModAnimation.AniStart(
                     new[]
                     {
-                        ModAnimation.AaColor(this, ForegroundProperty, NewColor, Time),
-                        ModAnimation.AaOpacity(this, NewOpacity - Opacity, Time)
-                    }, "MyScrollBar Color " + Uuid);
+                        ModAnimation.AaColor(this, ForegroundProperty, newColor, time),
+                        ModAnimation.AaOpacity(this, newOpacity - Opacity, time)
+                    }, "MyScrollBar Color " + uuid);
             }
             else
             {
                 // 无动画
-                ModAnimation.AniStop("MyScrollBar Color " + Uuid);
-                SetResourceReference(ForegroundProperty, NewColor);
-                Opacity = NewOpacity;
+                ModAnimation.AniStop("MyScrollBar Color " + uuid);
+                SetResourceReference(ForegroundProperty, newColor);
+                Opacity = newOpacity;
             }
         }
 

@@ -57,7 +57,7 @@ public sealed class NetManager
         {
             Tasks.Remove(task);
             Tasks.Add(task);
-            foreach (var file in task.Files)
+            foreach (var file in task.files)
                 Files[file.LocalPath] = file;
         }
     }
@@ -67,7 +67,7 @@ public sealed class NetManager
         lock (LockFiles)
         {
             Tasks.Remove(task);
-            foreach (var file in task.Files)
+            foreach (var file in task.files)
                 Files.Remove(file.LocalPath);
         }
     }

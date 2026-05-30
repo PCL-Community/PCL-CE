@@ -7,7 +7,7 @@ namespace PCL;
 
 public partial class PageSetupGameManage
 {
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupGameManage()
     {
@@ -21,9 +21,9 @@ public partial class PageSetupGameManage
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -120,8 +120,8 @@ public partial class PageSetupGameManage
     // 滑动条
     private void SliderLoad()
     {
-        SliderDownloadThread.GetHintText = new Func<object, object>(v => (int)v + 1);
-        SliderDownloadSpeed.GetHintText = new Func<object, object>(v =>
+        SliderDownloadThread.getHintText = new Func<object, object>(v => (int)v + 1);
+        SliderDownloadSpeed.getHintText = new Func<object, object>(v =>
         {
             int value = (int)v;
             switch (value)

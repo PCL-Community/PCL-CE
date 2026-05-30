@@ -9,10 +9,10 @@ namespace PCL;
 
 public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格式
 {
-    private const string MirrorChyanBaseUrl =
+    private const string mirrorChyanBaseUrl =
         "https://mirrorchyan.com/api/resources/{cid}/latest?cdk={cdk}&os=win&arch={arch}&channel={channel}";
 
-    private const string MyCid = "PCL2-CE";
+    private const string myCid = "PCL2-CE";
     public string SourceName { get; set; } = "MirrorChyan";
 
     public bool IsAvailable()
@@ -36,11 +36,11 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 throw new Exception("无效 CDK");
             return new VersionDataModel
             {
-                Source = SourceName,
-                VersionCode = (int)data["version_number"],
-                VersionName = (string)data["version_name"],
-                SHA256 = (string)data["sha256"],
-                Changelog = (string)data["release_note"]
+                source = SourceName,
+                versionCode = (int)data["version_number"],
+                versionName = (string)data["version_name"],
+                sHA256 = (string)data["sha256"],
+                changelog = (string)data["release_note"]
             };
         }
     }
@@ -53,7 +53,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     public bool IsLatest(UpdateChannel channel, UpdateArch arch, SemVer currentVersion, int currentVersionCode)
     {
         var latest = GetLatestVersion(channel, arch);
-        return currentVersion >= SemVer.Parse(latest.VersionName);
+        return currentVersion >= SemVer.Parse(latest.versionName);
     }
 
     public VersionAnnouncementDataModel GetAnnouncementList()
@@ -70,7 +70,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
             var dlUrl = ret["data"]["url"]?.ToString();
             if (dlUrl is null)
                 throw new Exception("Mirror 酱下载源不可用");
-            load.Output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
+            load.output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
         }));
         loaders.Add(new LoaderDownload("下载更新文件", new List<DownloadFile>()));
         return loaders;
@@ -78,11 +78,11 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
 
     private string GetUrl(UpdateChannel channel, UpdateArch arch)
     {
-        var ReqUrl = MirrorChyanBaseUrl;
-        ReqUrl = ReqUrl.Replace("{cid}", MyCid);
-        ReqUrl = ReqUrl.Replace("{cdk}", Config.Update.MirrorChyanKey);
-        ReqUrl = ReqUrl.Replace("{arch}", arch.ToString());
-        ReqUrl = ReqUrl.Replace("{channel}", channel.ToString());
-        return ReqUrl;
+        var reqUrl = mirrorChyanBaseUrl;
+        reqUrl = reqUrl.Replace("{cid}", myCid);
+        reqUrl = reqUrl.Replace("{cdk}", Config.Update.MirrorChyanKey);
+        reqUrl = reqUrl.Replace("{arch}", arch.ToString());
+        reqUrl = reqUrl.Replace("{channel}", channel.ToString());
+        return reqUrl;
     }
 }

@@ -4,7 +4,7 @@ public static class ModVideoBack
 {
     private static bool _isGaming;
     private static bool _forcePlay;
-    public static bool IsMinimized = false; // 窗口是否被最小化
+    public static bool isMinimized = false; // 窗口是否被最小化
 
     public static bool IsGaming // 判断用户是否在游戏中
     {
@@ -14,7 +14,7 @@ public static class ModVideoBack
             if (_isGaming != value)
             {
                 _isGaming = value;
-                GamingStateChanged?.Invoke(null, new BooleanEventArgs(value));
+                gamingStateChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }
     }
@@ -27,13 +27,13 @@ public static class ModVideoBack
             if (_forcePlay != value)
             {
                 _forcePlay = value;
-                ForcePlayChanged?.Invoke(null, new BooleanEventArgs(value));
+                forcePlayChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }
     }
 
-    public static event EventHandler<BooleanEventArgs>? GamingStateChanged;
-    public static event EventHandler<BooleanEventArgs>? ForcePlayChanged;
+    public static event EventHandler<BooleanEventArgs>? gamingStateChanged;
+    public static event EventHandler<BooleanEventArgs>? forcePlayChanged;
 
     public static void OnGamingStateChanged(object sender, BooleanEventArgs e) // 用户是否在游戏中 事件
     {
@@ -43,16 +43,16 @@ public static class ModVideoBack
             {
                 if (ForcePlay)
                 {
-                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                    if (ModMain.frmSetupUI is not null) ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
                 }
-                else if (ModMain.FrmSetupUI is not null)
+                else if (ModMain.frmSetupUI is not null)
                 {
-                    ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
+                    ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                 }
             }
-            else if (ModMain.FrmSetupUI is not null)
+            else if (ModMain.frmSetupUI is not null)
             {
-                ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
             }
         });
     }
@@ -65,16 +65,16 @@ public static class ModVideoBack
             {
                 if (ForcePlay)
                 {
-                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                    if (ModMain.frmSetupUI is not null) ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
                 }
-                else if (ModMain.FrmSetupUI is not null)
+                else if (ModMain.frmSetupUI is not null)
                 {
-                    ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
+                    ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                 }
             }
-            else if (ModMain.FrmSetupUI is not null)
+            else if (ModMain.frmSetupUI is not null)
             {
-                ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
             }
         });
     }
@@ -86,11 +86,11 @@ public static class ModVideoBack
     {
         ModBase.RunInUi(() =>
         {
-            if (ModMain.FrmMain.VideoBack.Source is not null && !IsMinimized)
+            if (ModMain.frmMain.VideoBack.Source is not null && !isMinimized)
                 if (!IsGaming || ForcePlay)
                     try
                     {
-                        ModMain.FrmMain.VideoBack.Play();
+                        ModMain.frmMain.VideoBack.Play();
                         ModBase.Log("[UI] 已开始视频背景播放");
                     }
                     catch (Exception ex)
@@ -109,9 +109,9 @@ public static class ModVideoBack
         {
             try
             {
-                ModMain.FrmMain.VideoBack.Source = null;
-                ModMain.FrmMain.VideoBack.Stop();
-                ModMain.FrmMain.VideoBack.Position = TimeSpan.Zero;
+                ModMain.frmMain.VideoBack.Source = null;
+                ModMain.frmMain.VideoBack.Stop();
+                ModMain.frmMain.VideoBack.Position = TimeSpan.Zero;
                 ModBase.Log("[UI] 已停止视频背景播放");
             }
             catch (Exception ex)
@@ -130,12 +130,12 @@ public static class ModVideoBack
         // 游戏启动后暂停
         ModBase.RunInUi(() =>
         {
-            if (IsMinimized)
+            if (isMinimized)
             {
-                if (ModMain.FrmMain.VideoBack.Source is not null)
+                if (ModMain.frmMain.VideoBack.Source is not null)
                     try
                     {
-                        ModMain.FrmMain.VideoBack.Pause();
+                        ModMain.frmMain.VideoBack.Pause();
                         ModBase.Log("[UI] 已暂停视频背景播放");
                     }
                     catch (Exception ex)
@@ -146,12 +146,12 @@ public static class ModVideoBack
             else if (ForcePlay)
             {
             }
-            else if (ModMain.FrmMain.VideoBack.Source is not null)
+            else if (ModMain.frmMain.VideoBack.Source is not null)
             {
                 try
                 {
-                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
-                    ModMain.FrmMain.VideoBack.Pause();
+                    if (ModMain.frmSetupUI is not null) ModMain.frmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
+                    ModMain.frmMain.VideoBack.Pause();
                     ModBase.Log("[UI] 已暂停视频背景播放");
                 }
                 catch (Exception ex)

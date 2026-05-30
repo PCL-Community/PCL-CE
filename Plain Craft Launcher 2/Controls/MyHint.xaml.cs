@@ -20,7 +20,7 @@ public partial class MyHint
         Yellow = 2
     }
 
-    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
+    public static readonly DependencyProperty isWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
         typeof(MyHint),
         new PropertyMetadata(true,
             (d, e) =>
@@ -29,7 +29,7 @@ public partial class MyHint
                 f.Theme = e.NewValue is not null ? Themes.Red : Themes.Blue;
             }));
 
-    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyHint), new PropertyMetadata("", (d, e) =>
         {
             var f = (MyHint)d;
@@ -39,8 +39,8 @@ public partial class MyHint
     private Themes _ColorType = Themes.Red;
 
     // 触发点击事件
-    private bool IsMouseDown;
-    public int Uuid = ModBase.GetUuid();
+    private bool isMouseDown;
+    public int uuid = ModBase.GetUuid();
 
     public MyHint()
     {
@@ -90,8 +90,8 @@ public partial class MyHint
 
     public string Text
     {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => (string)GetValue(textProperty);
+        set => SetValue(textProperty, value);
     }
 
     // 关闭按钮
@@ -148,9 +148,9 @@ public partial class MyHint
 
     private void MyHint_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
-        IsMouseDown = false;
+        isMouseDown = false;
         ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
@@ -158,12 +158,12 @@ public partial class MyHint
 
     private void MyHint_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
     }
 
     private void MyHint_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
     }
 
     private void _ThemeChanged(bool isDarkMode, ColorTheme theme)
@@ -198,6 +198,6 @@ public static partial class ModAnimation
                 if (CallBack is not null)
                     CallBack(Control);
             }, After: true)
-        }, "MyCard Dispose " + Control.Uuid);
+        }, "MyCard Dispose " + Control.uuid);
     }
 }

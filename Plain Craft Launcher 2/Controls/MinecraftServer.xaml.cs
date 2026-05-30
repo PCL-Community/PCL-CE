@@ -11,10 +11,10 @@ namespace PCL;
 
 public partial class MinecraftServer : Grid
 {
-    private const string FallbackImageUri =
+    private const string fallbackImageUri =
         "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png";
 
-    private static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address),
+    private static readonly DependencyProperty addressProperty = DependencyProperty.Register(nameof(Address),
         typeof(string), typeof(MinecraftServer), new PropertyMetadata(string.Empty, OnAddressChanged));
 
     public MinecraftServer()
@@ -24,8 +24,8 @@ public partial class MinecraftServer : Grid
 
     public string Address
     {
-        get => (string)(GetValue(AddressProperty));
-        set => SetValue(AddressProperty, value);
+        get => (string)(GetValue(addressProperty));
+        set => SetValue(addressProperty, value);
     }
 
     private static void OnAddressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -44,7 +44,7 @@ public partial class MinecraftServer : Grid
         LabServerDesc.Text = "查询中...";
         LabServerPlayer.Text = "-/-";
         LabServerPlayer.ToolTip = null;
-        ImageLoaderHelper.SetFallbackImage(ImgServerLogo, FallbackImageUri);
+        ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
 
         try
         {
@@ -70,7 +70,7 @@ public partial class MinecraftServer : Grid
             ModBase.Log(ex, "[MinecraftServer] 信息查询失败");
             LabServerDesc.Text = $"无法连接: {ex.Message}";
             LabServerDesc.Foreground = Brushes.Red;
-            ImageLoaderHelper.SetFallbackImage(ImgServerLogo, FallbackImageUri);
+            ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
         }
     }
 

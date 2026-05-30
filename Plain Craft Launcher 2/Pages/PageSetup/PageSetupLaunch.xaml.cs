@@ -11,7 +11,7 @@ namespace PCL;
 
 public partial class PageSetupLaunch
 {
-    private bool IsLoad;
+    private bool isLoad;
 
     public PageSetupLaunch()
     {
@@ -30,9 +30,9 @@ public partial class PageSetupLaunch
             BtnSwitch.Visibility = Visibility.Visible;
 
         // 非重复加载部分
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -190,8 +190,8 @@ public partial class PageSetupLaunch
     private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
     {
         ModMinecraft.McInstanceSelected.Load();
-        PageInstanceLeft.Instance = ModMinecraft.McInstanceSelected;
-        ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
+        PageInstanceLeft.instance = ModMinecraft.McInstanceSelected;
+        ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
     private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -220,8 +220,8 @@ public partial class PageSetupLaunch
     /// </summary>
     public void RefreshRam(bool showAnim)
     {
-        if (LabRamGame is null || LabRamUsed is null || ModMain.FrmMain.PageCurrent != FormMain.PageType.Setup ||
-            ModMain.FrmSetupLeft.PageID != FormMain.PageSubType.SetupLaunch)
+        if (LabRamGame is null || LabRamUsed is null || ModMain.frmMain.pageCurrent != FormMain.PageType.Setup ||
+            ModMain.frmSetupLeft.pageID != FormMain.PageSubType.SetupLaunch)
             return;
         // 获取内存情况
         var ramGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
@@ -277,8 +277,8 @@ public partial class PageSetupLaunch
         RefreshRam(true);
     }
 
-    private int RamTextLeft = 2;
-    private int RamTextRight = 1;
+    private int ramTextLeft = 2;
+    private int ramTextRight = 1;
 
     /// <summary>
     ///     刷新 UI 上的文本位置。
@@ -286,28 +286,28 @@ public partial class PageSetupLaunch
     private void RefreshRamText()
     {
         // 获取宽度信息
-        var RectUsedWidth = RectRamUsed.ActualWidth;
-        var TotalWidth = PanRamDisplay.ActualWidth;
-        var LabGameWidth = LabRamGame.ActualWidth;
-        var LabUsedWidth = LabRamUsed.ActualWidth;
-        var LabTotalWidth = LabRamTotal.ActualWidth;
-        var LabGameTitleWidth = LabRamGameTitle.ActualWidth;
-        var LabUsedTitleWidth = LabRamUsedTitle.ActualWidth;
+        var rectUsedWidth = RectRamUsed.ActualWidth;
+        var totalWidth = PanRamDisplay.ActualWidth;
+        var labGameWidth = LabRamGame.ActualWidth;
+        var labUsedWidth = LabRamUsed.ActualWidth;
+        var labTotalWidth = LabRamTotal.ActualWidth;
+        var labGameTitleWidth = LabRamGameTitle.ActualWidth;
+        var labUsedTitleWidth = LabRamUsedTitle.ActualWidth;
         // 左侧
-        int Left;
-        if (RectUsedWidth - 30d < LabUsedWidth || RectUsedWidth - 30d < LabUsedTitleWidth)
+        int left;
+        if (rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth)
             // 全写不下了
-            Left = 0;
-        else if (RectUsedWidth - 25d < LabUsedWidth + LabTotalWidth)
+            left = 0;
+        else if (rectUsedWidth - 25d < labUsedWidth + labTotalWidth)
             // 显示不下完整数据
-            Left = 1;
+            left = 1;
         else
             // 正常
-            Left = 2;
-        if (RamTextLeft != Left)
+            left = 2;
+        if (ramTextLeft != left)
         {
-            RamTextLeft = Left;
-            switch (Left)
+            ramTextLeft = left;
+            switch (left)
             {
                 case 0:
                 {
@@ -346,25 +346,25 @@ public partial class PageSetupLaunch
         }
 
         // 右侧
-        int Right;
-        if (TotalWidth < LabGameWidth + 2d + RectUsedWidth || TotalWidth < LabGameTitleWidth + 2d + RectUsedWidth)
+        int right;
+        if (totalWidth < labGameWidth + 2d + rectUsedWidth || totalWidth < labGameTitleWidth + 2d + rectUsedWidth)
             // 挤到最右边
-            Right = 0;
+            right = 0;
         else
             // 正常情况
-            Right = 1;
-        if (Right == 0)
+            right = 1;
+        if (right == 0)
         {
             if (ModAnimation.AniControlEnabled == 0 &&
-                (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
+                (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
             {
                 // 需要动画
                 ModAnimation.AniStart(
                     new[]
                     {
-                        ModAnimation.AaX(LabRamGame, TotalWidth - LabGameWidth - LabRamGame.Margin.Left, 100,
+                        ModAnimation.AaX(LabRamGame, totalWidth - labGameWidth - LabRamGame.Margin.Left, 100,
                             Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(LabRamGameTitle, TotalWidth - LabGameTitleWidth - LabRamGameTitle.Margin.Left,
+                        ModAnimation.AaX(LabRamGameTitle, totalWidth - labGameTitleWidth - LabRamGameTitle.Margin.Left,
                             100, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                     }, "SetupLaunch Ram TextRight");
             }
@@ -372,20 +372,20 @@ public partial class PageSetupLaunch
             {
                 // 不需要动画
                 ModAnimation.AniStop("SetupLaunch Ram TextRight");
-                LabRamGame.Margin = new Thickness(TotalWidth - LabGameWidth, 3d, 0d, 0d);
-                LabRamGameTitle.Margin = new Thickness(TotalWidth - LabGameTitleWidth, 0d, 0d, 5d);
+                LabRamGame.Margin = new Thickness(totalWidth - labGameWidth, 3d, 0d, 0d);
+                LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
             }
         }
         else if (ModAnimation.AniControlEnabled == 0 &&
-                 (RamTextRight != Right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
+                 (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
         {
             // 需要动画
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaX(LabRamGame, 2d + RectUsedWidth - LabRamGame.Margin.Left, 100,
+                    ModAnimation.AaX(LabRamGame, 2d + rectUsedWidth - LabRamGame.Margin.Left, 100,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaX(LabRamGameTitle, 2d + RectUsedWidth - LabRamGameTitle.Margin.Left, 100,
+                    ModAnimation.AaX(LabRamGameTitle, 2d + rectUsedWidth - LabRamGameTitle.Margin.Left, 100,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "SetupLaunch Ram TextRight");
         }
@@ -393,11 +393,11 @@ public partial class PageSetupLaunch
         {
             // 不需要动画
             ModAnimation.AniStop("SetupLaunch Ram TextRight");
-            LabRamGame.Margin = new Thickness(2d + RectUsedWidth, 3d, 0d, 0d);
-            LabRamGameTitle.Margin = new Thickness(2d + RectUsedWidth, 0d, 0d, 5d);
+            LabRamGame.Margin = new Thickness(2d + rectUsedWidth, 3d, 0d, 0d);
+            LabRamGameTitle.Margin = new Thickness(2d + rectUsedWidth, 0d, 0d, 5d);
         }
 
-        RamTextRight = Right;
+        ramTextRight = right;
     }
 
     /// <summary>
@@ -409,81 +409,81 @@ public partial class PageSetupLaunch
         // 修改下方代码时需要一并修改 PageInstanceSetup
         // ------------------------------------------
 
-        var RamGive = default(double);
+        var ramGive = default(double);
         if (Config.Launch.MemoryAllocationMode == 0)
         {
             // 自动配置
-            var RamAvailable =
+            var ramAvailable =
                 Math.Round((double)KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10) / 10;
             // 确定需求的内存值
-            double RamMininum; // 无论如何也需要保证的最低限度内存
-            double RamTarget1; // 估计能勉强带动了的内存
-            double RamTarget2; // 估计没啥问题了的内存
-            double RamTarget3; // 放一百万个材质和 Mod 和光影需要的内存
-            if (Version is not null && !Version.IsLoaded)
+            double ramMininum; // 无论如何也需要保证的最低限度内存
+            double ramTarget1; // 估计能勉强带动了的内存
+            double ramTarget2; // 估计没啥问题了的内存
+            double ramTarget3; // 放一百万个材质和 Mod 和光影需要的内存
+            if (Version is not null && !Version.isLoaded)
                 Version.Load();
             if (Version is not null && Version.Modable)
             {
                 // 可安装 Mod 的实例
-                var ModDir = new DirectoryInfo(Version.PathIndie + @"mods\");
-                var ModCount = ModDir.Exists ? ModDir.GetFiles().Length : 0;
-                RamMininum = 0.5d + ModCount / 150d;
-                RamTarget1 = 1.5d + ModCount / 90d;
-                RamTarget2 = 2.7d + ModCount / 50d;
-                RamTarget3 = 4.5d + ModCount / 25d;
+                var modDir = new DirectoryInfo(Version.PathIndie + @"mods\");
+                var modCount = modDir.Exists ? modDir.GetFiles().Length : 0;
+                ramMininum = 0.5d + modCount / 150d;
+                ramTarget1 = 1.5d + modCount / 90d;
+                ramTarget2 = 2.7d + modCount / 50d;
+                ramTarget3 = 4.5d + modCount / 25d;
             }
-            else if (Version is not null && Version.Info.HasOptiFine)
+            else if (Version is not null && Version.Info.hasOptiFine)
             {
                 // OptiFine 实例
-                RamMininum = 0.5d;
-                RamTarget1 = 1.5d;
-                RamTarget2 = 3d;
-                RamTarget3 = 5d;
+                ramMininum = 0.5d;
+                ramTarget1 = 1.5d;
+                ramTarget2 = 3d;
+                ramTarget3 = 5d;
             }
             else
             {
                 // 普通实例
-                RamMininum = 0.5d;
-                RamTarget1 = 1.5d;
-                RamTarget2 = 2.5d;
-                RamTarget3 = 4d;
+                ramMininum = 0.5d;
+                ramTarget1 = 1.5d;
+                ramTarget2 = 2.5d;
+                ramTarget3 = 4d;
             }
 
-            var RamStages = new[]
+            var ramStages = new[]
             {
-                (Delta: RamTarget1, Ratio: 1d),
-                (Delta: RamTarget2 - RamTarget1, Ratio: 0.7d),
-                (Delta: RamTarget3 - RamTarget2, Ratio: 0.4d),
-                (Delta: RamTarget3, Ratio: 0.15d)
+                (Delta: ramTarget1, Ratio: 1d),
+                (Delta: ramTarget2 - ramTarget1, Ratio: 0.7d),
+                (Delta: ramTarget3 - ramTarget2, Ratio: 0.4d),
+                (Delta: ramTarget3, Ratio: 0.15d)
             };
-            foreach (var (RamDelta, RamRatio) in RamStages)
+            foreach (var (RamDelta, RamRatio) in ramStages)
             {
-                RamGive += Math.Min(RamAvailable * RamRatio, RamDelta);
-                RamAvailable -= RamDelta / RamRatio;
-                if (RamAvailable < 0.1d)
+                ramGive += Math.Min(ramAvailable * RamRatio, RamDelta);
+                ramAvailable -= RamDelta / RamRatio;
+                if (ramAvailable < 0.1d)
                     break;
             }
 
             // 不低于最低值
-            RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
+            ramGive = Math.Round(Math.Max(ramGive, ramMininum), 1);
         }
         else
         {
             // 手动配置
-            var Value = Config.Launch.CustomMemorySize;
-            RamGive = Value switch
+            var value = Config.Launch.CustomMemorySize;
+            ramGive = value switch
             {
-                <= 12 => Value * 0.1d + 0.3d,
-                <= 25 => (Value - 12) * 0.5d + 1.5d,
-                <= 33 => (Value - 25) * 1 + 8,
-                _ => (Value - 33) * 2 + 16
+                <= 12 => value * 0.1d + 0.3d,
+                <= 25 => (value - 12) * 0.5d + 1.5d,
+                <= 33 => (value - 25) * 1 + 8,
+                _ => (value - 33) * 2 + 16
             };
         }
 
         // 若使用 32 位 Java，则限制为 1G
         if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(UseVersionJavaSetup ? Version : null))
-            RamGive = Math.Min(1d, RamGive);
-        return RamGive;
+            ramGive = Math.Min(1d, ramGive);
+        return ramGive;
     }
 
     #endregion

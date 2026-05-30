@@ -14,12 +14,12 @@ namespace PCL;
 
 public static class ModJava
 {
-    public static int JavaListCacheVersion = 7;
+    public static int javaListCacheVersion = 7;
 
     /// <summary>
     ///     防止多个需要 Java 的部分同时要求下载 Java（#3797）。
     /// </summary>
-    public static object JavaLock = new();
+    public static object javaLock = new();
 
     /// <summary>
     ///     目前所有可用的 Java。
@@ -239,12 +239,12 @@ public static class ModJava
         try
         {
             // 检查强制指定
-            var UserSetup = Config.Launch.SelectedJava;
-            if (UserSetup.StartsWith("{")) // 旧版本 Json 格式
+            var userSetup = Config.Launch.SelectedJava;
+            if (userSetup.StartsWith("{")) // 旧版本 Json 格式
             {
-                var js = ModBase.GetJson(UserSetup);
-                UserSetup = $"{js["Path"]}java.exe";
-                Config.Launch.SelectedJava = UserSetup;
+                var js = ModBase.GetJson(userSetup);
+                userSetup = $"{js["Path"]}java.exe";
+                Config.Launch.SelectedJava = userSetup;
             }
 
             if (RelatedVersion is not null)
@@ -277,14 +277,14 @@ public static class ModJava
                 }
             }
 
-            if (!string.IsNullOrEmpty(UserSetup) && !File.Exists(UserSetup))
+            if (!string.IsNullOrEmpty(userSetup) && !File.Exists(userSetup))
             {
                 Config.Launch.SelectedJava = "";
-                UserSetup = string.Empty;
+                userSetup = string.Empty;
             }
 
-            if (string.IsNullOrEmpty(UserSetup)) return Javas.Existing64BitJava();
-            var j = Javas.AddOrGet(UserSetup);
+            if (string.IsNullOrEmpty(userSetup)) return Javas.Existing64BitJava();
+            var j = Javas.AddOrGet(userSetup);
             return j is not null && j.Installation.Is64Bit;
         }
         catch (Exception ex)
@@ -323,36 +323,36 @@ public static class ModJava
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
-        var JavaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
+        var javaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
             { ProgressWeight = 10d };
-        var Loader = new ModLoader.LoaderCombo<string>("下载 Java",
+        var loader = new ModLoader.LoaderCombo<string>("下载 Java",
             new ModLoader.LoaderBase[]
             {
                 new ModLoader.LoaderTask<string, List<DownloadFile>>("获取 Java 下载信息", JavaFileList)
                     { ProgressWeight = 2d },
-                JavaDownloadLoader
+                javaDownloadLoader
             });
-        JavaDownloadLoader.OnStateChangedThread += (Raw, NewState, OldState) =>
+        javaDownloadLoader.onStateChangedThread += (Raw, NewState, OldState) =>
         {
             if ((NewState == ModBase.LoadState.Failed || NewState == ModBase.LoadState.Aborted) &&
-                LastJavaBaseDir is not null)
+                lastJavaBaseDir is not null)
             {
-                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{LastJavaBaseDir}", ModBase.LogLevel.Debug);
-                ModBase.DeleteDirectory(LastJavaBaseDir);
+                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{lastJavaBaseDir}", ModBase.LogLevel.Debug);
+                ModBase.DeleteDirectory(lastJavaBaseDir);
             }
             else if (NewState == ModBase.LoadState.Finished)
             {
                 Javas.ScanJavaAsync().GetAwaiter().GetResult();
-                LastJavaBaseDir = null;
+                lastJavaBaseDir = null;
             }
         };
-        JavaDownloadLoader.HasOnStateChangedThread = true;
-        return Loader;
+        javaDownloadLoader.hasOnStateChangedThread = true;
+        return loader;
     }
 
-    private static string LastJavaBaseDir; // 用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
+    private static string lastJavaBaseDir; // 用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
 
-    private static readonly HashSet<string> IgnoreHash = new[]
+    private static readonly HashSet<string> ignoreHash = new[]
     {
         "12976a6c2b227cbac58969c1455444596c894656", "c80e4bab46e34d02826eab226a4441d0970f2aba",
         "84d2102ad171863db04e7ee22a259d1f6c5de4a5"
@@ -361,7 +361,7 @@ public static class ModJava
     private static void JavaFileList(ModLoader.LoaderTask<string, List<DownloadFile>> Loader)
     {
         ModBase.Log("[Java] 开始获取 Java 下载信息");
-        var IndexFileStr = ModNet.NetGetCodeByLoader(
+        var indexFileStr = ModNet.NetGetCodeByLoader(
             ModDownload.DlVersionListOrder(
                 new[]
                 {
@@ -374,60 +374,60 @@ public static class ModJava
         // 查找要下载的目标 Java
         string? targetName = null;
         JsonNode? targetValue = null;
-        var Components =
-            (JsonObject)((JsonObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
-        if (Components.ContainsKey(Loader.Input)) // 精确匹配
+        var components =
+            (JsonObject)((JsonObject)ModBase.GetJson(indexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
+        if (components.ContainsKey(Loader.input)) // 精确匹配
         {
-            targetName = Loader.Input;
-            targetValue = Components[Loader.Input];
+            targetName = Loader.input;
+            targetValue = components[Loader.input];
         }
         else // 模糊匹配
         {
-            var match = Components.FirstOrDefault(c =>
-                c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(Loader.Input) ?? false);
+            var match = components.FirstOrDefault(c =>
+                c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(Loader.input) ?? false);
             targetName = match.Key;
             targetValue = match.Value;
             if (targetName is null)
-                throw new Exception($"未能找到所需的 Java {Loader.Input}");
+                throw new Exception($"未能找到所需的 Java {Loader.input}");
         }
 
-        var TargetComponent = targetValue?.AsArray().FirstOrDefault();
-        if (TargetComponent is null)
-            throw new Exception($"Mojang 未提供所需的 Java {Loader.Input}");
+        var targetComponent = targetValue?.AsArray().FirstOrDefault();
+        if (targetComponent is null)
+            throw new Exception($"Mojang 未提供所需的 Java {Loader.input}");
         // 获取文件列表
-        var Address = (string)TargetComponent["manifest"]["url"];
-        ModLaunch.McLaunchLog($"准备下载 Java {TargetComponent["version"]["name"]}（{targetName}）：{Address}");
-        var ListFileStr = (JsonObject)Requester.FetchJson(
-            ModDownload.DlSourceOrder(new[] { Address },
-                new[] { Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
-        LastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        var address = (string)targetComponent["manifest"]["url"];
+        ModLaunch.McLaunchLog($"准备下载 Java {targetComponent["version"]["name"]}（{targetName}）：{address}");
+        var listFileStr = (JsonObject)Requester.FetchJson(
+            ModDownload.DlSourceOrder(new[] { address },
+                new[] { address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
+        lastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             ".minecraft", "runtime", targetName);
-        var Results = new List<DownloadFile>(ListFileStr["files"].AsObject().Count);
-        foreach (var File in ListFileStr["files"].AsObject())
+        var results = new List<DownloadFile>(listFileStr["files"].AsObject().Count);
+        foreach (var File in listFileStr["files"].AsObject())
         {
             if (File.Value?.AsObject()?["downloads"]?["raw"] is null)
                 continue;
 
-            var Info = File.Value["downloads"]["raw"].AsObject();
-            var checkHash = Info["sha1"];
-            if (IgnoreHash.Contains((string)checkHash))
+            var info = File.Value["downloads"]["raw"].AsObject();
+            var checkHash = info["sha1"];
+            if (ignoreHash.Contains((string)checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
-            var Checker = new ModBase.FileChecker(ActualSize: (long)Info["size"], Hash: (string)Info["sha1"]);
-            var filePath = Path.GetFullPath(Path.Combine(LastJavaBaseDir, File.Key));
-            if (!Files.IsPathWithinDirectory(filePath, LastJavaBaseDir))
-                throw new Exception($"{filePath} 不在 {LastJavaBaseDir} 中");
+            var checker = new ModBase.FileChecker(ActualSize: (long)info["size"], Hash: (string)info["sha1"]);
+            var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir, File.Key));
+            if (!Files.IsPathWithinDirectory(filePath, lastJavaBaseDir))
+                throw new Exception($"{filePath} 不在 {lastJavaBaseDir} 中");
 
-            if (Checker.Check(filePath) is null)
+            if (checker.Check(filePath) is null)
                 continue; // 跳过已存在的文件
-            var Url = (string)Info["url"];
-            Results.Add(new DownloadFile(
-                ModDownload.DlSourceOrder(new[] { Url },
-                    new[] { Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, Checker));
+            var url = (string)info["url"];
+            results.Add(new DownloadFile(
+                ModDownload.DlSourceOrder(new[] { url },
+                    new[] { url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, checker));
         }
 
-        Loader.Output = Results;
-        ModBase.Log($"[Java] 需要下载 {Results.Count} 个文件，目标文件夹：{LastJavaBaseDir}");
+        Loader.output = results;
+        ModBase.Log($"[Java] 需要下载 {results.Count} 个文件，目标文件夹：{lastJavaBaseDir}");
     }
 
     #endregion

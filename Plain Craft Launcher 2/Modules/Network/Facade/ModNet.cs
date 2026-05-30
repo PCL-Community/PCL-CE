@@ -5,7 +5,7 @@ namespace PCL.Network;
 
 public static class ModNet
 {
-    public const string NetDownloadEnd = ".PCLDownloading";
+    public const string netDownloadEnd = ".PCLDownloading";
     public static int NetTaskThreadLimit { get; set; } = 16;
     public static long NetTaskSpeedLimitLow { get; set; } = 256 * 1024L;
     public static long NetTaskSpeedLimitHigh { get; set; } = -1;
@@ -119,10 +119,10 @@ public static class ModNet
 
     public static bool HasDownloadingTask(bool IgnoreCustomDownload = false)
     {
-        foreach (var task in ModLoader.LoaderTaskbar.ToList())
+        foreach (var task in ModLoader.loaderTaskbar.ToList())
         {
-            if (task.Show && task.State == ModBase.LoadState.Loading &&
-                (!IgnoreCustomDownload || !task.Name.Contains("自定义下载")))
+            if (task.show && task.State == ModBase.LoadState.Loading &&
+                (!IgnoreCustomDownload || !task.name.Contains("自定义下载")))
                 return true;
         }
         return false;

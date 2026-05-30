@@ -11,20 +11,20 @@ namespace PCL;
 
 public partial class PageSetupJava
 {
-    private bool IsLoad = false;
+    private bool isLoad = false;
 
-    public ModLoader.LoaderTask<bool, List<JavaEntry>> Loader;
+    public ModLoader.LoaderTask<bool, List<JavaEntry>> loader;
 
     public PageSetupJava()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
+        loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(PanLoad, CardLoad, PanMain, null, Loader, _ => OnLoadFinished(), Load_Input);
+        PageLoaderInit(PanLoad, CardLoad, PanMain, null, loader, _ => OnLoadFinished(), Load_Input);
     }
 
     private object Load_Input()
@@ -34,8 +34,8 @@ public partial class PageSetupJava
 
     private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> loader)
     {
-        if (loader.Input) JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult();
-        loader.Output = ModJava.Javas.GetSortedJavaList();
+        if (loader.input) JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult();
+        loader.output = ModJava.Javas.GetSortedJavaList();
     }
 
     private void OnLoadFinished()
@@ -47,7 +47,7 @@ public partial class PageSetupJava
             Title = Lang.Text("Setup.Launch.Java.AutoSelect.Title"),
             Info = Lang.Text("Setup.Launch.Java.AutoSelect.Info")
         };
-        itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
+        itemAuto.check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
         var currentSetJava = Config.Launch.SelectedJava;
         foreach (var entry in ModJava.Javas.GetSortedJavaList())
@@ -73,12 +73,12 @@ public partial class PageSetupJava
         var displayTags = new List<string>();
         var displayBits = J.Installation.Is64Bit ? "64 Bit" : "32 Bit";
         displayTags.Add(displayBits);
-        var DisplayBrand = J.Installation.Brand.ToString();
-        displayTags.Add(DisplayBrand);
+        var displayBrand = J.Installation.Brand.ToString();
+        displayTags.Add(displayBrand);
         item.Tags = displayTags;
 
         item.Type = MyListItem.CheckType.RadioBox;
-        item.Check += (sender, e) =>
+        item.check += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -91,13 +91,13 @@ public partial class PageSetupJava
             else
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
-                e.Handled = true;
+                e.handled = true;
             }
         };
         var btnOpenFolder = new MyIconButton();
         btnOpenFolder.Logo = Icon.IconButtonOpen;
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
-        btnOpenFolder.Click += (sender, e) =>
+        btnOpenFolder.click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -110,7 +110,7 @@ public partial class PageSetupJava
         var btnInfo = new MyIconButton();
         btnInfo.Logo = Icon.IconButtonInfo;
         btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
-        btnInfo.Click += (sender, e) =>
+        btnInfo.click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -124,7 +124,7 @@ public partial class PageSetupJava
                     J.Installation.Version.ToString(),
                     J.Installation.Architecture.ToString(),
                     displayBits,
-                    DisplayBrand,
+                    displayBrand,
                     J.Installation.JavaFolder),
                 Lang.Text("Setup.Launch.Java.Info.Title"));
         };
@@ -156,7 +156,7 @@ public partial class PageSetupJava
             }
         }
         
-        btnEnableSwitch.Click += (_, _) =>
+        btnEnableSwitch.click += (_, _) =>
         {
             try
             {
@@ -205,7 +205,7 @@ public partial class PageSetupJava
                 if (ModJava.Javas.Exist(ret))
                 {
                     ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
-                    Loader.Start(true, true);
+                    loader.Start(true, true);
                 }
                 else
                 {

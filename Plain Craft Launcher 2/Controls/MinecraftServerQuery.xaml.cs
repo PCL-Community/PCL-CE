@@ -9,7 +9,7 @@ public partial class MinecraftServerQuery : Grid
     public MinecraftServerQuery()
     {
         InitializeComponent();
-        BtnServerQuery.Click += BtnServerQuery_Click;
+        BtnServerQuery.click += BtnServerQuery_Click;
     }
     private void BtnServerQuery_Click(object sender, MouseButtonEventArgs e)
     {

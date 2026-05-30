@@ -12,7 +12,7 @@ namespace PCL;
 
 public static class ModLocalComp
 {
-    private const int LocalModCacheVersion = 7;
+    private const int localModCacheVersion = 7;
 
     public class LocalCompFile
     {
@@ -82,15 +82,15 @@ public static class ModLocalComp
         /// </summary>
         public string GetLogo()
         {
-            if (Comp is not null && Comp.LogoUrl is not null)
-                return Comp.LogoUrl;
+            if (Comp is not null && Comp.logoUrl is not null)
+                return Comp.logoUrl;
             if (Logo is not null)
                 return Logo;
 
             // 为文件夹设置特定图标
             if (IsFolder) return "pack://application:,,,/images/Icons/Folder.png";
 
-            return ModBase.PathImage + "Icons/NoIcon.png";
+            return ModBase.pathImage + "Icons/NoIcon.png";
         }
 
         #region Litematic 文件处理
@@ -102,8 +102,8 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Litematic NBT 数据：{Path}", ModBase.LogLevel.Debug);
-                using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                ModBase.Log($"开始读取 Litematic NBT 数据：{path}", ModBase.LogLevel.Debug);
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect);
@@ -172,7 +172,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 Litematic NBT 数据时出错（" + Path + "）");
+                ModBase.Log(ex, "读取 Litematic NBT 数据时出错（" + path + "）");
             }
         }
 
@@ -187,10 +187,10 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Schem NBT 数据：{Path}", ModBase.LogLevel.Debug);
+                ModBase.Log($"开始读取 Schem NBT 数据：{path}", ModBase.LogLevel.Debug);
 
                 // 使用自动检测压缩格式
-                using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect);
@@ -245,7 +245,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 Schem NBT 数据时出错（" + Path + "）");
+                ModBase.Log(ex, "读取 Schem NBT 数据时出错（" + path + "）");
             }
         }
 
@@ -260,8 +260,8 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 Schematic NBT 数据：{Path}", ModBase.LogLevel.Debug);
-                using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                ModBase.Log($"开始读取 Schematic NBT 数据：{path}", ModBase.LogLevel.Debug);
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect);
@@ -285,7 +285,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 Schematic NBT 数据时出错（" + Path + "）");
+                ModBase.Log(ex, "读取 Schematic NBT 数据时出错（" + path + "）");
             }
         }
 
@@ -300,8 +300,8 @@ public static class ModLocalComp
         {
             try
             {
-                ModBase.Log($"开始读取 NBT 结构文件数据：{Path}", ModBase.LogLevel.Debug);
-                using (var fs = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                ModBase.Log($"开始读取 NBT 结构文件数据：{path}", ModBase.LogLevel.Debug);
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var scheNbt = new NbtFile();
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect);
@@ -339,7 +339,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 NBT 结构文件数据时出错（" + Path + "）");
+                ModBase.Log(ex, "读取 NBT 结构文件数据时出错（" + path + "）");
             }
         }
 
@@ -350,12 +350,12 @@ public static class ModLocalComp
         /// <summary>
         ///     资源的文件的地址。
         /// </summary>
-        public readonly string Path;
+        public readonly string path;
 
         /// <summary>
         ///     是否为文件夹项。
         /// </summary>
-        public bool IsFolder => Path.EndsWithF(@"\__FOLDER__", true);
+        public bool IsFolder => path.EndsWithF(@"\__FOLDER__", true);
 
         /// <summary>
         ///     获取实际的文件夹路径（去除 __FOLDER__ 标记）。
@@ -364,15 +364,15 @@ public static class ModLocalComp
         {
             get
             {
-                if (IsFolder) return Path.Replace(@"\__FOLDER__", "");
+                if (IsFolder) return path.Replace(@"\__FOLDER__", "");
 
-                return Path;
+                return path;
             }
         }
 
         public LocalCompFile(string Path)
         {
-            this.Path = Path ?? "";
+            this.path = Path ?? "";
         }
 
         /// <summary>
@@ -383,7 +383,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Mod 资源的完整路径，去除最后的 .disabled 和 .old。
         /// </summary>
-        public string RawPath => ModBase.GetPathFromFullPath(Path) + RawFileName;
+        public string RawPath => ModBase.GetPathFromFullPath(path) + RawFileName;
 
         /// <summary>
         ///     资源的完整文件名。
@@ -394,7 +394,7 @@ public static class ModLocalComp
             {
                 if (IsFolder && !string.IsNullOrEmpty(Name)) return Name;
 
-                return ModBase.GetFileNameFromPath(Path);
+                return ModBase.GetFileNameFromPath(path);
             }
         }
 
@@ -413,7 +413,7 @@ public static class ModLocalComp
                 Load();
                 if (!IsFileAvailable) return LocalFileStatus.Unavailable;
 
-                if (Path.EndsWithF(".disabled", true) || Path.EndsWithF(".old", true)) return LocalFileStatus.Disabled;
+                if (path.EndsWithF(".disabled", true) || path.EndsWithF(".old", true)) return LocalFileStatus.Disabled;
 
                 return LocalFileStatus.Fine;
             }
@@ -446,7 +446,7 @@ public static class ModLocalComp
                     if (IsFolder)
                         _Name = ModBase.GetFolderNameFromPath(ActualPath);
                     else
-                        _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
+                        _Name = ModBase.GetFileNameWithoutExtentionFromPath(path);
                 }
 
                 return _Name;
@@ -577,8 +577,8 @@ public static class ModLocalComp
                     return;
                 if (value.ContainsF("name", true) || value.ContainsF("modid", true))
                     return;
-                if (!PossibleModId.Contains(value))
-                    PossibleModId.Add(value);
+                if (!possibleModId.Contains(value))
+                    possibleModId.Add(value);
                 if (_ModId is null)
                     _ModId = value;
             }
@@ -589,7 +589,7 @@ public static class ModLocalComp
         /// <summary>
         ///     其他可能的 ModID。
         /// </summary>
-        public List<string> PossibleModId = new();
+        public List<string> possibleModId = new();
 
         /// <summary>
         ///     Mod 的主页。
@@ -867,7 +867,7 @@ public static class ModLocalComp
         /// <summary>
         ///     是否已进行 Mod 文件的基础加载。（这包括第一步和第二步）
         /// </summary>
-        private bool IsLoaded;
+        private bool isLoaded;
 
         /// <summary>
         ///     Mod 文件是否可被正常读取。
@@ -901,7 +901,7 @@ public static class ModLocalComp
         /// <summary>
         ///     是否已在不获取 .class 文件的前提下完成了所需信息的加载。
         /// </summary>
-        private bool IsInfoWithoutClassAvailable = false;
+        private bool isInfoWithoutClassAvailable = false;
 
         // 3. 尝试从 .class 文件中获取信息
         // 成功：标记 IsInfoWithClassAvailable。
@@ -909,12 +909,12 @@ public static class ModLocalComp
         /// <summary>
         ///     是否已进行 .class 文件的信息获取。
         /// </summary>
-        private bool IsInfoWithClassLoaded;
+        private bool isInfoWithClassLoaded;
 
         /// <summary>
         ///     是否已在 .class 文件中完成了所需信息的加载。
         /// </summary>
-        private bool IsInfoWithClassAvailable;
+        private bool isInfoWithClassAvailable;
 
         #endregion
 
@@ -929,12 +929,12 @@ public static class ModLocalComp
             _Description = null;
             _Version = null;
             _ModId = null;
-            PossibleModId = new List<string>();
+            possibleModId = new List<string>();
             _Dependencies = new Dictionary<string, string>();
-            IsLoaded = false;
+            isLoaded = false;
             _FileUnavailableReason = null;
-            IsInfoWithClassLoaded = false;
-            IsInfoWithClassAvailable = false;
+            isInfoWithClassLoaded = false;
+            isInfoWithClassAvailable = false;
         }
 
         /// <summary>
@@ -948,23 +948,23 @@ public static class ModLocalComp
                 if (IsFolder)
                 {
                     // 文件夹项不需要进一步处理
-                    IsLoaded = true;
+                    isLoaded = true;
                     return;
                 }
 
-                if (!File.Exists(Path))
+                if (!File.Exists(path))
                 {
-                    _FileUnavailableReason = new FileNotFoundException("未找到资源文件（" + Path + ")");
-                    IsLoaded = true;
+                    _FileUnavailableReason = new FileNotFoundException("未找到资源文件（" + path + ")");
+                    isLoaded = true;
                     return;
                 }
 
                 // 对于原理图文件，只设置基本状态，不解析NBT数据
-                if (Path.EndsWithF(".litematic", true) || Path.EndsWithF(".nbt", true) ||
-                    Path.EndsWithF(".schem", true) || Path.EndsWithF(".schematic", true))
+                if (path.EndsWithF(".litematic", true) || path.EndsWithF(".nbt", true) ||
+                    path.EndsWithF(".schem", true) || path.EndsWithF(".schematic", true))
                 {
-                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
-                    IsLoaded = true;
+                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(path);
+                    isLoaded = true;
                     return;
                 }
 
@@ -973,7 +973,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"加载基本信息失败：{Path}");
+                ModBase.Log(ex, $"加载基本信息失败：{path}");
             }
         }
 
@@ -989,19 +989,19 @@ public static class ModLocalComp
                     return;
 
                 // 根据文件类型加载NBT数据
-                if (Path.EndsWithF(".litematic", true))
+                if (path.EndsWithF(".litematic", true))
                     LoadLitematicNbtData();
-                else if (Path.EndsWithF(".nbt", true))
+                else if (path.EndsWithF(".nbt", true))
                     LoadStructureNbtData();
-                else if (Path.EndsWithF(".schem", true))
+                else if (path.EndsWithF(".schem", true))
                     LoadSchemNbtData();
-                else if (Path.EndsWithF(".schematic", true)) LoadSchematicNbtData();
+                else if (path.EndsWithF(".schematic", true)) LoadSchematicNbtData();
 
                 _nbtDataLoaded = true;
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"延迟加载NBT数据失败：{Path}");
+                ModBase.Log(ex, $"延迟加载NBT数据失败：{path}");
             }
         }
 
@@ -1010,16 +1010,16 @@ public static class ModLocalComp
         /// </summary>
         public void Load(bool ForceReload = false)
         {
-            if (IsLoaded && !ForceReload)
+            if (isLoaded && !ForceReload)
                 return;
             // 初始化
             Init();
 
             // 基础可用性检查
-            if (Path.Length < 2)
+            if (path.Length < 2)
             {
-                _FileUnavailableReason = new FileNotFoundException("错误的资源文件路径（" + (Path ?? "null") + "）");
-                IsLoaded = true;
+                _FileUnavailableReason = new FileNotFoundException("错误的资源文件路径（" + (path ?? "null") + "）");
+                isLoaded = true;
                 return;
             }
 
@@ -1029,42 +1029,42 @@ public static class ModLocalComp
                 if (!Directory.Exists(ActualPath))
                 {
                     _FileUnavailableReason = new DirectoryNotFoundException("未找到文件夹（" + ActualPath + "）");
-                    IsLoaded = true;
+                    isLoaded = true;
                     return;
                 }
 
                 // 文件夹项不需要进一步处理
-                IsLoaded = true;
+                isLoaded = true;
                 return;
             }
 
-            if (!File.Exists(Path))
+            if (!File.Exists(path))
             {
-                _FileUnavailableReason = new FileNotFoundException("未找到资源文件（" + Path + "）");
-                IsLoaded = true;
+                _FileUnavailableReason = new FileNotFoundException("未找到资源文件（" + path + "）");
+                isLoaded = true;
                 return;
             }
 
             // 对于投影文件，跳过 zip 解析
-            if (Path.EndsWithF(".litematic", true) || Path.EndsWithF(".nbt", true) || Path.EndsWithF(".schem", true) ||
-                Path.EndsWithF(".schematic", true))
+            if (path.EndsWithF(".litematic", true) || path.EndsWithF(".nbt", true) || path.EndsWithF(".schem", true) ||
+                path.EndsWithF(".schematic", true))
             {
                 try
                 {
-                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(Path);
+                    _Name = ModBase.GetFileNameWithoutExtentionFromPath(path);
                     // 根据文件类型加载数据
-                    if (Path.EndsWithF(".litematic", true))
+                    if (path.EndsWithF(".litematic", true))
                     {
                         LoadLitematicNbtData();
                     }
-                    else if (Path.EndsWithF(".schem", true) || Path.EndsWithF(".schematic", true))
+                    else if (path.EndsWithF(".schem", true) || path.EndsWithF(".schematic", true))
                     {
-                        if (Path.EndsWithF(".schem", true))
+                        if (path.EndsWithF(".schem", true))
                             LoadSchemNbtData();
                         else
                             LoadSchematicNbtData();
                     }
-                    else if (Path.EndsWithF(".nbt", true))
+                    else if (path.EndsWithF(".nbt", true))
                     {
                         LoadStructureNbtData();
                     }
@@ -1073,40 +1073,40 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "投影文件信息获取失败（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "投影文件信息获取失败（" + path + "）", ModBase.LogLevel.Developer);
                     _FileUnavailableReason = ex;
                 }
 
-                IsLoaded = true;
+                isLoaded = true;
                 return;
             }
 
             // 对于其他文件，尝试作为 Jar 文件打开
-            ZipArchive Jar = null;
+            ZipArchive jar = null;
             try
             {
-                Jar = new ZipArchive(new FileStream(Path, FileMode.Open));
+                jar = new ZipArchive(new FileStream(path, FileMode.Open));
                 // 信息获取
-                LookupMetadata(Jar);
+                LookupMetadata(jar);
             }
             catch (UnauthorizedAccessException ex)
             {
-                ModBase.Log(ex, "资源文件由于无权限无法打开（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "资源文件由于无权限无法打开（" + path + "）", ModBase.LogLevel.Developer);
                 _FileUnavailableReason = new UnauthorizedAccessException("没有读取此文件的权限，请尝试右键以管理员身份运行 PCL", ex);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "资源文件无法打开（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "资源文件无法打开（" + path + "）", ModBase.LogLevel.Developer);
                 _FileUnavailableReason = ex;
             }
             finally
             {
-                if (Jar is not null)
-                    Jar.Dispose();
+                if (jar is not null)
+                    jar.Dispose();
             }
 
             // 完成标记
-            IsLoaded = true;
+            isLoaded = true;
         }
 
         /// <summary>
@@ -1121,58 +1121,58 @@ public static class ModLocalComp
                 try
                 {
                     // 获取信息文件
-                    var InfoEntry = Jar.GetEntry("mcmod.info");
-                    string InfoString = null;
-                    if (InfoEntry is not null)
+                    var infoEntry = Jar.GetEntry("mcmod.info");
+                    string infoString = null;
+                    if (infoEntry is not null)
                     {
-                        InfoString = ModBase.ReadFile(InfoEntry.Open());
-                        if (InfoString.Length < 15)
-                            InfoString = null;
+                        infoString = ModBase.ReadFile(infoEntry.Open());
+                        if (infoString.Length < 15)
+                            infoString = null;
                     }
 
-                    if (InfoString is null)
+                    if (infoString is null)
                         break;
                     // 获取可用 Json 项
-                    JsonObject InfoObject;
-                    var JsonObject = (JsonNode)ModBase.GetJson(InfoString);
-                    if (JsonObject.GetValueKind() == JsonValueKind.Array)
-                        InfoObject = (JsonObject)JsonObject[0];
+                    JsonObject infoObject;
+                    var jsonObject = (JsonNode)ModBase.GetJson(infoString);
+                    if (jsonObject.GetValueKind() == JsonValueKind.Array)
+                        infoObject = (JsonObject)jsonObject[0];
                     else
-                        InfoObject = (JsonObject)JsonObject["modList"][0];
+                        infoObject = (JsonObject)jsonObject["modList"][0];
                     // 从文件中获取 Mod 信息项
-                    Name = (string)InfoObject["name"];
-                    Description = (string)InfoObject["description"];
-                    Version = (string)InfoObject["version"];
-                    Url = (string)InfoObject["url"];
-                    ModId = (string)InfoObject["modid"];
-                    var AuthorJson = (JsonArray)InfoObject["authorList"];
-                    if (AuthorJson is not null)
+                    Name = (string)infoObject["name"];
+                    Description = (string)infoObject["description"];
+                    Version = (string)infoObject["version"];
+                    Url = (string)infoObject["url"];
+                    ModId = (string)infoObject["modid"];
+                    var authorJson = (JsonArray)infoObject["authorList"];
+                    if (authorJson is not null)
                     {
-                        var Author = new List<string>();
-                        foreach (var Token in AuthorJson)
-                            Author.Add(Token.ToString());
-                        if (Author.Any())
-                            Authors = Author.Join(", ");
+                        var author = new List<string>();
+                        foreach (var Token in authorJson)
+                            author.Add(Token.ToString());
+                        if (author.Any())
+                            Authors = author.Join(", ");
                     }
 
-                    var LogoFile = (string)InfoObject["logoFile"];
-                    if (LogoFile is not null)
+                    var logoFile = (string)infoObject["logoFile"];
+                    if (logoFile is not null)
                     {
-                        var LogoItem = Jar.GetEntry(LogoFile);
-                        if (LogoItem is not null)
+                        var logoItem = Jar.GetEntry(logoFile);
+                        if (logoItem is not null)
                         {
-                            var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
-                            using (var EntryStream = LogoItem.Open())
+                            var md5 = ModBase.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                            Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
+                            using (var entryStream = logoItem.Open())
                             {
-                                ModBase.WriteFile(Logo, EntryStream);
+                                ModBase.WriteFile(Logo, entryStream);
                             }
                         }
                     }
 
-                    var Reqs = (JsonArray)InfoObject["requiredMods"];
-                    if (Reqs is not null)
-                        foreach (string item in Reqs) // 将迭代变量重命名为 item
+                    var reqs = (JsonArray)infoObject["requiredMods"];
+                    if (reqs is not null)
+                        foreach (string item in reqs) // 将迭代变量重命名为 item
                             if (!string.IsNullOrEmpty(item))
                             {
                                 // 使用一个局部变量 token 来处理逻辑
@@ -1190,9 +1190,9 @@ public static class ModLocalComp
                                 }
                             }
 
-                    Reqs = (JsonArray)InfoObject["dependancies"];
-                    if (Reqs is not null)
-                        foreach (string rawToken in Reqs)
+                    reqs = (JsonArray)infoObject["dependancies"];
+                    if (reqs is not null)
+                        foreach (string rawToken in reqs)
                             if (!string.IsNullOrEmpty(rawToken))
                             {
                                 var id = rawToken.Substring(rawToken.IndexOfF(":") + 1);
@@ -1210,7 +1210,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 mcmod.info 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 mcmod.info 时出现未知错误（" + path + "）", ModBase.LogLevel.Developer);
                 }
             } while (false);
 
@@ -1222,55 +1222,55 @@ public static class ModLocalComp
             {
                 try
                 {
-                    var FabricEntry = Jar.GetEntry("fabric.mod.json");
-                    string FabricText = null;
-                    if (FabricEntry is not null)
+                    var fabricEntry = Jar.GetEntry("fabric.mod.json");
+                    string fabricText = null;
+                    if (fabricEntry is not null)
                     {
-                        FabricText = ModBase.ReadFile(FabricEntry.Open(), Encoding.UTF8);
-                        if (!FabricText.Contains("schemaVersion")) FabricText = null;
+                        fabricText = ModBase.ReadFile(fabricEntry.Open(), Encoding.UTF8);
+                        if (!fabricText.Contains("schemaVersion")) fabricText = null;
                     }
 
-                    if (FabricText is null) break;
+                    if (fabricText is null) break;
 
-                    var FabricObject = (JsonObject)ModBase.GetJson(FabricText);
+                    var fabricObject = (JsonObject)ModBase.GetJson(fabricText);
 
-                    if (FabricObject.ContainsKey("name")) Name = FabricObject["name"].ToString();
-                    if (FabricObject.ContainsKey("version")) Version = FabricObject["version"].ToString();
-                    if (FabricObject.ContainsKey("description")) Description = FabricObject["description"].ToString();
-                    if (FabricObject.ContainsKey("id")) ModId = FabricObject["id"].ToString();
-                    if (FabricObject.ContainsKey("contact") && FabricObject["contact"]["homepage"] is not null)
-                        Url = FabricObject["contact"]["homepage"].ToString();
+                    if (fabricObject.ContainsKey("name")) Name = fabricObject["name"].ToString();
+                    if (fabricObject.ContainsKey("version")) Version = fabricObject["version"].ToString();
+                    if (fabricObject.ContainsKey("description")) Description = fabricObject["description"].ToString();
+                    if (fabricObject.ContainsKey("id")) ModId = fabricObject["id"].ToString();
+                    if (fabricObject.ContainsKey("contact") && fabricObject["contact"]["homepage"] is not null)
+                        Url = fabricObject["contact"]["homepage"].ToString();
 
-                    var AuthorJson = (JsonArray)FabricObject["authors"];
-                    if (AuthorJson is not null)
+                    var authorJson = (JsonArray)fabricObject["authors"];
+                    if (authorJson is not null)
                     {
-                        var AuthorList = AuthorJson.Select(t => t.ToString()).ToList();
-                        if (AuthorList.Any()) Authors = string.Join(", ", AuthorList);
+                        var authorList = authorJson.Select(t => t.ToString()).ToList();
+                        if (authorList.Any()) Authors = string.Join(", ", authorList);
                     }
 
-                    if (FabricObject.ContainsKey("icon"))
+                    if (fabricObject.ContainsKey("icon"))
                     {
-                        var LogoFile = FabricObject["icon"].ToString();
-                        var LogoItem = Jar.GetEntry(LogoFile);
-                        if (LogoItem is not null)
+                        var logoFile = fabricObject["icon"].ToString();
+                        var logoItem = Jar.GetEntry(logoFile);
+                        if (logoItem is not null)
                         {
-                            var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                            Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
-                            using (var EntryStream = LogoItem.Open())
+                            var md5 = ModBase.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                            Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
+                            using (var entryStream = logoItem.Open())
                             {
-                                ModBase.WriteFile(Logo, EntryStream);
+                                ModBase.WriteFile(Logo, entryStream);
                             }
                         }
                     }
 
                     // 依赖处理 (省略了 VB 中的注释部分，按逻辑实现)
-                    if (FabricObject.ContainsKey("depends"))
-                        foreach (var dep in (JsonObject)FabricObject["depends"])
+                    if (fabricObject.ContainsKey("depends"))
+                        foreach (var dep in (JsonObject)fabricObject["depends"])
                             AddDependency(dep.Key, dep.Value.ToString());
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 fabric.mod.json 时出错（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 fabric.mod.json 时出错（" + path + "）", ModBase.LogLevel.Developer);
                 }
             } while (false);
 
@@ -1283,47 +1283,47 @@ public static class ModLocalComp
                 try
                 {
                     // 获取 quilt.mod.json 文件
-                    var QuiltEntry = Jar.GetEntry("quilt.mod.json");
-                    string QuiltText = null;
-                    if (QuiltEntry is not null)
+                    var quiltEntry = Jar.GetEntry("quilt.mod.json");
+                    string quiltText = null;
+                    if (quiltEntry is not null)
                     {
-                        QuiltText = ModBase.ReadFile(QuiltEntry.Open(), Encoding.UTF8);
-                        if (!QuiltText.Contains("schema_version"))
-                            QuiltText = null;
+                        quiltText = ModBase.ReadFile(quiltEntry.Open(), Encoding.UTF8);
+                        if (!quiltText.Contains("schema_version"))
+                            quiltText = null;
                     }
 
-                    if (QuiltText is null)
+                    if (quiltText is null)
                         break;
-                    var QuiltObject = (JsonObject)((JsonObject)ModBase.GetJson(QuiltText))["quilt_loader"];
+                    var quiltObject = (JsonObject)((JsonObject)ModBase.GetJson(quiltText))["quilt_loader"];
                     // 从文件中获取 Mod 信息项
-                    if (QuiltObject.ContainsKey("id"))
-                        ModId = (string)QuiltObject["id"];
-                    if (QuiltObject.ContainsKey("version"))
-                        Version = (string)QuiltObject["version"];
-                    if (QuiltObject.ContainsKey("metadata"))
+                    if (quiltObject.ContainsKey("id"))
+                        ModId = (string)quiltObject["id"];
+                    if (quiltObject.ContainsKey("version"))
+                        Version = (string)quiltObject["version"];
+                    if (quiltObject.ContainsKey("metadata"))
                     {
-                        var QuiltMetadata = (JsonObject)QuiltObject["metadata"];
-                        if (QuiltMetadata.ContainsKey("name"))
-                            Name = (string)QuiltMetadata["name"];
-                        if (QuiltMetadata.ContainsKey("description"))
-                            Description = (string)QuiltMetadata["description"];
-                        if (QuiltMetadata.ContainsKey("contact"))
-                            Url = (string)(QuiltMetadata["contact"]["homepage"] ?? "");
+                        var quiltMetadata = (JsonObject)quiltObject["metadata"];
+                        if (quiltMetadata.ContainsKey("name"))
+                            Name = (string)quiltMetadata["name"];
+                        if (quiltMetadata.ContainsKey("description"))
+                            Description = (string)quiltMetadata["description"];
+                        if (quiltMetadata.ContainsKey("contact"))
+                            Url = (string)(quiltMetadata["contact"]["homepage"] ?? "");
                     }
 
-                    if (QuiltObject.ContainsKey("icon"))
+                    if (quiltObject.ContainsKey("icon"))
                     {
-                        var LogoFile = (string)QuiltObject["icon"];
-                        if (LogoFile is not null)
+                        var logoFile = (string)quiltObject["icon"];
+                        if (logoFile is not null)
                         {
-                            var LogoItem = Jar.GetEntry(LogoFile);
-                            if (LogoItem is not null)
+                            var logoItem = Jar.GetEntry(logoFile);
+                            if (logoItem is not null)
                             {
-                                var md5 = ModBase.GetStringMD5(LogoItem.Length + LogoItem.CompressedLength + Path);
-                                Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
-                                using (var EntryStream = LogoItem.Open())
+                                var md5 = ModBase.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                                Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
+                                using (var entryStream = logoItem.Open())
                                 {
-                                    ModBase.WriteFile(Logo, EntryStream);
+                                    ModBase.WriteFile(Logo, entryStream);
                                 }
                             }
                         }
@@ -1333,7 +1333,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 quilt.mod.json 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log(ex, "读取 quilt.mod.json 时出现未知错误（" + path + "）", ModBase.LogLevel.Developer);
                 }
             } while (false);
 
@@ -1344,23 +1344,23 @@ public static class ModLocalComp
             try
             {
                 // 获取 mods.toml 文件
-                var TomlEntry = Jar.GetEntry("META-INF/mods.toml");
-                string TomlText = null;
-                if (TomlEntry is not null)
+                var tomlEntry = Jar.GetEntry("META-INF/mods.toml");
+                string tomlText = null;
+                if (tomlEntry is not null)
                 {
-                    using (var reader = new StreamReader(TomlEntry.Open()))
+                    using (var reader = new StreamReader(tomlEntry.Open()))
                     {
-                        TomlText = reader.ReadToEnd();
+                        tomlText = reader.ReadToEnd();
                     }
 
-                    if (TomlText.Length < 15) TomlText = null;
+                    if (tomlText.Length < 15) tomlText = null;
                 }
 
-                if (TomlText is not null)
+                if (tomlText is not null)
                 {
                     // 文件标准化：统一换行符为 \n，去除注释、头尾的空格、空行
-                    var Lines = new List<string>();
-                    var rawLines = TomlText.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+                    var lines = new List<string>();
+                    var rawLines = tomlText.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
 
                     foreach (var rawLine in rawLines)
                     {
@@ -1369,119 +1369,119 @@ public static class ModLocalComp
                         if (line.Contains("#")) line = line.Substring(0, line.IndexOfF("#"));
                         // 去除头尾的空格（包含全角空格）
                         line = line.Trim(' ', '\t', '　');
-                        if (!string.IsNullOrEmpty(line)) Lines.Add(line);
+                        if (!string.IsNullOrEmpty(line)) lines.Add(line);
                     }
 
                     // 读取文件数据
                     // TomlData 存储段落名及其对应的键值对
-                    var TomlData = new List<KeyValuePair<string, Dictionary<string, object>>>
+                    var tomlData = new List<KeyValuePair<string, Dictionary<string, object>>>
                     {
                         new("", new Dictionary<string, object>())
                     };
 
-                    for (var i = 0; i < Lines.Count; i++)
+                    for (var i = 0; i < lines.Count; i++)
                     {
-                        var Line = Lines[i];
-                        if (Line.StartsWithF("[") && Line.EndsWithF("]"))
+                        var line = lines[i];
+                        if (line.StartsWithF("[") && line.EndsWithF("]"))
                         {
                             // 段落标记
-                            var Header = Line.Trim('[', ']');
-                            TomlData.Add(
-                                new KeyValuePair<string, Dictionary<string, object>>(Header,
+                            var header = line.Trim('[', ']');
+                            tomlData.Add(
+                                new KeyValuePair<string, Dictionary<string, object>>(header,
                                     new Dictionary<string, object>()));
                         }
-                        else if (Line.Contains("="))
+                        else if (line.Contains("="))
                         {
                             // 字段标记
-                            var Key = Line.Substring(0, Line.IndexOfF("=")).TrimEnd(' ', '\t', '　');
-                            var RawValue = Line.Substring(Line.IndexOfF("=") + 1).TrimStart(' ', '\t', '　');
-                            object Value;
+                            var key = line.Substring(0, line.IndexOfF("=")).TrimEnd(' ', '\t', '　');
+                            var rawValue = line.Substring(line.IndexOfF("=") + 1).TrimStart(' ', '\t', '　');
+                            object value;
 
-                            if (RawValue.StartsWithF("\"") && RawValue.EndsWithF("\""))
+                            if (rawValue.StartsWithF("\"") && rawValue.EndsWithF("\""))
                             {
                                 // 单行字符串
-                                Value = RawValue.Trim('\"');
+                                value = rawValue.Trim('\"');
                             }
-                            else if (RawValue.StartsWithF("'''"))
+                            else if (rawValue.StartsWithF("'''"))
                             {
                                 // 多行字符串
-                                var ValueLines = new List<string> { RawValue.Replace("'''", "") };
-                                if (!RawValue.EndsWithF("'''") || RawValue.Length == 3)
-                                    while (i < Lines.Count - 1)
+                                var valueLines = new List<string> { rawValue.Replace("'''", "") };
+                                if (!rawValue.EndsWithF("'''") || rawValue.Length == 3)
+                                    while (i < lines.Count - 1)
                                     {
                                         i++;
-                                        var ValueLine = Lines[i];
-                                        if (ValueLine.EndsWithF("'''"))
+                                        var valueLine = lines[i];
+                                        if (valueLine.EndsWithF("'''"))
                                         {
-                                            ValueLines.Add(ValueLine.Replace("'''", ""));
+                                            valueLines.Add(valueLine.Replace("'''", ""));
                                             break;
                                         }
 
-                                        ValueLines.Add(ValueLine);
+                                        valueLines.Add(valueLine);
                                     }
 
-                                Value = string.Join("\n", ValueLines).Trim('\n').Replace("\n", "\r\n");
+                                value = string.Join("\n", valueLines).Trim('\n').Replace("\n", "\r\n");
                             }
-                            else if (RawValue.ToLower() == "true" || RawValue.ToLower() == "false")
+                            else if (rawValue.ToLower() == "true" || rawValue.ToLower() == "false")
                             {
                                 // 布尔型
-                                Value = RawValue.ToLower() == "true";
+                                value = rawValue.ToLower() == "true";
                             }
-                            else if (double.TryParse(RawValue, out var num))
+                            else if (double.TryParse(rawValue, out var num))
                             {
                                 // 数字型 (模拟 VB 的 Val)
-                                Value = num;
+                                value = num;
                             }
                             else
                             {
                                 // 默认当做字符串存储
-                                Value = RawValue;
+                                value = rawValue;
                             }
 
                             // 将值存入当前最后的段落中
-                            var lastPair = TomlData[TomlData.Count - 1];
-                            lastPair.Value[Key] = Value;
+                            var lastPair = tomlData[tomlData.Count - 1];
+                            lastPair.Value[key] = value;
                         }
                     }
 
                     // 从解析出的数据中提取 Mod 信息
-                    Dictionary<string, object> ModEntry = null;
-                    foreach (var subData in TomlData)
+                    Dictionary<string, object> modEntry = null;
+                    foreach (var subData in tomlData)
                         if (subData.Key == "mods")
                         {
-                            ModEntry = subData.Value;
+                            modEntry = subData.Value;
                             break;
                         }
 
-                    if (ModEntry is not null && ModEntry.ContainsKey("modId"))
+                    if (modEntry is not null && modEntry.ContainsKey("modId"))
                     {
-                        ModId = ModEntry["modId"].ToString();
+                        ModId = modEntry["modId"].ToString();
                         // 假设 _ModId 是内部属性，如果为 null 说明设置失败
                         if (_ModId is not null)
                         {
-                            if (ModEntry.ContainsKey("displayName")) Name = ModEntry["displayName"].ToString();
-                            if (ModEntry.ContainsKey("description")) Description = ModEntry["description"].ToString();
-                            if (ModEntry.ContainsKey("version")) Version = ModEntry["version"].ToString();
+                            if (modEntry.ContainsKey("displayName")) Name = modEntry["displayName"].ToString();
+                            if (modEntry.ContainsKey("description")) Description = modEntry["description"].ToString();
+                            if (modEntry.ContainsKey("version")) Version = modEntry["version"].ToString();
 
                             // [0] 是全局段落（无 Header）
-                            if (TomlData[0].Value.ContainsKey("displayURL"))
-                                Url = TomlData[0].Value["displayURL"].ToString();
-                            if (TomlData[0].Value.ContainsKey("authors"))
-                                Authors = TomlData[0].Value["authors"].ToString();
+                            if (tomlData[0].Value.ContainsKey("displayURL"))
+                                Url = tomlData[0].Value["displayURL"].ToString();
+                            if (tomlData[0].Value.ContainsKey("authors"))
+                                Authors = tomlData[0].Value["authors"].ToString();
 
                             // 读取依赖
-                            foreach (var subData in TomlData)
+                            foreach (var subData in tomlData)
                                 if (subData.Key.ToLower() == $"dependencies.{ModId.ToLower()}")
                                 {
-                                    var DepEntry = subData.Value;
-                                    if (DepEntry.ContainsKey("modId") &&
-                                        DepEntry.ContainsKey("mandatory") && (bool)DepEntry["mandatory"] &&
-                                        DepEntry.ContainsKey("side") &&
-                                        DepEntry["side"].ToString().ToLower() != "server")
+                                    var depEntry = subData.Value;
+                                    if (depEntry.ContainsKey("modId") &&
+                                        depEntry.ContainsKey("mandatory") && (bool)depEntry["mandatory"] &&
+                                        depEntry.ContainsKey("side") &&
+                                        depEntry["side"].ToString().ToLower() != "server")
                                         AddDependency(
-                                            DepEntry["modId"].ToString(),
-                                            DepEntry.ContainsKey("versionRange")
-                                                ? DepEntry["versionRange"].ToString()
+                                            depEntry["modId"].ToString(),
+                                            depEntry.ContainsKey("versionRange")
+                                                ? depEntry["versionRange"].ToString()
                                                 : null
                                         );
                                 }
@@ -1494,7 +1494,7 @@ public static class ModLocalComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取 mods.toml 时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "读取 mods.toml 时出现未知错误（" + path + "）", ModBase.LogLevel.Developer);
             }
 
             #endregion
@@ -1506,31 +1506,31 @@ public static class ModLocalComp
                 try
                 {
                     // 获取 fml_cache_annotation.json 文件
-                    var FmlEntry = Jar.GetEntry("META-INF/fml_cache_annotation.json");
-                    string FmlText = null;
-                    if (FmlEntry is not null)
+                    var fmlEntry = Jar.GetEntry("META-INF/fml_cache_annotation.json");
+                    string fmlText = null;
+                    if (fmlEntry is not null)
                     {
-                        FmlText = ModBase.ReadFile(FmlEntry.Open(), Encoding.UTF8);
-                        if (!FmlText.Contains("Lnet/minecraftforge/fml/common/Mod;"))
-                            FmlText = null;
+                        fmlText = ModBase.ReadFile(fmlEntry.Open(), Encoding.UTF8);
+                        if (!fmlText.Contains("Lnet/minecraftforge/fml/common/Mod;"))
+                            fmlText = null;
                     }
 
-                    if (FmlText is null)
+                    if (fmlText is null)
                         break;
-                    var FmlJson = (JsonObject)ModBase.GetJson(FmlText);
+                    var fmlJson = (JsonObject)ModBase.GetJson(fmlText);
                     // 获取可用 Json 项
-                    JsonObject FmlObject = null;
-                    foreach (var ModFilePair in FmlJson)
+                    JsonObject fmlObject = null;
+                    foreach (var ModFilePair in fmlJson)
                     {
-                        var ModFileAnnos = (JsonArray)ModFilePair.Value["annotations"];
-                        if (ModFileAnnos is not null)
+                        var modFileAnnos = (JsonArray)ModFilePair.Value["annotations"];
+                        if (modFileAnnos is not null)
                             // 先获取 Mod
-                            foreach (var ModFileAnno in ModFileAnnos)
+                            foreach (var ModFileAnno in modFileAnnos)
                             {
-                                var Name = (string)(ModFileAnno["name"] ?? "");
-                                if (Name == "Lnet/minecraftforge/fml/common/Mod;")
+                                var name = (string)(ModFileAnno["name"] ?? "");
+                                if (name == "Lnet/minecraftforge/fml/common/Mod;")
                                 {
-                                    FmlObject = (JsonObject)ModFileAnno["values"];
+                                    fmlObject = (JsonObject)ModFileAnno["values"];
                                     goto Got;
                                 }
                             }
@@ -1540,42 +1540,42 @@ public static class ModLocalComp
                     Got: ;
 
                     // 从文件中获取 Mod 信息项
-                    if (FmlObject.ContainsKey("useMetadata") &&
-                        (FmlObject["useMetadata"]["value"] ?? "").ToString().ToLower() == "true")
+                    if (fmlObject.ContainsKey("useMetadata") &&
+                        (fmlObject["useMetadata"]["value"] ?? "").ToString().ToLower() == "true")
                     {
                         // 要求使用 mcmod.info 中的信息
-                        var value = (string)FmlObject["modid"]["value"];
+                        var value = (string)fmlObject["modid"]["value"];
                         if (value is null)
                             break;
                         value = value.ToLower().RegexSeek(RegexPatterns.ModIdMatch);
                         if (value is not null && value.ToLower() != "name" && value.Length > 1 &&
                             (ModBase.Val(value).ToString() ?? "") != (value ?? ""))
-                            if (!PossibleModId.Contains(value))
-                                PossibleModId.Add(value);
+                            if (!possibleModId.Contains(value))
+                                possibleModId.Add(value);
                         break;
                     }
 
-                    if (FmlObject.ContainsKey("name"))
-                        Name = (string)FmlObject["name"]["value"];
-                    if (FmlObject.ContainsKey("version"))
-                        Version = (string)FmlObject["version"]["value"];
-                    if (FmlObject.ContainsKey("modid"))
-                        ModId = (string)FmlObject["modid"]["value"];
-                    if (!FmlObject.ContainsKey("serverSideOnly") ||
-                        !FmlObject["serverSideOnly"]["value"].ToObject<bool>())
+                    if (fmlObject.ContainsKey("name"))
+                        Name = (string)fmlObject["name"]["value"];
+                    if (fmlObject.ContainsKey("version"))
+                        Version = (string)fmlObject["version"]["value"];
+                    if (fmlObject.ContainsKey("modid"))
+                        ModId = (string)fmlObject["modid"]["value"];
+                    if (!fmlObject.ContainsKey("serverSideOnly") ||
+                        !fmlObject["serverSideOnly"]["value"].ToObject<bool>())
                     {
                         // 添加 Minecraft 依赖
-                        var DepMinecraft = (string)((FmlObject["acceptedMinecraftVersions"] is not null
-                            ? FmlObject["acceptedMinecraftVersions"]["value"]
+                        var depMinecraft = (string)((fmlObject["acceptedMinecraftVersions"] is not null
+                            ? fmlObject["acceptedMinecraftVersions"]["value"]
                             : "") ?? "");
-                        if (!string.IsNullOrEmpty(DepMinecraft))
-                            AddDependency("minecraft", DepMinecraft);
+                        if (!string.IsNullOrEmpty(depMinecraft))
+                            AddDependency("minecraft", depMinecraft);
                         // 添加其他依赖
-                        var Deps = (string)((FmlObject["dependencies"] is not null
-                            ? FmlObject["dependencies"]["value"]
+                        var deps = (string)((fmlObject["dependencies"] is not null
+                            ? fmlObject["dependencies"]["value"]
                             : "") ?? "");
-                        if (!string.IsNullOrEmpty(Deps))
-                            foreach (var item in Deps.Split(";"))
+                        if (!string.IsNullOrEmpty(deps))
+                            foreach (var item in deps.Split(";"))
                             {
                                 if (string.IsNullOrEmpty(item) || !item.StartsWithF("required-"))
                                     continue;
@@ -1597,7 +1597,7 @@ public static class ModLocalComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" + Path + "）");
+                    ModBase.Log(ex, "读取 fml_cache_annotation.json 时出现未知错误（" + path + "）");
                 }
             } while (false);
 
@@ -1612,23 +1612,23 @@ public static class ModLocalComp
                 if (packPngEntry is not null)
                     try
                     {
-                        var md5 = ModBase.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + Path);
-                        Logo = System.IO.Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{md5}.png");
+                        var md5 = ModBase.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + path);
+                        Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {
                             ModBase.WriteFile(Logo, entryStream);
                         }
 
-                        ModBase.Log("成功提取资源包图标：" + Path, ModBase.LogLevel.Debug);
+                        ModBase.Log("成功提取资源包图标：" + path, ModBase.LogLevel.Debug);
                     }
                     catch (Exception logoEx)
                     {
-                        ModBase.Log(logoEx, "提取 pack.png 图标失败（" + Path + "）", ModBase.LogLevel.Developer);
+                        ModBase.Log(logoEx, "提取 pack.png 图标失败（" + path + "）", ModBase.LogLevel.Developer);
                     }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "识别资源包图标时出现未知错误（" + Path + "）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, "识别资源包图标时出现未知错误（" + path + "）", ModBase.LogLevel.Developer);
             }
 
             #endregion
@@ -1640,23 +1640,23 @@ public static class ModLocalComp
             if (_Version == "version")
                 try
                 {
-                    var MetaEntry = Jar.GetEntry("META-INF/MANIFEST.MF");
-                    if (MetaEntry is not null)
+                    var metaEntry = Jar.GetEntry("META-INF/MANIFEST.MF");
+                    if (metaEntry is not null)
                     {
-                        var MetaString = ModBase.ReadFile(MetaEntry.Open()).Replace(" :", ":").Replace(": ", ":");
-                        if (MetaString.Contains("Implementation-Version:"))
+                        var metaString = ModBase.ReadFile(metaEntry.Open()).Replace(" :", ":").Replace(": ", ":");
+                        if (metaString.Contains("Implementation-Version:"))
                         {
-                            MetaString = MetaString.Substring(MetaString.IndexOfF("Implementation-Version:") +
+                            metaString = metaString.Substring(metaString.IndexOfF("Implementation-Version:") +
                                                               "Implementation-Version:".Count());
-                            MetaString = MetaString.Substring(0, MetaString.IndexOfAny("\r\n".ToCharArray()))
+                            metaString = metaString.Substring(0, metaString.IndexOfAny("\r\n".ToCharArray()))
                                 .Trim();
-                            Version = MetaString;
+                            Version = metaString;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log("获取 META-INF 中的版本信息失败（" + Path + "）", ModBase.LogLevel.Developer);
+                    ModBase.Log("获取 META-INF 中的版本信息失败（" + path + "）", ModBase.LogLevel.Developer);
                     Version = null;
                 }
 
@@ -1673,7 +1673,7 @@ public static class ModLocalComp
         /// <summary>
         ///     当任何网络信息更新时触发。
         /// </summary>
-        public event OnCompUpdateEventHandler? OnCompUpdate;
+        public event OnCompUpdateEventHandler? onCompUpdate;
 
         public delegate void OnCompUpdateEventHandler(LocalCompFile sender);
 
@@ -1686,7 +1686,7 @@ public static class ModLocalComp
             set
             {
                 _Comp = value;
-                OnCompUpdate?.Invoke(this);
+                onCompUpdate?.Invoke(this);
             }
         }
 
@@ -1695,7 +1695,7 @@ public static class ModLocalComp
         /// <summary>
         ///     本地文件对应的联网文件信息。
         /// </summary>
-        public CompFile CompFile;
+        public CompFile compFile;
 
         /// <summary>
         ///     该 Mod 对应的联网最新版本。
@@ -1706,7 +1706,7 @@ public static class ModLocalComp
             set
             {
                 _UpdateFile = value;
-                OnCompUpdate?.Invoke(this);
+                onCompUpdate?.Invoke(this);
             }
         }
 
@@ -1715,28 +1715,28 @@ public static class ModLocalComp
         /// <summary>
         ///     该 Mod 的更新日志网址。
         /// </summary>
-        public List<string> ChangelogUrls = new();
+        public List<string> changelogUrls = new();
 
         /// <summary>
         ///     所有网络信息是否已成功加载。
         /// </summary>
-        public bool CompLoaded;
+        public bool compLoaded;
 
         /// <summary>
         ///     将网络信息保存为 Json。
         /// </summary>
         public JsonObject ToJson()
         {
-            var Json = new JsonObject();
+            var json = new JsonObject();
             if (Comp is not null)
-                Json.Add("Comp", Comp.ToJson());
-            Json.Add("ChangelogUrls", new JsonArray(ChangelogUrls.Select(s => (JsonNode)s).ToArray()));
-            Json.Add("CompLoaded", CompLoaded);
-            if (CompFile is not null)
-                Json.Add("CompFile", CompFile.ToJson());
+                json.Add("Comp", Comp.ToJson());
+            json.Add("ChangelogUrls", new JsonArray(changelogUrls.Select(s => (JsonNode)s).ToArray()));
+            json.Add("CompLoaded", compLoaded);
+            if (compFile is not null)
+                json.Add("CompFile", compFile.ToJson());
             if (UpdateFile is not null)
-                Json.Add("UpdateFile", UpdateFile.ToJson());
-            return Json;
+                json.Add("UpdateFile", UpdateFile.ToJson());
+            return json;
         }
 
         /// <summary>
@@ -1744,13 +1744,13 @@ public static class ModLocalComp
         /// </summary>
         public void FromJson(JsonObject Json)
         {
-            CompLoaded = (bool)Json["CompLoaded"];
+            compLoaded = (bool)Json["CompLoaded"];
             if (Json.ContainsKey("Comp"))
                 Comp = new CompProject((JsonObject)Json["Comp"]);
             if (Json.ContainsKey("ChangelogUrls"))
-                ChangelogUrls = Json["ChangelogUrls"].ToObject<List<string>>();
+                changelogUrls = Json["ChangelogUrls"].ToObject<List<string>>();
             if (Json.ContainsKey("CompFile"))
-                CompFile = new CompFile((JsonObject)Json["CompFile"], CompType.Mod);
+                compFile = new CompFile((JsonObject)Json["CompFile"], CompType.Mod);
             if (Json.ContainsKey("UpdateFile"))
                 UpdateFile = new CompFile((JsonObject)Json["UpdateFile"], CompType.Mod);
         }
@@ -1758,7 +1758,7 @@ public static class ModLocalComp
         /// <summary>
         ///     该文件是否可以更新。
         /// </summary>
-        public bool CanUpdate => !Config.Preference.Hide.FunctionModUpdate && ChangelogUrls.Any();
+        public bool CanUpdate => !Config.Preference.Hide.FunctionModUpdate && changelogUrls.Any();
 
         /// <summary>
         ///     获取用于 CurseForge 信息获取的 Hash 值（MurmurHash2）。
@@ -1770,19 +1770,19 @@ public static class ModLocalComp
                 if (_CurseForgeHash is null)
                 {
                     // 读取缓存
-                    var Info = new FileInfo(Path);
-                    var CacheKey = ModBase.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-C")
+                    var info = new FileInfo(path);
+                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-C")
                         .ToString();
-                    var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
-                    if (!string.IsNullOrEmpty(Cached) && Cached.RegexCheck(@"^\d+$")) // #5062
+                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
+                    if (!string.IsNullOrEmpty(cached) && cached.RegexCheck(@"^\d+$")) // #5062
                     {
-                        _CurseForgeHash = uint.Parse(Cached);
+                        _CurseForgeHash = uint.Parse(cached);
                         return (uint)_CurseForgeHash;
                     }
 
                     // 读取文件
                     var data = new List<byte>();
-                    foreach (var b in ModBase.ReadFileBytes(Path))
+                    foreach (var b in ModBase.ReadFileBytes(path))
                     {
                         if (b == 9 || b == 10 || b == 13 || b == 32)
                             continue;
@@ -1833,7 +1833,7 @@ public static class ModLocalComp
                     h = h ^ (h >> 15);
                     _CurseForgeHash = h;
                     // 写入缓存
-                    ModBase.WriteIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey, h.ToString());
+                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, h.ToString());
                 }
 
                 return (uint)_CurseForgeHash;
@@ -1852,20 +1852,20 @@ public static class ModLocalComp
                 if (_ModrinthHash is null)
                 {
                     // 读取缓存
-                    var Info = new FileInfo(Path);
-                    var CacheKey = ModBase.GetHash($"{RawPath}-{Info.LastWriteTime.ToLongTimeString()}-{Info.Length}-M")
+                    var info = new FileInfo(path);
+                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-M")
                         .ToString();
-                    var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
-                    if (!string.IsNullOrEmpty(Cached))
+                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
+                    if (!string.IsNullOrEmpty(cached))
                     {
-                        _ModrinthHash = Cached;
+                        _ModrinthHash = cached;
                         return _ModrinthHash;
                     }
 
                     // 计算 SHA1
-                    _ModrinthHash = ModBase.GetFileSHA1(Path);
+                    _ModrinthHash = ModBase.GetFileSHA1(path);
                     // 写入缓存
-                    ModBase.WriteIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey, _ModrinthHash);
+                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, _ModrinthHash);
                 }
 
                 return _ModrinthHash;
@@ -1880,13 +1880,13 @@ public static class ModLocalComp
 
         public override string ToString()
         {
-            return $"{State} - {Path}";
+            return $"{State} - {path}";
         }
 
         public override bool Equals(object obj)
         {
             var target = obj as LocalCompFile;
-            return target is not null && (Path ?? "") == (target.Path ?? "");
+            return target is not null && (path ?? "") == (target.path ?? "");
         }
 
         #endregion
@@ -1912,17 +1912,17 @@ public static class ModLocalComp
 
     public class CompLocalLoaderData
     {
-        public string CompPath;
-        public CompType CompType;
+        public string compPath;
+        public CompType compType;
 
-        public KeyValuePair<List<LocalCompFile>, JsonObject> DetailInfo;
-        public PageInstanceCompResource Frm;
-        public ModMinecraft.McInstance GameVersion;
-        public List<CompLoaderType> Loaders;
+        public KeyValuePair<List<LocalCompFile>, JsonObject> detailInfo;
+        public PageInstanceCompResource frm;
+        public ModMinecraft.McInstance gameVersion;
+        public List<CompLoaderType> loaders;
     }
 
     // 加载资源列表
-    public static LoaderTask<CompLocalLoaderData, List<LocalCompFile>> CompResourceListLoader =
+    public static LoaderTask<CompLocalLoaderData, List<LocalCompFile>> compResourceListLoader =
         new("Comp Resource List Loader", CompResourceListLoad);
 
     private static void CompResourceListLoad(LoaderTask<CompLocalLoaderData, List<LocalCompFile>> Loader)
@@ -1931,20 +1931,20 @@ public static class ModLocalComp
         {
             ModBase.RunInUiWait(() =>
             {
-                if (Loader.Input.Frm is not null) Loader.Input.Frm.Load.ShowProgress = false;
+                if (Loader.input.frm is not null) Loader.input.frm.Load.ShowProgress = false;
             });
 
             // 等待 Mod 更新完成
-            if (PageInstanceCompResource.UpdatingVersions.Contains(Loader.Input.CompPath))
+            if (PageInstanceCompResource.updatingVersions.Contains(Loader.input.compPath))
             {
-                ModBase.Log("[Mod] 等待资源更新完成后才能继续加载资源列表：" + Loader.Input.CompPath);
+                ModBase.Log("[Mod] 等待资源更新完成后才能继续加载资源列表：" + Loader.input.compPath);
                 try
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (Loader.Input.Frm is not null) Loader.Input.Frm.Load.Text = "正在更新资源";
+                        if (Loader.input.frm is not null) Loader.input.frm.Load.Text = "正在更新资源";
                     });
-                    while (PageInstanceCompResource.UpdatingVersions.Contains(Loader.Input.CompPath))
+                    while (PageInstanceCompResource.updatingVersions.Contains(Loader.input.compPath))
                     {
                         if (Loader.IsAborted)
                             return;
@@ -1955,38 +1955,38 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (Loader.Input.Frm is not null) Loader.Input.Frm.Load.Text = "正在加载资源列表";
+                        if (Loader.input.frm is not null) Loader.input.frm.Load.Text = "正在加载资源列表";
                     });
                 }
 
-                Loader.Input.Frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
+                Loader.input.frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
             }
 
             // 获取 Mod 文件夹下的可用文件列表
-            var ModList = new List<LocalCompFile>();
-            if (Directory.Exists(Loader.Input.CompPath))
+            var modList = new List<LocalCompFile>();
+            if (Directory.Exists(Loader.input.compPath))
             {
-                var RawName = Loader.Input.CompPath.ToLower();
+                var rawName = Loader.input.compPath.ToLower();
 
-                if (Loader.Input.CompType == CompType.Schematic)
+                if (Loader.input.compType == CompType.Schematic)
                 {
-                    var CurrentFolderPath = "";
-                    if (Loader.Input.Frm is not null) CurrentFolderPath = Loader.Input.Frm.CurrentFolderPath;
+                    var currentFolderPath = "";
+                    if (Loader.input.frm is not null) currentFolderPath = Loader.input.frm.CurrentFolderPath;
 
-                    var SearchPath = string.IsNullOrEmpty(CurrentFolderPath)
-                        ? Loader.Input.CompPath
-                        : CurrentFolderPath;
+                    var searchPath = string.IsNullOrEmpty(currentFolderPath)
+                        ? Loader.input.compPath
+                        : currentFolderPath;
 
                     try
                     {
-                        var DirInfo = new DirectoryInfo(SearchPath);
-                        foreach (var Dir in DirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
-                            ModList.Add(new LocalCompFile(Path.Combine(Dir.FullName, "__FOLDER__")));
-                        foreach (var File in DirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
+                        var dirInfo = new DirectoryInfo(searchPath);
+                        foreach (var Dir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+                            modList.Add(new LocalCompFile(Path.Combine(Dir.FullName, "__FOLDER__")));
+                        foreach (var File in dirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
                             try
                             {
-                                if (LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType))
-                                    ModList.Add(new LocalCompFile(File.FullName));
+                                if (LocalCompFile.IsCompFile(File.FullName, Loader.input.compType))
+                                    modList.Add(new LocalCompFile(File.FullName));
                             }
                             catch (Exception ex)
                             {
@@ -1995,25 +1995,25 @@ public static class ModLocalComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"枚举文件失败：{SearchPath}");
+                        ModBase.Log(ex, $"枚举文件失败：{searchPath}");
                     }
                 }
                 else
                 {
                     try
                     {
-                        foreach (var File in ModBase.EnumerateFiles(Loader.Input.CompPath))
+                        foreach (var File in ModBase.EnumerateFiles(Loader.input.compPath))
                             try
                             {
-                                if ((File.DirectoryName.ToLower() ?? "") != (RawName.TrimEnd('\\') ?? ""))
-                                    if (!(PageInstanceLeft.Instance is not null &&
-                                          PageInstanceLeft.Instance.Info.HasForge &&
-                                          PageInstanceLeft.Instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
-                                          (PageInstanceLeft.Instance.Info.VanillaName ?? "")))
+                                if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
+                                    if (!(PageInstanceLeft.instance is not null &&
+                                          PageInstanceLeft.instance.Info.hasForge &&
+                                          PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
+                                          (PageInstanceLeft.instance.Info.vanillaName ?? "")))
                                         continue;
 
-                                if (LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType))
-                                    ModList.Add(new LocalCompFile(File.FullName));
+                                if (LocalCompFile.IsCompFile(File.FullName, Loader.input.compType))
+                                    modList.Add(new LocalCompFile(File.FullName));
                             }
                             catch (Exception ex)
                             {
@@ -2022,55 +2022,55 @@ public static class ModLocalComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"枚举文件夹失败：{Loader.Input.CompPath}");
+                        ModBase.Log(ex, $"枚举文件夹失败：{Loader.input.compPath}");
                     }
                 }
             }
 
             // 确定是否显示进度
             Loader.Progress = 0.05d;
-            if (ModList.Count > 50)
+            if (modList.Count > 50)
                 ModBase.RunInUi(() =>
                 {
-                    if (Loader.Input.Frm is not null) Loader.Input.Frm.Load.ShowProgress = true;
+                    if (Loader.input.frm is not null) Loader.input.frm.Load.ShowProgress = true;
                 });
 
             // 获取本地文件缓存
-            var CachePath = ModBase.PathTemp + @"Cache\LocalComp.json";
-            var Cache = new JsonObject();
+            var cachePath = ModBase.pathTemp + @"Cache\LocalComp.json";
+            var cache = new JsonObject();
             try
             {
-                var CacheContent = ModBase.ReadFile(CachePath);
-                if (!string.IsNullOrWhiteSpace(CacheContent))
+                var cacheContent = ModBase.ReadFile(cachePath);
+                if (!string.IsNullOrWhiteSpace(cacheContent))
                 {
-                    Cache = (JsonObject)ModBase.GetJson(CacheContent);
-                    if (!Cache.ContainsKey("version") || Cache["version"].ToObject<int>() != LocalModCacheVersion)
+                    cache = (JsonObject)ModBase.GetJson(cacheContent);
+                    if (!cache.ContainsKey("version") || cache["version"].ToObject<int>() != localModCacheVersion)
                     {
                         ModBase.Log("[Mod] 本地 Mod 信息缓存版本已过期，将弃用这些缓存信息", ModBase.LogLevel.Debug);
-                        Cache = new JsonObject();
+                        cache = new JsonObject();
                     }
                 }
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, "读取本地 Mod 信息缓存失败，已重置");
-                Cache = new JsonObject();
+                cache = new JsonObject();
             }
 
-            Cache["version"] = LocalModCacheVersion;
+            cache["version"] = localModCacheVersion;
 
             // 加载 Mod 列表 - 优化：对于原理图文件，延迟加载NBT数据
-            var ModUpdateList = new List<LocalCompFile>();
-            foreach (var ModEntry in ModList)
+            var modUpdateList = new List<LocalCompFile>();
+            foreach (var ModEntry in modList)
             {
-                Loader.Progress += 0.94d / ModList.Count;
+                Loader.Progress += 0.94d / modList.Count;
                 if (Loader.IsAborted)
                     return;
                 if (ModEntry.IsFolder)
                     continue;
 
                 // 优化：对于原理图文件，只进行基础加载，不解析NBT数据
-                if (Loader.Input.CompType == CompType.Schematic)
+                if (Loader.input.compType == CompType.Schematic)
                     ModEntry.LoadBasicInfo();
                 else
                     // 加载 McMod 对象
@@ -2079,27 +2079,27 @@ public static class ModLocalComp
                 // 读取 Comp 缓存
                 if (ModEntry.State == LocalCompFile.LocalFileStatus.Unavailable)
                     continue;
-                var CacheKey = ModEntry.ModrinthHash + Loader.Input.GameVersion.Info.VanillaName +
-                               Loader.Input.Loaders.Join("");
-                if (Cache.ContainsKey(CacheKey))
+                var cacheKey = ModEntry.ModrinthHash + Loader.input.gameVersion.Info.vanillaName +
+                               Loader.input.loaders.Join("");
+                if (cache.ContainsKey(cacheKey))
                 {
-                    ModEntry.FromJson((JsonObject)Cache[CacheKey]);
+                    ModEntry.FromJson((JsonObject)cache[cacheKey]);
                     // 如果缓存中的信息在 6 小时以内更新过，则无需重新获取
-                    if (ModEntry.CompLoaded &&
-                        DateTime.Now - Cache[CacheKey]["Comp"]["CacheTime"].ToObject<DateTime>() <
+                    if (ModEntry.compLoaded &&
+                        DateTime.Now - cache[cacheKey]["Comp"]["CacheTime"].ToObject<DateTime>() <
                         new TimeSpan(6, 0, 0))
                         continue;
                 }
 
-                ModUpdateList.Add(ModEntry);
+                modUpdateList.Add(ModEntry);
             }
 
             Loader.Progress = 0.99d;
             ModBase.Log(
-                $"[Mod] 共有 {ModList.Count} 个 Mod，其中 {ModUpdateList.Where(m => m.Comp is null).Count()} 个需要联网获取信息，{ModUpdateList.Where(m => m.Comp is not null).Count()} 个需要更新信息");
+                $"[Mod] 共有 {modList.Count} 个 Mod，其中 {modUpdateList.Where(m => m.Comp is null).Count()} 个需要联网获取信息，{modUpdateList.Where(m => m.Comp is not null).Count()} 个需要更新信息");
 
             // 排序
-            ModList.Sort((Left, Right) =>
+            modList.Sort((Left, Right) =>
             {
                 if (Left.State == LocalCompFile.LocalFileStatus.Unavailable !=
                     (Right.State == LocalCompFile.LocalFileStatus.Unavailable))
@@ -2111,14 +2111,14 @@ public static class ModLocalComp
             // 回设
             if (Loader.IsAborted)
                 return;
-            Loader.Output = ModList;
+            Loader.output = modList;
 
             // 开始联网加载
-            if (ModUpdateList.Any())
+            if (modUpdateList.Any())
             {
                 // TODO: 添加信息获取中提示
-                Loader.Input.DetailInfo = new KeyValuePair<List<LocalCompFile>, JsonObject>(ModUpdateList, Cache);
-                CompUpdateDetailLoader.Start(Loader.Input, true);
+                Loader.input.detailInfo = new KeyValuePair<List<LocalCompFile>, JsonObject>(modUpdateList, cache);
+                compUpdateDetailLoader.Start(Loader.input, true);
             }
         }
 
@@ -2130,23 +2130,23 @@ public static class ModLocalComp
     }
 
     // 联网加载 Mod 详情
-    public static LoaderTask<CompLocalLoaderData, int> CompUpdateDetailLoader =
+    public static LoaderTask<CompLocalLoaderData, int> compUpdateDetailLoader =
         new("Comp List Detail Loader", CompUpdateDetailLoad);
 
     private static void CompUpdateDetailLoad(LoaderTask<CompLocalLoaderData, int> Loader)
     {
-        var Mods = Loader.Input.DetailInfo.Key;
-        var Cache = Loader.Input.DetailInfo.Value;
+        var mods = Loader.input.detailInfo.Key;
+        var cache = Loader.input.detailInfo.Value;
         // 获取作为检查目标的加载器和版本
-        var ModLoaders = Loader.Input.Loaders;
-        var CompType = Loader.Input.CompType;
-        var McInstance = Loader.Input.GameVersion.Info.VanillaName;
+        var modLoaders = Loader.input.loaders;
+        var compType = Loader.input.compType;
+        var mcInstance = Loader.input.gameVersion.Info.vanillaName;
 
         // 开始网络获取
-        ModBase.Log($"[Mod] 目标加载器：{string.Join("/", ModLoaders)}，版本：{McInstance}");
-        var EndedThreadCount = 0;
-        var IsFailed = false;
-        var CurrentTaskId = Task.CurrentId ?? -1;
+        ModBase.Log($"[Mod] 目标加载器：{string.Join("/", modLoaders)}，版本：{mcInstance}");
+        var endedThreadCount = 0;
+        var isFailed = false;
+        var currentTaskId = Task.CurrentId ?? -1;
 
         // 从 Modrinth 获取信息
         ModBase.RunInNewThread(() =>
@@ -2154,88 +2154,88 @@ public static class ModLocalComp
             try
             {
                 // 步骤 1：获取 Hash 与对应的工程 ID
-                var ModrinthHashes = Mods.Select(m => m.ModrinthHash).ToList();
-                var ModrinthVersion = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                var modrinthHashes = mods.Select(m => m.ModrinthHash).ToList();
+                var modrinthVersion = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                     "https://api.modrinth.com/v2/version_files", "POST",
-                    $"{{\"hashes\": [\"{string.Join("\",\"", ModrinthHashes)}\"], \"algorithm\": \"sha1\"}}",
+                    $"{{\"hashes\": [\"{string.Join("\",\"", modrinthHashes)}\"], \"algorithm\": \"sha1\"}}",
                     "application/json"));
-                ModBase.Log($"[Mod] 从 Modrinth 获取到 {ModrinthVersion.Count} 个本地 Mod 的对应信息");
+                ModBase.Log($"[Mod] 从 Modrinth 获取到 {modrinthVersion.Count} 个本地 Mod 的对应信息");
 
                 // 步骤 2：尝试读取工程信息缓存，构建其他 Mod 的对应关系
-                if (ModrinthVersion.Count == 0) return;
-                var ModrinthMapping = new Dictionary<string, List<LocalCompFile>>();
-                foreach (var Entry in Mods)
+                if (modrinthVersion.Count == 0) return;
+                var modrinthMapping = new Dictionary<string, List<LocalCompFile>>();
+                foreach (var Entry in mods)
                 {
-                    if (ModrinthVersion[Entry.ModrinthHash] is null) continue;
-                    if (ModrinthVersion[Entry.ModrinthHash]["files"][0]["hashes"]["sha1"].ToString() !=
+                    if (modrinthVersion[Entry.ModrinthHash] is null) continue;
+                    if (modrinthVersion[Entry.ModrinthHash]["files"][0]["hashes"]["sha1"].ToString() !=
                         Entry.ModrinthHash) continue;
 
-                    var ProjectId = ModrinthVersion[Entry.ModrinthHash]["project_id"].ToString();
+                    var projectId = modrinthVersion[Entry.ModrinthHash]["project_id"].ToString();
                     // 读取已加载的缓存，加快结果出现速度
-                    if (CompProjectCache.ContainsKey(ProjectId) && Entry.Comp is null)
-                        Entry.Comp = CompProjectCache[ProjectId];
+                    if (compProjectCache.ContainsKey(projectId) && Entry.Comp is null)
+                        Entry.Comp = compProjectCache[projectId];
 
-                    if (!ModrinthMapping.ContainsKey(ProjectId)) ModrinthMapping[ProjectId] = new List<LocalCompFile>();
-                    ModrinthMapping[ProjectId].Add(Entry);
+                    if (!modrinthMapping.ContainsKey(projectId)) modrinthMapping[projectId] = new List<LocalCompFile>();
+                    modrinthMapping[projectId].Add(Entry);
 
                     // 记录对应的 CompFile
-                    var FileInfo = new CompFile((JsonObject)ModrinthVersion[Entry.ModrinthHash], CompType.Mod);
-                    if (Entry.CompFile is null || Entry.CompFile.ReleaseDate < FileInfo.ReleaseDate)
-                        Entry.CompFile = FileInfo;
+                    var fileInfo = new CompFile((JsonObject)modrinthVersion[Entry.ModrinthHash], CompType.Mod);
+                    if (Entry.compFile is null || Entry.compFile.releaseDate < fileInfo.releaseDate)
+                        Entry.compFile = fileInfo;
                 }
 
-                if (Loader.IsAbortedWithThread(CurrentTaskId)) return;
-                ModBase.Log($"[Mod] 需要从 Modrinth 获取 {ModrinthMapping.Count} 个本地 Mod 的工程信息");
+                if (Loader.IsAbortedWithThread(currentTaskId)) return;
+                ModBase.Log($"[Mod] 需要从 Modrinth 获取 {modrinthMapping.Count} 个本地 Mod 的工程信息");
 
                 // 步骤 3：获取工程信息
-                if (!ModrinthMapping.Any()) return;
-                var ModrinthProject = (JsonArray)ModBase.GetJson(ModDownload.DlModRequest(
-                    $"https://api.modrinth.com/v2/projects?ids=[\"{string.Join("\",\"", ModrinthMapping.Keys)}\"]",
+                if (!modrinthMapping.Any()) return;
+                var modrinthProject = (JsonArray)ModBase.GetJson(ModDownload.DlModRequest(
+                    $"https://api.modrinth.com/v2/projects?ids=[\"{string.Join("\",\"", modrinthMapping.Keys)}\"]",
                     "GET", "", "application/json"));
 
-                foreach (var ProjectJson in ModrinthProject)
+                foreach (var ProjectJson in modrinthProject)
                 {
-                    var Project = new CompProject((JsonObject)ProjectJson);
-                    foreach (var Entry in ModrinthMapping[Project.Id]) Entry.Comp = Project;
+                    var project = new CompProject((JsonObject)ProjectJson);
+                    foreach (var Entry in modrinthMapping[project.id]) Entry.Comp = project;
                 }
 
                 ModBase.Log("[Mod] 已从 Modrinth 获取本地 Mod 信息，继续获取更新信息");
 
                 // 步骤 4：获取更新信息
-                var targetLoaders = CompType == CompType.DataPack
+                var targetLoaders = compType == CompType.DataPack
                     ? "datapack"
-                    : string.Join("\",\"", ModLoaders).ToLower();
-                var ModrinthUpdate = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    : string.Join("\",\"", modLoaders).ToLower();
+                var modrinthUpdate = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                     "https://api.modrinth.com/v2/version_files/update", "POST",
-                    $"{{\"hashes\": [\"{string.Join("\",\"", ModrinthMapping.SelectMany(l => l.Value.Select(m => m.ModrinthHash)))}\"], \"algorithm\": \"sha1\", " +
-                    $"\"loaders\": [\"{targetLoaders}\"],\"game_versions\": [\"{McInstance}\"]}}", "application/json"));
+                    $"{{\"hashes\": [\"{string.Join("\",\"", modrinthMapping.SelectMany(l => l.Value.Select(m => m.ModrinthHash)))}\"], \"algorithm\": \"sha1\", " +
+                    $"\"loaders\": [\"{targetLoaders}\"],\"game_versions\": [\"{mcInstance}\"]}}", "application/json"));
 
-                foreach (var Entry in Mods)
+                foreach (var Entry in mods)
                 {
-                    if (ModrinthUpdate[Entry.ModrinthHash] is null || Entry.CompFile is null) continue;
-                    var UpdateFile = new CompFile((JsonObject)ModrinthUpdate[Entry.ModrinthHash], CompType.Mod);
-                    if (!UpdateFile.Available) continue;
+                    if (modrinthUpdate[Entry.ModrinthHash] is null || Entry.compFile is null) continue;
+                    var updateFile = new CompFile((JsonObject)modrinthUpdate[Entry.ModrinthHash], CompType.Mod);
+                    if (!updateFile.Available) continue;
 
-                    if (ModBase.ModeDebug)
-                        ModBase.Log($"[Mod] 本地文件 {Entry.CompFile.FileName} 在 Modrinth 上的最新版为 {UpdateFile.FileName}");
-                    if (Entry.CompFile.ReleaseDate >= UpdateFile.ReleaseDate ||
-                        Entry.CompFile.Hash == UpdateFile.Hash) continue;
+                    if (ModBase.modeDebug)
+                        ModBase.Log($"[Mod] 本地文件 {Entry.compFile.fileName} 在 Modrinth 上的最新版为 {updateFile.fileName}");
+                    if (Entry.compFile.releaseDate >= updateFile.releaseDate ||
+                        Entry.compFile.hash == updateFile.hash) continue;
 
                     // 设置更新日志与更新文件
-                    if (Entry.UpdateFile is not null && UpdateFile.Hash == Entry.UpdateFile.Hash)
+                    if (Entry.UpdateFile is not null && updateFile.hash == Entry.UpdateFile.hash)
                     {
-                        Entry.ChangelogUrls.Add(
-                            $"https://modrinth.com/mod/{ModrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={McInstance}");
-                        Entry.UpdateFile.DownloadUrls.AddRange(UpdateFile.DownloadUrls);
-                        Entry.UpdateFile = UpdateFile;
+                        Entry.changelogUrls.Add(
+                            $"https://modrinth.com/mod/{modrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={mcInstance}");
+                        Entry.UpdateFile.downloadUrls.AddRange(updateFile.downloadUrls);
+                        Entry.UpdateFile = updateFile;
                     }
-                    else if (Entry.UpdateFile is null || UpdateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate)
+                    else if (Entry.UpdateFile is null || updateFile.releaseDate >= Entry.UpdateFile.releaseDate)
                     {
-                        Entry.ChangelogUrls = new List<string>
+                        Entry.changelogUrls = new List<string>
                         {
-                            $"https://modrinth.com/mod/{ModrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={McInstance}"
+                            $"https://modrinth.com/mod/{modrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={mcInstance}"
                         };
-                        Entry.UpdateFile = UpdateFile;
+                        Entry.UpdateFile = updateFile;
                     }
                 }
 
@@ -2244,11 +2244,11 @@ public static class ModLocalComp
             catch (Exception ex)
             {
                 ModBase.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
-                IsFailed = true;
+                isFailed = true;
             }
             finally
             {
-                Interlocked.Increment(ref EndedThreadCount);
+                Interlocked.Increment(ref endedThreadCount);
             }
         }, "Mod List Detail Loader Modrinth");
 
@@ -2258,12 +2258,12 @@ public static class ModLocalComp
             try
             {
                 // 步骤 1：获取 Hash 与对应的工程 ID
-                var CurseForgeHashes = Mods.Select(m => m.CurseForgeHash).ToList();
-                var CurseForgeResponse = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                var curseForgeHashes = mods.Select(m => m.CurseForgeHash).ToList();
+                var curseForgeResponse = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                     "https://api.curseforge.com/v1/fingerprints/432", "POST",
-                    $"{{\"fingerprints\": [{string.Join(",", CurseForgeHashes)}]}}", "application/json"));
-                var CurseForgeRaw = (JsonArray)CurseForgeResponse["data"]["exactMatches"];
-                ModBase.Log($"[Mod] 从 CurseForge 获取到 {CurseForgeRaw.Count} 个本地 Mod 的对应信息");
+                    $"{{\"fingerprints\": [{string.Join(",", curseForgeHashes)}]}}", "application/json"));
+                var curseForgeRaw = (JsonArray)curseForgeResponse["data"]["exactMatches"];
+                ModBase.Log($"[Mod] 从 CurseForge 获取到 {curseForgeRaw.Count} 个本地 Mod 的对应信息");
 
                 // 步骤 2：构建映射 (此处省略具体循环，逻辑同 Modrinth，注意 ProjectId 转换)
                 // ...
@@ -2274,65 +2274,65 @@ public static class ModLocalComp
             catch (Exception ex)
             {
                 ModBase.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
-                IsFailed = true;
+                isFailed = true;
             }
             finally
             {
-                Interlocked.Increment(ref EndedThreadCount);
+                Interlocked.Increment(ref endedThreadCount);
             }
         }, "Mod List Detail Loader CurseForge");
 
         // 等待线程结束
-        while (EndedThreadCount < 2)
+        while (endedThreadCount < 2)
         {
             if (Loader.IsAborted) return;
             Thread.Sleep(10);
         }
 
         // 保存缓存
-        var CachedMods = Mods.Where(m => m.Comp is not null).ToList();
-        ModBase.Log($"[Mod] 联网获取本地 Mod 信息完成，为 {CachedMods.Count} 个 Mod 更新缓存");
-        if (!CachedMods.Any()) return;
+        var cachedMods = mods.Where(m => m.Comp is not null).ToList();
+        ModBase.Log($"[Mod] 联网获取本地 Mod 信息完成，为 {cachedMods.Count} 个 Mod 更新缓存");
+        if (!cachedMods.Any()) return;
 
-        foreach (var Entry in CachedMods)
+        foreach (var Entry in cachedMods)
         {
-            Entry.CompLoaded = !IsFailed;
-            Cache[Entry.ModrinthHash + McInstance + string.Join("", ModLoaders)] = Entry.ToJson();
+            Entry.compLoaded = !isFailed;
+            cache[Entry.ModrinthHash + mcInstance + string.Join("", modLoaders)] = Entry.ToJson();
         }
 
-        ModBase.WriteFile(Path.Combine(ModBase.PathTemp, "Cache", "LocalComp.json"),
-            Cache.ToJsonString(ModBase.ModeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
+        ModBase.WriteFile(Path.Combine(ModBase.pathTemp, "Cache", "LocalComp.json"),
+            cache.ToJsonString(ModBase.modeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
 
         // 刷新 UI
         ModBase.RunInUi(() =>
         {
-            if (ModMain.FrmInstanceMod?.Filter == PageInstanceCompResource.FilterType.CanUpdate)
-                ModMain.FrmInstanceMod?.RefreshUI();
+            if (ModMain.frmInstanceMod?.Filter == PageInstanceCompResource.FilterType.CanUpdate)
+                ModMain.frmInstanceMod?.RefreshUI();
             else
-                ModMain.FrmInstanceMod?.RefreshBars();
+                ModMain.frmInstanceMod?.RefreshBars();
         });
     }
 
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
-        var ModLoaders = new List<CompLoaderType>();
-        if (PageInstanceLeft.Instance.Info.HasForge)
-            ModLoaders.Add(CompLoaderType.Forge);
-        if (PageInstanceLeft.Instance.Info.HasNeoForge)
-            ModLoaders.Add(CompLoaderType.NeoForge);
-        if (PageInstanceLeft.Instance.Info.HasFabric)
-            ModLoaders.Add(CompLoaderType.Fabric);
-        if (PageInstanceLeft.Instance.Info.HasQuilt)
-            ModLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
-        if (PageInstanceLeft.Instance.Info.HasLiteLoader)
-            ModLoaders.Add(CompLoaderType.LiteLoader);
-        if (!ModLoaders.Any())
-            ModLoaders.AddRange(new[]
+        var modLoaders = new List<CompLoaderType>();
+        if (PageInstanceLeft.instance.Info.hasForge)
+            modLoaders.Add(CompLoaderType.Forge);
+        if (PageInstanceLeft.instance.Info.hasNeoForge)
+            modLoaders.Add(CompLoaderType.NeoForge);
+        if (PageInstanceLeft.instance.Info.hasFabric)
+            modLoaders.Add(CompLoaderType.Fabric);
+        if (PageInstanceLeft.instance.Info.hasQuilt)
+            modLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
+        if (PageInstanceLeft.instance.Info.hasLiteLoader)
+            modLoaders.Add(CompLoaderType.LiteLoader);
+        if (!modLoaders.Any())
+            modLoaders.AddRange(new[]
             {
                 CompLoaderType.Forge, CompLoaderType.NeoForge, CompLoaderType.Fabric, CompLoaderType.LiteLoader,
                 CompLoaderType.Quilt
             });
-        return ModLoaders;
+        return modLoaders;
     }
 
     public static string GetPathNameByCompType(CompType TheType)
@@ -2364,7 +2364,7 @@ public static class ModLocalComp
         return "Nothing";
     }
 
-    private static readonly Regex RegexIsJarFile = new(@"\.jar(\.disabled)?$");
+    private static readonly Regex regexIsJarFile = new(@"\.jar(\.disabled)?$");
 
     /// <summary>
     ///     通过文件名关键字和 Mod ID 比如 <c>fabric</c> <c>api</c> 和 <c>fabric-api</c> 来获取给定实例 mods 目录中某个 Mod 的
@@ -2394,7 +2394,7 @@ public static class ModLocalComp
         foreach (var file in Directory.EnumerateFiles(modFolder, $"*{mainKeyword}*"))
         {
             var lowerFilePath = file.ToLower(); // 统一转为小写
-            if (!RegexIsJarFile.IsMatch(lowerFilePath))
+            if (!regexIsJarFile.IsMatch(lowerFilePath))
                 continue; // 检查是否是 jar 文件
             if ((keywords.Length > 0) && !keywords.Any(keyword => lowerFilePath.Contains(keyword)))
                 continue; // 检查是否包含关键字
