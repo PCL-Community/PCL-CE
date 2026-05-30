@@ -831,7 +831,11 @@ public static class ModLaunch
             {
                 tokens = MsLoginStep1Refresh(input.OAuthRefreshToken);
                 if (tokens.Length > 0 && tokens[0] == "Relogin")
-                    continue; // 重新登录
+                {
+                    // 刷新令牌已失效，清除后回退到设备代码流重新登录，避免无限循环
+                    input.OAuthRefreshToken = "";
+                    continue;
+                }
             }
 
             if (tokens.Length > 0 && tokens[0] == "Ignore")
@@ -936,8 +940,10 @@ public static class ModLaunch
                        .GetAwaiter()
                        .GetResult())
             {
-                response.EnsureSuccessStatusCode();
                 result = response.AsString();
+                if (!response.IsSuccess)
+                    throw new HttpRequestException(
+                        $"刷新登录请求失败，状态码 {(int)response.StatusCode}：{result}");
             }
         }
         catch (ThreadInterruptedException ex)
@@ -946,7 +952,8 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            if (ex.Message.ContainsF("must sign in again", true) || ex.Message.ContainsF("password expired", true) ||
+            if (ex.Message.ContainsF("invalid_grant", true) || ex.Message.ContainsF("must sign in again", true) ||
+                ex.Message.ContainsF("must first sign in", true) || ex.Message.ContainsF("password expired", true) ||
                 (ex.Message.Contains("refresh_token") && ex.Message.Contains("is not valid"))) // #269
                 return new[] { "Relogin", "" };
 
@@ -962,6 +969,8 @@ public static class ModLaunch
                     isIgnore = true;
             });
             if (isIgnore) return new[] { "Ignore", "" };
+            // 用户取消或登录线程已结束，静默中止启动，避免落入下方的 JSON 解析空引用
+            throw new Exception("$$");
         }
 
         var resultJson = (JsonObject)ModBase.GetJson(result);
