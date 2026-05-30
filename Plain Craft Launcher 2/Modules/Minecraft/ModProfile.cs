@@ -186,7 +186,7 @@ public static class ModProfile
         catch (Exception ex)
         {
             ModBase.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
-            if (!throwOnNotFound && ex.GetType().Name == "FileNotFoundException")
+            if (!throwOnNotFound && ex is FileNotFoundException)
                 uuid = GetOfflineUuid(name, isLegacy: true); // 玩家档案不存在
             else
                 throw new Exception("从官网获取正版 UUID 失败", ex);

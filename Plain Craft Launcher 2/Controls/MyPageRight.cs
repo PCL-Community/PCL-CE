@@ -140,9 +140,9 @@ public class MyPageRight : AdornerDecorator
     {
         if (!PageLoaderAutoRun)
             return;
-        if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
+        if (PageLoader is LoaderTask task)
         {
-            PageLoader.Start(((LoaderTask)PageLoader).StartGetInputNoType(Input, PageLoaderInputInvoke), IsForceRestart);
+            PageLoader.Start(task.StartGetInputNoType(Input, PageLoaderInputInvoke), IsForceRestart);
         }
         else
         {

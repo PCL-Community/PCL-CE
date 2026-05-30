@@ -5,6 +5,7 @@ using System.Collections;
 using System.IO;
 using System.Windows.Shell;
 using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -855,14 +856,14 @@ public static class ModLoader
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        if (loader is LoaderTask task)
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
                             var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
 
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (task.ShouldStart(ref shouldInput, false, true))
                             {
                                 ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
                                 goto Restart;
@@ -879,7 +880,7 @@ public static class ModLoader
 
                     case ModBase.LoadState.Loading:
                     {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        if (loader is LoaderTask)
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
                             var shouldInput = input is not null && genericArg == input.GetType()
@@ -911,26 +912,24 @@ public static class ModLoader
 
                         if (input is not null)
                         {
-                            var loaderType = loader.GetType().Name;
+                            switch (loader)
+                            {
+                                case LoaderTask:
+                                case LoaderCombo:
+                                    var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
 
-                            if (loaderType.StartsWithF("LoaderTask")
-                                || loaderType.StartsWithF("LoaderCombo"))
-                            {
-                                var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-
-                                loader.Start(
-                                    genericArg == input.GetType() ? input : null,
-                                    IsForceRestarting);
-                            }
-                            else if (loaderType.StartsWithF("LoaderDownload"))
-                            {
-                                loader.Start(
-                                    input is List<DownloadFile> ? input : null,
-                                    IsForceRestarting);
-                            }
-                            else
-                            {
-                                throw new Exception("未知的加载器类型（" + loaderType + "）");
+                                    loader.Start(
+                                        genericArg == input.GetType() ? input : null,
+                                        IsForceRestarting);
+                                    break;
+                                case LoaderDownload:
+                                case LoaderDownloadUnc:
+                                    loader.Start(
+                                        input is List<DownloadFile> ? input : null,
+                                        IsForceRestarting);
+                                    break;
+                                default:
+                                    throw new Exception("未知的加载器类型（" + loader.GetType() + "）");
                             }
                         }
                         else
