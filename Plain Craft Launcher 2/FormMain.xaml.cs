@@ -321,11 +321,11 @@ public partial class FormMain
         // 检查有记录的最高版本号
         int lowerVersionCode;
 #if BETA
-        LowerVersionCode = States.System.LastBetaVersion;
-        if (LowerVersionCode < ModBase.VersionCode)
+        lowerVersionCode = States.System.LastBetaVersion;
+        if (lowerVersionCode < ModBase.versionCode)
         {
-            States.System.LastBetaVersion = ModBase.VersionCode;
-            ModBase.Log($"[Start] 最高版本号从 {LowerVersionCode} 升高到 {ModBase.VersionCode}");
+            States.System.LastBetaVersion = ModBase.versionCode;
+            ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #else
         lowerVersionCode = States.System.LastAlphaVersion;

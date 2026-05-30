@@ -54,11 +54,11 @@ public static class ModBase
     public const string versionBranchName = "Debug";
     public const string versionBranchCode = "100";
 #elif DEBUGCI
-    public const string VersionBranchName = "CI";
-    public const string VersionBranchCode = "50";
+    public const string versionBranchName = "CI";
+    public const string versionBranchCode = "50";
 #else
-    public const string VersionBranchName = "Publish";
-    public const string VersionBranchCode = "0";
+    public const string versionBranchName = "Publish";
+    public const string versionBranchCode = "0";
 #endif
     /// <summary>
     ///     主窗口句柄。

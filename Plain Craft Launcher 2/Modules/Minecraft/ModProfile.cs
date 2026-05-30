@@ -442,10 +442,10 @@ public static class ModProfile
 #if DEBUG || DEBUGCI
             authTypeList = _GetAvailableProfileSelection(true);
 #else
-            var HasMinecraftAccount = ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
-            var Restricted = RegionUtils.IsRestrictedFeatAllowed && ProfileList.Count > 0;
-            var HasNetwork = NetworkHelper.IsNetworkAvailable();
-            if (HasMinecraftAccount || Restricted || !HasNetwork)
+            var hasMinecraftAccount = profileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
+            var restricted = RegionUtils.IsRestrictedFeatAllowed && profileList.Count > 0;
+            var hasNetwork = NetworkHelper.IsNetworkAvailable();
+            if (hasMinecraftAccount || restricted || !hasNetwork)
                 authTypeList = _GetAvailableProfileSelection(true);
             else
                 authTypeList = _GetAvailableProfileSelection(false);
