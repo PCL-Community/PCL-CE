@@ -24,21 +24,33 @@ public static class JsonCompat
         CommentHandling = JsonCommentHandling.Skip
     };
 
-    public static readonly JsonSerializerOptions SerializerOptions = new()
+    /// <summary>
+    ///     统一的宽松 JSON 序列化配置。该实例在静态初始化时已被冻结，调用方不能修改全局行为。
+    ///     如需追加调用点专用设置，请使用 <c>new JsonSerializerOptions(JsonCompat.SerializerOptions)</c> 克隆后修改。
+    /// </summary>
+    public static JsonSerializerOptions SerializerOptions { get; } = _CreateSerializerOptions();
+
+    private static JsonSerializerOptions _CreateSerializerOptions()
     {
-        PropertyNameCaseInsensitive = true,
-        NumberHandling = JsonNumberHandling.AllowReadingFromString,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters =
+        var options = new JsonSerializerOptions
         {
-            new FlexibleDateTimeConverter(),
-            new FlexibleBoolConverter(),
-            new FlexibleStringConverter(),
-            new JsonStringEnumConverter()
-        }
-    };
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters =
+            {
+                new FlexibleDateTimeConverter(),
+                new FlexibleBoolConverter(),
+                new FlexibleStringConverter(),
+                new JsonStringEnumConverter()
+            }
+        };
+
+        options.MakeReadOnly(true);
+        return options;
+    }
 
     public static JsonNode ParseNode(string text)
     {
@@ -56,6 +68,64 @@ public static class JsonCompat
         foreach (var item in items)
             arr.Add(JsonSerializer.SerializeToNode(item, SerializerOptions));
         return arr;
+    }
+
+    public static bool TryGetDateTime(JsonNode? node, out DateTime dateTime)
+    {
+        dateTime = default;
+        switch (node)
+        {
+            case null:
+                return false;
+            case JsonValue value when value.TryGetValue<DateTime>(out var rawDateTime):
+                dateTime = NormalizeDateTime(rawDateTime);
+                return true;
+            case JsonValue value
+                when value.TryGetValue<string>(out var rawText) && TryParseDateTime(rawText, out dateTime):
+                return true;
+            default:
+                try
+                {
+                    dateTime = NormalizeDateTime(node.Deserialize<DateTime>(SerializerOptions));
+                    return true;
+                }
+                catch (JsonException)
+                {
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+                catch (NotSupportedException)
+                {
+                    return false;
+                }
+        }
+    }
+
+    public static bool TryParseDateTime(string? value, out DateTime dateTime)
+    {
+        dateTime = default;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                out var dateTimeOffset))
+        {
+            dateTime = dateTimeOffset.LocalDateTime;
+            return true;
+        }
+
+        if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var parsed))
+            return false;
+
+        dateTime = NormalizeDateTime(parsed);
+        return true;
+    }
+
+    public static DateTime NormalizeDateTime(DateTime dateTime)
+    {
+        return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
     }
 
     public static void Merge(this JsonObject target, JsonNode? source)
@@ -90,19 +160,13 @@ public static class JsonCompat
     {
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType == JsonTokenType.String)
-            {
-                var value = reader.GetString();
-                if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
-                        out var dateTimeOffset))
-                    return dateTimeOffset.LocalDateTime;
-                if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal,
-                        out var dateTime))
-                    return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
-            }
+            if (reader.TokenType != JsonTokenType.String)
+                return NormalizeDateTime(reader.GetDateTime());
 
-            var result = reader.GetDateTime();
-            return result.Kind == DateTimeKind.Utc ? result.ToLocalTime() : result;
+            var value = reader.GetString();
+            return TryParseDateTime(value, out var dateTime)
+                ? dateTime
+                : NormalizeDateTime(reader.GetDateTime());
         }
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)

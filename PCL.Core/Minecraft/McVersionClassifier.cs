@@ -1,7 +1,7 @@
-﻿using System;
-using System.Globalization;
+using System;
 using System.Text.Json.Nodes;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -162,32 +162,9 @@ public static class McVersionClassifier
 
     private static DateTime _GetDateTime(JsonObject obj, string key)
     {
-        var node = obj[key];
-        switch (node)
-        {
-            case null:
-                break;
-            case JsonValue value:
-            {
-                if (value.TryGetValue<DateTime>(out var dateTime))
-                    return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
-
-                if (value.TryGetValue<string>(out var text))
-                {
-                    if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
-                            out var dateTimeOffset))
-                        return dateTimeOffset.LocalDateTime;
-
-                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal,
-                            out dateTime))
-                        return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
-                }
-
-                break;
-            }
-        }
-
-        return DateTime.MinValue;
+        return JsonCompat.TryGetDateTime(obj[key], out var dateTime)
+            ? dateTime
+            : DateTime.MinValue;
     }
 
     private static string _GetString(JsonObject obj, string key)
