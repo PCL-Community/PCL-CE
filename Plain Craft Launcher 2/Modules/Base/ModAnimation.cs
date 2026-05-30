@@ -1224,11 +1224,11 @@ public static partial class ModAnimation
         private readonly double easeInPercent;
         private readonly AniEase easeOut;
 
-        public AniEaseInout(AniEase __TODO_RENAME_EaseIn__, AniEase __TODO_RENAME_EaseOut__, double __TODO_RENAME_EaseInPercent__ = 0.5d)
+        public AniEaseInout(AniEase easeIn, AniEase easeOut, double easeInPercent = 0.5d)
         {
-            this.easeIn = __TODO_RENAME_EaseIn__;
-            this.easeOut = __TODO_RENAME_EaseOut__;
-            this.easeInPercent = __TODO_RENAME_EaseInPercent__;
+            this.easeIn = easeIn;
+            this.easeOut = easeOut;
+            this.easeInPercent = easeInPercent;
         }
 
         public override double GetValue(double t)

@@ -372,9 +372,9 @@ public static class ModLoader
         public event ILoadingTrigger.LoadingStateChangedEventHandler? loadingStateChanged;
         public event ILoadingTrigger.ProgressChangedEventHandler? progressChanged;
 
-        public virtual void InitParent(LoaderBase __TODO_RENAME_Parent__)
+        public virtual void InitParent(LoaderBase parent)
         {
-            this.parent = __TODO_RENAME_Parent__;
+            this.parent = parent;
         }
 
         // 事件
@@ -536,37 +536,37 @@ public static class ModLoader
         // 线程设定
         protected internal ThreadPriority threadPriority;
 
-        public LoaderTask(string __TODO_RENAME_Name__, Action<LoaderTask<InputType, OutputType>> __TODO_RENAME_LoadDelegate__,
-            Func<InputType?>? __TODO_RENAME_InputDelegate__ = null, ThreadPriority priority = ThreadPriority.Normal)
+        public LoaderTask(string name, Action<LoaderTask<InputType, OutputType>> loadDelegate,
+            Func<InputType?>? inputDelegate = null, ThreadPriority priority = ThreadPriority.Normal)
         {
-            this.name = __TODO_RENAME_Name__;
-            this.loadDelegate = __TODO_RENAME_LoadDelegate__;
-            this.inputDelegate = __TODO_RENAME_InputDelegate__;
+            this.name = name;
+            this.loadDelegate = loadDelegate;
+            this.inputDelegate = inputDelegate;
         }
 
         // 获取输入
-        public InputType? StartGetInput(InputType? __TODO_RENAME_Input__ = default, Func<InputType?>? __TODO_RENAME_InputDelegate__ = null) // InputDelegate 参数存在匿名调用
+        public InputType? StartGetInput(InputType? input = default, Func<InputType?>? inputDelegate = null) // InputDelegate 参数存在匿名调用
         {
-            __TODO_RENAME_InputDelegate__ ??= this.inputDelegate;
+            inputDelegate ??= this.inputDelegate;
             // 按照龙猫的逻辑，此处将 input 与默认值直接进行等价比较，若相等则认为 input 未传入具体值，而调用 inputDelegate 获取
             // 这种逻辑未考虑值类型恰好传入 default 值 (如 double 传了 0.0) 的情况，这是一个陷阱，可能会产生 undefined behavior
-            if (EqualityComparer<InputType>.Default.Equals(__TODO_RENAME_Input__, default) && __TODO_RENAME_InputDelegate__ is not null)
-                ModBase.RunInUiWait(() => __TODO_RENAME_Input__ = __TODO_RENAME_InputDelegate__());
-            return __TODO_RENAME_Input__;
+            if (EqualityComparer<InputType>.Default.Equals(input, default) && inputDelegate is not null)
+                ModBase.RunInUiWait(() => input = inputDelegate());
+            return input;
         }
 
-        public override object? StartGetInputNoType(object? __TODO_RENAME_Input__ = null, Func<object?>? __TODO_RENAME_InputDelegate__ = null)
+        public override object? StartGetInputNoType(object? input = null, Func<object?>? inputDelegate = null)
         {
-            return StartGetInput(__TODO_RENAME_Input__ is null ? default : (InputType?)__TODO_RENAME_Input__, __TODO_RENAME_InputDelegate__ is null ? null : () => (InputType?)__TODO_RENAME_InputDelegate__());
+            return StartGetInput(input is null ? default : (InputType?)input, inputDelegate is null ? null : () => (InputType?)inputDelegate());
         }
 
         // 代码执行
-        public override bool ShouldStart(ref object? __TODO_RENAME_Input__, bool isForceRestart = false, bool ignoreReloadTimeout = false)
+        public override bool ShouldStart(ref object? input, bool isForceRestart = false, bool ignoreReloadTimeout = false)
         {
             // 获取输入
             try
             {
-                __TODO_RENAME_Input__ = StartGetInput(Conversions.ToGenericParameter<InputType>(__TODO_RENAME_Input__));
+                input = StartGetInput(Conversions.ToGenericParameter<InputType>(input));
             }
             catch (Exception ex)
             {
@@ -581,7 +581,7 @@ public static class ModLoader
             // 检验输入以确定情况
             if (isForceRestart)
                 return true; // 强制要求重启
-            if (__TODO_RENAME_Input__ is null != this.input is null || (__TODO_RENAME_Input__ is not null && !__TODO_RENAME_Input__.Equals(this.input)))
+            if (input is null != this.input is null || (input is not null && !input.Equals(this.input)))
                 return true; // 输入不同
             if ((State == ModBase.LoadState.Loading || State == ModBase.LoadState.Finished) && (ignoreReloadTimeout ||
                     reloadTimeout == -1 || lastFinishedTime == 0L ||
@@ -593,15 +593,15 @@ public static class ModLoader
             // 需要开始
         }
 
-        public override void Start(object __TODO_RENAME_Input__ = null, bool isForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
             // 确认是否开始加载
-            if (ShouldStart(ref __TODO_RENAME_Input__, isForceRestart))
+            if (ShouldStart(ref input, isForceRestart))
             {
                 // 输入不同或失败，开始加载
                 if (State == ModBase.LoadState.Loading)
                     TriggerThreadAbort();
-                this.input = Conversions.ToGenericParameter<InputType>(__TODO_RENAME_Input__);
+                this.input = Conversions.ToGenericParameter<InputType>(input);
                 lock (lockState)
                 {
                     State = ModBase.LoadState.Loading;
@@ -693,10 +693,10 @@ public static class ModLoader
 
         public List<LoaderBase> loaders = new();
 
-        public LoaderCombo(string __TODO_RENAME_Name__, IEnumerable<LoaderBase> __TODO_RENAME_Loaders__)
+        public LoaderCombo(string name, IEnumerable<LoaderBase> loaders)
         {
             this.loaders.Clear();
-            foreach (var Loader in __TODO_RENAME_Loaders__)
+            foreach (var Loader in loaders)
                 if (Loader is not null)
                 {
                     this.loaders.Add(Loader);
@@ -705,7 +705,7 @@ public static class ModLoader
                 }
 
             InitParent(null);
-            this.name = __TODO_RENAME_Name__;
+            this.name = name;
         }
 
         public override double Progress
@@ -742,14 +742,14 @@ public static class ModLoader
             set => throw new Exception("多重加载器不支持设置进度");
         }
 
-        public override void InitParent(LoaderBase __TODO_RENAME_Parent__)
+        public override void InitParent(LoaderBase parent)
         {
-            this.parent = __TODO_RENAME_Parent__;
+            this.parent = parent;
             foreach (var Loader in loaders)
                 Loader.InitParent(this);
         }
 
-        public override void Start(object __TODO_RENAME_Input__ = null, bool isForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
             isForceRestarting = isForceRestart;
             lock (lockState)
@@ -760,7 +760,7 @@ public static class ModLoader
             }
 
             // 启动加载
-            this.input = __TODO_RENAME_Input__;
+            this.input = input;
             if (isForceRestart)
                 foreach (var Loader in loaders)
                     Loader.State = ModBase.LoadState.Waiting;
@@ -988,11 +988,11 @@ public static class ModLoader
     {
         public new InputType typedInput;
 
-        public LoaderCombo(string __TODO_RENAME_Name__, IEnumerable<LoaderBase> __TODO_RENAME_Loaders__) : base(__TODO_RENAME_Name__, __TODO_RENAME_Loaders__) { }
+        public LoaderCombo(string name, IEnumerable<LoaderBase> loaders) : base(name, loaders) { }
 
-        public override void Start(object __TODO_RENAME_Input__ = null, bool isForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
-            this.typedInput = Conversions.ToGenericParameter<InputType>(__TODO_RENAME_Input__);
+            this.typedInput = Conversions.ToGenericParameter<InputType>(input);
             base.Start(this.typedInput, isForceRestart);
         }
     }

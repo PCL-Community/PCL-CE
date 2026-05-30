@@ -98,14 +98,14 @@ public partial class MySkin
         Save(loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> __TODO_RENAME_Loader__)
+    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader)
     {
-        var address = __TODO_RENAME_Loader__.output;
-        if (__TODO_RENAME_Loader__.State != ModBase.LoadState.Finished)
+        var address = loader.output;
+        if (loader.State != ModBase.LoadState.Finished)
         {
             ModMain.Hint(Lang.Text("Launch.Skin.Fetching"), ModMain.HintType.Critical);
-            if (__TODO_RENAME_Loader__.State != ModBase.LoadState.Loading)
-                __TODO_RENAME_Loader__.Start();
+            if (loader.State != ModBase.LoadState.Loading)
+                loader.Start();
             return;
         }
 

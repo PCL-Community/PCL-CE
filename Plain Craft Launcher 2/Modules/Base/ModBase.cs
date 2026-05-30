@@ -1231,14 +1231,14 @@ public static class ModBase
         /// </summary>
         public long minSize = -1;
 
-        public FileChecker(long __TODO_RENAME_MinSize__ = -1, long __TODO_RENAME_ActualSize__ = -1, string __TODO_RENAME_Hash__ = null, bool __TODO_RENAME_CanUseExistsFile__ = true,
-            bool __TODO_RENAME_IsJson__ = false)
+        public FileChecker(long minSize = -1, long actualSize = -1, string hash = null, bool canUseExistsFile = true,
+            bool isJson = false)
         {
-            this.actualSize = __TODO_RENAME_ActualSize__;
-            this.minSize = __TODO_RENAME_MinSize__;
-            this.hash = __TODO_RENAME_Hash__;
-            this.canUseExistsFile = __TODO_RENAME_CanUseExistsFile__;
-            this.isJson = __TODO_RENAME_IsJson__;
+            this.actualSize = actualSize;
+            this.minSize = minSize;
+            this.hash = hash;
+            this.canUseExistsFile = canUseExistsFile;
+            this.isJson = isJson;
         }
 
         /// <summary>
@@ -2494,9 +2494,9 @@ public static class ModBase
         public bool handled = false;
         public bool raiseByMouse;
 
-        public RouteEventArgs(bool __TODO_RENAME_RaiseByMouse__ = false)
+        public RouteEventArgs(bool raiseByMouse = false)
         {
-            this.raiseByMouse = __TODO_RENAME_RaiseByMouse__;
+            this.raiseByMouse = raiseByMouse;
         }
     }
 

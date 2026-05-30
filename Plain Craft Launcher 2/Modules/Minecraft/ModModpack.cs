@@ -800,8 +800,8 @@ public static class ModModpack
             }
 
             fileList.Add(new DownloadFile(urls, targetPath,
-                new ModBase.FileChecker(__TODO_RENAME_ActualSize__: ((JsonNode)File["fileSize"]).ToObject<long>(),
-                    __TODO_RENAME_Hash__: File["hashes"]["sha1"].ToString()), true));
+                new ModBase.FileChecker(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
+                    hash: File["hashes"]["sha1"].ToString()), true));
         }
 
         if (fileList.Any())

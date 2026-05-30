@@ -3015,7 +3015,7 @@ public static class ModMinecraft
         // 校验文件
         if (authlibDownloadInfo is not null)
         {
-            var checker = new ModBase.FileChecker(__TODO_RENAME_Hash__: authlibDownloadInfo["checksums"]["sha256"].ToString());
+            var checker = new ModBase.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
             if (checker.Check(authlibTargetFile) is not null)
             {
                 // 开始下载
@@ -3029,7 +3029,7 @@ public static class ModMinecraft
                         downloadAddress.Replace("authlib-injector.yushi.moe",
                             "bmclapi2.bangbang93.com/mirrors/authlib-injector")
                     }, authlibTargetFile,
-                    new ModBase.FileChecker(__TODO_RENAME_Hash__: authlibDownloadInfo["checksums"]["sha256"].ToString())));
+                    new ModBase.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
             }
         }
 
@@ -3077,7 +3077,7 @@ public static class ModMinecraft
                     var assetPath = $@"{mcFolderSelected}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
-                    var checker = new ModBase.FileChecker(__TODO_RENAME_Hash__: assetSHA1);
+                    var checker = new ModBase.FileChecker(hash: assetSHA1);
                     if (checker.Check(assetPath) is null)
                         continue;
                     result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
@@ -3119,7 +3119,7 @@ public static class ModMinecraft
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new ModBase.FileChecker(__TODO_RENAME_ActualSize__: token.size == 0L ? -1 : token.size, __TODO_RENAME_Hash__: token.sHA1);
+            var checker = new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: token.sHA1);
             if (checker.Check(token.localPath) is null)
                 continue;
             if (token.isLocal)
@@ -3180,7 +3180,7 @@ public static class ModMinecraft
                 urls.Add(token.Url);
                 ModBase.Log(
                     $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.sHA1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(__TODO_RENAME_Hash__: token.sHA1); // 只校验 SHA1
+                checker = new ModBase.FileChecker(hash: token.sHA1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {
@@ -3424,7 +3424,7 @@ public static class ModMinecraft
                 return new DownloadFile(
                     ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                     token.localPath,
-                    new ModBase.FileChecker(__TODO_RENAME_ActualSize__: token.size == 0L ? -1 : token.size, __TODO_RENAME_Hash__: hash));
+                    new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
             }).ToList();
         // 如果不检查 Hash，则立即处理
         var result = new List<DownloadFile>();
@@ -3451,7 +3451,7 @@ public static class ModMinecraft
                 result.Add(new DownloadFile(
                     ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                     token.localPath,
-                    new ModBase.FileChecker(__TODO_RENAME_ActualSize__: token.size == 0L ? -1 : token.size, __TODO_RENAME_Hash__: hash)));
+                    new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
             }
         }
         catch (Exception ex)

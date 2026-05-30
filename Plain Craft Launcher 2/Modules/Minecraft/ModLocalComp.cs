@@ -28,15 +28,15 @@ public static class ModLocalComp
         /// <summary>
         ///     根据完整文件路径的文件扩展名判断是否为 Mod 文件。
         /// </summary>
-        public static bool IsModFile(string __TODO_RENAME_Path__)
+        public static bool IsModFile(string path)
         {
-            if (__TODO_RENAME_Path__ is null || !__TODO_RENAME_Path__.Contains("."))
+            if (path is null || !path.Contains("."))
                 return false;
-            __TODO_RENAME_Path__ = __TODO_RENAME_Path__.ToLower();
-            if (__TODO_RENAME_Path__.EndsWithF(".jar", true) || __TODO_RENAME_Path__.EndsWithF(".zip", true) || __TODO_RENAME_Path__.EndsWithF(".litemod", true) ||
-                __TODO_RENAME_Path__.EndsWithF(".jar.disabled", true) || __TODO_RENAME_Path__.EndsWithF(".zip.disabled", true) ||
-                __TODO_RENAME_Path__.EndsWithF(".litemod.disabled", true) || __TODO_RENAME_Path__.EndsWithF(".jar.old", true) ||
-                __TODO_RENAME_Path__.EndsWithF(".zip.old", true) || __TODO_RENAME_Path__.EndsWithF(".litemod.old", true))
+            path = path.ToLower();
+            if (path.EndsWithF(".jar", true) || path.EndsWithF(".zip", true) || path.EndsWithF(".litemod", true) ||
+                path.EndsWithF(".jar.disabled", true) || path.EndsWithF(".zip.disabled", true) ||
+                path.EndsWithF(".litemod.disabled", true) || path.EndsWithF(".jar.old", true) ||
+                path.EndsWithF(".zip.old", true) || path.EndsWithF(".litemod.old", true))
                 return true;
             return false;
         }
@@ -44,30 +44,30 @@ public static class ModLocalComp
         /// <summary>
         ///     检查是否为指定类型的组件文件。
         /// </summary>
-        public static bool IsCompFile(string __TODO_RENAME_Path__, CompType compType)
+        public static bool IsCompFile(string path, CompType compType)
         {
-            if (__TODO_RENAME_Path__ is null || !__TODO_RENAME_Path__.Contains("."))
+            if (path is null || !path.Contains("."))
                 return false;
-            __TODO_RENAME_Path__ = __TODO_RENAME_Path__.ToLower();
+            path = path.ToLower();
             switch (compType)
             {
                 case CompType.Mod:
                 {
-                    return IsModFile(__TODO_RENAME_Path__);
+                    return IsModFile(path);
                 }
                 case CompType.ResourcePack:
                 case CompType.Shader:
                 {
-                    return __TODO_RENAME_Path__.EndsWithF(".zip", true);
+                    return path.EndsWithF(".zip", true);
                 }
                 case CompType.DataPack:
                 {
-                    return __TODO_RENAME_Path__.EndsWithF(".zip", true) || __TODO_RENAME_Path__.EndsWithF(".zip.disabled", true);
+                    return path.EndsWithF(".zip", true) || path.EndsWithF(".zip.disabled", true);
                 }
                 case CompType.Schematic:
                 {
-                    return __TODO_RENAME_Path__.EndsWithF(".litematic", true) || __TODO_RENAME_Path__.EndsWithF(".nbt", true) ||
-                           __TODO_RENAME_Path__.EndsWithF(".schematic", true) || __TODO_RENAME_Path__.EndsWithF(".schem", true);
+                    return path.EndsWithF(".litematic", true) || path.EndsWithF(".nbt", true) ||
+                           path.EndsWithF(".schematic", true) || path.EndsWithF(".schem", true);
                 }
 
                 default:
@@ -370,9 +370,9 @@ public static class ModLocalComp
             }
         }
 
-        public LocalCompFile(string __TODO_RENAME_Path__)
+        public LocalCompFile(string path)
         {
-            this.path = __TODO_RENAME_Path__ ?? "";
+            this.path = path ?? "";
         }
 
         /// <summary>

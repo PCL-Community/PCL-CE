@@ -1958,11 +1958,11 @@ public static class ModComp
         /// <summary>
         ///     构造函数。
         /// </summary>
-        public CompProjectRequest(CompType __TODO_RENAME_Type__, CompProjectStorage __TODO_RENAME_Storage__, int __TODO_RENAME_TargetResultCount__)
+        public CompProjectRequest(CompType type, CompProjectStorage storage, int targetResultCount)
         {
-            this.type = __TODO_RENAME_Type__;
-            this.storage = __TODO_RENAME_Storage__;
-            this.targetResultCount = __TODO_RENAME_TargetResultCount__;
+            this.type = type;
+            this.storage = storage;
+            this.targetResultCount = targetResultCount;
         }
 
         /// <summary>
@@ -2943,7 +2943,7 @@ public static class ModComp
         public DownloadFile ToNetFile(string localAddress)
         {
             return new DownloadFile(downloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? fileName : ""),
-                new ModBase.FileChecker(__TODO_RENAME_Hash__: hash), true);
+                new ModBase.FileChecker(hash: hash), true);
         }
 
         /// <summary>

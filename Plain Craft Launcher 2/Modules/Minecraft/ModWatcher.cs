@@ -147,10 +147,10 @@ public static class ModWatcher
         public SolidColorBrush color;
         public string logText;
 
-        public LogOutputEventArgs(string __TODO_RENAME_LogText__, SolidColorBrush __TODO_RENAME_Color__)
+        public LogOutputEventArgs(string logText, SolidColorBrush color)
         {
-            this.logText = __TODO_RENAME_LogText__;
-            this.color = __TODO_RENAME_Color__;
+            this.logText = logText;
+            this.color = color;
         }
     }
 
@@ -229,19 +229,19 @@ public static class ModWatcher
         private nint windowHandle;
         private string windowTitle = "";
 
-        public Watcher(ModLoader.LoaderTask<Process, int> __TODO_RENAME_Loader__, ModMinecraft.McInstance __TODO_RENAME_Version__, string __TODO_RENAME_WindowTitle__,
-            string __TODO_RENAME_JStackPath__, bool outputRealTime = false)
+        public Watcher(ModLoader.LoaderTask<Process, int> loader, ModMinecraft.McInstance version, string windowTitle,
+            string jStackPath, bool outputRealTime = false)
         {
-            this.loader = __TODO_RENAME_Loader__;
-            this.version = __TODO_RENAME_Version__;
-            this.windowTitle = __TODO_RENAME_WindowTitle__;
+            this.loader = loader;
+            this.version = version;
+            this.windowTitle = windowTitle;
             realTime = outputRealTime;
-            pID = __TODO_RENAME_Loader__.input.Id;
-            this.jStackPath = __TODO_RENAME_JStackPath__;
+            pID = loader.input.Id;
+            this.jStackPath = jStackPath;
 
             WatcherLog("开始 Minecraft 日志监控");
-            if (string.IsNullOrWhiteSpace(__TODO_RENAME_WindowTitle__))
-                WatcherLog("要求窗口标题：" + __TODO_RENAME_WindowTitle__);
+            if (string.IsNullOrWhiteSpace(windowTitle))
+                WatcherLog("要求窗口标题：" + windowTitle);
 
             // 更改列表
             var newWatcherList = new List<Watcher>();
@@ -258,7 +258,7 @@ public static class ModWatcher
             WatcherStateChanged();
 
             // 初始化进程与日志读取
-            gameProcess = __TODO_RENAME_Loader__.input;
+            gameProcess = loader.input;
             gameProcess.BeginOutputReadLine();
             gameProcess.BeginErrorReadLine();
             gameProcess.OutputDataReceived += LogReceived;
@@ -272,16 +272,16 @@ public static class ModWatcher
                 try
                 {
                     while (State != MinecraftState.Ended && State != MinecraftState.Crashed &&
-                           State != MinecraftState.Canceled && __TODO_RENAME_Loader__.State != ModBase.LoadState.Aborted)
+                           State != MinecraftState.Canceled && loader.State != ModBase.LoadState.Aborted)
                     {
                         TimerWindow();
                         TimerLog();
-                        if (!string.IsNullOrWhiteSpace(__TODO_RENAME_WindowTitle__))
+                        if (!string.IsNullOrWhiteSpace(windowTitle))
                             for (var i = 1; i <= 3; i++)
                             {
                                 if (State == MinecraftState.Running && !gameProcess.HasExited)
                                 {
-                                    var realTitle = __TODO_RENAME_WindowTitle__.Replace("{date}", Lang.Date(DateTime.Now, "d"))
+                                    var realTitle = windowTitle.Replace("{date}", Lang.Date(DateTime.Now, "d"))
                                         .Replace("{time}", Lang.Date(DateTime.Now, "T"));
                                     SetWindowText(windowHandle, realTitle);
                                 }

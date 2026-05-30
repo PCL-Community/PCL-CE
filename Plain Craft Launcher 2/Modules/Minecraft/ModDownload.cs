@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -64,7 +64,7 @@ public static class ModDownload
         if (string.IsNullOrEmpty(indexUrl)) return null;
 
         return new DownloadFile(DlSourceLauncherOrMetaGet(indexUrl), indexAddress,
-            new ModBase.FileChecker(__TODO_RENAME_CanUseExistsFile__: false));
+            new ModBase.FileChecker(canUseExistsFile: false));
     }
 
     /// <summary>
@@ -962,19 +962,19 @@ public static class ModDownload
         /// </summary>
         public string releaseTime;
 
-        public DlForgeVersionEntry(string __TODO_RENAME_Version__, string branch, string __TODO_RENAME_Inherit__)
+        public DlForgeVersionEntry(string version, string branch, string inherit)
         {
             // 司马版本的特殊处理
-            if (__TODO_RENAME_Version__ == "11.15.1.2318" || __TODO_RENAME_Version__ == "11.15.1.1902" || __TODO_RENAME_Version__ == "11.15.1.1890")
+            if (version == "11.15.1.2318" || version == "11.15.1.1902" || version == "11.15.1.1890")
                 branch = "1.8.9";
-            if (branch is null && __TODO_RENAME_Inherit__ == "1.7.10" && double.Parse(__TODO_RENAME_Version__.Split(".")[3]) >= 1300d)
+            if (branch is null && inherit == "1.7.10" && double.Parse(version.Split(".")[3]) >= 1300d)
                 branch = "1.7.10";
             // 为 DlForgelikeEntry 提供所有信息
             forgeType = ForgelikeType.Forge;
-            versionName = __TODO_RENAME_Version__;
-            this.version = new Version(__TODO_RENAME_Version__);
-            this.inherit = __TODO_RENAME_Inherit__;
-            fileVersion = __TODO_RENAME_Version__ + (branch is null ? "" : "-" + branch);
+            versionName = version;
+            this.version = new Version(version);
+            this.inherit = inherit;
+            fileVersion = version + (branch is null ? "" : "-" + branch);
         }
     }
 
@@ -1244,28 +1244,28 @@ public static class ModDownload
         /// </summary>
         public bool isBeta;
 
-        public DlNeoForgeListEntry(string __TODO_RENAME_ApiName__)
+        public DlNeoForgeListEntry(string apiName)
         {
             forgeType = ForgelikeType.NeoForge;
-            this.apiName = __TODO_RENAME_ApiName__;
-            isBeta = __TODO_RENAME_ApiName__.Contains("beta") || __TODO_RENAME_ApiName__.Contains("alpha");
-            if (__TODO_RENAME_ApiName__.Contains("1.20.1")) // 1.20.1-47.1.99
+            this.apiName = apiName;
+            isBeta = apiName.Contains("beta") || apiName.Contains("alpha");
+            if (apiName.Contains("1.20.1")) // 1.20.1-47.1.99
             {
-                versionName = __TODO_RENAME_ApiName__.Replace("1.20.1-", "");
+                versionName = apiName.Replace("1.20.1-", "");
                 version = new Version("19." + versionName);
                 inherit = "1.20.1";
             }
-            else if (__TODO_RENAME_ApiName__.StartsWith("0.")) // 0.25w14craftmine.3-beta
+            else if (apiName.StartsWith("0.")) // 0.25w14craftmine.3-beta
             {
-                versionName = __TODO_RENAME_ApiName__;
-                var segments = __TODO_RENAME_ApiName__.BeforeFirst("-").Split('.');
+                versionName = apiName;
+                var segments = apiName.BeforeFirst("-").Split('.');
                 version = new Version(0, 0, int.Parse(segments.Last()));
                 inherit = segments[1];
             }
             else // 20.4.30-beta；26.1.0.0-alpha.1+snapshot-1
             {
-                versionName = __TODO_RENAME_ApiName__;
-                version = new Version(__TODO_RENAME_ApiName__.BeforeFirst("-"));
+                versionName = apiName;
+                version = new Version(apiName.BeforeFirst("-"));
                 if (version.Major >= 24)
                     inherit = $"{version.Major}.{version.Minor}{(version.Build > 0 ? $".{version.Build}" : "")}";
                 else
@@ -1456,13 +1456,13 @@ public static class ModDownload
         /// </summary>
         public bool isBeta;
 
-        public DlCleanroomListEntry(string __TODO_RENAME_ApiName__)
+        public DlCleanroomListEntry(string apiName)
         {
             forgeType = ForgelikeType.Cleanroom;
-            this.apiName = __TODO_RENAME_ApiName__;
-            isBeta = __TODO_RENAME_ApiName__.Contains("alpha");
-            versionName = __TODO_RENAME_ApiName__;
-            version = new Version(__TODO_RENAME_ApiName__.BeforeFirst("-"));
+            this.apiName = apiName;
+            isBeta = apiName.Contains("alpha");
+            versionName = apiName;
+            version = new Version(apiName.BeforeFirst("-"));
             inherit = "1.12.2";
         }
 

@@ -494,9 +494,9 @@ public static class ModLaunch
         /// </summary>
         public string userName;
 
-        public McLoginServer(McLoginType __TODO_RENAME_Type__)
+        public McLoginServer(McLoginType type)
         {
-            this.type = __TODO_RENAME_Type__;
+            this.type = type;
         }
 
         public override int GetHashCode()

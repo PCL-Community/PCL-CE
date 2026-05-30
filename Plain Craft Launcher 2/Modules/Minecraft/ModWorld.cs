@@ -71,12 +71,12 @@ public static class ModWorld
         /// <summary>
         ///     存档。
         /// </summary>
-        /// <param name="__TODO_RENAME_SavePath__">存档路径。文件夹，以 “\” 结尾。</param>
-        public McWorld(string __TODO_RENAME_SavePath__)
+        /// <param name="savePath">存档路径。文件夹，以 “\” 结尾。</param>
+        public McWorld(string savePath)
         {
-            if (!__TODO_RENAME_SavePath__.EndsWithF(@"\"))
-                __TODO_RENAME_SavePath__ = __TODO_RENAME_SavePath__ + @"\";
-            this.savePath = __TODO_RENAME_SavePath__;
+            if (!savePath.EndsWithF(@"\"))
+                savePath = savePath + @"\";
+            this.savePath = savePath;
         }
 
         public string LevelDatPath =>

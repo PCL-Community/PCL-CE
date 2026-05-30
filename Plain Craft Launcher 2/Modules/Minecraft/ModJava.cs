@@ -413,7 +413,7 @@ public static class ModJava
             if (ignoreHash.Contains((string)checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
-            var checker = new ModBase.FileChecker(__TODO_RENAME_ActualSize__: (long)info["size"], __TODO_RENAME_Hash__: (string)info["sha1"]);
+            var checker = new ModBase.FileChecker(actualSize: (long)info["size"], hash: (string)info["sha1"]);
             var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir, File.Key));
             if (!Files.IsPathWithinDirectory(filePath, lastJavaBaseDir))
                 throw new Exception($"{filePath} 不在 {lastJavaBaseDir} 中");

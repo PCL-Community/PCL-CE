@@ -77,19 +77,19 @@ public class MyPageRight : AdornerDecorator
     ///     表明页面存在需要在后台执行的加载器。
     /// </summary>
     /// <param name="loaderUi">MyLoading 控件。</param>
-    /// <param name="__TODO_RENAME_PanLoader__">MyLoading 控件对应的卡片。</param>
-    /// <param name="__TODO_RENAME_PanContent__">加载结束后出现的内容容器。</param>
-    /// <param name="__TODO_RENAME_PanAlways__">无论是否在加载总是要显示的容器。可以为 Nothing。</param>
+    /// <param name="panLoader">MyLoading 控件对应的卡片。</param>
+    /// <param name="panContent">加载结束后出现的内容容器。</param>
+    /// <param name="panAlways">无论是否在加载总是要显示的容器。可以为 Nothing。</param>
     /// <param name="realLoader">在工作线程执行的加载器。</param>
     /// <param name="finishedInvoke">当加载器执行完成，在 UI 线程触发的 UI 初始化事件。</param>
-    public void PageLoaderInit(MyLoading loaderUi, FrameworkElement __TODO_RENAME_PanLoader__, FrameworkElement __TODO_RENAME_PanContent__,
-        FrameworkElement? __TODO_RENAME_PanAlways__, ModLoader.LoaderBase realLoader, Action<ModLoader.LoaderBase>? finishedInvoke = null,
+    public void PageLoaderInit(MyLoading loaderUi, FrameworkElement panLoader, FrameworkElement panContent,
+        FrameworkElement? panAlways, ModLoader.LoaderBase realLoader, Action<ModLoader.LoaderBase>? finishedInvoke = null,
         Func<object>? inputInvoke = null, bool autoRun = true)
     {
         // 初始化参数
-        this.panLoader = __TODO_RENAME_PanLoader__;
-        this.panContent = __TODO_RENAME_PanContent__;
-        this.panAlways = __TODO_RENAME_PanAlways__;
+        this.panLoader = panLoader;
+        this.panContent = panContent;
+        this.panAlways = panAlways;
         pageLoader = realLoader;
         pageLoaderUi = loaderUi;
         pageLoaderInputInvoke = inputInvoke;
@@ -106,9 +106,9 @@ public class MyPageRight : AdornerDecorator
         realLoader.onStateChangedUi += (loader, newState, oldState) =>
             ModBase.RunInUi(() => PageLoaderState(loader, newState, oldState));
         // 隐藏 UI
-        __TODO_RENAME_PanLoader__.Visibility = Visibility.Collapsed;
-        __TODO_RENAME_PanContent__.Visibility = Visibility.Collapsed;
-        __TODO_RENAME_PanAlways__?.Visibility = Visibility.Collapsed;
+        panLoader.Visibility = Visibility.Collapsed;
+        panContent.Visibility = Visibility.Collapsed;
+        panAlways?.Visibility = Visibility.Collapsed;
         // 初次运行加载器
         if (pageLoaderAutoRun)
         {

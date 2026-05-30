@@ -128,7 +128,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(__TODO_RENAME_CanUseExistsFile__: false, __TODO_RENAME_IsJson__: true))
+                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -188,7 +188,7 @@ public static class ModDownloadLib
             new List<DownloadFile>
             {
                 new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl ?? ""), Path.Combine(instanceFolder, instanceName + ".json"),
-                    new ModBase.FileChecker(__TODO_RENAME_CanUseExistsFile__: false, __TODO_RENAME_IsJson__: true))
+                    new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
             }) { ProgressWeight = 3d });
 
         // 下载支持库文件
@@ -419,7 +419,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(__TODO_RENAME_CanUseExistsFile__: false, __TODO_RENAME_IsJson__: true))
+                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 构建服务端
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -522,7 +522,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(__TODO_RENAME_CanUseExistsFile__: false, __TODO_RENAME_IsJson__: true))
+                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -1604,7 +1604,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forge.inherit}-{forge.fileVersion}/forge-{forge.inherit}-{forge.fileVersion}-{forge.category}.{forge.FileExtension}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forge.inherit}-{forge.fileVersion}/forge-{forge.inherit}-{forge.fileVersion}-{forge.category}.{forge.FileExtension}"
-                    }, target, new ModBase.FileChecker(64 * 1024, __TODO_RENAME_Hash__: forge.hash)));
+                    }, target, new ModBase.FileChecker(64 * 1024, hash: forge.hash)));
             }
 
             // 构造加载器
@@ -1988,7 +1988,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
-                    }, installerAddress, new ModBase.FileChecker(64 * 1024, __TODO_RENAME_Hash__: forge.hash)));
+                    }, installerAddress, new ModBase.FileChecker(64 * 1024, hash: forge.hash)));
             }
 
             task.output = files;
@@ -2983,7 +2983,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.legacyfabric.net/v2/versions/loader/" + minecraftName + "/" +
                         legacyFabricVersion + "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(__TODO_RENAME_IsJson__: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
             };
         })
         {
@@ -3206,7 +3206,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.quiltmc.org/v3/versions/loader/" + minecraftName + "/" + quiltVersion +
                         "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(__TODO_RENAME_IsJson__: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
             };
             // 新建 mods 文件夹
             Directory.CreateDirectory($@"{mcFolder ?? ModMinecraft.mcFolderSelected}mods\");
@@ -3413,7 +3413,7 @@ public static class ModDownloadLib
                     new[]
                     {
                         $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/{labyModChannel}/{minecraftName}/{labyModCommitRef}.json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(__TODO_RENAME_IsJson__: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
             };
             task.Progress = 1d;
         })
@@ -3717,9 +3717,9 @@ public static class ModDownloadLib
     ///     在加载器状态改变后显示一条提示。
     ///     不会进行任何其他操作。
     /// </summary>
-    public static void LoaderStateChangedHintOnly(object loader)
+    public static void LoaderStateChangedHintOnly(object loaderObj)
     {
-        var loader = (ModLoader.LoaderBase)loader;
+        var loader = (ModLoader.LoaderBase)loaderObj;
         switch (loader.State)
         {
             case ModBase.LoadState.Finished:
@@ -3737,9 +3737,9 @@ public static class ModDownloadLib
     /// <summary>
     ///     安装加载器状态改变后进行提示和重载文件夹列表的方法。
     /// </summary>
-    public static void McInstallState(object loader)
+    public static void McInstallState(object loaderObj)
     {
-        var loader = (ModLoader.LoaderBase)loader;
+        var loader = (ModLoader.LoaderBase)loaderObj;
         var combo = (ModLoader.LoaderCombo)loader;
         switch (loader.State)
         {
