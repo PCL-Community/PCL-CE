@@ -26,7 +26,7 @@ public partial class NetworkService
     {
         _repo.Initialize();
         var services = new ServiceCollection();
-        services.AddHttpClient("default")
+        services.AddHttpClient("default").SetHandlerLifetime(TimeSpan.FromMinutes(15))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 UseProxy = true,
@@ -40,7 +40,7 @@ public partial class NetworkService
                     : null
             }
         );
-        services.AddHttpClient("cache").ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
+        services.AddHttpClient("cache").SetHandlerLifetime(TimeSpan.FromMinutes(15)).ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
             new SocketsHttpHandler
             {
                 UseProxy = true,
