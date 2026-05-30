@@ -250,10 +250,10 @@ public partial class PageSetupLeft
     /// <summary>
     ///     获取当前导航指定的右页面。
     /// </summary>
-    public object PageGet(FormMain.PageSubType? iD = null)
+    public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = iD ?? pageID;
-        switch (iD)
+        var targetID = id ?? pageID;
+        switch (id)
         {
             case FormMain.PageSubType.SetupLaunch:
             {
@@ -324,7 +324,7 @@ public partial class PageSetupLeft
 
             default:
             {
-                throw new Exception("未知的设置子页面种类：" + (int)iD);
+                throw new Exception("未知的设置子页面种类：" + (int)id);
             }
         }
     }
@@ -332,20 +332,20 @@ public partial class PageSetupLeft
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType iD)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == iD)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         isPageSwitched = true;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(iD));
-            pageID = iD;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"切换分页面失败（ID {(int)iD}）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, $"切换分页面失败（ID {(int)id}）", ModBase.LogLevel.Feedback);
         }
         finally
         {

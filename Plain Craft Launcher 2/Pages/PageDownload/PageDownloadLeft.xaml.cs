@@ -243,11 +243,11 @@ public partial class PageDownloadLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(tag));
     }
 
-    public object PageGet(FormMain.PageSubType iD)
+    public object PageGet(FormMain.PageSubType id)
     {
-        if (iD == default)
-            iD = pageID;
-        switch (iD)
+        if (id == default)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
@@ -360,7 +360,7 @@ public partial class PageDownloadLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)iD));
+                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)id));
             }
         }
     }
@@ -368,19 +368,19 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType iD)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == iD)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(iD));
-            pageID = iD;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)iD + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

@@ -104,10 +104,10 @@ public partial class PageToolsLeft
             PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType? iD = null)
+    public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = iD ?? pageID;
-        switch (iD)
+        var targetID = id ?? pageID;
+        switch (id)
         {
             case FormMain.PageSubType.ToolsGameLink:
             {
@@ -130,7 +130,7 @@ public partial class PageToolsLeft
 
             default:
             {
-                throw new Exception("未知的更多子页面种类：" + (int)iD);
+                throw new Exception("未知的更多子页面种类：" + (int)id);
             }
         }
     }
@@ -138,20 +138,20 @@ public partial class PageToolsLeft
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType iD)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == iD)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         isPageSwitched = true;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(iD));
-            pageID = iD;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)iD + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {

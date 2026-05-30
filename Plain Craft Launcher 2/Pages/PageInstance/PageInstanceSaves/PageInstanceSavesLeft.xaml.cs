@@ -50,11 +50,11 @@ public partial class PageInstanceSavesLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType iD = FormMain.PageSubType.Default)
+    public object PageGet(FormMain.PageSubType id = FormMain.PageSubType.Default)
     {
-        if ((int)iD == -1)
-            iD = pageID;
-        switch (iD)
+        if ((int)id == -1)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.VersionSavesInfo:
             {
@@ -71,7 +71,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)iD));
+                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)id));
             }
         }
     }
@@ -79,19 +79,19 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType iD)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == iD)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(iD));
-            pageID = iD;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)iD), ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id), ModBase.LogLevel.Feedback);
         }
         finally
         {

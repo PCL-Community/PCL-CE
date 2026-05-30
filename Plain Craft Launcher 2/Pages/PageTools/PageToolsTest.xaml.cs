@@ -408,26 +408,26 @@ public partial class PageToolsTest
     // 下载正版玩家皮肤
     private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
-        var iD = TextSkinID.Text;
+        var id = TextSkinID.Text;
         ModMain.Hint("正在获取皮肤...");
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                if (iD.Length < 3)
+                if (id.Length < 3)
                 {
                     ModMain.Hint("这不是一个有效的 ID...");
                 }
                 else
                 {
-                    var result = (string)ModProfile.McLoginMojangUuid(iD, true);
+                    var result = (string)ModProfile.McLoginMojangUuid(id, true);
                     result = ModMinecraft.McSkinGetAddress(result, "Mojang");
                     result = ModMinecraft.McSkinDownload(result);
                     ModBase.RunInUi(() =>
                     {
-                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{iD}.png", "皮肤图片文件(*.png)|*.png");
+                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{id}.png", "皮肤图片文件(*.png)|*.png");
                         ModBase.CopyFile(result, path);
-                        ModMain.Hint($"玩家 {iD} 的皮肤已保存！", ModMain.HintType.Finish);
+                        ModMain.Hint($"玩家 {id} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
                 }
             }
@@ -436,11 +436,11 @@ public partial class PageToolsTest
                 if (ex.ToString().Contains("429"))
                 {
                     ModMain.Hint("获取皮肤太过频繁，请 5 分钟之后再试！", ModMain.HintType.Critical);
-                    ModBase.Log($"获取正版皮肤失败（{iD}）：获取皮肤太过频繁，请 5 分钟后再试！");
+                    ModBase.Log($"获取正版皮肤失败（{id}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
                 {
-                    ModBase.Log(ex, $"获取正版皮肤失败（{iD}）");
+                    ModBase.Log(ex, $"获取正版皮肤失败（{id}）");
                 }
             }
         });
