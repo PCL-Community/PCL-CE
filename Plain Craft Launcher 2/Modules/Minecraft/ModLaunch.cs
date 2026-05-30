@@ -3433,6 +3433,16 @@ public static class ModLaunch
             GameProcess.PriorityBoostEnabled = true;
             switch (Config.Launch.ProcessPriority)
             {
+                case GameProcessPriority.RealTime: // 实时
+                {
+                    GameProcess.PriorityClass = ProcessPriorityClass.RealTime;
+                    break;
+                }
+                case GameProcessPriority.High: // 极高
+                {
+                    GameProcess.PriorityClass = ProcessPriorityClass.High;
+                    break;
+                }
                 case GameProcessPriority.AboveNormal: // 高
                 {
                     GameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
@@ -3440,7 +3450,7 @@ public static class ModLaunch
                 }
                 case GameProcessPriority.BelowNormal: // 低
                 {
-                    GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal; // 中
+                    GameProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
                     break;
                 }
             }

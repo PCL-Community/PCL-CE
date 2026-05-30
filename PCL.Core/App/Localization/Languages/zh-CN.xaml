@@ -1594,9 +1594,11 @@
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">提醒</sys:String>
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">继续</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Label">进程优先级</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.High">高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.RealTime">实时（使游戏以最高优先级运行，谨慎使用，可能严重影响系统运行）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">极高（谨慎使用，可能严重影响其他程序运行）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.AboveNormal">高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Normal">中（平衡）</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.Low">低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.BelowNormal">低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Label">窗口大小</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">全屏</sys:String>

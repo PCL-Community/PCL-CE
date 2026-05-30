@@ -1594,9 +1594,11 @@
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">Reminder</sys:String>
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">Continue</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Label">Process priority</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.High">High (prioritizes game performance, but may cause other programs to lag)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.RealTime">Realtime (runs the game at the highest priority; use with caution, may severely impact system performance)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">Very High (use with caution, may severely impact other programs)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.AboveNormal">High (prioritizes game performance, but may cause other programs to lag)</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Normal">Normal (balanced)</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.Low">Low (prioritizes other programs, but may cause the game to lag; suitable for running in the background)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.BelowNormal">Low (prioritizes other programs, but may cause the game to lag; suitable for running in the background)</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Label">Window size</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">Note: If your instance has the Modern UI mod installed, this setting will not take effect</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">Fullscreen</sys:String>
