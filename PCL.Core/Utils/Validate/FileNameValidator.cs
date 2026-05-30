@@ -35,7 +35,7 @@ public class FileNameValidator(
             .Custom((fileName, context) => 
             {
                 var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
-                if (invalidChar != null)
+                if (invalidChar is not null)
                 {
                     context.AddFailure($"文件名不可包含 {invalidChar} 字符！");
                 }
@@ -43,7 +43,7 @@ public class FileNameValidator(
             .Custom((fileName, context) => 
             {
                 var reservedWord = CheckReservedWord(fileName, []);
-                if (reservedWord != null)
+                if (reservedWord is not null)
                 {
                     context.AddFailure($"文件名不可为 {reservedWord}！");
                 }

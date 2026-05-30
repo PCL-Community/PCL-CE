@@ -20,7 +20,7 @@ public class MyBitmap
     /// <summary>
     ///     存储的图片
     /// </summary>
-    public Bitmap Pic;
+    public Bitmap pic;
 
     // 构造函数
     public MyBitmap()
@@ -34,18 +34,18 @@ public class MyBitmap
             try
             {
                 FilePathOrResourceName =
-                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.PathImage);
-                if (FilePathOrResourceName.StartsWithF(ModBase.PathImage))
+                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.pathImage);
+                if (FilePathOrResourceName.StartsWithF(ModBase.pathImage))
                 {
                     if (_Cache.ContainsKey(FilePathOrResourceName))
                     {
-                        Pic = _Cache[FilePathOrResourceName].Pic;
+                        pic = _Cache[FilePathOrResourceName].pic;
                     }
                     else
                     {
-                        Pic = new MyBitmap(
+                        pic = new MyBitmap(
                             (ImageSource)new ImageSourceConverter().ConvertFromString(FilePathOrResourceName));
-                        _Cache.TryAdd(FilePathOrResourceName, Pic);
+                        _Cache.TryAdd(FilePathOrResourceName, pic);
                     }
                 }
                 else
@@ -59,22 +59,22 @@ public class MyBitmap
                             // 调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统
                             using (var ms = picStream.FromWebpToPng())
                             {
-                                Pic = new Bitmap(ms);
+                                pic = new Bitmap(ms);
                             }
                         }
                         else
                         {
-                            Pic = new Bitmap(picStream);
+                            pic = new Bitmap(picStream);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Pic = (Bitmap)System.Windows.Application.Current.TryFindResource(FilePathOrResourceName);
-                if (Pic is null)
+                pic = (Bitmap)System.Windows.Application.Current.TryFindResource(FilePathOrResourceName);
+                if (pic is null)
                 {
-                    Pic = new Bitmap(1, 1);
+                    pic = new Bitmap(1, 1);
                     if (ex is ArgumentException) throw new Exception($"图片格式不支持，或图片文件损坏（{FilePathOrResourceName}）", ex);
 
                     throw new Exception($"加载 MyBitmap 意外失败（{FilePathOrResourceName}）", ex);
@@ -88,33 +88,33 @@ public class MyBitmap
 
     public MyBitmap(ImageSource Image)
     {
-        using (var MS = new MemoryStream())
+        using (var mS = new MemoryStream())
         {
-            var Encoder = new PngBitmapEncoder();
-            Encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image));
-            Encoder.Save(MS);
-            Pic = new Bitmap(MS);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image));
+            encoder.Save(mS);
+            pic = new Bitmap(mS);
         }
     }
 
     public MyBitmap(Image Image)
     {
-        Pic = (Bitmap)Image;
+        pic = (Bitmap)Image;
     }
 
     public MyBitmap(Bitmap Image)
     {
-        Pic = Image;
+        pic = Image;
     }
 
     public MyBitmap(ImageBrush Image)
     {
-        using (var MS = new MemoryStream())
+        using (var mS = new MemoryStream())
         {
-            var Encoder = new BmpBitmapEncoder();
-            Encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image.ImageSource));
-            Encoder.Save(MS);
-            Pic = new Bitmap(MS);
+            var encoder = new BmpBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image.ImageSource));
+            encoder.Save(mS);
+            pic = new Bitmap(mS);
         }
     }
 
@@ -131,7 +131,7 @@ public class MyBitmap
     {
         if (Image is null)
             return null;
-        return Image.Pic;
+        return Image.pic;
     }
 
     public static implicit operator MyBitmap(ImageSource Image)
@@ -145,20 +145,20 @@ public class MyBitmap
     {
         if (Image is null)
             return null;
-        var BitmapPic = Image.Pic;
-        var rect = new Rectangle(0, 0, BitmapPic.Width, BitmapPic.Height);
-        var bitmapData = BitmapPic.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        var bitmapPic = Image.pic;
+        var rect = new Rectangle(0, 0, bitmapPic.Width, bitmapPic.Height);
+        var bitmapData = bitmapPic.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         try
         {
-            var Result = BitmapSource.Create(BitmapPic.Width, BitmapPic.Height, BitmapPic.HorizontalResolution,
-                BitmapPic.VerticalResolution, PixelFormats.Bgra32, null, bitmapData.Scan0, rect.Width * rect.Height * 4,
+            var result = BitmapSource.Create(bitmapPic.Width, bitmapPic.Height, bitmapPic.HorizontalResolution,
+                bitmapPic.VerticalResolution, PixelFormats.Bgra32, null, bitmapData.Scan0, rect.Width * rect.Height * 4,
                 bitmapData.Stride);
-            Result.Freeze();
-            return Result;
+            result.Freeze();
+            return result;
         }
         finally
         {
-            BitmapPic.UnlockBits(bitmapData);
+            bitmapPic.UnlockBits(bitmapData);
         }
     }
 
@@ -173,7 +173,7 @@ public class MyBitmap
     {
         if (Image is null)
             return null;
-        return Image.Pic;
+        return Image.pic;
     }
 
     public static implicit operator MyBitmap(ImageBrush Image)
@@ -187,7 +187,7 @@ public class MyBitmap
     {
         if (Image is null)
             return null;
-        return new ImageBrush(new MyBitmap(Image.Pic));
+        return new ImageBrush(new MyBitmap(Image.pic));
     }
 
     /// <summary>
@@ -195,13 +195,13 @@ public class MyBitmap
     /// </summary>
     public MyBitmap Clip(int X, int Y, int Width, int Height)
     {
-        var bmp = new Bitmap(Width, Height, Pic.PixelFormat);
-        bmp.SetResolution(Pic.HorizontalResolution, Pic.VerticalResolution);
+        var bmp = new Bitmap(Width, Height, pic.PixelFormat);
+        bmp.SetResolution(pic.HorizontalResolution, pic.VerticalResolution);
         using (var g = Graphics.FromImage(bmp))
         {
             g.InterpolationMode = InterpolationMode.NearestNeighbor;
             g.TranslateTransform(-X, -Y);
-            g.DrawImage(Pic, new Rectangle(0, 0, Pic.Width, Pic.Height));
+            g.DrawImage(pic, new Rectangle(0, 0, pic.Width, pic.Height));
         }
 
         return bmp;
@@ -212,8 +212,8 @@ public class MyBitmap
     /// </summary>
     public MyBitmap RotateFlip(RotateFlipType Type)
     {
-        var bmp = new Bitmap(Pic);
-        bmp.SetResolution(Pic.HorizontalResolution, Pic.VerticalResolution);
+        var bmp = new Bitmap(pic);
+        bmp.SetResolution(pic.HorizontalResolution, pic.VerticalResolution);
         bmp.RotateFlip(Type);
         return bmp;
     }

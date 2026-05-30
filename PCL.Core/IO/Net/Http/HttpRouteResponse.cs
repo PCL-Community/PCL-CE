@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -136,7 +136,7 @@ public class HttpRouteResponse
     public static HttpRouteResponse Json(object obj, JsonSerializerOptions? options)
     {
         var stream = new MemoryStream();
-        JsonSerializer.Serialize(stream, obj, options);
+        JsonSerializer.Serialize(stream, obj, options ?? JsonCompat.SerializerOptions);
         stream.Position = 0;
         return new HttpRouteResponse
         {
@@ -150,5 +150,5 @@ public class HttpRouteResponse
     /// 响应指定对象序列化得到的 JSON 内容，固定使用 UTF-8 编码
     /// </summary>
     /// <param name="obj">用于序列化的对象</param>
-    public static HttpRouteResponse Json(object obj) => Json(obj, null);
+    public static HttpRouteResponse Json(object obj) => Json(obj, JsonCompat.SerializerOptions);
 }

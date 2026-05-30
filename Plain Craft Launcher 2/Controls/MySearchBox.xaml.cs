@@ -25,15 +25,23 @@ public partial class MySearchBox : MyCard
     // 属性
     public string HintText
     {
-        get => TextBox.HintText;
-        set => TextBox.HintText = value;
+        get => (string)GetValue(hintTextProperty);
+        set => SetValue(hintTextProperty, value);
     }
+
+    public static readonly DependencyProperty hintTextProperty =
+        DependencyProperty.Register("HintText", typeof(string), typeof(MySearchBox),
+            new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.HintText = (string)e.NewValue));
 
     public string Text
     {
-        get => TextBox.Text;
-        set => TextBox.Text = value;
+        get => (string)GetValue(textProperty);
+        set => SetValue(textProperty, value);
     }
+
+    public static readonly DependencyProperty textProperty =
+        DependencyProperty.Register("Text", typeof(string), typeof(MySearchBox),
+            new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.Text = (string)e.NewValue));
 
     public Visibility SearchButtonVisibility
     {
@@ -54,18 +62,8 @@ public partial class MySearchBox : MyCard
 
     private void Text_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (string.IsNullOrEmpty(TextBox.Text))
-        {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, -BtnClear.Opacity, 90),
-                "MySearchBox ClearBtn " + Uuid);
-            BtnClear.IsHitTestVisible = false;
-        }
-        else
-        {
-            ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, 1d - BtnClear.Opacity, 90),
-                "MySearchBox ClearBtn " + Uuid);
-            BtnClear.IsHitTestVisible = true;
-        }
+        UpdateClearButtonState();
+        SetCurrentValue(textProperty, TextBox.Text);
 
         TextChanged?.Invoke(sender, e);
     }
@@ -76,10 +74,18 @@ public partial class MySearchBox : MyCard
         TextBox.Focus();
     }
 
-    public event SearchEventHandler? Search;
+    public event SearchEventHandler? search;
 
     private void BtnSearch_Click(object sender, MouseButtonEventArgs e)
     {
-        Search?.Invoke(sender, e);
+        search?.Invoke(sender, e);
+    }
+
+    private void UpdateClearButtonState()
+    {
+        var hasText = !string.IsNullOrEmpty(TextBox.Text);
+        ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, hasText ? 1d - BtnClear.Opacity : -BtnClear.Opacity, 90),
+            "MySearchBox ClearBtn " + uuid);
+        BtnClear.IsHitTestVisible = hasText;
     }
 }

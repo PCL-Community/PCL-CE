@@ -2,19 +2,23 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.Scaffolding.EasyTier;
 
 namespace PCL;
 
 public partial class PageSetupGameLink
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupGameLink()
     {
         InitializeComponent();
+        TextUdpNatType.Text = Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
+        TextTcpNatType.Text = Lang.Text("Setup.GameLink.NetworkTest.TcpNatType", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
+        TextIpv6Status.Text = Lang.Text("Setup.GameLink.NetworkTest.Ipv6Status", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
         Loaded += PageSetupLink_Loaded;
         Loaded += (_, _) => Reload();
     }
@@ -25,9 +29,9 @@ public partial class PageSetupGameLink
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -76,12 +80,12 @@ public partial class PageSetupGameLink
         {
             Config.Link.Reset();
             ModBase.Log("[Setup] 已初始化联机页设置");
-            ModMain.Hint("已初始化联机页设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.GameLink.Initialized"), ModMain.HintType.Finish, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化联机页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.GameLink.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -92,7 +96,7 @@ public partial class PageSetupGameLink
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void
@@ -100,14 +104,30 @@ public partial class PageSetupGameLink
             object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetGameLinkByTag(sender.Tag?.ToString(), sender.Checked);
+    }
+
+    private static void SetGameLinkByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "LinkUsername": Config.Link.Username = (string)value; break;
+            case "LinkRelayServer": Config.Link.CustomRelayServer = (string)value; break;
+            case "LinkRelayType": Config.Link.RelayType = (LinkRelayBehavior)(int)value; break;
+            case "LinkServerType": Config.Link.ServerType = (int)value; break;
+            case "LinkProtocolPreference": Config.Link.ProtocolPreference = (LinkProtocolPreference)(int)value; break;
+            case "LinkLatencyFirstMode": Config.Link.UseLatencyFirstMode = (bool)value; break;
+            case "LinkTryPunchSym": Config.Link.TryPunchSym = (bool)value; break;
+            case "LinkEnableIPv6": Config.Link.EnableIPv6 = (bool)value; break;
+            case "LinkEnableCliOutput": Config.Link.EnableCliOutput = (bool)value; break;
+        }
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
@@ -120,7 +140,7 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "改变配置项失败", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"), ModBase.LogLevel.Hint);
             }
     }
 
@@ -130,19 +150,22 @@ public partial class PageSetupGameLink
         try
         {
             BtnNetTest.IsEnabled = false;
-            BtnNetTest.Text = "正在测试";
+            BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Testing");
             ModBase.RunInNewThread(() =>
             {
                 var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
                 ModBase.RunInUi(() =>
                 {
                     TextUdpNatType.Text =
-                        "UDP NAT 类型: " + CliNetTest.GetNatTypeString(status.UdpNatType);
+                        Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", CliNetTest.GetNatTypeString(status.UdpNatType));
                     TextTcpNatType.Text =
-                        "TCP NAT 类型: " + CliNetTest.GetNatTypeString(status.TcpNatType);
-                    TextIpv6Status.Text = "IPv6: " + (status.SupportIPv6 ? "支持" : "不支持");
+                        Lang.Text("Setup.GameLink.NetworkTest.TcpNatType", CliNetTest.GetNatTypeString(status.TcpNatType));
+                    TextIpv6Status.Text = Lang.Text("Setup.GameLink.NetworkTest.Ipv6Status",
+                        status.SupportIPv6
+                            ? Lang.Text("Setup.GameLink.NetworkTest.Supported")
+                            : Lang.Text("Setup.GameLink.NetworkTest.Unsupported"));
                     BtnNetTest.IsEnabled = true;
-                    BtnNetTest.Text = "开始测试";
+                    BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");
                 });
             });
         }
@@ -150,7 +173,7 @@ public partial class PageSetupGameLink
         {
             ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
             BtnNetTest.IsEnabled = true;
-            BtnNetTest.Text = "开始测试";
+            BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");
         }
     }
 }

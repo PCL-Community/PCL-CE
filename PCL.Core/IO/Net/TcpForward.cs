@@ -93,7 +93,7 @@ public sealed class TcpForward(
         {
             try
             {
-                if (_listenerSocket == null) break;
+                if (_listenerSocket is null) break;
                 var clientSocket = await _listenerSocket.AcceptAsync(cancellationToken);
 
                 // 检查是否达到最大连接限制

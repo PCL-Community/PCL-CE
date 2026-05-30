@@ -4,17 +4,18 @@ using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Text;
 using Downloader;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 using PCL.Core.IO.Net;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Network;
 
 public static class Requester
 {
-    public static void EnsureSuccess(HttpResponseMessage response)
+    public static void EnsureSuccess(HttpResponseMessage? response)
     {
-        if (!response.IsSuccessStatusCode)
-            throw new HttpRequestException($"HTTP 响应失败: {response.ReasonPhrase} ({(int)response.StatusCode})");
+        if (!response?.IsSuccessStatusCode ?? true)
+            throw new HttpResponseException(response);
     }
 
     public static async Task<string> FetchStringAsync(string url, RequestParam param = default)
@@ -36,22 +37,22 @@ public static class Requester
         return FetchStringAsync(url, param).GetAwaiter().GetResult();
     }
 
-    public static async Task<object> FetchJsonAsync(string url, RequestParam param = default)
+    public static async Task<JsonNode> FetchJsonAsync(string url, RequestParam param = default)
     {
-        return JToken.Parse(await FetchStringAsync(url, param).ConfigureAwait(false));
+        return ModBase.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
     }
 
-    public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default)
+    public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default) where T : JsonNode
     {
-        return (T)(object)await FetchJsonAsync(url, param).ConfigureAwait(false);
+        return (T)await FetchJsonAsync(url, param).ConfigureAwait(false);
     }
 
-    public static object FetchJson(string url, RequestParam param = default)
+    public static JsonNode FetchJson(string url, RequestParam param = default)
     {
         return FetchJsonAsync(url, param).GetAwaiter().GetResult();
     }
 
-    public static T FetchJson<T>(string url, RequestParam param = default)
+    public static T FetchJson<T>(string url, RequestParam param = default) where T : JsonNode
     {
         return FetchJsonAsync<T>(url, param).GetAwaiter().GetResult();
     }
@@ -95,8 +96,9 @@ public static class Requester
 
     private static async Task<string> FetchOnceAsync(string url, FetchParam param)
     {
-        var request = new HttpRequestMessage(ParseMethod(param.Method), ModSecret.SecretCdnSign(url));
-        ModSecret.SecretHeadersSign(url, ref request, param.UseBrowserUserAgent);
+        HttpResponseMessage? response = null;
+        var request = new HttpRequestMessage(ParseMethod(param.Method), RequestSigning.SecretCdnSign(url));
+        RequestSigning.SecretHeadersSign(url, ref request, param.UseBrowserUserAgent);
         try
         {
             if (!string.IsNullOrWhiteSpace(param.Accept))
@@ -113,12 +115,13 @@ public static class Requester
 
             using var cts = new CancellationTokenSource();
             cts.CancelAfter(param.Timeout <= 0 ? 30000 : param.Timeout);
-            using var response = await NetworkService.GetClient().SendAsync(request, cts.Token).ConfigureAwait(false);
+            response = await NetworkService.GetClient().SendAsync(request, cts.Token).ConfigureAwait(false);
             EnsureSuccess(response);
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
         finally
         {
+            if(!param.RequireContent) response?.Dispose();
             request.Dispose();
         }
     }
@@ -141,7 +144,7 @@ public static class Requester
             ParallelCount = Math.Max(1, ModNet.NetTaskThreadLimit),
             ParallelDownload = ModNet.NetTaskThreadLimit > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
-            DownloadFileExtension = ModNet.NetDownloadEnd,
+            DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });

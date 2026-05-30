@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -14,7 +14,7 @@ public partial class PageDownloadLegacyFabric
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlLegacyFabricListLoader,
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlLegacyFabricListLoader,
             _ => Load_OnFinish());
     }
 
@@ -28,12 +28,12 @@ public partial class PageDownloadLegacyFabric
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlLegacyFabricListLoader.Output.Value["installer"];
+            var versions = (JsonArray)ModDownload.dlLegacyFabricListLoader.output.value["installer"];
             PanVersions.Children.Clear();
-            foreach (var Version in Versions)
-                PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JObject)Version,
+            foreach (var Version in versions)
+                PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)Version,
                     (a, b) => this.LegacyFabric_Selected((MyListItem)a, b)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
         }
         catch (Exception ex)
         {
@@ -43,7 +43,7 @@ public partial class PageDownloadLegacyFabric
 
     private void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadLegacyFabricLoaderSave((JObject)sender.Tag);
+        ModDownloadLib.McDownloadLegacyFabricLoaderSave((JsonObject)sender.Tag);
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)

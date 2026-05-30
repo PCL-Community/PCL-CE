@@ -1,4 +1,4 @@
-using PCL.Core.App.IoC;
+﻿using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using System;
 using System.Diagnostics;
@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -33,7 +35,7 @@ public sealed partial class DependencyCheckService
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
                 $"当前系统环境缺失软件运行所需依赖“{packageName}”\n\n点击确定打开微软应用商店安装",
-                buttons: ["确定", "稍后"]);
+                buttons: [Lang.Text("Common.Action.Confirm"), "稍后"]);
             if (selection == 1) _LaunchMsStore(storeId);
         }
     }
@@ -71,20 +73,20 @@ public sealed partial class DependencyCheckService
         try
         {
             // ConvertTo-Json 结构不一定可靠，不太能 Serialize
-            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream);
+            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream, JsonCompat.NodeOptions, JsonCompat.DocumentOptions);
         }
         catch
         {
             return false;
         }
 
-        if (jnode == null) return false;
+        if (jnode is null) return false;
         if (jnode.GetValueKind().Equals(JsonValueKind.Array))
         {
             var hasPack = false;
             foreach (var node in jnode.AsArray())
             {
-                if (node != null && CheckPackSuit(node, id))
+                if (node is not null && CheckPackSuit(node, id))
                 {
                     hasPack = true;
                     break;
@@ -102,8 +104,8 @@ public sealed partial class DependencyCheckService
         // 检查当前的 JsonNode 下是否是符合的包
         static bool CheckPackSuit(JsonNode jnode, string id)
         {
-            var findedPackName = jnode["Name"]?.GetValue<string>();
-            return findedPackName != null && findedPackName.Contains(id);
+            var findedPackName = JsonCompat.ToObject<string>(jnode["Name"]);
+            return findedPackName is not null && findedPackName.Contains(id);
         }
     }
 }

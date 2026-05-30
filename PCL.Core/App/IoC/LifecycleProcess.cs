@@ -8,7 +8,7 @@ partial class Lifecycle
     private static void _RunCurrentExecutable(string? arguments)
     {
         var fileName = Environment.ProcessPath!;
-        if (arguments == null) Process.Start(fileName);
+        if (arguments is null) Process.Start(fileName);
         else Process.Start(fileName, arguments);
     }
 

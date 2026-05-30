@@ -30,9 +30,9 @@ public static class TaskCenter
         var model = new TaskModel
         {
             Title = instance.Title,
-            SupportProgress = progressive != null,
-            OnCancel = cancelable == null ? null : (() => cancelable.Cancel()),
-            OnPause = pausable == null ? null : (() => pausable.Pause()),
+            SupportProgress = progressive is not null,
+            OnCancel = cancelable is null ? null : (() => cancelable.Cancel()),
+            OnPause = pausable is null ? null : (() => pausable.Pause()),
         };
 
         // state event
@@ -44,7 +44,7 @@ public static class TaskCenter
         };
 
         // progress event
-        if (progressive != null)
+        if (progressive is not null)
         {
             progressive.ProgressChanged += progress =>
             {

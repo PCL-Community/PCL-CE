@@ -19,15 +19,17 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
+using System.Globalization;
 
 namespace PCL;
 
 public partial class PageToolsTest
 {
-    private Bitmap CurrentSkinBitmap;
-    private Bitmap GeneratedHeadBitmap;
+    private Bitmap currentSkinBitmap;
+    private Bitmap generatedHeadBitmap;
 
-    private int HeadSize = 64;
+    private int headSize = 64;
     private string skinPath = "";
 
     public PageToolsTest()
@@ -46,7 +48,7 @@ public partial class PageToolsTest
         TextDownloadFolder.Validate();
 
         if (!string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) || string.IsNullOrEmpty(TextDownloadFolder.Text))
-            TextDownloadFolder.Text = ModBase.ExePath + @"PCL\MyDownload\";
+            TextDownloadFolder.Text = ModBase.exePath + @"PCL\MyDownload\";
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
@@ -89,19 +91,19 @@ public partial class PageToolsTest
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
+                    ModMain.Hint($"{Loader.name}完成！", ModMain.HintType.Finish);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Failed:
                 {
-                    ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(Loader.Error, $"{Loader.name}失败", ModBase.LogLevel.Msgbox);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
-                    ModMain.Hint($"{Loader.Name}已取消！");
+                    ModMain.Hint($"{Loader.name}已取消！");
                     break;
                 }
             }
@@ -148,8 +150,8 @@ public partial class PageToolsTest
                 { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
             loaderCombo.Start();
             ModLoader.LoaderTaskbarAdd(loaderCombo);
-            ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.FrmMain.BtnExtraDownload.Ribble();
+            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -163,7 +165,7 @@ public partial class PageToolsTest
         var random = new Random(GenerateDailySeed());
         var luckValue = random.Next(0, 101);
         var rating = GetRating(luckValue);
-        var currentDate = DateTime.Now.ToString("yyyy/MM/dd");
+        var currentDate = Lang.Date(DateTime.Now, "d");
         var title = $"今日人品 - {currentDate}";
 
         if (luckValue >= 60)
@@ -176,8 +178,8 @@ public partial class PageToolsTest
     {
         ModBase.RunInUi(() =>
         {
-            if (!(ModMain.FrmToolsTest == null) && !(ModMain.FrmToolsTest.BtnClear == null))
-                ModMain.FrmToolsTest.BtnClear.IsEnabled = false;
+            if (ModMain.frmToolsTest is not null && ModMain.frmToolsTest.BtnClear is not null)
+                ModMain.frmToolsTest.BtnClear.IsEnabled = false;
         });
         // 只有当没有运行中的Minecraft游戏且启动器不在加载状态时才能清理
 
@@ -198,7 +200,7 @@ public partial class PageToolsTest
         {
             try
             {
-                if (!ModWatcher.HasRunningMinecraft && ModLaunch.McLaunchLoader.State != ModBase.LoadState.Loading)
+                if (!ModWatcher.hasRunningMinecraft && ModLaunch.mcLaunchLoader.State != ModBase.LoadState.Loading)
                 {
                     if (ModNet.HasDownloadingTask())
                     {
@@ -206,7 +208,7 @@ public partial class PageToolsTest
                         return;
                     }
 
-                    if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.Start();
+                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.Start();
                     if (States.Hint.CleanJunkFile <= 2)
                     {
                         if (ModMain.MyMsgBox(
@@ -215,18 +217,18 @@ public partial class PageToolsTest
                                 虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？
 
                                 在完成清理后，PCL 将自动重启。
-                                """, "清理确认", "确定", "取消") ==
+                                """, "清理确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) ==
                             2) return;
                         States.Hint.CleanJunkFile += 1;
                     }
 
                     var num = 0;
                     var cleanMcFolderList = new List<DirectoryInfo>();
-                    if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.WaitForExit();
-                    foreach (var mcFolder in ModMinecraft.McFolderList)
+                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.WaitForExit();
+                    foreach (var mcFolder in ModMinecraft.mcFolderList)
                     {
-                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.Location));
-                        var dirInfo = new DirectoryInfo(mcFolder.Location + "versions");
+                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.location));
+                        var dirInfo = new DirectoryInfo(mcFolder.location + "versions");
                         if (dirInfo.Exists)
                             foreach (var item in dirInfo.EnumerateDirectories())
                                 cleanMcFolderList.Add(item);
@@ -252,16 +254,16 @@ public partial class PageToolsTest
                                 num += ModBase.DeleteDirectory(dirInfo2.FullName, true);
                     }
 
-                    num += ModBase.DeleteDirectory(ModBase.PathTemp, true);
-                    num += ModBase.DeleteDirectory(ModBase.OsDrive + @"ProgramData\PCL\", true);
+                    num += ModBase.DeleteDirectory(ModBase.pathTemp, true);
+                    num += ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true);
                     if (num != 0)
                     {
                         ModMain.MyMsgBox($"""
                                            清理了 {num} 个文件！
                                            PCL 即将自动重启……
                                            """,
-                            "缓存已清理", "确定", "", "", false, true, true);
-                        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+                            "缓存已清理", Lang.Text("Common.Action.Confirm"), "", "", false, true, true);
+                        Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
                         FormMain.EndProgramForce();
                     }
                     else
@@ -282,8 +284,8 @@ public partial class PageToolsTest
             {
                 ModBase.RunInUiWait(() =>
                 {
-                    if (!(ModMain.FrmToolsTest == null) && !(ModMain.FrmToolsTest.BtnClear == null))
-                        ModMain.FrmToolsTest.BtnClear.IsEnabled = true;
+                    if (ModMain.frmToolsTest is not null && ModMain.frmToolsTest.BtnClear is not null)
+                        ModMain.frmToolsTest.BtnClear.IsEnabled = true;
                 });
             }
         }, "Rubbish Clear");
@@ -294,33 +296,21 @@ public partial class PageToolsTest
         int SystemInformationLength);
     public static bool AskTrulyWantMemoryOptimize()
     {
-        var memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024.0 / 1024.0 / 1024.0; // GB
         var memLoad = KernelInterop.GetMemoryLoadPercent();
         if (memLoad > 90) return true; // 情况不太妙啊，先别问了
 
-        string prompt = string.Empty;
-        if (memTotal >= 32)
-        {
-            prompt = "当前总内存充足，建议关闭不必要的程序来腾出内存而不是尝试使用内存优化。";
-        }
-        else if (memTotal >= 16 && memTotal < 32)
-        {
-            prompt = "当前内存比较充足，建议优先考虑让系统自动管理内存。";
-        }
-        else if (memTotal >= 6 && memTotal < 16)
-        {
-            prompt = "建议在使用后静置一分钟等待系统响应完毕。";
-        }
-        else if (memTotal >= 2 && memTotal < 6)
-        {
-            prompt = "内存资源比较紧张，建议通过加装内存以避免频繁使用内存优化功能，防止内存优化对硬盘造成过大压力。";
-        }
-        else if (memTotal < 2)
-        {
-            prompt = "嗯……？";
-        }
-
-        var s = ModMain.MyMsgBox(prompt, "确认内存优化？", "继续", "取消");
+        var s = ModMain.MyMsgBox(
+            "内存优化功能即将被废弃。" +
+            "\n\n该功能依赖未文档化的 Windows NT 内核函数调用，可能在未来版本中不可用，且存在引发未定义行为的可能。" +
+            "\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。" +
+            "\n\n是否仍然继续使用内存优化？",
+            "功能即将废弃",
+            Lang.Text("Common.Action.Confirm"),
+            "了解 Mem Reduct",
+            Lang.Text("Common.Action.Cancel"),
+            IsWarn: true,
+            Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
+        );
         return s == 1;
     }
     public static void MemoryOptimize(bool showHint)
@@ -418,26 +408,26 @@ public partial class PageToolsTest
     // 下载正版玩家皮肤
     private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
-        var ID = TextSkinID.Text;
+        var iD = TextSkinID.Text;
         ModMain.Hint("正在获取皮肤...");
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                if (ID.Length < 3)
+                if (iD.Length < 3)
                 {
                     ModMain.Hint("这不是一个有效的 ID...");
                 }
                 else
                 {
-                    var Result = (string)ModProfile.McLoginMojangUuid(ID, true);
-                    Result = ModMinecraft.McSkinGetAddress(Result, "Mojang");
-                    Result = ModMinecraft.McSkinDownload(Result);
+                    var result = (string)ModProfile.McLoginMojangUuid(iD, true);
+                    result = ModMinecraft.McSkinGetAddress(result, "Mojang");
+                    result = ModMinecraft.McSkinDownload(result);
                     ModBase.RunInUi(() =>
                     {
-                        var Path = SystemDialogs.SelectSaveFile("保存皮肤", $"{ID}.png", "皮肤图片文件(*.png)|*.png");
-                        ModBase.CopyFile(Result, Path);
-                        ModMain.Hint($"玩家 {ID} 的皮肤已保存！", ModMain.HintType.Finish);
+                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{iD}.png", "皮肤图片文件(*.png)|*.png");
+                        ModBase.CopyFile(result, path);
+                        ModMain.Hint($"玩家 {iD} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
                 }
             }
@@ -446,11 +436,11 @@ public partial class PageToolsTest
                 if (ex.ToString().Contains("429"))
                 {
                     ModMain.Hint("获取皮肤太过频繁，请 5 分钟之后再试！", ModMain.HintType.Critical);
-                    ModBase.Log($"获取正版皮肤失败（{ID}）：获取皮肤太过频繁，请 5 分钟后再试！");
+                    ModBase.Log($"获取正版皮肤失败（{iD}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
                 {
-                    ModBase.Log(ex, $"获取正版皮肤失败（{ID}）");
+                    ModBase.Log(ex, $"获取正版皮肤失败（{iD}）");
                 }
             }
         });
@@ -464,7 +454,7 @@ public partial class PageToolsTest
 
     public static int GenerateDailySeed()
     {
-        var datePart = DateTime.Today.ToString("yyyyMMdd");
+        var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
         return DJB2Hash(datePart + Identify.LauncherId);
     }
@@ -512,7 +502,7 @@ public partial class PageToolsTest
 
                  {desktopName}位置: {desktop}
                  {startName}位置: {start}
-                 """, "选择快捷方式位置", "取消", desktopName, startName);
+                 """, "选择快捷方式位置", Lang.Text("Common.Action.Cancel"), desktopName, startName);
         if (choice == 1)
             return;
         var shortcutPath = choice == 2 ? desktop : start;
@@ -580,7 +570,7 @@ public partial class PageToolsTest
 
     private async Task DownloadImageToLocalAsync(string imageUrl)
     {
-        var savePath = ModBase.PathTemp + @"Download\" + ModBase.GetHash(imageUrl) + ".png";
+        var savePath = ModBase.pathTemp + @"Download\" + ModBase.GetHash(imageUrl) + ".png";
         var client = NetworkService.GetClient();
         try
         {
@@ -643,7 +633,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
+        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
             "SURE") throw new Exception("手动崩溃");
     }
 
@@ -667,21 +657,21 @@ public partial class PageToolsTest
         {
             using (var stream = new FileStream(skinPath, FileMode.Open, FileAccess.Read))
             {
-                CurrentSkinBitmap = new Bitmap(stream);
+                currentSkinBitmap = new Bitmap(stream);
             }
 
             this.skinPath = skinPath;
 
-            if (CurrentSkinBitmap.Width != CurrentSkinBitmap.Height)
+            if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
                 ModMain.Hint("图片的大小不正确！请确认你选择了正确的文件！", ModMain.HintType.Critical);
                 SkinPreviewBorder.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            GeneratedHeadBitmap = GenerateHeadFromSkin(CurrentSkinBitmap);
+            generatedHeadBitmap = GenerateHeadFromSkin(currentSkinBitmap);
 
-            ImgFace.Source = BitmapToBitmapImage(GeneratedHeadBitmap);
+            ImgFace.Source = BitmapToBitmapImage(generatedHeadBitmap);
             ImgHair.Source = null;
 
             SkinPreviewBorder.Visibility = Visibility.Visible;
@@ -699,8 +689,8 @@ public partial class PageToolsTest
     private Bitmap GenerateHeadFromSkin(Bitmap skinBitmap)
     {
         var scale = skinBitmap.Width / 64;
-        HeadSize = GetHeadSize();
-        var headBitmap = new Bitmap(HeadSize, HeadSize);
+        headSize = GetHeadSize();
+        var headBitmap = new Bitmap(headSize, headSize);
 
         using (var g = Graphics.FromImage(headBitmap))
         {
@@ -717,7 +707,7 @@ public partial class PageToolsTest
     private void DrawFaceLayer(Graphics g, Bitmap skinBitmap, int scale)
     {
         var faceRect = new Rectangle(8 * scale, 8 * scale, 8 * scale, 8 * scale);
-        var faceSize = HeadSize - HeadSize / 8;
+        var faceSize = headSize - headSize / 8;
         var faceScaled = new Bitmap(faceSize, faceSize);
 
         using (var gFace = Graphics.FromImage(faceScaled))
@@ -727,24 +717,24 @@ public partial class PageToolsTest
             gFace.DrawImage(skinBitmap, new Rectangle(0, 0, faceSize, faceSize), faceRect, GraphicsUnit.Pixel);
         }
 
-        var offset = HeadSize / 16;
+        var offset = headSize / 16;
         g.DrawImage(faceScaled, offset, offset, faceSize, faceSize);
     }
 
     private void DrawHairLayer(Bitmap headBitmap, Bitmap skinBitmap, int scale)
     {
         var hairRect = new Rectangle(40 * scale, 8 * scale, 8 * scale, 8 * scale);
-        var hairScaled = new Bitmap(HeadSize, HeadSize);
+        var hairScaled = new Bitmap(headSize, headSize);
 
         using (var gHair = Graphics.FromImage(hairScaled))
         {
             gHair.InterpolationMode = InterpolationMode.NearestNeighbor;
             gHair.PixelOffsetMode = PixelOffsetMode.Half;
-            gHair.DrawImage(skinBitmap, new Rectangle(0, 0, HeadSize, HeadSize), hairRect, GraphicsUnit.Pixel);
+            gHair.DrawImage(skinBitmap, new Rectangle(0, 0, headSize, headSize), hairRect, GraphicsUnit.Pixel);
         }
 
-        for (int x = 0, loopTo = HeadSize - 1; x <= loopTo; x++)
-        for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
+        for (int x = 0, loopTo = headSize - 1; x <= loopTo; x++)
+        for (int y = 0, loopTo1 = headSize - 1; y <= loopTo1; y++)
         {
             var pixel = hairScaled.GetPixel(x, y);
             if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
@@ -753,7 +743,7 @@ public partial class PageToolsTest
 
     private void BtnSaveHead_Click(object sender, MouseButtonEventArgs e)
     {
-        if (GeneratedHeadBitmap is null)
+        if (generatedHeadBitmap is null)
         {
             ModMain.Hint("请先选择皮肤！", ModMain.HintType.Critical);
             return;
@@ -763,13 +753,13 @@ public partial class PageToolsTest
         if (string.IsNullOrEmpty(savePath))
             return;
 
-        GeneratedHeadBitmap.Save(savePath, ImageFormat.Png);
+        generatedHeadBitmap.Save(savePath, ImageFormat.Png);
         ModMain.Hint("头像保存成功！", ModMain.HintType.Finish);
     }
 
     private void CmbHeadSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CurrentSkinBitmap is not null && skinPath is not null) LoadAndGenerateHead(skinPath);
+        if (currentSkinBitmap is not null && skinPath is not null) LoadAndGenerateHead(skinPath);
     }
 
     private BitmapImage BitmapToBitmapImage(Bitmap bitmap)

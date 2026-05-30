@@ -15,8 +15,8 @@ public partial class MyExtraButton
 
     // 自定义事件
     // 务必放在 IsMouseDown 更新之后
-    private const int AnimationColorIn = 120;
-    private const int AnimationColorOut = 150;
+    private const int animationColorIn = 120;
+    private const int animationColorOut = 150;
     private string _Logo = "";
     private double _LogoScale = 1d;
 
@@ -25,12 +25,12 @@ public partial class MyExtraButton
     private bool _Show;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-    private bool IsLeftMouseHeld;
-    private bool IsRightMouseHeld;
-    public ShowCheckDelegate ShowCheck = null;
+    private bool isLeftMouseHeld;
+    private bool isRightMouseHeld;
+    public ShowCheckDelegate showCheck = null;
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyExtraButton()
     {
@@ -78,7 +78,7 @@ public partial class MyExtraButton
         set
         {
             _LogoScale = value;
-            if (!(Path == null))
+            if (Path is not null)
                 Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
@@ -106,7 +106,7 @@ public partial class MyExtraButton
                                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, 50d - Height, 200,
                                 Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                        }, "MyExtraButton MainScale " + Uuid);
+                        }, "MyExtraButton MainScale " + uuid);
                 }
                 else
                 {
@@ -118,7 +118,7 @@ public partial class MyExtraButton
                                 Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, -Height, 400, 100, new ModAnimation.AniEaseOutFluent()),
                             ModAnimation.AaCode(() => Visibility = Visibility.Collapsed, After: true)
-                        }, "MyExtraButton MainScale " + Uuid);
+                        }, "MyExtraButton MainScale " + uuid);
                 }
 
                 IsHitTestVisible = value; // 防止缩放动画中依然可以点进去
@@ -132,16 +132,38 @@ public partial class MyExtraButton
     public event ClickEventHandler? Click;
     public event RightClickEventHandler? RightClick;
 
+    private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
+                    800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
+                    Ease: new ModAnimation.AniEaseOutFluent())
+            }, "MyExtraButton Scale " + uuid);
+    }
+
+    private void RefreshScaleAfterRelease()
+    {
+        ModAnimation.AniStart(
+            new[]
+            {
+                ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
+                    Ease: new ModAnimation.AniEaseOutBack())
+            }, "MyExtraButton Scale " + uuid);
+    }
+
     public void ShowRefresh()
     {
-        if (ShowCheck is not null)
-            Show = ShowCheck();
+        if (showCheck is not null)
+            Show = showCheck();
     }
 
     // 触发点击事件
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (IsLeftMouseHeld)
+        if (isLeftMouseHeld)
         {
             ModBase.Log("[Control] 按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
@@ -153,7 +175,7 @@ public partial class MyExtraButton
 
     private void Button_RightMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (IsRightMouseHeld)
+        if (isRightMouseHeld)
         {
             ModBase.Log("[Control] 右键按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
@@ -165,15 +187,9 @@ public partial class MyExtraButton
 
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (!IsLeftMouseHeld && !IsRightMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                        800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaScaleTransform(PanScale, -0.05d, 60, Ease: new ModAnimation.AniEaseOutFluent())
-                }, "MyExtraButton Scale " + Uuid);
-        IsLeftMouseHeld = true;
+        if (!isLeftMouseHeld && !isRightMouseHeld)
+            StartScaleAnimation(0.85d, -0.05d);
+        isLeftMouseHeld = true;
         Focus();
     }
 
@@ -181,29 +197,18 @@ public partial class MyExtraButton
     {
         if (!CanRightClick)
             return;
-        if (!IsLeftMouseHeld && !IsRightMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 0.85d - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                        800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaScaleTransform(PanScale, -0.05d, 60, Ease: new ModAnimation.AniEaseOutFluent())
-                }, "MyExtraButton Scale " + Uuid);
-        IsRightMouseHeld = true;
+        if (!isLeftMouseHeld && !isRightMouseHeld)
+            StartScaleAnimation(0.85d, -0.05d);
+        isRightMouseHeld = true;
         Focus();
     }
 
     private void Button_LeftMouseUp()
     {
-        if (!IsRightMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                        Ease: new ModAnimation.AniEaseOutBack())
-                }, "MyExtraButton Scale " + Uuid);
-        if (IsLeftMouseHeld) ModMain.RaiseCustomEvent(this);
-        IsLeftMouseHeld = false;
+        if (!isRightMouseHeld)
+            RefreshScaleAfterRelease();
+        if (isLeftMouseHeld) ModMain.RaiseCustomEvent(this);
+        isLeftMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -211,27 +216,22 @@ public partial class MyExtraButton
     {
         if (!CanRightClick)
             return;
-        if (!IsLeftMouseHeld)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                        Ease: new ModAnimation.AniEaseOutBack())
-                }, "MyExtraButton Scale " + Uuid);
-        IsRightMouseHeld = false;
+        if (!isLeftMouseHeld)
+            RefreshScaleAfterRelease();
+        isRightMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
     private void Button_MouseLeave()
     {
-        IsLeftMouseHeld = false;
-        IsRightMouseHeld = false;
+        isLeftMouseHeld = false;
+        isRightMouseHeld = false;
         ModAnimation.AniStart(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
                     Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyExtraButton Scale " + Uuid);
+            }, "MyExtraButton Scale " + uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -239,34 +239,31 @@ public partial class MyExtraButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (!IsEnabled)
                     // 禁用
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", AnimationColorIn),
-                        "MyExtraButton Color " + Uuid);
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", animationColorIn),
+                        "MyExtraButton Color " + uuid);
                 else if (IsMouseOver)
                     // 指向
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", AnimationColorIn),
-                        "MyExtraButton Color " + Uuid);
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", animationColorIn),
+                        "MyExtraButton Color " + uuid);
                 else
                     // 普通
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", AnimationColorOut),
-                        "MyExtraButton Color " + Uuid);
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", animationColorOut),
+                        "MyExtraButton Color " + uuid);
             }
 
             else
             {
-                ModAnimation.AniStop("MyExtraButton Color " + Uuid);
-                if (!IsEnabled)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrushGray4");
-                else if (IsMouseOver)
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush4");
-                else
-                    PanColor.SetResourceReference(BackgroundProperty, "ColorBrush3");
+                ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
+                    !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
+                    !IsEnabled || IsMouseOver ? animationColorIn : animationColorOut,
+                    "MyExtraButton Color " + uuid, false);
             }
         }
         catch (Exception ex)
@@ -282,20 +279,20 @@ public partial class MyExtraButton
     {
         ModBase.RunInUi(() =>
         {
-            var Shape = new Border
+            var shape = new Border
             {
                 CornerRadius = new CornerRadius(1000d), BorderThickness = new Thickness(0.001d), Opacity = 0.5d,
                 RenderTransformOrigin = new Point(0.5d, 0.5d), RenderTransform = new ScaleTransform()
             };
-            Shape.SetResourceReference(Border.BackgroundProperty, "ColorBrush5");
-            PanScale.Children.Insert(0, Shape);
+            shape.SetResourceReference(Border.BackgroundProperty, "ColorBrush5");
+            PanScale.Children.Insert(0, shape);
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaScaleTransform(Shape, 13d, 1000,
+                    ModAnimation.AaScaleTransform(shape, 13d, 1000,
                         Ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
-                    ModAnimation.AaOpacity(Shape, -Shape.Opacity, 1000),
-                    ModAnimation.AaCode(() => PanScale.Children.Remove(Shape), After: true)
+                    ModAnimation.AaOpacity(shape, -shape.Opacity, 1000),
+                    ModAnimation.AaCode(() => PanScale.Children.Remove(shape), After: true)
                 }, "ExtraButton Ribble " + ModBase.GetUuid());
         });
     }

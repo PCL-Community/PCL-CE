@@ -17,7 +17,7 @@ public partial class PageDownloadCleanroom
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlCleanroomListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlCleanroomListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -31,34 +31,34 @@ public partial class PageDownloadCleanroom
         try
         {
             // 归类
-            var Dict = ModDownload.DlCleanroomListLoader.Output.Value.GroupBy(d => d.Inherit)
+            var dict = ModDownload.dlCleanroomListLoader.output.value.GroupBy(d => d.inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Pair in Dict)
+            foreach (var Pair in dict)
             {
                 if (!Pair.Value.Any())
                     continue;
                 // 增加卡片
-                var NewCard = new MyCard
+                var newCard = new MyCard
                     { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
-                var NewStack = new StackPanel
+                var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
-                NewCard.Children.Add(NewStack);
-                NewCard.SwapControl = NewStack;
-                NewCard.IsSwapped = true;
-                NewCard.InstallMethod = Stack =>
+                newCard.Children.Add(newStack);
+                newCard.swapControl = newStack;
+                newCard.IsSwapped = true;
+                newCard.InstallMethod = Stack =>
                 {
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.CleanroomDownloadListItem(
                             (ModDownload.DlCleanroomListEntry)item, ModDownloadLib.CleanroomSave_Click, true));
                 };
-                PanMain.Children.Add(NewCard);
+                PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)

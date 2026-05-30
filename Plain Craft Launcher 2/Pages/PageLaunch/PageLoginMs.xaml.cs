@@ -1,6 +1,6 @@
 using System.Security.Authentication;
 using System.Windows;
-using Microsoft.VisualBasic;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -16,38 +16,38 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
     {
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
-        BtnLogin.Text = "0%";
+        BtnLogin.Text = Lang.Number(0d, "P0");
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                ModProfile.SelectedProfile = null;
-                ModLaunch.McLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
+                ModProfile.selectedProfile = null;
+                ModLaunch.mcLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
+                while (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = $"{Math.Round(ModLaunch.McLoginMsLoader.Progress * 100d)}%");
+                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Finished)
-                    ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
-                else if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Aborted)
+                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
+                    ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
                     throw new ThreadInterruptedException();
-                else if (ModLaunch.McLoginMsLoader.Error is null)
-                    throw new Exception("未知错误！");
+                else if (ModLaunch.mcLoginMsLoader.Error is null)
+                    throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
                 else
-                    throw new Exception(ModLaunch.McLoginMsLoader.Error.Message, ModLaunch.McLoginMsLoader.Error);
+                    throw new Exception(ModLaunch.mcLoginMsLoader.Error.Message, ModLaunch.mcLoginMsLoader.Error);
             }
             catch (ThreadInterruptedException ex)
             {
-                ModMain.Hint("已取消登录！");
+                ModMain.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
@@ -61,15 +61,12 @@ public partial class PageLoginMs
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
                     ModBase.Log(ex,
-                        """
-                        正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。
-
-                        原始错误信息：
-                        """, ModBase.LogLevel.Msgbox);
+                        Lang.Text("Launch.Account.Microsoft.LoginFailed.Message") + "\r\n" + ex.Message,
+                        ModBase.LogLevel.Msgbox);
                 }
                 else
                 {
-                    ModBase.Log(ex, "正版登录尝试失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(ex, Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"), ModBase.LogLevel.Msgbox);
                 }
             }
             finally
@@ -78,7 +75,7 @@ public partial class PageLoginMs
                 {
                     BtnLogin.IsEnabled = true;
                     BtnBack.Visibility = Visibility.Visible;
-                    BtnLogin.Text = "登录";
+                    BtnLogin.Text = Lang.Text("Launch.Account.Login");
                 });
             }
         }, "Ms Login");

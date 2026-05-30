@@ -6,14 +6,15 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.UI;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public partial class PageSetupLauncherMisc
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupLauncherMisc()
     {
@@ -28,9 +29,9 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         SliderLoad();
@@ -69,12 +70,12 @@ public partial class PageSetupLauncherMisc
             Config.Debug.Reset();
             Config.System.Reset();
             ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            ModMain.Hint("已初始化杂项页设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Initialized"), ModMain.HintType.Finish, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动器-杂项页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -85,7 +86,7 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetMiscByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -93,21 +94,38 @@ public partial class PageSetupLauncherMisc
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            SetMiscByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetMiscByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetMiscByTag(sender.Tag?.ToString(), sender.Value);
+    }
+
+    private static void SetMiscByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "SystemMaxLog": Config.System.MaxGameLog = (int)value; break;
+            case "SystemDebugMode": Config.Debug.Enabled = (bool)value; break;
+            case "SystemDebugAnim": Config.Debug.AnimationSpeed = (int)value; break;
+            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool)value; break;
+            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool)value; break;
+            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool)value; break;
+            case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
+            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool)value; break;
+            case "SystemTelemetry": Config.System.Telemetry = (bool)value; break;
+            case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
+        }
     }
 
     // 网络
@@ -121,15 +139,15 @@ public partial class PageSetupLauncherMisc
     // 滑动条
     private void SliderLoad()
     {
-        SliderDebugAnim.GetHintText = new Func<object, object>(v =>
+        SliderDebugAnim.getHintText = new Func<object, object>(v =>
             (int)v > 29
-                ? "关闭"
-                : Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1) + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Convert.ToInt32(v) + 1} FPS");
+                ? Lang.Text("Common.Action.Close")
+                : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
+        SliderAniFPS.getHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
-        SliderMaxLog.GetHintText = new Func<object, object>(v =>
+        SliderMaxLog.getHintText = new Func<object, object>(v =>
         {
             var val = Convert.ToInt32(v);
             return val switch
@@ -137,7 +155,7 @@ public partial class PageSetupLauncherMisc
                 <= 5 => val * 10 + 50,
                 <= 13 => val * 50 - 150,
                 <= 28 => val * 100 - 800,
-                _ => "无限制"
+                _ => Lang.Text("Setup.Misc.Unlimited")
             };
         });
     }
@@ -145,14 +163,14 @@ public partial class PageSetupLauncherMisc
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        ModMain.Hint("此项变更将在重启 PCL 后生效");
+        ModMain.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint("部分调试信息将在刷新或启动器重启后切换显示！", Log: false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), Log: false);
     }
 
     // 自动更新
@@ -163,13 +181,10 @@ public partial class PageSetupLauncherMisc
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
         if (ModMain.MyMsgBox(
-                """
-                若选择此项，即使在将来出现严重问题时，你也无法获取相关通知。
-                例如，如果发现某个版本游戏存在严重 Bug，你可能就会因为无法得到通知而导致无法预知的后果。
-
-                一般选择 仅在有重要通知时显示公告 就可以让你尽量不受打扰了。
-                除非你在制作服务器整合包，或时常手动更新启动器，否则极度不推荐选择此项！
-                """, "警告", "我知道我在做什么", "取消", IsWarn: true) ==
+                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
+                Lang.Text("Common.Dialog.Warning"),
+                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
+                Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -196,22 +211,22 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile("选择保存位置", "PCL 全局配置.json", "PCL 配置文件(*.json)|*.json", ModBase.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.exePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        ModMain.Hint("配置导出成功！", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Setup.Misc.Export.Success"), ModMain.HintType.Finish);
         ModBase.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
     {
-        var sourcePath = SystemDialogs.SelectFile("PCL 配置文件(*.json)|*.json", "选择配置文件");
+        var sourcePath = SystemDialogs.SelectFile(Lang.Text("Setup.Misc.Export.Filter"), Lang.Text("Setup.Misc.Import.SelectTitle"));
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox("配置导入成功！请重启 PCL 以应用配置……", Button1: "重启", ForceWait: true);
-        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
+        Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
 

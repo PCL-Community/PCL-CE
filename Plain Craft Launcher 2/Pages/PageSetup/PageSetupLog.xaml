@@ -9,18 +9,18 @@
                    PanScroll="{Binding ElementName=PanBack}" RenderOptions.BitmapScalingMode="LowQuality">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <DockPanel>
-            <local:MyCard DockPanel.Dock="Top" Title="日志操作" Margin="25,25,25,5">
+            <local:MyCard DockPanel.Dock="Top" Title="{DynamicResource Setup.Misc.Log.Operations}" Margin="25,25,25,5">
                 <WrapPanel ItemHeight="35" Margin="25,40,20,20">
-                    <local:MyButton MinWidth="100" Text="导出日志" ColorType="Highlight" Margin="0,0,15,0"
+                    <local:MyButton MinWidth="100" Text="{DynamicResource Setup.Misc.Log.Export}" ColorType="Highlight" Margin="0,0,15,0"
                                     Click="ButtonExport_OnClick" />
-                    <local:MyButton MinWidth="120" Text="导出全部日志" ColorType="Normal" Margin="0,0,15,0"
+                    <local:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.ExportAll}" ColorType="Normal" Margin="0,0,15,0"
                                     Click="ButtonExportAll_OnClick" />
-                    <local:MyButton MinWidth="120" Text="打开日志目录" ColorType="Normal" Margin="0,0,15,0"
+                    <local:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.OpenDirectory}" ColorType="Normal" Margin="0,0,15,0"
                                     Click="ButtonOpenDir_OnClick" />
-                    <local:MyButton MinWidth="120" Text="清理历史日志" ColorType="Red" Click="ButtonClean_OnClick" />
+                    <local:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.ClearHistory}" ColorType="Red" Click="ButtonClean_OnClick" />
                 </WrapPanel>
             </local:MyCard>
-            <local:MyCard Title="所有日志" Margin="25,10,25,25" x:Name="PanContent">
+            <local:MyCard Title="{DynamicResource Setup.Misc.Log.AllLogs}" Margin="25,10,25,25" x:Name="PanContent">
                 <StackPanel Name="PanList" Orientation="Vertical" Margin="20,36,18,18" />
             </local:MyCard>
         </DockPanel>

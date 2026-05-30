@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -13,7 +14,7 @@ public static class UpdateHelper
     /// <param name="target">目标文件路径</param>
     public static Exception? Replace(string source, string target)
     {
-        var backup = $"{target}.bak.{DateTime.Now:yyyyMMddHHmmss}";
+        var backup = $"{target}.bak.{DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}";
         Exception? lastEx = null;
         try
         {

@@ -69,13 +69,13 @@ public sealed class UpdateService : GeneralService
             var source = args[3];
             Context.Trace($"来源: {source}");
             var ex = UpdateHelper.Replace(source, target);
-            if (ex == null) Context.Trace("替换完成");
+            if (ex is null) Context.Trace("替换完成");
             else Context.Error("替换文件出错", ex);
 
             var restart = args[4].Convert<bool>();
             if (restart)
             {
-                var restartArgs = (ex == null) ? $"finished \"{source}\"" : $"failed \"{ex.Message}\"";
+                var restartArgs = (ex is null) ? $"finished \"{source}\"" : $"failed \"{ex.Message}\"";
                 restartArgs = $"update_{restartArgs}";
                 Context.Debug($"重启中，使用参数: {restartArgs}");
                 Process.Start(target, restartArgs);

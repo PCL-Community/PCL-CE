@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.6",
+    "base": "2.15.0",
     "upstream": "2.12.1",
-    "suffix": "",
-    "code": 514
+    "suffix": "beta.1",
+    "code": 515
   },
   "licenses": [
     {
@@ -18,12 +18,6 @@
       "info": "Copyright © 2022 00ll00\nLicensed under the MIT License.",
       "website": "https://github.com/00ll00/java_launch_wrapper",
       "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
-    },
-    {
-      "name": "Newtonsoft.Json",
-      "info": "Copyright © 2007 James Newton-King\nLicensed under the MIT License.",
-      "website": "https://www.newtonsoft.com/json",
-      "license": "https://opensource.org/licenses/MIT"
     },
     {
       "name": "NAudio",
@@ -132,6 +126,18 @@
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
+    },
+    {
+      "name": "DotNet.Glob",
+      "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
+      "website": "https://github.com/dazinator/DotNet.Glob",
+      "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
     }
   ]
 }

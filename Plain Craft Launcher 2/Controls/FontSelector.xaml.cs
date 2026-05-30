@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
 
@@ -11,44 +14,41 @@ public partial class FontSelector
 {
     public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
 
-    public new static readonly DependencyProperty TooltipProperty = DependencyProperty.Register("Tooltip",
+    public static readonly DependencyProperty tooltipProperty = DependencyProperty.Register(nameof(Tooltip),
         typeof(string), typeof(FontSelector), new PropertyMetadata(null, OnTooltipChanged));
 
     private bool _isInitializing;
-    private string _pendingFontTag;
+    private bool _isListeningLanguageChanged;
+    private string? _pendingFontTag;
 
     public FontSelector()
     {
         InitializeComponent();
         Loaded += FontSelector_Loaded;
+        Unloaded += FontSelector_Unloaded;
         ComboFont.SelectionChanged += ComboFont_SelectionChanged;
     }
 
-
-    public new string Tooltip
+    public string Tooltip
     {
-        get => (string)GetValue(TooltipProperty);
-        set => SetValue(TooltipProperty, value);
+        get => (string)GetValue(tooltipProperty);
+        set => SetValue(tooltipProperty, value);
     }
 
-    public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = new();
+    public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = [];
 
     public string SelectedFontTag
     {
         get
         {
-            if (ComboFont.SelectedItem is null)
-                return "";
-            var selectedFont = ComboFont.SelectedItem as CustomFontProperties;
-            if (selectedFont is null)
-                return "";
-            return selectedFont.Tag;
+            if (ComboFont.SelectedItem is null) return "";
+            return ComboFont.SelectedItem is not CustomFontProperties selectedFont ? "" : selectedFont.Tag;
         }
         set
         {
             // 如果字体还在加载中，延迟设置
             if (CustomFontCollection.Count == 0 ||
-                (CustomFontCollection.Count == 1 && CustomFontCollection[0].Name == "加载中..."))
+                (CustomFontCollection is [{ Name: var name }] && name == Lang.Text("Common.State.Loading")))
             {
                 _pendingFontTag = value;
                 return;
@@ -56,7 +56,7 @@ public partial class FontSelector
 
             _isInitializing = true;
 
-            var targetSelection = CustomFontCollection.FirstOrDefault(i => (i.Tag ?? "") == (value ?? ""));
+            var targetSelection = CustomFontCollection.FirstOrDefault(i => i.Tag == value);
             if (targetSelection is null)
                 ComboFont.SelectedIndex = 0;
             else
@@ -80,15 +80,54 @@ public partial class FontSelector
 
     private static void OnTooltipChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        var control = d as FontSelector;
-        if (control is not null) control.ComboFont.ToolTip = e.NewValue;
+        if (d is FontSelector control) control.ComboFont.ToolTip = e.NewValue;
     }
 
     public event SelectionChangedEventHandler? SelectionChanged;
 
     private void FontSelector_Loaded(object sender, RoutedEventArgs e)
     {
-        if (CustomFontCollection.Count == 0) LoadFonts();
+        StartListeningLanguageChanged();
+
+        if (CustomFontCollection.Count == 0)
+            LoadFonts();
+        else
+            RefreshDefaultFont();
+    }
+
+    private void FontSelector_Unloaded(object sender, RoutedEventArgs e)
+    {
+        StopListeningLanguageChanged();
+    }
+
+    private void StartListeningLanguageChanged()
+    {
+        if (_isListeningLanguageChanged) return;
+        LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
+        _isListeningLanguageChanged = true;
+    }
+
+    private void StopListeningLanguageChanged()
+    {
+        if (!_isListeningLanguageChanged) return;
+        LocalizationService.LanguageChanged -= LocalizationService_LanguageChanged;
+        _isListeningLanguageChanged = false;
+    }
+
+    private void LocalizationService_LanguageChanged()
+    {
+        RefreshDefaultFont();
+    }
+
+    private void RefreshDefaultFont()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(RefreshDefaultFont);
+            return;
+        }
+
+        GetDefaultFont()?.Font = LocalizationFontService.BuildLaunchFontFamily();
     }
 
     private void LoadFonts()
@@ -97,7 +136,7 @@ public partial class FontSelector
         {
             ComboFont.IsEnabled = false;
             _isInitializing = true;
-            CustomFontCollection.Add(new CustomFontProperties { Name = "加载中..." });
+            CustomFontCollection.Add(new CustomFontProperties { Name = Lang.Text("Common.State.Loading") });
             ComboFont.SelectedIndex = 0;
 
             var availableFonts = new List<(string Name, FontFamily Font)>();
@@ -131,9 +170,8 @@ public partial class FontSelector
             CustomFontCollection.Clear();
             CustomFontCollection.Add(new CustomFontProperties
             {
-                Name = "默认",
-                Font = new FontFamily(new Uri("pack://application:,,,/"),
-                    "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"),
+                Name = Lang.Text("Common.Option.Default"),
+                Font = LocalizationFontService.BuildLaunchFontFamily(),
                 Tag = ""
             });
 
@@ -143,7 +181,7 @@ public partial class FontSelector
 
             ComboFont.IsEnabled = true;
 
-            if (_pendingFontTag != null)
+            if (_pendingFontTag is not null)
             {
                 var pendingTag = _pendingFontTag;
                 _pendingFontTag = null;
@@ -159,10 +197,38 @@ public partial class FontSelector
         if (!_isInitializing) SelectionChanged?.Invoke(sender, e);
     }
 
-    public class CustomFontProperties
+    private CustomFontProperties? GetDefaultFont()
     {
-        public string Name { get; set; }
-        public FontFamily Font { get; set; }
-        public string Tag { get; set; }
+        return CustomFontCollection.FirstOrDefault(i => string.IsNullOrEmpty(i.Tag));
+    }
+
+    public class CustomFontProperties : INotifyPropertyChanged
+    {
+        public string Name
+        {
+            get;
+            init => SetField(ref field, value);
+        } = string.Empty;
+
+        public FontFamily Font
+        {
+            get;
+            set => SetField(ref field, value);
+        } = LocalizationFontService.BuildLaunchFontFamily();
+
+        public string Tag
+        {
+            get;
+            set => SetField(ref field, value);
+        } = string.Empty;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

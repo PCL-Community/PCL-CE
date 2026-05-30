@@ -8,15 +8,16 @@ using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils.Validate;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public partial class PageInstanceServer : MyPageRight
 {
-    private const int DebounceInterval = 2000;
+    private const int debounceInterval = 2000;
 
-    public static readonly List<MinecraftServerInfo> ServerList = new();
-    private static readonly List<ServerCard> ServerCardList = new();
+    public static readonly List<MinecraftServerInfo> serverList = new();
+    private static readonly List<ServerCard> serverCardList = new();
 
     private CancellationTokenSource _cts;
 
@@ -31,20 +32,20 @@ public partial class PageInstanceServer : MyPageRight
 
     private async void PageLoaded(object e, RoutedEventArgs sender)
     {
-        ServerList.Clear();
-        ServerCardList.Clear();
+        serverList.Clear();
+        serverCardList.Clear();
         PanServers.Children.Clear();
 
         await LoadServersFromFile();
         RefreshTip();
 
-        foreach (var server in ServerList)
+        foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
         }
 
@@ -68,17 +69,17 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0)
         {
-            ModMain.Hint("无法找到服务器在列表中的索引", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
             return;
         }
 
         // Read NBT file
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
-            ModMain.Hint("无法读取服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -88,33 +89,33 @@ public partial class PageInstanceServer : MyPageRight
 
         // Write back to NBT file
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                PageInstanceLeft.Instance.PathIndie + "servers.dat"))
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
         // Remove server from list and UI
-        ServerList.RemoveAt(index);
-        ServerCardList.Remove((ServerCard)sender);
-        if (ServerList.Count == 0) RefreshTip();
+        serverList.RemoveAt(index);
+        serverCardList.Remove((ServerCard)sender);
+        if (serverList.Count == 0) RefreshTip();
 
         // Remove UI element
         PanServers.Children.Remove((UIElement)sender);
 
         // Success message
-        ModMain.Hint("服务器已移除", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Removed"), ModMain.HintType.Finish);
     }
 
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(PageInstanceLeft.Instance.PathIndie + "servers.dat",
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
-            ModMain.Hint("无法读取服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -122,7 +123,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0 || index >= nbtData.Count)
         {
-            ModMain.Hint("无法找到服务器在列表中的索引", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
             return;
         }
 
@@ -136,21 +137,21 @@ public partial class PageInstanceServer : MyPageRight
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                PageInstanceLeft.Instance.PathIndie + "servers.dat"))
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
         var serverCard = sender as ServerCard;
 
-        serverCard.Server.Name = e.Param1;
-        serverCard.Server.Address = e.Param2;
+        serverCard.server.Name = e.Param1;
+        serverCard.server.Address = e.Param2;
 
         await serverCard.RefreshServerStatus(true);
 
         // Success message
-        ModMain.Hint("服务器信息已更新", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Updated"), ModMain.HintType.Finish);
     }
 
     /// <summary>
@@ -172,35 +173,35 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical));
+            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
+            ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical));
         }
     }
 
     private void BtnRefresh_Click(object sender, MouseButtonEventArgs e)
     {
-        if ((DateTime.Now - _lastRefresh).TotalMilliseconds < DebounceInterval)
+        if ((DateTime.Now - _lastRefresh).TotalMilliseconds < debounceInterval)
         {
-            ModMain.Hint("请勿频繁刷新！");
+            ModMain.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
             return;
         }
 
         _lastRefresh = DateTime.Now;
-        ModMain.Hint("正在刷新服务器列表，请稍候...");
+        ModMain.Hint(Lang.Text("Instance.Server.RefreshingList"));
         try
         {
             RefreshServers();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
-            ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical);
+            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
+            ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical);
         }
     }
 
     private async void BtnAddServer_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = GetServerInfo(new MinecraftServerInfo { Name = "Minecraft服务器", Address = "" });
+        var result = GetServerInfo(new MinecraftServerInfo { Name = Lang.Text("Instance.Server.DefaultName"), Address = "" });
         if (result.Success)
         {
             var newServer = new MinecraftServerInfo
@@ -209,20 +210,20 @@ public partial class PageInstanceServer : MyPageRight
                 Address = result.Address,
                 Status = ServerStatus.Unknown
             };
-            ServerList.Add(newServer);
+            serverList.Add(newServer);
 
             RefreshTip();
 
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(newServer);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
             await serverCard.RefreshServerStatus(false);
 
-            var serversDatPath = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat");
+            var serversDatPath = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
 
             NbtList nbtData;
             if (!File.Exists(serversDatPath))
@@ -250,12 +251,12 @@ public partial class PageInstanceServer : MyPageRight
 
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
-        var newName = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name,
+        var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
             [new NullOrWhiteSpaceValidator()]);
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
-        var newAddress = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address,
+        var newAddress = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.AddressPrompt"), server.Address,
             [new NullOrWhiteSpaceValidator()]);
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
         return (newName, newAddress, true);
@@ -266,9 +267,9 @@ public partial class PageInstanceServer : MyPageRight
     /// </summary>
     private async Task LoadServersFromFile()
     {
-        ServerList.Clear();
+        serverList.Clear();
 
-        var serversFile = PageInstanceLeft.Instance.PathIndie + "servers.dat";
+        var serversFile = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 
@@ -280,7 +281,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取servers.dat文件失败");
+            ModBase.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
         }
     }
 
@@ -309,7 +310,7 @@ public partial class PageInstanceServer : MyPageRight
                     ModBase.Log($"  名字: {name}");
                     ModBase.Log($"  IP: {ip}");
                     // Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
-                    ServerList.Add(new MinecraftServerInfo
+                    serverList.Add(new MinecraftServerInfo
                     {
                         Name = name,
                         Address = ip,
@@ -334,29 +335,29 @@ public partial class PageInstanceServer : MyPageRight
 
         RefreshTip();
 
-        foreach (var server in ServerList)
+        foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
         }
     }
 
     private void RefreshTip()
     {
-        if (ServerList.Count == 0)
+        if (serverList.Count == 0)
         {
-            ModBase.Log("没有找到任何服务器");
+            ModBase.Log(Lang.Text("Instance.Server.NoServersFound"));
             PanNoServer.Visibility = Visibility.Visible;
             PanContent.Visibility = Visibility.Collapsed;
             PanServers.Visibility = Visibility.Collapsed;
             return;
         }
 
-        ModBase.Log("找到服务器列表");
+        ModBase.Log(Lang.Text("Instance.Server.FoundServers"));
         PanNoServer.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Visible;
         PanServers.Visibility = Visibility.Visible;
@@ -377,7 +378,7 @@ public partial class PageInstanceServer : MyPageRight
         var tasks = new List<Task>();
         try
         {
-            var snapshot = ServerCardList.ToList();
+            var snapshot = serverCardList.ToList();
             foreach (var server in snapshot)
             {
                 var currentServer = server;
@@ -418,8 +419,8 @@ public partial class PageInstanceServer : MyPageRight
     {
         try
         {
-            var addr = await ServerAddressResolver.GetReachableAddressAsync(server.Address, token);
-            using (var query = McPingServiceFactory.CreateService(addr.Ip, addr.Port))
+            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(server.Address, token);
+            using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
                 McPingResult? result;
                 ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);

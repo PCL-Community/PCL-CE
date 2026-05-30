@@ -9,10 +9,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL
 {
@@ -35,7 +37,7 @@ namespace PCL
     /// </summary>
     public static class CustomEventService
     {
-        public static readonly DependencyProperty EventsProperty =
+        public static readonly DependencyProperty eventsProperty =
             DependencyProperty.RegisterAttached(
                 "Events",
                 typeof(CustomEventCollection),
@@ -44,17 +46,17 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEvents(DependencyObject d, CustomEventCollection value) =>
-            d.SetValue(EventsProperty, value);
+            d.SetValue(eventsProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEventCollection GetEvents(DependencyObject d)
         {
-            if (d.GetValue(EventsProperty) == null)
-                d.SetValue(EventsProperty, new CustomEventCollection());
-            return (CustomEventCollection)d.GetValue(EventsProperty);
+            if (d.GetValue(eventsProperty) is null)
+                d.SetValue(eventsProperty, new CustomEventCollection());
+            return (CustomEventCollection)d.GetValue(eventsProperty);
         }
 
-        public static readonly DependencyProperty EventTypeProperty =
+        public static readonly DependencyProperty eventTypeProperty =
             DependencyProperty.RegisterAttached(
                 "EventType",
                 typeof(CustomEvent.EventType),
@@ -63,13 +65,13 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventType(DependencyObject d, CustomEvent.EventType value) =>
-            d.SetValue(EventTypeProperty, value);
+            d.SetValue(eventTypeProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEvent.EventType GetEventType(DependencyObject d) =>
-            (CustomEvent.EventType)d.GetValue(EventTypeProperty);
+            (CustomEvent.EventType)d.GetValue(eventTypeProperty);
 
-        public static readonly DependencyProperty EventDataProperty =
+        public static readonly DependencyProperty eventDataProperty =
             DependencyProperty.RegisterAttached(
                 "EventData",
                 typeof(string),
@@ -78,11 +80,11 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventData(DependencyObject d, string value) =>
-            d.SetValue(EventDataProperty, value);
+            d.SetValue(eventDataProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static string GetEventData(DependencyObject d) =>
-            (string)d.GetValue(EventDataProperty);
+            (string)d.GetValue(eventDataProperty);
     }
 
     /// <summary>
@@ -185,7 +187,7 @@ namespace PCL
                     case EventType.启动游戏:
                         if (args[0] == "\\current")
                         {
-                            if (ModMinecraft.McInstanceSelected == null)
+                            if (ModMinecraft.McInstanceSelected is null)
                             {
                                 ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
                                 return;
@@ -196,8 +198,8 @@ namespace PCL
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
-                                ServerIp = args.Length >= 2 ? args[1] : null,
-                                Instance = new ModMinecraft.McInstance(args[0])
+                                serverIp = args.Length >= 2 ? args[1] : null,
+                                instance = new ModMinecraft.McInstance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
@@ -212,7 +214,7 @@ namespace PCL
 
                     case EventType.刷新主页:
                     case EventType.刷新页面:
-                        if (ModMain.FrmMain?.PageRight is IRefreshable refreshable)
+                        if (ModMain.frmMain?.pageRight is IRefreshable refreshable)
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
@@ -225,7 +227,7 @@ namespace PCL
                         break;
 
                     case EventType.刷新主页市场:
-                        ModMain.FrmHomePageMarket?.Refresh();
+                        ModMain.frmHomePageMarket?.Refresh();
                         if (args[0] == "")
                             ModMain.Hint("已刷新主页市场！", ModMain.HintType.Finish);
                         break;
@@ -255,7 +257,7 @@ namespace PCL
                         ModMain.MyMsgBox(
                             args[1].Replace("\\n", "\r\n"),
                             args[0].Replace("\\n", "\r\n"),
-                            args.Length > 2 ? args[2] : "确定");
+                            args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
                         break;
 
                     case EventType.弹出提示:
@@ -274,7 +276,7 @@ namespace PCL
                             var subType = args.Length == 1
                                 ? FormMain.PageSubType.Default
                                 : (FormMain.PageSubType)Enum.Parse(typeof(FormMain.PageSubType), args[1], true);
-                            ModMain.FrmMain?.PageChange(pageType, subType);
+                            ModMain.frmMain?.PageChange(pageType, subType);
                         });
                         break;
 
@@ -309,7 +311,7 @@ namespace PCL
                         }
                         catch
                         {
-                            PageToolsTest.StartCustomDownload(args[0], "未知");
+                            PageToolsTest.StartCustomDownload(args[0], Lang.Text("Common.State.Unknown"));
                         }
                         break;
 
@@ -317,7 +319,8 @@ namespace PCL
                     case EventType.写入设置:
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
-                        ModBase.Setup.SetSafe(args[0], args[1], instance: ModMinecraft.McInstanceSelected);
+                        if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
+                            item.SetValueNoType(args[1], ModMinecraft.McInstanceSelected?.PathInstance);
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;
@@ -343,8 +346,8 @@ namespace PCL
             }
         }
 
-        public static string GetCustomVariable(string name) =>
-            States.CustomVariables.TryGetValue(name, out var value) ? value : null;
+        public static string GetCustomVariable(string name, string defaultValue = "") =>
+            States.CustomVariables.TryGetValue(name, out var value) ? value : defaultValue;
 
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
@@ -407,10 +410,10 @@ namespace PCL
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help");
+                location = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)
@@ -428,7 +431,7 @@ namespace PCL
 
         private static bool EventSafetyConfirm(string message)
         {
-            if (ModBase.Setup.Get("HintCustomCommand") == "True")
+            if (States.Hint.HomepageCommand)
                 return true;
 
             switch (ModMain.MyMsgBox(
@@ -436,12 +439,12 @@ namespace PCL
                 "执行确认",
                 "继续",
                 "继续且今后不再要求确认",
-                "取消"))
+                Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                     return true;
                 case 2:
-                    ModBase.Setup.Set("HintCustomCommand", "True");
+                    States.Hint.HomepageCommand = true;
                     return true;
                 default:
                     return false;

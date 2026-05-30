@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
 using PCL.Core.Utils;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -22,32 +22,32 @@ public partial class PageSetupFeedback
         Upnext = 8550609020L
     }
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> loader;
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
     private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, loader, _ => RefreshList());
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
     }
 
     public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
     {
-        JArray list;
-        list = (JArray)Requester.FetchJson(
+        JsonArray list;
+        list = (JsonArray)Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
             new RequestParam
             {
@@ -55,12 +55,12 @@ public partial class PageSetupFeedback
                 UseBrowserUserAgent = true
             }); // 获取近期 200 条数据就够了
         if (list is null)
-            throw new Exception("无法获取到内容");
+            throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
-        foreach (JObject i in list)
+        foreach (JsonObject i in list)
         {
             var pullRequestToken = i["pull_request"];
-            if (pullRequestToken is not null && pullRequestToken.Type != JTokenType.Null) continue;
+            if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
 
             var item = new Feedback
             {
@@ -69,14 +69,14 @@ public partial class PageSetupFeedback
                 Content = i["body"].ToString(),
                 Time = DateTime.Parse(i["created_at"].ToString()),
                 User = i["user"]["login"].ToString(),
-                ID = (string)i["number"],
+                ID = i["number"].ToString(),
                 Open = i["state"].ToString().Equals("open"),
                 IsPullRequest = false
             };
 
-            var issueType = "未分类";
+            var issueType = Lang.Text("Setup.Feedback.Uncategorized");
             var typeToken = i["type"];
-            if (typeToken is not null && typeToken.Type == JTokenType.Object)
+            if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
             {
                 var typeNameToken = typeToken["name"];
                 if (typeNameToken is not null) issueType = typeNameToken.ToString().ToLower();
@@ -84,24 +84,24 @@ public partial class PageSetupFeedback
 
             item.Type = issueType;
 
-            var thisTags = (JArray)i["labels"];
-            foreach (JObject thisTag in thisTags)
-                item.Tags.Add((string)thisTag["id"]);
+            var thisTags = (JsonArray)i["labels"];
+            foreach (JsonObject thisTag in thisTags)
+                item.Tags.Add(thisTag["id"].ToString());
             res.Add(item);
         }
 
-        Task.Output = res;
+        Task.output = res;
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
     {
-        var commonInfo = $"{item.User} | {item.Time:yyyy-MM-dd HH:mm:ss}";
+        var commonInfo = $"{item.User} | {Lang.Date(item.Time, "G")}";
 
         var li = new MyListItem();
         li.Title = item.Title;
         li.Type = MyListItem.CheckType.Clickable;
         li.Info = commonInfo;
-        li.Logo = ModBase.PathImage + logo;
+        li.Logo = ModBase.pathImage + logo;
         li.Tags = item.Type;
 
         li.Click += (sender, e) => ShowFeedbackDetail(item);
@@ -111,14 +111,12 @@ public partial class PageSetupFeedback
 
     private void ShowFeedbackDetail(Feedback item)
     {
-        var timeSpanText = TimeUtils.GetTimeSpanString(item.Time - DateTime.Now, false);
+        var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
         switch (ModMain.MyMsgBoxMarkdown(
-                    $"""
-                     提交者：{item.User}（{timeSpanText}）
-                     类型：{item.Type}
-
-                     {item.Content}
-                     """, $"#{item.ID} {item.Title}", Button2: "查看详情"))
+                    Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
+                    Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
+                    item.Content,
+                    $"#{item.ID} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {
@@ -145,7 +143,7 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in Loader.Output)
+        foreach (var item in loader.output)
         {
             if (item.Tags.Contains(((long)TagID.Processing).ToString()))
                 PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));

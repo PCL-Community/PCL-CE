@@ -1,7 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using PCL.Core.Utils;
 
 namespace PCL.Core.IO.Net.Http;
 
@@ -30,10 +31,10 @@ public static class HttpContentExtension
             return requestMessage;
         }
 
-        public HttpRequestMessage WithJsonContent<T>(T content, string? contentType = null)
+        public HttpRequestMessage WithJsonContent<T>(T content, string? contentType = null, JsonSerializerOptions? options = null)
         {
             requestMessage.Content = new StringContent(
-                JsonSerializer.Serialize(content),
+                JsonSerializer.Serialize(content, options ?? JsonCompat.SerializerOptions),
                 Encoding.UTF8,
                 contentType ?? "application/json");
             return requestMessage;

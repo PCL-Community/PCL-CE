@@ -6,19 +6,21 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Dapper;
 using Microsoft.Data.Sqlite;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 using PCL.Network;
 using ProtoBuf;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -181,6 +183,45 @@ public static class ModComp
         World = 7
     }
 
+    public static string GetCompTypeName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.Type.Mod",
+        CompType.ModPack => "Download.Comp.Type.Modpack",
+        CompType.ResourcePack => "Download.Comp.Type.ResourcePack",
+        CompType.Shader => "Download.Comp.Type.Shader",
+        CompType.DataPack => "Download.Comp.Type.DataPack",
+        CompType.Plugin => "Download.Comp.Type.Plugin",
+        CompType.World => "Download.Comp.Type.World",
+        CompType.Schematic => "Download.Comp.Type.Schematic",
+        _ => "Download.Comp.Type.Unknown"
+    });
+
+    public static string GetCompLoadingName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.List.Loading.Mod",
+        CompType.ModPack => "Download.Comp.List.Loading.Modpack",
+        CompType.ResourcePack => "Download.Comp.List.Loading.ResourcePack",
+        CompType.Shader => "Download.Comp.List.Loading.Shader",
+        CompType.DataPack => "Download.Comp.List.Loading.DataPack",
+        CompType.Plugin => "Download.Comp.List.Loading.Plugin",
+        CompType.World => "Download.Comp.List.Loading.World",
+        CompType.Schematic => "Download.Comp.List.Loading.Schematic",
+        _ => "Download.Comp.List.Loading.Unknown"
+    });
+
+    public static string GetCompSearchName(CompType type) => Lang.Text(type switch
+    {
+        CompType.Mod => "Download.Comp.List.Search.Mod",
+        CompType.ModPack => "Download.Comp.List.Search.Modpack",
+        CompType.ResourcePack => "Download.Comp.List.Search.ResourcePack",
+        CompType.Shader => "Download.Comp.List.Search.Shader",
+        CompType.DataPack => "Download.Comp.List.Search.DataPack",
+        CompType.Plugin => "Download.Comp.List.Search.Plugin",
+        CompType.World => "Download.Comp.List.Search.World",
+        CompType.Schematic => "Download.Comp.List.Search.Schematic",
+        _ => "Download.Comp.List.Search.Unknown"
+    });
+
     #region CompFavorites | 收藏
 
     public class CompFavorites
@@ -196,20 +237,20 @@ public static class ModComp
             {
                 if (_FavoritesList is null)
                 {
-                    var RawData = States.Game.CompFavorites;
-                    List<FavData> RawList = null;
+                    var rawData = States.Game.CompFavorites;
+                    List<FavData> rawList = null;
                     // 尝试作为新格式解析
                     try
                     {
-                        RawList = JsonSerializer.Deserialize<List<FavData>>(RawData);
+                        rawList = JsonSerializer.Deserialize<List<FavData>>(rawData, JsonCompat.SerializerOptions);
                     }
                     catch (Exception ex1)
                     {
                         // 尝试作为旧格式（HashSet）迁移
                         try
                         {
-                            var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData);
-                            if (Migrate is not null) RawList = new List<FavData> { GetNewFav("默认", Migrate) };
+                            var migrate = JsonSerializer.Deserialize<HashSet<string>>(rawData, JsonCompat.SerializerOptions);
+                            if (migrate is not null) rawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), migrate) };
                         }
                         catch (Exception ex2)
                         {
@@ -218,8 +259,8 @@ public static class ModComp
                     }
 
                     // 最终兜底：确保至少有一个收藏夹
-                    if (RawList is null || RawList.Count == 0) RawList = new List<FavData> { GetNewFav("默认", null) };
-                    _FavoritesList = RawList;
+                    if (rawList is null || rawList.Count == 0) rawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), null) };
+                    _FavoritesList = rawList;
                     Save();
                 }
 
@@ -230,8 +271,8 @@ public static class ModComp
                 _FavoritesList = value;
                 foreach (var item in _FavoritesList)
                     item.Notes = item.Notes.Where(n => !string.IsNullOrWhiteSpace(n.Value)).ToDictionary();
-                var RawList = JArray.FromObject(_FavoritesList);
-                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList);
+                var rawList = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
+                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
             }
         }
 
@@ -239,7 +280,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Serialize(Data);
+                return JsonSerializer.Serialize(Data, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {
@@ -253,7 +294,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Deserialize<HashSet<string>>(Code);
+                return JsonSerializer.Deserialize<HashSet<string>>(Code, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {
@@ -270,36 +311,36 @@ public static class ModComp
         /// <param name="Pos"></param>
         public static void ShowMenu(CompProject Project, UIElement Pos, Action ClosedCallBack = null)
         {
-            var Body = new ContextMenu();
+            var body = new ContextMenu();
             foreach (var i in FavoritesList)
             {
-                var Item = new MyMenuItem();
-                Item.MaxWidth = 240d;
-                var HasFavs = i.Favs.Contains(Project.Id);
-                if (HasFavs)
+                var item = new MyMenuItem();
+                item.MaxWidth = 240d;
+                var hasFavs = i.Favs.Contains(Project.id);
+                if (hasFavs)
                 {
-                    Item.Header = $"取消收藏 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeFill;
+                    item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
+                    item.Icon = Icon.IconButtonLikeFill;
                 }
                 else
                 {
-                    Item.Header = $"收藏到 {i.Name}";
-                    Item.Icon = ModBase.Logo.IconButtonLikeLine;
+                    item.Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name);
+                    item.Icon = Icon.IconButtonLikeLine;
                 }
 
-                Item.Click += (_, _) =>
+                item.Click += (_, _) =>
                 {
                     try
                     {
-                        if (HasFavs)
+                        if (hasFavs)
                         {
-                            i.Favs.Remove(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 从 {i.Name} 中删除", ModMain.HintType.Finish);
+                            i.Favs.Remove(Project.id);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
                         else
                         {
-                            i.Favs.Add(Project.Id);
-                            ModMain.Hint($"已将 {Project.TranslatedName} 添加到 {i.Name} 中", ModMain.HintType.Finish);
+                            i.Favs.Add(Project.id);
+                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", Project.TranslatedName, i.Name), ModMain.HintType.Finish);
                         }
 
                         Save();
@@ -309,13 +350,13 @@ public static class ModComp
                         ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
-                Body.Items.Add(Item);
+                body.Items.Add(item);
             }
 
-            Body.Closed += (_, _) => ClosedCallBack?.Invoke();
-            Body.Placement = PlacementMode.Bottom;
-            Body.PlacementTarget = Pos;
-            Body.IsOpen = true;
+            body.Closed += (_, _) => ClosedCallBack?.Invoke();
+            body.Placement = PlacementMode.Bottom;
+            body.PlacementTarget = Pos;
+            body.IsOpen = true;
         }
 
         /// <summary>
@@ -323,25 +364,27 @@ public static class ModComp
         /// </summary>
         public static void ShowMenu(List<CompProject> Project, UIElement Pos, Action ClosedCallBack = null)
         {
-            var Body = new ContextMenu();
+            var body = new ContextMenu();
             foreach (var i in FavoritesList)
             {
-                var Item = new MyMenuItem
+                var item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = $"收藏到 {i.Name}"
+                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name)
                 };
-                Item.Click += (_, _) =>
+                item.Click += (_, _) =>
                 {
                     try
                     {
-                        var Count = i.Favs.Count;
-                        Project.Select(p => p.Id).ToList().ForEach(x => i.Favs.Add(x));
+                        var count = i.Favs.Count;
+                        Project.Select(p => p.id).ToList().ForEach(x => i.Favs.Add(x));
                         Save();
-                        var SuccessCount = i.Favs.Count - Count;
-                        var FailedCount = Project.Count - SuccessCount;
+                        var successCount = i.Favs.Count - count;
+                        var failedCount = Project.Count - successCount;
                         ModMain.Hint(
-                            $"已将 {SuccessCount} 个资源添加到 {i.Name} 中{(FailedCount > 0 ? $"，{FailedCount} 个资源已添加" : "")}！",
+                            Lang.Text(failedCount > 0
+                                ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
+                                : "Download.Comp.Detail.Favorites.BulkAdd", successCount, i.Name, failedCount),
                             ModMain.HintType.Finish);
                     }
                     catch (Exception ex)
@@ -349,13 +392,13 @@ public static class ModComp
                         ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
-                Body.Items.Add(Item);
+                body.Items.Add(item);
             }
 
-            Body.Closed += (_, _) => ClosedCallBack?.Invoke();
-            Body.Placement = PlacementMode.Bottom;
-            Body.PlacementTarget = Pos;
-            Body.IsOpen = true;
+            body.Closed += (_, _) => ClosedCallBack?.Invoke();
+            body.Placement = PlacementMode.Bottom;
+            body.PlacementTarget = Pos;
+            body.IsOpen = true;
         }
 
         /// <summary>
@@ -448,16 +491,15 @@ public static class ModComp
         /// <returns></returns>
         public static async Task<List<CompProject>> GetListByIdsFromModrinthAsync(List<string> Ids)
         {
-            var Res = new List<CompProject>();
+            var res = new List<CompProject>();
             try
             {
                 await Task.Run(() =>
                 {
-                    var RawProjectsData =
-                        ModDownload.DlModRequest($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]",
-                            true);
-                    foreach (var RawData in (IEnumerable)RawProjectsData)
-                        Res.Add(new CompProject((JObject)RawData));
+                    var rawProjectsData =
+                        ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]");
+                    foreach (var RawData in (IEnumerable)rawProjectsData)
+                        res.Add(new CompProject((JsonObject)RawData));
                 });
             }
             catch (Exception ex)
@@ -465,7 +507,7 @@ public static class ModComp
                 ModBase.Log(ex, "从 Modrinth 获取数据失败");
             }
 
-            return Res;
+            return res;
         }
 
         /// <summary>
@@ -484,21 +526,21 @@ public static class ModComp
                     // 构建请求 Body，建议使用 string.Join
                     var jsonBody = "{\"modIds\": [" + string.Join(",", ids) + "]}";
 
-                    // DlModRequest 返回 object，先强转 JObject，再获取 "data" 并强转为 JArray
-                    var response = (JObject)ModDownload.DlModRequest(
+                    // DlModRequest 返回 object，先强转 JsonObject，再获取 "data" 并强转为 JsonArray
+                    var response = ModDownload.DlModRequest<JsonObject>(
                         "https://api.curseforge.com/v1/mods",
                         "POST",
                         jsonBody,
                         "application/json"
                     );
 
-                    var rawProjectsData = (JArray)response["data"];
+                    var rawProjectsData = (JsonArray)response["data"];
 
                     // 2. 使用 LINQ 快速转换并填充列表
-                    if (rawProjectsData != null)
+                    if (rawProjectsData is not null)
                     {
                         var projectList = rawProjectsData
-                            .Cast<JObject>()
+                            .Cast<JsonObject>()
                             .Select(data => new CompProject(data))
                             .ToList();
 
@@ -552,7 +594,7 @@ public static class ModComp
     public class CompClipboard
     {
         // 剪贴板已读取内容
-        public static string? CurrentText;
+        public static string? currentText;
 
         // 识别剪贴板内容
         public static void GetClipboardResource()
@@ -560,8 +602,8 @@ public static class ModComp
             string? text = null;
             ModBase.RunInUiWait(() => text = Clipboard.GetText());
 
-            if (string.IsNullOrEmpty(text) || text == CurrentText) return;
-            CurrentText = text;
+            if (string.IsNullOrEmpty(text) || text == currentText) return;
+            currentText = text;
 
             // 在新线程中处理网络请求
             ModBase.RunInNewThread(() =>
@@ -582,13 +624,13 @@ public static class ModComp
                         slug = parts[3];
 
                         // 获取资源信息
-                        var json = (JObject)ModDownload.DlModRequest(
-                            $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}", true);
-                        var dataArray = (JArray)json["data"];
+                        var json = ModDownload.DlModRequest<JsonObject>(
+                            $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}");
+                        var dataArray = (JsonArray)json["data"];
 
                         if (dataArray.Any())
                         {
-                            var firstData = (JObject)dataArray[0];
+                            var firstData = (JsonObject)dataArray[0];
                             var receivedClassId = firstData["classId"]?.ToString();
 
                             // 映射分类 ID
@@ -604,10 +646,9 @@ public static class ModComp
                                 receivedClassId != targetClassId)
                             {
                                 // 如果分类不匹配，带上 classId 重新搜索
-                                json = (JObject)ModDownload.DlModRequest(
-                                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}",
-                                    true);
-                                dataArray = (JArray)json["data"];
+                                json = ModDownload.DlModRequest<JsonObject>(
+                                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}");
+                                dataArray = (JsonArray)json["data"];
                             }
 
                             if (dataArray.Any()) projectId = dataArray[0]["id"]?.ToString();
@@ -620,8 +661,7 @@ public static class ModComp
                         if (parts.Length < 3) return;
 
                         slug = parts[2];
-                        var json = (JObject)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{slug}",
-                            true);
+                        var json = ModDownload.DlModRequest<JsonObject>($"https://api.modrinth.com/v2/project/{slug}");
                         projectId = json["id"]?.ToString();
                     }
                     else
@@ -650,10 +690,10 @@ public static class ModComp
                                 return;
                             }
 
-                            ModMain.FrmMain.PageChange(new FormMain.PageStackData
+                            ModMain.frmMain.PageChange(new FormMain.PageStackData
                             {
-                                Page = FormMain.PageType.CompDetail,
-                                Additional = (compProjects.First(), new List<string>(), string.Empty, CompLoaderType.Any,
+                                page = FormMain.PageType.CompDetail,
+                                additional = (compProjects.First(), new List<string>(), string.Empty, CompLoaderType.Any,
                                     CompType.Any, null, null, null)
                             });
                         }
@@ -688,7 +728,7 @@ public static class ModComp
                     trueDbFile.CopyTo(ms);
                     ms.Seek(0L, SeekOrigin.Begin);
                     var fileHash = ModBase.GetHexString(SHA1Provider.Instance.ComputeHash(ms));
-                    var dbDir = Path.Combine(ModBase.PathTemp, "Cache");
+                    var dbDir = Path.Combine(ModBase.pathTemp, "Cache");
                     var dbPath = Path.Combine(dbDir, $"ModData{fileHash}.sqlite");
 
                     if (File.Exists(dbPath) && !IsDatabaseValid(dbPath))
@@ -844,964 +884,546 @@ public static class ModComp
         /// <summary>
         ///     CurseForge 文件列表的数字 ID。Modrinth 工程的此项无效。
         /// </summary>
-        public readonly List<int> CurseForgeFileIds;
+        public readonly List<int> curseForgeFileIds;
 
         /// <summary>
         ///     英文描述。
         /// </summary>
-        public readonly string Description;
+        public readonly string description;
 
         /// <summary>
         ///     下载量计数。注意，该计数仅为一个来源，无法反应两边加起来的下载量！
         /// </summary>
-        public readonly int DownloadCount;
+        public readonly int downloadCount;
 
         /// <summary>
         ///     支持的 Drop 编号，从高到低排序，不为 Nothing。
         ///     例如：261（26.1.x）、180（1.18.x）。
         /// </summary>
-        public readonly List<int> Drops;
+        public readonly List<int> drops;
 
         // 源信息
 
         /// <summary>
         ///     该工程信息来自 CurseForge 还是 Modrinth。
         /// </summary>
-        public readonly bool FromCurseForge;
+        public readonly bool fromCurseForge;
 
         /// <summary>
         ///     CurseForge 工程的数字 ID。Modrinth 工程的乱码 ID。
         /// </summary>
-        public readonly string Id;
+        public readonly string id;
 
         /// <summary>
         ///     最后一次更新的时间。可能为 Nothing。
         /// </summary>
-        public readonly DateTime? LastUpdate;
+        public readonly DateTime? lastUpdate;
 
         /// <summary>
         ///     支持的 Mod 加载器列表。可能为空。
         /// </summary>
-        public readonly List<CompLoaderType> ModLoaders;
+        public readonly List<CompLoaderType> modLoaders;
 
         // 描述性信息
 
         /// <summary>
         ///     原始的英文名称。
         /// </summary>
-        public readonly string RawName;
+        public readonly string rawName;
 
         /// <summary>
         ///     工程的短名。例如 technical-enchant。
         /// </summary>
-        public readonly string Slug;
+        public readonly string slug;
 
         /// <summary>
         ///     描述性标签的内容。已转换为中文。
         /// </summary>
-        public readonly List<string> Tags;
+        public readonly List<string> tags;
 
         /// <summary>
         ///     工程的种类。
         ///     由于 Modrinth 混合使用 Mod 和数据包，结果不一定准确。
         /// </summary>
-        public readonly CompType Type;
+        public readonly CompType type;
 
         /// <summary>
         ///     来源网站的工程页面网址。确保格式一定标准。
         ///     CurseForge：https://www.curseforge.com/minecraft/mc-mods/jei
         ///     Modrinth：https://modrinth.com/mod/technical-enchant
         /// </summary>
-        public readonly string Website;
+        public readonly string website;
 
         private CompDatabaseEntry _DatabaseEntry;
 
         // 数据库信息
 
-        private bool LoadedDatabase;
+        private bool loadedDatabase;
 
         /// <summary>
         ///     Logo 图片的下载地址。
         ///     若为 Nothing 则没有，保证不为空字符串。
         /// </summary>
-        public string LogoUrl;
+        public string logoUrl;
 
         // 实例化
 
         /// <summary>
         ///     从工程 Json 中初始化实例。若出错会抛出异常。
         /// </summary>
-        public CompProject(JObject Data)
+        public CompProject(JsonObject data)
         {
-            if (Data.ContainsKey("Tags"))
-            {
-                #region CompJson
+            var result = data.ContainsKey("Tags")
+                ? _BuildFromCompJson(data)
+                : data.ContainsKey("summary")
+                    ? _BuildFromCurseForge(data)
+                    : _BuildFromModrinth(data);
 
-                FromCurseForge = (string)Data["DataSource"] == "CurseForge";
-                Type = (CompType)Data["Type"].ToObject<int>();
-                Slug = (string)Data["Slug"];
-                Id = (string)Data["Id"];
-                if (Data.ContainsKey("CurseForgeFileIds"))
-                    CurseForgeFileIds = ((JArray)Data["CurseForgeFileIds"]).Select(t => t.ToObject<int>()).ToList();
-                RawName = (string)Data["RawName"];
-                Description = (string)Data["Description"];
-                Website = (string)Data["Website"];
-                if (Data.ContainsKey("LastUpdate"))
-                    LastUpdate = (DateTime?)Data["LastUpdate"];
-                DownloadCount = (int)Data["DownloadCount"];
-                if (Data.ContainsKey("ModLoaders"))
-                    ModLoaders = ((JArray)Data["ModLoaders"]).Select(t => (CompLoaderType)t.ToObject<int>()).ToList();
-                else
-                    ModLoaders = new List<CompLoaderType>();
-                Tags = ((JArray)Data["Tags"]).Select(t => t.ToString()).ToList();
-                if (Data.ContainsKey("LogoUrl"))
-                    LogoUrl = (string)Data["LogoUrl"];
-                if (Data.ContainsKey("Drops"))
-                    Drops = ((JArray)Data["Drops"]).Select(t => t.ToObject<int>()).ToList();
-                else
-                    Drops = new List<int>();
+            if (!data.ContainsKey("Tags"))
+            {
+                if (result.Tags.Count == 0)
+                    result.Tags.Add(Lang.Text("Download.Comp.Category.Other"));
+
+                result.Tags = result.Tags.Distinct().ToList();
+                result.Tags.Sort();
+
+                result.ModLoaders = result.ModLoaders
+                    .Distinct()
+                    .OrderBy(t => t)
+                    .ToList();
             }
 
-            #endregion
-
-            else
-            {
-                FromCurseForge = Data.ContainsKey("summary");
-                if (FromCurseForge)
-                {
-                    #region CurseForge
-
-                    // 简单信息
-                    Id = (string)Data["id"];
-                    Slug = (string)Data["slug"];
-                    RawName = (string)Data["name"];
-                    Description = (string)Data["summary"];
-                    Website = Data["links"]["websiteUrl"].ToString().TrimEnd('/');
-                    LastUpdate = (DateTime?)Data["dateReleased"]; // #1194
-                    DownloadCount = (int)Data["downloadCount"];
-                    if (Data["logo"].Count() > 0)
-                    {
-                        if (Data["logo"]["thumbnailUrl"] is null || (string)Data["logo"]["thumbnailUrl"] == "")
-                            LogoUrl = (string)Data["logo"]["url"];
-                        else
-                            LogoUrl = (string)Data["logo"]["thumbnailUrl"];
-                    }
-
-                    if (string.IsNullOrEmpty(LogoUrl))
-                        LogoUrl = null;
-                    // Type
-                    if (Website.Contains("/mc-mods/") || Website.Contains("/mod/"))
-                        Type = CompType.Mod;
-                    else if (Website.Contains("/modpacks/"))
-                        Type = CompType.ModPack;
-                    else if (Website.Contains("/resourcepacks/"))
-                        Type = CompType.ResourcePack;
-                    else if (Website.Contains("/texture-packs/"))
-                        Type = CompType.ResourcePack;
-                    else if (Website.Contains("/shaders/"))
-                        Type = CompType.Shader;
-                    else if (Website.Contains("/worlds/"))
-                        Type = CompType.World;
-                    else
-                        Type = CompType.DataPack;
-                    // FileIndexes / VanillaMajorVersions / ModLoaders
-                    ModLoaders = new List<CompLoaderType>();
-                    var Files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
-                    foreach (var File in Data["latestFiles"] ?? new JArray())
-                    {
-                        var NewFile = new CompFile((JObject)File, Type);
-                        if (!NewFile.Available)
-                            continue;
-                        ModLoaders.AddRange(NewFile.ModLoaders);
-                        var GameVersions = File["gameVersions"].ToObject<List<string>>();
-                        if (!GameVersions.Any(v => ModMinecraft.McInstanceInfo.IsFormatFit(v)))
-                            continue;
-                        Files.Add(new KeyValuePair<int, List<string>>((int)File["id"], GameVersions));
-                    }
-
-                    foreach (var File in Data["latestFilesIndexes"] ?? new JArray()) // 这俩玩意儿包含的文件不一样，见 #3599
-                    {
-                        if (!ModMinecraft.McInstanceInfo.IsFormatFit((string)File["gameVersion"]))
-                            continue;
-                        Files.Add(new KeyValuePair<int, List<string>>((int)File["fileId"],
-                            new[] { File["gameVersion"].ToString() }.ToList()));
-                    }
-
-                    CurseForgeFileIds = Files.Select(f => f.Key).Distinct().ToList();
-                    Drops = Files.SelectMany(f => f.Value).Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
-                        .Where(v => v > 0).Distinct().OrderByDescending(v => v).ToList();
-                    ModLoaders = ModLoaders.Distinct().OrderBy(t => t).ToList();
-                    // Tags
-                    Tags = new List<string>();
-                    foreach (var Category in (Data["categories"] ?? new JArray()).Select(t => (int)t["id"]).Distinct()
-                             .OrderByDescending(c => c)) // 镜像源 API 可能丢失此字段 (4267#issuecomment-2254590831)
-                        switch (Category)
-                        {
-                            // Mod
-                            case 406:
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
-                            case 407:
-                            {
-                                Tags.Add("生物群系");
-                                break;
-                            }
-                            case 410:
-                            {
-                                Tags.Add("维度");
-                                break;
-                            }
-                            case 408:
-                            {
-                                Tags.Add("矿物/资源");
-                                break;
-                            }
-                            case 409:
-                            {
-                                Tags.Add("天然结构");
-                                break;
-                            }
-                            case 412:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 415:
-                            {
-                                Tags.Add("管道/物流");
-                                break;
-                            }
-                            case 4843:
-                            {
-                                Tags.Add("自动化");
-                                break;
-                            }
-                            case 417:
-                            {
-                                Tags.Add("能源");
-                                break;
-                            }
-                            case 4558:
-                            {
-                                Tags.Add("红石");
-                                break;
-                            }
-                            case 436:
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
-                            case 416:
-                            {
-                                Tags.Add("农业");
-                                break;
-                            }
-                            case 414:
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
-                            case 420:
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
-                            case 419:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 422:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 424:
-                            {
-                                Tags.Add("装饰");
-                                break;
-                            }
-                            case 411:
-                            {
-                                Tags.Add("生物");
-                                break;
-                            }
-                            case 434:
-                            {
-                                Tags.Add("装备");
-                                break;
-                            }
-                            case 6814:
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
-                            case 9026:
-                            {
-                                Tags.Add("创造模式");
-                                break;
-                            }
-                            case 423:
-                            {
-                                Tags.Add("信息显示");
-                                break;
-                            }
-                            case 435:
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
-                            case 5191:
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
-                            case 421:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            // 整合包
-                            case 4484:
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
-                            case 4479:
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
-                            case 4483:
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case 4478:
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
-                            case 4472:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 4473:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 4475:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 4476:
-                            {
-                                Tags.Add("探索");
-                                break;
-                            }
-                            case 4477:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
-                            case 4471:
-                            {
-                                Tags.Add("科幻");
-                                break;
-                            }
-                            case 4736:
-                            {
-                                Tags.Add("空岛");
-                                break;
-                            }
-                            case 5128:
-                            {
-                                Tags.Add("原版改良");
-                                break;
-                            }
-                            case 4487:
-                            {
-                                Tags.Add("FTB");
-                                break;
-                            }
-                            case 4480:
-                            {
-                                Tags.Add("基于地图");
-                                break;
-                            }
-                            case 4481:
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
-                            case 4482:
-                            {
-                                Tags.Add("大型");
-                                break;
-                            }
-                            // 资源包
-                            case 403:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            case 400:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            case 401:
-                            {
-                                Tags.Add("现代风");
-                                break;
-                            }
-                            case 402:
-                            {
-                                Tags.Add("中世纪");
-                                break;
-                            }
-                            case 399:
-                            {
-                                Tags.Add("蒸汽朋克");
-                                break;
-                            }
-                            case 5244:
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
-                            case 404:
-                            {
-                                Tags.Add("动态效果");
-                                break;
-                            }
-                            case 4465:
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
-                            case 393:
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
-                            case 394:
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
-                            case 395:
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
-                            case 396:
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
-                            case 397:
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
-                            case 398:
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
-                            case 5193:
-                            {
-                                Tags.Add("数据包"); // 有这个 Tag 的项会从资源包请求中被移除
-                                break;
-                            }
-                            // 光影包
-                            case 6553:
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            case 6554:
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
-                            case 6555:
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            // 数据包
-                            case 6948:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 6949:
-                            {
-                                Tags.Add("幻想");
-                                break;
-                            }
-                            case 6950:
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            case 6952:
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case 6946:
-                            {
-                                Tags.Add("Mod 相关");
-                                break;
-                            }
-                            case 6951:
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case 6953:
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
-                            // 世界
-                            case 248:
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case 249:
-                            {
-                                Tags.Add("创造");
-                                break;
-                            }
-                            case 250:
-                            {
-                                Tags.Add("小游戏");
-                                break;
-                            }
-                            case 251:
-                            {
-                                Tags.Add("跑酷");
-                                break;
-                            }
-                            case 252:
-                            {
-                                Tags.Add("解谜");
-                                break;
-                            }
-                            case 253:
-                            {
-                                Tags.Add("生存");
-                                break;
-                            }
-                            case 4464:
-                            {
-                                Tags.Add("Mod 世界");
-                                break;
-                            }
-                        }
-                }
-
-                #endregion
-
-                else
-                {
-                    #region Modrinth
-
-                    // 简单信息
-                    Id = (string)(Data["project_id"] ?? Data["id"]); // 两个 API 会返回的 key 不一样
-                    Slug = (string)Data["slug"];
-                    RawName = (string)Data["title"];
-                    Description = (string)Data["description"];
-                    LastUpdate = (DateTime?)Data["date_modified"];
-                    DownloadCount = (int)Data["downloads"];
-                    LogoUrl = (string)Data["icon_url"];
-                    if (string.IsNullOrEmpty(LogoUrl))
-                        LogoUrl = null;
-                    Website = $"https://modrinth.com/{Data["project_type"]}/{Slug}";
-                    // GameVersions
-                    // 搜索结果的键为 versions，获取特定工程的键为 game_versions
-                    Drops = ((JArray)(Data["game_versions"] ?? Data["versions"]) ?? new JArray())
-                        .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v)).Where(v => v > 0).Distinct()
-                        .OrderByDescending(v => v).ToList();
-                    // Type
-                    switch (Data["project_type"].ToString() ?? "")
-                    {
-                        case "modpack":
-                        {
-                            Type = CompType.ModPack;
-                            break;
-                        }
-                        case "resourcepack":
-                        {
-                            Type = CompType.ResourcePack;
-                            break;
-                        }
-                        case "shader":
-                        {
-                            Type = CompType.Shader;
-                            break;
-                        }
-
-                        default:
-                        {
-                            Type = CompType.Mod; // Modrinth 将数据包标为 Mod
-                            break;
-                        }
-                    }
-
-                    // Tags & ModLoaders
-                    Tags = new List<string>();
-                    ModLoaders = new List<CompLoaderType>();
-                    if (Data?["loaders"] is not null)
-                        foreach (var Category in Data["loaders"].Select(t => t.ToString()))
-                            switch (Category ?? "")
-                            {
-                                case "forge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Forge);
-                                    break;
-                                }
-                                case "fabric":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Fabric);
-                                    break;
-                                }
-                                case "quilt":
-                                {
-                                    ModLoaders.Add(CompLoaderType.Quilt);
-                                    break;
-                                }
-                                case "neoforge":
-                                {
-                                    ModLoaders.Add(CompLoaderType.NeoForge);
-                                    break;
-                                }
-                            }
-
-                    foreach (var Category in Data["categories"].Select(t => t.ToString()))
-                        switch (Category ?? "")
-                        {
-                            // 加载器
-                            case "forge":
-                            {
-                                ModLoaders.Add(CompLoaderType.Forge);
-                                break;
-                            }
-                            case "fabric":
-                            {
-                                ModLoaders.Add(CompLoaderType.Fabric);
-                                break;
-                            }
-                            case "quilt":
-                            {
-                                ModLoaders.Add(CompLoaderType.Quilt);
-                                break;
-                            }
-                            case "neoforge":
-                            {
-                                ModLoaders.Add(CompLoaderType.NeoForge);
-                                break;
-                            }
-                            case "datapack":
-                            {
-                                Type = CompType.DataPack; // 若包含数据包版本，则优先标为 DataPack
-                                break;
-                            }
-                            // 共用
-                            case "technology":
-                            {
-                                Tags.Add("科技");
-                                break;
-                            }
-                            case "magic":
-                            {
-                                Tags.Add("魔法");
-                                break;
-                            }
-                            case "adventure":
-                            {
-                                Tags.Add("冒险");
-                                break;
-                            }
-                            case "utility":
-                            {
-                                Tags.Add("实用");
-                                break;
-                            }
-                            case "optimization":
-                            {
-                                Tags.Add("性能优化");
-                                break;
-                            }
-                            case "vanilla-like":
-                            {
-                                Tags.Add("原版风");
-                                break;
-                            }
-                            case "realistic":
-                            {
-                                Tags.Add("写实风");
-                                break;
-                            }
-                            // Mod/数据包
-                            case "worldgen":
-                            {
-                                Tags.Add("世界元素");
-                                break;
-                            }
-                            case "food":
-                            {
-                                Tags.Add("食物/烹饪");
-                                break;
-                            }
-                            case "game-mechanics":
-                            {
-                                Tags.Add("游戏机制");
-                                break;
-                            }
-                            case "transportation":
-                            {
-                                Tags.Add("运输");
-                                break;
-                            }
-                            case "storage":
-                            {
-                                Tags.Add("仓储");
-                                break;
-                            }
-                            case "decoration":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装饰");
-                                break;
-                            }
-                            case "mobs":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("生物");
-                                break;
-                            }
-                            case "equipment":
-                            {
-                                if (Type != CompType.ResourcePack)
-                                    Tags.Add("装备");
-                                break;
-                            }
-                            case "social":
-                            {
-                                Tags.Add("服务器");
-                                break;
-                            }
-                            case "library":
-                            {
-                                Tags.Add("支持库");
-                                break;
-                            }
-                            // 整合包
-                            case "multiplayer":
-                            {
-                                Tags.Add("多人");
-                                break;
-                            }
-                            case "challenging":
-                            {
-                                Tags.Add("硬核");
-                                break;
-                            }
-                            case "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case "quests":
-                            {
-                                Tags.Add("任务");
-                                break;
-                            }
-                            case "kitchen-sink":
-                            {
-                                Tags.Add("水槽包");
-                                break;
-                            }
-                            case "lightweight":
-                            {
-                                Tags.Add("轻量");
-                                break;
-                            }
-                            // 资源包
-                            case "simplistic":
-                            {
-                                Tags.Add("简洁");
-                                break;
-                            }
-                            case var @case when @case == "combat":
-                            {
-                                Tags.Add("战斗");
-                                break;
-                            }
-                            case "tweaks":
-                            {
-                                Tags.Add("改良");
-                                break;
-                            }
-
-                            case "8x-":
-                            {
-                                Tags.Add("极简");
-                                break;
-                            }
-                            case "16x":
-                            {
-                                Tags.Add("16x");
-                                break;
-                            }
-                            case "32x":
-                            {
-                                Tags.Add("32x");
-                                break;
-                            }
-                            case "48x":
-                            {
-                                Tags.Add("48x");
-                                break;
-                            }
-                            case "64x":
-                            {
-                                Tags.Add("64x");
-                                break;
-                            }
-                            case "128x":
-                            {
-                                Tags.Add("128x");
-                                break;
-                            }
-                            case "256x":
-                            {
-                                Tags.Add("256x");
-                                break;
-                            }
-                            case "512x+":
-                            {
-                                Tags.Add("超高清");
-                                break;
-                            }
-
-                            case "audio":
-                            {
-                                Tags.Add("含声音");
-                                break;
-                            }
-                            case "fonts":
-                            {
-                                Tags.Add("含字体");
-                                break;
-                            }
-                            case "models":
-                            {
-                                Tags.Add("含模型");
-                                break;
-                            }
-                            case "gui":
-                            {
-                                Tags.Add("含 UI");
-                                break;
-                            }
-                            case "locale":
-                            {
-                                Tags.Add("含语言");
-                                break;
-                            }
-                            case "core-shaders":
-                            {
-                                Tags.Add("核心着色器");
-                                break;
-                            }
-                            case "modded":
-                            {
-                                Tags.Add("兼容 Mod");
-                                break;
-                            }
-                            // 光影包
-                            case "fantasy":
-                            {
-                                Tags.Add("幻想风");
-                                break;
-                            }
-                            case "semi-realistic":
-                            {
-                                Tags.Add("半写实风");
-                                break;
-                            }
-                            case "cartoon":
-                            {
-                                Tags.Add("卡通风");
-                                break;
-                            }
-                            // 暂时不添加性能负荷 Tag
-                            // Case "potato" : Tags.Add("极低")
-                            // Case "low" : Tags.Add("低")
-                            // Case "medium" : Tags.Add("中")
-                            // Case "high" : Tags.Add("高")
-                            case "colored-lighting":
-                            {
-                                Tags.Add("彩色光照");
-                                break;
-                            }
-                            case "path-tracing":
-                            {
-                                Tags.Add("路径追踪");
-                                break;
-                            }
-                            case "pbr":
-                            {
-                                Tags.Add("PBR");
-                                break;
-                            }
-                            case "reflections":
-                            {
-                                Tags.Add("反射");
-                                break;
-                            }
-
-                            case "iris":
-                            {
-                                Tags.Add("Iris");
-                                break;
-                            }
-                            case "optifine":
-                            {
-                                Tags.Add("OptiFine");
-                                break;
-                            }
-                            case "vanilla":
-                            {
-                                Tags.Add("原版可用");
-                                break;
-                            }
-                        }
-
-                    #endregion
-                }
-
-                if (!Tags.Any())
-                    Tags.Add("其他");
-                Tags.Sort();
-                ModLoaders.Sort();
-            }
+            fromCurseForge = result.FromCurseForge;
+            type = result.Type;
+            slug = result.Slug;
+            id = result.Id;
+            curseForgeFileIds = result.CurseForgeFileIds;
+            rawName = result.RawName;
+            description = result.Description;
+            website = result.Website;
+            lastUpdate = result.LastUpdate;
+            downloadCount = result.DownloadCount;
+            modLoaders = result.ModLoaders;
+            tags = result.Tags;
+            logoUrl = result.LogoUrl;
+            drops = result.Drops;
 
             // 保存缓存
-            CompProjectCache[Id] = this;
+            compProjectCache[id] = this;
         }
+
+        private sealed class CompProjectBuildResult
+        {
+            public bool FromCurseForge;
+            public CompType Type;
+            public string Slug;
+            public string Id;
+            public List<int> CurseForgeFileIds = [];
+            public string RawName;
+            public string Description;
+            public string Website;
+            public DateTime? LastUpdate;
+            public int DownloadCount;
+            public List<CompLoaderType> ModLoaders = [];
+            public List<string> Tags = [];
+            public string LogoUrl;
+            public List<int> Drops = [];
+        }
+
+        private static CompProjectBuildResult _BuildFromCompJson(JsonObject data)
+        {
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = (string)data["DataSource"] == "CurseForge",
+                Type = (CompType)data["Type"].ToObject<int>(),
+                Slug = (string)data["Slug"],
+                Id = (string)data["Id"],
+                RawName = (string)data["RawName"],
+                Description = (string)data["Description"],
+                Website = (string)data["Website"],
+                DownloadCount = (int)data["DownloadCount"],
+                Tags = ((JsonArray)data["Tags"]).Select(t => t.ToString()).ToList()
+            };
+
+            if (data.TryGetPropertyValue("CurseForgeFileIds", out var id))
+                result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
+
+            if (data.TryGetPropertyValue("LastUpdate", out var last))
+                result.LastUpdate = last?.ToObject<DateTime>();
+
+            if (data.TryGetPropertyValue("ModLoaders", out var loaders))
+                result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
+                    .ToList();
+
+            if (data.TryGetPropertyValue("LogoUrl", out var url))
+                result.LogoUrl = (string)url;
+
+            if (data.TryGetPropertyValue("Drops", out var drops))
+                result.Drops = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
+
+            return result;
+        }
+
+        private static CompProjectBuildResult _BuildFromCurseForge(JsonObject data)
+        {
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = true,
+
+                // 简单信息
+                Id = data["id"].ToString(),
+                Slug = (string)data["slug"],
+                RawName = (string)data["name"],
+                Description = (string)data["summary"],
+                Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
+                LastUpdate = data["dateReleased"]?.ToObject<DateTime>(), // #1194
+                DownloadCount = (int)data["downloadCount"]
+            };
+
+            if (data["logo"] is JsonObject { Count: > 0 } logo)
+                result.LogoUrl = string.IsNullOrEmpty((string)logo["thumbnailUrl"])
+                    ? (string)logo["url"]
+                    : (string)logo["thumbnailUrl"];
+
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
+
+            // Type
+            result.Type = _GetCurseForgeTypeByWebsite(result.Website);
+
+            // FileIndexes / VanillaMajorVersions / ModLoaders
+            var files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
+
+            foreach (var file in (data["latestFiles"] as JsonArray) ?? [])
+            {
+                var newFile = new CompFile((JsonObject)file, result.Type);
+                if (!newFile.Available)
+                    continue;
+
+                result.ModLoaders.AddRange(newFile.modLoaders);
+
+                var gameVersions = file["gameVersions"]?.ToObject<List<string>>() ?? [];
+                if (!gameVersions.Any(ModMinecraft.McInstanceInfo.IsFormatFit))
+                    continue;
+
+                files.Add(new KeyValuePair<int, List<string>>((int)file["id"], gameVersions));
+            }
+
+            files.AddRange(
+                from File in (data["latestFilesIndexes"] as JsonArray) ?? []
+                let GameVersion = File["gameVersion"]?.ToString() ?? ""
+                where ModMinecraft.McInstanceInfo.IsFormatFit(GameVersion)
+                select new KeyValuePair<int, List<string>>((int)File["fileId"], new[] { GameVersion }.ToList())
+            );
+
+            result.CurseForgeFileIds = files
+                .Select(f => f.Key)
+                .Distinct()
+                .ToList();
+
+            result.Drops = files
+                .SelectMany(f => f.Value)
+                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
+                .Where(v => v > 0)
+                .Distinct()
+                .OrderByDescending(v => v)
+                .ToList();
+
+            result.ModLoaders = result.ModLoaders
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
+
+            // Tags
+            var categories = ((data["categories"] as JsonArray) ?? [])
+                .Select(t => t["id"]?.ToObject<int?>())
+                .Where(t => t.HasValue)
+                .Select(t => t.Value)
+                .Distinct()
+                .OrderByDescending(t => t);
+
+            foreach (var category in categories)
+                if (curseForgeCategoryLangKeys.TryGetValue(category, out var langKey))
+                    _AddTag(result.Tags, langKey);
+
+            return result;
+        }
+
+        private static CompProjectBuildResult _BuildFromModrinth(JsonObject data)
+        {
+            var projectType = data["project_type"]?.ToString() ?? "";
+            var slug = (string)data["slug"];
+
+            var result = new CompProjectBuildResult
+            {
+                FromCurseForge = false,
+
+                // 简单信息
+                Id = (string)(data["project_id"] ?? data["id"]), // 两个 API 会返回的 key 不一样
+                Slug = slug,
+                RawName = (string)data["title"],
+                Description = (string)data["description"],
+                LastUpdate = data["date_modified"]?.ToObject<DateTime>(),
+                DownloadCount = (int)data["downloads"],
+                LogoUrl = (string)data["icon_url"],
+                Website = $"https://modrinth.com/{projectType}/{slug}",
+
+                // Type
+                Type = projectType switch
+                {
+                    "modpack" => CompType.ModPack,
+                    "resourcepack" => CompType.ResourcePack,
+                    "shader" => CompType.Shader,
+                    _ => CompType.Mod // Modrinth 将数据包标为 Mod
+                }
+            };
+
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
+
+            // GameVersions
+            // 搜索结果的键为 versions，获取特定工程的键为 game_versions
+            result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
+                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v))
+                .Where(v => v > 0)
+                .Distinct()
+                .OrderByDescending(v => v)
+                .ToList();
+
+            // Tags & ModLoaders
+            foreach (var category in (data["loaders"] as JsonArray)?.Select(t => t.ToString()) ?? [])
+                if (modrinthLoaderTypes.TryGetValue(category ?? "", out var loader))
+                    result.ModLoaders.Add(loader);
+
+            foreach (var category in (data["categories"] as JsonArray)?.Select(t => t.ToString()) ?? [])
+            {
+                if (string.IsNullOrEmpty(category)) continue;
+                // 加载器
+                if (modrinthLoaderTypes.TryGetValue(category, out var loader))
+                {
+                    result.ModLoaders.Add(loader);
+                }
+                else
+                {
+                    // Modrinth 将数据包标为 Mod，若包含数据包版本，则优先标为 DataPack
+                    if (category.Equals("datapack", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Type = CompType.DataPack;
+                    }
+                    else
+                    {
+                        // 这些分类在资源包中不显示
+                        if (resourcePackHiddenCategoryLangKeys.TryGetValue(category, out var hiddenLangKey))
+                        {
+                            if (result.Type != CompType.ResourcePack)
+                                _AddTag(result.Tags, hiddenLangKey);
+                        }
+                        else
+                        {
+                            if (modrinthCategoryLangKeys.TryGetValue(category, out var langKey))
+                                _AddTag(result.Tags, langKey);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static CompType _GetCurseForgeTypeByWebsite(string website)
+        {
+            var websiteLower = (website ?? "").ToLowerInvariant();
+
+            if (websiteLower.Contains("/mc-mods/") || websiteLower.Contains("/mod/"))
+                return CompType.Mod;
+            if (websiteLower.Contains("/modpacks/"))
+                return CompType.ModPack;
+            if (websiteLower.Contains("/resourcepacks/") || websiteLower.Contains("/texture-packs/"))
+                return CompType.ResourcePack;
+            if (websiteLower.Contains("/shaders/"))
+                return CompType.Shader;
+            if (websiteLower.Contains("/worlds/"))
+                return CompType.World;
+
+            return CompType.DataPack;
+        }
+
+        private static void _AddTag(List<string> tags, string langKey)
+        {
+            var tag = Lang.Text(langKey);
+
+            if (!tags.Contains(tag))
+                tags.Add(tag);
+        }
+
+        private static readonly Dictionary<string, CompLoaderType> modrinthLoaderTypes =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["forge"] = CompLoaderType.Forge,
+                ["fabric"] = CompLoaderType.Fabric,
+                ["quilt"] = CompLoaderType.Quilt,
+                ["neoforge"] = CompLoaderType.NeoForge
+            };
+        
+        private static readonly Dictionary<int, string> curseForgeCategoryLangKeys =
+            new()
+            {
+                // Mod
+                [406] = "Download.Comp.Category.WorldGen",
+                [407] = "Download.Comp.Category.Biomes",
+                [410] = "Download.Comp.Category.Dimensions",
+                [408] = "Download.Comp.Category.OresResources",
+                [409] = "Download.Comp.Category.Structures",
+                [412] = "Download.Comp.Category.Technology",
+                [415] = "Download.Comp.Category.PipesLogistics",
+                [4843] = "Download.Comp.Category.Automation",
+                [417] = "Download.Comp.Category.Energy",
+                [4558] = "Download.Comp.Category.Redstone",
+                [436] = "Download.Comp.Category.FoodCooking",
+                [416] = "Download.Comp.Category.Farming",
+                [414] = "Download.Comp.Category.Transportation",
+                [420] = "Download.Comp.Category.Storage",
+                [419] = "Download.Comp.Category.Magic",
+                [422] = "Download.Comp.Category.Adventure",
+                [424] = "Download.Comp.Category.Decoration",
+                [411] = "Download.Comp.Category.Mobs",
+                [434] = "Download.Comp.Category.Equipment",
+                [6814] = "Download.Comp.Category.Optimization",
+                [9026] = "Download.Comp.Category.Creative",
+                [423] = "Download.Comp.Category.Display",
+                [435] = "Download.Comp.Category.Server",
+                [5191] = "Download.Comp.Category.Tweaks",
+                [421] = "Download.Comp.Category.Library",
+
+                // 整合包
+                [4484] = "Download.Comp.Category.Multiplayer",
+                [4479] = "Download.Comp.Category.Modpack.Hardcore",
+                [4483] = "Download.Comp.Category.Combat",
+                [4478] = "Download.Comp.Category.Modpack.Quests",
+                [4472] = "Download.Comp.Category.Technology",
+                [4473] = "Download.Comp.Category.Magic",
+                [4475] = "Download.Comp.Category.Adventure",
+                [4476] = "Download.Comp.Category.Modpack.Exploration",
+                [4477] = "Download.Comp.Category.Modpack.MiniGame",
+                [4471] = "Download.Comp.Category.Modpack.SciFi",
+                [4736] = "Download.Comp.Category.Modpack.Skyblock",
+                [5128] = "Download.Comp.Category.Modpack.VanillaPlus",
+                [4487] = "Download.Comp.Category.Modpack.Ftb",
+                [4480] = "Download.Comp.Category.Modpack.MapBased",
+                [4481] = "Download.Comp.Category.Modpack.SmallLight",
+                [4482] = "Download.Comp.Category.Modpack.ExtraLarge",
+
+                // 资源包
+                [403] = "Download.Comp.Category.VanillaLike",
+                [400] = "Download.Comp.Category.Realistic",
+                [401] = "Download.Comp.Category.Modern",
+                [402] = "Download.Comp.Category.Medieval",
+                [399] = "Download.Comp.Category.Steampunk",
+                [5244] = "Download.Comp.Category.Fonts",
+                [404] = "Download.Comp.Category.Animated",
+                [4465] = "Download.Comp.Category.ModSupport",
+                [393] = "Download.Comp.Category.ResourcePack.Resolution16x",
+                [394] = "Download.Comp.Category.ResourcePack.Resolution32x",
+                [395] = "Download.Comp.Category.ResourcePack.Resolution64x",
+                [396] = "Download.Comp.Category.ResourcePack.Resolution128x",
+                [397] = "Download.Comp.Category.ResourcePack.Resolution256x",
+                [398] = "Download.Comp.Category.ResourcePack.Resolution512xOrHigher",
+                [5193] = "Download.Comp.Type.DataPack", // 有这个 Tag 的项会从资源包请求中被移除
+
+                // 光影包
+                [6553] = "Download.Comp.Category.Realistic",
+                [6554] = "Download.Comp.Category.Fantasy",
+                [6555] = "Download.Comp.Category.VanillaLike",
+
+                // 数据包
+                [6948] = "Download.Comp.Category.Adventure",
+                [6949] = "Download.Comp.Category.DataPack.Fantasy",
+                [6950] = "Download.Comp.Category.Library",
+                [6952] = "Download.Comp.Category.Magic",
+                [6946] = "Download.Comp.Category.Mod.ModRelated",
+                [6951] = "Download.Comp.Category.Technology",
+                [6953] = "Download.Comp.Category.Utility",
+
+                // 世界
+                [248] = "Download.Comp.Category.Adventure",
+                [249] = "Download.Comp.Category.World.Creative",
+                [250] = "Download.Comp.Category.Modpack.MiniGame",
+                [251] = "Download.Comp.Category.World.Parkour",
+                [252] = "Download.Comp.Category.World.Puzzle",
+                [253] = "Download.Comp.Category.World.Survival",
+                [4464] = "Download.Comp.Category.World.ModWorld"
+            };
+
+        private static readonly Dictionary<string, string> resourcePackHiddenCategoryLangKeys =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["decoration"] = "Download.Comp.Category.Decoration",
+                ["mobs"] = "Download.Comp.Category.Mobs",
+                ["equipment"] = "Download.Comp.Category.Equipment"
+            };
+
+        private static readonly Dictionary<string, string> modrinthCategoryLangKeys =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                // 共用
+                ["technology"] = "Download.Comp.Category.Technology",
+                ["magic"] = "Download.Comp.Category.Magic",
+                ["adventure"] = "Download.Comp.Category.Adventure",
+                ["utility"] = "Download.Comp.Category.Utility",
+                ["optimization"] = "Download.Comp.Category.Optimization",
+                ["vanilla-like"] = "Download.Comp.Category.VanillaLike",
+                ["realistic"] = "Download.Comp.Category.Realistic",
+
+                // Mod / 数据包
+                ["worldgen"] = "Download.Comp.Category.WorldGen",
+                ["food"] = "Download.Comp.Category.FoodCooking",
+                ["game-mechanics"] = "Download.Comp.Category.GameMechanics",
+                ["transportation"] = "Download.Comp.Category.Transportation",
+                ["storage"] = "Download.Comp.Category.Storage",
+                ["social"] = "Download.Comp.Category.Server",
+                ["library"] = "Download.Comp.Category.Library",
+
+                // 整合包
+                ["multiplayer"] = "Download.Comp.Category.Multiplayer",
+                ["challenging"] = "Download.Comp.Category.Modpack.Hardcore",
+                ["combat"] = "Download.Comp.Category.Combat",
+                ["quests"] = "Download.Comp.Category.Modpack.Quests",
+                ["kitchen-sink"] = "Download.Comp.Category.Modpack.KitchenSink",
+                ["lightweight"] = "Download.Comp.Category.Modpack.SmallLight",
+
+                // 资源包
+                ["simplistic"] = "Download.Comp.Category.Simplistic",
+                ["tweaks"] = "Download.Comp.Category.Tweaks",
+                ["8x-"] = "Download.Comp.Category.ResourcePack.Resolution8xOrLower",
+                ["16x"] = "Download.Comp.Category.ResourcePack.Resolution16x",
+                ["32x"] = "Download.Comp.Category.ResourcePack.Resolution32x",
+                ["48x"] = "Download.Comp.Category.ResourcePack.Resolution48x",
+                ["64x"] = "Download.Comp.Category.ResourcePack.Resolution64x",
+                ["128x"] = "Download.Comp.Category.ResourcePack.Resolution128x",
+                ["256x"] = "Download.Comp.Category.ResourcePack.Resolution256x",
+                ["512x+"] = "Download.Comp.Category.ResourcePack.Resolution512xOrHigher",
+                ["audio"] = "Download.Comp.Category.Audio",
+                ["fonts"] = "Download.Comp.Category.Fonts",
+                ["models"] = "Download.Comp.Category.Models",
+                ["gui"] = "Download.Comp.Category.Gui",
+                ["locale"] = "Download.Comp.Category.Locale",
+                ["core-shaders"] = "Download.Comp.Category.CoreShaders",
+                ["modded"] = "Download.Comp.Category.ModSupport",
+
+                // 光影包
+                ["fantasy"] = "Download.Comp.Category.Fantasy",
+                ["semi-realistic"] = "Download.Comp.Category.SemiRealistic",
+                ["cartoon"] = "Download.Comp.Category.Cartoon",
+                // 暂时不添加性能负荷 Tag：
+                // potato / low / medium / high
+                ["colored-lighting"] = "Download.Comp.Category.ColoredLighting",
+                ["path-tracing"] = "Download.Comp.Category.PathTracing",
+                ["pbr"] = "Download.Comp.Category.Pbr",
+                ["reflections"] = "Download.Comp.Category.Reflections",
+                ["iris"] = "Download.Comp.Category.Iris",
+                ["optifine"] = "Download.Comp.Category.Optifine",
+                ["vanilla"] = "Download.Comp.Filter.Loader.VanillaAvailable"
+            };
 
         /// <summary>
         ///     关联的数据库条目。若为 Nothing 则没有。
@@ -1810,18 +1432,18 @@ public static class ModComp
         {
             get
             {
-                if (!LoadedDatabase)
+                if (!loadedDatabase)
                 {
-                    LoadedDatabase = true;
-                    if (Type == CompType.Mod || Type == CompType.DataPack)
-                        _DatabaseEntry = GetCompWikiEntryBySlug(Slug);
+                    loadedDatabase = true;
+                    if (type == CompType.Mod || type == CompType.DataPack)
+                        _DatabaseEntry = GetCompWikiEntryBySlug(slug);
                 }
 
                 return _DatabaseEntry;
             }
             set
             {
-                LoadedDatabase = true;
+                loadedDatabase = true;
                 _DatabaseEntry = value;
             }
         }
@@ -1835,7 +1457,7 @@ public static class ModComp
         ///     翻译后的中文名。若数据库没有则等同于 RawName。
         /// </summary>
         public string TranslatedName => DatabaseEntry is null || string.IsNullOrEmpty(DatabaseEntry.ChineseName)
-            ? RawName
+            ? rawName
             : DatabaseEntry.ChineseName;
 
         /// <summary>
@@ -1845,34 +1467,34 @@ public static class ModComp
 
         private async Task<string> GetChineseDescriptionAsync()
         {
-            var from = FromCurseForge ? "curseforge" : "modrinth";
-            var para = FromCurseForge ? "modId" : "project_id";
+            var from = fromCurseForge ? "curseforge" : "modrinth";
+            var para = fromCurseForge ? "modId" : "project_id";
             string result = null;
 
-            var DescHash = $"{Id}{ModBase.GetStringMD5(Description)}";
-            var CacheFilePath = $@"{ModBase.PathTemp}Cache\CompTranslation.ini";
-            var CacheTranslation = ModBase.ReadIni(CacheFilePath, DescHash);
-            if (!string.IsNullOrWhiteSpace(CacheTranslation))
+            var descHash = $"{id}{ModBase.GetStringMD5(description)}";
+            var cacheFilePath = $@"{ModBase.pathTemp}Cache\CompTranslation.ini";
+            var cacheTranslation = ModBase.ReadIni(cacheFilePath, descHash);
+            if (!string.IsNullOrWhiteSpace(cacheTranslation))
             {
-                result = ModBase.Base64Decode(CacheTranslation);
+                result = ModBase.Base64Decode(cacheTranslation);
                 return result;
             }
 
             try
             {
-                var jsonObject = (JObject)await 
-                    Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
+                var jsonObject = (JsonObject)await 
+                    Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{id}");
                 if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"].ToString();
-                    ModBase.WriteIni(CacheFilePath, DescHash, ModBase.Base64Encode(result));
+                    ModBase.WriteIni(cacheFilePath, descHash, ModBase.Base64Encode(result));
                 }
             }
             catch (HttpRequestException ex)
             {
                 if (ex.Message.Contains("404"))
                 {
-                    ModMain.MyMsgBox("当前资源的简介暂无译文", "获取译文失败", "我知道了");
+                    ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"), Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"), Lang.Text("Download.Comp.Detail.KnownButton"));
                     return null;
                 }
 
@@ -1889,30 +1511,30 @@ public static class ModComp
         /// <summary>
         ///     将当前实例转为可用于保存缓存的 Json。
         /// </summary>
-        public JObject ToJson()
+        public JsonObject ToJson()
         {
-            var Json = new JObject();
-            Json["DataSource"] = FromCurseForge ? "CurseForge" : "Modrinth";
-            Json["Type"] = (int)Type;
-            Json["Slug"] = Slug;
-            Json["Id"] = Id;
-            if (CurseForgeFileIds is not null)
-                Json["CurseForgeFileIds"] = new JArray(CurseForgeFileIds);
-            Json["RawName"] = RawName;
-            Json["Description"] = Description;
-            Json["Website"] = Website;
-            if (LastUpdate is not null)
-                Json["LastUpdate"] = LastUpdate;
-            Json["DownloadCount"] = DownloadCount;
-            if (ModLoaders is not null && ModLoaders.Any())
-                Json["ModLoaders"] = new JArray(ModLoaders.Select(m => (int)m));
-            Json["Tags"] = new JArray(Tags);
-            if (LogoUrl is not null)
-                Json["LogoUrl"] = LogoUrl;
-            if (Drops.Any())
-                Json["Drops"] = new JArray(Drops);
-            Json["CacheTime"] = DateTime.Now; // 用于检查缓存时间
-            return Json;
+            var json = new JsonObject();
+            json["DataSource"] = fromCurseForge ? "CurseForge" : "Modrinth";
+            json["Type"] = (int)type;
+            json["Slug"] = slug;
+            json["Id"] = id;
+            if (curseForgeFileIds is not null)
+                json["CurseForgeFileIds"] = new JsonArray(curseForgeFileIds.Select(i => (JsonNode)i).ToArray());
+            json["RawName"] = rawName;
+            json["Description"] = description;
+            json["Website"] = website;
+            if (lastUpdate is not null)
+                json["LastUpdate"] = lastUpdate;
+            json["DownloadCount"] = downloadCount;
+            if (modLoaders is not null && modLoaders.Any())
+                json["ModLoaders"] = new JsonArray(modLoaders.Select(m => (JsonNode)(int)m).ToArray());
+            json["Tags"] = new JsonArray(tags.Select(s => (JsonNode)s).ToArray());
+            if (logoUrl is not null)
+                json["LogoUrl"] = logoUrl;
+            if (drops.Any())
+                json["Drops"] = new JsonArray(drops.Select(i => (JsonNode)i).ToArray());
+            json["CacheTime"] = DateTime.Now; // 用于检查缓存时间
+            return json;
         }
 
         /// <summary>
@@ -1922,18 +1544,18 @@ public static class ModComp
         {
             // --- 1. 获取版本描述 (核心算法优化) ---
             string gameVersionDescription;
-            if (Drops == null || !Drops.Any())
+            if (drops is null || !drops.Any())
             {
-                gameVersionDescription = "仅快照版本";
+                gameVersionDescription = Lang.Text("Download.Comp.Detail.CompItem.SnapshotOnly");
             }
             else
             {
                 var segments = new List<string>();
                 var isOld = false;
 
-                for (var i = 0; i < Drops.Count; i++)
+                for (var i = 0; i < drops.Count; i++)
                 {
-                    int startDrop = Drops[i], endDrop = Drops[i];
+                    int startDrop = drops[i], endDrop = drops[i];
 
                     if (startDrop < 100)
                     {
@@ -1942,11 +1564,11 @@ public static class ModComp
                     }
 
                     // 查找连续的版本段
-                    for (var ii = i + 1; ii < Drops.Count; ii++)
+                    for (var ii = i + 1; ii < drops.Count; ii++)
                     {
-                        if (ModDownload.AllDrops == null || ModDownload.AllDrops.IndexOf(Drops[ii]) !=
+                        if (ModDownload.AllDrops is null || ModDownload.AllDrops.IndexOf(drops[ii]) !=
                             ModDownload.AllDrops.IndexOf(endDrop) + 1) break;
-                        endDrop = Drops[ii];
+                        endDrop = drops[ii];
                         i = ii;
                     }
 
@@ -1963,7 +1585,7 @@ public static class ModComp
                         if (endDrop < 100)
                         {
                             segments.Clear();
-                            segments.Add("全版本");
+                            segments.Add(Lang.Text("Download.Comp.Detail.CompItem.AllVersions"));
                             break;
                         }
 
@@ -1974,7 +1596,7 @@ public static class ModComp
                         segments.Add(startName + "-");
                         break;
                     }
-                    else if (ModDownload.AllDrops == null ||
+                    else if (ModDownload.AllDrops is null ||
                              ModDownload.AllDrops.IndexOf(endDrop) - ModDownload.AllDrops.IndexOf(startDrop) == 1)
                     {
                         segments.Add($"{startName}, {endName}");
@@ -1989,28 +1611,28 @@ public static class ModComp
             }
 
             // --- 2. 获取 Mod 加载器描述 (使用 Switch 表达式) ---
-            var modLoadersForDesc = ModLoaders.ToList();
+            var modLoadersForDesc = modLoaders.ToList();
             if (Config.Download.Comp.IgnoreQuilt) modLoadersForDesc.Remove(CompLoaderType.Quilt);
 
             var (fullDesc, partDesc) = modLoadersForDesc.Count switch
             {
-                0 => ModLoaders.Count == 1 ? ($"仅 {ModLoaders.Single()}", ModLoaders.Single().ToString()) : ("未知", ""),
-                1 => ($"仅 {modLoadersForDesc.Single()}", modLoadersForDesc.Single().ToString()),
+                0 => modLoaders.Count == 1 ? (Lang.Text("Download.Comp.Type.Only", modLoaders.Single().ToString()), modLoaders.Single().ToString()) : (Lang.Text("Download.Comp.Type.Unknown"), ""),
+                1 => (Lang.Text("Download.Comp.Type.Only", modLoadersForDesc.Single().ToString()), modLoadersForDesc.Single().ToString()),
                 _ => GetMultiLoaderDesc()
             };
 
             // 局部函数处理复杂的“任意”判断逻辑
             (string, string) GetMultiLoaderDesc()
             {
-                var newestDrop = Drops?.FirstOrDefault() ?? 9999;
-                var isAny = ModLoaders.Contains(CompLoaderType.Forge) &&
-                            (newestDrop < 140 || ModLoaders.Contains(CompLoaderType.Fabric)) &&
-                            (newestDrop < 200 || ModLoaders.Contains(CompLoaderType.NeoForge)) &&
-                            (newestDrop < 140 || ModLoaders.Contains(CompLoaderType.Quilt) ||
+                var newestDrop = drops?.FirstOrDefault() ?? 9999;
+                var isAny = modLoaders.Contains(CompLoaderType.Forge) &&
+                            (newestDrop < 140 || modLoaders.Contains(CompLoaderType.Fabric)) &&
+                            (newestDrop < 200 || modLoaders.Contains(CompLoaderType.NeoForge)) &&
+                            (newestDrop < 140 || modLoaders.Contains(CompLoaderType.Quilt) ||
                              Config.Download.Comp.IgnoreQuilt);
 
                 var joined = string.Join(" / ", modLoadersForDesc);
-                return isAny ? ("任意", "") : (joined, joined);
+                return isAny ? (Lang.Text("Download.Comp.Type.Any"), "") : (joined, joined);
             }
 
             // --- 3. 实例化 UI (精简布局逻辑) ---
@@ -2027,8 +1649,8 @@ public static class ModComp
                     else
                         newItem.SubTitle = title.Value;
 
-                    newItem.Tags = Tags;
-                    newItem.Description = Description.Replace("\r", "").Replace("\n", "");
+                    newItem.Tags = tags;
+                    newItem.Description = description.Replace("\r", "").Replace("\n", "");
 
                     // 下边栏逻辑切换
                     newItem.LabVersion.Text = (showMcVersionDesc, showLoaderDesc) switch
@@ -2049,11 +1671,11 @@ public static class ModComp
                         newItem.ColumnVersion3.Width = new GridLength(0);
                     }
 
-                    newItem.LabSource.Text = FromCurseForge ? "CurseForge" : "Modrinth";
+                    newItem.LabSource.Text = fromCurseForge ? "CurseForge" : "Modrinth";
 
-                    if (LastUpdate != null)
+                    if (lastUpdate is not null)
                     {
-                        newItem.LabTime.Text = TimeUtils.GetTimeSpanString(LastUpdate.Value - DateTime.Now, true);
+                        newItem.LabTime.Text = Lang.TimeSpan(lastUpdate.Value - DateTime.Now, 1);
                     }
                     else
                     {
@@ -2063,12 +1685,7 @@ public static class ModComp
                     }
 
                     // 下载量数值缩写
-                    newItem.LabDownload.Text = DownloadCount switch
-                    {
-                        > 100_000_000 => $"{Math.Round(DownloadCount / 100_000_000.0, 2)} 亿",
-                        > 100_000 => $"{Math.Floor(DownloadCount / 10_000.0)} 万",
-                        _ => DownloadCount.ToString()
-                    };
+                    newItem.LabDownload.Text = Lang.CompactNumber(downloadCount);
 
                     return newItem;
                 })
@@ -2080,9 +1697,9 @@ public static class ModComp
             var result = new MyListItem
             {
                 Title = TranslatedName,
-                Info = Description.Replace("\r", "").Replace("\n", ""),
-                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{ModBase.PathImage}Icons/NoIcon.png" : LogoUrl,
-                Tags = Tags,
+                Info = description.Replace("\r", "").Replace("\n", ""),
+                Logo = string.IsNullOrEmpty(logoUrl) ? $"{ModBase.pathImage}Icons/NoIcon.png" : logoUrl,
+                Tags = tags,
                 Tag = this,
                 LogoCornerRadius = new CornerRadius(6)
             };
@@ -2091,24 +1708,24 @@ public static class ModComp
 
         public void ApplyLogoToMyImage(MyImage img)
         {
-            if (string.IsNullOrEmpty(LogoUrl))
+            if (string.IsNullOrEmpty(logoUrl))
             {
-                img.Source = ModBase.PathImage + "Icons/NoIcon.png";
+                img.Source = ModBase.pathImage + "Icons/NoIcon.png";
             }
             else
             {
-                img.Source = LogoUrl;
-                img.FallbackSource = ModDownload.DlSourceModGet(LogoUrl);
+                img.Source = logoUrl;
+                img.FallbackSource = ModDownload.DlSourceModGet(logoUrl);
             }
         }
 
         public KeyValuePair<string, string> GetControlTitle(bool hasModLoaderDescription)
         {
             // 参考 #1567 测试例
-            var title = RawName;
+            var title = rawName;
             List<string> subtitleList = new();
 
-            if (TranslatedName == RawName)
+            if (TranslatedName == rawName)
             {
                 // --- 场景 A: 没有中文翻译 ---
                 var nameLists = TranslatedName.Split(new[] { " | ", " - ", "(", ")", "[", "]", "{", "}" },
@@ -2184,7 +1801,7 @@ public static class ModComp
                     lowerEx.Replace("forge", "").Replace("fabric", "").Replace("quilt", "").Length <= 3)
                     ex = ex.Replace("Edition", "", StringComparison.OrdinalIgnoreCase)
                         .Replace("edition", "", StringComparison.OrdinalIgnoreCase)
-                        .Trim().Capitalize() + " 版";
+                        .Trim().Capitalize() + Lang.Text("Download.Comp.Detail.CompItem.EditionSuffix");
 
                 // 规范化名称大小写
                 ex = ex.Replace("forge", "Forge").Replace("neo", "Neo").Replace("fabric", "Fabric")
@@ -2214,38 +1831,38 @@ public static class ModComp
         /// </summary>
         public bool IsLike(CompProject Project)
         {
-            if ((Id ?? "") == (Project.Id ?? ""))
+            if ((id ?? "") == (Project.id ?? ""))
                 return true; // 相同实例
 
             // 提取字符串中的字母和数字
             string GetRaw(string Data)
             {
-                var Result = new StringBuilder();
+                var result = new StringBuilder();
                 foreach (var r in Data.Where(c => char.IsLetterOrDigit(c)))
-                    Result.Append(r);
-                return Result.ToString().ToLower();
+                    result.Append(r);
+                return result.ToString().ToLower();
             }
 
             ;
             // 来自不同的网站
-            if (FromCurseForge == Project.FromCurseForge)
+            if (fromCurseForge == Project.fromCurseForge)
                 return false;
             // Mod 加载器一致
-            if (ModLoaders.Count != Project.ModLoaders.Count || ModLoaders.Except(Project.ModLoaders).Any())
+            if (modLoaders.Count != Project.modLoaders.Count || modLoaders.Except(Project.modLoaders).Any())
                 return false;
             // 若不为光影，则要求 MC 版本一致
-            if (Type != CompType.Shader && (Drops.Count != Project.Drops.Count || Drops.Except(Project.Drops).Any()))
+            if (type != CompType.Shader && (drops.Count != Project.drops.Count || drops.Except(Project.drops).Any()))
                 return false;
             // 最近更新时间差距在一周以内
-            if (LastUpdate is not null && Project.LastUpdate is not null &&
-                Math.Abs((LastUpdate - Project.LastUpdate).Value.TotalDays) > 7d)
+            if (lastUpdate is not null && Project.lastUpdate is not null &&
+                Math.Abs((lastUpdate - Project.lastUpdate).Value.TotalDays) > 7d)
                 return false;
             // MCMOD 翻译名 / 原名 / 描述文本 / Slug 的英文部分相同
             if ((TranslatedName ?? "") == (Project.TranslatedName ?? "") ||
-                (RawName ?? "") == (Project.RawName ?? "") || (Description ?? "") == (Project.Description ?? "") ||
-                (GetRaw(Slug) ?? "") == (GetRaw(Project.Slug) ?? ""))
+                (rawName ?? "") == (Project.rawName ?? "") || (description ?? "") == (Project.description ?? "") ||
+                (GetRaw(slug) ?? "") == (GetRaw(Project.slug) ?? ""))
             {
-                ModBase.Log($"[Comp] 将 {RawName} ({Slug}) 与 {Project.RawName} ({Project.Slug}) 认定为相似工程");
+                ModBase.Log($"[Comp] 将 {rawName} ({slug}) 与 {Project.rawName} ({Project.slug}) 认定为相似工程");
                 // 如果只有一个有 DatabaseEntry，设置给另外一个
                 if (DatabaseEntry is null && Project.DatabaseEntry is not null)
                     DatabaseEntry = Project.DatabaseEntry;
@@ -2259,13 +1876,13 @@ public static class ModComp
 
         public override string ToString()
         {
-            return $"{Id} ({Slug}): {RawName}";
+            return $"{id} ({slug}): {rawName}";
         }
 
         public override bool Equals(object obj)
         {
             var project = obj as CompProject;
-            return project is not null && (Id ?? "") == (project.Id ?? "");
+            return project is not null && (id ?? "") == (project.id ?? "");
         }
 
         public static bool operator ==(CompProject left, CompProject right)
@@ -2286,66 +1903,66 @@ public static class ModComp
         /// <summary>
         ///     筛选 MC 版本。
         /// </summary>
-        public string GameVersion = null;
+        public string gameVersion = null;
 
         /// <summary>
         ///     筛选 Mod 加载器类别。
         /// </summary>
-        public CompLoaderType ModLoader = CompLoaderType.Any;
+        public CompLoaderType modLoader = CompLoaderType.Any;
 
         /// <summary>
         ///     搜索的文本内容。
         /// </summary>
-        public string SearchText;
+        public string searchText;
 
         /// <summary>
         ///     在进行中文搜索时，CurseForge 的替代搜索文本。
         ///     由于 CurseForge API 在有任意关键词未匹配的时候就不显示结果，所以不能使用与 Modrinth 相同的算法。
         /// </summary>
-        public string CurseForgeAltSearchText;
+        public string curseForgeAltSearchText;
 
         /// <summary>
         ///     搜索结果排序方式。
         /// </summary>
-        public CompSortType Sort = CompSortType.Default;
+        public CompSortType sort = CompSortType.Default;
 
         /// <summary>
         ///     允许的来源。
         /// </summary>
-        public CompSourceType Source = CompSourceType.Any;
+        public CompSourceType source = CompSourceType.Any;
 
         // 结果要求
 
         /// <summary>
         ///     加载后应输出到的结果存储器。
         /// </summary>
-        public CompProjectStorage Storage;
+        public CompProjectStorage storage;
 
         /// <summary>
         ///     筛选资源标签。空字符串代表不限制。格式例如 "406/worldgen"，分别是 CurseForge 和 Modrinth 的 ID。
         /// </summary>
-        public string Tag = "";
+        public string tag = "";
 
         /// <summary>
         ///     应当尽量达成的结果数量。
         /// </summary>
-        public int TargetResultCount;
+        public int targetResultCount;
 
         // 输入内容
 
         /// <summary>
         ///     筛选资源种类。
         /// </summary>
-        public CompType Type;
+        public CompType type;
 
         /// <summary>
         ///     构造函数。
         /// </summary>
         public CompProjectRequest(CompType Type, CompProjectStorage Storage, int TargetResultCount)
         {
-            this.Type = Type;
-            this.Storage = Storage;
-            this.TargetResultCount = TargetResultCount;
+            this.type = Type;
+            this.storage = Storage;
+            this.targetResultCount = TargetResultCount;
         }
 
         /// <summary>
@@ -2355,14 +1972,14 @@ public static class ModComp
         {
             get
             {
-                if (Tag.StartsWithF("/") || !Source.HasFlag(CompSourceType.CurseForge))
-                    Storage.CurseForgeTotal = 0;
-                if (Tag.EndsWithF("/") || !Source.HasFlag(CompSourceType.Modrinth))
-                    Storage.ModrinthTotal = 0;
-                if (Storage.CurseForgeTotal == -1 || Storage.ModrinthTotal == -1)
+                if (tag.StartsWithF("/") || !source.HasFlag(CompSourceType.CurseForge))
+                    storage.curseForgeTotal = 0;
+                if (tag.EndsWithF("/") || !source.HasFlag(CompSourceType.Modrinth))
+                    storage.modrinthTotal = 0;
+                if (storage.curseForgeTotal == -1 || storage.modrinthTotal == -1)
                     return true;
-                return Storage.CurseForgeOffset < Storage.CurseForgeTotal ||
-                       Storage.ModrinthOffset < Storage.ModrinthTotal;
+                return storage.curseForgeOffset < storage.curseForgeTotal ||
+                       storage.modrinthOffset < storage.modrinthTotal;
             }
         }
 
@@ -2373,95 +1990,95 @@ public static class ModComp
         /// </summary>
         public string GetCurseForgeAddress()
         {
-            if (!Source.HasFlag(CompSourceType.CurseForge))
+            if (!source.HasFlag(CompSourceType.CurseForge))
                 return null;
-            if (Tag.StartsWithF("/"))
-                Storage.CurseForgeTotal = 0;
-            if (Storage.CurseForgeTotal > -1 && Storage.CurseForgeTotal <= Storage.CurseForgeOffset)
+            if (tag.StartsWithF("/"))
+                storage.curseForgeTotal = 0;
+            if (storage.curseForgeTotal > -1 && storage.curseForgeTotal <= storage.curseForgeOffset)
                 return null;
             // 应用筛选参数
-            var Address =
+            var address =
                 new StringBuilder(
-                    $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={CompPageSize}");
-            switch (Type)
+                    $"https://api.curseforge.com/v1/mods/search?gameId=432&sortOrder=desc&pageSize={compPageSize}");
+            switch (type)
             {
                 case CompType.Mod:
                 {
-                    Address.Append("&classId=6");
+                    address.Append("&classId=6");
                     break;
                 }
                 case CompType.ModPack:
                 {
-                    Address.Append("&classId=4471");
+                    address.Append("&classId=4471");
                     break;
                 }
                 case CompType.DataPack:
                 {
-                    Address.Append("&classId=6945");
+                    address.Append("&classId=6945");
                     break;
                 }
                 case CompType.Shader:
                 {
-                    Address.Append("&classId=6552");
+                    address.Append("&classId=6552");
                     break;
                 }
                 case CompType.ResourcePack:
                 {
-                    Address.Append("&classId=12");
+                    address.Append("&classId=12");
                     break;
                 }
                 case CompType.World:
                 {
-                    Address.Append("&classId=17");
+                    address.Append("&classId=17");
                     break;
                 }
             }
 
-            if (!string.IsNullOrEmpty(Tag)) Address.Append($"&categoryId={Tag.BeforeFirst("/")}");
-            if (ModLoader != CompLoaderType.Any)
-                Address.Append("&modLoaderType=").Append(((int)ModLoader).ToString());
-            if (!string.IsNullOrEmpty(GameVersion))
-                Address.Append("&gameVersion=").Append(GameVersion);
-            if (!string.IsNullOrEmpty(CurseForgeAltSearchText ?? SearchText))
-                Address.Append("&searchFilter=").Append(WebUtility.UrlEncode(CurseForgeAltSearchText ?? SearchText));
-            if (Storage.CurseForgeOffset > 0)
-                Address.Append("&index=").Append(Storage.CurseForgeOffset);
-            switch (Sort)
+            if (!string.IsNullOrEmpty(tag)) address.Append($"&categoryId={tag.BeforeFirst("/")}");
+            if (modLoader != CompLoaderType.Any)
+                address.Append("&modLoaderType=").Append(((int)modLoader).ToString());
+            if (!string.IsNullOrEmpty(gameVersion))
+                address.Append("&gameVersion=").Append(gameVersion);
+            if (!string.IsNullOrEmpty(curseForgeAltSearchText ?? searchText))
+                address.Append("&searchFilter=").Append(WebUtility.UrlEncode(curseForgeAltSearchText ?? searchText));
+            if (storage.curseForgeOffset > 0)
+                address.Append("&index=").Append(storage.curseForgeOffset);
+            switch (sort)
             {
                 case CompSortType.Relevance:
                 {
-                    Address.Append("&sortField=4");
+                    address.Append("&sortField=4");
                     break;
                 }
                 case CompSortType.Downloads:
                 {
-                    Address.Append("&sortField=6");
+                    address.Append("&sortField=6");
                     break;
                 }
                 case CompSortType.Follows:
                 {
-                    Address.Append("&sortField=2");
+                    address.Append("&sortField=2");
                     break;
                 }
                 case CompSortType.Newest:
                 {
-                    Address.Append("&sortField=11");
+                    address.Append("&sortField=11");
                     break;
                 }
                 case CompSortType.Updated:
                 {
-                    Address.Append("&sortField=3");
+                    address.Append("&sortField=3");
                     break;
                 }
 
                 default:
                 {
-                    Address.Append("&sortField=2");
+                    address.Append("&sortField=2");
                     break;
                 }
             }
 
-            return Address.ToString();
+            return address.ToString();
         }
 
         /// <summary>
@@ -2469,74 +2086,74 @@ public static class ModComp
         /// </summary>
         public string GetModrinthAddress()
         {
-            if (!Source.HasFlag(CompSourceType.Modrinth))
+            if (!source.HasFlag(CompSourceType.Modrinth))
                 return null;
-            if (Tag.EndsWithF("/"))
-                Storage.ModrinthTotal = 0;
-            if (Storage.ModrinthTotal > -1 && Storage.ModrinthTotal <= Storage.ModrinthOffset)
+            if (tag.EndsWithF("/"))
+                storage.modrinthTotal = 0;
+            if (storage.modrinthTotal > -1 && storage.modrinthTotal <= storage.modrinthOffset)
                 return null;
             // 应用筛选参数
-            var Address = $"https://api.modrinth.com/v2/search?limit={CompPageSize}";
-            switch (Sort)
+            var address = $"https://api.modrinth.com/v2/search?limit={compPageSize}";
+            switch (sort)
             {
                 case CompSortType.Relevance:
                 {
-                    Address += "&index=relevance";
+                    address += "&index=relevance";
                     break;
                 }
                 case CompSortType.Downloads:
                 {
-                    Address += "&index=downloads";
+                    address += "&index=downloads";
                     break;
                 }
                 case CompSortType.Follows:
                 {
-                    Address += "&index=follows";
+                    address += "&index=follows";
                     break;
                 }
                 case CompSortType.Newest:
                 {
-                    Address += "&index=newest";
+                    address += "&index=newest";
                     break;
                 }
                 case CompSortType.Updated:
                 {
-                    Address += "&index=updated";
+                    address += "&index=updated";
                     break;
                 }
 
                 default:
                 {
-                    Address += "&index=relevance";
+                    address += "&index=relevance";
                     break;
                 }
             }
 
-            if (!string.IsNullOrEmpty(SearchText))
-                Address += "&query=" + WebUtility.UrlEncode(SearchText);
-            if (Storage.ModrinthOffset > 0)
-                Address += "&offset=" + Storage.ModrinthOffset;
+            if (!string.IsNullOrEmpty(searchText))
+                address += "&query=" + WebUtility.UrlEncode(searchText);
+            if (storage.modrinthOffset > 0)
+                address += "&offset=" + storage.modrinthOffset;
             // facets=[["categories:'game-mechanics'"],["categories:'forge'"],["versions:1.19.3"],["project_type:mod"]]
-            var Facets = new List<string>();
-            Facets.Add($"[\"project_type:{ModBase.GetStringFromEnum(Type).ToLower()}\"]");
-            if (!string.IsNullOrEmpty(Tag))
-                Facets.Add($"[\"categories:'{Tag.AfterLast("/")}'\"]");
-            if (ModLoader != CompLoaderType.Any)
-                Facets.Add($"[\"categories:'{ModBase.GetStringFromEnum(ModLoader).ToLower()}'\"]");
-            if (!string.IsNullOrEmpty(GameVersion))
-                Facets.Add($"[\"versions:'{GameVersion}'\"]");
-            Address += "&facets=[" + string.Join(",", Facets) + "]";
-            return Address;
+            var facets = new List<string>();
+            facets.Add($"[\"project_type:{ModBase.GetStringFromEnum(type).ToLower()}\"]");
+            if (!string.IsNullOrEmpty(tag))
+                facets.Add($"[\"categories:'{tag.AfterLast("/")}'\"]");
+            if (modLoader != CompLoaderType.Any)
+                facets.Add($"[\"categories:'{ModBase.GetStringFromEnum(modLoader).ToLower()}'\"]");
+            if (!string.IsNullOrEmpty(gameVersion))
+                facets.Add($"[\"versions:'{gameVersion}'\"]");
+            address += "&facets=[" + string.Join(",", facets) + "]";
+            return address;
         }
 
         // 相同判断
         public override bool Equals(object obj)
         {
             var request = obj as CompProjectRequest;
-            return request is not null && Type == request.Type && TargetResultCount == request.TargetResultCount &&
-                   (Tag ?? "") == (request.Tag ?? "") && ModLoader == request.ModLoader && Source == request.Source &&
-                   (GameVersion ?? "") == (request.GameVersion ?? "") &&
-                   (SearchText ?? "") == (request.SearchText ?? "") && Sort == request.Sort;
+            return request is not null && type == request.type && targetResultCount == request.targetResultCount &&
+                   (tag ?? "") == (request.tag ?? "") && modLoader == request.modLoader && source == request.source &&
+                   (gameVersion ?? "") == (request.gameVersion ?? "") &&
+                   (searchText ?? "") == (request.searchText ?? "") && sort == request.sort;
         }
 
         public static bool operator ==(CompProjectRequest left, CompProjectRequest right)
@@ -2554,75 +2171,75 @@ public static class ModComp
     {
         // 加载位置记录
 
-        public int CurseForgeOffset;
-        public int CurseForgeTotal = -1;
+        public int curseForgeOffset;
+        public int curseForgeTotal = -1;
 
         /// <summary>
         ///     当前的错误信息。如果没有则为 Nothing。
         /// </summary>
-        public string ErrorMessage = null;
+        public string errorMessage = null;
 
-        public int ModrinthOffset;
-        public int ModrinthTotal = -1;
+        public int modrinthOffset;
+        public int modrinthTotal = -1;
 
         // 结果列表
 
         /// <summary>
         ///     可供展示的所有工程的列表。
         /// </summary>
-        public List<CompProject> Results = new();
+        public List<CompProject> results = new();
     }
 
     // 实际的获取
 
-    private const int CompPageSize = 40;
+    private const int compPageSize = 40;
 
     /// <summary>
     ///     已知工程信息的缓存。
     /// </summary>
-    public static ConcurrentDictionary<string, CompProject> CompProjectCache = new();
+    public static ConcurrentDictionary<string, CompProject> compProjectCache = new();
 
     /// <summary>
     ///     根据搜索请求获取一系列的工程列表。需要基于加载器运行。
     /// </summary>
     public static void CompProjectsGet(ModLoader.LoaderTask<CompProjectRequest, int> task)
     {
-        var request = task.Input;
-        var storage = request.Storage;
+        var request = task.input;
+        var storage = request.storage;
 
         #region 状态与版本初步检查
 
-        if (storage.Results.Count >= request.TargetResultCount)
+        if (storage.results.Count >= request.targetResultCount)
         {
-            LogWrapper.Info($"[Comp] 已有 {storage.Results.Count} 个结果，多于所需的 {request.TargetResultCount} 个结果，结束处理");
+            LogWrapper.Info($"[Comp] 已有 {storage.results.Count} 个结果，多于所需的 {request.targetResultCount} 个结果，结束处理");
             return;
         }
 
         if (!request.CanContinue)
         {
-            if (!storage.Results.Any()) throw new Exception("没有符合条件的结果");
+            if (!storage.results.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoMatchingResults"));
             LogWrapper.Info(
-                $"[Comp] 已有 {storage.Results.Count} 个结果，少于所需的 {request.TargetResultCount} 个结果，但无法继续获取，结束处理");
+                $"[Comp] 已有 {storage.results.Count} 个结果，少于所需的 {request.targetResultCount} 个结果，但无法继续获取，结束处理");
             return;
         }
 
         // 拒绝不支持的版本
-        if (request.ModLoader == CompLoaderType.Quilt &&
-            ModMinecraft.CompareVersion(request.GameVersion ?? "1.15", "1.14") == -1)
-            throw new Exception($"Quilt 不支持 Minecraft {request.GameVersion}");
+        if (request.modLoader == CompLoaderType.Quilt &&
+            ModMinecraft.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
+                throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.gameVersion));
 
         #endregion
 
         #region 处理搜索文本 (内嵌关键词转换逻辑)
 
-        var rawFilter = (request.SearchText ?? "").Trim();
-        request.SearchText = rawFilter;
+        var rawFilter = (request.searchText ?? "").Trim();
+        request.searchText = rawFilter;
         var rawFilterLower = rawFilter.ToLower();
         LogWrapper.Info("[Comp] 工程列表搜索原始文本：" + rawFilter);
 
         // 中文请求关键字处理
         var isChineseSearch = RegexPatterns.HasChineseChar.IsMatch(rawFilter) && !string.IsNullOrEmpty(rawFilter);
-        if (isChineseSearch && (request.Type == CompType.Mod || request.Type == CompType.DataPack))
+        if (isChineseSearch && (request.type == CompType.Mod || request.type == CompType.DataPack))
         {
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
@@ -2635,8 +2252,8 @@ public static class ModComp
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
                     searchEntries.Add(new ModBase.SearchEntry<CompDatabaseEntry>
                     {
-                        Item = searchItem,
-                        SearchSource = new List<ModBase.SearchSource>
+                        item = searchItem,
+                        searchSource = new List<ModBase.SearchSource>
                         {
                             new(searchItem.ChineseName.BeforeFirst(" (").Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
                             new(searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""), 0.5)
@@ -2645,20 +2262,20 @@ public static class ModComp
                 }
             }
 
-            var searchResults = ModBase.Search(searchEntries, request.SearchText, 40, 0.2);
-            if (!searchResults.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
+            var searchResults = ModBase.Search(searchEntries, request.searchText, 40, 0.2);
+            if (!searchResults.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             string[] ExtractWords(ModBase.SearchEntry<CompDatabaseEntry> Result)
             {
-                var Word = "";
-                if (Result.Item.CurseForgeSlug != null)
-                    Word += Result.Item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
-                if (Result.Item.ModrinthSlug != null)
-                    Word += Result.Item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
-                Word += Result.Item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
+                var word = "";
+                if (Result.item.CurseForgeSlug is not null)
+                    word += Result.item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
+                if (Result.item.ModrinthSlug is not null)
+                    word += Result.item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
+                word += Result.item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
                     .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ").Replace("-", " ");
-                var Words = Word.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                Words = Words.Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')')).Where(
+                var words = word.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                words = words.Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')')).Where(
                     w =>
                     {
                         if (w.Length <= 1) return false;
@@ -2667,38 +2284,38 @@ public static class ModComp
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
                     }).Distinct().ToArray();
-                return Words;
+                return words;
             }
 
-            var WordWeights = new Dictionary<string, double>();
+            var wordWeights = new Dictionary<string, double>();
             foreach (var Result in searchResults)
             {
                 foreach (var Word in ExtractWords(Result))
                 {
-                    var Similarity = Result.SearchSource.Any(s => s.Aliases.Contains(request.SearchText))
+                    var similarity = Result.searchSource.Any(s => s.aliases.Contains(request.searchText))
                         ? 100000
-                        : Result.Similarity;
-                    if (!WordWeights.ContainsKey(Word))
-                        WordWeights.Add(Word, 0);
-                    WordWeights[Word] += Similarity;
+                        : Result.similarity;
+                    if (!wordWeights.ContainsKey(Word))
+                        wordWeights.Add(Word, 0);
+                    wordWeights[Word] += similarity;
                 }
             }
 
-            if (!WordWeights.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
+            if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            var SortedWords = WordWeights.OrderByDescending(w => w.Value).ToList();
-            if (SortedWords.First().Value >= 100000)
+            var sortedWords = wordWeights.OrderByDescending(w => w.Value).ToList();
+            if (sortedWords.First().Value >= 100000)
             {
-                request.SearchText = string.Join(" ", SortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
+                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
             }
             else
             {
-                request.SearchText = string.Join(" ", SortedWords.Take(5).Select(w => w.Key));
-                request.CurseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
-                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.CurseForgeAltSearchText);
+                request.searchText = string.Join(" ", sortedWords.Take(5).Select(w => w.Key));
+                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
+                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.curseForgeAltSearchText);
             }
 
-            LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.SearchText);
+            LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
 
         // 最终处理关键字：分割、去重
@@ -2730,14 +2347,14 @@ public static class ModComp
             if (rawFilter.Replace(" ", "").ContainsF("optifabric", true)) text = "optifabric";
         }
 
-        if (request.CurseForgeAltSearchText is not null)
+        if (request.curseForgeAltSearchText is not null)
         {
-            processKeywords(ref request.CurseForgeAltSearchText);
-            LogWrapper.Debug("[Comp] 工程列表搜索最终文本（CurseForge）：" + request.CurseForgeAltSearchText);
+            processKeywords(ref request.curseForgeAltSearchText);
+            LogWrapper.Debug("[Comp] 工程列表搜索最终文本（CurseForge）：" + request.curseForgeAltSearchText);
         }
 
-        processKeywords(ref request.SearchText);
-        LogWrapper.Debug("[Comp] 工程列表搜索最终文本：" + request.SearchText);
+        processKeywords(ref request.searchText);
+        LogWrapper.Debug("[Comp] 工程列表搜索最终文本：" + request.searchText);
         task.Progress = 0.1;
 
         #endregion
@@ -2753,33 +2370,33 @@ public static class ModComp
             var resultsLock = new object();
 
             // 1.14 以下 Forge 筛选处理
-            var isOldForgeRequest = request.ModLoader == CompLoaderType.Forge &&
-                                    ModMinecraft.McInstanceInfo.VersionToDrop(request.GameVersion, true) < 140;
-            if (isOldForgeRequest) request.ModLoader = CompLoaderType.Any;
+            var isOldForgeRequest = request.modLoader == CompLoaderType.Forge &&
+                                    ModMinecraft.McInstanceInfo.VersionToDrop(request.gameVersion, true) < 140;
+            if (isOldForgeRequest) request.modLoader = CompLoaderType.Any;
             var curseForgeUrl = request.GetCurseForgeAddress();
             var modrinthUrl = request.GetModrinthAddress();
-            if (isOldForgeRequest) request.ModLoader = CompLoaderType.Forge;
+            if (isOldForgeRequest) request.modLoader = CompLoaderType.Forge;
 
             var tasks = new List<Task>();
 
             // CurseForge 线程内嵌
-            if (curseForgeUrl != null)
+            if (curseForgeUrl is not null)
                 tasks.Add(Task.Run(() =>
                 {
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
-                        var json = (JObject)ModDownload.DlModRequest(curseForgeUrl, true);
-                        var projects = json["data"].Select(j => new CompProject((JObject)j))
-                            .Where(p => !(request.Type == CompType.ResourcePack && p.Tags.Contains("数据包")))
+                        var json = ModDownload.DlModRequest<JsonObject>(curseForgeUrl);
+                        var projects = json["data"].AsArray().Select(j => new CompProject((JsonObject)j))
+                            .Where(p => !(request.type == CompType.ResourcePack && p.tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
                             .ToList();
                         lock (resultsLock)
                         {
                             rawResults.AddRange(projects);
                         }
 
-                        storage.CurseForgeOffset += projects.Count;
-                        storage.CurseForgeTotal = json["pagination"]["totalCount"].ToObject<int>();
+                        storage.curseForgeOffset += projects.Count;
+                        storage.curseForgeTotal = json["pagination"]["totalCount"].ToObject<int>();
                     }
                     catch (Exception ex)
                     {
@@ -2789,21 +2406,21 @@ public static class ModComp
                 }));
 
             // Modrinth 线程内嵌
-            if (modrinthUrl != null)
+            if (modrinthUrl is not null)
                 tasks.Add(Task.Run(() =>
                 {
                     try
                     {
                         LogWrapper.Info("[Comp] 开始从 Modrinth 获取列表：" + modrinthUrl);
-                        var json = (JObject)ModDownload.DlModRequest(modrinthUrl, true);
-                        var projects = json["hits"].Select(j => new CompProject((JObject)j)).ToList();
+                        var json = ModDownload.DlModRequest<JsonObject>(modrinthUrl);
+                        var projects = json["hits"].AsArray().Select(j => new CompProject((JsonObject)j)).ToList();
                         lock (resultsLock)
                         {
                             rawResults.AddRange(projects);
                         }
 
-                        storage.ModrinthOffset += projects.Count;
-                        storage.ModrinthTotal = json["total_hits"].ToObject<int>();
+                        storage.modrinthOffset += projects.Count;
+                        storage.modrinthTotal = json["total_hits"].ToObject<int>();
                     }
                     catch (Exception ex)
                     {
@@ -2818,29 +2435,29 @@ public static class ModComp
 
             // 过滤老版本 Forge
             if (isOldForgeRequest)
-                rawResults = rawResults.Where(p => !p.ModLoaders.Any() || p.ModLoaders.Contains(CompLoaderType.Forge))
+                rawResults = rawResults.Where(p => !p.modLoaders.Any() || p.modLoaders.Contains(CompLoaderType.Forge))
                     .ToList();
 
             // 错误检查与空结果处理
             if (!rawResults.Any())
             {
-                if (lastError != null) throw lastError;
+                if (lastError is not null) throw lastError;
                 // 处理各平台不兼容报错... (此处省略具体 Exception 文本以保持简略)
-                throw new Exception("没有搜索结果");
+                throw new Exception(Lang.Text("Download.Comp.List.NoResultsSimple"));
             }
 
             #region 去重与分页判断
 
             // 优先保留 Modrinth 顺序并去重
-            var processedResults = rawResults.OrderBy(x => x.FromCurseForge)
-                .Where(r => !realResults.Any(b => r.IsLike(b)) && !storage.Results.Any(b => r.IsLike(b)))
+            var processedResults = rawResults.OrderBy(x => x.fromCurseForge)
+                .Where(r => !realResults.Any(b => r.IsLike(b)) && !storage.results.Any(b => r.IsLike(b)))
                 .ToList();
 
             realResults.AddRange(processedResults);
-            LogWrapper.Info($"[Comp] 去重、筛选后累计新增结果 {processedResults.Count} 个（目前已有结果 {storage.Results.Count} 个）");
+            LogWrapper.Info($"[Comp] 去重、筛选后累计新增结果 {processedResults.Count} 个（目前已有结果 {storage.results.Count} 个）");
 
-            if (realResults.Count + storage.Results.Count < request.TargetResultCount && request.CanContinue &&
-                lastError == null)
+            if (realResults.Count + storage.results.Count < request.targetResultCount && request.CanContinue &&
+                lastError is null)
             {
                 LogWrapper.Info("[Comp] 数量不足，继续加载下一页");
                 continue;
@@ -2855,23 +2472,30 @@ public static class ModComp
 
         #region 排序与最终输出
 
+        if (request.sort != CompSortType.Default)
+        {
+            if (task.IsAborted) throw new ThreadInterruptedException();
+            storage.results.AddRange(realResults); // 遵从API返回顺序
+            return;
+        }
+        
         var scores = new Dictionary<CompProject, double>();
         Func<CompProject, double> getDownloadCountMult = p =>
         {
-            switch (request.Type)
+            switch (request.type)
             {
                 case CompType.Mod:
-                case CompType.ModPack: return p.FromCurseForge ? 1 : 7;
-                case CompType.DataPack: return p.FromCurseForge ? 10 : 1;
+                case CompType.ModPack: return p.fromCurseForge ? 1 : 7;
+                case CompType.DataPack: return p.fromCurseForge ? 10 : 1;
                 case CompType.ResourcePack:
-                case CompType.Shader: return p.FromCurseForge ? 1 : 5;
+                case CompType.Shader: return p.fromCurseForge ? 1 : 5;
                 default: return 1;
             }
         };
 
         if (string.IsNullOrEmpty(rawFilter))
         {
-            foreach (var res in realResults) scores.Add(res, res.DownloadCount * getDownloadCountMult(res));
+            foreach (var res in realResults) scores.Add(res, res.downloadCount * getDownloadCountMult(res));
         }
         else
         {
@@ -2880,27 +2504,27 @@ public static class ModComp
             {
                 scores.Add(res,
                     (res.WikiId > 0 ? 0.2 : 0) +
-                    Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
+                    Math.Log10(Math.Max(res.downloadCount, 1) * getDownloadCountMult(res)) / 9);
                 searchEntries.Add(new ModBase.SearchEntry<CompProject>
                 {
-                    Item = res,
-                    SearchSource = new List<ModBase.SearchSource>
+                    item = res,
+                    searchSource = new List<ModBase.SearchSource>
                     {
-                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
-                        new(res.Description, 0.05)
+                        new((isChineseSearch ? res.TranslatedName : res.rawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
+                        new(res.description, 0.05)
                     }
                 });
             }
 
             var searchRes = ModBase.Search(searchEntries, rawFilter, 101, -1);
             foreach (var item in searchRes)
-                scores[item.Item] +=
-                    (item.AbsoluteRight ? 10 : item.Similarity) /
-                    (searchRes.First().AbsoluteRight ? 10 : searchRes.First().Similarity);
+                scores[item.item] +=
+                    (item.absoluteRight ? 10 : item.similarity) /
+                    (searchRes.First().absoluteRight ? 10 : searchRes.First().similarity);
         }
 
         if (task.IsAborted) throw new ThreadInterruptedException();
-        storage.Results.AddRange(scores.OrderByDescending(s => s.Value).Select(s => s.Key));
+        storage.results.AddRange(scores.OrderByDescending(s => s.Value).Select(s => s.Key));
 
         #endregion
     }
@@ -2923,188 +2547,189 @@ public static class ModComp
         /// <summary>
         ///     该文件的所有必要依赖工程的 Project.Id。
         /// </summary>
-        public readonly List<string> Dependencies = new();
+        public readonly List<string> dependencies = new();
 
         /// <summary>
         ///     下载量计数。注意，该计数仅为一个来源，无法反应两边加起来的下载量，且 CurseForge 可能错误地返回 0。
         /// </summary>
-        public readonly int DownloadCount;
+        public readonly int downloadCount;
 
         /// <summary>
         ///     下载的文件名。
         /// </summary>
-        public readonly string FileName;
+        public readonly string fileName;
 
         /// <summary>
         ///     该文件来自 CurseForge 还是 Modrinth。
         /// </summary>
-        public readonly bool FromCurseForge;
+        public readonly bool fromCurseForge;
 
         //  <summary>
         //  未经处理的支持的游戏版本列表。
         // </summary>
-        public readonly List<string> RawGameVersions;
+        public readonly List<string> rawGameVersions;
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
-        public readonly List<string> GameVersions;
+        public readonly List<string> gameVersions;
 
         /// <summary>
         ///     文件的 SHA1 或 MD5。
         /// </summary>
-        public readonly string Hash;
+        public readonly string hash;
 
         /// <summary>
         ///     用于唯一性鉴别该文件的 ID。CurseForge 中为 123456 的大整数，Modrinth 中为英文乱码的 Version 字段。
         /// </summary>
-        public readonly string Id;
+        public readonly string id;
 
         /// <summary>
         ///     支持的 Mod 加载器列表。可能为空。
         /// </summary>
-        public readonly List<CompLoaderType> ModLoaders;
+        public readonly List<CompLoaderType> modLoaders;
 
         /// <summary>
         ///     该文件的所有可选依赖工程的 Project.Id。
         /// </summary>
-        public readonly List<string> OptionalDependencies = new();
+        public readonly List<string> optionalDependencies = new();
 
         /// <summary>
         ///     该文件所属项目的 ID。
         /// </summary>
-        public readonly string ProjectId;
+        public readonly string projectId;
 
         /// <summary>
         ///     该文件的所有必要依赖工程的原始 ID。
         ///     这些 ID 可能没有加载，在加载后会添加到 Dependencies 中（主要是因为 Modrinth 返回的是字符串 ID 而非 Slug，导致 Project.Id 查询不到）。
         /// </summary>
-        public readonly List<string> RawDependencies = new();
+        public readonly List<string> rawDependencies = new();
 
         /// <summary>
         ///     该文件的所有可选依赖工程的原始 ID。
         ///     这些 ID 可能没有加载，在加载后会添加到 OptionalDependencies 中（主要是因为 Modrinth 返回的是字符串 ID 而非 Slug，导致 Project.Id 查询不到）。
         /// </summary>
-        public readonly List<string> RawOptionalDependencies = new();
+        public readonly List<string> rawOptionalDependencies = new();
 
         /// <summary>
         ///     发布时间。
         /// </summary>
-        public readonly DateTime ReleaseDate;
+        public readonly DateTime releaseDate;
 
         /// <summary>
         ///     发布状态：Release/Beta/Alpha。
         /// </summary>
-        public readonly CompFileStatus Status;
+        public readonly CompFileStatus status;
 
         // 源信息
 
         /// <summary>
         ///     文件的种类。
         /// </summary>
-        public readonly CompType Type;
+        public readonly CompType type;
 
         // 描述性信息
 
         /// <summary>
         ///     文件描述名（并非文件名，是自定义的字段）。对很多 Mod，这会给出 Mod 版本号。
         /// </summary>
-        public string DisplayName;
+        public string displayName;
 
         /// <summary>
         ///     文件所有可能的下载源。
         /// </summary>
-        public List<string> DownloadUrls;
+        public List<string> downloadUrls;
 
         /// <summary>
         ///     Mod 版本号。
         ///     不一定是标准格式。CurseForge 上默认为 Nothing。
         /// </summary>
-        public string Version;
+        public string version;
 
         // 实例化
 
         /// <summary>
         ///     从文件 Json 中初始化实例。若出错会抛出异常。
         /// </summary>
-        public CompFile(JObject Data, CompType DefaultType)
+        public CompFile(JsonObject Data, CompType DefaultType)
         {
-            Type = DefaultType;
+            type = DefaultType;
             if (Data.ContainsKey("FromCurseForge"))
             {
                 #region CompJson
 
-                FromCurseForge = Data["FromCurseForge"].ToObject<bool>();
-                Id = Data["Id"].ToString();
-                DisplayName = Data["DisplayName"].ToString();
+                fromCurseForge = Data["FromCurseForge"].ToObject<bool>();
+                id = Data["Id"].ToString();
+                displayName = Data["DisplayName"].ToString();
                 if (Data.ContainsKey("Version"))
-                    Version = Data["Version"].ToString();
-                ReleaseDate = Data["ReleaseDate"].ToObject<DateTime>();
-                DownloadCount = Data["DownloadCount"].ToObject<int>();
-                Status = (CompFileStatus)Data["Status"].ToObject<int>();
+                    version = Data["Version"].ToString();
+                releaseDate = Data["ReleaseDate"].ToObject<DateTime>();
+                downloadCount = Data["DownloadCount"].ToObject<int>();
+                status = (CompFileStatus)Data["Status"].ToObject<int>();
                 if (Data.ContainsKey("FileName"))
-                    FileName = Data["FileName"].ToString();
+                    fileName = Data["FileName"].ToString();
                 if (Data.ContainsKey("DownloadUrls"))
-                    DownloadUrls = Data["DownloadUrls"].ToObject<List<string>>();
+                    downloadUrls = Data["DownloadUrls"].ToObject<List<string>>();
                 if (Data.ContainsKey("ModLoaders"))
-                    ModLoaders = Data["ModLoaders"].ToObject<List<CompLoaderType>>();
+                    modLoaders = Data["ModLoaders"].ToObject<List<CompLoaderType>>();
                 if (Data.ContainsKey("Hash"))
-                    Hash = Data["Hash"].ToString();
+                    hash = Data["Hash"].ToString();
                 if (Data.ContainsKey("RawGameVersions"))
-                    RawGameVersions = Data["RawGameVersions"].ToObject<List<string>>();
+                    rawGameVersions = Data["RawGameVersions"].ToObject<List<string>>();
                 if (Data.ContainsKey("GameVersions"))
-                    GameVersions = Data["GameVersions"].ToObject<List<string>>();
+                    gameVersions = Data["GameVersions"].ToObject<List<string>>();
                 if (Data.ContainsKey("RawDependencies"))
-                    RawDependencies = Data["RawDependencies"].ToObject<List<string>>();
+                    rawDependencies = Data["RawDependencies"].ToObject<List<string>>();
                 if (Data.ContainsKey("Dependencies"))
-                    Dependencies = Data["Dependencies"].ToObject<List<string>>();
+                    dependencies = Data["Dependencies"].ToObject<List<string>>();
                 if (Data.ContainsKey("RawOptionalDependencies"))
-                    RawOptionalDependencies = Data["RawOptionalDependencies"].ToObject<List<string>>();
+                    rawOptionalDependencies = Data["RawOptionalDependencies"].ToObject<List<string>>();
                 if (Data.ContainsKey("OptionalDependencies"))
-                    OptionalDependencies = Data["OptionalDependencies"].ToObject<List<string>>();
+                    optionalDependencies = Data["OptionalDependencies"].ToObject<List<string>>();
+
             }
 
             #endregion
 
             else
             {
-                FromCurseForge = Data.ContainsKey("gameId");
-                if (FromCurseForge)
+                fromCurseForge = Data.ContainsKey("gameId");
+                if (fromCurseForge)
                 {
                     #region CurseForge
 
                     // 简单信息
-                    Id = (string)Data["id"];
-                    ProjectId = (string)Data["modId"];
-                    DisplayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
-                    Version = null;
-                    ReleaseDate = (DateTime)Data["fileDate"];
-                    Status = (CompFileStatus)Data["releaseType"].ToObject<int>();
-                    DownloadCount = (int)Data["downloadCount"];
-                    FileName = (string)Data["fileName"];
-                    Hash =
-                        (string)((JArray)Data["hashes"]).ToList().FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
+                    id = Data["id"].ToString();
+                    projectId = Data["modId"].ToString();
+                    displayName = Data["displayName"].ToString().Replace("	", "").Trim(' ');
+                    version = null;
+                    releaseDate = Data["fileDate"].ToObject<DateTime>();
+                    status = (CompFileStatus)Data["releaseType"].ToObject<int>();
+                    downloadCount = (int)Data["downloadCount"];
+                    fileName = (string)Data["fileName"];
+                    hash =
+                        (string)((JsonArray)Data["hashes"]).ToList().FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
                             "value"];
-                    if (Hash is null)
-                        Hash = (string)((JArray)Data["hashes"]).ToList()
+                    if (hash is null)
+                        hash = (string)((JsonArray)Data["hashes"]).ToList()
                             .FirstOrDefault(s => s["algo"].ToObject<int>() == 2)?["value"];
                     // DownloadAddress
-                    var Url = Data["downloadUrl"].ToString();
+                    var url = Data["downloadUrl"]?.ToString() ?? "";
                     // TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
-                    if (string.IsNullOrWhiteSpace(Url))
-                        Url =
-                            $"https://edge.forgecdn.net/files/{int.Parse(Id[..4])}/{int.Parse(Id[4..])}/{FileName}";
-                    Url = Url.Replace(FileName, WebUtility.UrlEncode(FileName)); // 对文件名进行编码
-                    Url = Url.Replace("+", "%20"); // 修正被编码成 + 的空格，CurseForge 会对 + 号也进行编码
-                    DownloadUrls = ModDownload.DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)); // 添加镜像源
+                    if (string.IsNullOrWhiteSpace(url))
+                        url =
+                            $"https://edge.forgecdn.net/files/{int.Parse(id[..4])}/{int.Parse(id[4..])}/{fileName}";
+                    url = url.Replace(fileName, WebUtility.UrlEncode(fileName)); // 对文件名进行编码
+                    url = url.Replace("+", "%20"); // 修正被编码成 + 的空格，CurseForge 会对 + 号也进行编码
+                    downloadUrls = ModDownload.DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(url)); // 添加镜像源
                     // Dependencies
                     if (Data.ContainsKey("dependencies"))
                     {
-                        RawDependencies = Data["dependencies"]
+                        rawDependencies = Data["dependencies"].AsArray()
                             .Where(d => d["relationType"].ToObject<int>() == 3 &&
                                         d["modId"].ToObject<int>() != 306612 && d["modId"].ToObject<int>() != 634179)
                             .Select(d => d["modId"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
-                        RawOptionalDependencies = Data["dependencies"]
+                        rawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => d["relationType"].ToObject<int>() == 2 &&
                                         d["modId"].ToObject<int>() != 306612 && d["modId"].ToObject<int>() != 634179)
                             .Select(d => d["modId"].ToString()).ToList(); // 种类为可选依赖
@@ -3112,34 +2737,34 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    RawGameVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
-                    GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
-                        .Select(v => v.Replace("-snapshot", " 预览版")).Distinct().ToList();
-                    if (GameVersions.Count > 1)
+                    rawGameVersions = Data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
+                    gameVersions = rawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
+                        .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
+                    if (gameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
-                        if (Type == CompType.ModPack)
-                            GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 "支持" 一个版本
+                        gameVersions = gameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        if (type == CompType.ModPack)
+                            gameVersions = new List<string> { gameVersions[0] }; // 整合包理应只 "支持" 一个版本
                     }
-                    else if (GameVersions.Count == 1)
+                    else if (gameVersions.Count == 1)
                     {
-                        GameVersions = GameVersions.ToList();
+                        gameVersions = gameVersions.ToList();
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        gameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     // ModLoaders
-                    ModLoaders = new List<CompLoaderType>();
-                    if (RawGameVersions.Contains("forge"))
-                        ModLoaders.Add(CompLoaderType.Forge);
-                    if (RawGameVersions.Contains("fabric"))
-                        ModLoaders.Add(CompLoaderType.Fabric);
-                    if (RawGameVersions.Contains("quilt"))
-                        ModLoaders.Add(CompLoaderType.Quilt);
-                    if (RawGameVersions.Contains("neoforge"))
-                        ModLoaders.Add(CompLoaderType.NeoForge);
+                    modLoaders = new List<CompLoaderType>();
+                    if (rawGameVersions.Contains("forge"))
+                        modLoaders.Add(CompLoaderType.Forge);
+                    if (rawGameVersions.Contains("fabric"))
+                        modLoaders.Add(CompLoaderType.Fabric);
+                    if (rawGameVersions.Contains("quilt"))
+                        modLoaders.Add(CompLoaderType.Quilt);
+                    if (rawGameVersions.Contains("neoforge"))
+                        modLoaders.Add(CompLoaderType.NeoForge);
                 }
 
                 #endregion
@@ -3149,128 +2774,130 @@ public static class ModComp
                     #region Modrinth
 
                     // 简单信息
-                    Id = (string)Data["id"];
-                    ProjectId = (string)Data["project_id"];
-                    DisplayName = Data["name"].ToString().Replace("	", "").Trim(' ');
-                    Version = (string)Data["version_number"];
-                    ReleaseDate = (DateTime)Data["date_published"];
-                    Status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
+                    id = (string)Data["id"];
+                    projectId = (string)Data["project_id"];
+                    displayName = Data["name"].ToString().Replace("	", "").Trim(' ');
+                    version = (string)Data["version_number"];
+                    releaseDate = Data["date_published"].ToObject<DateTime>();
+                    status = Data["version_type"].ToString() == "release" ? CompFileStatus.Release :
                         Data["version_type"].ToString() == "beta" ? CompFileStatus.Beta : CompFileStatus.Alpha;
-                    DownloadCount = (int)Data["downloads"];
-                    if (((JArray)Data["files"]).Any()) // 可能为空
+                    downloadCount = (int)Data["downloads"];
+                    if (((JsonArray)Data["files"]).Any()) // 可能为空
                     {
-                        var File = Data["files"][0];
-                        FileName = (string)File["filename"];
-                        DownloadUrls = ModDownload.DlSourceModDownloadGet(File["url"].ToString()); // 同时添加了镜像源
-                        Hash = (string)File["hashes"]["sha1"];
+                        var file = Data["files"][0];
+                        fileName = (string)file["filename"];
+                        downloadUrls = ModDownload.DlSourceModDownloadGet(file["url"].ToString()); // 同时添加了镜像源
+                        hash = (string)file["hashes"]["sha1"];
                     }
 
                     // ModLoaders
                     // 结果可能混杂着 Mod、数据包和服务端插件
-                    var RawLoaders = Data["loaders"].Select(v => v.ToString()).ToList();
-                    ModLoaders = new List<CompLoaderType>();
-                    if (Type == CompType.Mod) // 以尽量宽容的方式检测加载器，以免同时兼容两种的项被删除
+                    var rawLoaders = Data["loaders"].AsArray().Select(v => v.ToString()).ToList();
+                    modLoaders = new List<CompLoaderType>();
+                    if (type == CompType.Mod) // 以尽量宽容的方式检测加载器，以免同时兼容两种的项被删除
                     {
-                        if (RawLoaders.Intersect(new[] { "bukkit", "folia", "paper", "purpur", "spigot" }).Any())
-                            Type = CompType.Plugin; // Veinminer Enchantment 同时支持服务端与 Fabric
-                        if (RawLoaders.Contains("datapack"))
-                            Type = CompType.DataPack;
-                        if (RawLoaders.Contains("forge"))
+                        if (rawLoaders.Intersect(new[] { "bukkit", "folia", "paper", "purpur", "spigot" }).Any())
+                            type = CompType.Plugin; // Veinminer Enchantment 同时支持服务端与 Fabric
+                        if (rawLoaders.Contains("datapack"))
+                            type = CompType.DataPack;
+                        if (rawLoaders.Contains("forge"))
                         {
-                            ModLoaders.Add(CompLoaderType.Forge);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Forge);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("neoforge"))
+                        if (rawLoaders.Contains("neoforge"))
                         {
-                            ModLoaders.Add(CompLoaderType.NeoForge);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.NeoForge);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("fabric"))
+                        if (rawLoaders.Contains("fabric"))
                         {
-                            ModLoaders.Add(CompLoaderType.Fabric);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Fabric);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("quilt"))
+                        if (rawLoaders.Contains("quilt"))
                         {
-                            ModLoaders.Add(CompLoaderType.Quilt);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Quilt);
+                            type = CompType.Mod;
                         }
                     }
-                    else if (Type == CompType.DataPack)
+                    else if (type == CompType.DataPack)
                     {
-                        if (RawLoaders.Intersect(new[] { "bukkit", "folia", "paper", "purpur", "spigot" }).Any())
-                            Type = CompType.Plugin;
-                        if (RawLoaders.Contains("forge"))
+                        if (rawLoaders.Intersect(new[] { "bukkit", "folia", "paper", "purpur", "spigot" }).Any())
+                            type = CompType.Plugin;
+                        if (rawLoaders.Contains("forge"))
                         {
-                            ModLoaders.Add(CompLoaderType.Forge);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Forge);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("neoforge"))
+                        if (rawLoaders.Contains("neoforge"))
                         {
-                            ModLoaders.Add(CompLoaderType.NeoForge);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.NeoForge);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("fabric"))
+                        if (rawLoaders.Contains("fabric"))
                         {
-                            ModLoaders.Add(CompLoaderType.Fabric);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Fabric);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("quilt"))
+                        if (rawLoaders.Contains("quilt"))
                         {
-                            ModLoaders.Add(CompLoaderType.Quilt);
-                            Type = CompType.Mod;
+                            modLoaders.Add(CompLoaderType.Quilt);
+                            type = CompType.Mod;
                         }
 
-                        if (RawLoaders.Contains("datapack"))
-                            Type = CompType.DataPack;
+                        if (rawLoaders.Contains("datapack"))
+                            type = CompType.DataPack;
                     }
 
                     // Dependencies
                     if (Data.ContainsKey("dependencies"))
                     {
-                        RawDependencies = Data["dependencies"]
+                        rawDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "required" &&
+                                        d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……
-                        RawOptionalDependencies = Data["dependencies"]
+                        rawOptionalDependencies = Data["dependencies"].AsArray()
                             .Where(d => (string)d["dependency_type"] == "optional" &&
+                                        d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为可选依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……
                     }
 
                     // GameVersions
-                    RawGameVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
-                    GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
-                        v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).Distinct().ToList();
-                    if (GameVersions.Count > 1)
+                    rawGameVersions = Data["game_versions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
+                    gameVersions = rawGameVersions.Where(v => v.Contains(".")).Select(v =>
+                        v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
+                    if (gameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
-                        if (Type == CompType.ModPack)
-                            GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 “支持” 一个版本
+                        gameVersions = gameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        if (type == CompType.ModPack)
+                            gameVersions = new List<string> { gameVersions[0] }; // 整合包理应只 “支持” 一个版本
                     }
-                    else if (GameVersions.Count == 1)
+                    else if (gameVersions.Count == 1)
                     {
                     }
                     // 无需处理
-                    else if (RawGameVersions.Any(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")))
+                    else if (rawGameVersions.Any(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")))
                     {
-                        GameVersions = RawGameVersions.Where(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")).ToList();
+                        gameVersions = rawGameVersions.Where(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")).ToList();
                     }
                     else
                     {
-                        GameVersions = new List<string> { "未知版本" };
+                        gameVersions = new List<string> { Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion") };
                     }
 
                     #endregion
@@ -3285,20 +2912,20 @@ public static class ModComp
         {
             get
             {
-                switch (Status)
+                switch (status)
                 {
                     case CompFileStatus.Release:
                     {
-                        return "正式版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Release");
                     }
                     case CompFileStatus.Beta:
                     {
-                        return ModBase.ModeDebug ? "Beta 版" : "测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Beta");
                     }
 
                     default:
                     {
-                        return ModBase.ModeDebug ? "Alpha 版" : "早期测试版";
+                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Alpha");
                     }
                 }
             }
@@ -3308,7 +2935,7 @@ public static class ModComp
         /// <summary>
         ///     下载信息是否可用。
         /// </summary>
-        public bool Available => FileName is not null && DownloadUrls is not null;
+        public bool Available => fileName is not null && downloadUrls is not null;
 
         /// <summary>
         ///     获取下载信息。
@@ -3316,8 +2943,8 @@ public static class ModComp
         /// <param name="LocalAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
         public DownloadFile ToNetFile(string LocalAddress)
         {
-            return new DownloadFile(DownloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? FileName : ""),
-                new ModBase.FileChecker(Hash: Hash), true);
+            return new DownloadFile(downloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? fileName : ""),
+                new ModBase.FileChecker(Hash: hash), true);
         }
 
         /// <summary>
@@ -3332,31 +2959,31 @@ public static class ModComp
         /// <summary>
         ///     将当前实例转为可用于保存缓存的 Json。
         /// </summary>
-        public JObject ToJson()
+        public JsonObject ToJson()
         {
-            var Json = new JObject();
-            Json.Add("FromCurseForge", FromCurseForge);
-            Json.Add("Id", Id);
-            if (Version is not null)
-                Json.Add("Version", Version);
-            Json.Add("DisplayName", DisplayName);
-            Json.Add("ReleaseDate", ReleaseDate);
-            Json.Add("DownloadCount", DownloadCount);
-            Json.Add("ModLoaders", new JArray(ModLoaders.Select(m => (int)m)));
-            Json.Add("RawGameVersions", new JArray(RawGameVersions));
-            Json.Add("GameVersions", new JArray(GameVersions));
-            Json.Add("Status", (int)Status);
-            if (FileName is not null)
-                Json.Add("FileName", FileName);
-            if (DownloadUrls is not null)
-                Json.Add("DownloadUrls", new JArray(DownloadUrls));
-            if (Hash is not null)
-                Json.Add("Hash", Hash);
-            Json.Add("RawDependencies", new JArray(RawDependencies));
-            Json.Add("RawOptionalDependencies", new JArray(RawOptionalDependencies));
-            Json.Add("Dependencies", new JArray(Dependencies));
-            Json.Add("OptionalDependencies", new JArray(OptionalDependencies));
-            return Json;
+            var json = new JsonObject();
+            json.Add("FromCurseForge", fromCurseForge);
+            json.Add("Id", id);
+            if (version is not null)
+                json.Add("Version", version);
+            json.Add("DisplayName", displayName);
+            json.Add("ReleaseDate", releaseDate);
+            json.Add("DownloadCount", downloadCount);
+            json.Add("ModLoaders", new JsonArray(modLoaders.Select(m => (JsonNode)(int)m).ToArray()));
+            json.Add("RawGameVersions", new JsonArray(rawGameVersions.Select(s => (JsonNode)s).ToArray()));
+            json.Add("GameVersions", new JsonArray(gameVersions.Select(s => (JsonNode)s).ToArray()));
+            json.Add("Status", (int)status);
+            if (fileName is not null)
+                json.Add("FileName", fileName);
+            if (downloadUrls is not null)
+                json.Add("DownloadUrls", new JsonArray(downloadUrls.Select(s => (JsonNode)s).ToArray()));
+            if (hash is not null)
+                json.Add("Hash", hash);
+            json.Add("RawDependencies", new JsonArray(rawDependencies.Select(s => (JsonNode)s).ToArray()));
+            json.Add("RawOptionalDependencies", new JsonArray(rawOptionalDependencies.Select(s => (JsonNode)s).ToArray()));
+            json.Add("Dependencies", new JsonArray(dependencies.Select(s => (JsonNode)s).ToArray()));
+            json.Add("OptionalDependencies", new JsonArray(optionalDependencies.Select(s => (JsonNode)s).ToArray()));
+            return json;
         }
 
         /// <summary>
@@ -3369,30 +2996,28 @@ public static class ModComp
             return new MyVirtualizingElement<MyListItem>(() =>
                 {
                     // 1. 获取基础描述信息
-                    var title = badDisplayName ? FileName : DisplayName;
+                    var title = badDisplayName ? fileName : displayName;
                     var info = new List<string>();
 
                     // 2. 填充信息列表
-                    if (title != FileName.BeforeLast("."))
-                        info.Add(FileName.BeforeLast("."));
+                    if (title != fileName.BeforeLast("."))
+                        info.Add(fileName.BeforeLast("."));
 
-                    if (Dependencies.Any())
-                        info.Add($"{Dependencies.Count()} 项前置");
+                    if (dependencies.Any())
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.DependencyCount", dependencies.Count()));
 
                     // 简化后的游戏版本逻辑喵
                     var snapshotKeywords = new[] { "w", "snapshot", "rc", "pre", "experimental", "-" };
-                    if (GameVersions.All(ver =>
+                    if (gameVersions.All(ver =>
                             !ver.Contains('.') || snapshotKeywords.Any(s => ver.ContainsF(s, true))))
-                        info.Add($"游戏版本 {string.Join("、", GameVersions)}");
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion", string.Join("、", gameVersions)));
 
-                    if (DownloadCount > 0)
-                        info.Add("下载 " + (DownloadCount > 100000
-                            ? $"{Math.Round(DownloadCount / 10000.0)} 万次"
-                            : $"{DownloadCount} 次"));
+                    if (downloadCount > 0)
+                        info.Add(Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(downloadCount)));
 
-                    info.Add($"更新于 {TimeUtils.GetTimeSpanString(ReleaseDate - DateTime.Now, false)}");
+                    info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated", Lang.TimeSpan(releaseDate - DateTime.Now)));
 
-                    if (Status != CompFileStatus.Release)
+                    if (status != CompFileStatus.Release)
                         info.Add(StatusDescription);
 
                     // 3. 建立控件
@@ -3403,21 +3028,21 @@ public static class ModComp
                         Height = 42,
                         Type = MyListItem.CheckType.Clickable,
                         Tag = this,
-                        Info = string.Join("，", info),
+                        Info = string.Join("  |  ", info),
                         // 使用 switch 表达式精简 Logo 选择喵！
-                        Logo = Status switch
+                        Logo = status switch
                         {
-                            CompFileStatus.Release => ModBase.PathImage + "Icons/R.png",
-                            CompFileStatus.Beta => ModBase.PathImage + "Icons/B.png",
-                            _ => ModBase.PathImage + "Icons/A.png"
+                            CompFileStatus.Release => ModBase.pathImage + "Icons/R.png",
+                            CompFileStatus.Beta => ModBase.pathImage + "Icons/B.png",
+                            _ => ModBase.pathImage + "Icons/A.png"
                         }
                     };
                     newItem.Click += onClick;
 
                     // 4. 建立另存为按钮
-                    if (onSaveClick != null)
+                    if (onSaveClick is not null)
                     {
-                        var btnSave = new MyIconButton { Logo = ModBase.Logo.IconButtonSave, ToolTip = "另存为" };
+                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
@@ -3432,7 +3057,7 @@ public static class ModComp
 
         public override string ToString()
         {
-            return $"{Id}: {FileName}";
+            return $"{id}: {fileName}";
         }
     }
 
@@ -3441,7 +3066,7 @@ public static class ModComp
     /// <summary>
     ///     已知文件信息的缓存。
     /// </summary>
-    public static ConcurrentDictionary<string, List<CompFile>> CompFilesCache = new();
+    public static ConcurrentDictionary<string, List<CompFile>> compFilesCache = new();
 
     /// <summary>
     ///     获取某个工程下的全部文件列表。
@@ -3450,132 +3075,131 @@ public static class ModComp
     public static List<CompFile> CompFilesGet(string ProjectId, bool FromCurseForge)
     {
         // 1. 获取工程对象（使用 TryGetValue 提高效率并防止并发异常）
-        CompProject TargetProject = null;
-        if (!CompProjectCache.TryGetValue(ProjectId, out TargetProject))
+        CompProject targetProject = null;
+        if (!compProjectCache.TryGetValue(ProjectId, out targetProject))
         {
             var url = FromCurseForge
                 ? $"https://api.curseforge.com/v1/mods/{ProjectId}"
                 : $"https://api.modrinth.com/v2/project/{ProjectId}";
             if (FromCurseForge)
             {
-                var json = (JObject)ModDownload.DlModRequest(url, true);
-                TargetProject = new CompProject((JObject)json["data"]);
+                var json = ModDownload.DlModRequest<JsonObject>(url);
+                targetProject = new CompProject((JsonObject)json["data"]);
             }
             else
             {
-                TargetProject = new CompProject((JObject)ModDownload.DlModRequest(url, true));
+                targetProject = new CompProject(ModDownload.DlModRequest<JsonObject>(url));
             }
             // 假设 CompProject 构造函数内已处理缓存，否则此处应添加缓存逻辑
         }
 
         // 2. 获取并缓存文件列表
-        if (!CompFilesCache.ContainsKey(ProjectId))
+        if (!compFilesCache.ContainsKey(ProjectId))
         {
             ModBase.Log("[Comp] 开始获取文件列表：" + ProjectId);
-            JArray ResultJsonArray;
+            JsonArray resultJsonArray;
             if (FromCurseForge)
             {
                 // 注意：若 pageSize=10000 失效，需考虑分页逻辑
-                var response = (JObject)ModDownload.DlModRequest(
-                    $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000",
-                    true
+                var response = ModDownload.DlModRequest<JsonObject>(
+                    $"https://api.curseforge.com/v1/mods/{ProjectId}/files?pageSize=10000"
                 );
 
-                ResultJsonArray = (JArray)response["data"];
+                resultJsonArray = (JsonArray)response["data"];
             }
             else
             {
-                ResultJsonArray =
-                    (JArray)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false", true);
+                resultJsonArray =
+                    ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false");
             }
 
-            CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JObject)a, TargetProject.Type))
-                .Where(a => a.Available).GroupBy(a => a.Id).Select(g => g.First())
+            compFilesCache[ProjectId] = resultJsonArray.Select(a => new CompFile((JsonObject)a, targetProject.type))
+                .Where(a => a.Available).GroupBy(a => a.id).Select(g => g.First())
                 .ToList(); // 使用 GroupBy 实现更高效的 Distinct
         }
 
-        var CurrentFiles = CompFilesCache[ProjectId];
+        var currentFiles = compFilesCache[ProjectId];
 
         // 3. 提取所有需要获取信息的前置 ID（合并必要和可选）
-        var AllRawDeps = CurrentFiles.SelectMany(f => f.RawDependencies.Concat(f.RawOptionalDependencies)).Distinct()
+        var allRawDeps = currentFiles.SelectMany(f => f.rawDependencies.Concat(f.rawOptionalDependencies)).Distinct()
             .ToList();
-        var UndoneDeps = AllRawDeps.Where(id => !CompProjectCache.ContainsKey(id)).ToList();
+        var undoneDeps = allRawDeps.Where(id => !compProjectCache.ContainsKey(id)).ToList();
 
         // 4. 批量请求缺失的前置工程信息
-        if (UndoneDeps.Any())
+        if (undoneDeps.Any())
         {
-            ModBase.Log($"[Comp] {ProjectId} 需要补全信息的依赖项共 {UndoneDeps.Count} 个");
-            JArray Projects;
+            ModBase.Log($"[Comp] {ProjectId} 需要补全信息的依赖项共 {undoneDeps.Count} 个");
+            JsonArray projects;
             if (FromCurseForge)
             {
-                // 1. 获取响应并转为 JObject
-                var response = (JObject)ModDownload.DlModRequest(
+                // 1. 获取响应并转为 JsonObject
+                var response = ModDownload.DlModRequest<JsonObject>(
                     "https://api.curseforge.com/v1/mods",
                     "POST",
-                    "{\"modIds\": [" + string.Join(",", UndoneDeps) + "]}",
+                    "{\"modIds\": [" + string.Join(",", undoneDeps) + "]}",
                     "application/json"
                 );
 
                 // 2. 提取 data 数组
-                Projects = (JArray)response["data"];
+                projects = (JsonArray)response["data"];
             }
             else
             {
-                Projects = (JArray)ModDownload.DlModRequest(
-                    $"https://api.modrinth.com/v2/projects?ids=[\"{UndoneDeps.Join("\",\"")}\"]", true);
+                projects = ModDownload.DlModRequest<JsonArray>(
+                    $"https://api.modrinth.com/v2/projects?ids=[\"{undoneDeps.Join("\",\"")}\"]");
             }
 
-            foreach (var Project in Projects)
-                new CompProject((JObject)Project);
+            foreach (var Project in projects)
+                new CompProject((JsonObject)Project);
         }
 
         // 5. 建立文件与依赖工程的关联映射
         // 优化：预先筛选出存在于缓存中的依赖工程，避免在多层循环中重复查询字典
-        var AvailableDeps = AllRawDeps.Where(id => CompProjectCache.ContainsKey(id) && (id ?? "") != (ProjectId ?? ""))
-            .Select(id => CompProjectCache[id]).ToList();
+        var availableDeps = allRawDeps.Where(id => compProjectCache.ContainsKey(id) && (id ?? "") != (ProjectId ?? ""))
+            .Select(id => compProjectCache[id]).ToList();
 
-        foreach (var file in CurrentFiles)
-        foreach (var dep in AvailableDeps)
+        foreach (var file in currentFiles)
+        foreach (var dep in availableDeps)
         {
             // 处理必要依赖
-            if (file.RawDependencies.Contains(dep.Id))
-                if (!file.Dependencies.Contains(dep.Id))
-                    file.Dependencies.Add(dep.Id);
+            if (file.rawDependencies.Contains(dep.id))
+                if (!file.dependencies.Contains(dep.id))
+                    file.dependencies.Add(dep.id);
 
             // 处理可选依赖
-            if (file.RawOptionalDependencies.Contains(dep.Id))
-                if (!file.OptionalDependencies.Contains(dep.Id))
-                    file.OptionalDependencies.Add(dep.Id);
+            if (file.rawOptionalDependencies.Contains(dep.id))
+                if (!file.optionalDependencies.Contains(dep.id))
+                    file.optionalDependencies.Add(dep.id);
         }
 
-        return CompFilesCache[ProjectId];
+        return compFilesCache[ProjectId];
     }
 
     public static string CompFileNameGet(CompProject proj, CompFile file)
     {
-        string FileName;
-        if ((proj.TranslatedName ?? "") == (proj.RawName ?? ""))
+        string fileName;
+        if ((proj.TranslatedName ?? "") == (proj.rawName ?? ""))
         {
-            FileName = file.FileName;
+            fileName = file.fileName;
         }
         else
         {
-            var ChineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
+            var chineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
                 .Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞")
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
-            FileName = Config.Download.Comp.NameFormatV2 switch
+            fileName = Config.Download.Comp.NameFormatV2 switch
             {
-                0 => $"【{ChineseName}】{file.FileName}",
-                1 => $"[{ChineseName}] {file.FileName}",
-                2 => $"{ChineseName}-{file.FileName}",
-                3 => $"{file.FileName}-{ChineseName}",
-                _ => file.FileName
+                0 => $"【{chineseName}】{file.fileName}",
+                1 => $"[{chineseName}] {file.fileName}",
+                2 => $"{chineseName}-{file.fileName}",
+                3 => $"{file.fileName}-{chineseName}",
+                _ => file.fileName
             };
         }
 
-        if (file.Type == CompType.Mod)
-            FileName = FileName.Replace("~", "-"); // ~ 会导致 Mixin 加载失败
-        return FileName;
+        if (file.type == CompType.Mod)
+            fileName = fileName.Replace("~", "-"); // ~ 会导致 Mixin 加载失败
+        return fileName;
     }
 
     /// <summary>
@@ -3585,62 +3209,62 @@ public static class ModComp
     {
         // 获取卡片对应的前置 ID
         // 如果为整合包就不会有 Dependencies 信息，所以不用管
-        var Deps = Files.SelectMany(f => f.Dependencies).Distinct().ToList();
-        var OptionalDeps = Files.SelectMany(f => f.OptionalDependencies).Distinct().ToList();
-        if (!Deps.Any() && !OptionalDeps.Any())
+        var deps = Files.SelectMany(f => f.dependencies).Distinct().ToList();
+        var optionalDeps = Files.SelectMany(f => f.optionalDependencies).Distinct().ToList();
+        if (!deps.Any() && !optionalDeps.Any())
             return;
         // 必要前置
-        if (Deps.Any())
+        if (deps.Any())
         {
-            Deps.Sort();
-            Deps = Deps.Where(dep =>
+            deps.Sort();
+            deps = deps.Where(dep =>
             {
-                if (!CompProjectCache.ContainsKey(dep))
+                if (!compProjectCache.ContainsKey(dep))
                     ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return CompProjectCache.ContainsKey(dep);
+                return compProjectCache.ContainsKey(dep);
             }).ToList();
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "必要前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
-            foreach (var Dep in Deps)
+            foreach (var Dep in deps)
             {
-                var Item = CompProjectCache[Dep].ToCompItem(false, false);
-                Stack.Children.Add(Item);
+                var item = compProjectCache[Dep].ToCompItem(false, false);
+                Stack.Children.Add(item);
             }
         }
 
         // 可选前置
-        if (OptionalDeps.Any())
+        if (optionalDeps.Any())
         {
-            OptionalDeps.Sort();
-            OptionalDeps = OptionalDeps.Where(dep =>
+            optionalDeps.Sort();
+            optionalDeps = optionalDeps.Where(dep =>
             {
-                if (!CompProjectCache.ContainsKey(dep))
+                if (!compProjectCache.ContainsKey(dep))
                     ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return CompProjectCache.ContainsKey(dep);
+                return compProjectCache.ContainsKey(dep);
             }).ToList();
             // 添加开头间隔
             Stack.Children.Add(new TextBlock
             {
-                Text = "可选前置资源", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+                Text = Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
-            foreach (var Dep in OptionalDeps)
+            foreach (var Dep in optionalDeps)
             {
-                var Item = CompProjectCache[Dep].ToCompItem(false, false);
-                Stack.Children.Add(Item);
+                var item = compProjectCache[Dep].ToCompItem(false, false);
+                Stack.Children.Add(item);
             }
         }
 
         // 添加结尾间隔
         Stack.Children.Add(new TextBlock
         {
-            Text = "版本列表", FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(6d, 12d, 0d, 5d)
         });
     }

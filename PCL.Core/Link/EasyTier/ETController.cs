@@ -51,7 +51,7 @@ public static class ETController
     {
         try
         {
-            if (TargetLobby == null || Precheck() != 0)
+            if (TargetLobby is null || Precheck() != 0)
             {
                 return 1;
             }
@@ -199,7 +199,7 @@ public static class ETController
 
     public static void Exit()
     {
-        if (Status == ETState.Stopped || ETProcess == null) return;
+        if (Status == ETState.Stopped || ETProcess is null) return;
         try
         {
             LogWrapper.Info("Link", $"关闭 EasyTier (PID: {ETProcess.Id})");

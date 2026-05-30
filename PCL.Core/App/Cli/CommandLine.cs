@@ -81,11 +81,11 @@ public class CommandLine
                 ArgumentValueKind.Text => arg.ValueText,
                 _ => null
             };
-            if (value != null) sb.Append(": ").Append(value);
+            if (value is not null) sb.Append(": ").Append(value);
             sb.AppendLine();
         }
         sb.Append(']');
-        if (Subcommand != null) sb.AppendLine().Append("-> ").Append(Subcommand.ToString().Replace("\n", "\n   "));
+        if (Subcommand is not null) sb.AppendLine().Append("-> ").Append(Subcommand.ToString().Replace("\n", "\n   "));
         return sb.ToString();
     }
 }
@@ -202,7 +202,7 @@ public sealed class CommandLineJsonConverter : JsonConverter<CommandLine>
             }
             writer.WriteEndArray();
         }
-        if (value.Subcommand != null)
+        if (value.Subcommand is not null)
         {
             writer.WritePropertyName("sub");
             JsonSerializer.Serialize(writer, value.Subcommand, options);

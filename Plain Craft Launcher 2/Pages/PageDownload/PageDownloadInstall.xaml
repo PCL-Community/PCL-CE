@@ -31,23 +31,23 @@
                                              VerticalAlignment="Center" x:Name="TextSelectName" MaxLength="70"
                                              HasBackground="False" />
                         </local:MyCard>
-                        <local:MyHint Text="如果不安装 Fabric API，大多数 Mod 都会无法使用！" Margin="0,10,0,0" x:Name="HintFabricAPI"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}" Margin="0,10,0,0" x:Name="HintFabricAPI"
                                       Theme="Red" />
-                        <local:MyHint Text="如果不安装 Legacy Fabric API，大多数 Mod 都会无法使用！" Margin="0,10,0,0"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricApi}" Margin="0,10,0,0"
                                       x:Name="HintLegacyFabricAPI" Theme="Red" />
-                        <local:MyHint Text="必须安装 OptiFabric 才能正常使用 OptiFine！" Margin="0,10,0,0" x:Name="HintOptiFabric"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}" Margin="0,10,0,0" x:Name="HintOptiFabric"
                                       Theme="Red" />
-                        <local:MyHint Text="安装结束后，请在 Mod 下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabricOld}"
                                       Margin="0,10,0,0" x:Name="HintOptiFabricOld" Theme="Yellow" />
-                        <local:MyHint Text="安装结束后，请在 Mod 下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyOptiFabric}"
                                       Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Theme="Yellow" />
-                        <local:MyHint Text="OptiFine 与一部分 Mod 的兼容性不佳，请谨慎安装。" Margin="0,10,0,0" x:Name="HintModOptiFine"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,10,0,0" x:Name="HintModOptiFine"
                                       Theme="Yellow" />
-                        <local:MyHint Text="如果不安装 QFAPI / QSL，大多数 Mod 都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.Qsl}"
                                       Margin="0,1,0,7" x:Name="HintQSL" Theme="Red" />
-                        <local:MyHint Text="你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricApi}"
                                       Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" Theme="Yellow" />
-                        <local:MyCard Title="Forge" Height="40" Margin="0,12,0,0" x:Name="CardForge" IsSwapped="True"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0" x:Name="CardForge" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
                             <Grid x:Name="PanForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -74,7 +74,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Cleanroom" Height="40" Margin="0,15,0,0" x:Name="CardCleanroom"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,15,0,0" x:Name="CardCleanroom"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
                             <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -101,7 +101,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="NeoForge" Height="40" Margin="0,12,0,0" x:Name="CardNeoForge"
+                        <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40" Margin="0,12,0,0" x:Name="CardNeoForge"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanNeoForge" />
                             <Grid x:Name="PanNeoForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -128,7 +128,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Fabric" Height="40" Margin="0,12,0,0" x:Name="CardFabric" IsSwapped="True"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0" x:Name="CardFabric" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
                             <Grid x:Name="PanFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -155,7 +155,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Legacy Fabric" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabric" />
                             <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -182,7 +182,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Fabric API" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi"
+                        <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanFabricApi" />
                             <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -209,7 +209,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Legacy Fabric API" Height="40" Margin="0,12,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLegacyFabricApi" />
                             <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0"
@@ -236,7 +236,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="Quilt" Height="40" Margin="0,15,0,0" x:Name="CardQuilt" IsSwapped="True"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Quilt}" Height="40" Margin="0,15,0,0" x:Name="CardQuilt" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQuilt" />
                             <Grid x:Name="PanQuiltInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -263,7 +263,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="QFAPI / QSL" Height="40" Margin="0,15,0,0" x:Name="CardQSL"
+                        <local:MyCard Title="{DynamicResource Common.Installation.QfapiQsl}" Height="40" Margin="0,15,0,0" x:Name="CardQSL"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQSL" />
                             <Grid x:Name="PanQSLInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -290,7 +290,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="LabyMod" Height="40" Margin="0,15,0,0" x:Name="CardLabyMod"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,15,0,0" x:Name="CardLabyMod"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLabyMod" />
                             <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -317,7 +317,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="OptiFine" Height="40" Margin="0,12,0,0" x:Name="CardOptiFine"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFine"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
@@ -346,7 +346,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="OptiFabric" Height="40" Margin="0,12,0,0" x:Name="CardOptiFabric"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFabric"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanOptiFabric" />
                             <Grid x:Name="PanOptiFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -373,7 +373,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="LiteLoader" Height="40" Margin="0,12,0,0" x:Name="CardLiteLoader"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40" Margin="0,12,0,0" x:Name="CardLiteLoader"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLiteLoader" />
                             <Grid x:Name="PanLiteLoaderInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -403,14 +403,14 @@
                     </StackPanel>
                 </Grid>
             </local:MyScrollViewer>
-            <local:MyExtraTextButton x:Name="BtnStart" Text="开始下载"
+            <local:MyExtraTextButton x:Name="BtnStart" Text="{DynamicResource Download.Install.StartDownload}"
                                      HorizontalAlignment="Center" VerticalAlignment="Bottom"
                                      LogoScale="0.95"
                                      Logo="M955 610h-59c-15 0-29 13-29 29v196c0 15-13 29-29 29h-649c-15 0-29-13-29-29v-196c0-15-13-29-29-29h-59c-15 0-29 13-29 29V905c0 43 35 78 78 78h787c43 0 78-35 78-78V640c0-15-13-29-29-29zM492 740c11 11 29 11 41 0l265-265c11-11 11-29 0-41l-41-41c-11-11-29-11-41 0l-110 110c-11 11-33 3-33-13V68C571 53 555 39 541 39h-59c-15 0-29 13-29 29v417c0 17-21 25-33 13l-110-110c-11-11-29-11-41 0L226 433c-11 11-11 29 0 41L492 740z" />
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False">
-            <local:MyLoading Text="正在获取版本列表" Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"
+            <local:MyLoading Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFine" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadForge" HasAnimation="False" />
@@ -446,7 +446,7 @@
             <StackPanel Orientation="Horizontal" Margin="20,0" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False">
                 <Path Stretch="Uniform" Height="13" VerticalAlignment="Center" Fill="{DynamicResource ColorBrush8}" RenderTransformOrigin="0.5,0.5"
                       Data="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
-                <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ColorBrush8}" FontSize="15" Margin="10,0,-2,1" Text="开始下载" />
+                <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ColorBrush8}" FontSize="15" Margin="10,0,-2,1" Text="{DynamicResource Download.Install.StartDownload}" />
             </StackPanel>
         </corelocal:BlurBorder>
     </Grid>

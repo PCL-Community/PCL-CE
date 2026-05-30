@@ -22,8 +22,8 @@ public static class ModCompDependency
         ArgumentNullException.ThrowIfNull(project);
         targetLoaders ??= new List<CompLoaderType>();
 
-        var source = GetSource(project.FromCurseForge);
-        var dependencies = file.Dependencies
+        var source = GetSource(project.fromCurseForge);
+        var dependencies = file.dependencies
             .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
             .Select(dependencyId => new ModDependencyReference
             {
@@ -31,7 +31,7 @@ public static class ModCompDependency
                 Source = source,
                 IsRequired = true,
             })
-            .Concat(file.OptionalDependencies
+            .Concat(file.optionalDependencies
                 .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
                 .Select(dependencyId => new ModDependencyReference
                 {
@@ -69,16 +69,16 @@ public static class ModCompDependency
             var localFile = new LocalCompFile(path);
             localFile.Load();
 
-            var source = localFile.Comp is null ? null : GetSource(localFile.Comp.FromCurseForge);
-            var gameVersions = localFile.CompFile?.GameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
+            var source = localFile.Comp is null ? null : GetSource(localFile.Comp.fromCurseForge);
+            var gameVersions = localFile.compFile?.gameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
                                ?? new List<string>();
-            var loaders = ToLoaderNames(localFile.CompFile?.ModLoaders);
+            var loaders = ToLoaderNames(localFile.compFile?.modLoaders);
 
-            if (!string.IsNullOrWhiteSpace(localFile.Comp?.Id) && !string.IsNullOrWhiteSpace(source))
+            if (!string.IsNullOrWhiteSpace(localFile.Comp?.id) && !string.IsNullOrWhiteSpace(source))
             {
                 result.Add(new InstalledModIdentity
                 {
-                    SourceProjectId = localFile.Comp.Id,
+                    SourceProjectId = localFile.Comp.id,
                     Source = source,
                     ModId = localFile.ModId,
                     GameVersions = gameVersions,
@@ -87,12 +87,12 @@ public static class ModCompDependency
                 continue;
             }
 
-            if (!string.IsNullOrWhiteSpace(localFile.CompFile?.ProjectId))
+            if (!string.IsNullOrWhiteSpace(localFile.compFile?.projectId))
             {
-                var fileSource = GetSource(localFile.CompFile.FromCurseForge);
+                var fileSource = GetSource(localFile.compFile.fromCurseForge);
                 result.Add(new InstalledModIdentity
                 {
-                    SourceProjectId = localFile.CompFile.ProjectId,
+                    SourceProjectId = localFile.compFile.projectId,
                     Source = fileSource,
                     ModId = localFile.ModId,
                     GameVersions = gameVersions,
@@ -123,23 +123,23 @@ public static class ModCompDependency
 
         var fromCurseForge = string.Equals(source, "CurseForge", StringComparison.OrdinalIgnoreCase);
         var files = ModComp.CompFilesGet(projectId, fromCurseForge);
-        if (!ModComp.CompProjectCache.TryGetValue(projectId, out var compProject))
+        if (!ModComp.compProjectCache.TryGetValue(projectId, out var compProject))
         {
             return null;
         }
 
-        if (compProject.FromCurseForge != fromCurseForge)
+        if (compProject.fromCurseForge != fromCurseForge)
         {
             return null;
         }
 
         return new ModDependencyProject
         {
-            ProjectId = compProject.Id,
+            ProjectId = compProject.id,
             Source = source,
-            ProjectName = compProject.TranslatedName ?? compProject.RawName,
+            ProjectName = compProject.TranslatedName ?? compProject.rawName,
             RequiredDependencies = files
-                .SelectMany(static compFile => compFile.Dependencies)
+                .SelectMany(static compFile => compFile.dependencies)
                 .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Select(dependencyId => new ModDependencyReference
@@ -151,15 +151,15 @@ public static class ModCompDependency
                 .ToList(),
             Files = files.Select(compFile => new ModDependencyFile
             {
-                Id = compFile.Id,
-                DisplayName = compFile.DisplayName,
-                Version = compFile.Version,
-                GameVersions = compFile.GameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
+                Id = compFile.id,
+                DisplayName = compFile.displayName,
+                Version = compFile.version,
+                GameVersions = compFile.gameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
                                ?? new List<string>(),
-                Loaders = ToLoaderNames(compFile.ModLoaders),
-                ReleaseType = MapReleaseType(compFile.Status),
-                ReleaseDate = compFile.ReleaseDate,
-                RequiredDependencies = compFile.Dependencies
+                Loaders = ToLoaderNames(compFile.modLoaders),
+                ReleaseType = MapReleaseType(compFile.status),
+                ReleaseDate = compFile.releaseDate,
+                RequiredDependencies = compFile.dependencies
                     .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
                     .Select(dependencyId => new ModDependencyReference
                     {
@@ -195,19 +195,19 @@ public static class ModCompDependency
         var downloads = new List<DownloadFile>();
         foreach (var install in result.ToInstall.AsEnumerable().Reverse())
         {
-            if (!ModComp.CompProjectCache.TryGetValue(install.ProjectId, out var depProject))
+            if (!ModComp.compProjectCache.TryGetValue(install.ProjectId, out var depProject))
             {
                 continue;
             }
 
             var fromCurseForge = string.Equals(install.Source, "CurseForge", StringComparison.OrdinalIgnoreCase);
-            if (depProject.FromCurseForge != fromCurseForge)
+            if (depProject.fromCurseForge != fromCurseForge)
             {
                 continue;
             }
 
             var depCompFile = ModComp.CompFilesGet(install.ProjectId, fromCurseForge)
-                .FirstOrDefault(file => string.Equals(file.Id, install.File.Id, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(file => string.Equals(file.id, install.File.Id, StringComparison.OrdinalIgnoreCase));
             if (depCompFile is null)
             {
                 continue;

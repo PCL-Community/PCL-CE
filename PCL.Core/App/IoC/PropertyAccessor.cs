@@ -10,8 +10,8 @@ public class PropertyAccessor<TProperty>(Func<TProperty>? getter = null, Action<
         set => (setter ?? throw new NotSupportedException("Read-only property"))(value);
     }
 
-    public bool CanGet => getter != null;
-    public bool CanSet => setter != null;
-    public bool IsReadOnly => setter == null;
-    public bool IsWriteOnly => getter == null;
+    public bool CanGet => getter is not null;
+    public bool CanSet => setter is not null;
+    public bool IsReadOnly => setter is null;
+    public bool IsWriteOnly => getter is null;
 }

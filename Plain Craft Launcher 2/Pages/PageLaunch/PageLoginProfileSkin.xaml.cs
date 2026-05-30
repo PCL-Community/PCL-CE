@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -24,28 +25,28 @@ public partial class PageLoginProfileSkin
     {
         ModBase.Log("[Profile] 刷新档案界面");
         Skin.Clear();
-        if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
         {
             BtnEdit.Visibility = Visibility.Visible;
             ModBase.Log("[Profile] 使用正版皮肤加载器");
-            Skin.Loader = PageLaunchLeft.SkinMs;
+            Skin.loader = PageLaunchLeft.skinMs;
         }
-        else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
+        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
         {
             BtnEdit.Visibility = Visibility.Visible;
             ModBase.Log("[Profile] 使用 Authlib 皮肤加载器");
-            Skin.Loader = PageLaunchLeft.SkinAuth;
+            Skin.loader = PageLaunchLeft.skinAuth;
         }
         else
         {
             BtnEdit.Visibility = Visibility.Collapsed;
             ModBase.Log("[Profile] 使用离线皮肤加载器");
-            Skin.Loader = PageLaunchLeft.SkinLegacy;
+            Skin.loader = PageLaunchLeft.skinLegacy;
         }
 
-        Skin.Loader.Start(IsForceRestart: true);
-        TextName.Text = ModProfile.SelectedProfile.Username;
-        TextType.Text = (string)ModProfile.GetProfileInfo(ModProfile.SelectedProfile);
+        Skin.loader.Start(IsForceRestart: true);
+        TextName.Text = ModProfile.selectedProfile.username;
+        TextType.Text = (string)ModProfile.GetProfileInfo(ModProfile.selectedProfile);
     }
 
     #region 控制与编辑
@@ -85,19 +86,19 @@ public partial class PageLoginProfileSkin
     // 修改密码
     private void BtnEditPassword_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
         {
             ModBase.OpenWebsite("https://account.live.com/password/Change");
         }
-        else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
+        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
         {
-            var Server = ModProfile.SelectedProfile.Server;
-            ModBase.OpenWebsite(Server.Replace("/api/yggdrasil/authserver" + (Server.EndsWithF("/") ? "/" : ""),
+            var server = ModProfile.selectedProfile.server;
+            ModBase.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
         {
-            ModMain.Hint("当前档案不支持修改密码！");
+            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
         }
     }
 
@@ -110,24 +111,24 @@ public partial class PageLoginProfileSkin
     // 选择档案
     private void ChangeProfile(object sender, EventArgs e)
     {
-        ModProfile.SelectedProfile = null;
+        ModProfile.selectedProfile = null;
         ModBase.RunInUi(() =>
         {
-            ModMain.FrmLaunchLeft.RefreshPage(true);
-            ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = false;
+            ModMain.frmLaunchLeft.RefreshPage(true);
+            ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
         });
     }
 
     // 修改皮肤
     private void Skin_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
             ModProfile.ChangeSkinMs();
-        else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
+            ModBase.OpenWebsite(ModProfile.selectedProfile.server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            ModMain.Hint("当前档案不支持修改皮肤！");
+                ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
     }
 
     // 保存皮肤
@@ -145,13 +146,13 @@ public partial class PageLoginProfileSkin
     // 修改披风
     private void BtnSkinCape_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
             Skin.BtnSkinCape_Click(sender, e);
-        else if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.SelectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
+        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
+            ModBase.OpenWebsite(ModProfile.selectedProfile.server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            ModMain.Hint("当前档案不支持修改披风！");
+            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
     }
 
     #endregion

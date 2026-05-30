@@ -29,7 +29,7 @@ public class AsyncDebounce(CancellationToken cancelToken = default) : IDisposabl
     /// <summary>
     /// 指示本次延迟任务是否正在运行。
     /// </summary>
-    public bool IsCurrentTaskRunning => _currentTask != null;
+    public bool IsCurrentTaskRunning => _currentTask is not null;
 
     private Task? _currentTask;
     private Task? _worker; // 跟踪最近一次 worker

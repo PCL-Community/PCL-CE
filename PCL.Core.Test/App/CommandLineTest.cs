@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.App.Cli;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Test.App;
 
@@ -42,7 +43,7 @@ public sealed class CommandLineTest
         Assert.AreEqual(_correct, modelStr);
     }
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonCompat.SerializerOptions)
     {
         WriteIndented = true,
     };
@@ -54,7 +55,7 @@ public sealed class CommandLineTest
         var json = JsonSerializer.Serialize(_model, _jsonSerializerOptions);
         Console.WriteLine(json);
         Console.WriteLine("Deserialization result:");
-        var modelStr = JsonSerializer.Deserialize<CommandLine>(json)?.ToString();
+        var modelStr = JsonSerializer.Deserialize<CommandLine>(json, _jsonSerializerOptions)?.ToString();
         Console.WriteLine(modelStr);
         Assert.AreEqual(_correct, modelStr);
     }

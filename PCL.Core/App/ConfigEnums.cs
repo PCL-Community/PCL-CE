@@ -59,7 +59,9 @@ public enum GameProcessPriority
 {
     AboveNormal = 0,
     Normal = 1,
-    BelowNormal = 2
+    BelowNormal = 2,
+    High = 3,
+    RealTime = 4
 }
 
 /// <summary>

@@ -34,7 +34,7 @@ partial class Lifecycle
         {
             lock (_PendingLogs)
             {
-                if (_logService == null) _PendingLogs.Add(item);
+                if (_logService is null) _PendingLogs.Add(item);
                 else _PushLog(item, _logService);
             }
             if (item.ActionLevel == ActionLevel.MsgBoxFatal) _FatalExit();

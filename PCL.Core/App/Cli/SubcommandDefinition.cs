@@ -12,7 +12,7 @@ public class SubcommandDefinition
     {
         get
         {
-            if (field != null) return field;
+            if (field is not null) return field;
             var map = new Dictionary<string, SubcommandDefinition>();
             foreach (var c in Subcommands) map[c.CommandText] = c;
             return field = map.AsReadOnly();

@@ -1,12 +1,13 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public partial class PageSetupGameManage
 {
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupGameManage()
     {
@@ -20,9 +21,9 @@ public partial class PageSetupGameManage
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -37,23 +38,23 @@ public partial class PageSetupGameManage
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
-        CheckDownloadAutoSelectVersion.Checked = (bool?)Config.Download.AutoSelectInstance;
-        CheckFixAuthlib.Checked = (bool?)Config.Download.FixAuthLib;
+        CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
+        CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
 
         // Mod 与整合包
         ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
-        CheckDownloadIgnoreQuilt.Checked = (bool?)Config.Download.Comp.IgnoreQuilt;
-        CheckDownloadAutoInstallDependencies.Checked = (bool?)Config.Download.Comp.AutoInstallDependencies;
-        CheckDownloadClipboard.Checked = (bool?)Config.Download.Comp.ReadClipboard;
+        CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
+        CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
-        CheckUpdateRelease.Checked = (bool?)Config.Tool.ReleaseNotification;
-        CheckUpdateSnapshot.Checked = (bool?)Config.Tool.SnapshotNotification;
+        CheckUpdateRelease.Checked = Config.Tool.ReleaseNotification;
+        CheckUpdateSnapshot.Checked = Config.Tool.SnapshotNotification;
 
         // 辅助设置
-        CheckHelpChinese.Checked = (bool?)Config.Tool.AutoChangeLanguage;
+        CheckHelpLauncherLanguage.Checked = Config.Tool.AutoChangeLanguage;
     }
 
     // 初始化
@@ -64,11 +65,11 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             ModBase.Log("[Setup] 已初始化其他页设置");
-            ModMain.Hint("已初始化其他页设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化其他页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.GameManage.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -79,40 +80,61 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetGameManageByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private static void SetGameManageByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "ToolDownloadThread": Config.Download.ThreadLimit = (int)value; break;
+            case "ToolDownloadSpeed": Config.Download.SpeedLimit = (int)value; break;
+            case "ToolDownloadSource": Config.Download.FileSource = (int)value; break;
+            case "ToolDownloadVersion": Config.Download.VersionListSource = (int)value; break;
+            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool)value; break;
+            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool)value; break;
+            case "ToolDownloadTranslateV2": Config.Download.Comp.NameFormatV2 = (int)value; break;
+            case "ToolDownloadMod": Config.Download.Comp.CompSourceSolution = (int)value; break;
+            case "ToolModLocalNameStyle": Config.Download.Comp.UiCompNameSolution = (int)value; break;
+            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool)value; break;
+            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool)value; break;
+            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool)value; break;
+            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool)value; break;
+            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool)value; break;
+        }
     }
 
     // 滑动条
     private void SliderLoad()
     {
-        SliderDownloadThread.GetHintText = new Func<object, object>(v => (int)v + 1);
-        SliderDownloadSpeed.GetHintText = new Func<object, object>(v =>
+        SliderDownloadThread.getHintText = new Func<object, object>(v => (int)v + 1);
+        SliderDownloadSpeed.getHintText = new Func<object, object>(v =>
         {
             int value = (int)v;
             switch (value)
             {
                 case <= 14:
-                    return $"{(value + 1) * 0.1:F1} M/s";
+                    return Lang.Number((value + 1) * 0.1d, "N1") + " M/s";
                 case <= 31:
-                    return $"{(value - 11) * 0.5:F1} M/s";
+                    return Lang.Number((value - 11) * 0.5d, "N1") + " M/s";
                 case <= 41:
-                    return $"{value - 21} M/s";
+                    return Lang.Number(value - 21, "N0") + " M/s";
                 default:
-                    return "无限制";
+                    return Lang.Text("Setup.GameManage.Download.Unlimited");
             }
         });
     }
@@ -121,15 +143,13 @@ public partial class PageSetupGameManage
     {
         if (SliderDownloadThread.Value < 100)
             return;
-        if (!(States.Hint.LargeDownloadThread as bool? ?? false))
+        if (!States.Hint.LargeDownloadThread)
         {
             States.Hint.LargeDownloadThread = true;
             ModMain.MyMsgBox(
-                """
-                如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。
-                一般设置 64 线程即可满足大多数下载需求，除非你知道你在干什么，否则不建议设置更多的线程数！
-                """,
-                "警告", "我知道了", IsWarn: true);
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
+                Lang.Text("Common.Dialog.Warning"),
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
         }
     }
 }

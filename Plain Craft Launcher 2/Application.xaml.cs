@@ -7,7 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -16,7 +18,7 @@ namespace PCL;
 
 public partial class Application
 {
-    public static readonly List<Border> ShowingTooltips = new();
+    public static readonly List<Border> showingTooltips = new();
 
     public Application()
     {
@@ -34,7 +36,8 @@ public partial class Application
             // 创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(new BindingErrorTraceListener());
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
-            ModSecret.SecretOnApplicationStart();
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            StartupValidation.EnsureWpfFont();
             // 检查参数调用
             var args = Basics.CommandLineArguments;
             if (args.Length > 0)
@@ -52,51 +55,15 @@ public partial class Application
                         Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
                     }
                 }
-                    /* TODO ERROR: Skipped IfDirectiveTrivia
-                    #If DEBUGRESERVED Then
-                    */ /* TODO ERROR: Skipped DisabledTextTrivia
-                                        '制作更新包
-                                    ElseIf args(0) = "--edit1" Then
-                                        ExeEdit(args(1), True)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                                    ElseIf args(0) = "--edit2" Then
-                                        ExeEdit(args(1), False)
-                                        Environment.Exit(ProcessReturnValues.TaskDone)
-                    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-                    #End If
-                    */
             }
 
             // 初始化文件结构
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures");
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
-            Directory.CreateDirectory(ModBase.PathTemp + "Cache");
-            Directory.CreateDirectory(ModBase.PathTemp + "Download");
-            Directory.CreateDirectory(ModBase.PathAppdata);
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If False Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        '检测单例
-                        Dim ShouldWaitForExit As Boolean = args.Length > 0 AndAlso args(0) = "--wait" '要求等待已有的 PCL 退出
-                        Dim WaitRetryCount As Integer = 0
-            WaitRetry:
-                        Dim WindowHwnd As IntPtr = FindWindow(Nothing, "Plain Craft Launcher Community Edition ")
-                        If WindowHwnd = IntPtr.Zero Then FindWindow(Nothing, "Plain Craft Launcher 2 Community Edition ")
-                        If WindowHwnd <> IntPtr.Zero Then
-                            If ShouldWaitForExit AndAlso WaitRetryCount < 20 Then '至多等待 10 秒
-                                WaitRetryCount += 1
-                                Thread.Sleep(500)
-                                GoTo WaitRetry
-                            End If
-                            '将已有的 PCL 窗口拖出来
-                            ShowWindowToTop(WindowHwnd)
-                            '播放提示音并退出
-                            Beep()
-                            Environment.[Exit](ProcessReturnValues.Cancel)
-                        End If
-            */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */ // 设置 ToolTipService 默认值
+            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");
+            Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
+            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Cache"));
+            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Download"));
+            Directory.CreateDirectory(ModBase.pathAppdata);
+            // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
                 new FrameworkPropertyMetadata(300));
             ToolTipService.BetweenShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
@@ -112,66 +79,61 @@ public partial class Application
             // 设置初始窗口
             if (Config.Preference.ShowStartupLogo)
             {
-                ModMain.FrmStart = new SplashScreen(@"Images\icon.ico");
-                ModMain.FrmStart.Show(false, true);
+                ModMain.frmStart = new SplashScreen(@"Images\icon.ico");
+                ModMain.frmStart.Show(false, true);
             }
 
             // 检测异常环境
             var problemList = new List<string>();
             var currentOSVersion = NtInterop.GetCurrentOsVersion();
             if (currentOSVersion.Build < 17763)
-                problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统");
-            if (ModBase.Is32BitSystem)
-                problemList.Add("- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏");
-            if (ModBase.ExePath.Contains(Path.GetTempPath()) || ModBase.ExePath.Contains(@"AppData\Local\Temp\"))
-                problemList.Add("- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失");
-            if (ModBase.ExePath.ContainsF("wechat_files", true) || ModBase.ExePath.ContainsF("WeChat Files", true) ||
-                ModBase.ExePath.ContainsF("Tencent Files", true))
-                problemList.Add("- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失");
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
+            if (SystemInfo.Is32BitSystem)
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
+            if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
+            if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
+                ModBase.exePath.ContainsF("Tencent Files", true))
+                problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
             if (problemList.Count != 0)
                 ModMain.MyMsgBox(
-                    "PCL CE 在启动时检测到环境问题：" + "\r\n" + "\r\n" + problemList.Join("\r\n") +
-                    "\r\n" + "\r\n" + "不解决这些问题可能会导致部分功能无法正常工作……", "环境警告", "我知道了", IsWarn: true);
+                    Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
+                    Lang.Text("Application.EnvironmentWarning.Title"),
+                    Lang.Text("Application.EnvironmentWarning.IKnow"),
+                    IsWarn: true);
             // 设置初始化
-            ModBase.Setup.Load("SystemDebugMode");
-            ModBase.Setup.Load("SystemDebugAnim");
-            ModBase.Setup.Load("SystemHttpProxy");
-            ModBase.Setup.Load("SystemHttpProxyCustomUsername");
-            ModBase.Setup.Load("SystemHttpProxyType");
-            ModBase.Setup.Load("ToolDownloadThread");
-            ModBase.Setup.Load("ToolDownloadSpeed");
-            ModBase.Setup.Load("UiFont");
+            _ = Config.Debug.Enabled;
+            _ = Config.Debug.AnimationSpeed;
+            _ = Config.Network.HttpProxy.CustomAddress;
+            _ = Config.Network.HttpProxy.CustomUsername;
+            _ = Config.Network.HttpProxy.Type;
+            _ = Config.Download.ThreadLimit;
+            _ = Config.Download.SpeedLimit;
+            _ = Config.Preference.Font;
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
-                updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")
+                updateBranchCfg.SetValue(ModBase.versionBaseName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
-                var oldLogFile = $@"{ModBase.ExePath}PCL\Log-CE{i}.log";
+                var oldLogFile = $@"{ModBase.exePath}PCL\Log-CE{i}.log";
                 if (File.Exists(oldLogFile))
                     File.Delete(oldLogFile);
             }
 
             // 计时
-            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
-            ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
-            // 执行测试
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If DEBUGRESERVED Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        Test()
-            */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-            #End If
-            */
+            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
+            ModBase.applicationStartTick = TimeUtils.GetTimeTick();
             ModAnimation.AniControlEnabled += 1;
         }
         catch (Exception ex)
         {
-            var FilePath = ModBase.ExePathWithName;
-            MessageBox.Show(ex + "\r\n" + "PCL 所在路径：" + (string.IsNullOrEmpty(FilePath) ? "获取失败" : FilePath),
-                "PCL 初始化错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            var filePath = Basics.ExecutablePath;
+            MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
+                    string.IsNullOrEmpty(filePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : filePath),
+                Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);
             FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
         }
     }
@@ -179,7 +141,7 @@ public partial class Application
     // 结束
     private void Application_SessionEnding(object sender, SessionEndingCancelEventArgs e)
     {
-        ModMain.FrmMain.EndProgram(false);
+        ModMain.frmMain.EndProgram(false);
     }
 
 // Error handling for unhandled exceptions
@@ -188,7 +150,7 @@ public partial class Application
         try
         {
             e.Handled = true;
-            if (ModBase.IsProgramEnded) return;
+            if (ModBase.isProgramEnded) return;
 
             ModBase.FeedbackInfo();
 
@@ -226,12 +188,12 @@ public partial class Application
 
     private void TooltipLoaded(object sender, EventArgs e)
     {
-        ShowingTooltips.Add((Border)sender);
+        showingTooltips.Add((Border)sender);
     }
 
     private void TooltipUnloaded(object sender, RoutedEventArgs e)
     {
-        ShowingTooltips.Remove((Border)sender);
+        showingTooltips.Remove((Border)sender);
     }
 
     // 自定义监听器类

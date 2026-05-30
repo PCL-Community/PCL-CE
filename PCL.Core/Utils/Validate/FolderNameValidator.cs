@@ -11,7 +11,7 @@ public class FolderNameValidator(
     string? parentFolder = null,
     bool useMinecraftCharCheck = true,
     bool ignoreCase = true,
-    bool ignoreSameNameInParentFolder = true)
+    bool ignoreSameNameInParentFolder = false)
     : FileSystemValidator
 {
     public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
@@ -33,7 +33,7 @@ public class FolderNameValidator(
             .Custom((fileName, context) => 
             {
                 var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
-                if (invalidChar != null)
+                if (invalidChar is not null)
                 {
                     context.AddFailure($"文件名不可包含 {invalidChar} 字符！");
                 }
@@ -41,7 +41,7 @@ public class FolderNameValidator(
             .Custom((fileName, context) => 
             {
                 var reservedWord = CheckReservedWord(fileName, []);
-                if (reservedWord != null)
+                if (reservedWord is not null)
                 {
                     context.AddFailure($"文件名不可为 {reservedWord}！");
                 }
@@ -55,7 +55,7 @@ public class FolderNameValidator(
                 if (!dirInfo.Exists) return true;
                 if (IgnoreSameNameInParentFolder) return true;
                     
-                return !dirInfo.EnumerateFiles().Select(f => f.Name).Contains(x,
+                return !dirInfo.EnumerateDirectories().Select(f => f.Name).Contains(x,
                     IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             }).WithMessage("不可与现有文件夹重名！");

@@ -56,6 +56,7 @@
         <!-- 归档文件 -->
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->
+        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.3" />
         <PackageReference Include="System.Text.Json" Version="10.0.3" />
         <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />

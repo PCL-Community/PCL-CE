@@ -24,7 +24,7 @@ partial class Lifecycle
     /// <summary>
     /// 日志服务启动状态
     /// </summary>
-    public static bool IsLogServiceStarted => _logService != null;
+    public static bool IsLogServiceStarted => _logService is not null;
 
     private static void _SavePendingLogs()
     {
@@ -83,16 +83,16 @@ public readonly record struct LifecycleLogItem(
 
     public override string ToString()
     {
-        var source = (Source == null) ? "" : $" [{Source.Name}|{Source.Identifier}]";
+        var source = (Source is null) ? "" : $" [{Source.Name}|{Source.Identifier}]";
         var basic = $"[{Time:HH:mm:ss.fff}]{source}";
-        return Exception == null ? $"{basic} {Message}" : $"{basic} ({Message}) {Exception.GetType().FullName}: {Exception.Message}";
+        return Exception is null ? $"{basic} {Message}" : $"{basic} ({Message}) {Exception.GetType().FullName}: {Exception.Message}";
     }
 
     public string ComposeMessage()
     {
-        var source = (Source == null) ? "" : $" [{Source.Name}|{Source.Identifier}]";
+        var source = (Source is null) ? "" : $" [{Source.Name}|{Source.Identifier}]";
         var result = $"[{Time:HH:mm:ss.fff}] [{Level.RealLevel().PrintName()}] [{ContextName}]{source} {Message}";
-        if (Exception != null) result += $"\n{Exception}";
+        if (Exception is not null) result += $"\n{Exception}";
         return result;
     }
 }
