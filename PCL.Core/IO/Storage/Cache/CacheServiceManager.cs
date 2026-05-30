@@ -1,5 +1,4 @@
 using PCL.Core.App.IoC;
-using PCL.Core.IO.Net;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +9,6 @@ namespace PCL.Core.IO.Storage.Cache;
 public partial class CacheServiceManager
 {
     private static CacheService? _service;
-    private static bool _isInitialized;
 
     /// <summary>
     /// 获取当前缓存服务实例，如果尚未初始化则为 null
@@ -24,10 +22,6 @@ public partial class CacheServiceManager
 
         _service = new CacheService();
         await _service.InitializeAsync().ConfigureAwait(false);
-        _isInitialized = true;
-
-        // 将缓存服务设置到网络服务中
-        NetworkService.SetCacheService(_service);
 
         Context.Info("缓存服务初始化成功");
     }
@@ -41,7 +35,6 @@ public partial class CacheServiceManager
         {
             await _service.DisposeAsync().ConfigureAwait(false);
             _service = null;
-            _isInitialized = false;
         }
 
         Context.Info("缓存服务已停止");
