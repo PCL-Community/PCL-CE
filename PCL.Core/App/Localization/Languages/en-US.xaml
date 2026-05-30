@@ -1349,7 +1349,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">Regional format</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">Follow system regional format</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Follow UI language</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.&#x0a;&#x0a;To ensure work efficiency and convenience, only "English (US)" and "简体中文（中国大陆）" are guaranteed to be partially available during the migration process. Other languages will be opened up to the community for translation contributions on the translation platform once the future migration work is fully completed.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
 
     <!-- Setup.Left -->

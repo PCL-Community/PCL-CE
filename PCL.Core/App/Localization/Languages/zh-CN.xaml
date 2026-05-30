@@ -1349,7 +1349,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">区域格式</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">跟随系统区域格式</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">同步界面语言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。&#x0a;&#x0a;为确保工作效率与便捷性，迁移过程中仅确保“English (US)”与“简体中文（中国大陆）”部分可用。其余语言将在未来迁移工作完成后，交由社区于翻译平台进行翻译贡献。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">语言设置已更新</sys:String>
 
     <!-- Setup.Left -->
