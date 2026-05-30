@@ -470,6 +470,17 @@ public partial class PageLaunchRight : IRefreshable
     private readonly object LoadContentLock = new();
     private const string HomepageLivePatchFileName = "CustomLive.json";
     private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
+    // Keep the reflection patch surface explicit because patch files are written by external tools.
+    private static readonly Dictionary<string, string> _homepageLiveAllowedProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["text"] = "Text",
+        ["title"] = "Title",
+        ["info"] = "Info",
+        ["tooltip"] = "ToolTip",
+        ["visibility"] = "Visibility",
+        ["isEnabled"] = "IsEnabled",
+        ["opacity"] = "Opacity"
+    };
     private FileSystemWatcher? _homepageLiveWatcher;
     private DispatcherTimer? _homepageLivePatchTimer;
 
@@ -704,6 +715,13 @@ public partial class PageLaunchRight : IRefreshable
 
     private static bool _TrySetElementProperty(FrameworkElement element, string propertyName, string value)
     {
+        if (!_homepageLiveAllowedProperties.TryGetValue(propertyName, out var allowedPropertyName))
+        {
+            ModBase.Log($"[Page] Skipped unsupported live patch property {propertyName}", ModBase.LogLevel.Developer);
+            return false;
+        }
+
+        propertyName = allowedPropertyName;
         var property = element.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
         if (property == null || !property.CanWrite) return false;
 
