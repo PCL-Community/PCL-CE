@@ -295,9 +295,9 @@ public partial class PageLaunchRight : IRefreshable
     // 联网获取主页文件
     private readonly ModLoader.LoaderTask<string, int> onlineLoader;
 
-    private void OnlineLoaderSub(ModLoader.LoaderTask<string, int> Task)
+    private void OnlineLoaderSub(ModLoader.LoaderTask<string, int> task)
     {
-        var address = Task.input; // #3721 中连续触发两次导致内容变化
+        var address = task.input; // #3721 中连续触发两次导致内容变化
         try
         {
             // 获取版本校验地址
@@ -402,12 +402,12 @@ public partial class PageLaunchRight : IRefreshable
     ///     从文本内容中加载主页。
     ///     必须在 UI 线程调用。
     /// </summary>
-    private void LoadContent(string Content)
+    private void LoadContent(string content)
     {
         lock (loadContentLock)
         {
             // 如果加载目标内容一致则不加载
-            var hash = Content.GetHashCode();
+            var hash = content.GetHashCode();
             if (hash == loadedContentHash)
             {
                 _ApplyHomepageLivePatchesFromFile();
@@ -416,7 +416,7 @@ public partial class PageLaunchRight : IRefreshable
             loadedContentHash = hash;
             // 实际加载内容
             PanCustom.Children.Clear();
-            if (string.IsNullOrWhiteSpace(Content))
+            if (string.IsNullOrWhiteSpace(content))
             {
                 ModBase.Log("[Page] 实例化：清空主页 UI，来源为空");
                 return;
@@ -426,20 +426,20 @@ public partial class PageLaunchRight : IRefreshable
             try
             {
                 // 修改时应同时修改 PageOtherHelpDetail.Init
-                Content = ModMain.ArgumentReplace(Content);
-                while (Content.Contains("xmlns"))
-                    Content = Content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
-                Content =
-                    $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{Content}</StackPanel>";
-                ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
+                content = ModMain.ArgumentReplace(content);
+                while (content.Contains("xmlns"))
+                    content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
+                content =
+                    $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
+                ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
+                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content));
                 _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
             {
                 if (ModBase.modeDebug)
                 {
-                    ModBase.Log(ex, $"加载失败的主页内容：\r\n{Content}");
+                    ModBase.Log(ex, $"加载失败的主页内容：\r\n{content}");
                     if (ModMain.MyMsgBox(
                             ex is UnauthorizedAccessException
                                 ? ex.Message

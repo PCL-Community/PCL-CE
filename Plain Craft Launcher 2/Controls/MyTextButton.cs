@@ -22,7 +22,7 @@ public class MyTextButton : Label
                 new[]
                 {
                     ModAnimation.AaOpacity(button, -button.Opacity, 50),
-                    ModAnimation.AaCode(() => button.Content = e.NewValue, After: true),
+                    ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
                     ModAnimation.AaOpacity(button, 1d, 170)
                 }, "MyTextButton Text " + button.uuid);
         }));

@@ -187,17 +187,17 @@ public partial class MyRadioBox : IMyRadio
                     new[]
                     {
                         ModAnimation.AaScale(ShapeBorder, 10d - ShapeBorder.Width, animationTimeOfCheck,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak), Absolute: true),
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak), absolute: true),
                         ModAnimation.AaScale(ShapeBorder, 8d, animationTimeOfCheck * 2,
                             (int)Math.Round(animationTimeOfCheck * 0.6d), new ModAnimation.AniEaseOutBack(),
-                            Absolute: true)
+                            absolute: true)
                     }, "MyRadioBox Border " + uuid);
                 ModAnimation.AniStart(
                     new[]
                     {
                         ModAnimation.AaScale(ShapeDot, 9d - ShapeDot.Width,
                             (int)Math.Round(animationTimeOfCheck * 2.6d),
-                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak), Absolute: true),
+                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak), absolute: true),
                         ModAnimation.AaOpacity(ShapeDot, 1d - ShapeDot.Opacity,
                             (int)Math.Round(animationTimeOfCheck * 0.5d), (int)Math.Round(animationTimeOfCheck * 0.6d))
                     }, "MyRadioBox Dot " + uuid);
@@ -214,13 +214,13 @@ public partial class MyRadioBox : IMyRadio
                     new[]
                     {
                         ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width, animationTimeOfCheck,
-                            Ease: new ModAnimation.AniEaseOutFluent(), Absolute: true)
+                            ease: new ModAnimation.AniEaseOutFluent(), absolute: true)
                     }, "MyRadioBox Border " + uuid);
                 ModAnimation.AniStart(
                     new[]
                     {
                         ModAnimation.AaScale(ShapeDot, -ShapeDot.Width, animationTimeOfCheck,
-                            Ease: new ModAnimation.AniEaseInFluent(), Absolute: true),
+                            ease: new ModAnimation.AniEaseInFluent(), absolute: true),
                         ModAnimation.AaOpacity(ShapeDot, -ShapeDot.Opacity,
                             (int)Math.Round(animationTimeOfCheck * 0.5d), (int)Math.Round(animationTimeOfCheck * 0.2d))
                     }, "MyRadioBox Dot " + uuid);
@@ -276,7 +276,7 @@ public partial class MyRadioBox : IMyRadio
         if (!Checked)
             ModAnimation.AniStart(
                 ModAnimation.AaScale(ShapeBorder, 16.5d - ShapeBorder.Width, 1000,
-                    Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), Absolute: true),
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true),
                 "MyRadioBox Border " + uuid);
     }
 
@@ -290,7 +290,7 @@ public partial class MyRadioBox : IMyRadio
         if (!Checked)
             ModAnimation.AniStart(
                 ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width,
-                    Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), Absolute: true),
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true),
                 "MyRadioBox Border " + uuid);
     }
 

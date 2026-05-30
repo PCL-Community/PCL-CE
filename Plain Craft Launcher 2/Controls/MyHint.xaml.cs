@@ -179,25 +179,25 @@ public partial class MyHint
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyHint Control, bool RemoveFromChildren, ParameterizedThreadStart CallBack = null)
+    public static void AniDispose(MyHint control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
     {
-        if (!Control.IsHitTestVisible)
+        if (!control.IsHitTestVisible)
             return;
-        Control.IsHitTestVisible = false;
+        control.IsHitTestVisible = false;
         AniStart(new[]
         {
-            AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
-            AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),
-            AaHeight(Control, -Control.ActualHeight, 150, 100, new AniEaseOutFluent()),
+            AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
+            AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
+            AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
             AaCode(() =>
             {
-                if (RemoveFromChildren)
-                    ((Panel)Control.Parent).Children.Remove(Control);
+                if (removeFromChildren)
+                    ((Panel)control.Parent).Children.Remove(control);
                 else
-                    Control.Visibility = Visibility.Collapsed;
-                if (CallBack is not null)
-                    CallBack(Control);
-            }, After: true)
-        }, "MyCard Dispose " + Control.uuid);
+                    control.Visibility = Visibility.Collapsed;
+                if (callBack is not null)
+                    callBack(control);
+            }, after: true)
+        }, "MyCard Dispose " + control.uuid);
     }
 }

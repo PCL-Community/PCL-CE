@@ -128,9 +128,9 @@ public class MyImage : Image
         });
     }
 
-    public static string GetTempPath(string Url)
+    public static string GetTempPath(string url)
     {
-        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
+        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();

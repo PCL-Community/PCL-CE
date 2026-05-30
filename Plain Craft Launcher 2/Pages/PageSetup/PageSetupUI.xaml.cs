@@ -306,18 +306,18 @@ public partial class PageSetupUI
         BackgroundRefresh(true, true);
     }
 
-    public void BackgroundRefreshUI(bool Show, int Count)
+    public void BackgroundRefreshUI(bool show, int count)
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (Show)
+        if (show)
         {
             PanBackgroundOpacity.Visibility = Visibility.Visible;
             PanBackgroundBlur.Visibility = Visibility.Visible;
             PanBackgroundSuit.Visibility = Visibility.Visible;
             BtnBackgroundClear.Visibility = Visibility.Visible;
             CheckAutoPauseVideo.Visibility = Visibility.Visible;
-            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleWithCount", Count);
+            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleWithCount", count);
         }
         else
         {
@@ -335,8 +335,8 @@ public partial class PageSetupUI
     private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
-                IsWarn: true) == 1)
+                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
+                isWarn: true) == 1)
         {
             ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
@@ -347,9 +347,9 @@ public partial class PageSetupUI
     /// <summary>
     ///     刷新背景图片及设置页 UI。
     /// </summary>
-    /// <param name="IsHint">是否显示刷新提示。</param>
-    /// <param name="Refresh">是否刷新图片显示。</param>
-    public static void BackgroundRefresh(bool IsHint, bool Refresh)
+    /// <param name="isHint">是否显示刷新提示。</param>
+    /// <param name="refresh">是否刷新图片显示。</param>
+    public static void BackgroundRefresh(bool isHint, bool refresh)
     {
         try
         {
@@ -391,17 +391,17 @@ public partial class PageSetupUI
             // 加载
             if (pic.Count == 0)
             {
-                if (Refresh)
+                if (refresh)
                 {
                     if (ModMain.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
-                        if (IsHint)
+                        if (isHint)
                             ModMain.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), ModMain.HintType.Critical);
                     }
                     else
                     {
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Collapsed;
-                        if (IsHint)
+                        if (isHint)
                             ModMain.Hint(Lang.Text("Setup.Ui.Background.Cleared"), ModMain.HintType.Finish);
                     }
                 }
@@ -411,7 +411,7 @@ public partial class PageSetupUI
             }
             else
             {
-                if (Refresh)
+                if (refresh)
                 {
                     var address = RandomUtils.PickRandom(pic);
                     try
@@ -422,7 +422,7 @@ public partial class PageSetupUI
                         ModMain.frmMain.ImgBack.Background = new MyBitmap(address);
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
-                        if (IsHint)
+                        if (isHint)
                                 ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), ModMain.HintType.Finish,
                                 false);
                     }
@@ -437,7 +437,7 @@ public partial class PageSetupUI
                             ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
-                            if (IsHint)
+                            if (isHint)
                             ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), ModMain.HintType.Finish,
                                     false);
                         }
@@ -600,8 +600,8 @@ public partial class PageSetupUI
     private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), Button2: Lang.Text("Common.Action.Cancel"),
-                IsWarn: true) == 1)
+                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
+                isWarn: true) == 1)
             ModBase.RunInThread(() =>
             {
                 ModMain.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
@@ -657,7 +657,7 @@ public partial class PageSetupUI
         try
         {
             if (File.Exists(ModBase.exePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                     return;
             ModBase.WriteFile(ModBase.exePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
             ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Docs.Generated"), ModMain.HintType.Finish);

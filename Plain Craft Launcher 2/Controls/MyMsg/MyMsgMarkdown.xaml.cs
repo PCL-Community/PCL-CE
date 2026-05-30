@@ -11,7 +11,7 @@ public partial class MyMsgMarkdown
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
 
-    public MyMsgMarkdown(ModMain.MyMsgBoxConverter Converter)
+    public MyMsgMarkdown(ModMain.MyMsgBoxConverter converter)
     {
         try
         {
@@ -19,13 +19,13 @@ public partial class MyMsgMarkdown
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
-            myConverter = Converter;
-            LabTitle.Text = Converter.title;
-            LabCaption.Markdown = Converter.text;
+            myConverter = converter;
+            LabTitle.Text = converter.title;
+            LabCaption.Markdown = converter.text;
             DataContext = this;
-            ConfigurePrimaryButton(Converter.button1, Converter.isWarn);
-            ConfigureSecondaryButton(Btn2, Converter.button2);
-            ConfigureSecondaryButton(Btn3, Converter.button3);
+            ConfigurePrimaryButton(converter.button1, converter.isWarn);
+            ConfigureSecondaryButton(Btn2, converter.button2);
+            ConfigureSecondaryButton(Btn3, converter.button3);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -109,14 +109,14 @@ public partial class MyMsgMarkdown
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
+            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 

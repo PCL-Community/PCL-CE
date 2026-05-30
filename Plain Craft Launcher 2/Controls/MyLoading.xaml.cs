@@ -268,10 +268,10 @@ public partial class MyLoading
         {
             ModAnimation.AaRotateTransform(PathPickaxe, -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
                 250, new ModAnimation.AniEaseInBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaRotateTransform(PathPickaxe, 50d, 900, Ease: new ModAnimation.AniEaseOutFluent(),
-                After: true),
+            ModAnimation.AaRotateTransform(PathPickaxe, 50d, 900, ease: new ModAnimation.AniEaseOutFluent(),
+                after: true),
             ModAnimation.AaRotateTransform(PathPickaxe, 25d, 900,
-                Ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
+                ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaCode(() =>
             {
                 PathLeft.Opacity = 1d;
@@ -281,16 +281,16 @@ public partial class MyLoading
                 errorAnimationWaiting = false;
             }),
             ModAnimation.AaOpacity(PathLeft, -1, 100, 50),
-            ModAnimation.AaX(PathLeft, -5, 180, Ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathLeft, -6, 180, Ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaX(PathLeft, -5, 180, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaY(PathLeft, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaOpacity(PathRight, -1, 100, 50),
-            ModAnimation.AaX(PathRight, 5d, 180, Ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathRight, -6, 180, Ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaX(PathRight, 5d, 180, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaY(PathRight, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
             {
                 isLooping = false;
                 AniLoop();
-            }, After: true)
+            }, after: true)
         }, "MyLoader Loop " + uuid + "/" + ModBase.GetUuid());
     }
 
@@ -355,9 +355,9 @@ public partial class MyLoading
 
 public interface ILoadingTrigger
 {
-    delegate void LoadingStateChangedEventHandler(MyLoadingState NewState, MyLoadingState OldState);
+    delegate void LoadingStateChangedEventHandler(MyLoadingState newState, MyLoadingState oldState);
 
-    delegate void ProgressChangedEventHandler(double NewProgress, double OldProgress);
+    delegate void ProgressChangedEventHandler(double newProgress, double oldProgress);
 
     bool IsLoader { get; }
 

@@ -33,7 +33,7 @@ public partial class PageDownloadCompDetail
             // 在 Me.Initialized 已经初始化了加载器，不再重复初始化
             _isFirstInit = false;
         else
-            PageLoaderRestart(IsForceRestart: true);
+            PageLoaderRestart(isForceRestart: true);
         // 放置当前工程
         if (_compItem is not null)
             PanIntro.Children.Remove(_compItem);
@@ -86,18 +86,18 @@ public partial class PageDownloadCompDetail
             // 启动
             var loader = new ModLoader.LoaderCombo<string>(loaderName, loaders)
             {
-                OnStateChanged = MyLoader =>
+                OnStateChanged = myLoader =>
                 {
-                    switch (MyLoader.State)
+                    switch (myLoader.State)
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            ModMain.Hint(MyLoader.name + Lang.Text("Common.Status.Failure") + MyLoader.Error.Message, ModMain.HintType.Critical);
+                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, ModMain.HintType.Critical);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            ModMain.Hint(MyLoader.name + Lang.Text("Common.Status.Cancelled"));
+                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
                             break;
                         }
                         case ModBase.LoadState.Loading:
@@ -106,7 +106,7 @@ public partial class PageDownloadCompDetail
                         }
                     }
 
-                    ModDownloadLib.McInstallFailedClearFolder(MyLoader);
+                    ModDownloadLib.McInstallFailedClearFolder(myLoader);
                 }
             };
             loader.Start(Path.Combine(ModMinecraft.mcFolderSelected, "versions", instanceName));
@@ -141,14 +141,14 @@ public partial class PageDownloadCompDetail
             else if (_project.modLoaders.Any()) allowedLoaders = _project.modLoaders;
             ModBase.Log("[Comp] 世界要求的加载器种类：" + (allowedLoaders.Any() ? allowedLoaders.Join(" / ") : "无要求"));
             // 判断某个版本是否符合资源要求
-            isVersionSuitable = Version =>
+            isVersionSuitable = version =>
             {
-                if (Version is null)
+                if (version is null)
                     return false;
-                if (!Version.isLoaded)
-                    Version.Load();
+                if (!version.isLoaded)
+                    version.Load();
                 if (file.gameVersions.Any(v => v.Contains(".")) && !file.gameVersions.Any(v =>
-                        v.Contains(".") && (v ?? "") == (Version.Info.vanillaName ?? "")))
+                        v.Contains(".") && (v ?? "") == (version.Info.vanillaName ?? "")))
                     return false;
                 // 加载器
                 if (!allowedLoaders.Any())
@@ -184,8 +184,8 @@ public partial class PageDownloadCompDetail
                 if (suitableVersions.Any())
                 {
                     var selectedVersion = suitableVersions
-                        .OrderByDescending(Dir => Dir.Exists ? Dir.LastWriteTimeUtc : DateTime.MinValue)
-                        .ThenByDescending(Dir => Dir.Exists ? Dir.GetFiles().Length : -1).First(); // 先按文件夹更改时间降序
+                        .OrderByDescending(dir => dir.Exists ? dir.LastWriteTimeUtc : DateTime.MinValue)
+                        .ThenByDescending(dir => dir.Exists ? dir.GetFiles().Length : -1).First(); // 先按文件夹更改时间降序
                     // 再按文件夹中的文件数量降序
                     defaultFolder = selectedVersion.FullName;
                     Directory.CreateDirectory(defaultFolder);
@@ -281,25 +281,25 @@ public partial class PageDownloadCompDetail
                         $"[Comp] {desc}要求的加载器种类：{(allowedLoaders.Any() ? string.Join(" / ", allowedLoaders) : "无要求")}");
 
                     // 判断某个版本是否符合资源要求 (局部函数)
-                    Func<ModMinecraft.McInstance, bool> isVersionSuitable = Version =>
+                    Func<ModMinecraft.McInstance, bool> isVersionSuitable = version =>
                     {
-                        if (Version is null) return false;
-                        if (!Version.isLoaded) Version.Load();
+                        if (version is null) return false;
+                        if (!version.isLoaded) version.Load();
 
                         // 只对 Mod 和数据包进行版本检测
                         if (file.type == ModComp.CompType.Mod || file.type == ModComp.CompType.DataPack)
                             if (file.gameVersions.Any(v => v.Contains(".")) &&
-                                !file.gameVersions.Any(v => v.Contains(".") && v == Version.Info.vanillaName))
+                                !file.gameVersions.Any(v => v.Contains(".") && v == version.Info.vanillaName))
                                 return false;
 
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && Version.Info.hasForge) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.hasForge) return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
-                            (Version.Info.hasFabric || Version.Info.hasLegacyFabric)) return true;
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && Version.Info.hasNeoForge)
+                            (version.Info.hasFabric || version.Info.hasLegacyFabric)) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.hasNeoForge)
                             return true;
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && Version.Info.hasLiteLoader)
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && version.Info.hasLiteLoader)
                             return true;
                         return false;
                     };
@@ -336,8 +336,8 @@ public partial class PageDownloadCompDetail
                         if (suitableVersions.Any())
                         {
                             var selectedVersion = suitableVersions
-                                .OrderByDescending(Dir => Dir.Exists ? Dir.LastWriteTimeUtc : DateTime.MinValue)
-                                .ThenByDescending(Dir => Dir.Exists ? Dir.GetFiles().Length : -1)
+                                .OrderByDescending(dir => dir.Exists ? dir.LastWriteTimeUtc : DateTime.MinValue)
+                                .ThenByDescending(dir => dir.Exists ? dir.GetFiles().Length : -1)
                                 .First();
                             defaultFolder = selectedVersion.FullName;
                             Directory.CreateDirectory(defaultFolder);

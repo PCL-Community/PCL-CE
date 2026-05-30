@@ -158,7 +158,7 @@ public partial class PageSetupUpdate
                     SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
+                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
             return;
         }
 
@@ -198,7 +198,7 @@ public partial class PageSetupUpdate
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                     isCancelled = true;
                 else
                     CheckUpdate();
@@ -209,7 +209,7 @@ public partial class PageSetupUpdate
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                 {
                     isCancelled = true;
                     break;
@@ -219,8 +219,8 @@ public partial class PageSetupUpdate
                 var ret = ModMain.MyMsgBoxInput(
                     Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
                     Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
-                    Button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
-                    Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true);
+                    button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
+                    button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
     
                 if (ret == confirmText)
                 {

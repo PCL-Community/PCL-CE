@@ -193,7 +193,7 @@ public static class UpdateManager
     ///     确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
     ///     如果不是，则下载一个。
     /// </summary>
-    internal static void DownloadLatestPCL(ModLoader.LoaderBase LoaderToSyncProgress = null)
+    internal static void DownloadLatestPCL(ModLoader.LoaderBase loaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
         var latestPCLPath = Path.Combine(ModBase.pathTemp, "CE-Latest.exe");
@@ -221,7 +221,7 @@ public static class UpdateManager
     }
     
     public static ModLoader.LoaderTask<int, int> serverLoader = new("PCL CE 服务", _ => LoadOnlineInfo(),
-        Priority: ThreadPriority.BelowNormal);
+        priority: ThreadPriority.BelowNormal);
 
     private static void LoadOnlineInfo()
     {

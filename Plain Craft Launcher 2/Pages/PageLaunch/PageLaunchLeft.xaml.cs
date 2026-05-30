@@ -117,7 +117,7 @@ public partial class PageLaunchLeft
                 else
                     ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModMinecraft.mcFolderSelected,
                         ModBase.LogLevel.Debug);
-                ModMinecraft.mcFolderListLoader.WaitForExit(IsForceRestart: true);
+                ModMinecraft.mcFolderListLoader.WaitForExit(isForceRestart: true);
                 States.Game.SelectedFolder = ModMinecraft.mcFolderList[0].location.Replace(ModBase.exePath, "$");
             }
 
@@ -438,10 +438,10 @@ public partial class PageLaunchLeft
             {
                 ModAnimation.AaGridLengthWidth(ProgressLaunchingFinished,
                     showProgress - ProgressLaunchingFinished.Width.Value, 260,
-                    Ease: new ModAnimation.AniEaseOutFluent()),
+                    ease: new ModAnimation.AniEaseOutFluent()),
                 ModAnimation.AaGridLengthWidth(ProgressLaunchingUnfinished,
                     1d - showProgress - ProgressLaunchingUnfinished.Width.Value, 260,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             };
             var isDownloadStateChanged =
                 hasLaunchDownloader == (LabLaunchingDownload.Visibility == Visibility.Collapsed);
@@ -499,12 +499,12 @@ public partial class PageLaunchLeft
             return;
         ModAnimation.AniStart(new[]
         {
-            ModAnimation.AaWidth(PanLaunchingInfo, deltaWidth, 180, Ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaWidth(PanLaunchingInfo, deltaWidth, 180, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
             {
                 isWidthAnimating = false;
                 PanLaunchingInfo.Width = actualUsedWidth;
-            }, After: true)
+            }, after: true)
         }, "Launching Info Width");
         isWidthAnimating = true;
         actualUsedWidth = PanLaunchingInfo.Width;
@@ -519,12 +519,12 @@ public partial class PageLaunchLeft
             return;
         ModAnimation.AniStart(new[]
         {
-            ModAnimation.AaHeight(PanLaunchingInfo, deltaHeight, 180, Ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaHeight(PanLaunchingInfo, deltaHeight, 180, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
             {
                 isHeightAnimating = false;
                 PanLaunchingInfo.Height = actualUsedHeight;
-            }, After: true)
+            }, after: true)
         }, "Launching Info Height");
         isHeightAnimating = true;
         actualUsedHeight = PanLaunchingInfo.Height;
@@ -605,8 +605,8 @@ public partial class PageLaunchLeft
             new[]
             {
                 ModAnimation.AaOpacity(PanInput, 0d, 50),
-                ModAnimation.AaOpacity(PanInput, -PanInput.Opacity, 110, Ease: new ModAnimation.AniEaseInFluent(),
-                    After: true),
+                ModAnimation.AaOpacity(PanInput, -PanInput.Opacity, 110, ease: new ModAnimation.AniEaseInFluent(),
+                    after: true),
                 ModAnimation.AaScaleTransform(PanInput, 1.2d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 160),
                 ModAnimation.AaOpacity(PanLaunching, 1d - PanLaunching.Opacity, 150, 100),
                 ModAnimation.AaScaleTransform(PanLaunching, 1d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX,
@@ -631,7 +631,7 @@ public partial class PageLaunchLeft
                 ModAnimation.AaOpacity(PanLaunching, -PanLaunching.Opacity, 150),
                 ModAnimation.AaScaleTransform(PanLaunching,
                     0.8d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX, 150,
-                    Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                 ModAnimation.AaOpacity(PanInput, 1d - PanInput.Opacity, 250, 50),
                 ModAnimation.AaScaleTransform(PanInput, 1d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 300, 50,
                     new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
@@ -658,9 +658,9 @@ public partial class PageLaunchLeft
     /// </summary>
     private PageType pageCurrent = PageType.None;
 
-    private object PageGet(PageType Type)
+    private object PageGet(PageType type)
     {
-        switch (Type)
+        switch (type)
         {
             case PageType.Auth:
             {
@@ -703,18 +703,18 @@ public partial class PageLaunchLeft
     /// <summary>
     ///     切换现有登录页面种类，返回新页面的实例。
     /// </summary>
-    /// <param name="Type">新页面的种类。</param>
-    /// <param name="Anim">是否显示动画。</param>
-    private object PageChange(PageType Type, bool Anim)
+    /// <param name="type">新页面的种类。</param>
+    /// <param name="anim">是否显示动画。</param>
+    private object PageChange(PageType type, bool anim)
     {
         object pageNew = ModMain.frmLoginMs; // 初始化一个东西，避免在执行时出现异常导致雪崩
         try
         {
             #region 确定更改的页面实例并实例化
 
-            if (pageCurrent == Type)
+            if (pageCurrent == type)
                 return pageNew;
-            pageNew = PageGet(Type);
+            pageNew = PageGet(type);
 
             #endregion
 
@@ -726,13 +726,13 @@ public partial class PageLaunchLeft
             {
                 element.SetValue(ContentPresenter.ContentProperty, null);
             }
-            if (Anim)
+            if (anim)
             {
                 // 动画
                 // 执行动画
                 Dispatcher.Invoke(() => ModAnimation.AniStart(new[]
                 {
-                    ModAnimation.AaOpacity(PanLogin, -PanLogin.Opacity, 100, Ease: new ModAnimation.AniEaseOutFluent()),
+                    ModAnimation.AaOpacity(PanLogin, -PanLogin.Opacity, 100, ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaCode(() =>
                     {
                         ModAnimation.AniControlEnabled += 1;
@@ -754,12 +754,12 @@ public partial class PageLaunchLeft
 
             #endregion
 
-            pageCurrent = Type;
+            pageCurrent = type;
             return pageNew;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(Type)), ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)), ModBase.LogLevel.Feedback);
             return pageNew;
         }
     }
@@ -767,18 +767,18 @@ public partial class PageLaunchLeft
     /// <summary>
     ///     确认当前显示的子页面正确，并刷新该页面。
     /// </summary>
-    /// <param name="Anim">是否显示动画</param>
-    /// <param name="TargetLoginType">目标验证方式，若正在创建档案需填</param>
-    public void RefreshPage(bool Anim, ModLaunch.McLoginType TargetLoginType = default)
+    /// <param name="anim">是否显示动画</param>
+    /// <param name="targetLoginType">目标验证方式，若正在创建档案需填</param>
+    public void RefreshPage(bool anim, ModLaunch.McLoginType targetLoginType = default)
     {
         var type = default(PageType);
-        if (TargetLoginType != default)
+        if (targetLoginType != default)
         {
-            if (TargetLoginType == ModLaunch.McLoginType.Ms)
+            if (targetLoginType == ModLaunch.McLoginType.Ms)
                 type = PageType.Ms;
-            if (TargetLoginType == ModLaunch.McLoginType.Auth)
+            if (targetLoginType == ModLaunch.McLoginType.Auth)
                 type = PageType.Auth;
-            if (TargetLoginType == ModLaunch.McLoginType.Legacy)
+            if (targetLoginType == ModLaunch.McLoginType.Legacy)
                 type = PageType.Offline;
         }
         else if (ModProfile.selectedProfile is not null)
@@ -796,7 +796,7 @@ public partial class PageLaunchLeft
         // 刷新页面
         if (pageCurrent == type)
             return;
-        PageChange(type, Anim);
+        PageChange(type, anim);
     }
 
     #endregion
@@ -814,7 +814,7 @@ public partial class PageLaunchLeft
             { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
     }
 
-    private static void SkinMsLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinMsLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -824,8 +824,8 @@ public partial class PageLaunchLeft
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
         // 获取 Url
-        var userName = Data.input[0];
-        var uuid = Data.input[1];
+        var userName = data.input[0];
+        var uuid = data.input[1];
         if (ModProfile.selectedProfile is not null)
         {
             userName = ModProfile.selectedProfile.username;
@@ -834,7 +834,7 @@ public partial class PageLaunchLeft
 
         if (string.IsNullOrEmpty(userName))
         {
-            Data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
+            data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
                           ".png";
             ModBase.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
             goto Finish;
@@ -843,37 +843,37 @@ public partial class PageLaunchLeft
         try
         {
             var result = ModMinecraft.McSkinGetAddress(uuid, "Ms");
-            if (Data.IsAborted)
+            if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
             result = ModMinecraft.McSkinDownload(result);
-            if (Data.IsAborted)
+            if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
-            Data.output = result;
+            data.output = result;
         }
         catch (Exception ex)
         {
             if (ex is ThreadInterruptedException)
             {
-                Data.output = "";
+                data.output = "";
                 ModBase.Log("[Minecraft] 已取消皮肤获取：" + userName);
                 return;
             }
 
             if (ex.ToString().Contains("429"))
             {
-                Data.output = ModBase.pathImage + "Skins/" +
+                data.output = ModBase.pathImage + "Skins/" +
                               ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log(Lang.Text("Launch.Skin.Error.MsRateLimited", userName), ModBase.LogLevel.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                Data.output = ModBase.pathImage + "Skins/" +
+                data.output = ModBase.pathImage + "Skins/" +
                               ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                Data.output = ModBase.pathImage + "Skins/" +
+                data.output = ModBase.pathImage + "Skins/" +
                               ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log(ex, Lang.Text("Launch.Skin.Error.MsGet", userName), ModBase.LogLevel.Hint);
             }
@@ -882,10 +882,10 @@ public partial class PageLaunchLeft
         Finish: ;
 
         // 刷新显示
-        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, Data))
+        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(ModMain.frmLoginProfileSkin.Skin.Load);
-        else if (!Data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
-            Data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
+        else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
+            data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // 离线皮肤
@@ -898,7 +898,7 @@ public partial class PageLaunchLeft
             { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
     }
 
-    private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
     {
         // 清空已有皮肤
         ModBase.RunInUi(() =>
@@ -906,12 +906,12 @@ public partial class PageLaunchLeft
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
-        Data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(Data.input[1]) + ".png";
+        data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(data.input[1]) + ".png";
         // 刷新显示
-        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, Data))
+        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(() => ModMain.frmLoginProfileSkin.Skin.Load());
-        else if (!Data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
-            Data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
+        else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
+            data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // Authlib-Injector 皮肤
@@ -925,7 +925,7 @@ public partial class PageLaunchLeft
             { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
     }
 
-    private static void SkinAuthLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Data)
+    private static void SkinAuthLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -935,11 +935,11 @@ public partial class PageLaunchLeft
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
         // 获取 Url
-        var userName = Data.input[0];
-        var uuid = Data.input[1];
+        var userName = data.input[0];
+        var uuid = data.input[1];
         if (string.IsNullOrEmpty(userName))
         {
-            Data.output = ModBase.pathImage + "Skins/Steve.png";
+            data.output = ModBase.pathImage + "Skins/Steve.png";
             ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败，ID 为空");
             goto Finish;
         }
@@ -947,35 +947,35 @@ public partial class PageLaunchLeft
         try
         {
             var result = ModMinecraft.McSkinGetAddress(uuid, "Auth");
-            if (Data.IsAborted)
+            if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
             result = ModMinecraft.McSkinDownload(result);
-            if (Data.IsAborted)
+            if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
-            Data.output = result;
+            data.output = result;
         }
         catch (Exception ex)
         {
             if (ex is ThreadInterruptedException)
             {
-                Data.output = "";
+                data.output = "";
                 return;
             }
 
             if (ex.ToString().Contains("429"))
             {
-                Data.output = ModBase.pathImage + "Skins/Steve.png";
+                data.output = ModBase.pathImage + "Skins/Steve.png";
                 ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败（" + userName + "）：获取皮肤太过频繁，请 5 分钟后再试！",
                     ModBase.LogLevel.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                Data.output = ModBase.pathImage + "Skins/Steve.png";
+                data.output = ModBase.pathImage + "Skins/Steve.png";
                 ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                Data.output = ModBase.pathImage + "Skins/Steve.png";
+                data.output = ModBase.pathImage + "Skins/Steve.png";
                 ModBase.Log(ex, Lang.Text("Launch.Skin.Error.AuthGet", userName), ModBase.LogLevel.Hint);
             }
         }
@@ -983,10 +983,10 @@ public partial class PageLaunchLeft
         Finish: ;
 
         // 刷新显示
-        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, Data))
+        if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(ModMain.frmLoginProfileSkin.Skin.Load);
-        else if (!Data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
-            Data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
+        else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
+            data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // 全部皮肤加载器

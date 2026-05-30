@@ -28,13 +28,13 @@ public static class AnnouncementService
                     item.btn1 is null ? "" : item.btn1.text,
                     item.btn2 is null ? "" : item.btn2.text,
                     Lang.Text("Common.Action.Close"),
-                    Button1Action: () =>
+                    button1Action: () =>
                     {
                         if (Enum.TryParse<CustomEvent.EventType>(
                                 item.btn1.command, true, out var eventType))
                             CustomEvent.Raise(eventType, item.btn1.command_paramter);
                     },
-                    Button2Action: () =>
+                    button2Action: () =>
                     {
                         if (Enum.TryParse<CustomEvent.EventType>(
                                 item.btn2.command, true, out var eventType))

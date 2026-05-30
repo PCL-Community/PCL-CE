@@ -62,32 +62,32 @@ public partial class PageSetupJava
             itemAuto.SetChecked(true, false, false);
     }
     
-    private MyListItem ItemBuild(JavaEntry J)
+    private MyListItem ItemBuild(JavaEntry j)
     {
         var item = new MyListItem();
-        var versionTypeDesc = J.Installation.IsJre ? "JRE" : "JDK";
-        var versionNameDesc = J.Installation.MajorVersion.ToString();
+        var versionTypeDesc = j.Installation.IsJre ? "JRE" : "JDK";
+        var versionNameDesc = j.Installation.MajorVersion.ToString();
         item.Title = $"{versionTypeDesc} {versionNameDesc}";
 
-        item.Info = J.Installation.JavaFolder;
+        item.Info = j.Installation.JavaFolder;
         var displayTags = new List<string>();
-        var displayBits = J.Installation.Is64Bit ? "64 Bit" : "32 Bit";
+        var displayBits = j.Installation.Is64Bit ? "64 Bit" : "32 Bit";
         displayTags.Add(displayBits);
-        var displayBrand = J.Installation.Brand.ToString();
+        var displayBrand = j.Installation.Brand.ToString();
         displayTags.Add(displayBrand);
         item.Tags = displayTags;
 
         item.Type = MyListItem.CheckType.RadioBox;
         item.Check += (sender, e) =>
         {
-            if (!J.Installation.IsStillAvailable)
+            if (!j.Installation.IsStillAvailable)
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
-            if (J.IsEnabled)
-                Config.Launch.SelectedJava = J.Installation.JavaExePath;
+            if (j.IsEnabled)
+                Config.Launch.SelectedJava = j.Installation.JavaExePath;
             else
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
@@ -99,20 +99,20 @@ public partial class PageSetupJava
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
-            if (!J.Installation.IsStillAvailable)
+            if (!j.Installation.IsStillAvailable)
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
-            ModBase.OpenExplorer(J.Installation.JavaFolder);
+            ModBase.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.Logo = Icon.IconButtonInfo;
         btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
         btnInfo.Click += (sender, e) =>
         {
-            if (!J.Installation.IsStillAvailable)
+            if (!j.Installation.IsStillAvailable)
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
@@ -121,11 +121,11 @@ public partial class PageSetupJava
             ModMain.MyMsgBox(
                 Lang.Text("Setup.Launch.Java.Info.Format",
                     versionTypeDesc,
-                    J.Installation.Version.ToString(),
-                    J.Installation.Architecture.ToString(),
+                    j.Installation.Version.ToString(),
+                    j.Installation.Architecture.ToString(),
                     displayBits,
                     displayBrand,
-                    J.Installation.JavaFolder),
+                    j.Installation.JavaFolder),
                 Lang.Text("Setup.Launch.Java.Info.Title"));
         };
         var btnEnableSwitch = new MyIconButton();
@@ -134,7 +134,7 @@ public partial class PageSetupJava
 
         void UpdateEnableStyle(bool isCurEnable)
         {
-            if (!J.Installation.IsStillAvailable)
+            if (!j.Installation.IsStillAvailable)
             {
                 ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
@@ -160,7 +160,7 @@ public partial class PageSetupJava
         {
             try
             {
-                var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
+                var target = ModJava.Javas.AddOrGet(j.Installation.JavaExePath);
                 if (target is null)
                 {
                     ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
@@ -182,7 +182,7 @@ public partial class PageSetupJava
                 ModBase.Log(ex, Lang.Text("Setup.Launch.Java.EnableFailed"), ModBase.LogLevel.Hint);
             }
         };
-        UpdateEnableStyle(J.IsEnabled);
+        UpdateEnableStyle(j.IsEnabled);
 
         return item;
     }

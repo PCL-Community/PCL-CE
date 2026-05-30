@@ -105,7 +105,7 @@ public partial class MyExtraButton
                             ModAnimation.AaScaleTransform(this, 0.7d, 500, 60,
                                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, 50d - Height, 200,
-                                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                         }, "MyExtraButton MainScale " + uuid);
                 }
                 else
@@ -115,9 +115,9 @@ public partial class MyExtraButton
                         new[]
                         {
                             ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
-                                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, -Height, 400, 100, new ModAnimation.AniEaseOutFluent()),
-                            ModAnimation.AaCode(() => Visibility = Visibility.Collapsed, After: true)
+                            ModAnimation.AaCode(() => Visibility = Visibility.Collapsed, after: true)
                         }, "MyExtraButton MainScale " + uuid);
                 }
 
@@ -138,9 +138,9 @@ public partial class MyExtraButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                    800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                    800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                 ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraButton Scale " + uuid);
     }
 
@@ -150,7 +150,7 @@ public partial class MyExtraButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                    Ease: new ModAnimation.AniEaseOutBack())
+                    ease: new ModAnimation.AniEaseOutBack())
             }, "MyExtraButton Scale " + uuid);
     }
 
@@ -230,7 +230,7 @@ public partial class MyExtraButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraButton Scale " + uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
@@ -290,9 +290,9 @@ public partial class MyExtraButton
                 new[]
                 {
                     ModAnimation.AaScaleTransform(shape, 13d, 1000,
-                        Ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
+                        ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
                     ModAnimation.AaOpacity(shape, -shape.Opacity, 1000),
-                    ModAnimation.AaCode(() => PanScale.Children.Remove(shape), After: true)
+                    ModAnimation.AaCode(() => PanScale.Children.Remove(shape), after: true)
                 }, "ExtraButton Ribble " + ModBase.GetUuid());
         });
     }

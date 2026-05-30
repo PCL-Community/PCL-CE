@@ -138,22 +138,22 @@ public partial class PageInstanceExport : IRefreshable
         ReloadSubOptions(PanOptionsShaderPacks, true, true, "shaderpacks");
     }
 
-    private void ReloadSubOptions(StackPanel Panel, bool AcceptCompressedFile, bool AcceptFolder,
-        params string[] Folders)
+    private void ReloadSubOptions(StackPanel panel, bool acceptCompressedFile, bool acceptFolder,
+        params string[] folders)
     {
-        Panel.Children.Clear();
-        foreach (var Folder in Folders)
+        panel.Children.Clear();
+        foreach (var Folder in folders)
         {
             var targetFolder = new DirectoryInfo(PageInstanceLeft.instance.PathIndie + Folder);
             if (!targetFolder.Exists)
                 continue;
             // 查找文件夹下的对应项
-            if (AcceptCompressedFile)
+            if (acceptCompressedFile)
                 foreach (var File in targetFolder.EnumerateFiles("*.zip").Concat(targetFolder.EnumerateFiles("*.rar")))
                 {
                     if (subOptionBlackList.Any(b => File.Name.ContainsF(b)))
                         continue;
-                    Panel.Children.Add(new MyCheckBox
+                    panel.Children.Add(new MyCheckBox
                     {
                         Tag = new ExportOption
                         {
@@ -166,7 +166,7 @@ public partial class PageInstanceExport : IRefreshable
                         var shaderConfig = new FileInfo(Path.Combine(File.Directory.FullName,
                             $"{File.Name}.txt"));
                         if (shaderConfig.Exists)
-                            Panel.Children.Add(new MyCheckBox
+                            panel.Children.Add(new MyCheckBox
                             {
                                 Margin = new Thickness(30, 0, 0, 0),
                                 Tag = new ExportOption
@@ -179,7 +179,7 @@ public partial class PageInstanceExport : IRefreshable
                     }
                 }
 
-            if (AcceptFolder)
+            if (acceptFolder)
                 foreach (var SubFolder in targetFolder.EnumerateDirectories().OrderByDescending(f => f.LastWriteTime))
                 {
                     if (subOptionBlackList.Any(b => SubFolder.Name.ContainsF(b)))
@@ -194,16 +194,16 @@ public partial class PageInstanceExport : IRefreshable
                             Rules = ModBase.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
                         }
                     };
-                    if (ReferenceEquals(Panel, PanOptionsSaves))
+                    if (ReferenceEquals(panel, PanOptionsSaves))
                         GetExportOption(newCheckBox).Description =
                             Lang.Date(SubFolder.LastWriteTime, "g");
-                    Panel.Children.Add(newCheckBox);
+                    panel.Children.Add(newCheckBox);
                     if (Folder == "shaderpacks") // 处理文件夹形式光影包的配置文件
                     {
                         var shaderConfig = new FileInfo(Path.Combine(targetFolder.FullName,
                             $"{SubFolder.Name}.txt"));
                         if (shaderConfig.Exists)
-                            Panel.Children.Add(new MyCheckBox
+                            panel.Children.Add(new MyCheckBox
                             {
                                 Margin = new Thickness(30, 0, 0, 0),
                                 Tag = new ExportOption
@@ -230,11 +230,11 @@ public partial class PageInstanceExport : IRefreshable
         // 预先归纳所有至多二级的文件/文件夹
         var allEntries = new List<string>();
 
-        bool IsValidDirectory(DirectoryInfo Folder)
+        bool IsValidDirectory(DirectoryInfo folder)
         {
             try
             {
-                return Folder.Exists && Folder.EnumerateFileSystemInfos()
+                return folder.Exists && folder.EnumerateFileSystemInfos()
                     .Any(i => !subOptionBlackList.Any(b => i.Name.ContainsF(b)));
             }
             catch
@@ -258,41 +258,41 @@ public partial class PageInstanceExport : IRefreshable
         ModBase.Log($"[Export] 共发现 {allEntries.Count} 个可行的二级文件/文件夹");
 
         // 确认选项是否应该被显示
-        bool IsVisible(ExportOption TargetOption)
+        bool IsVisible(ExportOption targetOption)
         {
             // 检查需要 OptiFine 或 Mod 加载器
-            if (TargetOption.RequireOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine)
+            if (targetOption.RequireOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine)
                 return false;
-            if (TargetOption.RequireModLoader && !PageInstanceLeft.instance.Modable)
+            if (targetOption.RequireModLoader && !PageInstanceLeft.instance.Modable)
                 return false;
-            if (TargetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine &&
+            if (targetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine &&
                 !PageInstanceLeft.instance.Modable)
                 return false;
             // 粗略检查是否可能有符合规则的文件/文件夹
-            return StandardizeLines((TargetOption.Rules ?? TargetOption.ShowRules).Split('|'), true).Any(Rule =>
+            return StandardizeLines((targetOption.Rules ?? targetOption.ShowRules).Split('|'), true).Any(rule =>
             {
-                if (Rule.StartsWithF("!"))
+                if (rule.StartsWithF("!"))
                     return false; // 只看正向规则
                 // 检查前两级
                 try
                 {
-                    if (allEntries.Any(Entry => LikeString(Entry, Rule)))
+                    if (allEntries.Any(entry => LikeString(entry, rule)))
                         return true;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"错误的规则：{Rule}", ModBase.LogLevel.Hint);
+                    ModBase.Log(ex, $"错误的规则：{rule}", ModBase.LogLevel.Hint);
                     return false;
                 }
 
                 // 粗略检查所有级
-                Rule = Rule.Trim("*?".ToCharArray());
-                if (Rule.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Count() >= 3)
+                rule = rule.Trim("*?".ToCharArray());
+                if (rule.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Count() >= 3)
                 {
-                    if (Rule.EndsWithF(@"\"))
-                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.instance.PathIndie + Rule)); // 文件夹有效
+                    if (rule.EndsWithF(@"\"))
+                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.instance.PathIndie + rule)); // 文件夹有效
 
-                    return File.Exists(PageInstanceLeft.instance.PathIndie + Rule);
+                    return File.Exists(PageInstanceLeft.instance.PathIndie + rule);
                     // 文件有效
                 }
 
@@ -328,27 +328,27 @@ public partial class PageInstanceExport : IRefreshable
     /// <summary>
     ///     对文本行进行标准化处理，以便使用 Like 进行匹配。
     /// </summary>
-    private IEnumerable<string> StandardizeLines(IEnumerable<string> Raw, bool AddSuffixStarToFolderPath)
+    private IEnumerable<string> StandardizeLines(IEnumerable<string> raw, bool addSuffixStarToFolderPath)
     {
-        foreach (var IgnoreLineRaw in Raw)
+        foreach (var IgnoreLineRaw in raw)
         {
             var ignoreLine = IgnoreLineRaw;
             ignoreLine = ignoreLine.Trim();
             if (string.IsNullOrEmpty(ignoreLine) || ignoreLine.StartsWithF("#") || ignoreLine.StartsWithF("="))
                 continue;
             ignoreLine = ignoreLine.Replace("/", @"\");
-            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && AddSuffixStarToFolderPath ? "*" : "");
+            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && addSuffixStarToFolderPath ? "*" : "");
         }
     }
 
     /// <summary>
     ///     获取所有可作为选项的 CheckBox。
     /// </summary>
-    private IEnumerable<MyCheckBox> GetAllOptions(bool IncludeHidden)
+    private IEnumerable<MyCheckBox> GetAllOptions(bool includeHidden)
     {
         foreach (var Element in PanOptions.Children)
         {
-            if (!IncludeHidden &&
+            if (!includeHidden &&
                 ((UIElement)Element).Visibility != Visibility.Visible)
                 continue;
             if (Element is MyCheckBox)
@@ -356,7 +356,7 @@ public partial class PageInstanceExport : IRefreshable
             else if (Element is StackPanel)
                 foreach (var SubElement in ((StackPanel)Element).Children)
                 {
-                    if (!IncludeHidden && ((UIElement)SubElement).Visibility != Visibility.Visible)
+                    if (!includeHidden && ((UIElement)SubElement).Visibility != Visibility.Visible)
                         continue;
                     if (SubElement is MyCheckBox)
                         yield return (MyCheckBox)SubElement;
@@ -367,9 +367,9 @@ public partial class PageInstanceExport : IRefreshable
     /// <summary>
     ///     获取该 CheckBox 对应的 ExportOption。
     /// </summary>
-    private ExportOption GetExportOption(MyCheckBox CheckBox)
+    private ExportOption GetExportOption(MyCheckBox checkBox)
     {
-        return (ExportOption)CheckBox.Tag;
+        return (ExportOption)checkBox.Tag;
     }
 
     #endregion
@@ -770,9 +770,9 @@ public partial class PageInstanceExport : IRefreshable
         
         #if !RELEASE
         if (includePCL)
-            loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
+            loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", loader =>
             {
-                UpdateManager.DownloadLatestPCL(Loader);
+                UpdateManager.DownloadLatestPCL(loader);
                 ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CE-Latest.exe"), Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
             })
             {
@@ -785,19 +785,19 @@ public partial class PageInstanceExport : IRefreshable
 
         #region 复制文件
 
-        loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>("复制导出内容", Loader =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>("复制导出内容", loader =>
         {
-            Loader.output = new List<ModLocalComp.LocalCompFile>();
+            loader.output = new List<ModLocalComp.LocalCompFile>();
             // 复制实例文件
             var progress = 0;
             Action<DirectoryInfo> searchFolder = null;
-            searchFolder = Folder =>
+            searchFolder = folder =>
             {
                 // 文件夹：进一步搜索
-                foreach (var SubFolder in Folder.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+                foreach (var SubFolder in folder.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
                 {
                     // 跳过部分又没用文件又多的文件夹，加快搜索
-                    if ((Folder.FullName ?? "") == (pathIndie ?? "") &&
+                    if ((folder.FullName ?? "") == (pathIndie ?? "") &&
                         new[] { "assets", "versions", "libraries" }.Contains(SubFolder.Name))
                         continue;
                     if (new[] { "structureCacheV1", ".fabric", ".git", "avatar-cache", "cosmetic-cache" }.Contains(
@@ -807,7 +807,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
 
                 // 文件：检查规则并复制
-                foreach (var Entry in Folder.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+                foreach (var Entry in folder.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
                 {
                     var relativePath = Entry.FullName.AfterFirst(pathIndie);
                     // 检查规则
@@ -831,21 +831,21 @@ public partial class PageInstanceExport : IRefreshable
                         var modFile = new ModLocalComp.LocalCompFile(targetPath);
                         var unused = modFile.ModrinthHash; // 提前计算 Hash
                         unused = modFile.CurseForgeHash.ToString();
-                        Loader.output.Add(modFile);
+                        loader.output.Add(modFile);
                     }
 
                     // 更新进度（进度并不准确，主要突出一个我还没似）
                     progress += 1;
                     if (progress == 25)
                     {
-                        Loader.Progress += (0.94d - Loader.Progress) * 0.012d;
+                        loader.Progress += (0.94d - loader.Progress) * 0.012d;
                         progress = 0;
                     }
                 }
             };
             searchFolder(new DirectoryInfo(pathIndie));
-            ModBase.Log($"[Export] 复制 overrides 文件完成，有 {Loader.output.Count} 个文件需要联网检查");
-            Loader.Progress = 0.95d;
+            ModBase.Log($"[Export] 复制 overrides 文件完成，有 {loader.output.Count} 个文件需要联网检查");
+            loader.Progress = 0.95d;
             // 复制追加内容到根目录
             var baseFolder = includePCL ? cacheFolder : Path.Combine(cacheFolder, "modpack");
             foreach (var Line in allExtraFiles)
@@ -865,7 +865,7 @@ public partial class PageInstanceExport : IRefreshable
                     ModMain.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), ModMain.HintType.Critical);
                 }
 
-            Loader.Progress = 0.97d;
+            loader.Progress = 0.97d;
             // 复制 PCL 实例设置
             ModBase.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
             #if RELEASE
@@ -901,16 +901,16 @@ public partial class PageInstanceExport : IRefreshable
 
         loaders.Add(
             new ModLoader.LoaderTask<List<ModLocalComp.LocalCompFile>,
-                Dictionary<ModLocalComp.LocalCompFile, List<string>>>("联网获取文件信息", Loader =>
+                Dictionary<ModLocalComp.LocalCompFile, List<string>>>("联网获取文件信息", loader =>
             {
-                Loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
+                loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
                 if (!checkHostedAssets)
                 {
                     ModBase.Log("[Export] 要求跳过联网获取步骤");
                     return;
                 }
 
-                if (!Loader.input.Any())
+                if (!loader.input.Any())
                 {
                     ModBase.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
                     return;
@@ -927,17 +927,17 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     try
                     {
-                        var modrinthHashes = Loader.input.Select(m => m.ModrinthHash);
+                        var modrinthHashes = loader.input.Select(m => m.ModrinthHash);
                         var modrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                             "https://api.modrinth.com/v2/version_files", "POST",
                             $"{{\"hashes\": [\"{modrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
                             "application/json"));
-                        foreach (var ModFile in Loader.input)
+                        foreach (var ModFile in loader.input)
                         {
                             if (!modrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
                             if ((string)modrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
                                 ModFile.ModrinthHash) continue;
-                            Loader.output.AddToList(ModFile,
+                            loader.output.AddToList(ModFile,
                                 (string)modrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
                         }
 
@@ -951,7 +951,7 @@ public partial class PageInstanceExport : IRefreshable
                     finally
                     {
                         endedThreadCount += 1;
-                        Loader.Progress += 0.45d;
+                        loader.Progress += 0.45d;
                     }
                 }, "Modrinth - " + loaderName);
 
@@ -963,7 +963,7 @@ public partial class PageInstanceExport : IRefreshable
                     try
                     {
                         if (modrinthUploadMode) return;
-                        var curseForgeHashes = Loader.input.Select(m => m.CurseForgeHash);
+                        var curseForgeHashes = loader.input.Select(m => m.CurseForgeHash);
                         var curseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
                             ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
                                 $"{{\"fingerprints\": [{curseForgeHashes.Join(",")}]}}", "application/json")))["data"][
@@ -973,10 +973,10 @@ public partial class PageInstanceExport : IRefreshable
                             if (!ResultJson.ContainsKey("file")) continue;
                             var file = (JsonObject)ResultJson["file"];
                             if (string.IsNullOrEmpty((string)file["downloadUrl"])) continue;
-                            var modFile = Loader.input.FirstOrDefault(m =>
+                            var modFile = loader.input.FirstOrDefault(m =>
                                 m.CurseForgeHash == file["fileFingerprint"].ToObject<uint>());
                             if (modFile is null) continue;
-                            Loader.output.AddToList(modFile,
+                            loader.output.AddToList(modFile,
                                 ModComp.CompFile.HandleCurseForgeDownloadUrls(file["downloadUrl"].ToString()));
                         }
 
@@ -990,14 +990,14 @@ public partial class PageInstanceExport : IRefreshable
                     finally
                     {
                         endedThreadCount += 1;
-                        Loader.Progress += 0.45d;
+                        loader.Progress += 0.45d;
                     }
                 }, "CurseForge - " + loaderName); // Modrinth 上传模式下，不能从 CurseForge 获取信息
 
                 // 等待线程结束
                 while (endedThreadCount != 2)
                 {
-                    if (Loader.IsAborted)
+                    if (loader.IsAborted)
                         return;
                     Thread.Sleep(10);
                 }
@@ -1028,11 +1028,11 @@ public partial class PageInstanceExport : IRefreshable
         #region 生成压缩包
 
         loaders.Add(new ModLoader.LoaderTask<Dictionary<ModLocalComp.LocalCompFile, List<string>>, int>("生成压缩包",
-            Loader =>
+            loader =>
             {
                 // 整理文件列表
                 var files = new JsonArray();
-                foreach (var Pair in Loader.input)
+                foreach (var Pair in loader.input)
                 {
                     var modFile = Pair.Key;
                     files.Add(new JsonObject
@@ -1051,7 +1051,7 @@ public partial class PageInstanceExport : IRefreshable
                     File.Delete(modFile.path);
                 }
 
-                Loader.Progress = 0.2d;
+                loader.Progress = 0.2d;
                 // 导出最终 JSON 文件
                 var dependencies = new JsonObject { { "minecraft", mcInstance.Info.vanillaName } };
                 if (mcInstance.Info.hasForge)
@@ -1075,18 +1075,18 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     // 首次压缩整合包
                     ZipFile.CreateFromDirectory(Path.Combine(cacheFolder, "modpack"), Path.Combine(cacheFolder, "modpack.mrpack"));
-                    Loader.Progress = 0.5d;
+                    loader.Progress = 0.5d;
                     Directory.Delete(Path.Combine(cacheFolder, "modpack"), true);
-                    Loader.Progress = 0.6d;
+                    loader.Progress = 0.6d;
                     // 二次压缩整合包
                     ZipFile.CreateFromDirectory(cacheFolder, packPath);
-                    Loader.Progress = 0.9d;
+                    loader.Progress = 0.9d;
                 }
                 else
                 {
                     // 直接压缩整合包
                     ZipFile.CreateFromDirectory(Path.Combine(cacheFolder, "modpack"), packPath);
-                    Loader.Progress = 0.8d;
+                    loader.Progress = 0.8d;
                 }
 
                 Directory.Delete(cacheFolder, true);

@@ -148,7 +148,7 @@ public partial class PageSetupGameManage
             ModMain.MyMsgBox(
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), isWarn: true);
         }
     }
 }

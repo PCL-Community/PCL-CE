@@ -44,7 +44,7 @@ public partial class PageLoginProfileSkin
             Skin.loader = PageLaunchLeft.skinLegacy;
         }
 
-        Skin.loader.Start(IsForceRestart: true);
+        Skin.loader.Start(isForceRestart: true);
         TextName.Text = ModProfile.selectedProfile.username;
         TextType.Text = (string)ModProfile.GetProfileInfo(ModProfile.selectedProfile);
     }

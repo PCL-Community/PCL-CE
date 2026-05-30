@@ -167,7 +167,7 @@ public static class ModProfile
                     try
                     {
                         gotJson = (JsonObject)ModNet.NetGetCodeByRequestRetry(
-                            "https://api.mojang.com/users/profiles/minecraft/" + name, IsJson: true);
+                            "https://api.mojang.com/users/profiles/minecraft/" + name, isJson: true);
                     }
                     catch (Exception ex)
                     {
@@ -522,7 +522,7 @@ public static class ModProfile
                 return;
             }
 
-            if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"), Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+            if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"), Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                 return;
             // 更新档案信息
             // 刷新页面信息
@@ -539,13 +539,13 @@ public static class ModProfile
                         }));
                     if ((string)checkResult["status"] == "DUPLICATE")
                     {
-                        ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Duplicate"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), IsWarn: true);
+                        ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Duplicate"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
                         return;
                     }
 
                     if ((string)checkResult["status"] == "NOT_ALLOWED")
                     {
-                        ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.NotAllowed"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), IsWarn: true);
+                        ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.NotAllowed"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
                         return;
                     }
 
@@ -589,9 +589,9 @@ public static class ModProfile
         {
             string newUsername = null;
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
-                DefaultInput: selectedProfile.username,
-                ValidateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                HintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Button1: Lang.Text("Common.Action.Confirm"), Button2: Lang.Text("Common.Action.Cancel")));
+                defaultInput: selectedProfile.username,
+                validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
+                hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel")));
             if (string.IsNullOrEmpty(newUsername))
                 return;
             EditOfflineUuid(selectedProfile, GetOfflineUuid(newUsername));
@@ -631,11 +631,11 @@ public static class ModProfile
         else if (uuidType == 1)
             newUuid = GetOfflineUuid(profile.username, isLegacy: true);
         else
-            newUuid = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", profile.username), DefaultInput: profile.uuid,
-                HintText: Lang.Text("Launch.Account.Profile.Uuid.Hint"),
-                ValidateRules:
+            newUuid = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", profile.username), defaultInput: profile.uuid,
+                hintText: Lang.Text("Launch.Account.Profile.Uuid.Hint"),
+                validateRules:
                 [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
-                Button1: Lang.Text("Common.Action.Continue"), Button2: Lang.Text("Common.Action.Cancel"));
+                button1: Lang.Text("Common.Action.Continue"), button2: Lang.Text("Common.Action.Cancel"));
         if (string.IsNullOrEmpty(newUuid))
             return;
         Write: ;
@@ -687,11 +687,11 @@ public static class ModProfile
             if (hasProfiles)
             {
                 opType = ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.Migration.Message"), Lang.Text("Launch.Account.Profile.Migration.Title"), Lang.Text("Launch.Account.Profile.Migration.Import"), Lang.Text("Launch.Account.Profile.Migration.Export"),
-                    Lang.Text("Common.Action.Cancel"), ForceWait: true);
+                    Lang.Text("Common.Action.Cancel"), forceWait: true);
             }
             else
             {
-                opType = ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.Migration.ImportOnlyMessage"), Lang.Text("Launch.Account.Profile.Migration.Title"), Lang.Text("Launch.Account.Profile.Migration.Import"), Lang.Text("Common.Action.Cancel"), ForceWait: true);
+                opType = ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.Migration.ImportOnlyMessage"), Lang.Text("Launch.Account.Profile.Migration.Title"), Lang.Text("Launch.Account.Profile.Migration.Import"), Lang.Text("Common.Action.Cancel"), forceWait: true);
                 if (opType == 2) opType = 3;
             }
         });

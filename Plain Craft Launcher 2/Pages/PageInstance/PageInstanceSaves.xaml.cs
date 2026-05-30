@@ -51,7 +51,7 @@ public partial class PageInstanceSaves : IRefreshable
         if (ModMain.frmInstanceSaves is not null)
             ModMain.frmInstanceSaves.Reload();
         ModMain.frmInstanceLeft.ItemWorld.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
+        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)

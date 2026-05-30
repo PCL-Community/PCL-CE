@@ -89,7 +89,7 @@ public partial class MySlider
                             ModAnimation.AaWidth(LineFore,
                                 Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d)) - LineFore.Width,
                                 (int)Math.Round(time),
-                                Ease: time > 50d
+                                ease: time > 50d
                                     ? new ModAnimation.AniEaseOutFluent()
                                     : new ModAnimation.AniEaseLinear()),
                             ModAnimation.AaWidth(LineBack,
@@ -97,11 +97,11 @@ public partial class MySlider
                                     ActualWidth - ShapeDot.Width - newWidth +
                                     (ActualWidth - ShapeDot.Width - newWidth < 0.5d ? 0d : 0.5d)) - LineBack.Width,
                                 (int)Math.Round(time),
-                                Ease: time > 50d
+                                ease: time > 50d
                                     ? new ModAnimation.AniEaseOutFluent()
                                     : new ModAnimation.AniEaseLinear()),
                             ModAnimation.AaX(ShapeDot, newWidth - ShapeDot.Margin.Left, (int)Math.Round(time),
-                                Ease: time > 50d
+                                ease: time > 50d
                                     ? new ModAnimation.AniEaseOutFluent()
                                     : new ModAnimation.AniEaseLinear())
                         }, "MySlider Progress " + uuid);
@@ -150,7 +150,7 @@ public partial class MySlider
         ModMain.frmMain.DragDoing();
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(ShapeDot, 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
-                Ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
         RefreshPopup();
         ModAnimation.AniStop("MySlider KeyPopup " + uuid);
     }
@@ -177,7 +177,7 @@ public partial class MySlider
         RefreshColor();
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(ShapeDot, 1d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 200,
-                Ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
         Popup.IsOpen = false;
     }
 

@@ -111,7 +111,7 @@ public partial class PageSelectRight
     {
         PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.mcInstanceListLoader,
             a => this.McInstanceListUI((ModLoader.LoaderTask<string, int>)a),
-            AutoRun: false);
+            autoRun: false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
@@ -123,11 +123,11 @@ public partial class PageSelectRight
 
     #region 结果 UI 化
 
-    private void McInstanceListUI(ModLoader.LoaderTask<string, int> Loader)
+    private void McInstanceListUI(ModLoader.LoaderTask<string, int> loader)
     {
         try
         {
-            var path = Loader.input;
+            var path = loader.input;
             // 加载 UI
             PanMain.Children.Clear();
 
@@ -268,10 +268,10 @@ public partial class PageSelectRight
                 PanMain.Children.Add(newCard);
 
                 // 确定卡片是否展开
-                void PutMethod(StackPanel Stack)
+                void PutMethod(StackPanel stack)
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(McVersionListItem((ModMinecraft.McInstance)item));
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(McVersionListItem((ModMinecraft.McInstance)item));
                 }
 
                 ;
@@ -531,7 +531,7 @@ public partial class PageSelectRight
             var confirmFullMsg = confirmMsg +
                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
             switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
-                        Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
+                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
             {
                 case 1:
                 {
