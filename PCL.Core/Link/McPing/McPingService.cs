@@ -1,4 +1,4 @@
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -127,7 +127,7 @@ public class McPingService : IMcPingService
         if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException("未返回服务器信息");
         var retCtx = Encoding.UTF8.GetString(statusPayload);
 
-        var retJson = JsonNode.Parse(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
+        var retJson = JsonCompat.ParseNode(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
 #if DEBUG
         var resJsonDebug = retJson.DeepClone();
         if (resJsonDebug is JsonObject jsonObject && jsonObject.ContainsKey("favicon"))
@@ -143,7 +143,7 @@ public class McPingService : IMcPingService
             retJson["description"] = _ConvertJNodeToMcString(descObj);
         }
 
-        var response = JsonSerializer.Deserialize<McPingResult>(retJson);
+        var response = JsonSerializer.Deserialize<McPingResult>(retJson, JsonCompat.SerializerOptions);
         if (response?.Version is null)
             throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
 

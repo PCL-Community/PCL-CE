@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.Utils;
 
 namespace PCL.Core.IO.Net.Http;
 
@@ -66,7 +67,7 @@ public static class HttpResponseExtension
             try
             {
                 await using var stream = await responseMessage.AsStreamAsync(cancellationToken).ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<T>(stream, options, cancellationToken)
+                return await JsonSerializer.DeserializeAsync<T>(stream, options ?? JsonCompat.SerializerOptions, cancellationToken)
                     .ConfigureAwait(false);
             } catch(JsonException ex)
             {

@@ -16,6 +16,9 @@ namespace PCL.Core.IO.Net;
 [LifecycleScope("network", "网络服务")]
 public partial class NetworkService
 {
+
+    private const int _lifetime = 15;
+    
     private static HttpCacheRepository _repo = new(Path.Combine(Paths.Temp, "cache", "cache.db"), Path.Combine(Paths.Temp, "cache"));
 
     private static ServiceProvider? _provider;
@@ -26,7 +29,7 @@ public partial class NetworkService
     {
         _repo.Initialize();
         var services = new ServiceCollection();
-        services.AddHttpClient("default")
+        services.AddHttpClient("default").SetHandlerLifetime(TimeSpan.FromMinutes(_lifetime))
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 UseProxy = true,
@@ -40,7 +43,7 @@ public partial class NetworkService
                     : null
             }
         );
-        services.AddHttpClient("cache").ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
+        services.AddHttpClient("cache").SetHandlerLifetime(TimeSpan.FromMinutes(_lifetime)).ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
             new SocketsHttpHandler
             {
                 UseProxy = true,

@@ -1,9 +1,10 @@
-﻿using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -23,10 +24,9 @@ using PCL.Core.App;
 namespace PCL.Core.IO;
 
 public static class Files {
-    public static readonly JsonSerializerOptions PrettierJsonOptions = new() {
+    public static readonly JsonSerializerOptions PrettierJsonOptions = new(JsonCompat.SerializerOptions) {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     /// <summary>
@@ -803,7 +803,7 @@ public static class Files {
                 var content = await ReadAllTextOrEmptyAsync(localPath);
                 if (string.IsNullOrEmpty(content)) throw new Exception("读取到的文件为空");
                 try {
-                    using var document = JsonDocument.Parse(content);
+                    using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
                     // 简单验证 JSON 有效性
                 } catch (JsonException ex) {
                     throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);

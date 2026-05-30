@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -1295,7 +1296,7 @@ public partial class PageInstanceInstall
 
                                 default:
                                 {
-                                    var ReleaseDate = Version["releaseTime"].GetValue<DateTime>().ToUniversalTime()
+                                    var ReleaseDate = Version["releaseTime"].ToObject<DateTime>().ToUniversalTime()
                                         .AddHours(2d);
                                     if (ReleaseDate.Month == 4 && ReleaseDate.Day == 1)
                                     {
@@ -1329,19 +1330,19 @@ public partial class PageInstanceInstall
 
                 // 排序
                 foreach (var Pair in Dict.ToList())
-                    Dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].GetValue<DateTime>()).ToList();
+                    Dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].ToObject<DateTime>()).ToList();
                 // 清空当前
                 PanMinecraft.Children.Clear();
                 // 添加最新版本
                 var CardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 15d, 0d, 15d) };
                 var TopestVersions = new List<JsonObject>();
                 var Release = (JsonObject)Dict["正式版"][0].DeepClone();
-                Release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(Release["releaseTime"].GetValue<DateTime>(), "g"));
+                Release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(Release["releaseTime"].ToObject<DateTime>(), "g"));
                 TopestVersions.Add(Release);
-                if (Dict["正式版"][0]["releaseTime"].GetValue<DateTime>() < Dict["预览版"][0]["releaseTime"].GetValue<DateTime>())
+                if (Dict["正式版"][0]["releaseTime"].ToObject<DateTime>() < Dict["预览版"][0]["releaseTime"].ToObject<DateTime>())
                 {
                     var Snapshot = (JsonObject)Dict["预览版"][0].DeepClone();
-                    Snapshot["lore"] = Lang.Text("Download.Version.Latest.Development", Lang.Date(Snapshot["releaseTime"].GetValue<DateTime>(), "g"));
+                    Snapshot["lore"] = Lang.Text("Download.Version.Latest.Development", Lang.Date(Snapshot["releaseTime"].ToObject<DateTime>(), "g"));
                     TopestVersions.Add(Snapshot);
                 }
 

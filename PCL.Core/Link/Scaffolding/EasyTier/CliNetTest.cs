@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -56,7 +57,7 @@ public class CliNetTest
         StunInfo? stunInfo = null;
         try
         {
-            stunInfo = await JsonSerializer.DeserializeAsync<StunInfo>(reader);
+            stunInfo = await JsonSerializer.DeserializeAsync<StunInfo>(reader, JsonCompat.SerializerOptions);
         }
         catch (Exception ex)
         {

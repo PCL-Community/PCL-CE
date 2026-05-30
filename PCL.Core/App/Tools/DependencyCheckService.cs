@@ -1,4 +1,4 @@
-using PCL.Core.App.IoC;
+﻿using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using System;
 using System.Diagnostics;
@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -72,7 +73,7 @@ public sealed partial class DependencyCheckService
         try
         {
             // ConvertTo-Json 结构不一定可靠，不太能 Serialize
-            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream);
+            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream, JsonCompat.NodeOptions, JsonCompat.DocumentOptions);
         }
         catch
         {
@@ -103,7 +104,7 @@ public sealed partial class DependencyCheckService
         // 检查当前的 JsonNode 下是否是符合的包
         static bool CheckPackSuit(JsonNode jnode, string id)
         {
-            var findedPackName = jnode["Name"]?.GetValue<string>();
+            var findedPackName = JsonCompat.ToObject<string>(jnode["Name"]);
             return findedPackName is not null && findedPackName.Contains(id);
         }
     }

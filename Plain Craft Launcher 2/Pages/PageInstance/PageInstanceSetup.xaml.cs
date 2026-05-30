@@ -12,6 +12,7 @@ using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -953,7 +954,7 @@ public partial class PageInstanceSetup
         }
 
         // 保存配置
-        var json = JsonSerializer.Serialize(preference);
+        var json = JsonSerializer.Serialize(preference, JsonCompat.SerializerOptions);
         Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = json;
 
 

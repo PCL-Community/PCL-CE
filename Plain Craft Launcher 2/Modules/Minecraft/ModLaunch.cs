@@ -1676,7 +1676,7 @@ public static class ModLaunch
             // 获取服务器信息
             var Response =
                 Requester.FetchString(Data.Input.BaseUrl.Replace("/authserver", ""));
-            var ServerName = JsonNode.Parse(Response)["meta"]["serverName"].ToString();
+            var ServerName = ModBase.GetJson(Response)["meta"]?["serverName"]?.ToString() ?? Data.Input.BaseUrl.Replace("/authserver", "");
             // 保存缓存
             if (Data.Input.IsExist)
             {
@@ -1736,7 +1736,7 @@ public static class ModLaunch
         {
             using var responseStream = ex.Response?.Content.ReadAsStream();
             if (responseStream is null) return false;
-            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream);
+            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream, JsonCompat.SerializerOptions);
             if (result?.ErrorMessage is null) return false;
             message = result.ErrorMessage;
             return true;

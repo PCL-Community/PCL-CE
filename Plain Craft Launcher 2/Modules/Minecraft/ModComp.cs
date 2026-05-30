@@ -242,14 +242,14 @@ public static class ModComp
                     // 尝试作为新格式解析
                     try
                     {
-                        RawList = JsonSerializer.Deserialize<List<FavData>>(RawData);
+                        RawList = JsonSerializer.Deserialize<List<FavData>>(RawData, JsonCompat.SerializerOptions);
                     }
                     catch (Exception ex1)
                     {
                         // 尝试作为旧格式（HashSet）迁移
                         try
                         {
-                            var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData);
+                            var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData, JsonCompat.SerializerOptions);
                             if (Migrate is not null) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), Migrate) };
                         }
                         catch (Exception ex2)
@@ -271,8 +271,8 @@ public static class ModComp
                 _FavoritesList = value;
                 foreach (var item in _FavoritesList)
                     item.Notes = item.Notes.Where(n => !string.IsNullOrWhiteSpace(n.Value)).ToDictionary();
-                var RawList = JsonSerializer.Serialize(_FavoritesList);
-                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList);
+                var RawList = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
+                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
             }
         }
 
@@ -280,7 +280,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Serialize(Data);
+                return JsonSerializer.Serialize(Data, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Deserialize<HashSet<string>>(Code);
+                return JsonSerializer.Deserialize<HashSet<string>>(Code, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {
@@ -1136,7 +1136,7 @@ public static class ModComp
 
             // Tags
             var categories = ((data["categories"] as JsonArray) ?? [])
-                .Select(t => t["id"]?.GetValue<int?>())
+                .Select(t => t["id"]?.ToObject<int?>())
                 .Where(t => t.HasValue)
                 .Select(t => t.Value)
                 .Distinct()
@@ -2712,7 +2712,7 @@ public static class ModComp
                         Hash = (string)((JsonArray)Data["hashes"]).ToList()
                             .FirstOrDefault(s => s["algo"].ToObject<int>() == 2)?["value"];
                     // DownloadAddress
-                    var Url = Data["downloadUrl"].ToString();
+                    var Url = Data["downloadUrl"]?.ToString() ?? "";
                     // TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
                     if (string.IsNullOrWhiteSpace(Url))
                         Url =
@@ -2862,7 +2862,7 @@ public static class ModComp
                             .Where(d => (string)d["dependency_type"] == "required" &&
                                         d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为必要依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……
@@ -2870,7 +2870,7 @@ public static class ModComp
                             .Where(d => (string)d["dependency_type"] == "optional" &&
                                         d["project_id"] is not null &&
                                         (string)d["project_id"] != "P7dR8mSH" &&
-                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"].ToString().Length > 0)
+                                        (string)d["project_id"] != "qvIfYCYJ" && d["project_id"] is not null)
                             .Select(d => d["project_id"].ToString()).ToList(); // 种类为可选依赖
                         // 排除 Fabric API 和 Quilt API
                         // 有时候真的会空……

@@ -196,17 +196,18 @@ public static class ModDownloadLib
         loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side"), task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
+            var jsonPath = Path.Combine(instanceFolder, instanceName + ".json");
+            ModBase.WaitForFileReady(jsonPath);
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
             if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
-                    var json = ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json"));
+                    var json = ModBase.ReadFile(jsonPath);
                     json = json.Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                         .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                         .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd", "bbd00ca33b052f73a6312254780fc580d2da3535")
                         .Replace("76328", "87662");
-                    ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), json);
+                    ModBase.WriteFile(jsonPath, json);
                 }
                 catch (Exception ex)
                 {
@@ -230,7 +231,7 @@ public static class ModDownloadLib
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex.Side"), task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘
+            ModBase.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
             try
             {
                 var assetIndex = new ModMinecraft.McInstance(instanceFolder);
@@ -311,10 +312,10 @@ public static class ModDownloadLib
         if (Entry["lore"] is null)
         {
             if (FormattedVersion != (string)Entry["id"])
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g") + " | " +
+                NewItem.Info = Lang.Date(Entry["releaseTime"].ToObject<DateTime>(), "g") + " | " +
                                Entry["id"];
             else
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g");
+                NewItem.Info = Lang.Date(Entry["releaseTime"].ToObject<DateTime>(), "g");
         }
         else if (FormattedVersion != (string)Entry["id"])
         {
@@ -2013,6 +2014,7 @@ public static class ModDownloadLib
                 try
                 {
                     // 解压并获取、合并两个 Json 的信息
+                    ModBase.WaitForFileReady(InstallerAddress);
                     Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     Task.Progress = 0.2d;
                     var Json = (JsonObject)ModBase.GetJson(
@@ -2021,7 +2023,7 @@ public static class ModDownloadLib
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
-                        Json = (JsonObject)JsonNode.Parse(Json.ToString()
+                        Json = (JsonObject)ModBase.GetJson(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
@@ -2156,6 +2158,7 @@ public static class ModDownloadLib
                     ? Lang.Text("Minecraft.Download.Stage.InstallForge.MethodA")
                     : Lang.Text("Minecraft.Download.Stage.InstallForgeType", ForgeType), Task =>
                 {
+                    ModBase.WaitForFileReady(InstallerAddress);
                     var Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     try
                     {
@@ -2268,6 +2271,7 @@ public static class ModDownloadLib
                     try
                     {
                         // 解压并获取信息
+                        ModBase.WaitForFileReady(InstallerAddress);
                         Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                         Task.Progress = 0.2d;
                         var Json = (JsonObject)ModBase.GetJson(
@@ -2288,9 +2292,10 @@ public static class ModDownloadLib
                             Task.Progress = 0.6d;
                             // 解压支持库文件
                             Installer.Dispose();
-                            ModBase.ExtractFile(InstallerAddress, Path.Combine(InstallerAddress, "_unrar"));
-                            ModBase.CopyDirectory(Path.Combine(InstallerAddress, "_unrar", "maven"), Path.Combine(McFolder, "libraries"));
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            ModBase.ExtractFile(InstallerAddress, unrarDir);
+                            ModBase.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(McFolder, "libraries"));
+                            ModBase.DeleteDirectory(unrarDir);
                         }
                         else
                         {
@@ -2324,8 +2329,9 @@ public static class ModDownloadLib
                                 Installer.Dispose();
                             if (File.Exists(InstallerAddress))
                                 File.Delete(InstallerAddress);
-                            if (Directory.Exists(Path.Combine(InstallerAddress, "_unrar")))
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            if (Directory.Exists(unrarDir))
+                                ModBase.DeleteDirectory(unrarDir);
                         }
                         catch (Exception ex)
                         {
@@ -3450,7 +3456,7 @@ public static class ModDownloadLib
         LoadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide"), Task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
+            ModBase.WaitForFileReady(Path.Combine(VersionFolder, VersionName + ".json"));
             ModBase.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + VersionFolder);
             Task.Output = ModMinecraft.McLibNetFilesFromInstance(new ModMinecraft.McInstance(VersionFolder));
         })
@@ -4615,36 +4621,47 @@ public static class ModDownloadLib
             }
 
             foreach (var Library in LabyModLib["libraries"].AsArray())
-                OutputLibraries.Add(JsonNode.Parse($@"{{
-                    ""name"": ""{Library["name"]}"",
-                    ""downloads"": {{
-                        ""artifact"": {{
-                            ""path"": ""{Library["url"].ToString().Substring(Library["url"].ToString().LastIndexOfF("https://releases.r2.labymod.net/libraries/") + 42)}"",
-                            ""sha1"": ""{Library["sha1"]}"",
-                            ""size"": {Library["size"]},
-                            ""url"": ""{Library["url"]}""
-                        }}
-                    }}
-                }}"));
+            {
+                var libraryUrl = Library?["url"]?.ToString() ?? "";
+                OutputLibraries.Add(new JsonObject
+                {
+                    ["name"] = Library?["name"]?.ToString(),
+                    ["downloads"] = new JsonObject
+                    {
+                        ["artifact"] = new JsonObject
+                        {
+                            ["path"] = libraryUrl.Substring(libraryUrl.LastIndexOfF("https://releases.r2.labymod.net/libraries/") + 42),
+                            ["sha1"] = Library?["sha1"]?.ToString(),
+                            ["size"] = Library?["size"]?.DeepClone(),
+                            ["url"] = libraryUrl
+                        }
+                    }
+                });
+            }
 
-            OutputLibraries.Add(JsonNode.Parse($@"{{
-                    ""name"": ""net.labymod:LabyMod:4"",
-                    ""downloads"": {{
-                        ""artifact"": {{
-                            ""path"": ""net/labymod/LabyMod/4/LabyMod-4.jar"",
-                            ""sha1"": ""{LabyModCore["sha1"]}"",
-                            ""size"": {LabyModCore["size"]},
-                            ""url"": ""https://releases.r2.labymod.net/api/v1/download/labymod4/{LabyModChannel}/{LabyModCore["commitReference"]}.jar""
-                        }}
-                    }}
-                }}"));
+            var labyModCommitReference = LabyModCore["commitReference"]?.ToString() ?? "";
+            OutputLibraries.Add(new JsonObject
+            {
+                ["name"] = "net.labymod:LabyMod:4",
+                ["downloads"] = new JsonObject
+                {
+                    ["artifact"] = new JsonObject
+                    {
+                        ["path"] = "net/labymod/LabyMod/4/LabyMod-4.jar",
+                        ["sha1"] = LabyModCore["sha1"]?.ToString(),
+                        ["size"] = LabyModCore["size"]?.DeepClone(),
+                        ["url"] = $"https://releases.r2.labymod.net/api/v1/download/labymod4/{LabyModChannel}/{labyModCommitReference}.jar"
+                    }
+                }
+            });
             OutputJson["libraries"] = OutputLibraries;
-            OutputJson.Add("labymod_data", JsonNode.Parse($@"{{
-                ""channelType"": ""{LabyModChannel}"",
-                ""commitReference"": ""{LabyModCore["commitReference"]}"",
-                ""version"": ""{LabyModCore["labyModVersion"]}"",
-                ""versionType"": ""release""
-            }}"));
+            OutputJson.Add("labymod_data", new JsonObject
+            {
+                ["channelType"] = LabyModChannel,
+                ["commitReference"] = labyModCommitReference,
+                ["version"] = LabyModCore["labyModVersion"]?.ToString(),
+                ["versionType"] = "release"
+            });
         }
 
         // 修改

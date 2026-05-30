@@ -39,7 +39,7 @@ public static class Requester
 
     public static async Task<JsonNode> FetchJsonAsync(string url, RequestParam param = default)
     {
-        return JsonNode.Parse(await FetchStringAsync(url, param).ConfigureAwait(false))!;
+        return ModBase.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
     }
 
     public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default) where T : JsonNode

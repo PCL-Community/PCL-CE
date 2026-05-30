@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.UI.Controls;
+using PCL.Core.Utils;
 
 namespace PCL;
 

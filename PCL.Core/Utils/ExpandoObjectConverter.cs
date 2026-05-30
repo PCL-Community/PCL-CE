@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,9 +13,11 @@ namespace PCL.Core.Utils;
 
 public sealed class ExpandoObjectConverter : JsonConverter<ExpandoObject>
 {
-    public ExpandoObjectConverter() { }
-    
     public static readonly ExpandoObjectConverter Default = new ExpandoObjectConverter();
+
+    public ExpandoObjectConverter()
+    {
+    }
 
     public override ExpandoObject Read(
         ref Utf8JsonReader reader,
@@ -41,11 +44,29 @@ public sealed class ExpandoObjectConverter : JsonConverter<ExpandoObject>
         IDictionary<string, object> dict = expandoObject;
         foreach (JsonProperty property in element.EnumerateObject())
         {
-            object value = JsonSerializer.Deserialize<object>(
-                property.Value.GetRawText(), options);
-            dict.Add(property.Name, value);
+            dict.Add(property.Name, _ConvertElement(property.Value, options));
         }
+
         return expandoObject;
+    }
+
+    private static object _ConvertElement(JsonElement element, JsonSerializerOptions options)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Object => Read(element, options),
+            JsonValueKind.Array => element.EnumerateArray()
+                .Select(item => _ConvertElement(item, options))
+                .ToList(),
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number when element.TryGetInt64(out var integer) => integer,
+            JsonValueKind.Number when element.TryGetDouble(out var number) => number,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            JsonValueKind.Undefined => null,
+            _ => element.GetRawText()
+        };
     }
 
     public override void Write(

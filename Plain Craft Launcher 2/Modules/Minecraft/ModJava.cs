@@ -8,6 +8,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -183,7 +184,7 @@ public static class ModJava
         {
             try
             {
-                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference);
+                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference, JsonCompat.SerializerOptions);
             }
             catch (JsonException)
             {
@@ -241,7 +242,7 @@ public static class ModJava
             var UserSetup = Config.Launch.SelectedJava;
             if (UserSetup.StartsWith("{")) // 旧版本 Json 格式
             {
-                var js = JsonNode.Parse(UserSetup);
+                var js = ModBase.GetJson(UserSetup);
                 UserSetup = $"{js["Path"]}java.exe";
                 Config.Launch.SelectedJava = UserSetup;
             }

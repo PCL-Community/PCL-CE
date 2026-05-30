@@ -151,7 +151,7 @@ public partial class PageLoginAuth
                 serverUri = await ApiLocation.TryRequestAsync(serverUriInput);
                 using var resp = await HttpRequest.Create(serverUri).SendAsync();
                 var responseText = await resp.AsStringAsync();
-                serverName = await Task.Run(() => JsonNode.Parse(responseText)["meta"]["serverName"].ToString());
+                serverName = await Task.Run(() => ModBase.GetJson(responseText)["meta"]?["serverName"]?.ToString());
             }
             catch (Exception ex)
             {

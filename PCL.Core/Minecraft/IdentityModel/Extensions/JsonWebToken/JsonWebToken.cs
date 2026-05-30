@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security;
 using System.Text.Json;
 using Microsoft.IdentityModel.Tokens;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 
@@ -101,8 +102,8 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
             if (typeof(T) == typeof(JwtPayload))
                 return (T)(object)jwtToken.Payload;
 
-            var payloadJson = JsonSerializer.Serialize(jwtToken.Payload);
-            var result = JsonSerializer.Deserialize<T>(payloadJson);
+            var payloadJson = JsonSerializer.Serialize(jwtToken.Payload, JsonCompat.SerializerOptions);
+            var result = JsonSerializer.Deserialize<T>(payloadJson, JsonCompat.SerializerOptions);
 
             return result;
         }
@@ -137,8 +138,8 @@ public class JsonWebToken(string token, OpenIdMetadata meta)
             if (typeof(T) == typeof(JwtHeader))
                 return (T)(object)jwtToken.Header;
 
-            var headerJson = JsonSerializer.Serialize(jwtToken.Header);
-            var result = JsonSerializer.Deserialize<T>(headerJson);
+            var headerJson = JsonSerializer.Serialize(jwtToken.Header, JsonCompat.SerializerOptions);
+            var result = JsonSerializer.Deserialize<T>(headerJson, JsonCompat.SerializerOptions);
 
             return result;
         }

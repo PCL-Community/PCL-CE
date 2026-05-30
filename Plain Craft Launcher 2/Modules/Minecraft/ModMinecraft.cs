@@ -838,17 +838,18 @@ public static class ModMinecraft
                     {
                         if (ModBase.RunInUi())
                         {
-                            ModBase.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", ModBase.LogLevel.Debug);
-                            ModBase.GetJson(_jsonText); // 触发异常
+                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{JsonPath}）", ModBase.LogLevel.Debug);
+                            Thread.Sleep(200);
+                            _jsonText = ModBase.ReadFile(JsonPath);
                         }
                         else
                         {
                             ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
                             Thread.Sleep(2000);
                             _jsonText = ModBase.ReadFile(JsonPath);
-                            if (!FastJsonCheck(_jsonText))
-                                ModBase.GetJson(_jsonText);
-                        } // 触发异常
+                        }
+                        if (!FastJsonCheck(_jsonText))
+                            ModBase.GetJson(_jsonText);
                     }
                 }
 
@@ -3370,7 +3371,7 @@ public static class ModMinecraft
                 throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                     Path.Combine(McFolderSelected, "assets", "indexes", indexName + ".json"));
             var result = new List<McAssetsToken>();
-            var json = (JsonObject)JsonNode.Parse(
+            var json = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
 
             // 读取列表
@@ -3378,10 +3379,10 @@ public static class ModMinecraft
             {
                 string localPath;
                 var hash = file.Value["hash"].ToString();
-                if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
+                if (json["map_to_resources"] is not null && json["map_to_resources"].ToObject<bool>())
                     // Remap
                     localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
-                else if (json["virtual"] is not null && json["virtual"].GetValue<bool>())
+                else if (json["virtual"] is not null && json["virtual"].ToObject<bool>())
                     // Virtual
                     localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else

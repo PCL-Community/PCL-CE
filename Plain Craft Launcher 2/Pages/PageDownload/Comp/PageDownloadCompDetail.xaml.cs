@@ -235,19 +235,11 @@ public partial class PageDownloadCompDetail
     public void Save_Click(object sender, EventArgs e)
     {
         // 获取点击项关联的文件对象
-        // 使用模式匹配 (Pattern Matching) 获取目标 Control/Item
-        object target = sender switch
-        {
-            MyListItem item => item,
-            Control ctrl => ctrl.Parent,
-            _ => null
-        };
-
-        // 安全地访问 Tag 并转换
         var File = sender switch
         {
-            MyListItem item => item.Tag as ModComp.CompFile,
-            Control ctrl => (ctrl.Parent as Control)?.Tag as ModComp.CompFile,
+            FrameworkElement Element when Element.Tag is ModComp.CompFile CompFile => CompFile,
+            FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Tag is ModComp.CompFile CompFile => CompFile,
+            FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Parent is FrameworkElement GrandParent && GrandParent.Tag is ModComp.CompFile CompFile => CompFile,
             _ => null
         };
 

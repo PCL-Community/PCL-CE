@@ -886,7 +886,7 @@ public static class ModBase
                 FilePath = ExePath + FilePath;
             if (File.Exists(FilePath))
                 using (var ReadStream =
-                       new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) // 支持读取使用中的文件
+                       new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     using (var ms = new MemoryStream())
                     {
@@ -957,10 +957,14 @@ public static class ModBase
             {
                 writer.Write(Text);
             }
-        else
-            // 直接写入字节
-            File.WriteAllBytes(FilePath,
-                Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text));
+            else
+            {
+                // 直接写入字节
+                var bytes = Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text);
+                var tempPath = FilePath + ".pcltmp." + Guid.NewGuid().ToString("N");
+                File.WriteAllBytes(tempPath, bytes);
+                File.Move(tempPath, FilePath, true);
+            }
     }
 
     /// <summary>
@@ -1315,6 +1319,58 @@ public static class ModBase
     }
 
     /// <summary>
+    ///     等待文件就绪可读，在指定超时时间内轮询检查文件是否存在且内容非空。
+    /// </summary>
+    /// <param name="filePath">文件路径。</param>
+    /// <param name="timeoutMs">超时时间（毫秒）。</param>
+    public static void WaitForFileReady(string filePath, int timeoutMs = 2000)
+    {
+        WaitForFileReady(filePath, timeoutMs, false);
+    }
+
+    /// <summary>
+    ///     等待文件就绪可读，在指定超时时间内轮询检查文件是否存在且内容非空。
+    /// </summary>
+    /// <param name="filePath">文件路径。</param>
+    /// <param name="timeoutMs">超时时间（毫秒）。</param>
+    /// <param name="requireJson">是否要求文件为合法 JSON。</param>
+    public static void WaitForFileReady(string filePath, int timeoutMs, bool requireJson)
+    {
+        filePath = filePath.Contains(@":\") ? filePath : ExePath + filePath;
+        var start = Environment.TickCount;
+        long lastSize = -1;
+        while (Environment.TickCount - start < timeoutMs)
+        {
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    var info = new FileInfo(filePath);
+                    var size = info.Length;
+                    if (size <= 0)
+                        continue;
+                    if (!requireJson)
+                    {
+                        if (size == lastSize)
+                            return;
+                        lastSize = size;
+                    }
+                    else
+                    {
+                        var content = ReadFile(filePath);
+                        if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+                            return;
+                    }
+                }
+                catch (IOException)
+                {
+                }
+            }
+            Thread.Sleep(50);
+        }
+    }
+
+    /// <summary>
     ///     尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 Jar 以 zip 方式解压。
     ///     会尝试创建，但不会清空目标文件夹。
     /// </summary>
@@ -1555,13 +1611,7 @@ public static class ModBase
     {
         try
         {
-            return JsonNode.Parse(Data,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions
-                {
-                    AllowTrailingCommas = true,
-                    CommentHandling = JsonCommentHandling.Skip
-                })!;
+            return JsonCompat.ParseNode(Data);
         }
         catch (Exception ex)
         {

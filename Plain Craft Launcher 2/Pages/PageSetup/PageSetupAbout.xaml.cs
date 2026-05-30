@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -46,7 +47,7 @@ public partial class PageSetupAbout
                        .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync())
             {
                 response.EnsureSuccessStatusCode();
-                var cos = await response.AsJsonAsync<List<GitHubContributor>>();
+                var cos = await response.AsJsonAsync<List<GitHubContributor>>(JsonCompat.SerializerOptions);
                 Contributors.Clear();
                 foreach (var item in cos)
                     Contributors.Add((GitHubContributor)item);

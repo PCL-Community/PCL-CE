@@ -2301,7 +2301,7 @@ public static class ModLocalComp
         }
 
         ModBase.WriteFile(Path.Combine(ModBase.PathTemp, "Cache", "LocalComp.json"),
-            Cache.ToJsonString(ModBase.ModeDebug ? new JsonSerializerOptions { WriteIndented = true } : null));
+            Cache.ToJsonString(ModBase.ModeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
 
         // 刷新 UI
         ModBase.RunInUi(() =>
