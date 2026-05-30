@@ -126,6 +126,12 @@
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
     }
   ]
 }
