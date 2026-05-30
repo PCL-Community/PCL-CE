@@ -858,7 +858,7 @@ public static class ModLoader
                     {
                         if (loader is LoaderTask task)
                         {
-                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
+                            var genericArg = task.GetType().GenericTypeArguments.FirstOrDefault();
                             var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
@@ -869,7 +869,7 @@ public static class ModLoader
                                 goto Restart;
                             }
 
-                            input = ((dynamic)loader).Output;
+                            input = ((dynamic)loader).Output; // 何意味啊，没法匹配 LoaderTask<,>
                         }
 
                         if (loader.Block && !isFinished)
@@ -922,8 +922,7 @@ public static class ModLoader
                                         genericArg == input.GetType() ? input : null,
                                         IsForceRestarting);
                                     break;
-                                case LoaderDownload:
-                                case LoaderDownloadUnc:
+                                case not null:
                                     loader.Start(
                                         input is List<DownloadFile> ? input : null,
                                         IsForceRestarting);
