@@ -953,7 +953,7 @@ public partial class PageInstanceSetup
         }
 
         // 保存配置
-        var json = JsonSerializer.Serialize(preference);
+        var json = JsonSerializer.Serialize(preference, JsonNodeExtensions.CompatOptions);
         Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = json;
 
 

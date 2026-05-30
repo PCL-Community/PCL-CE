@@ -33,7 +33,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     {
         // 先检查缓存
         var remoteCache =
-            JsonNode.Parse(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
+            ModBase.GetJson(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
         _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
         return true;
     }
@@ -160,7 +160,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = JsonNode.Parse(ModBase.ReadFile(localInfoFile));
+            jsonData = ModBase.GetJson(ModBase.ReadFile(localInfoFile));
         }
         else
         {
@@ -170,7 +170,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 .GetResult();
 
             var content = response.AsString();
-            jsonData = JsonNode.Parse(content);
+            jsonData = ModBase.GetJson(content);
             ModBase.WriteFile(localInfoFile, content);
         }
 

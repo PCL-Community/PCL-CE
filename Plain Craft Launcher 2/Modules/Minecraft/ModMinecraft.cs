@@ -3371,7 +3371,7 @@ public static class ModMinecraft
                 throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                     Path.Combine(McFolderSelected, "assets", "indexes", indexName + ".json"));
             var result = new List<McAssetsToken>();
-            var json = (JsonObject)JsonNode.Parse(
+            var json = (JsonObject)ModBase.GetJson(
                 ModBase.ReadFile($@"{McFolderSelected}assets\indexes\{indexName}.json"));
 
             // 读取列表
@@ -3379,10 +3379,10 @@ public static class ModMinecraft
             {
                 string localPath;
                 var hash = file.Value["hash"].ToString();
-                if (json["map_to_resources"] is not null && json["map_to_resources"].GetValue<bool>())
+                if (json["map_to_resources"] is not null && json["map_to_resources"].ToObject<bool>())
                     // Remap
                     localPath = Path.Combine(instance.PathIndie, "resources", file.Key.Replace("/", @"\"));
-                else if (json["virtual"] is not null && json["virtual"].GetValue<bool>())
+                else if (json["virtual"] is not null && json["virtual"].ToObject<bool>())
                     // Virtual
                     localPath = Path.Combine(McFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                 else

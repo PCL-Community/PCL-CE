@@ -1611,13 +1611,7 @@ public static class ModBase
     {
         try
         {
-            return JsonNode.Parse(Data,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions
-                {
-                    AllowTrailingCommas = true,
-                    CommentHandling = JsonCommentHandling.Skip
-                })!;
+            return JsonNodeExtensions.ParseJson(Data);
         }
         catch (Exception ex)
         {

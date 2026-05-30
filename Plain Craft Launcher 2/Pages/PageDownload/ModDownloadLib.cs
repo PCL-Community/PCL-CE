@@ -312,10 +312,10 @@ public static class ModDownloadLib
         if (Entry["lore"] is null)
         {
             if (FormattedVersion != (string)Entry["id"])
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g") + " | " +
+                NewItem.Info = Lang.Date(Entry["releaseTime"].ToObject<DateTime>(), "g") + " | " +
                                Entry["id"];
             else
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g");
+                NewItem.Info = Lang.Date(Entry["releaseTime"].ToObject<DateTime>(), "g");
         }
         else if (FormattedVersion != (string)Entry["id"])
         {
@@ -2023,7 +2023,7 @@ public static class ModDownloadLib
                     Json.Merge(Json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (Inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
-                        Json = (JsonObject)JsonNode.Parse(Json.ToString()
+                        Json = (JsonObject)ModBase.GetJson(Json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
@@ -4621,36 +4621,47 @@ public static class ModDownloadLib
             }
 
             foreach (var Library in LabyModLib["libraries"].AsArray())
-                OutputLibraries.Add(JsonNode.Parse($@"{{
-                    ""name"": ""{Library["name"]}"",
-                    ""downloads"": {{
-                        ""artifact"": {{
-                            ""path"": ""{Library["url"].ToString().Substring(Library["url"].ToString().LastIndexOfF("https://releases.r2.labymod.net/libraries/") + 42)}"",
-                            ""sha1"": ""{Library["sha1"]}"",
-                            ""size"": {Library["size"]},
-                            ""url"": ""{Library["url"]}""
-                        }}
-                    }}
-                }}"));
+            {
+                var libraryUrl = Library?["url"]?.ToString() ?? "";
+                OutputLibraries.Add(new JsonObject
+                {
+                    ["name"] = Library?["name"]?.ToString(),
+                    ["downloads"] = new JsonObject
+                    {
+                        ["artifact"] = new JsonObject
+                        {
+                            ["path"] = libraryUrl.Substring(libraryUrl.LastIndexOfF("https://releases.r2.labymod.net/libraries/") + 42),
+                            ["sha1"] = Library?["sha1"]?.ToString(),
+                            ["size"] = Library?["size"]?.DeepClone(),
+                            ["url"] = libraryUrl
+                        }
+                    }
+                });
+            }
 
-            OutputLibraries.Add(JsonNode.Parse($@"{{
-                    ""name"": ""net.labymod:LabyMod:4"",
-                    ""downloads"": {{
-                        ""artifact"": {{
-                            ""path"": ""net/labymod/LabyMod/4/LabyMod-4.jar"",
-                            ""sha1"": ""{LabyModCore["sha1"]}"",
-                            ""size"": {LabyModCore["size"]},
-                            ""url"": ""https://releases.r2.labymod.net/api/v1/download/labymod4/{LabyModChannel}/{LabyModCore["commitReference"]}.jar""
-                        }}
-                    }}
-                }}"));
+            var labyModCommitReference = LabyModCore["commitReference"]?.ToString() ?? "";
+            OutputLibraries.Add(new JsonObject
+            {
+                ["name"] = "net.labymod:LabyMod:4",
+                ["downloads"] = new JsonObject
+                {
+                    ["artifact"] = new JsonObject
+                    {
+                        ["path"] = "net/labymod/LabyMod/4/LabyMod-4.jar",
+                        ["sha1"] = LabyModCore["sha1"]?.ToString(),
+                        ["size"] = LabyModCore["size"]?.DeepClone(),
+                        ["url"] = $"https://releases.r2.labymod.net/api/v1/download/labymod4/{LabyModChannel}/{labyModCommitReference}.jar"
+                    }
+                }
+            });
             OutputJson["libraries"] = OutputLibraries;
-            OutputJson.Add("labymod_data", JsonNode.Parse($@"{{
-                ""channelType"": ""{LabyModChannel}"",
-                ""commitReference"": ""{LabyModCore["commitReference"]}"",
-                ""version"": ""{LabyModCore["labyModVersion"]}"",
-                ""versionType"": ""release""
-            }}"));
+            OutputJson.Add("labymod_data", new JsonObject
+            {
+                ["channelType"] = LabyModChannel,
+                ["commitReference"] = labyModCommitReference,
+                ["version"] = LabyModCore["labyModVersion"]?.ToString(),
+                ["versionType"] = "release"
+            });
         }
 
         // 修改
