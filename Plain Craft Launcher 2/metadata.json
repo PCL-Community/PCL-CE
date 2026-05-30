@@ -128,6 +128,12 @@
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
     },
     {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
+    },
+    {
       "name": "DotNet.Glob",
       "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
       "website": "https://github.com/dazinator/DotNet.Glob",
