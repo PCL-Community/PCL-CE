@@ -132,6 +132,9 @@
     <sys:String x:Key="Main.FileDrag.HomepageLoaded">Custom homepage file loaded!</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFolderExists">A folder with the same name was found and cannot be pasted: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.Imported">Imported {0}</sys:String>
+    <sys:String x:Key="Main.FileDrag.WorldNotFound">The archive does not contain an importable Minecraft world!</sys:String>
+    <sys:String x:Key="Main.FileDrag.WorldInvalid">The imported world is missing level.dat!</sys:String>
+    <sys:String x:Key="Main.FileDrag.WorldImportFailed">Failed to import world</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFileExists">A file with the same name already exists: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.AuthlibInvalid">The Authlib authentication server does not match the URL format ({0})!</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">Do you want to create a new third-party authentication profile?&#x0a;Authentication server address: {0}</sys:String>

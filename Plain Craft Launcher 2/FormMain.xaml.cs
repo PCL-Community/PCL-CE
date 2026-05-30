@@ -1100,17 +1100,26 @@ public partial class FormMain
                             ModBase.ExtractFile(FilePath, ExtractFolder);
                             var SaveRoot = WorldImportHelper.GetSaveRootDirectory(ExtractFolder);
                             if (SaveRoot is null)
-                                throw new Exception("压缩包内没有可导入的 Minecraft 存档。");
+                            {
+                                ModMain.Hint(Lang.Text("Main.FileDrag.WorldNotFound"), ModMain.HintType.Critical);
+                                return;
+                            }
 
                             ModBase.CopyDirectory(SaveRoot, DestFolder);
                             if (!File.Exists(DestLevelDat))
-                                throw new Exception("导入后的存档缺少 level.dat。");
+                            {
+                                if (Directory.Exists(DestFolder))
+                                    ModBase.DeleteDirectory(DestFolder, true);
+                                ModMain.Hint(Lang.Text("Main.FileDrag.WorldInvalid"), ModMain.HintType.Critical);
+                                return;
+                            }
                         }
-                        catch
+                        catch (Exception ex)
                         {
                             if (Directory.Exists(DestFolder))
                                 ModBase.DeleteDirectory(DestFolder, true);
-                            throw;
+                            ModBase.Log(ex, Lang.Text("Main.FileDrag.WorldImportFailed"), ModBase.LogLevel.Hint);
+                            return;
                         }
                         finally
                         {
