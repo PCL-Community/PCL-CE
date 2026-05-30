@@ -35,7 +35,7 @@ public partial class PageToolsTest
     public PageToolsTest()
     {
         InitializeComponent();
-        BtnSelectSkin.click += BtnSelectSkin_Click;
+        BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
         Loaded += (_, _) => MeLoaded();
     }

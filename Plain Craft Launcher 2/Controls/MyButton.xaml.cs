@@ -95,7 +95,7 @@ public partial class MyButton
     }
 
     // 声明
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     private string GetBorderBrushResourceKey()
     {
@@ -156,7 +156,7 @@ public partial class MyButton
         if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下按钮：" + Text);
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
         ModMain.RaiseCustomEvent(this);
     }
 

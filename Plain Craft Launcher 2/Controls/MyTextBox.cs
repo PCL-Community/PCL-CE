@@ -11,7 +11,7 @@ public class MyTextBox : TextBox
 {
     public delegate void ValidateChangedEventHandler(object sender, EventArgs e);
 
-    public static readonly DependencyProperty cornerRadiusProperty = DependencyProperty.Register("CornerRadius",
+    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register("CornerRadius",
         typeof(CornerRadius), typeof(MyTextBox), new PropertyMetadata(new CornerRadius(3d)));
 
     public static readonly DependencyProperty validateResultProperty = DependencyProperty.Register("ValidateResult",
@@ -69,8 +69,8 @@ public class MyTextBox : TextBox
 
     public CornerRadius CornerRadius
     {
-        get => (CornerRadius)GetValue(cornerRadiusProperty);
-        set => SetValue(cornerRadiusProperty, value);
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
     }
 
     private TextBlock labWrong

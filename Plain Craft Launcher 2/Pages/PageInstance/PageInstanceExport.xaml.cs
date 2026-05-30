@@ -57,12 +57,12 @@ public partial class PageInstanceExport : IRefreshable
         InitializeComponent();
         Loaded += (_, _) => PageInstanceExport_Loaded();
         CardOptions.MouseLeftButtonDown += CardOptions_MouseLeftButtonDown;
-        BtnAdvancedExport.click += ExportConfig;
-        BtnAdvancedImport.click += ImportConfig;
-        BtnExport.click += StartExport;
+        BtnAdvancedExport.Click += ExportConfig;
+        BtnAdvancedImport.Click += ImportConfig;
+        BtnExport.Click += StartExport;
         TextExportName.GotFocus += TextExportName_GotFocus;
-        CheckAdvancedModrinth.change += CheckAdvancedModrinth_Change;
-        CheckAdvancedInclude.change += CheckAdvancedInclude_Change;
+        CheckAdvancedModrinth.Change += CheckAdvancedModrinth_Change;
+        CheckAdvancedInclude.Change += CheckAdvancedInclude_Change;
     }
 
     void IRefreshable.Refresh()

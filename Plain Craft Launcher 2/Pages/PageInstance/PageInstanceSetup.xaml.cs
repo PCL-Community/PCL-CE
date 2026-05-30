@@ -26,14 +26,14 @@ public partial class PageInstanceSetup
         InitializeComponent();
 
         ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
-        TextArgumentTitle.textChanged += TextArgumentTitle_TextChanged;
+        TextArgumentTitle.TextChanged += TextArgumentTitle_TextChanged;
         TextArgumentInfo.TextChanged += TextBoxChange;
         ComboArgumentJava.SelectionChanged += JavaSelectionUpdate;
 
-        RadioRamType2.check += RadioBoxChange;
-        RadioRamType0.check += RadioBoxChange;
-        RadioRamType1.check += RadioBoxChange;
-        SliderRamCustom.change += SliderChange;
+        RadioRamType2.Check += RadioBoxChange;
+        RadioRamType0.Check += RadioBoxChange;
+        RadioRamType1.Check += RadioBoxChange;
+        SliderRamCustom.Change += SliderChange;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
         TextServerAuthServer.TextChanged += TextBoxChange;
@@ -41,29 +41,29 @@ public partial class PageInstanceSetup
         TextServerAuthRegister.TextChanged += TextBoxChange;
         TextServerAuthName.TextChanged += TextBoxChange;
         TextServerEnter.TextChanged += TextBoxChange;
-        BtnServerAuthLittle.click += BtnServerAuthLittle_Click;
-        BtnServerAuthLock.click += BtnServerAuthLock_Click;
-        BtnServerNewProfile.click += BtnServerNewProfile_Click;
+        BtnServerAuthLittle.Click += BtnServerAuthLittle_Click;
+        BtnServerAuthLock.Click += BtnServerAuthLock_Click;
+        BtnServerNewProfile.Click += BtnServerNewProfile_Click;
 
         ComboAdvanceRenderer.SelectionChanged += ComboAdvanceRenderer_SelectionChanged;
         TextAdvanceJvm.TextChanged += TextBoxChange;
         TextAdvanceGame.TextChanged += TextBoxChange;
         TextAdvanceClasspathHead.TextChanged += TextBoxChange;
         TextAdvanceRun.TextChanged += TextAdvanceRun_TextChanged;
-        CheckAdvanceRunWait.change += CheckBoxChange;
-        CheckAdvanceJava.change += CheckBoxChange;
-        CheckAdvanceAssetsV2.change += CheckBoxChange;
-        CheckAdvanceUseProxyV2.change += CheckBoxChange;
-        CheckAdvanceDisableJLW.change += CheckBoxChange;
-        CheckAdvanceDisableRW.change += CheckBoxChange;
-        CheckUseDebugLog4j2Config.change += CheckUseDebugLog4j2Config_CheckChanged;
-        CheckAdvanceDisableLwjglUnsafeAgent.change += CheckBoxChange;
+        CheckAdvanceRunWait.Change += CheckBoxChange;
+        CheckAdvanceJava.Change += CheckBoxChange;
+        CheckAdvanceAssetsV2.Change += CheckBoxChange;
+        CheckAdvanceUseProxyV2.Change += CheckBoxChange;
+        CheckAdvanceDisableJLW.Change += CheckBoxChange;
+        CheckAdvanceDisableRW.Change += CheckBoxChange;
+        CheckUseDebugLog4j2Config.Change += CheckUseDebugLog4j2Config_CheckChanged;
+        CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
 
-        BtnSwitch.click += BtnSwitch_Click;
+        BtnSwitch.Click += BtnSwitch_Click;
         
         TextServerEnter.TextChanged += TextServerEnter_Change;
         ComboArgumentJava.DropDownOpened += ComboArgumentJava_DropDownOpened;
-        CheckArgumentTitleEmpty.change += CheckArgumentTitleEmpty_Change;
+        CheckArgumentTitleEmpty.Change += CheckArgumentTitleEmpty_Change;
     }
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)

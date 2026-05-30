@@ -67,7 +67,7 @@ public partial class PageLogLeft
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 var removeButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
-                removeButton.click += (a, b) => ModMain.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
+                removeButton.Click += (a, b) => ModMain.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 newItem.Buttons = new[] { removeButton };
                 if (uuid == currentUuid)
                     newItem.Checked = true;

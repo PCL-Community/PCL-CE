@@ -328,7 +328,7 @@ public static class ModDownloadLib
 
         if (Entry["url"].ToString().Contains("unlisted-versions-of-minecraft"))
             newItem.Tags = Lang.Text("Download.Tag.Uvmc");
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
             newItem.ContentHandler = McDownloadSaveMenuBuild;
@@ -344,12 +344,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
+        btnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
         var btnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
-        btnServer.click += (ss, ee) => McDownloadMenuSaveServer(ss, (dynamic)ee);
+        btnServer.Click += (ss, ee) => McDownloadMenuSaveServer(ss, (dynamic)ee);
         ((dynamic)sender).Buttons = new[] { btnServer, btnInfo };
     }
 
@@ -359,17 +359,17 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
+        btnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
+        btnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
         var btnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
-        btnServer.click += (a, b) => McDownloadMenuSaveServer(a, (dynamic)b); // dynamic!
+        btnServer.Click += (a, b) => McDownloadMenuSaveServer(a, (dynamic)b); // dynamic!
         ((dynamic)sender).Buttons = new[] { btnSave, btnInfo, btnServer };
     }
 
@@ -1173,7 +1173,7 @@ public static class ModDownloadLib
             Logo = ModBase.pathImage + "Blocks/GrassPath.png"
         };
 
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         newItem.ContentHandler = IsSaveOnly
             ? OptiFineSaveContMenuBuild
@@ -1188,7 +1188,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
+        btnInfo.Click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -1203,7 +1203,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
+        btnInfo.Click += (sender, e) => OptiFineLog_Click(sender, (RoutedEventArgs)e);
         ((dynamic)sender).Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -1483,7 +1483,7 @@ public static class ModDownloadLib
             Logo = ModBase.pathImage + "Blocks/Egg.png"
         };
 
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         newItem.ContentHandler = IsSaveOnly
             ? LiteLoaderSaveContMenuBuild
@@ -1504,7 +1504,7 @@ public static class ModDownloadLib
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);
-            btnList.click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
+            btnList.Click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
             sender.Buttons = new[] { btnList };
         }
     }
@@ -1515,7 +1515,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (sender, e) => LiteLoaderSave_Click(sender, (RoutedEventArgs)e);
+        btnSave.Click += (sender, e) => LiteLoaderSave_Click(sender, (RoutedEventArgs)e);
         if ((bool)((dynamic)sender.Tag).IsLegacy)
         {
             sender.Buttons = [btnSave];
@@ -1526,7 +1526,7 @@ public static class ModDownloadLib
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);
-            btnList.click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
+            btnList.Click += (sender, e) => LiteLoaderAll_Click(sender, (RoutedEventArgs)e);
             sender.Buttons = [btnSave, btnList];
         }
     }
@@ -2416,7 +2416,7 @@ public static class ModDownloadLib
             Logo = ModBase.pathImage + "Blocks/Anvil.png"
         };
 
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
             newItem.ContentHandler = ForgeSaveContMenuBuild;
@@ -2432,12 +2432,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
+        btnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (ss, ee) => ForgeLog_Click(ss, (dynamic)ee);
+        btnInfo.Click += (ss, ee) => ForgeLog_Click(ss, (dynamic)ee);
         sender.Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -2447,7 +2447,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (ss, ee) => ForgeLog_Click(ss, (dynamic)e);
+        btnInfo.Click += (ss, ee) => ForgeLog_Click(ss, (dynamic)e);
         sender.Buttons = new[] { btnInfo };
     }
 
@@ -2621,7 +2621,7 @@ public static class ModDownloadLib
             Info = Info.isBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.pathImage + "Blocks/NeoForge.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
             newItem.ContentHandler = NeoForgeSaveContMenuBuild;
@@ -2637,12 +2637,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
+        btnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
+        btnInfo.Click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -2652,7 +2652,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
+        btnInfo.Click += (sender, e) => NeoForgeLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { btnInfo };
     }
 
@@ -2723,7 +2723,7 @@ public static class ModDownloadLib
             Info = Info.isBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.pathImage + "Blocks/Cleanroom.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 建立菜单
         if (IsSaveOnly)
             newItem.ContentHandler = CleanroomSaveContMenuBuild;
@@ -2739,12 +2739,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
+        btnSave.Click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (sender, e) => CleanroomLog_Click(sender, (RoutedEventArgs)e);
+        btnInfo.Click += (sender, e) => CleanroomLog_Click(sender, (RoutedEventArgs)e);
         sender.Buttons = new[] { btnSave, btnInfo };
     }
 
@@ -2754,7 +2754,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (a, b) => CleanroomLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => CleanroomLog_Click(a, (dynamic)b);
         sender.Buttons = new[] { btnInfo };
     }
 
@@ -3027,7 +3027,7 @@ public static class ModDownloadLib
             Info = Entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
             Logo = ModBase.pathImage + "Blocks/Fabric.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         newItem.ContentHandler = FabricContMenuBuild;
         // 结束
         return newItem;
@@ -3039,7 +3039,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (a, b) => FabricLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => FabricLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3061,7 +3061,7 @@ public static class ModDownloadLib
             Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.releaseDate, "g")),
             Logo = ModBase.pathImage + "Blocks/Fabric.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 结束
         return newItem;
     }
@@ -3079,7 +3079,7 @@ public static class ModDownloadLib
             Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.releaseDate, "g")),
             Logo = ModBase.pathImage + "Blocks/OptiFabric.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 结束
         return newItem;
     }
@@ -3101,7 +3101,7 @@ public static class ModDownloadLib
             Info = Entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
             Logo = ModBase.pathImage + "Blocks/Fabric.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 结束
         return newItem;
     }
@@ -3120,7 +3120,7 @@ public static class ModDownloadLib
             Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.releaseDate, "g")),
             Logo = ModBase.pathImage + "Blocks/Fabric.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 结束
         return newItem;
     }
@@ -3252,7 +3252,7 @@ public static class ModDownloadLib
                 Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.pathImage + "Blocks/Quilt.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         newItem.ContentHandler = QuiltContMenuBuild;
         // 结束
         return newItem;
@@ -3264,7 +3264,7 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (a, b) => QuiltLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => QuiltLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnInfo };
     }
 
@@ -3286,7 +3286,7 @@ public static class ModDownloadLib
             Info = Entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(Entry.releaseDate, "g")),
             Logo = ModBase.pathImage + "Blocks/Quilt.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         // 结束
         return newItem;
     }
@@ -3543,7 +3543,7 @@ public static class ModDownloadLib
             Info = Entry["channel"].ToString().Contains("snapshot") ? Lang.Text("Download.Version.Type.Snapshot") : Lang.Text("Download.Version.Type.Stable"),
             Logo = ModBase.pathImage + "Blocks/LabyMod.png"
         };
-        newItem.click += OnClick;
+        newItem.Click += OnClick;
         newItem.ContentHandler = LabyModContMenuBuild;
         // 结束
         return newItem;
@@ -3555,12 +3555,12 @@ public static class ModDownloadLib
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        btnSave.click += (a, b) => LabyModSave_Click(a, (dynamic)b);
+        btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
         var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
-        btnInfo.click += (a, b) => LabyModLog_Click(a, (dynamic)b);
+        btnInfo.Click += (a, b) => LabyModLog_Click(a, (dynamic)b);
         ((dynamic)sender).Buttons = new[] { btnSave, btnInfo };
     }
 

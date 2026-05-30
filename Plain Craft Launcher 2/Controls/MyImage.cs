@@ -225,10 +225,10 @@ public class MyImage : Image
     public string LoadingSource { get; set; } = "pack://application:,,,/images/Icons/NoIcon.png";
     public CornerRadius CornerRadius
     {
-        get => (CornerRadius)GetValue(cornerRadiusProperty);
-        set => SetValue(cornerRadiusProperty, value);
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
     }
-    private static readonly DependencyProperty cornerRadiusProperty =
+    private static readonly DependencyProperty CornerRadiusProperty =
         DependencyProperty.Register(
             "CornerRadius",
             typeof(CornerRadius),

@@ -12,7 +12,7 @@ public partial class PageDownloadCleanroom
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.click += BtnWeb_Click;
+        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()

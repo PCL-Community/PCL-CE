@@ -22,8 +22,8 @@ public partial class MyMsgLogin
         InitializeComponent();
         // Handles
         Loaded += Load;
-        Btn1.click += Btn1_Click;
-        Btn3.click += Btn3_Click;
+        Btn1.Click += Btn1_Click;
+        Btn3.Click += Btn3_Click;
         PanBorder.MouseLeftButtonDown += Drag;
         LabTitle.MouseLeftButtonDown += Drag;
     }

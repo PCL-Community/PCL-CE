@@ -57,7 +57,7 @@ public partial class MySkin
     }
 
     // 事件
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     // 控件动画
     private void PanSkin_MouseEnter(object sender, MouseEventArgs e)
@@ -89,7 +89,7 @@ public partial class MySkin
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
         if (!isSkinMouseDown) return;
         isSkinMouseDown = false;
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
     }
 
     // 保存皮肤

@@ -124,7 +124,7 @@ public partial class MyExtraTextButton
     }
 
     // 声明
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
     {
@@ -153,7 +153,7 @@ public partial class MyExtraTextButton
     {
         if (!isLeftMouseHeld) return;
         ModBase.Log("[Control] 按下附加图标按钮：" + Text);
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
         Button_LeftMouseUp();

@@ -534,7 +534,7 @@ public partial class MyLocalCompItem
     #region 点击与勾选
 
     // 触发点击事件
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
@@ -557,7 +557,7 @@ public partial class MyLocalCompItem
         changed += RefreshColor;
         // Handles
         BtnUpdate.PreviewMouseRightButtonUp += BtnUpdate_PreviewMouseRightButtonUp;
-        BtnUpdate.click += BtnUpdate_Click;
+        BtnUpdate.Click += BtnUpdate_Click;
         PanTitle.SizeChanged += PanTitle_SizeChanged;
     }
 
@@ -565,7 +565,7 @@ public partial class MyLocalCompItem
     {
         if (isMouseDown)
         {
-            click?.Invoke(sender, e);
+            Click?.Invoke(sender, e);
             if (e.Handled)
                 return;
             ModBase.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
@@ -664,7 +664,7 @@ public partial class MyLocalCompItem
     }
 
     // 勾选状态
-    public event CheckEventHandler? check;
+    public event CheckEventHandler? Check;
 
     public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
 
@@ -700,7 +700,7 @@ public partial class MyLocalCompItem
                 if (value)
                 {
                     var checkEventArgs = new ModBase.RouteEventArgs();
-                    check?.Invoke(this, checkEventArgs);
+                    Check?.Invoke(this, checkEventArgs);
                     if (checkEventArgs.handled)
                         return;
                 }

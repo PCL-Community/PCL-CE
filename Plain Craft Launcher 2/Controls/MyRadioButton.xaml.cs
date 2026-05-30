@@ -129,7 +129,7 @@ public partial class MyRadioButton
         }
     } // 颜色类别
 
-    public event CheckEventHandler? check;
+    public event CheckEventHandler? Check;
 
     /// <summary>
     ///     手动设置 Checked 属性。
@@ -209,7 +209,7 @@ public partial class MyRadioButton
 
             // 触发事件
             if (Checked)
-                check?.Invoke(this, raiseByMouse);
+                Check?.Invoke(this, raiseByMouse);
             ModMain.RaiseCustomEvent(this);
         }
 

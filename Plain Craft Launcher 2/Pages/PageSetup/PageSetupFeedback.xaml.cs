@@ -104,7 +104,7 @@ public partial class PageSetupFeedback
         li.Logo = ModBase.pathImage + logo;
         li.Tags = item.Type;
 
-        li.click += (sender, e) => ShowFeedbackDetail(item);
+        li.Click += (sender, e) => ShowFeedbackDetail(item);
 
         return li;
     }

@@ -64,31 +64,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         LoaderInit();
         pageExit += UnselectedAllWithAnimation;
         // Handles
-        Load.click += Load_Click;
-        BtnManageOpen.click += BtnManageOpen_Click;
-        BtnHintOpen.click += BtnManageOpen_Click;
-        BtnManageSelectAll.click += BtnManageSelectAll_Click;
-        BtnManageInstall.click += BtnManageInstall_Click;
-        BtnHintInstall.click += BtnManageInstall_Click;
-        BtnManageDownload.click += BtnManageDownload_Click;
-        BtnHintDownload.click += BtnManageDownload_Click;
-        BtnManageInfoExport.click += BtnManageInfoExport_Click;
+        Load.Click += Load_Click;
+        BtnManageOpen.Click += BtnManageOpen_Click;
+        BtnHintOpen.Click += BtnManageOpen_Click;
+        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
+        BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnManageDownload.Click += BtnManageDownload_Click;
+        BtnHintDownload.Click += BtnManageDownload_Click;
+        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         Load.stateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
-        BtnFilterAll.check += ChangeFilter;
-        BtnFilterCanUpdate.check += ChangeFilter;
-        BtnFilterDisabled.check += ChangeFilter;
-        BtnFilterEnabled.check += ChangeFilter;
-        BtnFilterError.check += ChangeFilter;
-        BtnSort.click += BtnSortClick;
-        BtnSelectEnable.click += BtnSelectEnable_Click;
-        BtnSelectDisable.click += BtnSelectDisable_Click;
-        BtnSelectUpdate.click += BtnSelectUpdate_Click;
-        BtnSelectDelete.click += BtnSelectDelete_Click;
-        BtnSelectCancel.click += BtnSelectCancel_Click;
-        BtnSelectFavorites.click += BtnSelectFavorites_Click;
-        BtnSelectShare.click += BtnSelectShare_Click;
-        SearchBox.textChanged += SearchRun;
+        BtnFilterAll.Check += ChangeFilter;
+        BtnFilterCanUpdate.Check += ChangeFilter;
+        BtnFilterDisabled.Check += ChangeFilter;
+        BtnFilterEnabled.Check += ChangeFilter;
+        BtnFilterError.Check += ChangeFilter;
+        BtnSort.Click += BtnSortClick;
+        BtnSelectEnable.Click += BtnSelectEnable_Click;
+        BtnSelectDisable.Click += BtnSelectDisable_Click;
+        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
+        BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectCancel.Click += BtnSelectCancel_Click;
+        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
+        BtnSelectShare.Click += BtnSelectShare_Click;
+        SearchBox.TextChanged += SearchRun;
     }
 
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
@@ -270,7 +270,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         sender.changed += (ss, e) => CheckChanged((MyLocalCompItem)ss, e);
 
         // 文件项的点击事件：切换选中状态
-        sender.click += (ss, e) =>
+        sender.Click += (ss, e) =>
         {
             var s = (MyLocalCompItem)ss;
             s.Checked = !s.Checked;
@@ -282,14 +282,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
-        btnOpen.click += (sender, e) => Open_Click((MyIconButton)sender, e);
+        btnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
         var btnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
         btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCont, 30d);
         ToolTipService.SetHorizontalOffset(btnCont, 2d);
-        btnCont.click += Info_Click;
+        btnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
         var btnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
@@ -297,7 +297,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
-        btnDelete.click += (sender, e) => Delete_Click((MyIconButton)sender, e);
+        btnDelete.Click += (sender, e) => Delete_Click((MyIconButton)sender, e);
 
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
@@ -306,7 +306,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             ToolTipService.SetPlacement(btnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnDisable, 30d);
             ToolTipService.SetHorizontalOffset(btnDisable, 2d);
-            btnDisable.click += (ss, e) => Disable_Click((MyIconButton)ss, e);
+            btnDisable.Click += (ss, e) => Disable_Click((MyIconButton)ss, e);
             sender.Buttons = new[] { btnCont, btnOpen, btnDisable, btnDelete };
         }
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
@@ -316,7 +316,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             ToolTipService.SetPlacement(btnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnEnable, 30d);
             ToolTipService.SetHorizontalOffset(btnEnable, 2d);
-            btnEnable.click += (ss, e) => Enable_Click((MyIconButton)ss, e);
+            btnEnable.Click += (ss, e) => Enable_Click((MyIconButton)ss, e);
             sender.Buttons = new[] { btnCont, btnOpen, btnEnable, btnDelete };
         }
         else

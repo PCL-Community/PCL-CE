@@ -53,7 +53,7 @@ public partial class MySearchBox : MyCard
         }
     }
 
-    public event TextChangedEventHandler? textChanged;
+    public event TextChangedEventHandler? TextChanged;
 
     private void MySearchBox_Loaded(object sender, RoutedEventArgs e)
     {
@@ -65,7 +65,7 @@ public partial class MySearchBox : MyCard
         UpdateClearButtonState();
         SetCurrentValue(textProperty, TextBox.Text);
 
-        textChanged?.Invoke(sender, e);
+        TextChanged?.Invoke(sender, e);
     }
 
     private void BtnClear_Click(object sender, EventArgs e)

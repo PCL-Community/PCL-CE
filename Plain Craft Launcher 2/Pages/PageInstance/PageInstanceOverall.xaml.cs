@@ -32,19 +32,19 @@ public partial class PageInstanceOverall
         LabInfoLoading.Text = Lang.Text("Instance.Overall.Info.Loading");
         // Handles
         ComboDisplayType.SelectionChanged += ComboDisplayType_SelectionChanged;
-        BtnDisplayDesc.click += BtnDisplayDesc_Click;
-        BtnDisplayRename.click += BtnDisplayRename_Click;
+        BtnDisplayDesc.Click += BtnDisplayDesc_Click;
+        BtnDisplayRename.Click += BtnDisplayRename_Click;
         ComboDisplayLogo.SelectionChanged += ComboDisplayLogo_SelectionChanged;
-        BtnDisplayStar.click += BtnDisplayStar_Click;
-        BtnFolderVersion.click += BtnFolderVersion_Click;
-        BtnFolderSaves.click += BtnFolderSaves_Click;
-        BtnFolderMods.click += BtnFolderMods_Click;
-        BtnManageScript.click += BtnManageScript_Click;
-        BtnManageCheck.click += BtnManageCheck_Click;
-        BtnManageRestore.click += BtnManageRestore_Click;
-        BtnManageTest.click += BtnManageTest_Click;
-        BtnManageDelete.click += BtnManageDelete_Click;
-        BtnManagePatch.click += BtnManagePatch_Click;
+        BtnDisplayStar.Click += BtnDisplayStar_Click;
+        BtnFolderVersion.Click += BtnFolderVersion_Click;
+        BtnFolderSaves.Click += BtnFolderSaves_Click;
+        BtnFolderMods.Click += BtnFolderMods_Click;
+        BtnManageScript.Click += BtnManageScript_Click;
+        BtnManageCheck.Click += BtnManageCheck_Click;
+        BtnManageRestore.Click += BtnManageRestore_Click;
+        BtnManageTest.Click += BtnManageTest_Click;
+        BtnManageDelete.Click += BtnManageDelete_Click;
+        BtnManagePatch.Click += BtnManagePatch_Click;
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)

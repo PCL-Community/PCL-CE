@@ -15,7 +15,7 @@ public class MyDropShadow : Decorator
         typeof(double), typeof(MyDropShadow),
         new FrameworkPropertyMetadata(5d, FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes));
 
-    public static readonly DependencyProperty cornerRadiusProperty = DependencyProperty.Register("CornerRadius",
+    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register("CornerRadius",
         typeof(CornerRadius), typeof(MyDropShadow),
         new FrameworkPropertyMetadata(new CornerRadius(), FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes),
         IsCornerRadiusValid);
@@ -48,8 +48,8 @@ public class MyDropShadow : Decorator
     /// </summary>
     public CornerRadius CornerRadius
     {
-        get => (CornerRadius)GetValue(cornerRadiusProperty);
-        set => SetValue(cornerRadiusProperty, value);
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
     }
 
     private static bool IsCornerRadiusValid(object value)

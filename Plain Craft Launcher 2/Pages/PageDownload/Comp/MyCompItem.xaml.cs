@@ -148,7 +148,7 @@ public partial class MyCompItem
     public MyCompItem()
     {
         InitializeComponent();
-        click += (sender, e) => MyCompItem_Click((MyCompItem)sender, e);
+        Click += (sender, e) => MyCompItem_Click((MyCompItem)sender, e);
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
@@ -159,7 +159,7 @@ public partial class MyCompItem
         MouseLeftButtonUp += RefreshColor;
         // Handles
         LabInfo.MouseEnter += LabInfo_MouseEnter;
-        BtnDelete.click += BtnDelete_Click;
+        BtnDelete.Click += BtnDelete_Click;
     }
 
     // 指向时扩展描述
@@ -240,7 +240,7 @@ public partial class MyCompItem
     #region 点击
 
     // 触发点击事件
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
@@ -352,7 +352,7 @@ public partial class MyCompItem
     {
         if (!isMouseDown)
             return;
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)

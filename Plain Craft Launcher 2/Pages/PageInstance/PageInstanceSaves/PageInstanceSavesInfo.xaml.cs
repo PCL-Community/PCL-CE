@@ -295,7 +295,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     };
 
 
-                    lockCheckBox.change += (sender, user) =>
+                    lockCheckBox.Change += (sender, user) =>
                     {
                         try
                         {
@@ -493,7 +493,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             var thisBtn = new MyTextButton { Text = content, Margin = new Thickness(0d, 3d, 0d, 3d) };
             contentTextBlock = thisBtn;
-            thisBtn.click += (_, _) =>
+            thisBtn.Click += (_, _) =>
             {
                 try
                 {
@@ -524,7 +524,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
             contentStack.Children.Add(btnChunkbase);
 
 
-            btnChunkbase.click += (_, _) =>
+            btnChunkbase.Click += (_, _) =>
             {
                 try
                 {

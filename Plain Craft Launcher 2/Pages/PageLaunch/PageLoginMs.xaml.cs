@@ -10,8 +10,8 @@ public partial class PageLoginMs
     {
         // Handles
         InitializeComponent();
-        BtnBack.click += BtnBack_Click;
-        BtnLogin.click += BtnLogin_Click;
+        BtnBack.Click += BtnBack_Click;
+        BtnLogin.Click += BtnLogin_Click;
     }
 
     private void BtnBack_Click(object sender, EventArgs e)

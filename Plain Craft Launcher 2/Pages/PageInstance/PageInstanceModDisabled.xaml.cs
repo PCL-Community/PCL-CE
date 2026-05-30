@@ -8,8 +8,8 @@ public partial class PageInstanceModDisabled
     public PageInstanceModDisabled()
     {
         InitializeComponent();
-        BtnDownload.click += BtnDownload_Click;
-        BtnVersion.click += BtnVersion_Click;
+        BtnDownload.Click += BtnDownload_Click;
+        BtnVersion.Click += BtnVersion_Click;
         BtnDownload.Loaded += BtnDownload_Loaded;
     }
 

@@ -59,7 +59,7 @@ public class MyTextButton : Label
         set => SetValue(textProperty, value);
     }
 
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     private (string ForeName, int Time) GetVisualState()
     {
@@ -86,7 +86,7 @@ public class MyTextButton : Label
         if (!isMouseDown) return;
         isMouseDown = false;
         ModBase.Log("[Control] 按下文本按钮：" + Text);
-        click?.Invoke(this, null);
+        Click?.Invoke(this, null);
         ModMain.RaiseCustomEvent(this);
         e.Handled = true;
     }

@@ -10,11 +10,11 @@ public partial class PageLoginOffline
     {
         // Handles
         InitializeComponent();
-        BtnBack.click += BtnBack_Click;
-        RadioUuidCustom.check += RadioUuid_Checked;
-        RadioUuidStandard.check += RadioUuid_Checked;
-        RadioUuidLegacy.check += RadioUuid_Checked;
-        BtnLogin.click += BtnLogin_Click;
+        BtnBack.Click += BtnBack_Click;
+        RadioUuidCustom.Check += RadioUuid_Checked;
+        RadioUuidStandard.Check += RadioUuid_Checked;
+        RadioUuidLegacy.Check += RadioUuid_Checked;
+        BtnLogin.Click += BtnLogin_Click;
     }
 
     private void BtnBack_Click(object sender, EventArgs e)

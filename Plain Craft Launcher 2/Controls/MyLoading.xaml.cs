@@ -21,7 +21,7 @@ public partial class MyLoading
 
     public event IsErrorChangedEventHandler? isErrorChanged;
     public event StateChangedEventHandler? stateChanged;
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     #region 颜色
 
@@ -334,7 +334,7 @@ public partial class MyLoading
 
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
     }
 
     private bool isMouseDown;

@@ -3036,7 +3036,7 @@ public static class ModComp
                             _ => ModBase.pathImage + "Icons/A.png"
                         }
                     };
-                    newItem.click += onClick;
+                    newItem.Click += onClick;
 
                     // 4. 建立另存为按钮
                     if (onSaveClick is not null)
@@ -3045,7 +3045,7 @@ public static class ModComp
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
-                        btnSave.click += onSaveClick;
+                        btnSave.Click += onSaveClick;
                         newItem.Buttons = new[] { btnSave };
                     }
 

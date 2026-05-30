@@ -47,7 +47,7 @@ public partial class PageSelectRight
         ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
-        PanVerSearchBox.textChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
+        PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
         reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
         reloadTimer.Tick += ReloadTimer_Tick;
@@ -417,7 +417,7 @@ public partial class PageSelectRight
     {
         var version = (ModMinecraft.McInstance)sender.Tag;
         // 注册点击事件
-        sender.click += (a, b) => Item_Click((MyListItem)a, b);
+        sender.Click += (a, b) => Item_Click((MyListItem)a, b);
         // 图标按钮
         var btnStar = new MyIconButton();
         if (version.isStar)
@@ -439,7 +439,7 @@ public partial class PageSelectRight
             btnStar.Logo = Icon.IconButtonLikeLine;
         }
 
-        btnStar.click += (_, _) =>
+        btnStar.Click += (_, _) =>
         {
             States.Instance.Starred[version.PathInstance] = !version.isStar;
             ModMinecraft.mcInstanceListForceRefresh = true;
@@ -451,13 +451,13 @@ public partial class PageSelectRight
         ToolTipService.SetPlacement(btnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(btnOpenFolder, 2d);
-        btnOpenFolder.click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
+        btnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
         var btnDel = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonDelete };
         btnDel.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(btnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDel, 30d);
         ToolTipService.SetHorizontalOffset(btnDel, 2d);
-        btnDel.click += (_, _) => DeleteVersion(sender, version);
+        btnDel.Click += (_, _) => DeleteVersion(sender, version);
         if (version.state != ModMinecraft.McInstanceState.Error)
         {
             var btnCont = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonSetup };
@@ -465,7 +465,7 @@ public partial class PageSelectRight
             ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnCont, 30d);
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
-            btnCont.click += (_, _) =>
+            btnCont.Click += (_, _) =>
             {
                 PageInstanceLeft.instance = version;
                 ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup);
@@ -484,7 +484,7 @@ public partial class PageSelectRight
             ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnCont, 30d);
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
-            btnCont.click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
+            btnCont.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
             sender.MouseRightButtonUp += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
             sender.Buttons = new[] { btnStar, btnOpenFolder, btnDel, btnCont };
         }

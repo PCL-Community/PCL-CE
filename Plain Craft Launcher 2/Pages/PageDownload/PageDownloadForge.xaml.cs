@@ -14,7 +14,7 @@ public partial class PageDownloadForge
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.click += BtnWeb_Click;
+        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -58,7 +58,7 @@ public partial class PageDownloadForge
                     loader.Start(Stack.Tag);
                     loadingPickaxe.stateChanged += (a, b, c) =>
                         ModMain.frmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
-                    loadingPickaxe.click += (a, b) => ModMain.frmDownloadForge.Forge_Click((MyLoading)a, b);
+                    loadingPickaxe.Click += (a, b) => ModMain.frmDownloadForge.Forge_Click((MyLoading)a, b);
                     Stack.Children.Add(loadingPickaxe);
                 };
                 newCard.IsSwapped = true;

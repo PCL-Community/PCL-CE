@@ -129,7 +129,7 @@ public class MyPageRight : AdornerDecorator
             ModBase.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
         pageLoaderUi.State = RealLoader;
-        pageLoaderUi.click += (_, _) =>
+        pageLoaderUi.Click += (_, _) =>
         {
             if (RealLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件

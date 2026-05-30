@@ -22,10 +22,10 @@ public partial class MyListItem : IMyRadio
     private string stateLast;
 
     public object tag { get; set; }
-    public event IMyRadio.CheckEventHandler? check;
+    public event IMyRadio.CheckEventHandler? Check;
     public event IMyRadio.ChangedEventHandler? changed;
 
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
     public event LogoClickEventHandler? logoClick;
 
     public void RefreshColor(object sender, EventArgs e)
@@ -768,7 +768,7 @@ public partial class MyListItem : IMyRadio
             if (value)
             {
                 var checkEventArgs = new ModBase.RouteEventArgs(user);
-                check?.Invoke(this, checkEventArgs);
+                Check?.Invoke(this, checkEventArgs);
                 if (checkEventArgs.handled)
                     return;
             }
@@ -1010,7 +1010,7 @@ public partial class MyListItem : IMyRadio
     {
         if (!isMouseDown)
             return;
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
         if (e.Handled)
             return;
         // 触发自定义事件

@@ -89,9 +89,9 @@ public partial class MyCheckBox
     ///     复选框勾选状态改变。
     /// </summary>
     /// <param name="user">是否为用户手动改变的勾选状态。</param>
-    public event ChangeEventHandler? change;
+    public event ChangeEventHandler? Change;
 
-    public event PreviewChangeEventHandler? previewChange;
+    public event PreviewChangeEventHandler? PreviewChange;
 
     /// <summary>
     ///     手动设置 Checked 属性。
@@ -109,7 +109,7 @@ public partial class MyCheckBox
             if (value.HasValue && value.Value && user)
             {
                 var e = new ModBase.RouteEventArgs(user);
-                previewChange?.Invoke(this, e);
+                PreviewChange?.Invoke(this, e);
                 if (e.handled)
                 {
                     mouseDowned = true;
@@ -125,7 +125,7 @@ public partial class MyCheckBox
             _previousState = Checked; // 记录上一次的勾选状态
             SetValue(checkedProperty, isChecked);
             if (IsLoaded)
-                change?.Invoke(this, user);
+                Change?.Invoke(this, user);
 
             // 更改动画
             SyncUI();

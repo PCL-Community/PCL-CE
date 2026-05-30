@@ -328,7 +328,7 @@ public partial class PageSpeedLeft
                         HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top
                     };
                     card.Children.Add(cancel);
-                    cancel.click += (sender, e) =>
+                    cancel.Click += (sender, e) =>
                     {
                         ModAnimation.AniDispose((MyIconButton)sender, false);
                         ModAnimation.AniDispose(card, true, _ =>

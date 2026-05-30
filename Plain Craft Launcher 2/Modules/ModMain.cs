@@ -1087,7 +1087,7 @@ public static class ModMain
             CustomEventService.SetEventType(Item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
             CustomEventService.SetEventData(Item, null);
             // 项目的点击事件
-            Item.click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
+            Item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
             return Item;
         }
     }

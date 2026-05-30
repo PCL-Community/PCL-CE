@@ -29,10 +29,10 @@ public partial class PageLoginAuth
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
         // Handles
-        BtnBack.click += BtnBack_Click;
-        BtnLogin.click += BtnLogin_Click;
-        TextServer.textChanged += TextServer_TextChanged;
-        BtnLink.click += Btn_Click;
+        BtnBack.Click += BtnBack_Click;
+        BtnLogin.Click += BtnLogin_Click;
+        TextServer.TextChanged += TextServer_TextChanged;
+        BtnLink.Click += Btn_Click;
     }
 
     private void Reload()

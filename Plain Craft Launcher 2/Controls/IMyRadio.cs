@@ -6,6 +6,6 @@ public interface IMyRadio
 
     delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
 
-    event CheckEventHandler check;
+    event CheckEventHandler Check;
     event ChangedEventHandler changed;
 }

@@ -80,7 +80,7 @@ public partial class MyIconButton
     }
 
     // 自定义事件
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     private string ColorAnimationKey => "MyIconButton Color " + uuid;
 
@@ -211,7 +211,7 @@ public partial class MyIconButton
         if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下图标按钮" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
-        click?.Invoke(sender, e);
+        Click?.Invoke(sender, e);
         e.Handled = true;
         Button_MouseUp();
         ModMain.RaiseCustomEvent(this);

@@ -483,12 +483,12 @@ public partial class PageDownloadCompDetail
         pageEnter += Init;
         InitializeComponent();
         Load.stateChanged += Load_State;
-        BtnIntroWeb.click += BtnIntroWeb_Click;
-        BtnIntroWiki.click += BtnIntroWiki_Click;
-        BtnIntroCopy.click += BtnIntroCopy_Click;
-        BtnFavorites.click += BtnFavorites_Click;
-        BtnIntroLinkCopy.click += BtnIntroLinkCopy_Click;
-        BtnTranslate.click += BtnTranslate_Click;
+        BtnIntroWeb.Click += BtnIntroWeb_Click;
+        BtnIntroWiki.Click += BtnIntroWiki_Click;
+        BtnIntroCopy.Click += BtnIntroCopy_Click;
+        BtnFavorites.Click += BtnFavorites_Click;
+        BtnIntroLinkCopy.Click += BtnIntroLinkCopy_Click;
+        BtnTranslate.Click += BtnTranslate_Click;
     }
 
     // 初始化加载器信息
@@ -697,7 +697,7 @@ public partial class PageDownloadCompDetail
                     ColorType = MyRadioButton.ColorState.Highlight
                 };
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
-                newButton.check += (sender, raiseByMouse) =>
+                newButton.Check += (sender, raiseByMouse) =>
                 {
                     _instanceFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
                     UpdateFilterResult();
@@ -715,7 +715,7 @@ public partial class PageDownloadCompDetail
                         ColorType = MyRadioButton.ColorState.Highlight
                     };
                     newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
-                    newButton.check += (sender, raiseByMouse) =>
+                    newButton.Check += (sender, raiseByMouse) =>
                     {
                         _modLoaderFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
                         UpdateFilterResult();

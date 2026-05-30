@@ -397,7 +397,7 @@ public class MyCard : AnimatedBackgroundGrid
     public bool SwapLogoRight { get; set; } = false;
     private bool isSwapMouseDown = false; //用于触发卡片展开/折叠的 MouseDown
     private bool isCustomMouseDown = false; //用于触发自定义事件的 MouseDown
-    public event PreviewSwapEventHandler? previewSwap;
+    public event PreviewSwapEventHandler? PreviewSwap;
 
     public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
 
@@ -432,7 +432,7 @@ public class MyCard : AnimatedBackgroundGrid
             return; // 检测点击位置；或已经不在可视树上的误判
 
         var e2 = new ModBase.RouteEventArgs(true);
-        previewSwap?.Invoke(this, e2);
+        PreviewSwap?.Invoke(this, e2);
         if (e2.handled)
         {
             isSwapMouseDown = false;

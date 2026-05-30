@@ -47,7 +47,7 @@ public partial class PageSetupJava
             Title = Lang.Text("Setup.Launch.Java.AutoSelect.Title"),
             Info = Lang.Text("Setup.Launch.Java.AutoSelect.Info")
         };
-        itemAuto.check += (sender, e) => Config.Launch.SelectedJava = "";
+        itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
         var currentSetJava = Config.Launch.SelectedJava;
         foreach (var entry in ModJava.Javas.GetSortedJavaList())
@@ -78,7 +78,7 @@ public partial class PageSetupJava
         item.Tags = displayTags;
 
         item.Type = MyListItem.CheckType.RadioBox;
-        item.check += (sender, e) =>
+        item.Check += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -97,7 +97,7 @@ public partial class PageSetupJava
         var btnOpenFolder = new MyIconButton();
         btnOpenFolder.Logo = Icon.IconButtonOpen;
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
-        btnOpenFolder.click += (sender, e) =>
+        btnOpenFolder.Click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -110,7 +110,7 @@ public partial class PageSetupJava
         var btnInfo = new MyIconButton();
         btnInfo.Logo = Icon.IconButtonInfo;
         btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
-        btnInfo.click += (sender, e) =>
+        btnInfo.Click += (sender, e) =>
         {
             if (!J.Installation.IsStillAvailable)
             {
@@ -156,7 +156,7 @@ public partial class PageSetupJava
             }
         }
         
-        btnEnableSwitch.click += (_, _) =>
+        btnEnableSwitch.Click += (_, _) =>
         {
             try
             {

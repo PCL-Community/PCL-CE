@@ -199,7 +199,7 @@ public partial class PageSelectLeft : IRefreshable
                     Logo = Icon.IconButtonSetup,
                     LogoScale = 1.1
                 };
-                newIconButton.click += (_, _) =>
+                newIconButton.Click += (_, _) =>
                 {
                     contMenu.PlacementTarget = newItem;
                     contMenu.IsOpen = true;
@@ -236,7 +236,7 @@ public partial class PageSelectLeft : IRefreshable
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
                 ToolTipService.SetHorizontalOffset(itemCreate, -50);
                 ToolTipService.SetVerticalOffset(itemCreate, 2.5);
-                itemCreate.click += (_, _) => ModMain.frmSelectLeft.Create_Click();
+                itemCreate.Click += (_, _) => ModMain.frmSelectLeft.Create_Click();
                 ModMain.frmSelectLeft.PanList.Children.Add(itemCreate);
             }
 
@@ -253,7 +253,7 @@ public partial class PageSelectLeft : IRefreshable
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemAdd, -50);
             ToolTipService.SetVerticalOffset(itemAdd, 2.5);
-            itemAdd.click += (_, _) => ModMain.frmSelectLeft.Add_Click();
+            itemAdd.Click += (_, _) => ModMain.frmSelectLeft.Add_Click();
             ModMain.frmSelectLeft.PanList.Children.Add(itemAdd);
 
             // 导入整合包
@@ -270,7 +270,7 @@ public partial class PageSelectLeft : IRefreshable
             ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemInstall, -50);
             ToolTipService.SetVerticalOffset(itemInstall, 2.5);
-            itemInstall.click += (_, _) => ModModpack.ModpackInstall();
+            itemInstall.Click += (_, _) => ModModpack.ModpackInstall();
             ModMain.frmSelectLeft.PanList.Children.Add(itemInstall);
 
             // 边距

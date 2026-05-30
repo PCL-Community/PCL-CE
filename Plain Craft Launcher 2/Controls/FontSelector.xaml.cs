@@ -83,7 +83,7 @@ public partial class FontSelector
         if (d is FontSelector control) control.ComboFont.ToolTip = e.NewValue;
     }
 
-    public event SelectionChangedEventHandler? selectionChanged;
+    public event SelectionChangedEventHandler? SelectionChanged;
 
     private void FontSelector_Loaded(object sender, RoutedEventArgs e)
     {
@@ -194,7 +194,7 @@ public partial class FontSelector
 
     private void ComboFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_isInitializing) selectionChanged?.Invoke(sender, e);
+        if (!_isInitializing) SelectionChanged?.Invoke(sender, e);
     }
 
     private CustomFontProperties? GetDefaultFont()

@@ -98,15 +98,15 @@ public partial class MyIconTextButton
         }
     } // 颜色类别
 
-    public event CheckEventHandler? check;
-    public event ChangeEventHandler? change;
+    public event CheckEventHandler? Check;
+    public event ChangeEventHandler? Change;
 
     private string CheckedAnimationKey => "MyIconTextButton Checked " + uuid;
     private string ColorAnimationKey => "MyIconTextButton Color " + uuid;
 
     // 点击事件
 
-    public event ClickEventHandler? click;
+    public event ClickEventHandler? Click;
 
     private string GetDefaultForegroundResourceKey()
     {
@@ -139,7 +139,7 @@ public partial class MyIconTextButton
             return;
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
         isMouseDown = false;
-        click?.Invoke(this, new ModBase.RouteEventArgs(true));
+        Click?.Invoke(this, new ModBase.RouteEventArgs(true));
         ModMain.RaiseCustomEvent(this);
         RefreshColor();
     }

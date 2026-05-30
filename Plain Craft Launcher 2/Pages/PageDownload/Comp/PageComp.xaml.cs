@@ -220,14 +220,14 @@ public partial class PageComp
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
         Load.stateChanged += Load_State;
-        BtnPageFirst.click += BtnPageFirst_Click;
-        BtnPageLeft.click += BtnPageLeft_Click;
-        BtnPageRight.click += BtnPageRight_Click;
+        BtnPageFirst.Click += BtnPageFirst_Click;
+        BtnPageLeft.Click += BtnPageLeft_Click;
+        BtnPageRight.Click += BtnPageRight_Click;
         PanSearchBox.search += (_, _) => StartNewSearch();
         PanSearchBox.KeyDown += EnterTrigger;
         TextSearchVersion.KeyDown += EnterTrigger;
-        BtnSearchReset.click += (_, _) => ResetFilter();
-        BtnSearchInstallModPack.click += BtnSearchInstallModPack_Click;
+        BtnSearchReset.Click += (_, _) => ResetFilter();
+        BtnSearchInstallModPack.Click += BtnSearchInstallModPack_Click;
     }
 
     private void PageCompControls_Inited(object sender, EventArgs e)

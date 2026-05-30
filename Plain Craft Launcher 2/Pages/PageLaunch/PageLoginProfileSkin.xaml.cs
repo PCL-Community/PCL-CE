@@ -13,9 +13,9 @@ public partial class PageLoginProfileSkin
         // Handles
         PanData.MouseEnter += ShowPanel;
         PanData.MouseLeave += HidePanel;
-        BtnSkin.click += BtnSkin_Click;
-        BtnEdit.click += BtnEdit_Click;
-        BtnSelect.click += ChangeProfile;
+        BtnSkin.Click += BtnSkin_Click;
+        BtnEdit.Click += BtnEdit_Click;
+        BtnSelect.Click += ChangeProfile;
     }
 
     /// <summary>

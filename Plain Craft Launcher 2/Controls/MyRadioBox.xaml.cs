@@ -71,10 +71,10 @@ public partial class MyRadioBox : IMyRadio
         set => SetValue(textProperty, value);
     } // 内容
 
-    public event IMyRadio.CheckEventHandler? check;
+    public event IMyRadio.CheckEventHandler? Check;
     public event IMyRadio.ChangedEventHandler? changed;
-    public event PreviewCheckEventHandler? previewCheck;
-    public event PreviewChangeEventHandler? previewChange;
+    public event PreviewCheckEventHandler? PreviewCheck;
+    public event PreviewChangeEventHandler? PreviewChange;
 
     /// <summary>
     ///     手动设置 Checked 属性。
@@ -89,7 +89,7 @@ public partial class MyRadioBox : IMyRadio
             if (value && user)
             {
                 var e = new ModBase.RouteEventArgs(user);
-                previewCheck?.Invoke(this, e);
+                PreviewCheck?.Invoke(this, e);
                 if (e.handled)
                 {
                     Radiobox_MouseLeave();
@@ -100,7 +100,7 @@ public partial class MyRadioBox : IMyRadio
             // 自定义属性基础
             var isChanged = false;
             if (IsLoaded && value != Checked)
-                previewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
+                PreviewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
             if (value != Checked)
             {
                 SetValue(checkedProperty, value);
@@ -160,7 +160,7 @@ public partial class MyRadioBox : IMyRadio
             if (isChanged)
             {
                 if (Checked)
-                    check?.Invoke(this, new ModBase.RouteEventArgs(user));
+                    Check?.Invoke(this, new ModBase.RouteEventArgs(user));
                 changed?.Invoke(this, new ModBase.RouteEventArgs(user));
                 ModMain.RaiseCustomEvent(this);
             }

@@ -44,7 +44,7 @@ public class MyComboBox : ComboBox
         GotKeyboardFocus += (_, _) => RefreshColor();
         DropDownOpened += MyComboBox_DropDownOpened;
         DropDownClosed += MyComboBox_DropDownClosed;
-        textChanged += MyComboBox_TextChanged;
+        TextChanged += MyComboBox_TextChanged;
     }
 
     public string HintText
@@ -84,7 +84,7 @@ public class MyComboBox : ComboBox
     public bool DropDownWidthSync { get; set; } = true;
 
     public ContentPresenter ContentPresenter => (ContentPresenter)Template.FindName("PART_Content", this);
-    public event TextChangedEventHandler? textChanged;
+    public event TextChangedEventHandler? TextChanged;
 
     public override void OnApplyTemplate()
     {
@@ -95,12 +95,12 @@ public class MyComboBox : ComboBox
         {
             textBox = (MyTextBox)Template.FindName("PART_EditableTextBox", this);
             textBox.AddHandler(LostFocusEvent, new RoutedEventHandler((_, _) => RefreshColor()));
-            textBox.changedEventList.Add((sender, e) => textChanged?.Invoke(sender, (TextChangedEventArgs)e));
+            textBox.changedEventList.Add((sender, e) => TextChanged?.Invoke(sender, (TextChangedEventArgs)e));
             textBox.Tag = Tag; // 有时需要用文本框的 Tag 来写入设置
             if (string.IsNullOrEmpty(Text))
                 textBox.Text = _Text;
             else
-                textChanged?.Invoke(this, null);
+                TextChanged?.Invoke(this, null);
             if (HintText.Length > 0)
                 textBox.HintText = HintText;
             textBox.SetResourceReference(TextBoxBase.CaretBrushProperty, "ColorBrushGray1");

@@ -48,11 +48,11 @@ public partial class PageLaunchLeft
         InitializeComponent();
         Loaded += PageLaunchLeft_Loaded;
         // Handles
-        BtnInstance.click += BtnInstance_Click;
-        BtnLaunch.click += BtnLaunch_Click;
+        BtnInstance.Click += BtnInstance_Click;
+        BtnLaunch.Click += BtnLaunch_Click;
         BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
-        BtnCancel.click += BtnCancel_Click;
-        BtnMore.click += BtnMore_Click;
+        BtnCancel.Click += BtnCancel_Click;
+        BtnMore.Click += BtnMore_Click;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
     }

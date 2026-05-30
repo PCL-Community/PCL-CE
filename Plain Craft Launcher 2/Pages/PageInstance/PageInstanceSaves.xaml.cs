@@ -32,7 +32,7 @@ public partial class PageInstanceSaves : IRefreshable
         Unloaded += Page_Unloaded;
         fileSystemRefreshTimer.Tick += FileSystemRefreshTimer_Tick;
         searchTimer.Tick += SearchTimer_Tick;
-        SearchBox.textChanged += SearchRun;
+        SearchBox.TextChanged += SearchRun;
     }
 
     void IRefreshable.Refresh()
@@ -71,7 +71,7 @@ public partial class PageInstanceSaves : IRefreshable
 
         // 初始化文件系统监视器和排序按钮
         SetupFileSystemWatcher();
-        BtnSort.click += BtnSortClick;
+        BtnSort.Click += BtnSortClick;
         SetSortMethod(_currentSortMethod);
     }
 
@@ -208,7 +208,7 @@ public partial class PageInstanceSaves : IRefreshable
                             Lang.Text("Instance.Saves.CreationTime", Lang.Date(Directory.GetCreationTime(curFolder), "d"), Lang.Date(Directory.GetLastWriteTime(curFolder), "d")),
                         Type = MyListItem.CheckType.Clickable
                     };
-                    worldItem.click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
+                    worldItem.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
                         { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
                     var btnOpen = new MyIconButton
@@ -216,13 +216,13 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = Icon.IconButtonOpen,
                         ToolTip = Lang.Text("Common.Action.Open")
                     };
-                    btnOpen.click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
+                    btnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var btnDelete = new MyIconButton
                     {
                         Logo = Icon.IconButtonDelete,
                         ToolTip = Lang.Text("Common.Action.Delete")
                     };
-                    btnDelete.click += (_, _) =>
+                    btnDelete.Click += (_, _) =>
                     {
                         worldItem.IsEnabled = false;
                         worldItem.Info = Lang.Text("Instance.Saves.Deleting");
@@ -247,7 +247,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = Icon.IconButtonCopy,
                         ToolTip = Lang.Text("Common.Action.Copy")
                     };
-                    btnCopy.click += (_, _) =>
+                    btnCopy.Click += (_, _) =>
                     {
                         try
                         {
@@ -272,7 +272,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = Icon.IconButtonInfo,
                         ToolTip = Lang.Text("Instance.Saves.Details")
                     };
-                    btnInfo.click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
+                    btnInfo.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
                         { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
                     var btnLaunch = new MyIconButton
@@ -280,7 +280,7 @@ public partial class PageInstanceSaves : IRefreshable
                         Logo = Icon.IconPlayGame,
                         ToolTip = Lang.Text("Instance.Saves.QuickPlay")
                     };
-                    btnLaunch.click += (_, _) =>
+                    btnLaunch.Click += (_, _) =>
                     {
                         var worldName = GetFileNameFromPath(tmpCurFolder);
                         var launchOptions = new ModLaunch.McLaunchOptions

@@ -35,8 +35,8 @@ public partial class MyMsgSelect
         }
 
         Loaded += Load;
-        Btn1.click += Btn1_Click;
-        Btn2.click += Btn2_Click;
+        Btn1.Click += Btn1_Click;
+        Btn2.Click += Btn2_Click;
         LabTitle.MouseLeftButtonDown += Drag;
         PanBorder.MouseLeftButtonDown += Drag;
     }
@@ -76,7 +76,7 @@ public partial class MyMsgSelect
             if (selectionContent is IMyRadio selection)
             {
                 PanSelection.Children.Add((UIElement)selection);
-                selection.check += (sender, e) => OnChecked((IMyRadio)sender, e);
+                selection.Check += (sender, e) => OnChecked((IMyRadio)sender, e);
 
                 // 3. Property configuration based on specific type
                 if (selection is MyListItem listItem)

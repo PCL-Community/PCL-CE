@@ -66,7 +66,7 @@ public partial class MySlider
                 if (ModAnimation.AniControlEnabled == 0)
                 {
                     var e = new ModBase.RouteEventArgs();
-                    previewChange?.Invoke(this, e);
+                    PreviewChange?.Invoke(this, e);
                     if (e.handled)
                     {
                         _Value = oldValue;
@@ -112,7 +112,7 @@ public partial class MySlider
                 }
 
                 if (ModAnimation.AniControlEnabled == 0)
-                    change?.Invoke(this, false);
+                    Change?.Invoke(this, false);
             }
 
             catch (Exception ex)
@@ -125,8 +125,8 @@ public partial class MySlider
     // 按键改变
 
     public uint ValueByKey { get; set; } = 1U;
-    public event ChangeEventHandler? change;
-    public event PreviewChangeEventHandler? previewChange;
+    public event ChangeEventHandler? Change;
+    public event PreviewChangeEventHandler? PreviewChange;
 
     private void RefreshWidth(object sender, SizeChangedEventArgs? e)
     {

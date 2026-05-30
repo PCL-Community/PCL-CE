@@ -31,17 +31,17 @@ public partial class PageDownloadCompFavorites
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
             Btn_ManageTargetFav.Logo = Icon.IconButtonSetup;
-            Btn_ManageTargetFav.click += Manage_Click;
+            Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
         Load.stateChanged += Load_State;
-        Btn_FavoritesCancel.click += Btn_FavoritesCancel_Clicked;
-        Btn_SelectCancel.click += Btn_SelectCancel_Clicked;
-        Btn_FavoritesShare.click += Btn_FavoritesShare_Clicked;
-        Btn_FavoritesDownload.click += Btn_FavoritesDownload_Clicked;
+        Btn_FavoritesCancel.Click += Btn_FavoritesCancel_Clicked;
+        Btn_SelectCancel.Click += Btn_SelectCancel_Clicked;
+        Btn_FavoritesShare.Click += Btn_FavoritesShare_Clicked;
+        Btn_FavoritesDownload.Click += Btn_FavoritesDownload_Clicked;
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
-        PanSearchBox.textChanged += SearchRun;
+        PanSearchBox.TextChanged += SearchRun;
     }
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
@@ -304,7 +304,7 @@ public partial class PageDownloadCompFavorites
         ToolTipService.SetPlacement(btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_EditNote, 30d);
         ToolTipService.SetHorizontalOffset(btn_EditNote, 2d);
-        btn_EditNote.click += (sender, e) =>
+        btn_EditNote.Click += (sender, e) =>
         {
             CurrentFavTarget.Notes.TryGetValue(compId, out notes);
             var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), DefaultInput: notes);
@@ -323,7 +323,7 @@ public partial class PageDownloadCompFavorites
         ToolTipService.SetPlacement(btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_Delete, 30d);
         ToolTipService.SetHorizontalOffset(btn_Delete, 2d);
-        btn_Delete.click += (sender, e) =>
+        btn_Delete.Click += (sender, e) =>
         {
             Items_CancelFavorites(CompItem);
             RefreshContent();

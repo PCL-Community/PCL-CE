@@ -129,8 +129,8 @@ public partial class MyExtraButton
     public bool CanRightClick { get; set; }
 
     // 声明
-    public event ClickEventHandler? click;
-    public event RightClickEventHandler? rightClick;
+    public event ClickEventHandler? Click;
+    public event RightClickEventHandler? RightClick;
 
     private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
     {
@@ -167,7 +167,7 @@ public partial class MyExtraButton
         {
             ModBase.Log("[Control] 按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
-            click?.Invoke(sender, e);
+            Click?.Invoke(sender, e);
             e.Handled = true;
             Button_LeftMouseUp();
         }
@@ -179,7 +179,7 @@ public partial class MyExtraButton
         {
             ModBase.Log("[Control] 右键按下附加按钮" +
                         (ToolTip is null or "" ? "" : "：" + ToolTip));
-            rightClick?.Invoke(sender, e);
+            RightClick?.Invoke(sender, e);
             e.Handled = true;
             Button_RightMouseUp();
         }

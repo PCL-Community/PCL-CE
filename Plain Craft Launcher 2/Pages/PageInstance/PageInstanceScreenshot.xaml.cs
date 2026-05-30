@@ -27,8 +27,8 @@ public partial class PageInstanceScreenshot : IRefreshable
         InitializeComponent();
         Loaded += PageSetupLaunch_Loaded;
         PanBack.ScrollChanged += RequireAppend;
-        BtnOpenFolder.click += BtnOpenFolder_Click;
-        BtnOpenFolderTop.click += BtnOpenFolder_Click;
+        BtnOpenFolder.Click += BtnOpenFolder_Click;
+        BtnOpenFolderTop.Click += BtnOpenFolder_Click;
     }
 
     void IRefreshable.Refresh()
@@ -214,7 +214,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = Icon.IconButtonOpen,
                     Tag = i
                 };
-                btnOpen.click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
+                btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnOpen);
                 var btnDelete = new MyIconTextButton
                 {
@@ -224,7 +224,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = Icon.IconButtonDelete,
                     Tag = i
                 };
-                btnDelete.click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
+                btnDelete.Click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnDelete);
                 var btnCopy = new MyIconTextButton
                 {
@@ -234,7 +234,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = Icon.IconButtonCopy,
                     Tag = i
                 };
-                btnCopy.click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
+                btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
                 myCard.Opacity = 0d;

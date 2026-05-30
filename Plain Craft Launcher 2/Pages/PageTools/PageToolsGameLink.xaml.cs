@@ -545,7 +545,7 @@ public partial class PageToolsGameLink
             Type = MyListItem.CheckType.Clickable,
             Tag = info
         };
-        newItem.click += onClick;
+        newItem.Click += onClick;
         return newItem;
     }
 
