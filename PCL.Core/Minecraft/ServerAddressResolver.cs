@@ -206,7 +206,7 @@ public static class ServerAddressResolver
 
             // NDnsQuery.GetSrvRecords 返回 string 列表，为兼容不同实现，这里进行鲁棒解析
             var raw = await DnsQuery.Instance.QueryAsync(name, DnsQueryType.SRV, ct);
-            if (raw == null || raw.Answers.Count == 0) return [];
+            if (raw is null || raw.Answers.Count == 0) return [];
             List<SrvRecord> parsed = [];
             foreach (var answer in raw.Answers)
             {

@@ -7,6 +7,7 @@ using System.Windows.Media;
 using PCL.Core.UI;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -24,11 +25,12 @@ public partial class PageDownloadCompFavorites
         KeyDown += Page_KeyDown;
         InitializeComponent();
         {
+
             // 这是选择收藏夹旁边那个图标按钮
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = ModBase.Logo.IconButtonSetup;
+            Btn_ManageTargetFav.Logo = Icon.IconButtonSetup;
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -156,7 +158,7 @@ public partial class PageDownloadCompFavorites
         {
             case -1:
             {
-                NewItem.Title = "搜索结果 ({0})"; // 搜索结果
+                NewItem.Title = Lang.Text("Download.Comp.Favorites.SearchResults.Title");
                 break;
             }
             case (int)ModComp.CompType.Mod:
@@ -166,38 +168,38 @@ public partial class PageDownloadCompFavorites
             }
             case (int)ModComp.CompType.ModPack:
             {
-                NewItem.Title = "整合包 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})";
                 break;
             }
             case (int)ModComp.CompType.ResourcePack:
             {
-                NewItem.Title = "资源包 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})";
                 break;
             }
             case (int)ModComp.CompType.Shader:
             {
-                NewItem.Title = "光影包 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})";
                 break;
             }
             case (int)ModComp.CompType.DataPack:
             {
-                NewItem.Title = "数据包 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})";
                 break;
             }
             case (int)ModComp.CompType.Plugin:
             {
-                NewItem.Title = "插件 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})";
                 break;
             }
             case (int)ModComp.CompType.World:
             {
-                NewItem.Title = "世界 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Type.World")} ({{0}})";
                 break;
             }
 
             default:
             {
-                NewItem.Title = "未分类类型 ({0})";
+                NewItem.Title = $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})";
                 break;
             }
         }
@@ -275,22 +277,6 @@ public partial class PageDownloadCompFavorites
                 CardNoContent.Visibility = Visibility.Visible;
             }
 
-            // If SomeGetFail Then
-            // Dim FailList As New List(Of MyListItem)
-            // Dim FailIds = Loader.Input.Except(Loader.Output.Select(Function(e) e.Id))
-            // For Each Id In FailIds
-            // Dim FailItem As New MyListItem
-            // FailItem.Title = $"{Id}"
-            // FailItem.Info = "此资源获取失败，可能在线资源被删除或者未获取成功"
-            // FailItem.Tag = Id
-
-            // ListItemBuild(FailItem)
-
-            // FailList.Add(FailItem)
-            // Next
-            // CompItemList.AddRange(FailList)
-            // End If
-
             RefreshContent();
             RefreshCardTitle();
         }
@@ -313,15 +299,15 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var Btn_EditNote = new MyIconButton();
-        Btn_EditNote.Logo = ModBase.Logo.IconButtonEdit;
-        Btn_EditNote.ToolTip = "修改备注";
+        Btn_EditNote.Logo = Icon.IconButtonEdit;
+        Btn_EditNote.ToolTip = Lang.Text("Download.Comp.Favorites.EditNote");
         ToolTipService.SetPlacement(Btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_EditNote, 30d);
         ToolTipService.SetHorizontalOffset(Btn_EditNote, 2d);
         Btn_EditNote.Click += (sender, e) =>
         {
             CurrentFavTarget.Notes.TryGetValue(CompId, out Notes);
-            var DesiredNote = ModMain.MyMsgBoxInput("修改备注", DefaultInput: Notes);
+            var DesiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), DefaultInput: Notes);
             // 只有在用户确认时才更新备注，避免取消时清空原有备注
             if (DesiredNote is not null)
             {
@@ -332,8 +318,8 @@ public partial class PageDownloadCompFavorites
         };
         // 删除按钮
         var Btn_Delete = new MyIconButton();
-        Btn_Delete.Logo = ModBase.Logo.IconButtonLikeFill;
-        Btn_Delete.ToolTip = "取消收藏";
+        Btn_Delete.Logo = Icon.IconButtonLikeFill;
+        Btn_Delete.ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite");
         ToolTipService.SetPlacement(Btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(Btn_Delete, 30d);
         ToolTipService.SetHorizontalOffset(Btn_Delete, 2d);
@@ -370,7 +356,7 @@ public partial class PageDownloadCompFavorites
         var NewCount = SelectedItemList.Count;
         var Selected = NewCount > 0;
         if (Selected)
-            LabSelect.Text = $"已选择 {NewCount} 个收藏项目"; // 取消所有选择时不更新数字
+            LabSelect.Text = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", NewCount); // 取消所有选择时不更新数字
         // 更新显示状态
         if (ModAnimation.AniControlEnabled == 0)
         {
@@ -460,7 +446,7 @@ public partial class PageDownloadCompFavorites
                 var ErrorMessage = "";
                 if (Loader.Error is not null)
                     ErrorMessage = Loader.Error.Message;
-                if (ErrorMessage.Contains("不是有效的 json 文件"))
+                if (ErrorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
                     ModBase.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", ModBase.LogLevel.Debug);
                     PageLoaderRestart();
@@ -513,9 +499,11 @@ public partial class PageDownloadCompFavorites
         try
         {
             if (1 != ModMain.MyMsgBox(
-                    $"批量下载功能仍旧处于测试状态。{"\r\n"}使用此功能下载模组不会自动下载前置项。{"\r\n"}请在下载前仔细思考自己的需求，并仔细检查自己的选择，避免下载错误导致时间和网络流量的浪费。",
-                    "确定使用此功能？", "继续", "算了", IsWarn: true))
-                return;
+                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
+                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
+                    Lang.Text("Common.Action.Continue"),
+                    Lang.Text("Common.Action.Cancel"), IsWarn: true
+                )) return;
             var SupportedModLoader = new List<ModComp.CompLoaderType>();
             var LoaderFirstSet = true;
             var HasMod = false;
@@ -540,7 +528,7 @@ public partial class PageDownloadCompFavorites
             // 检查是否有共同支持的 ModLoader
             if (HasMod && SupportedModLoader.Count == 0)
             {
-                ModMain.Hint("所选模组不支持相同的加载器", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), ModMain.HintType.Critical);
                 return;
             }
 
@@ -552,16 +540,17 @@ public partial class PageDownloadCompFavorites
                     var MSelection = new List<IMyRadio>();
                     foreach (var i in SupportedModLoader)
                         MSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, "选择期望的加载器", Button2: "取消");
+                    var SelectedModLoaderStr = ModMain.MyMsgBoxSelect(MSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedModLoaderStr is null)
                         return;
                     DesiredModLoader = SupportedModLoader[(int)SelectedModLoaderStr];
                 }
 
-            ModMain.Hint("请稍后，正在查询详细版本支持中，这可能需要一段时间……");
+            ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions"));
             // 输入 Ids，输出合适版本
             var GetInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
-            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>("查询资源信息", Ts =>
+            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>(
+                Lang.Text("Download.Comp.Favorites.LoaderName.QueryInfo"), Ts =>
             {
                 List<List<ModComp.CompFile>> AllFiles = [];
                 List<string> SuitVersion = [];
@@ -613,7 +602,7 @@ public partial class PageDownloadCompFavorites
                     // Log(SuitVersion.Join(","))
                     if (SuitVersion.Count == 0)
                     {
-                        ModMain.Hint("不存在指定加载器并且同版本的资源", ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), ModMain.HintType.Critical);
                         Ts.Abort();
                         return;
                     }
@@ -626,11 +615,11 @@ public partial class PageDownloadCompFavorites
                     List<IMyRadio> Selection = [];
                     foreach (var i in SuitVersion)
                         Selection.Add(new MyRadioBox { Text = i });
-                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: "取消");
+                    SelectedVersion = ModMain.MyMsgBoxSelect(Selection, Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"), Button2: Lang.Text("Common.Action.Cancel"));
                     if (SelectedVersion is null) Ts.Abort();
                 });
                 string SelectedVersionStr = SuitVersion[(int)SelectedVersion];
-                ModMain.Hint($"已选择 {SelectedVersionStr} 版本，下面请选择保存位置");
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", SelectedVersionStr));
                 var SaveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(SaveFolder))
                 {
@@ -658,13 +647,26 @@ public partial class PageDownloadCompFavorites
             {
                 ProgressWeight = 2d
             });
-            GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
-                { ProgressWeight = 8d });
-            var CheckLoader =
-                new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)
-                    { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
-            CheckLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
-            ModLoader.LoaderTaskbarAdd(CheckLoader);
+
+            GetInfoAndDownloadLoader.Add(
+                new LoaderDownload(
+                    Lang.Text("Download.Comp.Favorites.LoaderName.BatchDownloadSuitable"),
+                    []
+                )
+                {
+                    ProgressWeight = 8d
+                }
+            );
+            var checkLoader = new ModLoader.LoaderCombo<List<string>>(
+                Lang.Text("Download.Comp.Favorites.LoaderName.BatchDownload", ModBase.GetUuid()),
+                GetInfoAndDownloadLoader
+            )
+            {
+                OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
+            };
+
+            checkLoader.Start(SelectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
+            ModLoader.LoaderTaskbarAdd(checkLoader);
             ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
             ModMain.FrmMain.BtnExtraDownload.Ribble();
             Items_SetSelectAll(false);
@@ -717,8 +719,8 @@ public partial class PageDownloadCompFavorites
         var Body = new ContextMenu();
         var NewItem = new MyMenuItem
         {
-            Header = "分享当前收藏夹",
-            Icon = ModBase.Logo.IconButtonShare
+            Header = Lang.Text("Download.Comp.Favorites.Menu.Share"),
+            Icon = Icon.IconButtonShare
         };
         NewItem.Click += (_, _) =>
         {
@@ -726,7 +728,7 @@ public partial class PageDownloadCompFavorites
             {
                 if (CurrentFavTarget.Favs.Count == 0)
                 {
-                    HintWrapper.Show("分享了个寂寞啊！");
+                    HintWrapper.Show(Lang.Text("Download.Comp.Favorites.Hint.NothingShared"));
                     return;
                 }
 
@@ -740,28 +742,28 @@ public partial class PageDownloadCompFavorites
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
-            Header = "导入收藏",
-            Icon = ModBase.Logo.IconButtonAdd
+            Header = Lang.Text("Download.Comp.Favorites.Menu.Import"),
+            Icon = Icon.IconButtonAdd
         };
         NewItem.Click += (_, _) =>
         {
             try
             {
-                var ClipData = ModMain.MyMsgBoxInput("输入分享的收藏", HintText: "例如 [\"23333\"]");
+                var ClipData = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), HintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
                 if (string.IsNullOrWhiteSpace(ClipData)) return;
                 var NewFavs = ModComp.CompFavorites.GetIdsByShareCode(ClipData);
                 if (NewFavs.Count == 0)
                 {
-                    ModMain.Hint("分享了个寂寞啊！");
+                    ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NothingShared"));
                     return;
                 }
 
-                var UserWant = ModMain.MyMsgBox("你希望将分享的收藏加入到当前收藏夹还是新的收藏夹中？", Button1: "新的收藏夹", Button2: "当前收藏夹");
+                var UserWant = ModMain.MyMsgBox(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), Button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), Button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
                 switch (UserWant)
                 {
                     case 1:
                     {
-                        var NewFavName = ModMain.MyMsgBoxInput("新收藏夹名称", "请输入新收藏夹名称");
+                        var NewFavName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
                         if (string.IsNullOrWhiteSpace(NewFavName)) return;
                         ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, NewFavs));
                         ModComp.CompFavorites.Save();
@@ -786,12 +788,12 @@ public partial class PageDownloadCompFavorites
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
-            Header = "新建收藏夹",
-            Icon = ModBase.Logo.IconButtonCreate
+            Header = Lang.Text("Download.Comp.Favorites.Menu.New"),
+            Icon = Icon.IconButtonCreate
         };
         NewItem.Click += (_, _) =>
         {
-            var NewFavName = ModMain.MyMsgBoxInput("新建收藏夹", "请输入新收藏夹名称");
+            var NewFavName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
             if (string.IsNullOrWhiteSpace(NewFavName))
                 return;
             ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(NewFavName, null));
@@ -802,12 +804,12 @@ public partial class PageDownloadCompFavorites
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
-            Header = "重命名收藏夹名称",
-            Icon = ModBase.Logo.IconButtonEdit
+            Header = Lang.Text("Download.Comp.Favorites.Menu.Rename"),
+            Icon = Icon.IconButtonEdit
         };
         NewItem.Click += (_, _) =>
         {
-            var newName = ModMain.MyMsgBoxInput("输入新名称", DefaultInput: CurrentFavTarget.Name);
+            var newName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), DefaultInput: CurrentFavTarget.Name);
             if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
                 return;
             CurrentFavTarget.Name = newName;
@@ -817,27 +819,24 @@ public partial class PageDownloadCompFavorites
         Body.Items.Add(NewItem);
         NewItem = new MyMenuItem
         {
-            Header = "删除当前收藏夹",
-            Icon = ModBase.Logo.IconButtonDelete
+            Header = Lang.Text("Download.Comp.Favorites.Menu.Delete"),
+            Icon = Icon.IconButtonDelete
         };
         NewItem.Click += (_, _) =>
         {
             if (ModComp.CompFavorites.FavoritesList.Count == 1)
             {
-                ModMain.Hint("您不能删除最后一个收藏夹");
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
                 return;
             }
 
-            var content = $"确认删除 {CurrentFavTarget.Name} 收藏夹？" + "\r\n" + "\r\n";
-            content += $"此收藏夹有 {CurrentFavTarget.Favs.Count} 个收藏项目" + "\r\n";
-            content += "收藏夹 ID 为 " + CurrentFavTarget.Id + "\r\n";
-            content += "此操作不可逆！";
-            var res = ModMain.MyMsgBox(content, "删除确认", IsWarn: true, Button1: "否", Button2: "是", Button3: "否");
+            var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
+            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Option.No"), Button2: Lang.Text("Common.Option.Yes"), Button3: Lang.Text("Common.Option.No"));
             if (res == 2)
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint("已删除收藏夹", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), ModMain.HintType.Finish);
                 RefreshFavTargets();
                 ComboTargetFav.SelectedIndex = 0;
             }
@@ -858,17 +857,17 @@ public partial class PageDownloadCompFavorites
 
     private void HintGetFail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        var Content = "由于在线资源被删除或者网络问题等因素导致以下资源未获取成功（以资源的 ID 展示）" + "\r\n" + "\r\n";
+        var Content = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Content") + "\r\n" + "\r\n";
         var FailIds = Loader.Input.Except(Loader.Output.Select(i => i.Id).ToList()).ToList();
         foreach (var Id in FailIds)
             Content += $" - {Id}" + "\r\n";
-        ModMain.MyMsgBox(Content, "部分收藏项目获取失败", Button2: "复制这些 ID", Button3: "移除这些收藏",
+        ModMain.MyMsgBox(Content, Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"), Button2: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"), Button3: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
             Button2Action: () => ModBase.ClipboardSet(FailIds.Join("\r\n")), Button3Action: () =>
             {
                 foreach (var Id in FailIds)
                     CurrentFavTarget.Favs.Remove(Id);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint("已移除相关收藏", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), ModMain.HintType.Finish);
             });
     }
 
@@ -891,7 +890,7 @@ public partial class PageDownloadCompFavorites
             var QueryList = new List<ModBase.SearchEntry<MyListItem>>();
             foreach (var Item in CompItemList)
             {
-                if (!(Item.Tag is ModComp.CompProject))
+                if (Item.Tag is not ModComp.CompProject)
                     continue;
                 var Entry = (ModComp.CompProject)Item.Tag;
                 var SearchSource = new List<ModBase.SearchSource>();

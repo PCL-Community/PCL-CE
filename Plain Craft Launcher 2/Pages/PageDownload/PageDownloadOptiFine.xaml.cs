@@ -2,6 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -30,9 +31,10 @@ public partial class PageDownloadOptiFine
         // 结果数据化
         try
         {
+            const string snapshotKey = "Snapshot";
             // 归类
             var Dict = new Dictionary<string, List<ModDownload.DlOptiFineListEntry>>();
-            Dict.Add("快照版本", new List<ModDownload.DlOptiFineListEntry>());
+            Dict.Add(snapshotKey, new List<ModDownload.DlOptiFineListEntry>());
             for (var VersionCode = 50; VersionCode >= 0; VersionCode -= 1)
                 Dict.Add("1." + VersionCode, new List<ModDownload.DlOptiFineListEntry>());
             foreach (var Version in ModDownload.DlOptiFineListLoader.Output.Value)
@@ -42,11 +44,11 @@ public partial class PageDownloadOptiFine
                     if (Dict.ContainsKey(MainVersion))
                         Dict[MainVersion].Add(Version);
                     else
-                        Dict["快照版本"].Add(Version);
+                        Dict[snapshotKey].Add(Version);
                 }
                 else
                 {
-                    Dict["快照版本"].Add(Version);
+                    Dict[snapshotKey].Add(Version);
                 }
 
             // 清空当前
@@ -57,8 +59,11 @@ public partial class PageDownloadOptiFine
                 if (!Pair.Value.Any())
                     continue;
                 // 增加卡片
+                var title = Pair.Key == snapshotKey
+                    ? Lang.Text("Download.Version.Optifine.Snapshot")
+                    : Pair.Key;
                 var NewCard = new MyCard
-                    { Title = Pair.Key + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                    { Title = title + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var NewStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),

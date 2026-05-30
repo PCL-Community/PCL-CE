@@ -2,6 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -107,7 +108,7 @@ public partial class PageToolsHelp : IRefreshable
     {
         ModBase.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
                 ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
             var Entry = new ModMain.HelpEntry(Location);
             ModBase.RunInUi(() =>
@@ -126,7 +127,7 @@ public partial class PageToolsHelp : IRefreshable
     {
         ModBase.RunInThread(() =>
         {
-            if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
                 ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
             ModBase.RunInUi(() =>
             {
@@ -142,7 +143,7 @@ public partial class PageToolsHelp : IRefreshable
 
     public static PageOtherHelpDetail GetHelpPage(string Location)
     {
-        if (!(ModMain.HelpLoader.State == ModBase.LoadState.Finished))
+        if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
             ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
         var FrmHelpDetail = new PageOtherHelpDetail();
         if (FrmHelpDetail.Init(new ModMain.HelpEntry(Location))) return FrmHelpDetail;
@@ -204,8 +205,8 @@ public partial class PageToolsHelp : IRefreshable
                 {
                     var Item = Result.Item.ToListItem();
                     if (ModBase.ModeDebug)
-                        Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" + Math.Round(Result.Similarity, 3) +
-                                    "，" + Item.Info;
+                        Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" +
+                                    Lang.Number(Math.Round(Result.Similarity, 3), "N3") + "，" + Item.Info;
                     PanSearchList.Children.Add(Item);
                 }
 

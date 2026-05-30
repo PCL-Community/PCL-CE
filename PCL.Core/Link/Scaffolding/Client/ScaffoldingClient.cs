@@ -197,14 +197,14 @@ public sealed class ScaffoldingClient(string host, int scfPort, string playerNam
 
 
         await CastAndDispose(_srLock).ConfigureAwait(false);
-        if (_tcpClient != null) await CastAndDispose(_tcpClient).ConfigureAwait(false);
-        if (_heartbeatCts != null)
+        if (_tcpClient is not null) await CastAndDispose(_tcpClient).ConfigureAwait(false);
+        if (_heartbeatCts is not null)
         {
             await _heartbeatCts.CancelAsync().ConfigureAwait(false);
             await CastAndDispose(_heartbeatCts).ConfigureAwait(false);
         }
 
-        if (_heartbeatTask != null)
+        if (_heartbeatTask is not null)
         {
             await _heartbeatTask.ConfigureAwait(false);
             await CastAndDispose(_heartbeatTask).ConfigureAwait(false);

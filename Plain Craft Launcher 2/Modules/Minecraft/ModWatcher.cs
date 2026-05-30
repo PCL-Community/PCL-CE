@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -280,8 +281,8 @@ public static class ModWatcher
                             {
                                 if (State == MinecraftState.Running && !GameProcess.HasExited)
                                 {
-                                    var RealTitle = WindowTitle.Replace("{date}", DateTime.Now.ToString("yyyy'/'M'/'d"))
-                                        .Replace("{time}", DateTime.Now.ToString("HH':'mm':'ss"));
+                                    var RealTitle = WindowTitle.Replace("{date}", Lang.Date(DateTime.Now, "d"))
+                                        .Replace("{time}", Lang.Date(DateTime.Now, "T"));
                                     SetWindowText(WindowHandle, RealTitle);
                                 }
 

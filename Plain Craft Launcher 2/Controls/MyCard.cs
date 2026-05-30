@@ -164,12 +164,6 @@ public class MyCard : AnimatedBackgroundGrid
         }
     }
 
-    // 已在依赖属性中实现
-    // Private Sub Dispose() Handles Me.Unloaded
-    // If Parent Is Nothing Then
-    // RemoveHandler ThemeChanged, AddressOf _BackgroundBrushChanged 
-    // End If
-    // End Sub
     public void StackInstall()
     {
         var argstack = (StackPanel)SwapControl;
@@ -200,9 +194,9 @@ public class MyCard : AnimatedBackgroundGrid
         if (!HasMouseAnimation)
             return;
         var AniList = new List<ModAnimation.AniData>();
-        if (!(MainTextBlock == null))
+        if (MainTextBlock is not null)
             AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90));
-        if (!(MainSwap == null))
+        if (MainSwap is not null)
             AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush2", 90));
         AniList.AddRange(new[]
         {
@@ -218,9 +212,9 @@ public class MyCard : AnimatedBackgroundGrid
         if (!HasMouseAnimation)
             return;
         var AniList = new List<ModAnimation.AniData>();
-        if (!(MainTextBlock == null))
+        if (MainTextBlock is not null)
             AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90));
-        if (!(MainSwap == null))
+        if (MainSwap is not null)
             AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush1", 90));
         AniList.AddRange(new[]
         {
@@ -419,7 +413,7 @@ public class MyCard : AnimatedBackgroundGrid
         if (!IsSwapped && (Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return;
         IsCustomMouseDown = true;
-        if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return;
         IsSwapMouseDown = true;
     }
@@ -434,7 +428,7 @@ public class MyCard : AnimatedBackgroundGrid
         IsSwapMouseDown = false;
 
         double Pos = Mouse.GetPosition(this).Y;
-        if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return; // 检测点击位置；或已经不在可视树上的误判
 
         var e2 = new ModBase.RouteEventArgs(true);
@@ -446,7 +440,7 @@ public class MyCard : AnimatedBackgroundGrid
         }
 
         IsSwapped = !IsSwapped;
-        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title == null ? "" : "：" + Title));
+        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title is null ? "" : "：" + Title));
         Swap?.Invoke(this, e2);
     }
 

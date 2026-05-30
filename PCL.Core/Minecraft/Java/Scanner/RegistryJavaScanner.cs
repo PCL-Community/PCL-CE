@@ -41,7 +41,7 @@ public class RegistryJavaScanner : IJavaScanner
         foreach (var regPath in _RegistryPaths)
         {
             using var regKey = Registry.LocalMachine.OpenSubKey(regPath);
-            if (regKey == null) continue;
+            if (regKey is null) continue;
 
             foreach (var subKeyName in regKey.GetSubKeyNames())
             {
@@ -61,7 +61,7 @@ public class RegistryJavaScanner : IJavaScanner
         foreach (var keyPath in _BrandRegistryPaths)
         {
             using var brandKey = Registry.LocalMachine.OpenSubKey(keyPath);
-            if (brandKey == null) continue;
+            if (brandKey is null) continue;
 
             foreach (var subKeyName in brandKey.GetSubKeyNames())
             {

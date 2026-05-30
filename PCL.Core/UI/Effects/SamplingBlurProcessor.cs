@@ -57,7 +57,7 @@ internal sealed class SamplingBlurProcessor : IDisposable
     public WriteableBitmap? ApplySamplingBlur(BitmapSource? source, double radius, double samplingRate, 
         RenderingBias renderingBias, KernelType kernelType)
     {
-        if (source == null || radius <= 0)
+        if (source is null || radius <= 0)
             return null;
 
         var cacheKey = _GenerateCacheKey(source, radius, samplingRate, renderingBias, kernelType);

@@ -5,6 +5,7 @@ using System.Collections;
 using System.IO;
 using System.Windows.Shell;
 using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -423,7 +424,7 @@ public static class ModLoader
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
-            else if (Error == null)
+            else if (Error is null)
             {
                 throw new Exception("未知错误！");
             }
@@ -459,7 +460,7 @@ public static class ModLoader
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
-            else if (Error == null)
+            else if (Error is null)
             {
                 throw new Exception("未知错误！");
             }
@@ -556,7 +557,7 @@ public static class ModLoader
 
         public override object? StartGetInputNoType(object? Input = null, Func<object?>? InputDelegate = null)
         {
-            return StartGetInput(Input == null ? default : (InputType?)Input, InputDelegate == null ? null : () => (InputType?)InputDelegate());
+            return StartGetInput(Input is null ? default : (InputType?)Input, InputDelegate is null ? null : () => (InputType?)InputDelegate());
         }
 
         // 代码执行
@@ -855,20 +856,20 @@ public static class ModLoader
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        if (loader is LoaderTask task)
                         {
-                            var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
+                            var genericArg = task.GetType().GenericTypeArguments.FirstOrDefault();
+                            var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
 
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (task.ShouldStart(ref shouldInput, false, true))
                             {
                                 ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.Name);
                                 goto Restart;
                             }
 
-                            input = ((dynamic)loader).Output;
+                            input = ((dynamic)loader).Output; // 何意味啊，没法匹配 LoaderTask<,>
                         }
 
                         if (loader.Block && !isFinished)
@@ -879,17 +880,15 @@ public static class ModLoader
 
                     case ModBase.LoadState.Loading:
                     {
-                        if (loader.GetType().Name.StartsWithF("LoaderTask"))
+                        if (loader is LoaderTask task)
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
+                            var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
-
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (task.ShouldStart(ref shouldInput, false, true))
                             {
-                                ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
-                                            + loader.Name,
+                                ModBase.Log($"[Loader] 由于输入条件变更，重启进行中的加载器 {loader.Name}",
                                     ModBase.LogLevel.Developer);
                                 goto Restart;
                             }
@@ -909,28 +908,25 @@ public static class ModLoader
                         if (blocked)
                             continue;
 
-                        if (input != null)
+                        if (input is not null)
                         {
-                            var loaderType = loader.GetType().Name;
+                            switch (loader)
+                            {
+                                case LoaderTask:
+                                case LoaderCombo:
+                                    var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
 
-                            if (loaderType.StartsWithF("LoaderTask")
-                                || loaderType.StartsWithF("LoaderCombo"))
-                            {
-                                var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-
-                                loader.Start(
-                                    genericArg == input.GetType() ? input : null,
-                                    IsForceRestarting);
-                            }
-                            else if (loaderType.StartsWithF("LoaderDownload"))
-                            {
-                                loader.Start(
-                                    input is List<DownloadFile> ? input : null,
-                                    IsForceRestarting);
-                            }
-                            else
-                            {
-                                throw new Exception("未知的加载器类型（" + loaderType + "）");
+                                    loader.Start(
+                                        genericArg == input.GetType() ? input : null,
+                                        IsForceRestarting);
+                                    break;
+                                case not null:
+                                    loader.Start(
+                                        input is List<DownloadFile> ? input : null,
+                                        IsForceRestarting);
+                                    break;
+                                default:
+                                    throw new Exception($"未知的加载器类型（{loader?.GetType()}）");
                             }
                         }
                         else
@@ -1008,7 +1004,7 @@ public static class ModLoader
 
         public override bool Equals(object obj)
         {
-            if (!(obj is LoaderFolderDictionaryEntry))
+            if (obj is not LoaderFolderDictionaryEntry)
                 return false;
             var entry = (LoaderFolderDictionaryEntry)obj;
             return EqualityComparer<DateTime?>.Default.Equals(LastCheckTime, entry.LastCheckTime) &&

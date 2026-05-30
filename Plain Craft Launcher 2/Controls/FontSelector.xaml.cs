@@ -48,7 +48,7 @@ public partial class FontSelector
         {
             // 如果字体还在加载中，延迟设置
             if (CustomFontCollection.Count == 0 ||
-                CustomFontCollection is [{ Name: "加载中..." }])
+                (CustomFontCollection is [{ Name: var name }] && name == Lang.Text("Common.State.Loading")))
             {
                 _pendingFontTag = value;
                 return;
@@ -127,8 +127,7 @@ public partial class FontSelector
             return;
         }
 
-        var defaultFont = CustomFontCollection.FirstOrDefault(i => string.IsNullOrEmpty(i.Tag));
-        defaultFont?.Font = LocalizationFontService.BuildLaunchFontFamily();
+        GetDefaultFont()?.Font = LocalizationFontService.BuildLaunchFontFamily();
     }
 
     private void LoadFonts()
@@ -137,7 +136,7 @@ public partial class FontSelector
         {
             ComboFont.IsEnabled = false;
             _isInitializing = true;
-            CustomFontCollection.Add(new CustomFontProperties { Name = "加载中..." });
+            CustomFontCollection.Add(new CustomFontProperties { Name = Lang.Text("Common.State.Loading") });
             ComboFont.SelectedIndex = 0;
 
             var availableFonts = new List<(string Name, FontFamily Font)>();
@@ -171,7 +170,7 @@ public partial class FontSelector
             CustomFontCollection.Clear();
             CustomFontCollection.Add(new CustomFontProperties
             {
-                Name = "默认",
+                Name = Lang.Text("Common.Option.Default"),
                 Font = LocalizationFontService.BuildLaunchFontFamily(),
                 Tag = ""
             });
@@ -182,7 +181,7 @@ public partial class FontSelector
 
             ComboFont.IsEnabled = true;
 
-            if (_pendingFontTag != null)
+            if (_pendingFontTag is not null)
             {
                 var pendingTag = _pendingFontTag;
                 _pendingFontTag = null;
@@ -196,6 +195,11 @@ public partial class FontSelector
     private void ComboFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_isInitializing) SelectionChanged?.Invoke(sender, e);
+    }
+
+    private CustomFontProperties? GetDefaultFont()
+    {
+        return CustomFontCollection.FirstOrDefault(i => string.IsNullOrEmpty(i.Tag));
     }
 
     public class CustomFontProperties : INotifyPropertyChanged

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -170,9 +171,13 @@ public partial class PageInstanceLeft : IRefreshable
 
     public void Reset(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox("是否要初始化该实例的实例独立设置？该操作不可撤销。", "初始化确认", Button2: "取消", IsWarn: true) == 1)
+        if (ModMain.MyMsgBox(Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
+                Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
+                Button2: Lang.Text("Common.Action.Cancel"),
+                IsWarn: true)
+            == 1)
         {
-            if (ModMain.FrmInstanceSetup == null)
+            if (ModMain.FrmInstanceSetup is null)
                 ModMain.FrmInstanceSetup = new PageInstanceSetup();
             ModMain.FrmInstanceSetup.Reset();
             ItemSetup.Checked = true;
@@ -221,7 +226,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionSetup:
             {
-                if (ModMain.FrmInstanceSetup == null)
+                if (ModMain.FrmInstanceSetup is null)
                     ModMain.FrmInstanceSetup = new PageInstanceSetup();
                 return ModMain.FrmInstanceSetup;
             }

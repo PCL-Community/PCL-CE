@@ -1,17 +1,13 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
-using PCL;
 
 namespace PCL;
 
@@ -39,7 +35,7 @@ public static class ModDownload
         // 检查 Json 是否标准
         if (Version.JsonObject["downloads"] is null || Version.JsonObject["downloads"]["client"] is null ||
             Version.JsonObject["downloads"]["client"]["url"] is null)
-            throw new Exception("底层实例 " + Version.Name + " 中无 Jar 文件下载信息");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NoJarDownloadInfo", Version.Name));
         // 检查文件
         var Checker = new ModBase.FileChecker(1024L, (long)(Version.JsonObject["downloads"]["client"]["size"] ?? -1),
             (string)Version.JsonObject["downloads"]["client"]["sha1"]);
@@ -81,7 +77,7 @@ public static class ModDownload
 
         #region 下载支持库文件
 
-        if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
+        if (ModMinecraft.ShouldIgnoreFileCheck(Version))
         {
             ModBase.Log("[Download] 已跳过所有 Libraries 检查");
         }
@@ -89,12 +85,16 @@ public static class ModDownload
         {
             var LoadersLib = new List<ModLoader.LoaderBase>
             {
-                new ModLoader.LoaderTask<string, List<DownloadFile>>("分析缺失支持库文件",
+                new ModLoader.LoaderTask<string, List<DownloadFile>>(
+                    Lang.Text("Minecraft.Download.Stage.AnalyzeMissingLibraries"),
                     Task => Task.Output = ModMinecraft.McLibNetFilesFromInstance(Version)) { ProgressWeight = 1d },
-                new LoaderDownload("下载支持库文件", new List<DownloadFile>()) { ProgressWeight = 15d }
+                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLibraries"), new List<DownloadFile>())
+                    { ProgressWeight = 15d }
             };
             // 构造加载器
-            Loaders.Add(new ModLoader.LoaderCombo<string>("下载支持库文件（主加载器）", LoadersLib)
+            Loaders.Add(
+                new ModLoader.LoaderCombo<string>(Lang.Text("Minecraft.Download.Stage.DownloadLibraries.MainLoader"),
+                        LoadersLib)
                 { Block = false, Show = false, ProgressWeight = 16d });
         }
 
@@ -102,7 +102,7 @@ public static class ModDownload
 
         #region 下载资源文件
 
-        if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(Version)))
+        if (ModMinecraft.ShouldIgnoreFileCheck(Version))
         {
             ModBase.Log("[Download] 已跳过所有 Assets 检查");
         }
@@ -110,7 +110,8 @@ public static class ModDownload
         {
             var LoadersAssets = new List<ModLoader.LoaderBase>();
             // 获取资源文件索引地址
-            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析资源文件索引地址", Task =>
+            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
+                Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex"), Task =>
             {
                 try
                 {
@@ -124,11 +125,12 @@ public static class ModDownload
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("分析资源文件索引地址失败", ex);
+                    throw new Exception(Lang.Text("Minecraft.Download.Error.AssetIndexAnalysisFailed"), ex);
                 }
             }) { ProgressWeight = 0.5d, Show = false });
             // 下载资源文件索引
-            LoadersAssets.Add(new LoaderDownload("下载资源文件索引", new List<DownloadFile>())
+            LoadersAssets.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadAssetsIndex"),
+                    new List<DownloadFile>())
                 { ProgressWeight = 2d });
             // 要求独立更新索引
             if (AssetsIndexBehaviour == AssetsIndexExistsBehaviour.DownloadInBackground)
@@ -136,7 +138,8 @@ public static class ModDownload
                 var LoadersAssetsUpdate = new List<ModLoader.LoaderBase>();
                 string TempAddress = null;
                 string RealAddress = null;
-                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("后台分析资源文件索引地址", Task =>
+                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
+                    Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex.Background"), Task =>
                 {
                     var BackAssetsFile = DlClientAssetIndexGet(Version);
                     RealAddress = BackAssetsFile.LocalPath;
@@ -151,19 +154,23 @@ public static class ModDownload
                         Task.Abort();
                     }
                 }));
-                LoadersAssetsUpdate.Add(new LoaderDownload("后台下载资源文件索引", new List<DownloadFile>()));
-                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>("后台复制资源文件索引", Task =>
+                LoadersAssetsUpdate.Add(new LoaderDownload(
+                    Lang.Text("Minecraft.Download.Stage.DownloadAssetsIndex.Background"), new List<DownloadFile>()));
+                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>(
+                    Lang.Text("Minecraft.Download.Stage.CopyAssetsIndex.Background"), Task =>
                 {
                     ModBase.CopyFile(TempAddress, RealAddress);
                     ModLaunch.McLaunchLog("后台更新资源文件索引成功：" + TempAddress);
                 }));
-                var Updater = new ModLoader.LoaderCombo<string>("后台更新资源文件索引", LoadersAssetsUpdate);
+                var Updater = new ModLoader.LoaderCombo<string>(
+                    Lang.Text("Minecraft.Download.Stage.UpdateAssetsIndex.Background"), LoadersAssetsUpdate);
                 ModBase.Log("[Download] 开始后台检查资源文件索引");
                 Updater.Start();
             }
 
             // 获取资源文件地址
-            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析缺失资源文件", Task =>
+            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
+                Lang.Text("Minecraft.Download.Stage.AnalyzeMissingAssets"), Task =>
             {
                 ModLoader.LoaderBase argprogressFeed = Task;
                 Task.Output = ModMinecraft.McAssetsFixList(Version, CheckAssetsHash, ref argprogressFeed);
@@ -173,9 +180,13 @@ public static class ModDownload
                 ProgressWeight = 3d
             });
             // 下载资源文件
-            LoadersAssets.Add(new LoaderDownload("下载资源文件", new List<DownloadFile>()) { ProgressWeight = 25d });
+            LoadersAssets.Add(
+                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadAssets"), new List<DownloadFile>())
+                    { ProgressWeight = 25d });
             // 构造加载器
-            Loaders.Add(new ModLoader.LoaderCombo<string>("下载资源文件（主加载器）", LoadersAssets)
+            Loaders.Add(
+                new ModLoader.LoaderCombo<string>(Lang.Text("Minecraft.Download.Stage.DownloadAssets.MainLoader"),
+                        LoadersAssets)
                 { Block = false, Show = false, ProgressWeight = 30.5d });
         }
 
@@ -258,7 +269,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的 Json 数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
         // ''' <summary>
         // ''' 官方源的失败原因。若没有则为 Nothing。
         // ''' </summary>
@@ -276,7 +287,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
@@ -284,7 +295,7 @@ public static class ModDownload
                     loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, DlClientListResult>, int>>
@@ -305,7 +316,7 @@ public static class ModDownload
 
         // 提取所有 Drop 序数
         var drops = new List<int>();
-        foreach (JObject version in loader.Output.Value["versions"])
+        foreach (JsonObject version in loader.Output.Value["versions"].AsArray())
             drops.Add(ModMinecraft.McInstanceInfo.VersionToDrop((string)version["id"]));
         AllDrops = drops.Distinct().OrderByDescending(d => d).ToList();
     }
@@ -325,18 +336,18 @@ public static class ModDownload
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
         var StartTime = TimeUtils.GetTimeTick();
-        var Json = (JObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
+        var Json = (JsonObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
         try
         {
-            var Versions = (JArray)Json["versions"];
+            var Versions = (JsonArray)Json["versions"];
             if (Versions.Count < 200)
-                throw new Exception("获取到的版本列表长度不足（" + Json + "）");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Mojang", Json));
             // 添加 UVMC 项
             var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
+                    var UnlistedJson = (JsonObject)Requester.FetchJson(
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
@@ -347,7 +358,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -367,16 +378,15 @@ public static class ModDownload
             // 这个社区版下不了
             // If File.Exists(PathTemp & "Cache\download.json") Then Versions.Merge(GetJson(ReadFile(PathTemp & "Cache\download.json")))
             // 返回
-            Loader.Output = new DlClientListResult { IsOfficial = true, SourceName = "Mojang 官方源", Value = Json };
+            Loader.Output = new DlClientListResult
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.MojangOfficial"), Value = Json };
             string Version;
             // 快照版
             Version = (string)Json["latest"]["snapshot"];
-            if (Conversions.ToBoolean((bool)Config.Tool.SnapshotNotification &&
-                                      !Operators.ConditionalCompareObjectEqual(
-                                          States.Tool.LastSnapshot, "", false) &&
-                                      Operators.ConditionalCompareObjectNotEqual(
-                                          States.Tool.LastSnapshot, Version, false) &&
-                                      !_DlClientListMojangMain_IsHinted))
+            if (Config.Tool.SnapshotNotification &&
+                                      States.Tool.LastSnapshot != "" &&
+                                      States.Tool.LastSnapshot != Version &&
+                                      !_DlClientListMojangMain_IsHinted)
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
@@ -385,12 +395,10 @@ public static class ModDownload
             States.Tool.LastSnapshot = Version ?? "Nothing";
             // 正式版
             Version = (string)Json["latest"]["release"];
-            if (Conversions.ToBoolean((bool)Config.Tool.ReleaseNotification &&
-                                      !Operators.ConditionalCompareObjectEqual(
-                                          States.Tool.LastRelease, "", false) &&
-                                      Operators.ConditionalCompareObjectNotEqual(
-                                          States.Tool.LastRelease, Version, false) &&
-                                      !_DlClientListMojangMain_IsHinted))
+            if (Config.Tool.ReleaseNotification &&
+                                      States.Tool.LastRelease != "" &&
+                                      States.Tool.LastRelease != Version &&
+                                      !_DlClientListMojangMain_IsHinted)
             {
                 _DlClientListMojangMain_IsHinted = true;
                 ModMinecraft.McDownloadClientUpdateHint(Version, Json);
@@ -400,7 +408,7 @@ public static class ModDownload
         }
         catch (Exception ex)
         {
-            throw new Exception("Minecraft 官方源版本列表解析失败", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Mojang", ""), ex);
         }
     }
 
@@ -412,19 +420,19 @@ public static class ModDownload
 
     private static void DlClientListBmclapiMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
-        var Json = (JObject)Requester.FetchJson(
+        var Json = (JsonObject)Requester.FetchJson(
             "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
         try
         {
-            var Versions = (JArray)Json["versions"];
+            var Versions = (JsonArray)Json["versions"];
             if (Versions.Count < 200)
-                throw new Exception("获取到的版本列表长度不足（" + Json + "）");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "BMCLAPI", Json));
             // 添加 UVMC 项
             var CacheFilePath = ModBase.PathTemp + @"Cache\uvmc-download.json";
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)Requester.FetchJson(
+                    var UnlistedJson = (JsonObject)Requester.FetchJson(
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
@@ -435,7 +443,7 @@ public static class ModDownload
 
             try
             {
-                var CachedJson = (JObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
+                var CachedJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(CacheFilePath));
                 Versions.Merge(CachedJson["versions"]);
             }
             catch (Exception ex)
@@ -448,8 +456,8 @@ public static class ModDownload
             {
                 var Id = Loader.Input;
                 if (DlClientListLoader.Output.Value is not null &&
-                    !DlClientListLoader.Output.Value["versions"].Any(v => (string)v["id"] == Id))
-                    throw new Exception("BMCLAPI 源未包含目标版本 " + Id);
+                    !DlClientListLoader.Output.Value["versions"].AsArray().Any(v => (string)v["id"] == Id))
+                    throw new Exception(Lang.Text("Minecraft.Download.Error.BmclapiMissingTargetVersion", Id));
             }
 
             // 返回
@@ -457,7 +465,7 @@ public static class ModDownload
         }
         catch (Exception ex)
         {
-            throw new Exception("Minecraft BMCLAPI 版本列表解析失败（" + Json + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "BMCLAPI", Json), ex);
         }
     }
 
@@ -471,14 +479,14 @@ public static class ModDownload
             // 确认版本格式标准
             Id = Id.Replace("_", "-"); // 1.7.10_pre4 在版本列表中显示为 1.7.10-pre4
             if (Id != "1.0" && Id.EndsWithF(".0"))
-                Id = Strings.Left(Id, Id.Length - 2); // OptiFine 1.8 的下载会触发此问题，显示版本为 1.8.0
+                Id = Id.Substring(0, Id.Length - 2); // OptiFine 1.8 的下载会触发此问题，显示版本为 1.8.0
             // 获取 Minecraft 版本列表
             switch (DlClientListLoader.State)
             {
                 case ModBase.LoadState.Finished:
                 {
                     // 从当前的结果获取目标版本…
-                    foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+                    foreach (JsonObject Version in DlClientListLoader.Output.Value["versions"].AsArray())
                         if ((string)Version["id"] == Id)
                             return Version["url"].ToString();
                     // …如果没有，则重新尝试获取（在版本刚更新时可能出现这种情况，#5195）
@@ -500,7 +508,7 @@ public static class ModDownload
             }
 
             // 重新查找版本
-            foreach (JObject Version in DlClientListLoader.Output.Value["versions"])
+            foreach (JsonObject Version in DlClientListLoader.Output.Value["versions"].AsArray())
                 if ((string)Version["id"] == Id)
                     return Version["url"].ToString();
             ModBase.Log($"未发现版本 {Id} 的 json 下载地址，版本列表返回为：{"\r\n"}{DlClientListLoader.Output.Value}",
@@ -579,7 +587,7 @@ public static class ModDownload
             set
             {
                 if (value.EndsWithF(".0"))
-                    value = Strings.Left(value, value.Length - 2);
+                    value = value.Substring(0, value.Length - 2);
                 _inherit = value;
             }
         }
@@ -595,7 +603,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
@@ -603,7 +611,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlOptiFineListResult>, int>>
@@ -643,30 +651,31 @@ public static class ModDownload
         resp.EnsureSuccessStatusCode();
         Result = resp.AsString();
         if (Result.Length < 200)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "OptiFine", Result));
         try
         {
-            // 获取所有版本信息
             var Forge = Result.RegexSearch("(?<=colForge'>)[^<]*");
             var ReleaseTime = Result.RegexSearch("(?<=colDate'>)[^<]+");
             var Name = Result.RegexSearch("(?<=OptiFine_)[0-9A-Za-z_.]+(?=.jar\")");
-            if (!(ReleaseTime.Count == Name.Count))
-                throw new Exception("版本与发布时间数据无法对应");
-            if (!(Forge.Count == Name.Count))
-                throw new Exception("版本与 Forge 兼容数据无法对应");
+            if (ReleaseTime.Count != Name.Count)
+                throw new Exception(Lang.Text("Minecraft.Download.Error.OptiFineTimeDataMismatch"));
+            if (Forge.Count != Name.Count)
+                throw new Exception(Lang.Text("Minecraft.Download.Error.OptiFineForgeCompatMismatch"));
             if (ReleaseTime.Count < 10)
-                throw new Exception("获取到的版本数量不足（" + Result + "）");
+                throw new Exception(
+                    Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "OptiFine", Result));
             // 转化为列表输出
             var Versions = new List<DlOptiFineListEntry>();
             for (int i = 0, loopTo = ReleaseTime.Count - 1; i <= loopTo; i++)
             {
                 Name[i] = Name[i].Replace("_", " ");
+                var releaseDate = DateTime.ParseExact(ReleaseTime[i],
+                    ["d.M.yyyy", "dd.M.yyyy", "d.MM.yyyy", "dd.MM.yyyy"],
+                    CultureInfo.InvariantCulture, DateTimeStyles.None);
                 var Entry = new DlOptiFineListEntry
                 {
                     DisplayName = Name[i].Replace("HD U ", "").Replace(".0 ", " "),
-                    ReleaseTime = new[]
-                            { ReleaseTime[i].Split(".")[2], ReleaseTime[i].Split(".")[1], ReleaseTime[i].Split(".")[0] }
-                        .Join("/"),
+                    ReleaseTime = Lang.Date(releaseDate, "d"),
                     IsPreview = Name[i].ContainsF("pre", true),
                     Inherit = Name[i].Split(" ")[0],
                     NameFile = (Name[i].ContainsF("pre", true) ? "preview_" : "") + "OptiFine_" +
@@ -681,11 +690,12 @@ public static class ModDownload
             }
 
             Loader.Output = new DlOptiFineListResult
-                { IsOfficial = true, SourceName = "OptiFine 官方源", Value = Versions };
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.OptiFineOfficial"), Value = Versions };
         }
         catch (Exception ex)
         {
-            throw new Exception("OptiFine 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "OptiFine", Result),
+                ex);
         }
     }
 
@@ -697,11 +707,11 @@ public static class ModDownload
 
     private static void DlOptiFineListBmclapiMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        var Json = (JArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
+        var Json = (JsonArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
         try
         {
             var Versions = new List<DlOptiFineListEntry>();
-            foreach (JObject Token in Json)
+            foreach (JsonObject Token in Json)
             {
                 var Entry = new DlOptiFineListEntry
                 {
@@ -725,7 +735,8 @@ public static class ModDownload
         }
         catch (Exception ex)
         {
-            throw new Exception("OptiFine BMCLAPI 版本列表解析失败（" + Json + "）", ex);
+            throw new Exception(
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "OptiFine BMCLAPI", Json), ex);
         }
     }
 
@@ -761,7 +772,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
@@ -769,7 +780,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlForgeListResult>, int>>
@@ -797,20 +808,21 @@ public static class ModDownload
 
     private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
-        var Result = Conversions.ToString(Requester.FetchJson(
+        var Result = Requester.FetchJson(
             "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", new RequestParam
             {
                 Encoding = Encoding.Default,
                 UseBrowserUserAgent = true
-            }));
+            })?.ToString() ?? "";
         if (Result.Length < 200)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", Result));
         // 获取所有版本信息
         var Names = Result.RegexSearch("(?<=a href=\"index_)[0-9.]+(_pre[0-9]?)?(?=.html)");
         Names.Add("1.2.4"); // 1.2.4 不会被匹配上
         if (Names.Count < 10)
-            throw new Exception("获取到的版本数量不足（" + Result + "）");
-        Loader.Output = new DlForgeListResult { IsOfficial = true, SourceName = "Forge 官方源", Value = Names };
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", Result));
+        Loader.Output = new DlForgeListResult
+            { IsOfficial = true, SourceName = Lang.Text("Download.Source.ForgeOfficial"), Value = Names };
     }
 
     /// <summary>
@@ -822,17 +834,19 @@ public static class ModDownload
     private static void DlForgeListBmclapiMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
         var Result =
-            Conversions.ToString(Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
+            Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
                 new RequestParam
                 {
                     Encoding = Encoding.Default,
-                }));
+                })?.ToString() ?? "";
         if (Result.Length < 200)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge BMCLAPI",
+                Result));
         // 获取所有版本信息
         var Names = Result.RegexSearch("[0-9.]+(_pre[0-9]?)?");
         if (Names.Count < 10)
-            throw new Exception("获取到的版本数量不足（" + Result + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge BMCLAPI",
+                Result));
         Loader.Output = new DlForgeListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Names };
     }
 
@@ -953,7 +967,7 @@ public static class ModDownload
             // 司马版本的特殊处理
             if (Version == "11.15.1.2318" || Version == "11.15.1.1902" || Version == "11.15.1.1890")
                 Branch = "1.8.9";
-            if (Branch is null && Inherit == "1.7.10" && Conversions.ToDouble(Version.Split(".")[3]) >= 1300d)
+            if (Branch is null && Inherit == "1.7.10" && double.Parse(Version.Split(".")[3]) >= 1300d)
                 Branch = "1.7.10";
             // 为 DlForgelikeEntry 提供所有信息
             ForgeType = ForgelikeType.Forge;
@@ -977,7 +991,7 @@ public static class ModDownload
                 DlForgeVersionBmclapiMain);
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
@@ -985,7 +999,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<string, List<DlForgeVersionEntry>>, int>>
@@ -1013,12 +1027,12 @@ public static class ModDownload
         string Result;
         try
         {
-            Result = Conversions.ToString(Requester.FetchJson(
+            Result = Requester.FetchJson(
                 "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" +
                 Loader.Input.Replace("-", "_") + ".html", new RequestParam
                 {
                     UseBrowserUserAgent = true
-                })); // 兼容 Forge 1.7.10-pre4，#4057
+                })?.ToString() ?? ""; // 兼容 Forge 1.7.10-pre4，#4057
         }
         catch (WebException)
         {
@@ -1026,18 +1040,18 @@ public static class ModDownload
         }
         catch (Exception ex)
         {
-            if (ex.Message.Contains("(404)")) throw new Exception("无可用版本");
+            if (ex.Message.Contains("(404)")) throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
 
             throw;
         }
 
         if (Result.Length < 1000)
-            throw new Exception("获取到的版本列表长度不足（" + Result + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", Result));
         var Versions = new List<DlForgeVersionEntry>();
         try
         {
             // 分割版本信息
-            var VersionCodes = Strings.Mid(Result, 1, Result.LastIndexOfF("</table>"))
+            var VersionCodes = Result.Substring(0, Result.LastIndexOfF("</table>"))
                 .Split("<td class=\"download-version");
             // 获取所有版本信息
             for (int i = 1, loopTo = VersionCodes.Count() - 1; i <= loopTo; i++)
@@ -1058,7 +1072,7 @@ public static class ModDownload
                     // Dim ReleaseTimeSplit = ReleaseTimeOriginal.Split(" -:".ToCharArray) '原格式："2021-02-15 03:24:02"
                     var ReleaseDate =
                         DateTime.Parse(ReleaseTimeOriginal, null, DateTimeStyles.AssumeUniversal); // 以 UTC 时间作为标准
-                    var ReleaseTime = ReleaseDate.ToLocalTime().ToString("yyyy'/'MM'/'dd HH':'mm"); // 时区与格式转换
+                    var ReleaseTime = Lang.Date(ReleaseDate.ToLocalTime(), "g"); // 时区与格式转换
                     // 分类与 MD5 获取
                     string MD5;
                     string Category;
@@ -1093,23 +1107,24 @@ public static class ModDownload
                     Versions.Add(new DlForgeVersionEntry(Name, Branch, Inherit)
                     {
                         Category = Category, IsRecommended = IsRecommended,
-                        Hash = MD5.Trim(Conversions.ToChar("\r"), Conversions.ToChar("\n")),
+                        Hash = MD5.Trim('\r', '\n'),
                         ReleaseTime = ReleaseTime
                     });
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("Forge 官方源版本信息提取失败（" + VersionCode + "）", ex);
+                    throw new Exception(
+                        Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", VersionCode), ex);
                 }
             }
         }
         catch (Exception ex)
         {
-            throw new Exception("Forge 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", Result), ex);
         }
 
         if (!Versions.Any())
-            throw new Exception("无可用版本");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
         Loader.Output = Versions;
     }
 
@@ -1118,20 +1133,20 @@ public static class ModDownload
     /// </summary>
     public static void DlForgeVersionBmclapiMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
-        var Json = (JArray)Requester.FetchJson(
+        var Json = (JsonArray)Requester.FetchJson(
             "https://bmclapi2.bangbang93.com/forge/minecraft/" +
             Loader.Input.Replace("-", "_")); // 兼容 Forge 1.7.10-pre4，#4057
         var Versions = new List<DlForgeVersionEntry>();
         try
         {
             var Recommended = ModDownloadLib.McDownloadForgeRecommendedGet(Loader.Input);
-            foreach (JObject Token in Json)
+            foreach (JsonObject Token in Json)
             {
                 // 分类与 Hash 获取
                 string Hash = null;
                 var Category = "unknown";
                 var Proi = -1;
-                foreach (JObject File in Token["files"])
+                foreach (JsonObject File in Token["files"].AsArray())
                     switch (File["category"].ToString() ?? "")
                     {
                         case "installer":
@@ -1179,19 +1194,19 @@ public static class ModDownload
                 var Entry = new DlForgeVersionEntry(Name, Branch, Loader.Input)
                     { Hash = Hash, Category = Category, IsRecommended = (Recommended ?? "") == (Name ?? "") };
                 var TimeSplit = Token["modified"].ToString().Split('-', 'T', ':', '.', ' ', '/');
-                Entry.ReleaseTime = Token["modified"].ToObject<DateTime>().ToLocalTime()
-                    .ToString("yyyy'/'MM'/'dd HH':'mm");
+                Entry.ReleaseTime = Lang.Date(Token["modified"].ToObject<DateTime>().ToLocalTime(), "g");
                 // 添加项
                 Versions.Add(Entry);
             }
         }
         catch (Exception ex)
         {
-            throw new Exception("Forge BMCLAPI 版本列表解析失败（" + Json + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge BMCLAPI", Json),
+                ex);
         }
 
         if (!Versions.Any())
-            throw new Exception("无可用版本");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
         Loader.Output = Versions;
     }
 
@@ -1244,7 +1259,7 @@ public static class ModDownload
             {
                 VersionName = ApiName;
                 var Segments = ApiName.BeforeFirst("-").Split('.');
-                Version = new Version(0, 0, Conversions.ToInteger(Segments.Last()));
+                Version = new Version(0, 0, int.Parse(Segments.Last()));
                 Inherit = Segments[1];
             }
             else // 20.4.30-beta；26.1.0.0-alpha.1+snapshot-1
@@ -1284,7 +1299,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
@@ -1292,7 +1307,7 @@ public static class ModDownload
                     loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlNeoForgeListResult>, int>>
@@ -1334,21 +1349,23 @@ public static class ModDownload
                 UseBrowserUserAgent = true
             }).ToString();
         if (resultLatest.Length < 100 || resultLegacy.Length < 100)
-            throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "NeoForge",
+                resultLatest + "\r\n\r\n" + resultLegacy));
         // 解析
         try
         {
             loader.Output = new DlNeoForgeListResult
             {
                 IsOfficial = true,
-                SourceName = "NeoForge 官方源",
+                SourceName = Lang.Text("Download.Source.NeoForgeOfficial"),
                 Value = GetNeoForgeEntries(resultLatest, resultLegacy)
             };
         }
         catch (Exception ex)
         {
             throw new Exception(
-                "NeoForge 官方源版本列表解析失败（" + resultLatest + "\r\n" + "\r\n" + resultLegacy + "）", ex);
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "NeoForge",
+                    resultLatest + "\r\n\r\n" + resultLegacy), ex);
         }
     }
 
@@ -1374,7 +1391,8 @@ public static class ModDownload
                 UseBrowserUserAgent = true
             }).ToString();
         if (resultLatest.Length < 100 || resultLegacy.Length < 100)
-            throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "NeoForge BMCLAPI",
+                resultLatest + "\r\n\r\n" + resultLegacy));
         // 解析
         try
         {
@@ -1388,7 +1406,8 @@ public static class ModDownload
         catch (Exception ex)
         {
             throw new Exception(
-                "NeoForge BMCLAPI 版本列表解析失败（" + resultLatest + "\r\n" + "\r\n" + resultLegacy + "）",
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "NeoForge BMCLAPI",
+                    resultLatest + "\r\n\r\n" + resultLegacy),
                 ex);
         }
     }
@@ -1399,7 +1418,7 @@ public static class ModDownload
         var versions = versionNames.Where(name => name != "47.1.82").Select(name => new DlNeoForgeListEntry(name))
             .OrderByDescending(a => a).ToList(); // 这个版本虽然在版本列表中，但不能下载
         if (!versions.Any())
-            throw new Exception("无可用版本");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
         return versions;
     }
 
@@ -1464,14 +1483,14 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
                         { new(DlCleanroomListOfficialLoader, 30) }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlCleanroomListResult>, int>>
@@ -1504,32 +1523,34 @@ public static class ModDownload
                 UseBrowserUserAgent = true
             }).ToString();
         if (ResultLatest.Length < 100)
-            throw new Exception("获取到的版本列表长度不足（" + ResultLatest + "）");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Cleanroom",
+                ResultLatest));
         // 解析
         try
         {
             Loader.Output = new DlCleanroomListResult
             {
                 IsOfficial = true,
-                SourceName = "Cleanroom 官方源",
+                SourceName = Lang.Text("Download.Source.CleanroomOfficial"),
                 Value = GetCleanroomEntries(ResultLatest)
             };
         }
         catch (Exception ex)
         {
-            throw new Exception("Cleanroom 官方源版本列表解析失败（" + ResultLatest + "）", ex);
+            throw new Exception(
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Cleanroom", ResultLatest), ex);
         }
     }
 
     private static List<DlCleanroomListEntry> GetCleanroomEntries(string LatestJson)
     {
         var Versions = new List<DlCleanroomListEntry>();
-        var Json = JArray.Parse(LatestJson);
-        foreach (JObject Token in Json)
+        var Json = JsonArray.Parse(LatestJson);
+        foreach (JsonObject Token in Json.AsArray())
             Versions.Add(new DlCleanroomListEntry(Token["tag_name"].ToString())
                 { ForgeType = (DlForgelikeEntry.ForgelikeType)2 });
         if (!Versions.Any())
-            throw new Exception("没有可用版本");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NoAvailableVersion"));
         Versions = Versions.OrderByDescending(a => a.Version).ToList();
         return Versions;
     }
@@ -1586,7 +1607,7 @@ public static class ModDownload
         /// <summary>
         ///     对应的 Json 项。
         /// </summary>
-        public JToken JsonToken;
+        public JsonNode JsonToken;
 
         /// <summary>
         ///     文件的 MD5。
@@ -1609,7 +1630,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
@@ -1618,7 +1639,7 @@ public static class ModDownload
                     }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLiteLoaderListResult>, int>>
@@ -1649,10 +1670,10 @@ public static class ModDownload
     private static void DlLiteLoaderListOfficialMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
+            (JsonObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
+            var Json = (JsonObject)Result["versions"];
             var Versions = new List<DlLiteLoaderListEntry>();
             foreach (var Pair in Json)
             {
@@ -1663,22 +1684,23 @@ public static class ModDownload
                 Versions.Add(new DlLiteLoaderListEntry
                 {
                     Inherit = Pair.Key,
-                    IsLegacy = Conversions.ToDouble(Pair.Key.Split(".")[1]) < 8d,
+                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8d,
                     IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp(long.Parse(RealEntry["timestamp"].ToString())),
                     JsonToken = RealEntry
                 });
             }
 
             Loader.Output = new DlLiteLoaderListResult
-                { IsOfficial = true, SourceName = "LiteLoader 官方源", Value = Versions };
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.LiteLoaderOfficial"), Value = Versions };
         }
         catch (Exception ex)
         {
-            throw new Exception("LiteLoader 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LiteLoader", Result),
+                ex);
         }
     }
 
@@ -1691,11 +1713,11 @@ public static class ModDownload
     private static void DlLiteLoaderListBmclapiMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson(
+            (JsonObject)Requester.FetchJson(
                 "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
         try
         {
-            var Json = (JObject)Result["versions"];
+            var Json = (JsonObject)Result["versions"];
             var Versions = new List<DlLiteLoaderListEntry>();
             foreach (var Pair in Json)
             {
@@ -1706,12 +1728,12 @@ public static class ModDownload
                 Versions.Add(new DlLiteLoaderListEntry
                 {
                     Inherit = Pair.Key,
-                    IsLegacy = Conversions.ToDouble(Pair.Key.Split(".")[1]) < 8d,
+                    IsLegacy = double.Parse(Pair.Key.Split(".")[1]) < 8d,
                     IsPreview = RealEntry["stream"].ToString().ToLower() == "snapshot",
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp(long.Parse((string)RealEntry["timestamp"])),
                     JsonToken = RealEntry
                 });
             }
@@ -1720,7 +1742,8 @@ public static class ModDownload
         }
         catch (Exception ex)
         {
-            throw new Exception("LiteLoader BMCLAPI 版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LiteLoader BMCLAPI", Result), ex);
         }
     }
 
@@ -1743,7 +1766,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -1756,7 +1779,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
@@ -1764,7 +1787,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlFabricListResult>, int>>
@@ -1792,17 +1815,18 @@ public static class ModDownload
 
     private static void DlFabricListOfficialMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
         try
         {
-            var Output = new DlFabricListResult { IsOfficial = true, SourceName = "Fabric 官方源", Value = Result };
+            var Output = new DlFabricListResult
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.FabricOfficial"), Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Fabric", Result));
             Loader.Output = Output;
         }
         catch (Exception ex)
         {
-            throw new Exception("Fabric 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Fabric", Result), ex);
         }
     }
 
@@ -1814,17 +1838,19 @@ public static class ModDownload
 
     private static void DlFabricListBmclapiMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
         try
         {
             var Output = new DlFabricListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Fabric BMCLAPI",
+                    Result));
             Loader.Output = Output;
         }
         catch (Exception ex)
         {
-            throw new Exception("Fabric BMCLAPI 版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Fabric BMCLAPI", Result), ex);
         }
     }
 
@@ -1859,7 +1885,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -1872,7 +1898,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
@@ -1880,7 +1906,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlQuiltListResult>, int>>
@@ -1908,17 +1934,18 @@ public static class ModDownload
 
     private static void DlQuiltListOfficialMain(ModLoader.LoaderTask<int, DlQuiltListResult> Loader)
     {
-        var Result = (JObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
+        var Result = (JsonObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
         try
         {
-            var Output = new DlQuiltListResult { IsOfficial = true, SourceName = "Quilt 官方源", Value = Result };
+            var Output = new DlQuiltListResult
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.QuiltOfficial"), Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Quilt", Result));
             Loader.Output = Output;
         }
         catch (Exception ex)
         {
-            throw new Exception("Quilt 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Quilt", Result), ex);
         }
     }
 
@@ -1927,7 +1954,7 @@ public static class ModDownload
     // ''' </summary>
     // Public DlQuiltListBmclapiLoader As New LoaderTask(Of Integer, DlQuiltListResult)("DlQuiltList Bmclapi", AddressOf DlQuiltListBmclapiMain)
     // Private Sub DlQuiltListBmclapiMain(Loader As LoaderTask(Of Integer, DlQuiltListResult))
-    // Dim Result As JObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions")
+    // Dim Result As JsonObject = NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/Quilt-meta/v2/versions")
     // Try
     // Dim Output = New DlQuiltListResult With {.IsOfficial = False, .SourceName = "BMCLAPI", .Value = Result}
     // If Output.Value("game") Is Nothing OrElse Output.Value("loader") Is Nothing OrElse Output.Value("installer") Is Nothing Then Throw New Exception("获取到的列表缺乏必要项")
@@ -1952,7 +1979,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -1965,7 +1992,7 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
@@ -1973,7 +2000,7 @@ public static class ModDownload
                     Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLabyModListResult>, int>>
@@ -2001,7 +2028,7 @@ public static class ModDownload
 
     private static void DlLabyModListOfficialMain(ModLoader.LoaderTask<int, DlLabyModListResult> Loader)
     {
-        JObject ResultProduction;
+        JsonObject ResultProduction;
         using (var productionResponse = HttpRequest
                    .Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json")
                    .WithHttpVersionOption(HttpVersion.Version20)
@@ -2009,10 +2036,10 @@ public static class ModDownload
                    .GetAwaiter()
                    .GetResult())
         {
-            ResultProduction = (JObject)ModBase.GetJson(productionResponse.AsString());
+            ResultProduction = (JsonObject)ModBase.GetJson(productionResponse.AsString());
         }
 
-        JObject ResultSnapshot;
+        JsonObject ResultSnapshot;
         using (var snapshotResponse = HttpRequest
                    .Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json")
                    .WithHttpVersionOption(HttpVersion.Version20)
@@ -2021,10 +2048,10 @@ public static class ModDownload
                    .GetResult())
         {
             snapshotResponse.EnsureSuccessStatusCode();
-            ResultSnapshot = (JObject)ModBase.GetJson(snapshotResponse.AsString());
+            ResultSnapshot = (JsonObject)ModBase.GetJson(snapshotResponse.AsString());
         }
 
-        var Result = new JObject();
+        var Result = new JsonObject();
         Result.Add("production", ResultProduction);
         Result.Add("snapshot", ResultSnapshot);
         try
@@ -2032,12 +2059,14 @@ public static class ModDownload
             var Output = new DlLabyModListResult { Value = Result };
             if (Output.Value["production"]["labyModVersion"] is null ||
                 Output.Value["snapshot"]["labyModVersion"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LabyMod",
+                    Result));
             Loader.Output = Output;
         }
         catch (Exception ex)
         {
-            throw new Exception("LabyMod 版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LabyMod", Result),
+                ex);
         }
     }
 
@@ -2062,14 +2091,14 @@ public static class ModDownload
         if ((McimUrl ?? "") != (url ?? ""))
             switch (Config.Download.Comp.CompSourceSolution)
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+                case 0:
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+                case 1:
                 {
                     Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
@@ -2097,7 +2126,7 @@ public static class ModDownload
                     UseBrowserUserAgent = true
                 });
                 if (typeof(T) == typeof(string)) return (T)(object)json;
-                return (T)ModBase.GetJson(json);
+                return (T)(object)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
@@ -2128,14 +2157,14 @@ public static class ModDownload
         if ((McimUrl ?? "") != (url ?? ""))
             switch (allowMirror ? Config.Download.Comp.CompSourceSolution : 2)
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+                case 0:
                 {
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 10));
                     Urls.Add(new KeyValuePair<string, int>(url, 15));
                     break;
                 }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+                case 1:
                 {
                     Urls.Add(new KeyValuePair<string, int>(url, 5));
                     Urls.Add(new KeyValuePair<string, int>(McimUrl, 5));
@@ -2165,7 +2194,7 @@ public static class ModDownload
                     Timeout = Source.Value * 1000
                 });
                 if (typeof(T) == typeof(string)) return (T)(object)json; // 沟槽的，为什么不能写 T is string
-                return (T)ModBase.GetJson(json);
+                return (T)(object)ModBase.GetJson(json);
             }
             catch (Exception ex)
             {
@@ -2184,9 +2213,9 @@ public static class ModDownload
     /// <summary>
     ///     下载文件（而非获取版本列表）的时候，是否优先使用官方源。
     /// </summary>
-    public static bool DlSourcePreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(Config.Download.FileSource, 1, false) && DlPreferMojang));
+    public static bool DlSourcePreferMojang =>
+        Config.Download.FileSource == 2 ||
+        (Config.Download.FileSource == 1 && DlPreferMojang);
 
     /// <summary>
     ///     下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
@@ -2199,10 +2228,9 @@ public static class ModDownload
     /// <summary>
     ///     获取版本列表（而非下载文件）的时候，是否优先使用官方源。
     /// </summary>
-    public static bool DlVersionListPreferMojang => Conversions.ToBoolean(
-        Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 2, false) ||
-        (Operators.ConditionalCompareObjectEqual(Config.Download.VersionListSource, 1, false) &&
-         DlPreferMojang));
+    public static bool DlVersionListPreferMojang =>
+        Config.Download.VersionListSource == 2 ||
+        (Config.Download.VersionListSource == 1 && DlPreferMojang);
 
     /// <summary>
     ///     获取版本列表（而非下载文件）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
@@ -2274,7 +2302,7 @@ public static class ModDownload
     public static IEnumerable<string> DlSourceLauncherOrMetaGet(string Original)
     {
         if (Original is null)
-            throw new Exception("无对应的 json 下载地址");
+            throw new Exception(Lang.Text("Minecraft.Download.Error.NoJsonDownloadAddress"));
         return DlSourceOrder(new[] { Original },
             new[]
             {
@@ -2313,19 +2341,19 @@ public static class ModDownload
         // like https://edge.forgecdn.net/files/6767/951/jei-1.21.5-neoforge-21.4.0.27.jar
         switch (Config.Download.Comp.CompSourceSolution)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false): // 镜像源
+            case 0: // 镜像源
             {
                 res.Add(mirrorDl);
                 res.Add(mirrorDl);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false): // 平衡
+            case 1: // 平衡
             {
                 res.Add(original);
                 res.Add(mirrorDl);
                 break;
             }
-            case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false): // 官方源
+            case 2: // 官方源
             {
                 res.Add(original);
                 res.Add(original); // 错误
@@ -2334,7 +2362,7 @@ public static class ModDownload
 
             default:
             {
-                ModBase.Setup.Reset("ToolDownloadMod");
+                Config.Download.Comp.CompSourceSolution = 1;
                 res.Add(original);
                 break;
             }
@@ -2405,13 +2433,13 @@ public static class ModDownload
                     for (int ii = 0, loopTo1 = LoaderList.Count - 1; ii <= loopTo1; ii++)
                     {
                         LoaderList[ii].Key.Input = default; // 重置输入，以免以同样的输入“重试加载”时直接失败
-                        if (LoaderList[ii].Key.Error is not null)
-                            if (ErrorInfo is null || LoaderList[ii].Key.Error.Message.Contains("无可用版本"))
-                                ErrorInfo = LoaderList[ii].Key.Error;
+                        if (LoaderList[ii].Key.Error is null) continue;
+                        if (ErrorInfo is null || LoaderList[ii].Key.Error.Message
+                                .Contains(Lang.Text("Minecraft.Download.Error.NotFound")))
+                            ErrorInfo = LoaderList[ii].Key.Error;
                     }
 
-                    if (ErrorInfo is null)
-                        ErrorInfo = new TimeoutException("下载源连接超时");
+                    ErrorInfo ??= new TimeoutException(Lang.Text("Minecraft.Download.Error.Timeout"));
                     DlSourceLoaderAbort(LoaderList);
                     throw ErrorInfo;
                 }
@@ -2458,7 +2486,7 @@ public static class ModDownload
         /// <summary>
         ///     获取到的数据。
         /// </summary>
-        public JObject Value;
+        public JsonObject Value;
     }
 
     /// <summary>
@@ -2471,14 +2499,14 @@ public static class ModDownload
     {
         switch (Config.Download.VersionListSource)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
+            case 0:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
                         { new(DlLegacyFabricListOfficialLoader, 30) }, Loader.IsForceRestarting);
                 break;
             }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
+            case 1:
             {
                 DlSourceLoader(Loader,
                     new List<KeyValuePair<ModLoader.LoaderTask<int, DlLegacyFabricListResult>, int>>
@@ -2505,18 +2533,20 @@ public static class ModDownload
     private static void DlLegacyFabricListOfficialMain(ModLoader.LoaderTask<int, DlLegacyFabricListResult> Loader)
     {
         var Result =
-            (JObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
+            (JsonObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
         try
         {
             var Output = new DlLegacyFabricListResult
-                { IsOfficial = true, SourceName = "LegacyFabric 官方源", Value = Result };
+                { IsOfficial = true, SourceName = Lang.Text("Download.Source.LegacyFabricOfficial"), Value = Result };
             if (Output.Value["game"] is null || Output.Value["loader"] is null || Output.Value["installer"] is null)
-                throw new Exception("获取到的列表缺乏必要项");
+                throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LegacyFabric",
+                    Result));
             Loader.Output = Output;
         }
         catch (Exception ex)
         {
-            throw new Exception("LegacyFabric 官方源版本列表解析失败（" + Result + "）", ex);
+            throw new Exception(
+                Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "LegacyFabric", Result), ex);
         }
     }
 

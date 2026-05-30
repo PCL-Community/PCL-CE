@@ -85,12 +85,12 @@ public class MyComboBoxItem : ComboBoxItem
 
     public override string ToString()
     {
-        return Content.ToString();
+        return Content?.ToString() ?? "";
     }
 
     public static implicit operator string(MyComboBoxItem Value)
     {
-        return Value.Content.ToString();
+        return Value.Content?.ToString() ?? "";
     }
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

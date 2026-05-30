@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Easings;
+namespace PCL.Core.UI.Animation.Easings;
 
 /// <summary>
 /// 所有缓动类的基类。
@@ -19,6 +19,6 @@ public abstract class Easing : IEasing
     
     public double Ease(int currentFrame, int totalFrames)
     {
-        return totalFrames <= 0 ? 0.0 : Ease((double)currentFrame / totalFrames);
+        return totalFrames <= 1 ? 1.0 : Ease((double)currentFrame / (totalFrames - 1));
     }
 }

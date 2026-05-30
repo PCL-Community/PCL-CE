@@ -60,7 +60,6 @@ public class MyComboBox : ComboBox
             if (IsEditable)
             {
                 if (TextBox is null) return _Text ?? "";
-
                 return TextBox.Text ?? "";
             }
 
@@ -70,7 +69,7 @@ public class MyComboBox : ComboBox
         {
             if (IsEditable)
             {
-                if (TextBox == null)
+                if (TextBox is null)
                     _Text = value;
                 else
                     TextBox.Text = value;
@@ -205,7 +204,7 @@ public class MyComboBox : ComboBox
     {
         if (IsTextChanging || !IsEditable)
             return;
-        if (SelectedItem == null || Text == SelectedItem.ToString()) return;
+        if (SelectedItem is null || Text == SelectedItem.ToString()) return;
         {
             var RawText = Text;
             var RawSelectionStart = TextBox.SelectionStart;

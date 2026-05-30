@@ -5,15 +5,15 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadWorld"
     PanScroll="{Binding ElementName=Content}">
-    <local:PageComp x:Name="Content" PageType="World" TypeName="世界" TypeNameSpaced="世界" SupportModrinth="False">
-        <local:MyComboBoxItem Tag="" Content="全部" IsSelected="True" />
+    <local:PageComp x:Name="Content" PageType="World" SupportModrinth="False">
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
 
-        <local:MyComboBoxItem Content="冒险" Tag="248/" />
-        <local:MyComboBoxItem Content="创造" Tag="249/" />
-        <local:MyComboBoxItem Content="小游戏" Tag="250/" />
-        <local:MyComboBoxItem Content="跑酷" Tag="251/" />
-        <local:MyComboBoxItem Content="解谜" Tag="252/" />
-        <local:MyComboBoxItem Content="生存" Tag="253/" />
-        <local:MyComboBoxItem Content="Mod 世界" Tag="4464/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Adventure}" Tag="248/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Creative}" Tag="249/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Modpack.MiniGame}" Tag="250/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Parkour}" Tag="251/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Puzzle}" Tag="252/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.Survival}" Tag="253/" />
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.World.ModWorld}" Tag="4464/" />
     </local:PageComp>
 </local:MyPageRight>

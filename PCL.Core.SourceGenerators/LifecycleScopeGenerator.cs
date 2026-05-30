@@ -89,7 +89,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                     SupportAsync = scopeAsyncStart
                 });
             }
-        ).Where(static i => i != null).Select(static (i, _) => i.GetValueOrDefault());
+        ).Where(static i => i is not null).Select(static (i, _) => i.GetValueOrDefault());
         var collected = candidates.Collect();
         context.RegisterSourceOutput(collected, _CollectSources);
     }
@@ -106,9 +106,9 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                 var attr = method.GetAttributes().FirstOrDefault(data =>
                 {
                     attrTypeName = data.AttributeClass?.GetSimplifiedTypeName();
-                    return attrTypeName != null && _MethodAttributeTypes.Contains(attrTypeName);
+                    return attrTypeName is not null && _MethodAttributeTypes.Contains(attrTypeName);
                 });
-                if (attr == null) continue;
+                if (attr is null) continue;
                 var methodName = method.Name;
                 var awaitable = method.IsAwaitable();
                 ScopeMethodModel? methodModel = attrTypeName switch
@@ -120,7 +120,7 @@ public class LifecycleScopeGenerator : IIncrementalGenerator
                     NewDependencyInjectionPointAttributeType => GetNewDependencyInjectionPointModel(),
                     _ => null
                 };
-                if (methodModel != null) model.Methods.Add(methodModel);
+                if (methodModel is not null) model.Methods.Add(methodModel);
                 continue;
                 CommandHandlerMethodModel? GetCommandHandlerMethodModel()
                 {

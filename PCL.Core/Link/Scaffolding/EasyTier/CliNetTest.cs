@@ -62,7 +62,7 @@ public class CliNetTest
         {
             LogWrapper.Warn(ex, "Link", "Failed to do net test");
         }
-        if (stunInfo == null) return null;
+        if (stunInfo is null) return null;
 
         var supportIPv6 = false;
         foreach (var ip in stunInfo.Ips)

@@ -6,6 +6,7 @@
              xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
              xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
              xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
+             xmlns:localization="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
@@ -23,6 +24,7 @@
             <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <cvt:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <localization:LocalizationFormatConverter x:Key="LocalizationFormatConverter" />
 
             <!--字体-->
             <FontFamily x:Key="LaunchFontFamily">Resources/#PCL English, Microsoft YaHei UI, Segoe UI</FontFamily>

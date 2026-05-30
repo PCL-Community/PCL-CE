@@ -29,8 +29,7 @@ public class MyTextBox : TextBox
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
             var textBox = (MyTextBox)t;
-            if (textBox.labHint is not null)
-                textBox.labHint.Text = string.IsNullOrEmpty(textBox.Text) ? textBox.HintText : "";
+            textBox.UpdateHintText();
         }));
 
     // 额外控件初始化
@@ -71,11 +70,7 @@ public class MyTextBox : TextBox
     public CornerRadius CornerRadius
     {
         get => (CornerRadius)GetValue(CornerRadiusProperty);
-        set
-        {
-            if (value == null) return;
-            SetValue(CornerRadiusProperty, value);
-        }
+        set => SetValue(CornerRadiusProperty, value);
     }
 
     private TextBlock labWrong
@@ -138,7 +133,7 @@ public class MyTextBox : TextBox
         base.OnApplyTemplate();
         if (string.IsNullOrEmpty(HintText) || !string.IsNullOrEmpty(labHint.Text))
             return;
-        labHint.Text = string.IsNullOrEmpty(Text) ? HintText : "";
+        UpdateHintText();
     }
 
     public event ValidateChangedEventHandler? ValidateChanged;
@@ -152,7 +147,7 @@ public class MyTextBox : TextBox
     private void OnValidatedTextChanged(object sender, TextChangedEventArgs e)
     {
         foreach (var handler in ChangedEventList)
-            if (!(handler == null))
+            if (handler is not null)
                 handler.Invoke(sender, e);
     }
 
@@ -161,13 +156,7 @@ public class MyTextBox : TextBox
     /// </summary>
     public void Validate()
     {
-        var stringResult = string.Empty;
-        // 执行输入验证
-        foreach (var rule in ValidateRules)
-        {
-            var isValid = rule.Validate(Text).IsValid;
-            stringResult = isValid ? "" : rule.Validate(Text).Errors[0].ErrorMessage;
-        }
+        var stringResult = GetValidateResult();
 
         ValidateResult = stringResult;
         // 根据结果改变样式
@@ -269,9 +258,7 @@ public class MyTextBox : TextBox
     {
         try
         {
-            // 改变提示文本
-            if (labHint is not null)
-                labHint.Text = string.IsNullOrEmpty(Text) ? HintText : "";
+            UpdateHintText();
             // 改变输入记录
             IsTextChanged = IsLoaded;
             // 进行输入验证
@@ -285,6 +272,26 @@ public class MyTextBox : TextBox
         {
             ModBase.Log(ex, "进行输入验证时出错", ModBase.LogLevel.Critical);
         }
+    }
+
+    private void UpdateHintText()
+    {
+        if (labHint is null)
+            return;
+        labHint.Text = string.IsNullOrEmpty(Text) ? HintText : "";
+    }
+
+    private string GetValidateResult()
+    {
+        var stringResult = string.Empty;
+        // 执行输入验证
+        foreach (var rule in ValidateRules)
+        {
+            var result = rule.Validate(Text);
+            stringResult = result.IsValid ? "" : result.Errors[0].ErrorMessage;
+        }
+
+        return stringResult;
     }
 
     // 颜色
@@ -386,15 +393,12 @@ public class MyTextBox : TextBox
             ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
             Foreground = NewColor;
         }
-        
-
     }
-    
+
     // 在按下回车时触发自定义事件
     private void MyTextBox_KeyUp(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter) ModMain.RaiseCustomEvent(this);
-        
     }
     private enum ValidateState
     {

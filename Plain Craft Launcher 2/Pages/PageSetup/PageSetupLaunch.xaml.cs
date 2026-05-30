@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -57,13 +58,11 @@ public partial class PageSetupLaunch
             ComboArgumentWindowType.SelectedIndex = (int)Config.Launch.GameWindowMode;
             TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
-            CheckArgumentRam.Checked = Config.Launch.OptimizeMemory;
             ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
             ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
-            // CheckArgumentJavaTraversal.Checked = Setup.Get("LaunchArgumentJavaTraversal")
 
             // 游戏内存
-            ((MyRadioBox)FindName("RadioRamType" + ModBase.Setup.Load("LaunchRamType"))).Checked = true;
+            ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
 
             // 高级设置
@@ -76,11 +75,11 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
-            if (ModBase.IsArm64System)
+            if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
-                CheckAdvanceDisableJLW.ToolTip = "在启动游戏时不使用 Java Wrapper 进行包装。&#xa;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。";
+                CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64Notice");
             }
             else
             {
@@ -90,12 +89,12 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, "启动设置项存在异常，已被自动重置", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载启动设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.LoadFailed"), ModBase.LogLevel.Feedback);
         }
     }
 
@@ -106,11 +105,11 @@ public partial class PageSetupLaunch
         {
             Config.Launch.Reset();
             ModBase.Log("[Setup] 已初始化启动设置");
-            ModMain.Hint("已初始化启动设置！", ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.Launch.Initialized"), ModMain.HintType.Finish, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.InitFailed"), ModBase.LogLevel.Msgbox);
         }
 
         Reload();
@@ -122,42 +121,69 @@ public partial class PageSetupLaunch
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
+            SetLaunchByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
+            SetLaunchByTag(sender.Tag?.ToString(), sender.Checked);
+    }
+
+    private static void SetLaunchByTag(string tag, object value)
+    {
+        switch (tag)
+        {
+            case "LaunchRamType": Config.Launch.MemoryAllocationMode = (int)value; break;
+            case "LaunchRamCustom": Config.Launch.CustomMemorySize = (int)value; break;
+            case "LaunchArgumentTitle": Config.Launch.Title = (string)value; break;
+            case "LaunchArgumentInfo": Config.Launch.TypeInfo = (string)value; break;
+            case "LaunchArgumentIndieV2": Config.Launch.IndieSolutionV2 = (int)value; break;
+            case "LaunchArgumentVisible": Config.Launch.LauncherVisibility = (LauncherVisibility)(int)value; break;
+            case "LaunchArgumentPriority": Config.Launch.ProcessPriority = (GameProcessPriority)(int)value; break;
+            case "LaunchArgumentWindowType": Config.Launch.GameWindowMode = (GameWindowSizeMode)(int)value; break;
+            case "LoginMsAuthType": Config.Launch.LoginMsAuthType = (int)value; break;
+            case "LaunchPreferredIpStack": Config.Launch.PreferredIpStack = (JvmPreferredIpStack)(int)value; break;
+            case "LaunchAdvanceRenderer": Config.Launch.Renderer = (int)value; break;
+            case "LaunchAdvanceJvm": Config.Launch.JvmArgs = (string)value; break;
+            case "LaunchAdvanceGame": Config.Launch.GameArgs = (string)value; break;
+            case "LaunchAdvanceRun": Config.Launch.PreLaunchCommand = (string)value; break;
+            case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool)value; break;
+            case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool)value; break;
+            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool)value; break;
+            case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool)value; break;
+            case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool)value; break;
+            case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool)value; break;
+        }
     }
 
     // 切换到实例独立设置
@@ -178,12 +204,6 @@ public partial class PageSetupLaunch
     {
         ComboChange(sender, e);
         ComboArgumentIndie_SelectionChanged(sender, e);
-    }
-
-    private void CheckArgumentRam_OnChange(object sender, bool user)
-    {
-        CheckBoxChange(sender, user);
-        CheckArgumentRam_Change();
     }
 
     #region 游戏内存
@@ -221,11 +241,11 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{(ramGame == Math.Floor(ramGame) ? $"{ramGame}.0" : ramGame.ToString())} GB{(ramGame != ramGameActual ? $" (可用 {(ramGameActual == Math.Floor(ramGameActual) ? $"{ramGameActual}.0" : ramGameActual.ToString())} GB)" : "")}";
-        LabRamUsed.Text = $"{(ramUsed == Math.Floor(ramUsed) ? $"{ramUsed}.0" : ramUsed.ToString())} GB";
-        LabRamTotal.Text = $" / {(ramTotal == Math.Floor(ramTotal) ? $"{ramTotal}.0" : ramTotal.ToString())} GB";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
+        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
         LabRamWarn.Visibility =
-            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
@@ -429,32 +449,20 @@ public partial class PageSetupLaunch
                 RamTarget3 = 4d;
             }
 
-            double RamDelta;
-            // 预分配内存，阶段一，0 ~ T1，100%
-            RamDelta = RamTarget1;
-            RamGive += Math.Min(RamAvailable, RamDelta);
-            RamAvailable -= RamDelta;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段二，T1 ~ T2，70%
-            RamDelta = RamTarget2 - RamTarget1;
-            RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
-            RamAvailable -= RamDelta / 0.7d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段三，T2 ~ T3，40%
-            RamDelta = RamTarget3 - RamTarget2;
-            RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
-            RamAvailable -= RamDelta / 0.4d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            // 预分配内存，阶段四，T3 ~ T3 * 2，15%
-            RamDelta = RamTarget3;
-            RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
-            RamAvailable -= RamDelta / 0.15d;
-            if (RamAvailable < 0.1d)
-                goto PreFin;
-            PreFin: ;
+            var RamStages = new[]
+            {
+                (Delta: RamTarget1, Ratio: 1d),
+                (Delta: RamTarget2 - RamTarget1, Ratio: 0.7d),
+                (Delta: RamTarget3 - RamTarget2, Ratio: 0.4d),
+                (Delta: RamTarget3, Ratio: 0.15d)
+            };
+            foreach (var (RamDelta, RamRatio) in RamStages)
+            {
+                RamGive += Math.Min(RamAvailable * RamRatio, RamDelta);
+                RamAvailable -= RamDelta / RamRatio;
+                if (RamAvailable < 0.1d)
+                    break;
+            }
 
             // 不低于最低值
             RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
@@ -510,29 +518,11 @@ public partial class PageSetupLaunch
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
-                    """
-                    若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。
-                    如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。
-                    """,
-                    "提醒", "继续", "取消") == 2)
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Message"),
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Title"),
+                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Continue"),
+                    Lang.Text("Common.Action.Cancel")) == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
-    }
-
-    // 开启自动内存优化的警告
-    private void CheckArgumentRam_Change()
-    {
-        if (ModAnimation.AniControlEnabled != 0)
-            return;
-        if (CheckArgumentRam.Checked == false)
-            return;
-        if (ModMain.MyMsgBox(
-                $"""
-                 内存优化会显著延长启动耗时，建议仅在内存不足时开启。
-                 如果你在使用机械硬盘，这还可能导致一小段时间的严重卡顿。{(ProcessInterop.IsAdmin()
-                     ? ""
-                     : $"\r\n\r\n每次启动游戏，PCL 都需要申请管理员权限以进行内存优化。\r\n若想自动授予权限，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")}
-                 """,
-                "提醒", "确定", "取消") == 2) CheckArgumentRam.Checked = false;
     }
 
     // 实例隔离提示
@@ -540,10 +530,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        ModMain.MyMsgBox("""
-                         默认策略只会对今后新安装的实例生效。
-                         已有实例的隔离策略需要在它的设置中调整。
-                         """);
+        ModMain.MyMsgBox(Lang.Text("Setup.Launch.InstanceIsolation.DefaultPolicyHint"));
     }
 
     #endregion
@@ -560,14 +547,14 @@ public partial class PageSetupLaunch
     private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
         BtnAdvanceJvmReset.Visibility =
-            TextAdvanceJvm.Text == (string)ModBase.Setup.GetDefault("LaunchAdvanceJvm")
+            TextAdvanceJvm.Text == Config.Launch.JvmArgsConfig.DefaultValue
                 ? Visibility.Hidden
                 : Visibility.Visible;
     }
 
     private void BtnAdvanceJvmReset_Click(object sender, EventArgs e)
     {
-        ModBase.Setup.Reset("LaunchAdvanceJvm");
+        Config.Launch.JvmArgsConfig.Reset();
         Reload();
     }
 
@@ -577,23 +564,22 @@ public partial class PageSetupLaunch
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
-            if (ModMain.MyMsgBox("""
-                                 修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！
-                                 你确定要继续修改吗？
-                                 """, "警告",
-                    "我知道我在做什么", "取消", IsWarn: true) == 2)
+            if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                    Lang.Text("Common.Dialog.Warning"),
+                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
+                    Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
             }
             else
             {
-                ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+                Config.Launch.Renderer = sender.SelectedIndex;
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            ModBase.Setup.Set((string)sender.Tag, sender.SelectedIndex);
+            Config.Launch.Renderer = sender.SelectedIndex;
         }
     }
 

@@ -16,23 +16,15 @@ public partial class MyMsgText
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
-            Btn3.Name = Btn3.Name + ModBase.GetUuid();
+            AppendUniqueNameSuffix(Btn1);
+            AppendUniqueNameSuffix(Btn2);
+            AppendUniqueNameSuffix(Btn3);
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
             LabCaption.Text = Converter.Text;
-            Btn1.Text = Converter.Button1;
-            if (Converter.IsWarn)
-            {
-                Btn1.ColorType = MyButton.ColorState.Red;
-                LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
-            }
-
-            Btn2.Text = Converter.Button2;
-            Btn3.Text = Converter.Button3;
-            Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
-            Btn3.Visibility = string.IsNullOrEmpty(Converter.Button3) ? Visibility.Collapsed : Visibility.Visible;
+            ConfigurePrimaryButton(Converter.Button1, Converter.IsWarn);
+            ConfigureSecondaryButton(Btn2, Converter.Button2);
+            ConfigureSecondaryButton(Btn3, Converter.Button3);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -42,6 +34,27 @@ public partial class MyMsgText
         }
 
         Loaded += Load;
+    }
+
+    private void AppendUniqueNameSuffix(FrameworkElement element)
+    {
+        element.Name += ModBase.GetUuid();
+    }
+
+    private void ConfigurePrimaryButton(string text, bool isWarn)
+    {
+        Btn1.Text = text;
+        if (isWarn)
+        {
+            Btn1.ColorType = MyButton.ColorState.Red;
+            LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
+        }
+    }
+
+    private static void ConfigureSecondaryButton(MyButton button, string text)
+    {
+        button.Text = text;
+        button.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void Load(object sender, RoutedEventArgs e)

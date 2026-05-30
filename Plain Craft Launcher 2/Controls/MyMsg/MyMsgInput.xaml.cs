@@ -16,8 +16,8 @@ public partial class MyMsgInput
         try
         {
             InitializeComponent();
-            Btn1.Name = Btn1.Name + ModBase.GetUuid();
-            Btn2.Name = Btn2.Name + ModBase.GetUuid();
+            AppendUniqueNameSuffix(Btn1);
+            AppendUniqueNameSuffix(Btn2);
             MyConverter = Converter;
             LabTitle.Text = Converter.Title;
             LabText.Text = Converter.Text;
@@ -25,15 +25,8 @@ public partial class MyMsgInput
             TextArea.Text = (string)Converter.Content;
             TextArea.HintText = Converter.HintText;
             TextArea.ValidateRules = Converter.ValidateRules;
-            Btn1.Text = Converter.Button1;
-            if (Converter.IsWarn)
-            {
-                Btn1.ColorType = MyButton.ColorState.Red;
-                LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
-            }
-
-            Btn2.Text = Converter.Button2;
-            Btn2.Visibility = string.IsNullOrEmpty(Converter.Button2) ? Visibility.Collapsed : Visibility.Visible;
+            ConfigurePrimaryButton(Converter.Button1, Converter.IsWarn);
+            ConfigureSecondaryButton(Converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -43,6 +36,27 @@ public partial class MyMsgInput
         }
 
         Loaded += Load;
+    }
+
+    private void AppendUniqueNameSuffix(FrameworkElement element)
+    {
+        element.Name += ModBase.GetUuid();
+    }
+
+    private void ConfigurePrimaryButton(string text, bool isWarn)
+    {
+        Btn1.Text = text;
+        if (isWarn)
+        {
+            Btn1.ColorType = MyButton.ColorState.Red;
+            LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
+        }
+    }
+
+    private void ConfigureSecondaryButton(string text)
+    {
+        Btn2.Text = text;
+        Btn2.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void Load(object sender, EventArgs e)

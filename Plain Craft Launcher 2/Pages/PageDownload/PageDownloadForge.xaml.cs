@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -49,7 +50,7 @@ public partial class PageDownloadForge
                 NewCard.SwapControl = NewStack;
                 NewCard.InstallMethod = Stack =>
                 {
-                    var LoadingPickaxe = new MyLoading { Text = "正在获取版本列表", Margin = new Thickness(5d) };
+                    var LoadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
                     var Loader =
                         new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>("DlForgeVersion Main",
                             ModDownload.DlForgeVersionMain);
@@ -64,14 +65,6 @@ public partial class PageDownloadForge
                 PanMain.Children.Add(NewCard);
             }
         }
-        // '非官方源警示
-        // If Setup.Get("ToolDownloadOutOfDate") AndAlso Not DlForgeListLoader.Output.IsOfficial Then
-        // Dim CardWarn As New MyCard With {.Title = "过期提示", .Margin = New Thickness(0, 0, 0, 15)}
-        // CardWarn.Children.Add(New TextBlock With {
-        // .Margin = New Thickness(25, MyCard.SwapedHeight, 15, 15), .VerticalAlignment = VerticalAlignment.Top, .HorizontalAlignment = HorizontalAlignment.Left, .TextTrimming = TextTrimming.None, .TextWrapping = TextWrapping.Wrap,
-        // .Text = "获取官方源失败，正在使用 " & DlForgeListLoader.Output.SourceName & " 镜像源，版本列表可能并非最新。" & vbCrLf & "官方源错误原因：" & If(DlForgeListLoader.Output.OfficialError, New Exception("连接服务器超时")).Message})
-        // PanMain.Children.Insert(0, CardWarn)
-        // End If
         catch (Exception ex)
         {
             ModBase.Log(ex, "可视化 Forge 版本列表出错", ModBase.LogLevel.Feedback);

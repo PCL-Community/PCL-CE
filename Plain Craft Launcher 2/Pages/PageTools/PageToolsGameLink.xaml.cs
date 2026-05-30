@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link;
 using PCL.Core.Link.EasyTier;
@@ -14,6 +13,7 @@ using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -22,7 +22,7 @@ public partial class PageToolsGameLink
     static PageToolsGameLink()
     {
         InitLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
-            new[] { new ModLoader.LoaderTask<int, int>("初始化", InitTask) { ProgressWeight = 0.5d } });
+            new[] { new ModLoader.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask) { ProgressWeight = 0.5d } });
     }
 
     public PageToolsGameLink()
@@ -113,7 +113,7 @@ public partial class PageToolsGameLink
 
     private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", "确定", "取消", IsWarn: true) == 1)
+        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.LinkEulaConfig.Reset();
@@ -193,17 +193,17 @@ public partial class PageToolsGameLink
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
+                    if (e.NewItems is not null)
                         foreach (PlayerProfile player in e.NewItems)
                             StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    if (e.OldItems != null)
+                    if (e.OldItems is not null)
                         foreach (PlayerProfile player in e.OldItems)
                         {
                             var itemToRemove = StackPlayerList.Children.OfType<MyListItem>()
                                 .FirstOrDefault(item => ((PlayerProfile)item.Tag).MachineId == player.MachineId);
-                            if (itemToRemove != null) StackPlayerList.Children.Remove(itemToRemove);
+                            if (itemToRemove is not null) StackPlayerList.Children.Remove(itemToRemove);
                         }
 
                     break;
@@ -241,7 +241,7 @@ public partial class PageToolsGameLink
                     break;
 
                 case NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
+                    if (e.NewItems is not null)
                         foreach (FoundWorld world in e.NewItems)
                             ComboWorldList.Items.Add(new MyComboBoxItem
                             {
@@ -252,7 +252,7 @@ public partial class PageToolsGameLink
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
-                    if (e.OldItems != null)
+                    if (e.OldItems is not null)
                     {
                         // 使用 HashSet 提高查询效率
                         var portsToRemove = e.OldItems.Cast<FoundWorld>().Select(w => w.Port).ToHashSet();
@@ -361,7 +361,7 @@ public partial class PageToolsGameLink
             try
             {
                 var serverNumber = 0;
-                JObject jObj = null;
+                JsonObject jObj = null;
 
                 #region 多服务器轮询获取公告
 
@@ -381,7 +381,7 @@ public partial class PageToolsGameLink
                         if (cacheVer == States.Link.AnnounceCacheVer)
                         {
                             LogWrapper.Info("[Link] Using cached announcement data");
-                            jObj = (JObject)ModBase.GetJson(States.Link.AnnounceCache);
+                            jObj = (JsonObject)ModBase.GetJson(States.Link.AnnounceCache);
                         }
                         else
                         {
@@ -394,7 +394,7 @@ public partial class PageToolsGameLink
                                     ContentType = "application/json",
                                     Timeout = 7000
                                 });
-                            jObj = (JObject)ModBase.GetJson(received);
+                            jObj = (JsonObject)ModBase.GetJson(received);
 
                             // 更新缓存
                             States.Link.AnnounceCache = received;
@@ -413,7 +413,7 @@ public partial class PageToolsGameLink
 
                 #endregion
 
-                if (jObj == null) throw new Exception("Failed to fetch lobby data");
+                if (jObj is null) throw new Exception("Failed to fetch lobby data");
 
                 #region 解析基础状态与版本限制
 
@@ -422,7 +422,7 @@ public partial class PageToolsGameLink
                 LobbyInfoProvider.RequiresLogin = (bool)jObj["requireLogin"];
                 LobbyInfoProvider.RequiresRealName = (bool)jObj["requireRealname"];
 
-                if (Convert.ToDouble(jObj["version"]) > LobbyInfoProvider.ProtocolVersion)
+                if (jObj["version"].GetValue<double>() > LobbyInfoProvider.ProtocolVersion)
                 {
                     ModBase.RunInUi(() =>
                     {
@@ -437,15 +437,15 @@ public partial class PageToolsGameLink
 
                 #region 解析公告列表 (Notices)
 
-                var notices = (JArray)jObj["notices"];
-                foreach (JObject notice in notices)
+                var notices = (JsonArray)jObj["notices"];
+                foreach (JsonObject notice in notices)
                 {
                     var content = notice["content"]?.ToString();
                     if (string.IsNullOrWhiteSpace(content)) continue;
 
                     // 版本过滤
-                    var minVer = Convert.ToDouble(notice["minVer"]);
-                    var maxVer = Convert.ToDouble(notice["maxVer"]);
+                    var minVer = notice["minVer"].GetValue<double>();
+                    var maxVer = notice["maxVer"].GetValue<double>();
                     if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
 
                     // 类型映射
@@ -466,7 +466,7 @@ public partial class PageToolsGameLink
 
                 #region 解析中继服务器 (Relays)
 
-                var relays = (JArray)jObj["relays"];
+                var relays = (JsonArray)jObj["relays"];
                 ETRelay.RelayList = new List<ETRelay>();
                 foreach (var relay in relays)
                     ETRelay.RelayList.Add(new ETRelay
@@ -652,7 +652,7 @@ public partial class PageToolsGameLink
         if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
         {
             // 当前未登录，显示登录选项
-            if (ModMain.MyMsgBox("PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。", "登录至 Natayark Network", "继续", "取消") == 1)
+            if (ModMain.MyMsgBox("PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。", "登录至 Natayark Network", "继续", Lang.Text("Common.Action.Cancel")) == 1)
             {
                 LabNatayarkUserName.Text = "请在浏览器中继续...";
                 LabNatayarkUserName.Opacity = 0.6d;
@@ -666,7 +666,7 @@ public partial class PageToolsGameLink
             }
         }
         // 当前已登录，显示登出选项
-        else if (ModMain.MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") == 1)
+        else if (ModMain.MyMsgBox("你确定要退出登录吗？", "退出登录", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.NaidRefreshToken = "";
@@ -743,7 +743,7 @@ public partial class PageToolsGameLink
             BtnInputPort.IsEnabled = false;
             if (!ModLink.LobbyPrecheck()) return;
             var input = ModMain.MyMsgBoxInput("请输入端口",
-                ValidateRules: [new IntValidator(1024, 65535)]);
+                ValidateRules: [new IntValidator(65535,1024)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -887,7 +887,7 @@ public partial class PageToolsGameLink
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!(InitLoader.State == ModBase.LoadState.Failed))
+        if (InitLoader.State != ModBase.LoadState.Failed)
             return;
         InitLoader.Start(IsForceRestart: true);
     }
@@ -947,7 +947,7 @@ public partial class PageToolsGameLink
     private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
-        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", "确定", "取消", IsWarn: true) == 1)
+        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
             CurrentSubpage = Subpages.PanSelect;
             BtnFinishExit.Text = "退出大厅";
@@ -967,7 +967,7 @@ public partial class PageToolsGameLink
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-            "复制", "返回", Button1Action: () => ModBase.ClipboardSet(ip));
+            Lang.Text("Common.Action.Copy"), "返回", Button1Action: () => ModBase.ClipboardSet(ip));
     }
 
     #endregion

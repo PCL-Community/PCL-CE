@@ -50,7 +50,7 @@ public class AnimatedBackgroundGrid : Grid
     {
         var grid = (AnimatedBackgroundGrid)d;
         var brush = (SolidColorBrush)e.NewValue;
-        if (!(grid.IsLoaded & grid.IsVisible))
+        if (!(grid.IsLoaded && grid.IsVisible))
         {
             grid.AnimatableBrush = brush;
             return;

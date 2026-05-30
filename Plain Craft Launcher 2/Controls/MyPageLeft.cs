@@ -35,7 +35,7 @@ public class MyPageLeft : Grid
         if (AnimatedControl is null)
         {
             // 缩放动画
-            if (!(RenderTransform is ScaleTransform))
+            if (RenderTransform is not ScaleTransform)
             {
                 RenderTransform = new ScaleTransform(0.96d, 0.96d);
                 RenderTransformOrigin = new Point(0.5d, 0.5d);
@@ -99,7 +99,7 @@ public class MyPageLeft : Grid
         if (AnimatedControl is null)
         {
             // 缩放动画
-            if (!(RenderTransform is ScaleTransform))
+            if (RenderTransform is not ScaleTransform)
             {
                 RenderTransform = new ScaleTransform(1d, 1d);
                 RenderTransformOrigin = new Point(0.5d, 0.5d);

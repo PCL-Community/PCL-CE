@@ -8,6 +8,7 @@ using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -56,17 +57,17 @@ public partial class PageSetupLog
                 var r = DateTime.TryParseExact(title, "yyyy-M-d-HHmmssfff", CultureInfo.InvariantCulture,
                     DateTimeStyles.None, out dt);
                 if (r)
-                    title = dt.ToString("yyyy 年 M 月 d 日 HH:mm:ss.fff");
+                    title = Lang.Date(dt, "G");
                 if (current.Any(log => log.Equals(fullPath)))
-                    title = title + " (当前)";
+                    title = Lang.Text("Setup.Misc.Log.CurrentSuffix", title);
             }
             else if (title.StartsWith("LastPending"))
             {
                 title = title.Substring(11, title.Length - 15);
                 if (title.Length > 1)
-                    title = "临时存储的日志 (" + title.Substring(1) + ")";
+                    title = Lang.Text("Setup.Misc.Log.TempStored", title.Substring(1));
                 else
-                    title = "临时存储的未输出日志";
+                    title = Lang.Text("Setup.Misc.Log.TempUnoutput");
             }
 
             var ele = new MyListItem
@@ -88,12 +89,12 @@ public partial class PageSetupLog
 
     private static void ExportLog(IEnumerable<string> sourceFiles)
     {
-        const string filter = "PCL CE 日志压缩包|*.zip";
+        var filter = Lang.Text("Setup.Misc.Log.ExportFilter");
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+        var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         var tempDirName = baseName + ".tmp";
         var fileName = baseName + ".zip";
-        var selectedPath = SystemDialogs.SelectSaveFile("导出日志文件", fileName, filter, desktopPath);
+        var selectedPath = SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Log.ExportSaveTitle"), fileName, filter, desktopPath);
         if (string.IsNullOrEmpty(selectedPath))
             return;
         try
@@ -113,11 +114,11 @@ public partial class PageSetupLog
                 }
             }
 
-            ModMain.Hint("日志保存成功！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "日志保存失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
         }
         finally
         {
@@ -133,14 +134,14 @@ public partial class PageSetupLog
 
     private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var r = ModMain.MyMsgBox("是否删除所有历史日志？", "清理历史日志", "确定", "取消", IsWarn: true);
+        var r = ModMain.MyMsgBox(Lang.Text("Setup.Misc.Log.Clear.Confirm.Message"), Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true);
         if (r != 1)
             return;
         var currentSet = new HashSet<string>(CurrentLogs);
         foreach (var item in Directory.GetFiles(LogDirectory))
             if (!currentSet.Contains(item))
                 File.Delete(item);
-        ModMain.Hint("清理日志文件成功！", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), ModMain.HintType.Finish);
         LoadList();
     }
 

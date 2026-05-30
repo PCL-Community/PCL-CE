@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -27,13 +27,13 @@ public partial class PageDownloadFabric
         // 结果数据化
         try
         {
-            var Versions = (JArray)ModDownload.DlFabricListLoader.Output.Value["installer"];
+            var Versions = (JsonArray)ModDownload.DlFabricListLoader.Output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in Versions)
                 PanVersions.Children.Add(
-                    ModDownloadLib.FabricDownloadListItem((JObject)Version,
+                    ModDownloadLib.FabricDownloadListItem((JsonObject)Version,
                         (sender, e) => Fabric_Selected((MyListItem)sender, e)));
-            CardVersions.Title = "版本列表 (" + Versions.Count + ")";
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
         }
         catch (Exception ex)
         {
@@ -43,7 +43,7 @@ public partial class PageDownloadFabric
 
     private void Fabric_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadFabricLoaderSave((JObject)sender.Tag);
+        ModDownloadLib.McDownloadFabricLoaderSave((JsonObject)sender.Tag);
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)

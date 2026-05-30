@@ -63,7 +63,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
     public override T Get<T>(string key)
     {
         var result = _rootElement[key];
-        if (result == null) throw new KeyNotFoundException($"Not found: '{key}'");
+        if (result is null) throw new KeyNotFoundException($"Not found: '{key}'");
         try
         {
             var r = result.Deserialize<T>();

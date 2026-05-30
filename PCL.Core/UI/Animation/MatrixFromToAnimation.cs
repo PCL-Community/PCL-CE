@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Animation.ValueProcessor;
@@ -14,9 +14,9 @@ public class MatrixFromToAnimation : FromToAnimationBase<Matrix>
 
         // 计算当前值
         CurrentValue = ValueType == AnimationValueType.Relative
-            ? ValueProcessorManager.Add(From!.Value, ValueProcessorManager.Scale(To, easedProgress))
-            : ValueProcessorManager.Add(From!.Value,
-                ValueProcessorManager.Scale(ValueProcessorManager.Subtract(To, From!.Value), easedProgress));
+            ? ValueProcessorManager.Add(From, ValueProcessorManager.Scale(To, easedProgress))
+            : ValueProcessorManager.Add(From,
+                ValueProcessorManager.Scale(ValueProcessorManager.Subtract(To, From), easedProgress));
 
         return base.ComputeNextFrame(target);
     }

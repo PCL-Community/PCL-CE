@@ -61,6 +61,15 @@ public class MyTextButton : Label
 
     public event ClickEventHandler? Click;
 
+    private (string ForeName, int Time) GetVisualState()
+    {
+        if (IsMouseDown)
+            return ("ColorBrush4", 30);
+        if (IsMouseOver)
+            return ("ColorBrush3", AnimationTimeIn);
+        return ("ColorBrush1", AnimationTimeOut);
+    }
+
     private void MyTextButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         IsMouseDown = true;
@@ -84,41 +93,14 @@ public class MyTextButton : Label
 
     private void RefreshColor()
     {
-        // 判断当前颜色
-        string ForeName;
-        int Time;
-        if (IsMouseDown)
-        {
-            ForeName = "ColorBrush4";
-            Time = 30;
-        }
-        else if (IsMouseOver)
-        {
-            ForeName = "ColorBrush3";
-            Time = AnimationTimeIn;
-        }
-        else
-        {
-            ForeName = "ColorBrush1";
-            Time = AnimationTimeOut;
-        }
+        var (ForeName, Time) = GetVisualState();
 
         // 重复性验证
         if ((ColorName ?? "") == (ForeName ?? ""))
             return;
         ColorName = ForeName;
         // 触发颜色动画
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
-        {
-            // 有动画
-            ModAnimation.AniStart(ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time),
-                "MyTextButton Color " + Uuid);
-        }
-        else
-        {
-            // 无动画
-            ModAnimation.AniStop("MyTextButton Color " + Uuid);
-            SetResourceReference(ForegroundProperty, ForeName);
-        }
+        ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
+            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
     }
 }

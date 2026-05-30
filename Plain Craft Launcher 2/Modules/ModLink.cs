@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
@@ -76,7 +75,7 @@ public static class ModLink
                 return false;
             }
 
-            if (!(NatayarkProfileManager.NaidProfile.Status == 0))
+            if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
                 ModMain.Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", ModMain.HintType.Critical);
                 return false;
@@ -310,7 +309,7 @@ public static class ModLink
 
     #region EasyTier
 
-    public static ModLoader.LoaderCombo<JObject> DlEasyTierLoader;
+    public static ModLoader.LoaderCombo<JsonObject> DlEasyTierLoader;
 
     public static int DownloadEasyTier()
     {
@@ -324,7 +323,7 @@ public static class ModLink
                 var loaders = new List<ModLoader.LoaderBase>();
 
                 // Setup download addresses
-                var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
+                var architecture = SystemInfo.IsArm64System ? "arm64" : "x86_64";
                 var addresses = new List<string>
                 {
                     $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",
@@ -356,7 +355,7 @@ public static class ModLink
                 ) { Show = false });
 
                 // Start loader combo
-                DlEasyTierLoader = new ModLoader.LoaderCombo<JObject>("大厅初始化", loaders);
+                DlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
                 DlEasyTierLoader.Start();
 
                 // Taskbar and UI notification

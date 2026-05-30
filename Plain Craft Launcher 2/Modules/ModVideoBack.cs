@@ -43,14 +43,14 @@ public static class ModVideoBack
             {
                 if (ForcePlay)
                 {
-                    if (!(ModMain.FrmSetupUI == null)) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
                 }
-                else if (!(ModMain.FrmSetupUI == null))
+                else if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                 }
             }
-            else if (!(ModMain.FrmSetupUI == null))
+            else if (ModMain.FrmSetupUI is not null)
             {
                 ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
             }
@@ -65,14 +65,14 @@ public static class ModVideoBack
             {
                 if (ForcePlay)
                 {
-                    if (!(ModMain.FrmSetupUI == null)) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
+                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
                 }
-                else if (!(ModMain.FrmSetupUI == null))
+                else if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                 }
             }
-            else if (!(ModMain.FrmSetupUI == null))
+            else if (ModMain.FrmSetupUI is not null)
             {
                 ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = true;
             }
@@ -86,8 +86,8 @@ public static class ModVideoBack
     {
         ModBase.RunInUi(() =>
         {
-            if (ModMain.FrmMain.VideoBack.Source is not null & !IsMinimized)
-                if (!IsGaming | ForcePlay)
+            if (ModMain.FrmMain.VideoBack.Source is not null && !IsMinimized)
+                if (!IsGaming || ForcePlay)
                     try
                     {
                         ModMain.FrmMain.VideoBack.Play();
@@ -150,7 +150,7 @@ public static class ModVideoBack
             {
                 try
                 {
-                    if (!(ModMain.FrmSetupUI == null)) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
+                    if (ModMain.FrmSetupUI is not null) ModMain.FrmSetupUI.BtnBackgroundRefresh.IsEnabled = false;
                     ModMain.FrmMain.VideoBack.Pause();
                     ModBase.Log("[UI] 已暂停视频背景播放");
                 }

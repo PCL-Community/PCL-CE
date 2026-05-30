@@ -11,10 +11,13 @@ using System.Windows.Threading;
 using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -86,7 +89,6 @@ public static class ModMain
     public static PageInstanceServer? FrmInstanceServer;
     public static PageInstanceSavesLeft? FrmInstanceSavesLeft;
     public static PageInstanceSavesInfo? FrmInstanceSavesInfo;
-    public static PageInstanceSavesBackup? FrmInstanceSavesBackup;
     public static PageInstanceSavesDatapack? FrmInstanceSavesDatapack;
     public static PageDownloadCompDetail? FrmDownloadCompDetail;
     public static PageHomepageNewsView? FrmHomepageNews;
@@ -326,7 +328,7 @@ public static class ModMain
                     }
                 }
 
-                if (DoubleStack != null)
+                if (DoubleStack is not null)
                 {
                     var doubleStackTag = (object[])DoubleStack.Tag;
                     // 有重复提示，且该提示的进入动画已播放
@@ -475,7 +477,7 @@ public static class ModMain
     {
         // 设置轮询 Url
         public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
-        public string Button1 = "确定";
+        public string Button1 = "";
 
         /// <summary>
         ///     点击第一个按钮将执行该方法，不关闭弹窗。
@@ -550,6 +552,12 @@ public static class ModMain
         Markdown
     }
 
+    private static string GetDefaultDialogTitle() => Lang.Text("Common.Dialog.Title");
+
+    private static string GetDefaultConfirmText() => Lang.Text("Common.Action.Confirm");
+
+    private static string GetDefaultCancelText() => Lang.Text("Common.Action.Cancel");
+
     /// <summary>
     ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
@@ -562,10 +570,14 @@ public static class ModMain
     /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBox(string Caption, string Title = "提示", string Button1 = "确定", string Button2 = "",
-        string Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
+    public static int MyMsgBox(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
+        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
         Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
+        Button3 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -653,10 +665,14 @@ public static class ModMain
     /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBoxMarkdown(string Caption, string Title = "提示", string Button1 = "确定", string Button2 = "",
-        string Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
+    public static int MyMsgBoxMarkdown(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
+        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
         Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
+        Button3 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -744,9 +760,11 @@ public static class ModMain
     /// <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static string MyMsgBoxInput(string Title, string Text = "", string DefaultInput = "",
-        Collection<IValidator<string>>? ValidateRules = null, string HintText = "", string Button1 = "确定",
-        string Button2 = "取消", bool IsWarn = false)
+        Collection<IValidator<string>>? ValidateRules = null, string HintText = "", string? Button1 = null,
+        string? Button2 = null, bool IsWarn = false)
     {
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= GetDefaultCancelText();
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -778,9 +796,12 @@ public static class ModMain
     /// <param name="Button1">显示的第一个按钮，默认为 “确定”。</param>
     /// <param name="Button2">显示的第二个按钮，默认为空。</param>
     /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int? MyMsgBoxSelect(List<IMyRadio> Selections, string Title = "提示", string Button1 = "确定",
-        string Button2 = "", bool IsWarn = false)
+    public static int? MyMsgBoxSelect(List<IMyRadio> Selections, string? Title = null, string? Button1 = null,
+        string? Button2 = "", bool IsWarn = false)
     {
+        Title ??= GetDefaultDialogTitle();
+        Button1 ??= GetDefaultConfirmText();
+        Button2 ??= "";
         // 将弹窗列入队列
         var Converter = new MyMsgBoxConverter
         {
@@ -867,9 +888,9 @@ public static class ModMain
     public static void MsgBoxWrapper_OnShow(string message, string caption, ICollection<MsgBoxButtonInfo> buttons,
         MsgBoxTheme theme, bool block, ref int result)
     {
-        var btnText1 = buttons.Count < 1 ? "确定" : buttons.ElementAt(0).Context;
+        var btnText1 = buttons.Count < 1 ? GetDefaultConfirmText() : buttons.ElementAt(0).Context;
         var btnAct1 = (Action)(buttons.Count < 1 ? (object)null : buttons.ElementAt(0).OnClick);
-        var btnText2 = buttons.Count < 2 ? "取消" : buttons.ElementAt(1).Context;
+        var btnText2 = buttons.Count < 2 ? GetDefaultCancelText() : buttons.ElementAt(1).Context;
         var btnAct2 = (Action)(buttons.Count < 2 ? (object)null : buttons.ElementAt(1).OnClick);
         var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Context;
         var btnAct3 = (Action)(buttons.Count < 3 ? (object)null : buttons.ElementAt(2).OnClick);
@@ -990,7 +1011,7 @@ public static class ModMain
         public HelpEntry(string FilePath)
         {
             RawPath = FilePath;
-            var JsonData = (JObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
+            var JsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
             if (JsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + FilePath, FilePath);
             // 加载常规信息
@@ -1435,12 +1456,12 @@ public static class ModMain
     public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
     {
     // 预处理
-    if (text == null) return null;
+    if (text is null) return null;
     
     Func<string, string> replacer = (s) =>
     {
-        if (s == null) return "";
-        if (escapeHandler == null) return s;
+        if (s is null) return "";
+        if (escapeHandler is null) return s;
         if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
         return escapeHandler(s);
     };
@@ -1450,7 +1471,7 @@ public static class ModMain
     text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
     text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
     text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
-    text = text.Replace("{identify}", replacer(ModBase.UniqueAddress));
+    text = text.Replace("{identify}", replacer(Identify.LauncherId));
     text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
     text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
     text = text.Replace("{path_temp}", replacer(ModBase.PathTemp));
@@ -1458,15 +1479,15 @@ public static class ModMain
     // 时间
     if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
     {
-        text = text.Replace("{date}", replacer(DateTime.Now.ToString("yyyy/M/d")));
-        text = text.Replace("{time}", replacer(DateTime.Now.ToString("HH:mm:ss")));
+        text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
+        text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
     }
     
     // Minecraft
     text = text.Replace("{java}", replacer(ModLaunch.McLaunchJavaSelected?.Installation.JavaFolder));
     text = text.Replace("{minecraft}", replacer(ModMinecraft.McFolderSelected));
     
-    if (ModMinecraft.McInstanceSelected != null)
+    if (ModMinecraft.McInstanceSelected is not null)
     {
         text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
         text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
@@ -1522,9 +1543,14 @@ public static class ModMain
     // 高级
     text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
     text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
-    text = ModBase.RegexReplaceEach(text, @"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
-    text = ModBase.RegexReplaceEach(text, @"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
+    {
+        if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
+            return replacer(item.GetValueNoType(ModMinecraft.McInstanceSelected?.PathInstance)?.ToString() ?? "");
+        return replacer("");
+    });
+    text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     
     return text;
 }
@@ -1548,7 +1574,7 @@ public static class ModMain
             try
             {
                 ModBase.Log("[System] 开始清理任务缓存文件夹");
-                ModBase.DeleteDirectory($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\");
+                ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp"));
                 ModBase.DeleteDirectory($@"{ModBase.PathTemp}TaskTemp\");
                 ModBase.Log("[System] 已清理任务缓存文件夹");
             }
@@ -1596,7 +1622,7 @@ public static class ModMain
 
         // 使用备用路径
         ResultFolder =
-            $@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
         Directory.CreateDirectory(ResultFolder);
         ModBase.CheckPermission(ResultFolder);
         return ResultFolder;

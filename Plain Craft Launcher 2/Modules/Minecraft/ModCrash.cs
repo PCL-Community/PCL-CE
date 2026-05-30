@@ -2,13 +2,15 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.VisualBasic;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
+using PCL.Core.App.Localization;
+using System.Globalization;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -763,7 +765,7 @@ public class CrashAnalyzer
                 AppendReason(CrashReason.Mod缺少前置或MC版本错误,
                     LogMc.RegexSearch(@"(?<=Missing or unsupported mandatory dependencies:)([\n\r]+\t(.*))+",
                             RegexOptions.IgnoreCase)
-                        .Select(s => s.Trim(("\r\n" + Constants.vbTab + " ").ToCharArray())).Distinct()
+                        .Select(s => s.Trim(("\r\n\t ").ToCharArray())).Distinct()
                         .ToList());
         }
 
@@ -810,7 +812,7 @@ public class CrashAnalyzer
                 else
                     AppendReason(CrashReason.Mod加载器报错,
                         (LogCrash.RegexSeek(@"(?<=Failure message: )[\w\W]+?(?=\tMod)") ?? "")
-                        .Replace(Constants.vbTab, " ").TrimEnd(("\r\n" + " ").ToCharArray()));
+                        .Replace("\t", " ").TrimEnd(("\r\n" + " ").ToCharArray()));
             }
 
             if (LogCrash.Contains("Multiple entries with same key: "))
@@ -952,11 +954,11 @@ public class CrashAnalyzer
         // 崩溃报告分析
         if (LogCrash is not null)
         {
-            if (LogCrash.Contains(Constants.vbTab + "Block location: World: "))
+            if (LogCrash.Contains("\tBlock location: World: "))
                 AppendReason(CrashReason.特定方块导致崩溃,
                     (LogCrash.RegexSeek(@"(?<=\tBlock: Block\{)[^\}]+") ?? "") + " " +
                     (LogCrash.RegexSeek(@"(?<=\tBlock location: World: )\([^\)]+\)") ?? ""));
-            if (LogCrash.Contains(Constants.vbTab + "Entity's Exact location: "))
+            if (LogCrash.Contains("\tEntity's Exact location: "))
                 AppendReason(CrashReason.特定实体导致崩溃,
                     (LogCrash.RegexSeek(@"(?<=\tEntity Type: )[^\n]+(?= \()") ?? "") + " (" +
                     (LogCrash.RegexSeek(@"(?<=\tEntity's Exact location: )[^\n]+") ?? "").TrimEnd(
@@ -1087,7 +1089,7 @@ public class CrashAnalyzer
             var ModNameLines = new List<string>();
             foreach (var Line in Details.Split("\n"))
                 if ((Line.ContainsF(".jar", true) && Line.Length - Line.Replace(".jar", "").Length == 4) ||
-                    (IsFabricDetail && Line.StartsWithF(Constants.vbTab + Constants.vbTab) &&
+                    (IsFabricDetail && Line.StartsWithF("\t\t") &&
                      !Line.RegexCheck(@"\t\tfabric[\w-]*: Fabric"))) // 只有一个 .jar
                     ModNameLines.Add(Line);
             ModBase.Log("[Crash] 崩溃报告中找到 " + ModNameLines.Count + " 个可能的 Mod 项目行");
@@ -1197,7 +1199,7 @@ public class CrashAnalyzer
         // 确定是否是加载器版本不兼容问题
         var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
         // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", "确定",
+        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
                     IsHandAnalyze || DirectFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
                     IsHandAnalyze ? "" : "导出错误报告",
                     Button2Action: IsHandAnalyze || DirectFile is null || isModLoaderIncompatible
@@ -1232,7 +1234,7 @@ public class CrashAnalyzer
                 {
                     // 获取文件路径
                     ModBase.RunInUiWait(() => FileAddress = SystemDialogs.SelectSaveFile("选择保存位置",
-                        "错误报告-" + DateTime.Now.ToString("G").Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
+                        "错误报告-" + DateTime.Now.ToString("G", CultureInfo.InvariantCulture).Replace("/", "-").Replace(":", ".").Replace(" ", "_") +
                         ".zip", "Minecraft 错误报告(*.zip)|*.zip"));
                     if (string.IsNullOrEmpty(FileAddress))
                         return;
@@ -1283,37 +1285,37 @@ public class CrashAnalyzer
                     }
 
                     // 输出环境与启动信息
-                    string EnvInfo = null;
-                    string McLauncherLog = null;
-                    McLauncherLog = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "PCL 启动器日志.txt"))
+                    var McLauncherLog = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "PCL 启动器日志.txt"))
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
                     var LaunchScript = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "启动脚本.bat"));
-                    EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                    EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 实例信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo +=
-                        $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}{"\r\n"}";
-                    EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
-                    EnvInfo += $"CPU：{SystemInfo.CPUName}{"\r\n"}";
-                    EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Math.Round(SystemInfo.SystemMemorySize / 1024d, 2)} GB ({SystemInfo.SystemMemorySize} MB){"\r\n"}";
-                    foreach (var GPU in SystemInfo.GPUs)
+                    var EnvInfo = new StringBuilder();
+                    EnvInfo.Append($"PCL CE 版本：{ModBase.VersionBaseName}\r\n");
+                    EnvInfo.Append($"识别码：{Identify.LauncherId}\r\n");
+                    EnvInfo.Append($"\r\n- 档案信息 -\r\n");
+                    EnvInfo.Append(
+                        $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()})\r\n");
+                    EnvInfo.Append($"\r\n- 实例信息 -\r\n");
+                    EnvInfo.Append(
+                        $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}\r\n");
+                    EnvInfo.Append(
+                        $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}\r\n");
+                    EnvInfo.Append($"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}\r\n");
+                    EnvInfo.Append($"\r\n- 环境信息 -\r\n");
+                    EnvInfo.Append(
+                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!SystemInfo.Is32BitSystem}, ARM64: {SystemInfo.IsArm64System}）\r\n");
+                    EnvInfo.Append($"CPU：{HardwareInfo.CPUName}\r\n");
+                    EnvInfo.Append(
+                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(HardwareInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(HardwareInfo.SystemMemorySize, "N0")} MB)\r\n");
+                    for (int i = 0; i < HardwareInfo.GPUs.Count; i++)
                     {
-                        EnvInfo +=
-                            $"显卡 {SystemInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
-                        EnvInfo += "\r\n";
+                        var GPU = HardwareInfo.GPUs[i];
+                        EnvInfo.Append(
+                            $"显卡 {i}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})");
+                        EnvInfo.Append("\r\n");
                     }
 
                     File.CreateText(Path.Combine(TempFolder, "Report", "环境与启动信息.txt")).Close();
-                    ModBase.WriteFile(Path.Combine(TempFolder, "Report", "环境与启动信息.txt"), EnvInfo, Encoding: Encoding.UTF8);
+                    ModBase.WriteFile(Path.Combine(TempFolder, "Report", "环境与启动信息.txt"), EnvInfo.ToString(), Encoding: Encoding.UTF8);
                     // 导出报告
                     ZipFile.CreateFromDirectory(Path.Combine(TempFolder, "Report"), FileAddress);
                     ModBase.DeleteDirectory(Path.Combine(TempFolder, "Report"));
