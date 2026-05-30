@@ -109,7 +109,7 @@ public static partial class States
         [ConfigItem<bool>("HintDisableGamePathCheckTip", false)] public partial bool NonAsciiGamePath { get; set; }
 
         /// <summary>
-        /// 启动时的社区版提示。
+        /// 启动时的 PCL N Edition 提示。
         /// </summary>
         [ConfigItem<bool>("UiLauncherCEHint", true)] public partial bool CEMessage { get; set; }
 
@@ -326,43 +326,6 @@ public static partial class States
         /// 最新 MC 快照版
         /// </summary>
         [ConfigItem<string>("ToolUpdateSnapshotLast", "")] public partial string LastSnapshot { get; set; }
-    }
-
-    /// <summary>
-    /// 联机大厅状态。
-    /// </summary>
-    [ConfigGroup("Link")] partial class LinkStatesGroup
-    {
-        /// <summary>
-        /// 大厅最终用户许可协议。
-        /// </summary>
-        [ConfigItem<bool>("LinkEula", false)] public partial bool LinkEula { get; set; }
-
-        /// <summary>
-        /// 公告缓存。
-        /// </summary>
-        [ConfigItem<string>("LinkAnnounceCache", "", ConfigSource.SharedEncrypt)] public partial string AnnounceCache { get; set; }
-
-        /// <summary>
-        /// 公告缓存版本。
-        /// </summary>
-        [ConfigItem<int>("LinkAnnounceCacheVer", 0)] public partial int AnnounceCacheVer { get; set; }
-
-        /// <summary>
-        /// Natayark ID 刷新令牌。
-        /// </summary>
-        [ConfigItem<string>("LinkNaidRefreshToken", "", ConfigSource.SharedEncrypt)] public partial string NaidRefreshToken { get; set; }
-
-        /// <summary>
-        /// Natayark ID 令牌过期时间。
-        /// </summary>
-        [ConfigItem<string>("LinkNaidRefreshExpiresAt", "", ConfigSource.SharedEncrypt)] public partial string NaidRefreshExpireTime { get; set; }
-
-        /// <summary>
-        /// 首次网络测试状态。
-        /// </summary>
-        [ConfigItem<bool>("LinkFirstTimeNetTest", true, ConfigSource.SharedEncrypt)] public partial bool DoFirstTimeNetTest { get; set; }
-
     }
 
     /// <summary>

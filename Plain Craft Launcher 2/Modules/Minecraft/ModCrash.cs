@@ -1289,7 +1289,7 @@ public class CrashAnalyzer
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
                     var LaunchScript = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "启动脚本.bat"));
                     var EnvInfo = new StringBuilder();
-                    EnvInfo.Append($"PCL CE 版本：{ModBase.VersionBaseName}\r\n");
+                    EnvInfo.Append($"PCL N 版本：{ModBase.VersionBaseName}\r\n");
                     EnvInfo.Append($"识别码：{Identify.LauncherId}\r\n");
                     EnvInfo.Append($"\r\n- 档案信息 -\r\n");
                     EnvInfo.Append(

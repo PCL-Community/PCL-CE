@@ -50,23 +50,6 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
 
-            <TextBlock Text="{DynamicResource Setup.Left.Category.Tools}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextToolsCategory" />
-
-            <local:MyListItem x:Name="ItemGameLink" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="7"
-                               Check="PageCheck"
-                               MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.GameLink}"
-                              Logo="M 7.5 1 C 5.57885 1 4 2.57885 4 4.5 C 4 6.42115 5.57885 8 7.5 8 C 9.42115 8 11 6.42115 11 4.5 C 11 2.57885 9.42115 1 7.5 1 Z m 0 2 C 8.34027 3 9 3.65973 9 4.5 C 9 5.34027 8.34027 6 7.5 6 C 6.65973 6 6 5.34027 6 4.5 C 6 3.65973 6.65973 3 7.5 3 Z m 0 7 C 3.92199 10 1 12.922 1 16.5 C 1 20.078 3.92199 23 7.5 23 C 11.078 23 14 20.078 14 16.5 C 14 12.922 11.078 10 7.5 10 Z m 0 2 C 9.99713 12 12 14.0029 12 16.5 C 12 18.9971 9.99713 21 7.5 21 C 5.00287 21 3 18.9971 3 16.5 C 3 14.0029 5.00287 12 7.5 12 Z m 11 -8 C 16.0266 4 14 6.02656 14 8.5 C 14 10.9734 16.0266 13 18.5 13 C 20.9734 13 23 10.9734 23 8.5 C 23 6.02656 20.9734 4 18.5 4 Z m 0 2 C 19.8926 6 21 7.10744 21 8.5 C 21 9.89256 19.8926 11 18.5 11 C 17.1074 11 16 9.89256 16 8.5 C 16 7.10744 17.1074 6 18.5 6 Z M 7.86328 14.0352 c -0.387276 -0.06231 -0.795879 -0.03348 -1.19531 0.107422 a 1 1 0 0 0 -0.609375 1.27539 a 1 1 0 0 0 1.27539 0.609375 C 7.68837 15.9023 8.00011 16.1242 8 16.5 a 1 1 0 0 0 1 1 a 1 1 0 0 0 1 -1 c 0.000367 -1.27067 -0.974892 -2.27791 -2.13672 -2.46484 z">
-                <local:MyListItem.Buttons>
-                    <x:Array Type="{x:Type local:MyIconButton}">
-                        <local:MyIconButton Tag="7" ToolTip="{DynamicResource Common.Action.Initialize}" ToolTipService.Placement="Right"
-                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
-                                            Click="Reset"
-                                            Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
-                                            LogoScale="0.9" />
-                    </x:Array>
-                </local:MyListItem.Buttons>
-            </local:MyListItem>
-
             <TextBlock Text="{DynamicResource Setup.Left.Category.Launcher}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextLauncherCategory" />
 
             <local:MyListItem x:Name="ItemUI" IsScaleAnimationEnabled="False" Tag="1" MinPaddingRight="35" Height="36"

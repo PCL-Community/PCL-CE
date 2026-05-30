@@ -320,17 +320,17 @@ public partial class PageToolsTest
 
     public static string GetRandomCave()
     {
-        return "为便于维护，社区版中不包含百宝箱功能……";
+        return "为便于维护，PCL N Edition 中不包含百宝箱功能……";
     }
 
     public static string GetRandomHint()
     {
-        return "为便于维护，社区版中不包含百宝箱功能……";
+        return "为便于维护，PCL N Edition 中不包含百宝箱功能……";
     }
 
     public static string GetRandomPresetHint()
     {
-        return "为便于维护，社区版中不包含百宝箱功能……";
+        return "为便于维护，PCL N Edition 中不包含百宝箱功能……";
     }
 
     private void TextDownloadUrl_TextChanged(object sender, TextChangedEventArgs e)
@@ -477,7 +477,7 @@ public partial class PageToolsTest
         if (luckValue == 100)
             return """
                    100！100！
-                   隐藏主题 欧皇…… 不对，社区版应该没有这玩意……
+                   隐藏主题 欧皇…… 不对，PCL N Edition 应该没有这玩意……
                    """;
 
         return luckValue >= 95 ? "差一点就到100了呢..." :
@@ -490,7 +490,7 @@ public partial class PageToolsTest
 
     private void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
     {
-        const string shortcutName = "PCL 社区版.lnk";
+        const string shortcutName = "PCL N Edition.lnk";
         const string desktopName = "桌面";
         const string startName = "开始菜单";
         var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);

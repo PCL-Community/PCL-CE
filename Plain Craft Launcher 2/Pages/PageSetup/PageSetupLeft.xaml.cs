@@ -19,7 +19,6 @@ public partial class PageSetupLeft
         if (ItemLaunch.Checked && hide.SetupLaunch) IsHiddenPage = true;
         if (ItemJava.Checked && hide.SetupJava) IsHiddenPage = true;
         if (ItemGameManage.Checked && hide.SetupGameManage)  IsHiddenPage = true;
-        if (ItemGameLink.Checked && hide.SetupGameLink) IsHiddenPage = true;
         if (ItemUI.Checked && hide.SetupUi) IsHiddenPage = true;
         if (ItemLauncherLanguage.Checked && hide.SetupLauncherLanguage) IsHiddenPage = true;
         if (ItemLauncherMisc.Checked && hide.SetupLauncherMisc) IsHiddenPage = true;
@@ -43,11 +42,9 @@ public partial class PageSetupLeft
             ItemLaunch.SetChecked(true, false, false);
         else if (!hideCfg.SetupJava) 
             ItemJava.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupGameManage) 
+        else if (!hideCfg.SetupGameManage)
             ItemGameManage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupGameLink) 
-            ItemGameLink.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupUi) 
+        else if (!hideCfg.SetupUi)
             ItemUI.SetChecked(true, false, false);
         else if (!hideCfg.SetupLauncherLanguage)
             ItemLauncherLanguage.SetChecked(true, false, false);
@@ -111,18 +108,6 @@ public partial class PageSetupLeft
 
                 break;
             }
-            case (double)FormMain.PageSubType.SetupGameLink:
-            {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameLink.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
-                {
-                    if (ModMain.FrmSetupGameLink is null)
-                        ModMain.FrmSetupGameLink = new PageSetupGameLink();
-                    ModMain.FrmSetupGameLink.Reset();
-                    ItemGameLink.Checked = true;
-                }
-
-                break;
-            }
             case (double)FormMain.PageSubType.SetupLauncherLanguage:
             {
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Language.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
@@ -166,7 +151,7 @@ public partial class PageSetupLeft
                 }
                 case 2:
                 {
-                    ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+                    ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/issues/");
                     break;
                 }
             }
@@ -212,8 +197,6 @@ public partial class PageSetupLeft
             PageID = FormMain.PageSubType.SetupJava;
         else if (!hideCfg.SetupGameManage)
             PageID = FormMain.PageSubType.SetupGameManage;
-        else if (!hideCfg.SetupGameLink)
-            PageID = FormMain.PageSubType.SetupGameLink;    
         else if (!hideCfg.SetupUi)
             PageID = FormMain.PageSubType.SetupUI;
         else if (!hideCfg.SetupLauncherLanguage)
@@ -296,12 +279,6 @@ public partial class PageSetupLeft
                 if (ModMain.FrmSetupFeedback is null)
                     ModMain.FrmSetupFeedback = new PageSetupFeedback();
                 return ModMain.FrmSetupFeedback;
-            }
-            case FormMain.PageSubType.SetupGameLink:
-            {
-                if (ModMain.FrmSetupGameLink is null)
-                    ModMain.FrmSetupGameLink = new PageSetupGameLink();
-                return ModMain.FrmSetupGameLink;
             }
             case FormMain.PageSubType.SetupLauncherLanguage:
             {

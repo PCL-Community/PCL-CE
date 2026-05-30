@@ -22,7 +22,6 @@ public partial class PageToolsLeft
         var IsHiddenPage = false;
         var hide = Config.Preference.Hide;
 
-        if (ItemGameLink.Checked && hide.ToolsGameLink) IsHiddenPage = true;
         if (ItemTest.Checked && hide.ToolsTest) IsHiddenPage = true;
         if (ItemLauncherHelp.Checked && hide.ToolsHelp) IsHiddenPage = true;
         if (PageSetupUI.HiddenForceShow)
@@ -37,14 +36,12 @@ public partial class PageToolsLeft
         if (IsPageSwitched) 
             return;
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.ToolsGameLink)
-            ItemGameLink.SetChecked(true, false, false);
-        else if (!hideCfg.ToolsTest)
+        if (!hideCfg.ToolsTest)
             ItemTest.SetChecked(true, false, false);
         else if (!hideCfg.ToolsHelp)
             ItemLauncherHelp.SetChecked(true, false, false);
         else
-            ItemGameLink.SetChecked(true, false, false);
+            ItemTest.SetChecked(true, false, false);
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
@@ -60,14 +57,6 @@ public partial class PageToolsLeft
         double id = ModBase.Val(button.Tag);
         switch (id)
         {
-            case (double)FormMain.PageSubType.ToolsGameLink:
-            {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                ModMain.FrmToolsGameLink.Reload();
-                ItemGameLink.Checked = true;
-                break;
-            }
             case (double)FormMain.PageSubType.ToolsLauncherHelp:
             {
                 if (ModMain.FrmToolsHelp is null)
@@ -90,7 +79,7 @@ public partial class PageToolsLeft
     /// <summary>
     ///     当前页面的编号。
     /// </summary>
-    public FormMain.PageSubType PageID = FormMain.PageSubType.ToolsGameLink;
+    public FormMain.PageSubType PageID = FormMain.PageSubType.ToolsTest;
 
     /// <summary>
     ///     勾选事件改变页面。
@@ -109,12 +98,6 @@ public partial class PageToolsLeft
         var targetID = ID ?? PageID;
         switch (ID)
         {
-            case FormMain.PageSubType.ToolsGameLink:
-            {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                return ModMain.FrmToolsGameLink;
-            }
             case FormMain.PageSubType.ToolsTest:
             {
                 if (ModMain.FrmToolsTest is null)

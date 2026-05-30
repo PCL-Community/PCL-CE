@@ -1,15 +1,6 @@
 ﻿namespace PCL.Core.App;
 
 /// <summary>
-/// 联机协议偏好
-/// </summary>
-public enum LinkProtocolPreference
-{
-    Tcp,
-    Udp
-}
-
-/// <summary>
 /// 主题模式（亮/暗/系统）
 /// </summary>
 public enum ColorMode
@@ -83,15 +74,6 @@ public enum JvmPreferredIpStack
     PreferV4 = 0,
     Default = 1,
     PreferV6 = 2
-}
-
-/// <summary>
-/// 联机中继行为
-/// </summary>
-public enum LinkRelayBehavior
-{
-    Default = 0,
-    ForceRelay = 1
 }
 
 /// <summary>

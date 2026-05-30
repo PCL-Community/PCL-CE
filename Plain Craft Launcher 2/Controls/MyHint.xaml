@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:PCL"
         FocusVisualStyle="{x:Null}"
         UseLayoutRounding="True" SnapsToDevicePixels="True" HorizontalAlignment="Stretch" BorderThickness="3,0,0,0"
-        BorderBrush="#99FF4444" CornerRadius="2">
+        BorderBrush="#99FF4444" CornerRadius="4">
     <Grid UseLayoutRounding="False" SnapsToDevicePixels="False">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />

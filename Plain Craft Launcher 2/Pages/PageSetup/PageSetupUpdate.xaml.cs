@@ -21,12 +21,11 @@ public partial class PageSetupUpdate
     private void Init()
     {
         ModAnimation.AniControlEnabled += 1;
-        TextMirrorCDK.Password = Config.Update.MirrorChyanKey;
 
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.VersionBaseName);
+        TextCurrentVersion.Text = "PCL N " + VersionNameFormat(ModBase.VersionBaseName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
     }
@@ -75,7 +74,7 @@ public partial class PageSetupUpdate
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
+                    TextUpdateName.Text = "PCL N " + VersionNameFormat(UpdateInfo.VersionName);
                     var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
                         TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
@@ -247,19 +246,9 @@ public partial class PageSetupUpdate
         }
     }
 
-    private void TextMirrorCDK_PasswordChanged(object sender, EventArgs e)
-    {
-        Config.Update.MirrorChyanKey = TextMirrorCDK.Password;
-    }
-
-    private void BtnGetMirrorCDK_Click(object sender, MouseButtonEventArgs e)
-    {
-        ModBase.OpenWebsite("https://mirrorchyan.com/");
-    }
-
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.VersionBaseName);
+        ModBase.OpenWebsite("https://github.com/MuXue1230/PCL2-N/releases/v" + ModBase.VersionBaseName);
     }
 
     public string VersionNameFormat(string str)

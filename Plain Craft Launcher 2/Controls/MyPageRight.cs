@@ -173,7 +173,7 @@ public class MyPageRight : AdornerDecorator
                 if (PageLoader is null || PageLoader.State == ModBase.LoadState.Finished ||
                     PageLoader.State == ModBase.LoadState.Waiting || PageLoader.State == ModBase.LoadState.Aborted)
                 {
-                    // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
+                    // 如果加载器在进入页面时不启动，那么在此时就会有 State = Waiting
                     PageState = PageStates.ContentEnter;
                     TriggerEnterAnimation(PanAlways, (FrameworkElement)(PanContent ?? Child));
                 }

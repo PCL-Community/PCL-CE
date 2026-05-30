@@ -62,6 +62,22 @@ public partial class PageLoginAuth
             return;
         }
 
+        // 检查是否有正版账号
+        if (!ModProfile.ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms))
+        {
+            var msWarnResult = ModMain.MyMsgBox(
+                "我们发现您并没有登录过正版账号，这可能会对您的游戏产生影响，并且也同时违反了Minecraft的EULA。\n\n如果您没有正版账号，您可以去Minecraft官网或Microsoft Store购买。",
+                "您可能需要正版验证",
+                "取消", "打开商店", "仍要继续",
+                IsWarn: true, ForceWait: true);
+            if (msWarnResult == 1 || msWarnResult == 2)
+            {
+                if (msWarnResult == 2)
+                    ModBase.OpenWebsite("https://www.minecraft.net");
+                return;
+            }
+        }
+
         if (!TextServer.Text.IsMatch(RegexPatterns.HttpUri))
         {
             ModMain.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), ModMain.HintType.Critical);

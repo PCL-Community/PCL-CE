@@ -34,7 +34,6 @@ public static class ModMain
     public static PageSpeedLeft? FrmSpeedLeft;
     public static PageSpeedRight? FrmSpeedRight;
     public static PageToolsLeft? FrmToolsLeft;
-    public static PageToolsGameLink? FrmToolsGameLink;
     public static PageToolsHelp? FrmToolsHelp;
     public static PageToolsTest? FrmToolsTest;
     public static PageDownloadLeft? FrmDownloadLeft;
@@ -66,7 +65,6 @@ public static class ModMain
     public static PageSetupAbout? FrmSetupAbout;
     public static PageSetupLog? FrmSetupLog;
     public static PageSetupFeedback? FrmSetupFeedback;
-    public static PageSetupGameLink? FrmSetupGameLink;
     public static PageSetupLauncherLanguage? FrmSetupLauncherLanguage;
     public static PageSetupLauncherMisc? FrmSetupLauncherMisc;
     public static PageLoginAuth? FrmLoginAuth;
@@ -373,10 +371,10 @@ public static class ModMain
                     var newHintTag = new object[] { true, ModBase.GetUuid() };
                     var NewHintControl = new Border
                     {
-                        Tag = newHintTag, Margin = new Thickness(-70, 0d, 20d, 0d),
+                        Tag = newHintTag, Margin = new Thickness(20d, 0d, -70, 0d),
                         Opacity = 0d,
-                        Height = 0d, HorizontalAlignment = HorizontalAlignment.Left,
-                        CornerRadius = new CornerRadius(0d, 6d, 6d, 0d),
+                        Height = 0d, HorizontalAlignment = HorizontalAlignment.Right,
+                        CornerRadius = new CornerRadius(6d, 0d, 0d, 6d),
                         Background = new LinearGradientBrush(
                             new GradientStopCollection(new List<GradientStop>
                             {
@@ -387,7 +385,7 @@ public static class ModMain
                         Child = new TextBlock
                         {
                             TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = CurrentHint.Text,
-                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
+                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(8d, 5d, 33d, 5d)
                         }
                     };
                     // AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
@@ -405,7 +403,7 @@ public static class ModMain
                     Animations.AddRange([
                         ModAnimation.AaX(NewHintControl, 30d,
                             Ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(NewHintControl, 20d, 200, Ease: new ModAnimation.AniEaseOutFluent()),
+                        ModAnimation.AaX(NewHintControl, 0d, 200, Ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaOpacity(NewHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
@@ -424,7 +422,7 @@ public static class ModMain
                     ModAnimation.AniStart(
                         new[]
                         {
-                            ModAnimation.AaX(NewHintControl, -50, 200, (int)Math.Round(Delay),
+                            ModAnimation.AaX(NewHintControl, 50, 200, (int)Math.Round(Delay),
                                 new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaOpacity(NewHintControl, -1, 150, (int)Math.Round(Delay)),
                             ModAnimation.AaCode(() => newHintTag[0] = false, (int)Math.Round(Delay)),

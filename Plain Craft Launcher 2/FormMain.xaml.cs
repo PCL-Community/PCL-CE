@@ -46,7 +46,7 @@ public partial class FormMain
                 Changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(Changelog,
                     Lang.Text("Main.UpdateLog.Title", ModBase.VersionBranchName, ModBase.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
-                2) ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
+                2) ModBase.OpenWebsite("https://github.com/MuXue1230/PCL2-N/releases");
         }, "UpdateLog Output");
     }
 
@@ -70,15 +70,6 @@ public partial class FormMain
         var LastVersion = States.System.LastVersion;
         if (LastVersion < ModBase.VersionCode)
         {
-            // 重新询问是否启用遥测数据收集
-            if (LastVersion <= 511)
-            {
-                if (!Config.System.TelemetryConfig.IsDefault() && Config.System.Telemetry)
-                {
-                    Config.System.TelemetryConfig.Reset();
-                    ModBase.Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置");
-                }
-            }
             // 触发升级
             UpgradeSub(LastVersion);
         }
@@ -179,11 +170,18 @@ public partial class FormMain
             AddResizer();
         else
             RemoveResizer();
-        // PLC 彩蛋
+        // PCL N 彩蛋
         if (RandomUtils.NextInt(1, 1000) == 233)
             ShapeTitleLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(
                 "M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M83,6.5 a10,11.5 180 1 0 0,18 M48,2.5 v24.5 h13.5");
         // 加载窗口
+
+        // 默认选中启动按钮
+        BtnTitleSelect0.Checked = true;
+
+        // 提示面板强制右侧定位
+        PanHint.HorizontalAlignment = HorizontalAlignment.Right;
+        PanHint.Width = 450;
 
         ThemeManager.ThemeRefresh();
         ModSetup.ApplyAll();
@@ -250,7 +248,7 @@ public partial class FormMain
                         $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
                         Lang.Text("Main.SpecialVersion.Title"), Lang.Text("Main.SpecialVersion.IUnderstand"), Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), IsWarn: true, Button2Action: () =>
                         {
-                            ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
+                            ModBase.OpenWebsite("https://github.com/MuXue1230/PCL2-N/releases/latest");
                             EndProgram(false);
                         });
                 }
@@ -274,14 +272,6 @@ public partial class FormMain
                             }
                     }
 
-                // 遥测提示
-                if (Config.System.TelemetryConfig.IsDefault())
-                {
-                    var selection = ModMain.MyMsgBox(
-                                Lang.Text("Main.Telemetry.Message"),
-                                Lang.Text("Main.Telemetry.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"));
-                    Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
-                }
                 // 启动加载器池
                 try
                 {
@@ -370,7 +360,7 @@ public partial class FormMain
             ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");
         }
 
-        // 更新后展示社区版提示
+        // 更新后展示 PCL N Edition 提示
         UpdateManager.ShowCEAnnounce();
         // 输出更新日志
         if (LastVersionCode <= 0)
@@ -542,8 +532,6 @@ public partial class FormMain
                 return;
         }
 
-        // 关闭联机大厅
-        // Await LobbyController.CloseAsync().ConfigureAwait(False)
         // 存储上次使用的档案编号
         ModProfile.SaveProfile();
         // 关闭
@@ -602,8 +590,6 @@ public partial class FormMain
         bool force = true, bool isUpdating = false)
     {
         // On Error Resume Next
-        // 关闭联机大厅
-        // Await LobbyController.CloseAsync().ConfigureAwait(False)
         ModBase.IsProgramEnded = true;
         ModAnimation.AniControlEnabled += 1;
         if (UpdateManager.IsUpdateWaitingRestart && !isUpdating)
@@ -613,7 +599,7 @@ public partial class FormMain
             if (!IsLogShown)
             {
                 ModBase.FeedbackInfo();
-                ModBase.Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
+                ModBase.Log("请在 https://github.com/MuXue1230/PCL2-N/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
                 IsLogShown = true;
                 ModBase.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last());
             }
@@ -663,7 +649,8 @@ public partial class FormMain
 
             PanForm.Width = formWidth;
             PanForm.Height = formHeight;
-            PanMain.Width = formWidth;
+            if (PanNavLayer is not null)
+                PanMain.Width = formWidth - PanNavLayer.Width;
 
             if (PanTitle is not null)
                 PanMain.Height = Math.Max(0d, formHeight - PanTitle.ActualHeight);
@@ -1366,9 +1353,6 @@ public partial class FormMain
         /// </summary>
         Download = 1,
 
-        /// <summary>
-        ///     联机。
-        /// </summary>
         Tools = 3,
 
         /// <summary>
@@ -1449,13 +1433,11 @@ public partial class FormMain
         SetupAbout = 4,
         SetupLog = 5,
         SetupFeedback = 6,
-        SetupGameLink = 7,
         SetupUpdate = 8,
         SetupJava = 9,
         SetupLauncherMisc = 10,
         SetupLauncherLanguage = 11,
 
-        ToolsGameLink = 1,
         ToolsLauncherHelp = 2,
         ToolsTest = 3,
 
@@ -1665,6 +1647,11 @@ public partial class FormMain
     // 引发实际页面切换的入口
     private bool IsChangingPage;
 
+    // 左侧导航栏展开状态
+    private bool _isNavExpanded;
+    private const double NavCollapsedWidth = 50;
+    private double _navExpandedWidth = 200;
+
     /// <summary>
     ///     切换页面，并引起对应选择 UI 的改变。
     /// </summary>
@@ -1675,8 +1662,8 @@ public partial class FormMain
             // 切换到主页面
             PageChangeExit();
             IsChangingPage = true; // 防止下面的勾选直接触发了 PageChangeActual
-            ((MyRadioButton)PanTitleSelect.Children[(int)Stack.Page]).SetChecked(true, true,
-                string.IsNullOrEmpty(PageNameGet(PageCurrent)));
+            if (PanTitleSelect.Children[(int)Stack.Page] is MyListItem navItem)
+                navItem.Checked = true;
             IsChangingPage = false;
             switch (Stack.Page)
             {
@@ -1749,6 +1736,58 @@ public partial class FormMain
     /// <summary>
     ///     通过点击导航栏改变页面。
     /// </summary>
+    private System.Windows.Threading.DispatcherTimer? _navAnimTimer;
+    private double _navAnimStart;
+    private double _navAnimTarget;
+    private int _navAnimElapsed;
+    private const int NavAnimDuration = 200;
+
+    private void BtnNavToggle_Click(object sender, EventArgs e)
+    {
+        _isNavExpanded = !_isNavExpanded;
+        if (_isNavExpanded)
+        {
+            // 先自动宽度测量内容实际宽度
+            PanNavLayer.Width = double.NaN;
+            PanNavLayer.UpdateLayout();
+            _navExpandedWidth = Math.Max(PanNavLayer.ActualWidth, NavCollapsedWidth + 1) + 10;
+            PanNavLayer.Width = NavCollapsedWidth;
+        }
+        _navAnimStart = PanNavLayer.Width;
+        _navAnimTarget = _isNavExpanded ? _navExpandedWidth : NavCollapsedWidth;
+        _navAnimElapsed = 0;
+        _navAnimTimer?.Stop();
+        _navAnimTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        _navAnimTimer.Tick += _NavAnimTick;
+        _navAnimTimer.Start();
+    }
+
+    private void _NavAnimTick(object? sender, EventArgs e)
+    {
+        _navAnimElapsed += 16;
+        var progress = Math.Min(1.0, (double)_navAnimElapsed / NavAnimDuration);
+        // ease-out cubic
+        var eased = 1.0 - Math.Pow(1.0 - progress, 3);
+        var current = _navAnimStart + (_navAnimTarget - _navAnimStart) * eased;
+        PanNavLayer.Width = current;
+        var formWidth = PanBack.ActualWidth + 0.001d;
+        PanMain.Width = formWidth - current;
+        if (progress >= 1.0)
+        {
+            _navAnimTimer?.Stop();
+            _navAnimTimer = null;
+        }
+    }
+
+    private void BtnNavItem_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (IsChangingPage)
+            return;
+        var item = (MyListItem)sender;
+        var pageType = (PageType)int.Parse(item.Tag.ToString());
+        PageChangeActual(pageType, PageSubType.Default);
+    }
+
     private void BtnTitleSelect_Click(MyRadioButton sender, bool raiseByMouse)
     {
         if (IsChangingPage)
@@ -1856,7 +1895,7 @@ public partial class FormMain
                         PageChangeAnim(ModMain.FrmDownloadLeft, (FrameworkElement)ModMain.FrmDownloadLeft.PageGet(SubType));
                         break;
                     }
-                case PageType.Tools: // 联机
+                case PageType.Tools:
                     {
                         ModMain.FrmToolsLeft ??= new PageToolsLeft();
                         SubType = ModMain.FrmToolsLeft.PageID;

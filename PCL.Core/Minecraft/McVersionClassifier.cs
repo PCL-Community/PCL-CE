@@ -42,7 +42,10 @@ public static class McVersionClassifier
 
     public static DateTime GetReleaseTime(JsonObject version)
     {
-        return version["releaseTime"]?.GetValue<DateTime>() ?? DateTime.MinValue;
+        var str = version["releaseTime"]?.GetValue<string>();
+        if (str is not null && DateTime.TryParse(str, out var dt))
+            return dt;
+        return DateTime.MinValue;
     }
 
     private static McVersionCategory _ClassifySnapshotOrPending(JsonObject version, string idLower)

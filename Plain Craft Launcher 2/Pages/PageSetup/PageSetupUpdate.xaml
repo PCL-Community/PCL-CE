@@ -21,7 +21,6 @@
                             <RowDefinition Height="7" />
                             <RowDefinition Height="28" />
                             <RowDefinition Height="7" />
-                            <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Text="{DynamicResource Setup.Update.Channel.Title}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Margin="0,0,25,0" />
@@ -46,14 +45,6 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.NotifyOnly}" ToolTip="{DynamicResource Setup.Update.Auto.NotifyOnly.ToolTip}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.Disabled}" ToolTip="{DynamicResource Setup.Update.Auto.Disabled.ToolTip}" />
                         </local:MyComboBox>
-                        <TextBlock Text="{DynamicResource Setup.Update.MirrorChyanCdk.Label}" Grid.Row="4" VerticalAlignment="Center"
-                                   HorizontalAlignment="Left" Margin="0,0,25,0" />
-                        <PasswordBox x:Name="TextMirrorCDK"
-                                      ToolTip="{DynamicResource Setup.Update.MirrorChyanCdk.ToolTip}"
-                                     Grid.Row="4" Grid.Column="1"
-                                     PasswordChanged="TextMirrorCDK_PasswordChanged" />
-                        <local:MyButton x:Name="BtnGetMirrorCDK" Text="{DynamicResource Setup.Update.MirrorChyanCdk.Get}" Grid.Column="3" Grid.Row="4"
-                                        ColorType="Highlight" Click="BtnGetMirrorCDK_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -79,9 +70,9 @@
                         <local:MyImage x:Name="ImgUpdateIcon" Source="https://www.pclc.cc/img/pcl-ce/icon.webp"
                                        Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50"
                                        HorizontalAlignment="Left" VerticalAlignment="Center" />
-                        <TextBlock x:Name="TextUpdateName" Text="PCL CE 2.14.0" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextUpdateName" Text="PCL N 2.14.0" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-                        <TextBlock x:Name="TextUpdateDesc" Text="by PCL-Community" FontSize="14" Grid.Row="2"
+                        <TextBlock x:Name="TextUpdateDesc" Text="by MUXUE1230" FontSize="14" Grid.Row="2"
                                    Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         <local:MyButton x:Name="BtnUpdate" Text="{DynamicResource Setup.Update.Install}" ColorType="Highlight" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Center"
@@ -116,7 +107,7 @@
                                Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                         <!-- <local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/> -->
-                        <TextBlock x:Name="TextCurrentVersion" Text="PCL CE 2.13.4" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextCurrentVersion" Text="PCL N 2.13.4" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextCurrentDesc" Text="{DynamicResource Setup.Update.Latest}" FontSize="14" Grid.Row="2" Grid.Column="2"
                                    HorizontalAlignment="Left" VerticalAlignment="Top" />

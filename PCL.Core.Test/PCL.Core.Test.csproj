@@ -10,7 +10,7 @@
     <Platforms>AnyCPU;x64;ARM64</Platforms>
     <AssemblyTitle>PCL.Test</AssemblyTitle>
     <Product>PCL.Test</Product>
-    <Copyright>Copyright © PCL Community 2025</Copyright>
+    <Copyright>Copyright © MUXUE1230 2025</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>

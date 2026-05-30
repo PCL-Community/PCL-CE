@@ -418,10 +418,7 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.GameManage}"
                                           x:Name="CheckHiddenSetupGameManage" Tag="UiHiddenSetupGameManage"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.GameLink}"
-                                          x:Name="CheckHiddenSetupGameLink" Tag="UiHiddenSetupGameLink"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="6"
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5"
                                           Text="{DynamicResource Setup.Ui.FeatureHide.Item.Ui}" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
                                           Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Language}"
@@ -443,9 +440,8 @@
                                           Text="{DynamicResource Setup.Ui.FeatureHide.Item.Log}" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
                                           Change="CheckBoxChange" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubTools}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Lobby}" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Help}" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Help}" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
                         <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubInstance}" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Edit}"
                                           x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"

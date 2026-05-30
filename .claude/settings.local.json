@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(dotnet build *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(python *)",
+      "PowerShell(Get-Process *)",
+      "Bash(dotnet clean *)"
+    ]
+  }
+}

@@ -114,12 +114,12 @@ public static class ModBase
     public static string PathAppdata = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL") + @"\";
 
     /// <summary>
-    ///     AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
+    ///     AppData 中的 PCLN 配置文件夹路径，以 \ 结尾。
     /// </summary>
     public static string PathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                             (VersionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
+                                             (VersionBranchName == "Debug" ? @"\.pclndebug\" : @"\.pcln\");
 
-    public static string PathHelpFolder = PathTemp + @"CE\Help\";
+    public static string PathHelpFolder = PathTemp + @"PCLN\Help\";
 
     #endregion
 
@@ -3492,7 +3492,7 @@ public static class ModBase
                                  "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
                                  "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", Lang.Text("Common.Action.OpenFolder"), "不需要") ==
                              1)) OpenExplorer(ExePath + @"PCL\Log\");
-        OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+        OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/issues/");
     }
 
     public static bool CanFeedback(bool ShowHint)
