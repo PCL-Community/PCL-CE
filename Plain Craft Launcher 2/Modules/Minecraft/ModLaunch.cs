@@ -89,7 +89,7 @@ public static class ModLaunch
             throw new ArgumentException(checkResult);
 
 #if BETA
-        if (currentLaunchOptions?.SaveBatch is null) // 保存脚本时不提示
+        if (currentLaunchOptions?.saveBatch is null) // 保存脚本时不提示
         {
             ModBase.RunInNewThread(() =>
             {
