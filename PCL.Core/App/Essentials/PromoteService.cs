@@ -44,7 +44,7 @@ public sealed partial class PromoteService
     /// </summary>
     public static bool IsCurrentProcessPromoted { get; private set; }
     
-    private static string _GetPromotePipeName(int processId) => $"PCLCE_PM@{processId}";
+    private static string _GetPromotePipeName(int processId) => $"PCLN_PM@{processId}";
 
     private static readonly Dictionary<string, PromoteOperationFunction> _OperationFunctions = new();
 

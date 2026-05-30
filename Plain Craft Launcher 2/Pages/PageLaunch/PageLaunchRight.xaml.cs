@@ -24,7 +24,7 @@ public partial class PageLaunchRight : IRefreshable
         PanBack.ScrollToHome();
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
         PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
-        // 社区版提示
+        // PCL N Edition 提示
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -38,8 +38,8 @@ public partial class PageLaunchRight : IRefreshable
         var input = ModMain.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
         if (string.IsNullOrWhiteSpace(input))
             return;
-        input = new string(input.Where(x => char.IsAsciiLetter(x)).ToArray()).ToLower();
-        if (input.Contains("pclcommunity"))
+        input = new string(input.Where(x => char.IsAscii(x)).ToArray()).ToLower();
+        if (input.Contains("muxue1230"))    
         {
             ModAnimation.AniDispose(PanHint, true);
             States.Hint.CEMessage = false;
@@ -189,7 +189,7 @@ public partial class PageLaunchRight : IRefreshable
                     break;
 
                 case 14:
-                    LogWrapper.Info("[Page] 主页预设：PCL CE 公告栏");
+                    LogWrapper.Info("[Page] 主页预设：PCL N 公告栏");
                     url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
                     content = LoadFromNetwork(url);
                     break;

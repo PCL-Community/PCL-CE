@@ -471,10 +471,9 @@ public class ModSetup
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.CELogo.Visibility = Visibility.Collapsed;
                 if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible;
@@ -489,10 +488,8 @@ public class ModSetup
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
@@ -504,13 +501,11 @@ public class ModSetup
             }
             case 2: // 文本
             {
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Visible;
+                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
@@ -526,10 +521,9 @@ public class ModSetup
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
@@ -552,7 +546,7 @@ public class ModSetup
             case 4: //HMCL (愚人节)
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible;
-                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
@@ -573,7 +567,8 @@ public class ModSetup
 
     public static void UiLogoText(string value)
     {
-        ModMain.FrmMain.LabTitleLogo.Text = value;
+        if (!string.IsNullOrEmpty(value))
+            ModMain.FrmMain.LabTitleLogo.Text = value;
     }
 
     public static void UiLogoLeft(bool value)

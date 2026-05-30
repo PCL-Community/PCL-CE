@@ -141,7 +141,7 @@ public static class EncryptHelper
 
     #region "密钥存储和获取"
 
-    private static readonly byte[] _IdentifyEntropy = Encoding.UTF8.GetBytes("PCL CE Encryption Key");
+    private static readonly byte[] _IdentifyEntropy = Encoding.UTF8.GetBytes("PCL N Encryption Key");
     internal static byte[] EncryptionKey { get => _EncryptionKey.Value; }
     private static readonly Lazy<byte[]> _EncryptionKey = new(_GetKey);
 

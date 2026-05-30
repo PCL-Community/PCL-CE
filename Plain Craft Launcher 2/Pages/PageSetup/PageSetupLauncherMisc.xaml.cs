@@ -46,8 +46,6 @@ public partial class PageSetupLauncherMisc
         CheckSystemDisableHardwareAcceleration.Checked = Config.System.DisableHardwareAcceleration;
         SliderAniFPS.Value = Config.System.AnimationFpsLimit;
         SliderMaxLog.Value = Config.System.MaxGameLog;
-        CheckSystemTelemetry.Checked = Config.System.Telemetry;
-
         // 网络
         TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
         TextSystemHttpProxyCustomUsername.Text = Config.Network.HttpProxy.CustomUsername;
@@ -123,7 +121,6 @@ public partial class PageSetupLauncherMisc
             case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool)value; break;
             case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
             case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool)value; break;
-            case "SystemTelemetry": Config.System.Telemetry = (bool)value; break;
             case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
         }
     }

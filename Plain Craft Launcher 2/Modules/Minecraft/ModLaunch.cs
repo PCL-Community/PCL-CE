@@ -88,6 +88,22 @@ public static class ModLaunch
         if (!string.IsNullOrEmpty(CheckResult))
             throw new ArgumentException(CheckResult);
 
+        // 离线/第三方登录时检查是否有正版账号
+        if (ModProfile.SelectedProfile.Type != McLoginType.Ms && !ModProfile.ProfileList.Any(x => x.Type == McLoginType.Ms))
+        {
+            var msWarnResult = ModMain.MyMsgBox(
+                "我们发现您并没有登录过正版账号，这可能会对您的游戏产生影响，并且也同时违反了Minecraft的EULA。\n\n如果您没有正版账号，您可以去Minecraft官网或Microsoft Store购买。",
+                "您可能需要正版验证",
+                "取消", "打开商店", "仍要继续",
+                IsWarn: true, ForceWait: true);
+            if (msWarnResult == 1 || msWarnResult == 2)
+            {
+                if (msWarnResult == 2)
+                    ModBase.OpenWebsite("https://www.minecraft.net");
+                throw new OperationCanceledException();
+            }
+        }
+
 #if BETA
         if (CurrentLaunchOptions?.SaveBatch is null) // 保存脚本时不提示
         {
@@ -2806,7 +2822,7 @@ public static class ModLaunch
         GameArguments.Add("${natives_directory}", ModBase.ShortenPath(GetNativesFolder()));
         GameArguments.Add("${library_directory}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "libraries"));
         GameArguments.Add("${libraries_directory}", ModBase.ShortenPath(ModMinecraft.McFolderSelected + "libraries"));
-        GameArguments.Add("${launcher_name}", "PCLCE");
+        GameArguments.Add("${launcher_name}", "PCLN");
         GameArguments.Add("${launcher_version}", ModBase.VersionCode.ToString());
         GameArguments.Add("${version_name}", instance.Name);
         var ArgumentInfo = Config.Instance.TypeInfo[ModMinecraft.McInstanceSelected?.PathInstance];

@@ -5,7 +5,7 @@ contact_links:
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
   - name: 帮助文档反馈
     url: https://github.com/PCL-Community/PCL2CEHelp/issues
-    about: 提交与 PCL CE 帮助文档（更多 → 帮助）中的具体内容相关的反馈
+    about: 提交与 PCL N 帮助文档（更多 → 帮助）中的具体内容相关的反馈
   - name: 提问 / 讨论
-    url: https://github.com/PCL-Community/PCL2-CE/discussions/new
-    about: 想问问或谈谈关于社区版的事情...
+    url: https://github.com/MUXUE1230/PCL2-N/discussions/new
+    about: 想问问或谈谈关于 PCL N Edition 的事情...

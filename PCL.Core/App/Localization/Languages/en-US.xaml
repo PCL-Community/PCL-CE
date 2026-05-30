@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -90,7 +90,7 @@
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL is running from a temporary folder. Please extract PCL from the compressed file before using it, otherwise game saves or settings may be lost.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.SocialSoftwareFolder">- PCL is running from a download folder of social apps such as QQ, WeChat, or TIM. Consider moving it elsewhere, otherwise game saves or settings may be lost.</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.Message">PCL CE detected environment issues on startup:&#x0a;&#x0a;{0}&#x0a;&#x0a;Some features may not work properly if these issues are not resolved...</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.Message">PCL N detected environment issues on startup:&#x0a;&#x0a;{0}&#x0a;&#x0a;Some features may not work properly if these issues are not resolved...</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">Environment warning</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">I see</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">PCL path: {0}</sys:String>
@@ -118,8 +118,8 @@
     <sys:String x:Key="Main.Extra.GiveUp.ToolTip">Surrender</sys:String>
     <sys:String x:Key="Main.Extra.ShutdownMinecraft.ToolTip">Close Minecraft</sys:String>
     <sys:String x:Key="Main.Extra.GameLog.ToolTip">Launch log</sys:String>
-    <sys:String x:Key="Main.Extra.UpdateRestart.ToolTip">Restart PCL CE to apply software updates</sys:String>
-    <sys:String x:Key="Main.Extra.UpdateRestart.ToolTipWithVersion">Restart PCL CE to apply software updates ({0} → {1})</sys:String>
+    <sys:String x:Key="Main.Extra.UpdateRestart.ToolTip">Restart PCL N to apply software updates</sys:String>
+    <sys:String x:Key="Main.Extra.UpdateRestart.ToolTipWithVersion">Restart PCL N to apply software updates ({0} → {1})</sys:String>
 
     <!-- Main.FileDrag -->
 
@@ -141,11 +141,11 @@
     <!-- Main.Misc -->
 
     <sys:String x:Key="Main.UpdateLog.Empty">Welcome!</sys:String>
-    <sys:String x:Key="Main.UpdateLog.Title">PCL CE has been updated to {0} {1}</sys:String>
+    <sys:String x:Key="Main.UpdateLog.Title">PCL N has been updated to {0} {1}</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">Full changelog</sys:String>
     <sys:String x:Key="Main.DebugMode.Hint">[Debug mode] PCL is running in debug mode, which may cause performance degradation. Please do NOT enable it unless necessary!</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.DebugHint">The current PCL Community Edition build is a Debug build.&#x0a;This build is only intended for developer debugging and may have serious performance issues or various unexpected network problems.&#x0a;&#x0a;Problems caused by non-developer users running this build are not supported by the community, and related issues may be closed directly.&#x0a;Unless you are a developer, please delete this build immediately and use the latest stable version instead.</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.CiHint">The current PCL Community Edition build is an automated CI build.&#x0a;This build includes the latest bug fixes, optimizations, and new features, but its performance and stability are lower. It is not suitable for daily use or creating modpacks.&#x0a;&#x0a;Unless a community developer asks you to use it, or you specifically want to do so, please use the latest stable version instead.</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.DebugHint">The current PCL N Edition build is a Debug build.&#x0a;This build is only intended for developer debugging and may have serious performance issues or various unexpected network problems.&#x0a;&#x0a;Problems caused by non-developer users running this build are not supported by the community, and related issues may be closed directly.&#x0a;Unless you are a developer, please delete this build immediately and use the latest stable version instead.</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.CiHint">The current PCL N Edition build is an automated CI build.&#x0a;This build includes the latest bug fixes, optimizations, and new features, but its performance and stability are lower. It is not suitable for daily use or creating modpacks.&#x0a;&#x0a;Unless a community developer asks you to use it, or you specifically want to do so, please use the latest stable version instead.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.HideHintNotice">You can add the PCL_DISABLE_DEBUG_HINT environment variable with any value to hide this prompt.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.Title">Special build notice</sys:String>
     <sys:String x:Key="Main.SpecialVersion.IUnderstand">I know what I am doing</sys:String>
@@ -153,8 +153,6 @@
     <sys:String x:Key="Main.Eula.Message">Before using PCL, please review and agree to the Terms of Service and Disclaimer.</sys:String>
     <sys:String x:Key="Main.Eula.Title">ToS &amp; Disclaimer authorization</sys:String>
     <sys:String x:Key="Main.Eula.View">ToS &amp; Disclaimer</sys:String>
-    <sys:String x:Key="Main.Telemetry.Title">Enable telemetry data collection</sys:String>
-    <sys:String x:Key="Main.Telemetry.Message">After telemetry data collection is enabled, the launcher will collect and report errors and device environment information. This can help developers fix potential issues and better plan and develop the launcher.&#x0a;If this feature is enabled, we will collect the following information:&#x0a;&#x0a;- Errors that occur in the launcher&#x0a;- Launcher version information and identifier&#x0a;- Windows system version and architecture&#x0a;- Installed physical memory size&#x0a;- NAT and IPv6 support status&#x0a;- Whether you have used the official PCL, HMCL, or BakaXL&#x0a;&#x0a;This data is not associated with you, and we will never sell it to any third party.&#x0a;If you do not want to enable telemetry, you can choose to decline. This will not affect normal use of other features, but may affect developers' ability to fix potential bugs.&#x0a;You can change this setting at any time in launcher settings.</sys:String>
     <sys:String x:Key="Main.Exit.HasDownloadingTask">There is a download task in progress. Are you sure you want to quit?</sys:String>
     <sys:String x:Key="Main.HiddenFeature.Disabled">The feature hiding setting has been temporarily disabled!</sys:String>
     <sys:String x:Key="Main.HiddenFeature.Enabled">The feature hiding setting has been re-enabled!</sys:String>
@@ -185,10 +183,10 @@
     <sys:String x:Key="Launch.Status.DownloadSpeed">Speed</sys:String>
     <sys:String x:Key="Launch.Status.Trivia">Trivia</sys:String>
     <sys:String x:Key="Launch.Status.Trivia.Placeholder">This is a test trivia text that should be long enough to span two lines.</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition notice</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL Community Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#x0a;&#x0a;If you downloaded the Community Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#x0a;Additionally, please submit Community Edition issues to the Community Edition repository, and do not report Community Edition issues to the official repository!</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL CE development organization name.</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter the PCL CE development organization name</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">N Edition notice</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL N Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#x0a;&#x0a;If you downloaded the N Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#x0a;Additionally, please submit N Edition issues to the N Edition repository, and do not report N Edition issues to the official repository!</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL N developer name.</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter the PCL N developer name</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">Not quite right...</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">Launch log</sys:String>
 
@@ -292,7 +290,7 @@
     <!-- Launch.Account.Profile.Migration -->
 
     <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL N supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">Since the current profile list is empty, only importing from HMCL is supported.</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Migration.Import">Import</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Migration.Export">Export</sys:String>
@@ -1358,7 +1356,6 @@
     <sys:String x:Key="Setup.Left.Item.Launch">Launch</sys:String>
     <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameManage">Management</sys:String>
-    <sys:String x:Key="Setup.Left.Item.GameLink">Multiplayer</sys:String>
     <sys:String x:Key="Setup.Left.Item.Ui">Personalization</sys:String>
     <sys:String x:Key="Setup.Left.Item.Misc">Miscellaneous</sys:String>
     <sys:String x:Key="Setup.Left.Item.About">About</sys:String>
@@ -1369,7 +1366,6 @@
     <sys:String x:Key="Setup.Left.Reset.Launch.Message">Do you want to initialize all settings on the Game – Launch page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Ui.Message">Do you want to initialize all settings on the Launcher – Personalization page? This action cannot be undone.&#x0a;(Background images, music, homepage files, and other external files will not be deleted.)</sys:String>
     <sys:String x:Key="Setup.Left.Reset.GameManage.Message">Do you want to initialize all settings on the Game – Management page? This action cannot be undone.</sys:String>
-    <sys:String x:Key="Setup.Left.Reset.GameLink.Message">Do you want to initialize all settings on the Tools – Multiplayer page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Language.Message">Do you want to initialize all settings on the Launcher – Language page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Reset.Misc.Message">Do you want to initialize all settings on the Launcher – Miscellaneous page? This action cannot be undone.</sys:String>
     <sys:String x:Key="Setup.Left.Feedback.Title">Feedback</sys:String>
@@ -1515,7 +1511,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: CreeperIsASpy)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE Announcements</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL N Announcements</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">See ModSetup</sys:String>
 
@@ -1536,7 +1532,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Launch">Launch</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.GameManage">Management</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.GameLink">Multiplayer</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Ui">Personalization</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Language">Language</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Misc">Miscellaneous</sys:String>
@@ -1544,7 +1539,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.About">About</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Feedback">Feedback</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Log">Logs</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Lobby">Lobby</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Toolbox">Toolbox</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">Help</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Edit">Edit</sys:String>
@@ -1685,7 +1679,7 @@
     <sys:String x:Key="Setup.Launch.MsAuth.WebManager">Web Account Manager (temporarily forced to Device Code Flow)</sys:String>
     <sys:String x:Key="Setup.Launch.MsAuth.DeviceCode">Device Code Flow</sys:String>
     <sys:String x:Key="Setup.Launch.IpStack.Label">IP protocol preference</sys:String>
-    <sys:String x:Key="Setup.Launch.IpStack.ToolTip">Set the Minecraft IP protocol preference through JVM arguments.&#x0a;In general, IPv4 preferred is recommended to ensure that the PCL CE lobby works properly.&#x0a;If you need manual IPv6 networking, you can choose another option.&#x0a;&#x0a;IPv4 preferred: -Djava.net.preferIPv4Stack=true&#x0a;Default: no extra arguments&#x0a;IPv6 preferred: -Djava.net.preferIPv6Stack=true</sys:String>
+    <sys:String x:Key="Setup.Launch.IpStack.ToolTip">Set the Minecraft IP protocol preference through JVM arguments.&#x0a;In general, IPv4 preferred is recommended.&#x0a;If you need manual IPv6 networking, you can choose another option.&#x0a;&#x0a;IPv4 preferred: -Djava.net.preferIPv4Stack=true&#x0a;Default: no extra arguments&#x0a;IPv6 preferred: -Djava.net.preferIPv6Stack=true</sys:String>
     <sys:String x:Key="Setup.Launch.IpStack.Ipv4">IPv4 preferred</sys:String>
     <sys:String x:Key="Setup.Launch.IpStack.JavaDefault">Java default</sys:String>
     <sys:String x:Key="Setup.Launch.IpStack.Ipv6">IPv6 preferred</sys:String>
@@ -1745,38 +1739,6 @@
     <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">When enabled, PCL will read your clipboard and recognize resource links, then ask whether to navigate to the detail page.</sys:String>
     <sys:String x:Key="Setup.GameManage.Initialized">Game management settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.GameManage.Error.InitFailed">Failed to initialize game management settings</sys:String>
-
-    <!-- Setup.GameLink -->
-
-    <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
-    <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>
-    <sys:String x:Key="Setup.GameLink.Username.ToolTip">PCL CE will try to use this username for lobby display.&#x0a;If left blank, the Natayark ID username will be used.&#x0a;&#x0a;In some cases, the Natayark ID username may still be displayed instead of the name set here.</sys:String>
-    <sys:String x:Key="Setup.GameLink.Protocol.Preference">Protocol preference</sys:String>
-    <sys:String x:Key="Setup.GameLink.Protocol.Tcp">TCP</sys:String>
-    <sys:String x:Key="Setup.GameLink.Protocol.Udp">UDP</sys:String>
-    <sys:String x:Key="Setup.GameLink.Protocol.Tcp.ToolTip">Let EasyTier prefer TCP communication, which usually provides better stability.</sys:String>
-    <sys:String x:Key="Setup.GameLink.Protocol.Udp.ToolTip">Let EasyTier prefer UDP communication, which usually provides lower latency.</sys:String>
-    <sys:String x:Key="Setup.GameLink.LatencyFirstMode">Select the lowest-latency path instead of the shortest path</sys:String>
-    <sys:String x:Key="Setup.GameLink.LatencyFirstMode.ToolTip">When enabled, EasyTier will choose the path with the lowest latency rather than the path with the fewest routing hops.&#x0a;Enabling this may reduce latency in some cases, but may increase packet loss.</sys:String>
-    <sys:String x:Key="Setup.GameLink.PortGuessNat">Perform port guessing for symmetric NAT</sys:String>
-    <sys:String x:Key="Setup.GameLink.PortGuessNat.ToolTip">Let EasyTier attempt port guessing for symmetric NAT (birthday paradox).&#x0a;This may improve the multiplayer experience, but it may also cause issues in some cases.&#x0a;Generally, keep it enabled.</sys:String>
-    <sys:String x:Key="Setup.GameLink.EnableIPv6">Allow IPv6 communication</sys:String>
-    <sys:String x:Key="Setup.GameLink.EnableIPv6.ToolTip">Compared with IPv4, IPv6 makes P2P communication easier and can greatly improve the multiplayer experience. Do not disable it unless you have a specific reason.</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput">Output CLI info to logs for debugging</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput.ToolTip">Output EasyTier CLI info to the launcher log every 30 seconds for developer and community support investigation.&#x0a;This option is for debugging only and is not recommended to keep enabled.</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Title">Network test</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Start">Start test</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Testing">Testing...</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.NotTested">Not tested</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Supported">Supported</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Unsupported">Unsupported</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.Initialized">Multiplayer settings have been initialized!</sys:String>
-    <sys:String x:Key="Setup.GameLink.Error.InitFailed">Failed to initialize multiplayer settings</sys:String>
-    <sys:String x:Key="Setup.GameLink.Error.ConfigChangeFailed">Failed to change configuration item</sys:String>
-
     <!-- Setup.Update -->
 
     <sys:String x:Key="Setup.Update.Channel.Title">Update channel</sys:String>
@@ -1804,9 +1766,6 @@
     <sys:String x:Key="Setup.Update.Auto.NotifyOnly.ToolTip">The launcher will automatically check for available updates, then prompt you to download and install.</sys:String>
     <sys:String x:Key="Setup.Update.Auto.Disabled">Do not automatically check for updates (not recommended)</sys:String>
     <sys:String x:Key="Setup.Update.Auto.Disabled.ToolTip">Disable automatic update checking. This may prevent you from receiving updates in a timely manner.</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorChyanCdk.Label">MirrorChyan CDK</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorChyanCdk.ToolTip">MirrorChyan (mirrorchyan.com) is a paid third-party application distribution platform that provides high-speed download sources in China.&#x0a;This is an optional service. Leaving the CDK blank does not affect normal use or updates.&#x0a;If you have a MirrorChyan CDK, you can provide it to PCL CE, and the launcher will prioritize its high-speed download source for software updates. This can also help reduce pressure on the community update server...</sys:String>
-    <sys:String x:Key="Setup.Update.MirrorChyanCdk.Get">Get CDK</sys:String>
     <sys:String x:Key="Setup.Update.Install">Download and install</sys:String>
     <sys:String x:Key="Setup.Update.RestartInstall">Restart to install</sys:String>
     <sys:String x:Key="Setup.Update.Checking">Checking for updates...</sys:String>
@@ -1818,12 +1777,12 @@
     <sys:String x:Key="Setup.Update.Changelog.MoreInfo">More information about this update...</sys:String>
     <sys:String x:Key="Setup.Update.Changelog.Empty">The developers seem to have forgotten to provide an update summary... Maybe click below to view the full changelog?</sys:String>
     <sys:String x:Key="Setup.Update.Changelog.Unavailable">No changelog available...</sys:String>
-    <sys:String x:Key="Setup.Update.Changelog.Placeholder">PCL CE 2.14.0 brings a refreshing new design, several Pigeon smart features, and a delightful cross-instance workflow to boost your productivity.</sys:String>
+    <sys:String x:Key="Setup.Update.Changelog.Placeholder">PCL N 2.14.0 brings a refreshing new design, several Pigeon smart features, and a delightful cross-instance workflow to boost your productivity.</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">Launcher update - missing runtime</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Message">A launcher update (version {0}) was found, but the new version requires .NET 8 to be installed on your computer.&#x0a;You need to install .NET 8 before continuing the update.&#x0a;&#x0a;Click the button below to open the webpage, then select {1} under &quot;.NET Desktop Runtime&quot; to download.</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 8 Runtime</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Title">Other update options - upgrade to AquaCL</sys:String>
-    <sys:String x:Key="Setup.Update.OtherOptions.Placeholder">AquaCL 3 is the first major update of PCL CE. It brings a refreshing new design, uses the latest development technologies, completely rebuilds the core experience, and adds support for macOS, Linux, and other platforms.</sys:String>
+    <sys:String x:Key="Setup.Update.OtherOptions.Placeholder">AquaCL 3 is the first major update of PCL N. It brings a refreshing new design, uses the latest development technologies, completely rebuilds the core experience, and adds support for macOS, Linux, and other platforms.</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version information. Please check your network connection.</sys:String>
 
     <!-- Setup.Misc.System / Network -->
@@ -1841,8 +1800,6 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">Real-time log lines</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">Maximum number of lines displayed in the real-time log feature. Old logs are automatically deleted when exceeded.</sys:String>
     <sys:String x:Key="Setup.Misc.System.DisableHardwareAcceleration">Disable hardware acceleration</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry">Enable telemetry data collection</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#x0a;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether official PCL, HMCL, or BakaXL have been used.&#x0a;&#x0a;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#x0a;&#x0a;This change will take effect after restarting the launcher.</sys:String>
     <sys:String x:Key="Setup.Misc.System.ExportSettings">Export settings</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings">Import settings</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Title">Network</sys:String>
@@ -1884,7 +1841,7 @@
     <sys:String x:Key="Setup.Misc.Log.TempStored">Temporarily stored logs ({0})</sys:String>
     <sys:String x:Key="Setup.Misc.Log.TempUnoutput">Temporarily stored logs that have not been output</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportSaveTitle">Export log file</sys:String>
-    <sys:String x:Key="Setup.Misc.Log.ExportFilter">PCL CE log archive|*.zip</sys:String>
+    <sys:String x:Key="Setup.Misc.Log.ExportFilter">PCL N log archive|*.zip</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportSuccess">Log saved successfully!</sys:String>
     <sys:String x:Key="Setup.Misc.Log.ExportFailed">Failed to save log</sys:String>
     <sys:String x:Key="Setup.Misc.Log.Clear.Confirm.Message">Do you want to delete all historical logs?</sys:String>
@@ -1910,9 +1867,9 @@
 
     <sys:String x:Key="Setup.About.Title">About</sys:String>
     <sys:String x:Key="Setup.About.OriginalAuthor.Info">The original author of Plain Craft Launcher!</sys:String>
-    <sys:String x:Key="Setup.About.Community.Info">The development team of Plain Craft Launcher Community Edition!</sys:String>
+    <sys:String x:Key="Setup.About.Community.Info">The developer of Plain Craft Launcher N Edition!</sys:String>
     <sys:String x:Key="Setup.About.OriginalAuthor.Name">LTCat (龙腾猫跃)</sys:String>
-    <sys:String x:Key="Setup.About.Community.Name">PCL Community</sys:String>
+    <sys:String x:Key="Setup.About.Community.Name">MUXUE1230</sys:String>
     <sys:String x:Key="Setup.About.Version.Info">Current version: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)</sys:String>
     <sys:String x:Key="Setup.About.SponsorOriginalAuthor">Sponsor original author</sys:String>
     <sys:String x:Key="Setup.About.GitHubHome">GitHub page</sys:String>
@@ -1920,30 +1877,18 @@
     <sys:String x:Key="Setup.About.SpecialThanks.Title">Special thanks</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Bangbang93">bangbang93</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Mcmod">MCMod (MC 百科)</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Name.Pysio">Pysio @ Akaere Network</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Name.Yunmoan">云默安 @ 至远光辉</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Name.EasyTier">EasyTier</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Z0z0r4">z0z0r4</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Name.Emperormummy">Emperormummy</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.Bmclapi">Provided BMCLAPI mirror and Forge installation tool. Details at https://bmclapi.bangbang93.com</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.SponsorMirror">Sponsor mirror</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcmod">Provided Chinese translation of mods and more related information!</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.OpenMcmod">Website</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Info.Cloud">Provided cloud services for PCL CE.</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.GoBlog">Blog</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.OpenWebsite">Website</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Info.LinkModule">Provided the multiplayer module!</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcim">Provided MCIM community resource mirrors and image hosting services for the help center!</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Info.IconDesign">Designed and created the PCL CE icon.</sys:String>
-    <sys:String x:Key="Setup.About.Contributors.Title">Contributors</sys:String>
-    <sys:String x:Key="Setup.About.Contributors.ViewMore">View more</sys:String>
     <sys:String x:Key="Setup.About.Legal.Title">Legal information</sys:String>
     <sys:String x:Key="Setup.About.Legal.PrivacyNotice">Privacy statement</sys:String>
-    <sys:String x:Key="Setup.About.Legal.PrivacyText">The User Agent of this software includes the launcher version number to count the number of users on each version.&#x0d;Other than this, this software will not upload any other information to the developers.&#x0d;* Online and hardware/software survey features follow their own privacy policies, which are separate from this notice.</sys:String>
+    <sys:String x:Key="Setup.About.Legal.PrivacyText">The User Agent of this software includes the launcher version number to count the number of users on each version.&#x0d;Other than this, this software will not upload any other information to the developers.&#x0d;* Hardware/software survey features follow their own privacy policies, which are separate from this notice.</sys:String>
     <sys:String x:Key="Setup.About.Legal.OtherInfo">Other information</sys:String>
-    <sys:String x:Key="Setup.About.Legal.CopyrightText">Copyright © PCL Community &amp; LTCat (龙腾猫跃) 2026.&#x0d;NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</sys:String>
-    <sys:String x:Key="Setup.About.Legal.CommunitySource">Community Edition source code</sys:String>
-    <sys:String x:Key="Setup.About.Legal.CommunityLobbyPrivacy">Community lobby privacy policy</sys:String>
+    <sys:String x:Key="Setup.About.Legal.CopyrightText">Copyright © MUXUE1230 &amp; LTCat (龙腾猫跃) 2026.&#x0d;NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</sys:String>
+    <sys:String x:Key="Setup.About.Legal.CommunitySource">N Edition source code</sys:String>
     <sys:String x:Key="Setup.About.Legal.NatayarkTerms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Setup.About.UpstreamLegal.Title">Upstream legal information</sys:String>
     <sys:String x:Key="Setup.About.UpstreamLegal.PrivacyText">The User Agent of this software includes the launcher version number to count the number of users on each version.&#13;Other than this, this software will not upload any other information to the developers.</sys:String>
@@ -1961,7 +1906,7 @@
     <sys:String x:Key="Setup.About.EasterEgg.Bored.No">Not really</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Bored.Response">Then why are you still clicking... I don't get it.</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Encouragement">Uh, keep going, uh...</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">The hidden theme &quot;Chaos Yellow&quot; has been unlocked... wait, this is PCL Community Edition, probably not...</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">The hidden theme &quot;Chaos Yellow&quot; has been unlocked... wait, this is PCL N Edition, probably not...</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.StillStaring">How are you still so bored?</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.NothingBehind">There's nothing behind this!</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message1">Aren't you tired?</sys:String>
@@ -2554,7 +2499,7 @@
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">Worlds / maps</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">Multiplayer server list</sys:String>
     <sys:String x:Key="Instance.Export.Option.Launcher">PCL Launcher</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">Bundle PCL Community Edition for players without a launcher</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">Bundle PCL N Edition for players without a launcher</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL custom content</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom.Desc">Feature toggle settings, homepage, background music and images, etc.</sys:String>
     <sys:String x:Key="Instance.Export.OptionListTitle">Export content list</sys:String>

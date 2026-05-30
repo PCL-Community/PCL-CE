@@ -24,11 +24,6 @@ public static partial class Config
         [ConfigItem<bool>("SystemDisableHardwareAcceleration", false)] public partial bool DisableHardwareAcceleration { get; set; }
 
         /// <summary>
-        /// 遥测。
-        /// </summary>
-        [ConfigItem<bool>("SystemTelemetry", false)] public partial bool Telemetry { get; set; }
-
-        /// <summary>
         /// 实时日志最大行数。
         /// </summary>
         [ConfigItem<int>("SystemMaxLog", 13)] public partial int MaxGameLog { get; set; }
@@ -119,62 +114,7 @@ public static partial class Config
         /// </summary>
         [ConfigItem<UpdateChannel>("SystemUpdateChannel", UpdateChannel.Release, ConfigSource.Local)] public partial UpdateChannel UpdateChannel { get; set; }
             
-        /// <summary>
-        /// Mirror 酱 CDK。
-        /// </summary>
-        [ConfigItem<string>("SystemMirrorChyanKey", "", ConfigSource.SharedEncrypt)] public partial string MirrorChyanKey { get; set; }
-    }
-
-    /// <summary>
-    /// 联机大厅配置。
-    /// </summary>
-    [ConfigGroup("Link")] partial class LinkConfigGroup
-    {
-        /// <summary>
-        /// 大厅用户名。
-        /// </summary>
-        [ConfigItem<string>("LinkUsername", "")] public partial string Username { get; set; }
-
-        /// <summary>
-        /// 中继方式。
-        /// </summary>
-        [ConfigItem<LinkRelayBehavior>("LinkRelayType", LinkRelayBehavior.Default)] public partial LinkRelayBehavior RelayType { get; set; }
-
-        /// <summary>
-        /// 中继服务器类型 (社区/自有)。
-        /// </summary>
-        [ConfigItem<int>("LinkServerType", 1)] public partial int ServerType { get; set; }
-
-        /// <summary>
-        /// 延迟优先模式。
-        /// </summary>
-        [ConfigItem<bool>("LinkLatencyFirstMode", true)] public partial bool UseLatencyFirstMode { get; set; }
-
-        /// <summary>
-        /// 自定义中继服务器。
-        /// </summary>
-        [ConfigItem<string>("LinkRelayServer", "")] public partial string CustomRelayServer { get; set; }
-
-        /// <summary>
-        /// 传输协议优先策略。
-        /// </summary>
-        [ConfigItem<LinkProtocolPreference>("LinkProtocolPreference", LinkProtocolPreference.Tcp)] public partial LinkProtocolPreference ProtocolPreference { get; set; }
-
-        /// <summary>
-        /// 尝试使用端口猜测打通对称性 NAT。
-        /// </summary>
-        [ConfigItem<bool>("LinkTryPunchSym", true)] public partial bool TryPunchSym { get; set; }
-
-        /// <summary>
-        /// 启用 IPv6。
-        /// </summary>
-        [ConfigItem<bool>("LinkEnableIPv6", true)] public partial bool EnableIPv6 { get; set; }
-        
-        /// <summary>
-        /// 在日志中输出 Cli 信息以用于调试。
-        /// </summary>
-        [ConfigItem<bool>("LinkEnableCliOutput", false)] public partial bool EnableCliOutput { get; set; }
-    }
+}
 
     /// <summary>
     /// 个性化配置。
@@ -436,13 +376,11 @@ public static partial class Config
             [ConfigItem<bool>("UiHiddenSetupGameManage", false, ConfigSource.Local)] public partial bool SetupGameManage { get; set; }
             [ConfigItem<bool>("UiHiddenSetupJava", false, ConfigSource.Local)] public partial bool SetupJava { get; set; }
             [ConfigItem<bool>("UiHiddenSetupUpdate", false, ConfigSource.Local)] public partial bool SetupUpdate { get; set; }
-            [ConfigItem<bool>("UiHiddenSetupGameLink", false, ConfigSource.Local)] public partial bool SetupGameLink { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenSetupAbout", false, ConfigSource.Local)] public partial bool SetupAbout { get; set; } // 修正名称
             [ConfigItem<bool>("UiHiddenSetupFeedback", false, ConfigSource.Local)] public partial bool SetupFeedback { get; set; } // 修正名称
             [ConfigItem<bool>("UiHiddenSetupLog", false, ConfigSource.Local)] public partial bool SetupLog { get; set; } // 修正名称
 
             // 子页面 工具
-            [ConfigItem<bool>("UiHiddenToolsGameLink", false, ConfigSource.Local)] public partial bool ToolsGameLink { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenToolsHelp", false, ConfigSource.Local)] public partial bool ToolsHelp { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenToolsTest", false, ConfigSource.Local)] public partial bool ToolsTest { get; set; } // 新增
 
@@ -547,7 +485,7 @@ public static partial class Config
         /// <summary>
         /// 自定义左下角版本信息。
         /// </summary>
-        [ConfigItem<string>("LaunchArgumentInfo", "PCLCE", ConfigSource.Local)] public partial string TypeInfo { get; set; }
+        [ConfigItem<string>("LaunchArgumentInfo", "PCLN", ConfigSource.Local)] public partial string TypeInfo { get; set; }
 
         /// <summary>
         /// 选择的默认 Java 实例。

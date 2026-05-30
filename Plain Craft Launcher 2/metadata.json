@@ -1,17 +1,17 @@
 {
-  "name": "Plain Craft Launcher Community Edition",
+  "name": "Plain Craft Launcher N Edition",
   "version": {
-    "base": "2.14.6",
+    "base": "0.0.1",
     "upstream": "2.12.1",
     "suffix": "",
-    "code": 514
+    "code": 0
   },
   "licenses": [
     {
       "name": "PCL.Core",
-      "info": "Copyright © PCL Community",
-      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
-      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
+      "info": "Copyright © MUXUE1230",
+      "website": "https://github.com/MuXue1230-owo/PCL2-N/tree/dev/PCL.Core",
+      "license": "https://github.com/MuXue1230-owo/PCL2-N/blob/dev/LICENSE"
     },
     {
       "name": "Java Launch Wrapper",
@@ -36,18 +36,6 @@
       "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
       "website": "https://www.iconfont.cn/",
       "license": null
-    },
-    {
-      "name": "Stun.Net",
-      "info": "Copyright © Bruce Wayne",
-      "website": "https://github.com/HMBSbige/NatTypeTester",
-      "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
-    },
-    {
-      "name": "IPNetwork",
-      "info": "Copyright © 2015, lduchosal",
-      "website": "https://github.com/lduchosal/ipnetwork",
-      "license": "https://github.com/lduchosal/ipnetwork/blob/master/LICENSE"
     },
     {
       "name": "TagLibSharp",
@@ -114,12 +102,6 @@
       "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/protobuf-net/protobuf-net",
       "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
-    },
-    {
-      "name": "Sentry",
-      "info": "Copyright © 2018 Sentry\nLicensed under the MIT license.",
-      "website": "https://sentry.io/",
-      "license": "https://github.com/getsentry/sentry-dotnet/blob/main/LICENSE"
     },
     {
       "name": "LWJGL Unsafe Agent",

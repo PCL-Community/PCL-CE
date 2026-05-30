@@ -36,6 +36,7 @@ public class Identify
         {
             using var searcher =
                 new ManagementObjectSearcher($"SELECT {propertyName} FROM {className}");
+            searcher.Options.Timeout = TimeSpan.FromSeconds(3);
             using var results = searcher.Get();
             foreach (var obj in results)
             {
@@ -51,7 +52,7 @@ public class Identify
     {
         try
         {
-            var prefix = "PCL-CE|"u8.ToArray();
+            var prefix = "PCL-N|"u8.ToArray();
             var ctx = RawId;
             var suffix = "|LauncherId"u8.ToArray();
 
@@ -75,7 +76,7 @@ public class Identify
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Identify", "无法获取识别码");
-            return "PCL2-CECE-GOOD-2025";
+            return "PCL2-NENE-GOOD-2026";
         }
     }
 }

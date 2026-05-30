@@ -128,13 +128,11 @@ public partial class PageSetupUI
             CheckHiddenSetupJava.Checked = uiHidden.SetupJava;
             CheckHiddenLauncherMisc.Checked = uiHidden.SetupLauncherMisc;
             CheckHiddenSetupUpdate.Checked = uiHidden.SetupUpdate;
-            CheckHiddenSetupGameLink.Checked = uiHidden.SetupGameLink;
             CheckHiddenSetupAbout.Checked = uiHidden.SetupAbout;
             CheckHiddenSetupFeedback.Checked = uiHidden.SetupFeedback;
             CheckHiddenSetupLog.Checked = uiHidden.SetupLog;
 
             // 子页面 工具
-            CheckHiddenToolsGameLink.Checked = uiHidden.ToolsGameLink;
             CheckHiddenToolsHelp.Checked = uiHidden.ToolsHelp;
             CheckHiddenToolsTest.Checked = uiHidden.ToolsTest;
 
@@ -263,11 +261,9 @@ public partial class PageSetupUI
             case "UiHiddenSetupGameManage": Config.Preference.Hide.SetupGameManage = (bool)value; break;
             case "UiHiddenSetupJava": Config.Preference.Hide.SetupJava = (bool)value; break;
             case "UiHiddenSetupUpdate": Config.Preference.Hide.SetupUpdate = (bool)value; break;
-            case "UiHiddenSetupGameLink": Config.Preference.Hide.SetupGameLink = (bool)value; break;
             case "UiHiddenSetupAbout": Config.Preference.Hide.SetupAbout = (bool)value; break;
             case "UiHiddenSetupFeedback": Config.Preference.Hide.SetupFeedback = (bool)value; break;
             case "UiHiddenSetupLog": Config.Preference.Hide.SetupLog = (bool)value; break;
-            case "UiHiddenToolsGameLink": Config.Preference.Hide.ToolsGameLink = (bool)value; break;
             case "UiHiddenToolsHelp": Config.Preference.Hide.ToolsHelp = (bool)value; break;
             case "UiHiddenToolsTest": Config.Preference.Hide.ToolsTest = (bool)value; break;
             case "UiHiddenVersionEdit": Config.Preference.Hide.InstanceEdit = (bool)value; break;
@@ -756,8 +752,8 @@ public partial class PageSetupUI
             // 获取配置组引用以缩短代码
             var conf = Config.Preference.Hide;
 
-            // 顶部栏：下载、设置、工具
-            var IsAllTitleHidden = !HiddenForceShow && conf.PageDownload && conf.PageSetup && conf.PageTools;
+            // 顶部栏：下载、设置
+            var IsAllTitleHidden = !HiddenForceShow && conf.PageDownload && conf.PageSetup;
 
             if (IsAllTitleHidden)
             {
@@ -771,8 +767,7 @@ public partial class PageSetupUI
                     : Visibility.Visible;
                 ModMain.FrmMain.BtnTitleSelect2.Visibility =
                     !HiddenForceShow && conf.PageSetup ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.FrmMain.BtnTitleSelect3.Visibility =
-                    !HiddenForceShow && conf.PageTools ? Visibility.Collapsed : Visibility.Visible;
+                ModMain.FrmMain.BtnTitleSelect3.Visibility = Visibility.Collapsed;
             }
 
             // 功能隐藏设置卡片
@@ -804,9 +799,6 @@ public partial class PageSetupUI
                     !HiddenForceShow && conf.SetupJava ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmSetupLeft.ItemUpdate.Visibility =
                     !HiddenForceShow && conf.SetupUpdate ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.FrmSetupLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.SetupGameLink
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
                 ModMain.FrmSetupLeft.ItemAbout.Visibility =
                     !HiddenForceShow && conf.SetupAbout ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmSetupLeft.ItemFeedback.Visibility = !HiddenForceShow && conf.SetupFeedback
@@ -819,7 +811,6 @@ public partial class PageSetupUI
                 {
                     (ModMain.FrmSetupLeft.TextGameCategory,
                         !(conf.SetupLaunch && conf.SetupJava && conf.SetupGameManage)),
-                    (ModMain.FrmSetupLeft.TextToolsCategory, !conf.SetupGameLink),
                     (ModMain.FrmSetupLeft.TextLauncherCategory, !(conf.SetupUi && conf.SetupLauncherLanguage && conf.SetupLauncherMisc)),
                     (ModMain.FrmSetupLeft.TextAboutCategory,
                         !(conf.SetupAbout && conf.SetupUpdate && conf.SetupFeedback && conf.SetupLog))
@@ -849,8 +840,6 @@ public partial class PageSetupUI
                     SetupCount += 1;
                 if (!conf.SetupUpdate)
                     SetupCount += 1;
-                if (!conf.SetupGameLink)
-                    SetupCount += 1;
                 if (!conf.SetupAbout)
                     SetupCount += 1;
                 if (!conf.SetupFeedback)
@@ -864,27 +853,17 @@ public partial class PageSetupUI
             // 工具子页面 (FrmToolsLeft)
             if (ModMain.FrmToolsLeft is not null)
             {
-                ModMain.FrmToolsLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.ToolsGameLink
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
                 ModMain.FrmToolsLeft.ItemLauncherHelp.Visibility =
                     !HiddenForceShow && conf.ToolsHelp ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmToolsLeft.ItemTest.Visibility =
                     !HiddenForceShow && conf.ToolsTest ? Visibility.Collapsed : Visibility.Visible;
-                
-                // 处理分类标题
-                var isGameLinkVisible = (!HiddenForceShow && !conf.ToolsGameLink) || HiddenForceShow;
-                ModMain.FrmToolsLeft.TextGameLinkCategory.Visibility = isGameLinkVisible ? Visibility.Visible : Visibility.Collapsed;
-                if (isGameLinkVisible) ModMain.FrmToolsLeft.TextGameLinkCategory.Opacity = 0.6;
 
                 var isToolsVisible = (!HiddenForceShow && (!conf.ToolsHelp || !conf.ToolsTest)) || HiddenForceShow;
                 ModMain.FrmToolsLeft.TextToolsCategory.Visibility = isToolsVisible ? Visibility.Visible : Visibility.Collapsed;
                 if (isToolsVisible) ModMain.FrmToolsLeft.TextToolsCategory.Opacity = 0.6;
-                
+
                 // 统计工具页可用项数量
                 var ToolsCount = 0;
-                if (!conf.ToolsGameLink)
-                    ToolsCount += 1;
                 if (!conf.ToolsHelp)
                     ToolsCount += 1;
                 if (!conf.ToolsTest)
@@ -920,7 +899,6 @@ public partial class PageSetupUI
         CheckHiddenLauncherMisc.Checked = IsChecked;
         CheckHiddenSetupJava.Checked = IsChecked;
         CheckHiddenSetupUpdate.Checked = IsChecked;
-        CheckHiddenSetupGameLink.Checked = IsChecked;
         CheckHiddenSetupAbout.Checked = IsChecked;
         CheckHiddenSetupFeedback.Checked = IsChecked;
         CheckHiddenSetupLog.Checked = IsChecked;
@@ -939,7 +917,6 @@ public partial class PageSetupUI
         CheckHiddenLauncherMisc.Checked = IsChecked;
         CheckHiddenSetupJava.Checked = IsChecked;
         CheckHiddenSetupUpdate.Checked = IsChecked;
-        CheckHiddenSetupGameLink.Checked = IsChecked;
         CheckHiddenSetupAbout.Checked = IsChecked;
         CheckHiddenSetupFeedback.Checked = IsChecked;
         CheckHiddenSetupLog.Checked = IsChecked;
@@ -952,7 +929,7 @@ public partial class PageSetupUI
         var conf = Config.Preference.Hide;
         // 判断是否全部勾选
         var AllChecked = conf.SetupLaunch && conf.SetupUi && conf.SetupLauncherLanguage && conf.SetupJava &&
-                         conf.SetupUpdate && conf.SetupGameLink && conf.SetupAbout && conf.SetupFeedback &&
+                         conf.SetupUpdate && conf.SetupAbout && conf.SetupFeedback &&
                          conf.SetupLog && conf.SetupLauncherMisc && conf.SetupGameManage;
         CheckHiddenPageSetup.Checked = AllChecked;
     }
@@ -963,7 +940,6 @@ public partial class PageSetupUI
         if (!user)
             return;
         var IsChecked = (bool)CheckHiddenPageTools.Checked;
-        CheckHiddenToolsGameLink.Checked = IsChecked;
         CheckHiddenToolsHelp.Checked = IsChecked;
         CheckHiddenToolsTest.Checked = IsChecked;
     }
@@ -973,7 +949,7 @@ public partial class PageSetupUI
         if (!user)
             return;
         var conf = Config.Preference.Hide;
-        var AllChecked = conf.ToolsGameLink && conf.ToolsHelp && conf.ToolsTest;
+        var AllChecked = conf.ToolsHelp && conf.ToolsTest;
         CheckHiddenPageTools.Checked = AllChecked;
     }
 

@@ -14,13 +14,12 @@ public static class UpdateManager
 
     public static UpdatesWrapperModel RemoteServer = new(new List<IUpdateSource>
     {
-        new UpdatesMirrorChyanModel(),
-        new UpdatesRandomModel(new[]
-        {
-            new UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
-            new UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
-        }),
-        new UpdatesMinioModel("https://github.com/PCL-Community/PCL2_CE_Server/raw/main/", "GitHub")
+        //new UpdatesRandomModel(new[]
+        //{
+        //    new UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
+        //    new UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
+        //}),
+        new UpdatesMinioModel("https://github.com/MuXue1230-owo/PCL2_N_Server/raw/main/", "GitHub")
     });
 
     public static bool IsCurrentVersionBeta
@@ -68,7 +67,7 @@ public static class UpdateManager
 
     public static void UpdateStart(UpdateEnums.UpdateType type, string receivedKey = null, bool forceValidated = false)
     {
-        var dlTargetPath = ModBase.ExePath + @"PCL\Plain Craft Launcher Community Edition.exe";
+        var dlTargetPath = ModBase.ExePath + @"PCL\Plain Craft Launcher N Edition.exe";
         ModBase.RunInNewThread(() =>
         {
             try
@@ -160,7 +159,7 @@ public static class UpdateManager
     {
         try
         {
-            var fileName = ModBase.ExePath + @"PCL\Plain Craft Launcher Community Edition.exe";
+            var fileName = ModBase.ExePath + @"PCL\Plain Craft Launcher N Edition.exe";
             if (!File.Exists(fileName))
             {
                 ModBase.Log("[System] 更新失败：未找到更新文件");
@@ -182,7 +181,7 @@ public static class UpdateManager
         catch (Win32Exception ex)
         {
             ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", ModBase.LogLevel.Debug, "出现错误");
-            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", Lang.Text("Common.Action.Confirm"), "", true, true, false, null, null, null) == 1)
+            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher N Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", Lang.Text("Common.Action.Confirm"), "", true, true, false, null, null, null) == 1)
             {
                 CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json");
             }
@@ -220,7 +219,7 @@ public static class UpdateManager
         loader.WaitForExit();
     }
     
-    public static ModLoader.LoaderTask<int, int> ServerLoader = new("PCL CE 服务", _ => LoadOnlineInfo(),
+    public static ModLoader.LoaderTask<int, int> ServerLoader = new("PCL N 服务", _ => LoadOnlineInfo(),
         Priority: ThreadPriority.BelowNormal);
 
     private static void LoadOnlineInfo()
@@ -253,22 +252,22 @@ public static class UpdateManager
     }
 
     /// <summary>
-    ///     展示社区版提示
+    ///     展示 PCL N Edition 提示
     /// </summary>
     /// <param name="IsUpdate">是否为更新时启动</param>
     public static void ShowCEAnnounce()
     {
-        ModMain.MyMsgBox(@"你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！
-PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。
+        ModMain.MyMsgBox(@"你正在使用来自 MUXUE1230 的 PCL N Edition，遇到问题请不要向官方仓库反馈！
+MUXUE1230 与龙腾猫跃无从属关系，且均不会为您的使用做担保。
 
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
-如果你是意外下载的社区版，建议下载官方版 PCL 使用。
+如果你是意外下载的 PCL N Edition，建议下载官方版 PCL 使用。
+如果你是意外下载的 PCL N Edition，建议下载官方版 PCL 使用。
+如果你是意外下载的 PCL N Edition，建议下载官方版 PCL 使用。
 
 该版本与官方版本的特性区别：
 - 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。
 - 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。
 
-此提示会在启动器更新后展示一次。", "社区版本说明", "我知道了");
+此提示会在启动器更新后展示一次。", "PCL N Edition 说明", "我知道了");
     }
 }

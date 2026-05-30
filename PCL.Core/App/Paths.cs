@@ -64,11 +64,11 @@ public static class Paths
     static Paths()
     {
 #if DEBUG
-        const string name = "PCLCE_Debug";
-        const string oldName = ".PCLCEDebug";
+        const string name = "PCLN_Debug";
+        const string oldName = ".PCLNDebug";
 #else
-        const string name = "PCLCE";
-        const string oldName = ".PCLCE";
+        const string name = "PCLN";
+        const string oldName = ".PCLN";
 #endif
         // fill paths
         _data = Path.Combine(DefaultDirectory, "PCL");
