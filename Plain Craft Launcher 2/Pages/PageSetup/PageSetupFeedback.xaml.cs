@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Core.App.Localization;
 
@@ -9,7 +8,7 @@ namespace PCL;
 
 public partial class PageSetupFeedback
 {
-    public enum TagID : long
+    public enum TagId : long
     {
         Processing = 6820804544L,
         WaitingProcess = 6820804546L,
@@ -22,7 +21,7 @@ public partial class PageSetupFeedback
         Upnext = 8550609020L
     }
 
-    private new bool IsLoaded;
+    private bool _isLoaded;
 
     public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
 
@@ -39,43 +38,41 @@ public partial class PageSetupFeedback
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
-        if (IsLoaded)
+        if (_isLoaded)
             return;
-        IsLoaded = true;
+        _isLoaded = true;
     }
 
-    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
+    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> task)
     {
-        JsonArray list;
-        list = (JsonArray)Requester.FetchJson(
+        var list = Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
             new RequestParam
             {
                 Retries = 3,
                 UseBrowserUserAgent = true
-            }); // 获取近期 200 条数据就够了
+            }) as JsonArray;
         if (list is null)
             throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
-        foreach (JsonObject i in list)
+        foreach (var i in list)
         {
-            var pullRequestToken = i["pull_request"];
+            if (i is not JsonObject issue) continue;
+            var pullRequestToken = issue["pull_request"];
             if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
 
             var item = new Feedback
             {
-                Title = i["title"].ToString(),
-                Url = i["html_url"].ToString(),
-                Content = i["body"].ToString(),
-                Time = DateTime.Parse(i["created_at"].ToString()),
-                User = i["user"]["login"].ToString(),
-                ID = i["number"].ToString(),
-                Open = i["state"].ToString().Equals("open"),
-                IsPullRequest = false
+                Title = issue["title"]!.ToString(),
+                Url = issue["html_url"]!.ToString(),
+                Content = issue["body"]?.ToString() ?? "",
+                Time = DateTime.Parse(issue["created_at"]!.ToString()),
+                User = issue["user"]!["login"]!.ToString(),
+                Id = issue["number"]!.ToString(),
             };
 
             var issueType = Lang.Text("Setup.Feedback.Uncategorized");
-            var typeToken = i["type"];
+            var typeToken = issue["type"];
             if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
             {
                 var typeNameToken = typeToken["name"];
@@ -84,27 +81,29 @@ public partial class PageSetupFeedback
 
             item.Type = issueType;
 
-            var thisTags = (JsonArray)i["labels"];
-            foreach (JsonObject thisTag in thisTags)
-                item.Tags.Add(thisTag["id"].ToString());
+            if (issue["labels"] is JsonArray thisTags)
+                foreach (var thisTag in thisTags)
+                    if (thisTag is JsonObject tagObj)
+                        item.Tags.Add(tagObj["id"]!.ToString());
+
             res.Add(item);
         }
 
-        Task.Output = res;
+        task.Output = res;
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
     {
-        var commonInfo = $"{item.User} | {Lang.Date(item.Time, "G")}";
+        var li = new MyListItem
+        {
+            Title = item.Title,
+            Type = MyListItem.CheckType.Clickable,
+            Info = $"{item.User} | {Lang.Date(item.Time)}",
+            Logo = ModBase.PathImage + logo,
+            Tags = item.Type
+        };
 
-        var li = new MyListItem();
-        li.Title = item.Title;
-        li.Type = MyListItem.CheckType.Clickable;
-        li.Info = commonInfo;
-        li.Logo = ModBase.PathImage + logo;
-        li.Tags = item.Type;
-
-        li.Click += (sender, e) => ShowFeedbackDetail(item);
+        li.Click += (_, _) => ShowFeedbackDetail(item);
 
         return li;
     }
@@ -116,7 +115,7 @@ public partial class PageSetupFeedback
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
-                    $"#{item.ID} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+                    $"#{item.Id} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {
@@ -145,31 +144,31 @@ public partial class PageSetupFeedback
 
         foreach (var item in Loader.Output)
         {
-            if (item.Tags.Contains(((long)TagID.Processing).ToString()))
+            if (item.Tags.Contains(((long)TagId.Processing).ToString()))
                 PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));
 
-            if (item.Tags.Contains(((long)TagID.WaitingProcess).ToString()))
+            if (item.Tags.Contains(((long)TagId.WaitingProcess).ToString()))
                 PanListWaitingProcess.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneBlock.png"));
 
-            if (item.Tags.Contains(((long)TagID.Wait).ToString()))
+            if (item.Tags.Contains(((long)TagId.Wait).ToString()))
                 PanListWait.Children.Add(CreateFeedbackItem(item, "Blocks/Anvil.png"));
 
-            if (item.Tags.Contains(((long)TagID.Pause).ToString()))
+            if (item.Tags.Contains(((long)TagId.Pause).ToString()))
                 PanListPause.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOff.png"));
 
-            if (item.Tags.Contains(((long)TagID.Upnext).ToString()))
+            if (item.Tags.Contains(((long)TagId.Upnext).ToString()))
                 PanListUpnext.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOn.png"));
 
-            if (item.Tags.Contains(((long)TagID.Completed).ToString()))
+            if (item.Tags.Contains(((long)TagId.Completed).ToString()))
                 PanListCompleted.Children.Add(CreateFeedbackItem(item, "Blocks/Grass.png"));
 
-            if (item.Tags.Contains(((long)TagID.Decline).ToString()))
+            if (item.Tags.Contains(((long)TagId.Decline).ToString()))
                 PanListDecline.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
 
-            if (item.Tags.Contains(((long)TagID.Ignored).ToString()))
+            if (item.Tags.Contains(((long)TagId.Ignored).ToString()))
                 PanListIgnored.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
 
-            if (item.Tags.Contains(((long)TagID.Duplicate).ToString()))
+            if (item.Tags.Contains(((long)TagId.Duplicate).ToString()))
                 PanListDuplicate.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
         }
 
@@ -191,15 +190,13 @@ public partial class PageSetupFeedback
 
     public class Feedback
     {
-        public string User { get; set; }
-        public string Title { get; set; }
-        public DateTime Time { get; set; }
-        public string Content { get; set; }
-        public string Url { get; set; }
-        public string ID { get; set; }
-        public List<string> Tags { get; set; } = new();
-        public bool Open { get; set; } = true;
-        public string Type { get; set; }
-        public bool IsPullRequest { get; set; }
+        public string User { get; init; } = string.Empty;
+        public string Title { get; init; } = string.Empty;
+        public DateTime Time { get; init; }
+        public string Content { get; init; } = string.Empty;
+        public string Url { get; init; } = string.Empty;
+        public string Id { get; init; } = string.Empty;
+        public List<string> Tags { get; } = new();
+        public string Type { get; set; } = string.Empty;
     }
 }
