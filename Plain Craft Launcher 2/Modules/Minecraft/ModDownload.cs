@@ -1733,7 +1733,7 @@ public static class ModDownload
                     FileName = "liteloader-installer-" + Pair.Key +
                                (Pair.Key == "1.8" || Pair.Key == "1.9" ? ".0" : "") + "-00-SNAPSHOT.jar",
                     MD5 = (string)RealEntry["md5"],
-                    ReleaseTime = TimeUtils.FormatUnixTimestamp((long)RealEntry["timestamp"]),
+                    ReleaseTime = TimeUtils.FormatUnixTimestamp(long.Parse((string)RealEntry["timestamp"])),
                     JsonToken = RealEntry
                 });
             }
