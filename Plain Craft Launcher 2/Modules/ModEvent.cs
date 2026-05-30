@@ -431,9 +431,7 @@ namespace PCL
 
         private static bool EventSafetyConfirm(string message)
         {
-            if (States.Hint.HomepageCommand is bool skipConfirmBool && skipConfirmBool)
-                return true;
-            if (States.Hint.HomepageCommand is string skipConfirmString && string.Equals(skipConfirmString, "True", StringComparison.OrdinalIgnoreCase))
+            if (States.Hint.HomepageCommand)
                 return true;
 
             switch (ModMain.MyMsgBox(
