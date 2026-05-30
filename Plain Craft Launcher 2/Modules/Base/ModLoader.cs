@@ -880,17 +880,15 @@ public static class ModLoader
 
                     case ModBase.LoadState.Loading:
                     {
-                        if (loader is LoaderTask)
+                        if (loader is LoaderTask task)
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
                             var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
-
-                            if (((dynamic)loader).ShouldStart(ref shouldInput, false, true))
+                            if (task.ShouldStart(ref shouldInput, false, true))
                             {
-                                ModBase.Log("[Loader] 由于输入条件变更，重启进行中的加载器 "
-                                            + loader.Name,
+                                ModBase.Log($"[Loader] 由于输入条件变更，重启进行中的加载器 {loader.Name}",
                                     ModBase.LogLevel.Developer);
                                 goto Restart;
                             }
@@ -928,7 +926,7 @@ public static class ModLoader
                                         IsForceRestarting);
                                     break;
                                 default:
-                                    throw new Exception("未知的加载器类型（" + loader.GetType() + "）");
+                                    throw new Exception($"未知的加载器类型（{loader?.GetType()}）");
                             }
                         }
                         else
