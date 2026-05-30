@@ -129,7 +129,7 @@
     },
     {
       "name": "DotNet.Glob",
-      "info": "Copyright (c) 2015-present Darrell Tunnell\nLicensed under the MIT license.",
+      "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
       "website": "https://github.com/dazinator/DotNet.Glob",
       "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
     }
