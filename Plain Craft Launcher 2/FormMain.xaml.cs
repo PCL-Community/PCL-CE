@@ -12,6 +12,7 @@ using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
@@ -1086,13 +1087,37 @@ public partial class FormMain
                     {
                         var DestFolder = PageInstanceLeft.Instance.PathIndie + @"saves\" +
                                          ModBase.GetFileNameWithoutExtentionFromPath(FilePath);
+                        var DestLevelDat = Path.Combine(DestFolder, "level.dat");
                         if (Directory.Exists(DestFolder))
                         {
                             ModMain.Hint(Lang.Text("Main.FileDrag.SameFolderExists", DestFolder), ModMain.HintType.Critical);
                             return;
                         }
 
-                        ModBase.ExtractFile(FilePath, DestFolder);
+                        var ExtractFolder = Path.Combine(ModBase.PathTemp, "Cache", "WorldImport", ModBase.GetUuid().ToString());
+                        try
+                        {
+                            ModBase.ExtractFile(FilePath, ExtractFolder);
+                            var SaveRoot = WorldImportHelper.GetSaveRootDirectory(ExtractFolder);
+                            if (SaveRoot is null)
+                                throw new Exception("压缩包内没有可导入的 Minecraft 存档。");
+
+                            ModBase.CopyDirectory(SaveRoot, DestFolder);
+                            if (!File.Exists(DestLevelDat))
+                                throw new Exception("导入后的存档缺少 level.dat。");
+                        }
+                        catch
+                        {
+                            if (Directory.Exists(DestFolder))
+                                ModBase.DeleteDirectory(DestFolder, true);
+                            throw;
+                        }
+                        finally
+                        {
+                            if (Directory.Exists(ExtractFolder))
+                                ModBase.DeleteDirectory(ExtractFolder, true);
+                        }
+
                         ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(FilePath)),
                             ModMain.HintType.Finish);
                         if (ModMain.FrmInstanceSaves is not null)
