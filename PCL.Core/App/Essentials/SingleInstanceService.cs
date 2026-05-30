@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Essentials;
 
@@ -48,7 +49,7 @@ public sealed partial class SingleInstanceService
                 Context.Info($"发现重复实例 {pid}，尝试传递参数并拉起主窗口");
                 try
                 {
-                    _TryRpc(pid, "REQ cli\n" + JsonSerializer.Serialize(StartupService.UnhandledCommands));
+                    _TryRpc(pid, "REQ cli\n" + JsonSerializer.Serialize(StartupService.UnhandledCommands, JsonCompat.SerializerOptions));
                     _TryRpc(pid, "REQ activate");
                 }
                 catch (Exception ex) { Context.Warn("RPC 通信失败", ex); }

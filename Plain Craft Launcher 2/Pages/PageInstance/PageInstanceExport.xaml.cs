@@ -8,6 +8,7 @@ using DotNet.Globbing;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -1065,7 +1066,7 @@ public partial class PageInstanceExport : IRefreshable
                     { "summary", McInstance.Desc }, { "files", Files }, { "dependencies", Dependencies }
                 };
                 File.WriteAllText(Path.Combine(CacheFolder, "modpack", "modrinth.index.json"),
-                    ResultJson.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                    ResultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
                 // 打包
                 Directory.CreateDirectory(ModBase.GetPathFromFullPath(PackPath));
                 if (File.Exists(PackPath))

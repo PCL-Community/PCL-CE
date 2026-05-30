@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL;
 

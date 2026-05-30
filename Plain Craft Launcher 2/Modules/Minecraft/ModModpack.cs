@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -10,6 +10,7 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
 using static PCL.ModLoader;
+using PCL.Core.Utils;
 
 namespace PCL;
 

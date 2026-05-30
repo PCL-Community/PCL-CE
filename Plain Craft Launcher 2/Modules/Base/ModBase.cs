@@ -1611,7 +1611,7 @@ public static class ModBase
     {
         try
         {
-            return JsonNodeExtensions.ParseJson(Data);
+            return JsonCompat.ParseNode(Data);
         }
         catch (Exception ex)
         {

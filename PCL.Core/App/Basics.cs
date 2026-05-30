@@ -22,7 +22,7 @@ public static class Basics
     /// 启动器元数据。
     /// </summary>
     public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!)!;
+        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!, JsonCompat.SerializerOptions)!;
 
     /// <summary>
     /// 版本名称。

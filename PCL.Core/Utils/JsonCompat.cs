@@ -1,39 +1,61 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace PCL;
+namespace PCL.Core.Utils;
 
-public static class JsonNodeExtensions
+/// <summary>
+///     System.Text.Json 兼容 Newtonsoft.Json 宽松行为的统一入口。
+/// </summary>
+public static class JsonCompat
 {
-    public static readonly JsonNodeOptions CompatNodeOptions = new()
+    public static readonly JsonNodeOptions NodeOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public static readonly JsonDocumentOptions CompatDocumentOptions = new()
+    public static readonly JsonDocumentOptions DocumentOptions = new()
     {
         AllowTrailingCommas = true,
         CommentHandling = JsonCommentHandling.Skip
     };
 
-    public static readonly JsonSerializerOptions CompatOptions = new()
+    public static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
-            new LocalDateTimeConverter(),
+            new FlexibleDateTimeConverter(),
             new FlexibleBoolConverter(),
             new FlexibleStringConverter(),
             new JsonStringEnumConverter()
         }
     };
 
-    public static JsonNode ParseJson(string data)
+    public static JsonNode ParseNode(string text)
     {
-        return JsonNode.Parse(data, CompatNodeOptions, CompatDocumentOptions)!;
+        return JsonNode.Parse(text, NodeOptions, DocumentOptions)!;
+    }
+
+    public static T? ToObject<T>(this JsonNode? node)
+    {
+        return node is null ? default : node.Deserialize<T>(SerializerOptions);
+    }
+
+    public static JsonArray FromObject<T>(IEnumerable<T> items)
+    {
+        var arr = new JsonArray();
+        foreach (var item in items)
+            arr.Add(JsonSerializer.SerializeToNode(item, SerializerOptions));
+        return arr;
     }
 
     public static void Merge(this JsonObject target, JsonNode? source)
@@ -64,20 +86,7 @@ public static class JsonNodeExtensions
             target.Add(item?.DeepClone());
     }
 
-    public static T? ToObject<T>(this JsonNode node)
-    {
-        return node.Deserialize<T>(CompatOptions);
-    }
-
-    public static JsonArray FromObject<T>(IEnumerable<T> items)
-    {
-        var arr = new JsonArray();
-        foreach (var item in items)
-            arr.Add(JsonSerializer.SerializeToNode(item, CompatOptions));
-        return arr;
-    }
-
-    private sealed class LocalDateTimeConverter : JsonConverter<DateTime>
+    private sealed class FlexibleDateTimeConverter : JsonConverter<DateTime>
     {
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -102,7 +111,6 @@ public static class JsonNodeExtensions
         }
     }
 
-
     private sealed class FlexibleBoolConverter : JsonConverter<bool>
     {
         public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -115,7 +123,7 @@ public static class JsonNodeExtensions
                 JsonTokenType.String when int.TryParse(reader.GetString(), NumberStyles.Integer,
                     CultureInfo.InvariantCulture, out var number) => number != 0,
                 JsonTokenType.Number when reader.TryGetInt64(out var number) => number != 0,
-                _ => throw new JsonException($"无法将 JSON Token {reader.TokenType} 转换为 Boolean。")
+                _ => throw new JsonException($"Can not convert JSON token {reader.TokenType} to Boolean.")
             };
         }
 

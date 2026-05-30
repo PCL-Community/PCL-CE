@@ -729,7 +729,7 @@ public static class ModProfile
                 }
 
                 var jsonBytes = File.ReadAllBytes(path);
-                using (var doc = JsonDocument.Parse(jsonBytes, JsonNodeExtensions.CompatDocumentOptions))
+                using (var doc = JsonDocument.Parse(jsonBytes, JsonCompat.DocumentOptions))
                 {
                     var importCount = 0;
                     var importProfiles = new List<McProfile>();
@@ -790,7 +790,7 @@ public static class ModProfile
                 var oldJson = File.ReadAllText(path);
                 if (!string.IsNullOrWhiteSpace(oldJson))
                     // 这里简单处理：将旧的转回原始结构，避免丢失 HMCL 自己的其他账户
-                    using (var doc = JsonDocument.Parse(oldJson, JsonNodeExtensions.CompatDocumentOptions))
+                    using (var doc = JsonDocument.Parse(oldJson, JsonCompat.DocumentOptions))
                     {
                         foreach (var el in doc.RootElement.EnumerateArray())
                         {
@@ -804,7 +804,7 @@ public static class ModProfile
                 finalDictList.Add(ConvertToHmclDict(profile));
 
             // 3. 序列化并写入
-            var options = new JsonSerializerOptions(JsonNodeExtensions.CompatOptions) { WriteIndented = true };
+            var options = new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true };
             var jsonString = JsonSerializer.Serialize(finalDictList, options);
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));

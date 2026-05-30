@@ -14,6 +14,7 @@ using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 

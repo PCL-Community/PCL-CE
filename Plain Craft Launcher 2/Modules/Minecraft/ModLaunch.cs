@@ -1736,7 +1736,7 @@ public static class ModLaunch
         {
             using var responseStream = ex.Response?.Content.ReadAsStream();
             if (responseStream is null) return false;
-            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream, JsonNodeExtensions.CompatOptions);
+            var result = JsonSerializer.Deserialize<YggdrasilAuthenticateResult>(responseStream, JsonCompat.SerializerOptions);
             if (result?.ErrorMessage is null) return false;
             message = result.ErrorMessage;
             return true;

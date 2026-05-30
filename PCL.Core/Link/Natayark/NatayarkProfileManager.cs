@@ -1,4 +1,4 @@
-using PCL.Core.App;
+﻿using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net.Http;
+using System.Text.Json;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Natayark;
 
@@ -65,7 +67,7 @@ public static class NatayarkProfileManager
 
                 var result = await oauthResponse.AsStringAsync().ConfigureAwait(false) 
                     ?? throw new Exception("获取 AccessToken 与 RefreshToken 失败，返回内容为空");
-                var data = JsonNode.Parse(result);
+                var data = JsonCompat.ParseNode(result);
                 var accessToken = data?["access_token"]?.ToString();
                 var refreshToken = data?["refresh_token"]?.ToString();
 
@@ -87,14 +89,14 @@ public static class NatayarkProfileManager
 
                 var receivedUserData = await userDataResponse.AsStringAsync()
                     ?? throw new Exception("获取 Natayark 用户信息失败，返回内容为空");
-                var userData = (JsonNode.Parse(receivedUserData)?["data"])
+                var userData = (JsonCompat.ParseNode(receivedUserData)?["data"])
                     ?? throw new Exception("获取 Natayark 用户信息失败，解析返回内容失败");
 
-                NaidProfile.Id = userData["id"]?.GetValue<int>() ?? 0;
+                NaidProfile.Id = JsonCompat.ToObject<int>(userData["id"]);
                 NaidProfile.Username = userData["username"]?.ToString() ?? string.Empty;
                 NaidProfile.Email = userData["email"]?.ToString() ?? string.Empty;
-                NaidProfile.Status = userData["status"]?.GetValue<int>() ?? 0;
-                NaidProfile.IsRealNamed = userData["realname"]?.GetValue<bool>() ?? false;
+                NaidProfile.Status = JsonCompat.ToObject<int>(userData["status"]);
+                NaidProfile.IsRealNamed = JsonCompat.ToObject<bool>(userData["realname"]);
                 NaidProfile.LastIp = userData["last_ip"]?.ToString() ?? string.Empty;
 
                 // 保存数据

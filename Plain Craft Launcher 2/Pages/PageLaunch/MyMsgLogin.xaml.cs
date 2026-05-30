@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Network;
+using PCL.Core.Utils;
 
 namespace PCL;
 

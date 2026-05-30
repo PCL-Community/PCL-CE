@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Net;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 
@@ -139,7 +140,11 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
             .SendAsync(options.GetClient.Invoke(), cancellationToken: token)
             .ConfigureAwait(false);
 
-        var data = JsonNode.Parse(await response.AsStringAsync(token));
-        return (response.StatusCode == HttpStatusCode.NoContent, data?["errorMessage"]?.ToString()!);
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return (true, null!);
+
+        var content = await response.AsStringAsync(token).ConfigureAwait(false);
+        var data = string.IsNullOrWhiteSpace(content) ? null : JsonCompat.ParseNode(content);
+        return (false, data?["errorMessage"]?.ToString()!);
     }
 }

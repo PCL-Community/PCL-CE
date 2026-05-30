@@ -242,14 +242,14 @@ public static class ModComp
                     // 尝试作为新格式解析
                     try
                     {
-                        RawList = JsonSerializer.Deserialize<List<FavData>>(RawData, JsonNodeExtensions.CompatOptions);
+                        RawList = JsonSerializer.Deserialize<List<FavData>>(RawData, JsonCompat.SerializerOptions);
                     }
                     catch (Exception ex1)
                     {
                         // 尝试作为旧格式（HashSet）迁移
                         try
                         {
-                            var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData, JsonNodeExtensions.CompatOptions);
+                            var Migrate = JsonSerializer.Deserialize<HashSet<string>>(RawData, JsonCompat.SerializerOptions);
                             if (Migrate is not null) RawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), Migrate) };
                         }
                         catch (Exception ex2)
@@ -271,8 +271,8 @@ public static class ModComp
                 _FavoritesList = value;
                 foreach (var item in _FavoritesList)
                     item.Notes = item.Notes.Where(n => !string.IsNullOrWhiteSpace(n.Value)).ToDictionary();
-                var RawList = JsonSerializer.Serialize(_FavoritesList, JsonNodeExtensions.CompatOptions);
-                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList, JsonNodeExtensions.CompatOptions);
+                var RawList = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
+                States.Game.CompFavorites = JsonSerializer.Serialize(_FavoritesList, JsonCompat.SerializerOptions);
             }
         }
 
@@ -280,7 +280,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Serialize(Data, JsonNodeExtensions.CompatOptions);
+                return JsonSerializer.Serialize(Data, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ public static class ModComp
         {
             try
             {
-                return JsonSerializer.Deserialize<HashSet<string>>(Code, JsonNodeExtensions.CompatOptions);
+                return JsonSerializer.Deserialize<HashSet<string>>(Code, JsonCompat.SerializerOptions);
             }
             catch (Exception ex)
             {

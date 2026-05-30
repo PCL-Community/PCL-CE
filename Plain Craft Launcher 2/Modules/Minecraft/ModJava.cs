@@ -8,6 +8,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -183,7 +184,7 @@ public static class ModJava
         {
             try
             {
-                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference, JsonNodeExtensions.CompatOptions);
+                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference, JsonCompat.SerializerOptions);
             }
             catch (JsonException)
             {
