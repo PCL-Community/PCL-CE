@@ -22,44 +22,56 @@
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
-                               Text="暂时没有存档文件" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True"
+                               Text="{DynamicResource Instance.Saves.Empty.Title}" FontSize="19"
+                               UseLayoutRounding="True" SnapsToDevicePixels="True"
                                Foreground="{DynamicResource ColorBrush3}" />
                     <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2"
                                Fill="{DynamicResource ColorBrush3}" />
-                    <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5" Text="可以在此处查看当前实例的存档"
+                    <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
+                               Text="{DynamicResource Instance.Saves.Empty.Message}"
                                TextWrapping="Wrap" HorizontalAlignment="Center" />
-                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" Click="BtnOpenFolder_Click"
-                                    MinWidth="140" Text="打开存档文件夹" Margin="10,10,10,0"
+                    <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center"
+                                    Click="BtnOpenFolder_Click"
+                                    MinWidth="140" Text="{DynamicResource Instance.Saves.OpenFolder}"
+                                    Margin="10,10,10,0"
                                     Padding="13,0" ColorType="Highlight" />
-                    <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" Click="BtnPaste_Click"
-                                    MinWidth="140" Text="粘贴剪贴板文件" Margin="10,10,10,0"
+                    <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center"
+                                    Click="BtnPaste_Click"
+                                    MinWidth="140" Text="{DynamicResource Instance.Saves.PasteFile}"
+                                    Margin="10,10,10,0"
                                     Padding="13,0" />
 
                 </Grid>
             </local:MyCard>
             <StackPanel Orientation="Vertical" Margin="25,10,25,10" x:Name="PanContent">
 
-                <local:MySearchBox Margin="0,15" HintText="搜索存档名称" x:Name="SearchBox" />
+                <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Saves.SearchHint}"
+                                   x:Name="SearchBox" />
 
-                <local:MyCard Margin="0,0,0,15" Title="快捷操作">
+                <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Saves.QuickActions}">
                     <Grid Height="35" Margin="25,40,15,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton Grid.Column="0" MinWidth="140" Text="打开存档文件夹" Padding="13,0" Margin="0,0,20,0" Click="BtnOpenFolder_Click"
+                        <local:MyButton Grid.Column="0" MinWidth="140"
+                                        Text="{DynamicResource Instance.Saves.OpenFolder}" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnOpenFolder_Click"
                                         HorizontalAlignment="Left" ColorType="Highlight" />
-                        <local:MyButton Grid.Column="1" MinWidth="140" Text="粘贴剪贴板文件" Padding="13,0" Margin="0,0,20,0" Click="BtnPaste_Click"
+                        <local:MyButton Grid.Column="1" MinWidth="140"
+                                        Text="{DynamicResource Instance.Saves.PasteFile}" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnPaste_Click"
                                         HorizontalAlignment="Left" />
                     </Grid>
                 </local:MyCard>
 
-                <local:MyCard Margin="0,0,0,15" x:Name="PanListBack" VerticalAlignment="Top" Title="存档列表"
+                <local:MyCard Margin="0,0,0,15" x:Name="PanListBack" VerticalAlignment="Top"
+                              Title="{DynamicResource Instance.Saves.ListTitle}"
                               MinHeight="55">
                     <Grid>
                         <StackPanel Margin="0,13,15,0" Orientation="Horizontal" VerticalAlignment="Top"
                                     HorizontalAlignment="Right" Height="28">
-                            <local:MyIconTextButton x:Name="BtnSort" Text="排序：文件名"
+                            <local:MyIconTextButton x:Name="BtnSort" Text="{DynamicResource Instance.Saves.SortBy}"
                                                     Logo="M673.158095 252.830476v634.026667h-71.923809V172.251429c0-10.142476 4.022857-19.846095 11.215238-26.989715a38.546286 38.546286 0 0 1 54.296381 0L926.47619 403.553524l-50.883047 50.566095-202.435048-201.289143zM350.841905 768.121905V134.095238h71.923809v719.823238l-0.902095 6.460953c-1.26781 8.045714-2.56 9.728-9.703619 18.992761l-8.045714 4.388572c-17.92 9.45981-20.577524 7.996952-43.154286-4.388572L97.52381 617.374476l50.883047-50.541714 202.435048 201.264762z" />
                         </StackPanel>
                     </Grid>

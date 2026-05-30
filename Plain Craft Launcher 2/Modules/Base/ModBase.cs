@@ -74,11 +74,6 @@ public static class ModBase
         : Basics.ExecutableDirectory + @"\");
 
     /// <summary>
-    ///     程序可执行文件完整路径。
-    /// </summary>
-    public static readonly string ExePathWithName = Basics.ExecutablePath;
-
-    /// <summary>
     ///     程序内嵌图片文件夹路径，以“/”结尾。
     /// </summary>
     public static readonly string PathImage = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
@@ -104,35 +99,9 @@ public static class ModBase
     public static DateTime ApplicationOpenTime = DateTime.Now;
 
     /// <summary>
-    ///     识别码。
-    /// </summary>
-    public static string UniqueAddress = Identify.LauncherId;
-
-    /// <summary>
     ///     程序是否已结束。
     /// </summary>
     public static bool IsProgramEnded = false;
-
-    /// <summary>
-    ///     是否为 32 位系统。
-    /// </summary>
-    public static bool Is32BitSystem = !Environment.Is64BitOperatingSystem;
-
-    /// <summary>
-    ///     是否为 ARM64 架构。
-    /// </summary>
-    public static bool IsArm64System = RuntimeInformation.OSArchitecture == Architecture.Arm64;
-
-    /// <summary>
-    ///     是否使用 GBK 编码。
-    /// </summary>
-    public static bool IsGBKEncoding = Encoding.Default.CodePage == 936;
-
-    /// <summary>
-    ///     系统盘盘符，以 \ 结尾。例如 “C:\”。
-    /// </summary>
-    public static string OsDrive =
-        Environment.GetLogicalDrives().Where(p => Directory.Exists(p)).First().ToUpper().First() + @":\"; // #3799
 
     /// <summary>
     ///     程序的缓存文件夹路径，以 \ 结尾。
@@ -917,7 +886,7 @@ public static class ModBase
                 FilePath = ExePath + FilePath;
             if (File.Exists(FilePath))
                 using (var ReadStream =
-                       new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) // 支持读取使用中的文件
+                       new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     using (var ms = new MemoryStream())
                     {
@@ -988,10 +957,14 @@ public static class ModBase
             {
                 writer.Write(Text);
             }
-        else
-            // 直接写入字节
-            File.WriteAllBytes(FilePath,
-                Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text));
+            else
+            {
+                // 直接写入字节
+                var bytes = Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text);
+                var tempPath = FilePath + ".pcltmp." + Guid.NewGuid().ToString("N");
+                File.WriteAllBytes(tempPath, bytes);
+                File.Move(tempPath, FilePath, true);
+            }
     }
 
     /// <summary>
@@ -1342,6 +1315,58 @@ public static class ModBase
                 Log(ex, "检查文件出错");
                 return ex.ToString();
             }
+        }
+    }
+
+    /// <summary>
+    ///     等待文件就绪可读，在指定超时时间内轮询检查文件是否存在且内容非空。
+    /// </summary>
+    /// <param name="filePath">文件路径。</param>
+    /// <param name="timeoutMs">超时时间（毫秒）。</param>
+    public static void WaitForFileReady(string filePath, int timeoutMs = 2000)
+    {
+        WaitForFileReady(filePath, timeoutMs, false);
+    }
+
+    /// <summary>
+    ///     等待文件就绪可读，在指定超时时间内轮询检查文件是否存在且内容非空。
+    /// </summary>
+    /// <param name="filePath">文件路径。</param>
+    /// <param name="timeoutMs">超时时间（毫秒）。</param>
+    /// <param name="requireJson">是否要求文件为合法 JSON。</param>
+    public static void WaitForFileReady(string filePath, int timeoutMs, bool requireJson)
+    {
+        filePath = filePath.Contains(@":\") ? filePath : ExePath + filePath;
+        var start = Environment.TickCount;
+        long lastSize = -1;
+        while (Environment.TickCount - start < timeoutMs)
+        {
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    var info = new FileInfo(filePath);
+                    var size = info.Length;
+                    if (size <= 0)
+                        continue;
+                    if (!requireJson)
+                    {
+                        if (size == lastSize)
+                            return;
+                        lastSize = size;
+                    }
+                    else
+                    {
+                        var content = ReadFile(filePath);
+                        if (!string.IsNullOrEmpty(content) && content.Trim().StartsWith("{"))
+                            return;
+                    }
+                }
+                catch (IOException)
+                {
+                }
+            }
+            Thread.Sleep(50);
         }
     }
 
@@ -2371,7 +2396,7 @@ public static class ModBase
 
         if (PathTemp.IsASCII()) return PathTemp;
 
-        return OsDrive + @"ProgramData\PCL\";
+        return Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL");
     }
 
     /// <summary>
@@ -3561,12 +3586,14 @@ public static class ModBase
             var dpiScale = Math.Round(DPI / 96.0, 2);
 
             // Build diagnostic information string
-            var info = $"[System] Diagnostic Information:{"\r\n"}" +
-                       $"OS: {RuntimeInformation.OSDescription} (32-bit: {Is32BitSystem}){"\r\n"}" +
-                       $"Memory: {availableMb} MB / {totalMb} MB{"\r\n"}" +
-                       $"DPI: {DPI} ({dpiScale * 100}%){"\r\n"}" +
-                       $"MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}{"\r\n"}" +
-                       $"Executable Path: {ExePath}";
+            var info = $"""
+                [System] Diagnostic Information:
+                OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
+                Memory: {availableMb} MB / {totalMb} MB
+                DPI: {DPI} ({dpiScale * 100}%)
+                MC Folder: {ModMinecraft.McFolderSelected ?? "Nothing"}
+                Executable Path: {ExePath}
+                """;
 
             LogWrapper.Info(info);
         }

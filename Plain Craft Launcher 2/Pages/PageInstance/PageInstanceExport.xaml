@@ -14,7 +14,7 @@
         <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                               x:Name="PanBack">
             <StackPanel Margin="25,10,25,65">
-                <local:MyHint Margin="0,15,0,0" Text="受 Modrinth 整合包规范限制，导出的整合包中不会包含 OptiFine。" Theme="Yellow"
+                <local:MyHint Margin="0,15,0,0" Text="{DynamicResource Instance.Export.ModrinthWarning}" Theme="Yellow"
                               x:Name="HintOptiFine" />
                 <local:MyCard Margin="0,15">
                     <Grid Margin="22,15,25,15">
@@ -28,10 +28,10 @@
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="整合包名称" Margin="0,0,20,0" />
+                                   Text="{DynamicResource Instance.Export.PackName}" Margin="0,0,20,0" />
                         <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" />
                         <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="整合包版本" Margin="30,0,20,0" />
+                                   Text="{DynamicResource Instance.Export.PackVersion}" Margin="30,0,20,0" />
                         <local:MyTextBox Grid.Row="0" Grid.Column="3" x:Name="TextExportVersion"
                                          Tag="VersionArgumentTitle" MaxLength="100" />
                     </Grid>
@@ -47,15 +47,15 @@
                         <local:MyCheckBox IsEnabled="False" x:Name="CheckOptionsBasic">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="游戏本体"
+                                    Title="{DynamicResource Instance.Export.Option.Game}"
                                     DefaultChecked="True" />
                             </local:MyCheckBox.Tag>
                         </local:MyCheckBox>
                         <local:MyCheckBox x:Name="CheckOptionsOptions" Margin="30,0,0,0">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="游戏本体设置"
-                                    Description="键位、音量、视频设置等"
+                                    Title="{DynamicResource Instance.Export.Option.GameSettings}"
+                                    Description="{DynamicResource Instance.Export.Option.GameSettings.Desc}"
                                     Rules="options.txt|configureddefaults/"
                                     DefaultChecked="True" />
                             </local:MyCheckBox.Tag>
@@ -63,8 +63,8 @@
                         <local:MyCheckBox Margin="30,0,0,0">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="游戏本体个人信息"
-                                    Description="命令历史、已保存的快捷栏"
+                                    Title="{DynamicResource Instance.Export.Option.GameProfile}"
+                                    Description="{DynamicResource Instance.Export.Option.GameProfile.Desc}"
                                     Rules="hotbar.nbt|command_history.txt"
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
@@ -72,7 +72,7 @@
                         <local:MyCheckBox Margin="30,0,0,0">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="OptiFine 设置"
+                                    Title="{DynamicResource Instance.Export.Option.OptiFine}"
                                     Rules="optionsof.txt|optionsshaders.txt"
                                     DefaultChecked="True"
                                     RequireOptiFine="True" />
@@ -81,8 +81,8 @@
                         <local:MyCheckBox x:Name="CheckOptionsMod">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="Mod"
-                                    Description="模组"
+                                    Title="{DynamicResource Instance.Export.Option.Mod}"
+                                    Description="{DynamicResource Instance.Export.Option.Mod.Desc}"
                                     Rules="mods/|!mods/*.disabled|!mods/*.old|!mods/.connector/|coremods/|lib/|!mods/mcef-libraries/|!mods/mcef-cache/"
                                     DefaultChecked="True"
                                     RequireModLoader="True" />
@@ -93,15 +93,15 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="已禁用的 Mod"
+                                        Title="{DynamicResource Instance.Export.Option.DisabledMod}"
                                         Rules="mods/*.disabled|mods/*.old" />
                                 </local:MyCheckBox.Tag>
                             </local:MyCheckBox>
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="整合包重要数据"
-                                        Description="脚本文件、内置资源包、数据包等"
+                                        Title="{DynamicResource Instance.Export.Option.ImportantData}"
+                                        Description="{DynamicResource Instance.Export.Option.ImportantData.Desc}"
                                         Rules="addons/|multiblocked/|modpack-update-checker/|global_packs/|global_resource_packs/|global_data_packs/|optional_data_packs/|maps/|icon.png|mods-resourcepacks/|matmos/|resource_assorts/|resource_assorts.json|patchouli_books/|datapacks/|kubejs*/|!kubejs*/probe/|!kubejs*/exported/|!kubejs*/jsconfig.json|!kubejs*/README.txt|openloader/|worldshape/|resources/|scripts/|structures/|fontfiles/|oresources/|packmenu/|craftpresence/|pointblanks/|template*/|!template*/playerdata/|!template*/stats/"
                                         DefaultChecked="True" />
                                 </local:MyCheckBox.Tag>
@@ -109,7 +109,7 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="Mod 设置"
+                                        Title="{DynamicResource Instance.Export.Option.ModSettings}"
                                         Rules="config/|!config/jei/world/|!config/worldedit/|config/worldedit/worldedit.properties|!config/spark/|config/spark/config.json|defaultconfigs/|journeymap/config/|journeymap/server/|TrashSlotSaveState.json|customfov.txt|gg.essential.mod/|essential/|!essential/*/|!essential/*.jar*|!essential/screenshot-checksum-caches.json|!essential/microsoft_accounts.json|paragliderSettings.nbt|local/client_config.json|local/ftbl.json|local/client/sidebar_buttons.json|local/client/ftbutilities.cfg|local/client/ftblib.cfg|local/client/xencraft.cfg|liteloader.properties|default_reference.xml|CustomSkinLoader/CustomSkinLoader.json"
                                         DefaultChecked="True" />
                                 </local:MyCheckBox.Tag>
@@ -117,8 +117,8 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="已绘制的地图"
-                                        Description="地图类 Mod 为现有的存档、服务器记录的地图、路标点等"
+                                        Title="{DynamicResource Instance.Export.Option.Maps}"
+                                        Description="{DynamicResource Instance.Export.Option.Maps.Desc}"
                                         Rules="journeymap/data/|xaero/|XaeroWaypoints/|XaeroWorldMap/"
                                         DefaultChecked="False" />
                                 </local:MyCheckBox.Tag>
@@ -126,8 +126,8 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="JEI 个人信息"
-                                        Description="物品收藏夹等"
+                                        Title="{DynamicResource Instance.Export.Option.Jei}"
+                                        Description="{DynamicResource Instance.Export.Option.Jei.Desc}"
                                         Rules="config/jei/world/"
                                         DefaultChecked="False" />
                                 </local:MyCheckBox.Tag>
@@ -135,8 +135,8 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="EMI 个人信息"
-                                        Description="物品收藏夹、默认配方、合成历史记录等"
+                                        Title="{DynamicResource Instance.Export.Option.Emi}"
+                                        Description="{DynamicResource Instance.Export.Option.Emi.Desc}"
                                         Rules="emi.json"
                                         DefaultChecked="False" />
                                 </local:MyCheckBox.Tag>
@@ -144,8 +144,8 @@
                             <local:MyCheckBox>
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="帕秋莉手册个人信息"
-                                        Description="教程书的已读记录、书签、阅读历史记录等"
+                                        Title="{DynamicResource Instance.Export.Option.Patchouli}"
+                                        Description="{DynamicResource Instance.Export.Option.Patchouli.Desc}"
                                         Rules="patchouli_data.json"
                                         DefaultChecked="False" />
                                 </local:MyCheckBox.Tag>
@@ -154,8 +154,8 @@
                         <local:MyCheckBox x:Name="CheckOptionsResourcePacks">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="资源包"
-                                    Description="纹理包/材质包"
+                                    Title="{DynamicResource Instance.Export.Option.ResourcePacks}"
+                                    Description="{DynamicResource Instance.Export.Option.ResourcePacks.Desc}"
                                     ShowRules="resourcepacks/|texturepacks/"
                                     DefaultChecked="True" />
                             </local:MyCheckBox.Tag>
@@ -165,7 +165,7 @@
                         <local:MyCheckBox x:Name="CheckOptionsShaderPacks">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="光影包"
+                                    Title="{DynamicResource Instance.Export.Option.ShaderPacks}"
                                     ShowRules="shaderpacks/"
                                     DefaultChecked="True"
                                     RequireModLoaderOrOptiFine="True" />
@@ -176,7 +176,7 @@
                         <local:MyCheckBox>
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="截图"
+                                    Title="{DynamicResource Instance.Export.Option.Screenshots}"
                                     Rules="screenshots/"
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
@@ -184,8 +184,8 @@
                         <local:MyCheckBox>
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="导出的结构"
-                                    Description="schematics 文件夹"
+                                    Title="{DynamicResource Instance.Export.Option.Structures}"
+                                    Description="{DynamicResource Instance.Export.Option.Structures.Desc}"
                                     Rules="schematics/"
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
@@ -193,8 +193,8 @@
                         <local:MyCheckBox>
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="录像回放"
-                                    Description="Replay Mod 的录像文件"
+                                    Title="{DynamicResource Instance.Export.Option.Replay}"
+                                    Description="{DynamicResource Instance.Export.Option.Replay.Desc}"
                                     Rules="replay_recordings/|replay_videos/"
                                     RequireModLoader="True"
                                     DefaultChecked="False" />
@@ -203,8 +203,8 @@
                         <local:MyCheckBox x:Name="CheckOptionsSaves">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="单人游戏存档"
-                                    Description="世界/地图"
+                                    Title="{DynamicResource Instance.Export.Option.Saves}"
+                                    Description="{DynamicResource Instance.Export.Option.Saves.Desc}"
                                     ShowRules="saves/"
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
@@ -214,7 +214,7 @@
                         <local:MyCheckBox>
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="多人游戏服务器列表"
+                                    Title="{DynamicResource Instance.Export.Option.Servers}"
                                     Rules="servers.dat"
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
@@ -222,8 +222,8 @@
                         <local:MyCheckBox x:Name="CheckOptionsPcl">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
-                                    Title="PCL 启动器程序"
-                                    Description="打包社区版 PCL，以便没有启动器的玩家安装整合包"
+                                    Title="{DynamicResource Instance.Export.Option.Launcher}"
+                                    Description="{DynamicResource Instance.Export.Option.Launcher.Desc}"
                                     DefaultChecked="True" />
                             </local:MyCheckBox.Tag>
                         </local:MyCheckBox>
@@ -232,37 +232,46 @@
                             <local:MyCheckBox x:Name="CheckOptionsPclCustom">
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
-                                        Title="PCL 个性化内容"
-                                        Description="功能隐藏设置、主页、背景音乐和图片等"
+                                        Title="{DynamicResource Instance.Export.Option.LauncherCustom}"
+                                        Description="{DynamicResource Instance.Export.Option.LauncherCustom.Desc}"
                                         DefaultChecked="True" />
                                 </local:MyCheckBox.Tag>
                             </local:MyCheckBox>
                         </StackPanel>
                     </StackPanel>
                 </local:MyCard>
-                <local:MyCard Title="高级选项" Margin="0,0,0,15" CanSwap="True" IsSwapped="True">
+                <local:MyCard Title="{DynamicResource Instance.Export.Advanced.Title}" Margin="0,0,0,15" CanSwap="True"
+                              IsSwapped="True">
                     <StackPanel Margin="25,37,23,20">
                         <local:MyHint
-                            Text="建议仅在无法稳定连接 CurseForge 或 Modrinth 时才打包资源文件。&#xa;请不要公开发布含资源文件的整合包，这会违反部分 Mod 的使用协议！"
+                            Text="{DynamicResource Instance.Export.Advanced.BundleHint}"
                             Theme="Yellow" Margin="0,2,0,8"
                             Visibility="{Binding Checked, ElementName=CheckAdvancedInclude, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <local:MyCheckBox Text="打包资源文件，以避免在导入时下载" x:Name="CheckAdvancedInclude"
+                        <local:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.BundleFiles}"
+                                          x:Name="CheckAdvancedInclude"
                                           Change="CheckAdvancedInclude_Change"
-                                          ToolTip="将 Mod、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。&#xa;建议仅在无法稳定连接 CurseForge 或 Modrinth 时才考虑勾选。" />
-                        <local:MyCheckBox Text="Modrinth 上传模式" x:Name="CheckAdvancedModrinth"
+                                          ToolTip="{DynamicResource Instance.Export.Advanced.BundleFiles.ToolTip}" />
+                        <local:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.Modrinth}"
+                                          x:Name="CheckAdvancedModrinth"
                                           Change="CheckAdvancedModrinth_Change"
-                                          ToolTip="如果你想要打包上传到 Modrinth，勾选此项会生成完全符合 Modrinth 要求的整合包文件。&#xa;由于 Modrinth 要求，只能从 CurseForge 下载的资源将无法联网下载，会被直接放入整合包中。&#xa;此外，勾选后也不能在整合包中包含 PCL 启动器文件。" />
+                                          ToolTip="{DynamicResource Instance.Export.Advanced.Modrinth.ToolTip}" />
                         <local:MyHint Theme="Blue" RelativeSetup="HintExportConfig" CanClose="True" Margin="0,20,0,2"
-                                      Text="配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。&#xa;要修改这些选项，请先点击 “保存配置”，在编辑配置文件后再导入。" />
+                                      Text="{DynamicResource Instance.Export.Advanced.ConfigHint}" />
                         <Grid Height="35" Margin="0,12,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
-                            <local:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140" Text="读取配置" Padding="13,0" Margin="0,0,20,0" ColorType="Highlight" />
-                            <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140" Text="保存配置" Padding="13,0" Margin="0,0,20,0" />
-                            <local:MyButton Grid.Column="2" MinWidth="140" Text="整合包制作指南" Padding="13,0" Margin="0,0,20,0" x:Name="BtnAdvancedHelp"
+                            <local:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140"
+                                            Text="{DynamicResource Instance.Export.Advanced.ImportConfig}"
+                                            Padding="13,0" Margin="0,0,20,0" ColorType="Highlight" />
+                            <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140"
+                                            Text="{DynamicResource Instance.Export.Advanced.ExportConfig}"
+                                            Padding="13,0" Margin="0,0,20,0" />
+                            <local:MyButton Grid.Column="2" MinWidth="140"
+                                            Text="{DynamicResource Instance.Export.Advanced.Guide}" Padding="13,0"
+                                            Margin="0,0,20,0" x:Name="BtnAdvancedHelp"
                                             local:CustomEventService.EventType="打开帮助" />
                         </Grid>
                     </StackPanel>
@@ -270,7 +279,7 @@
             </StackPanel>
         </local:MyScrollViewer>
         <local:MyExtraTextButton HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                 x:Name="BtnExport" Text="开始导出"
+                                 x:Name="BtnExport" Text="{DynamicResource Instance.Export.StartExport}"
                                  LogoScale="1.1"
                                  Logo="M511 995a128 128 0 0 1-57-13L70 791a126 126 0 0 1-70-113V311a126 126 0 0 1 15-60V248c1-2 3-5 5-8a127 127 0 0 1 49-42L454 13a128 128 0 0 1 112 0l383 190a126 126 0 0 1 72 113v360a126 126 0 0 1-70 115L568 984c-17 7-37 11-57 11z m42-470v370l360-178c14-7 23-21 23-38v-335L554 524zM85 330v347a42 42 0 0 0 23 38l360 178V523L85 330zM135 260l375 189 137-65L286 188 135 260z m245-118l363 197 150-71-365-180a42 42 0 0 0-37 0l-111 53z" />
     </Grid>

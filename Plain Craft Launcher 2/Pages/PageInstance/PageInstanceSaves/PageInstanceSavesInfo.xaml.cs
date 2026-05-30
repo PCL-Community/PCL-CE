@@ -3,6 +3,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using fNbt;
+using Humanizer;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -62,7 +64,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 PanSettings.Visibility = Visibility.Collapsed;
 
                 var gameLevel = saveInfo.RootTag.Get<NbtCompound>("Data");
-                AddInfoTable("存档名称", gameLevel.Get<NbtString>("LevelName").Value);
+                AddInfoTable(Lang.Text("Instance.Saves.Info.LevelName"), gameLevel.Get<NbtString>("LevelName").Value);
                 NbtString versionName = null;
                 NbtInt versionId = null;
                 var gameVersion = gameLevel.Get<NbtCompound>("Version");
@@ -84,22 +86,22 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     if (hasDifficulty)
                     {
                         Hintversion1_9.Visibility = Visibility.Visible;
-                        Hintversion1_9.Text = "1.9 以下的版本无法获取存档版本";
+                        Hintversion1_9.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
                     }
                     else if (hasAllowCommands)
                     {
                         Hintversion1_8.Visibility = Visibility.Visible;
-                        Hintversion1_8.Text = "1.8 以下的版本无法获取存档版本和游戏难度";
+                        Hintversion1_8.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
                     }
                     else
                     {
                         Hintversion1_3.Visibility = Visibility.Visible;
-                        Hintversion1_3.Text = "1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊";
+                        Hintversion1_3.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
                     }
                 }
                 else
                 {
-                    AddInfoTable("存档版本", $"{versionName.Value} ({versionId.Value})");
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.Version"), $"{versionName.Value} ({versionId.Value})");
                 }
 
                 NbtLong seedNbt = null;
@@ -121,7 +123,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     }
                 }
 
-                AddInfoTable("种子", seed, true, versionName?.Value, true);
+                AddInfoTable(Lang.Text("Instance.Saves.Info.Seed"), seed, true, versionName?.Value, true);
 
                 if (hasAllowCommands)
                 {
@@ -130,10 +132,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     var combo = new MyComboBox
                     {
                         Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
-                        ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
+                        ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave")
                     };
-                    combo.Items.Add(new { Value = 0, Display = "不允许" });
-                    combo.Items.Add(new { Value = 1, Display = "允许" });
+                    combo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed") });
+                    combo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.AllowCommands.Allowed") });
                     combo.SelectedValuePath = "Value";
                     combo.DisplayMemberPath = "Display";
                     combo.SelectedValue = allowCommandValue;
@@ -150,7 +152,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                                 saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
                             }
 
-                            ModMain.Hint("作弊设置修改成功", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
                         }
                         catch (Exception ex)
                         {
@@ -161,7 +163,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     PanSettingsList.RowDefinitions.Add(new RowDefinition
                         { Height = new GridLength(1d, GridUnitType.Auto) });
 
-                    var headTextBlock = new TextBlock { Text = "是否允许作弊", Margin = new Thickness(0d, 3d, 0d, 3d) };
+                    var headTextBlock = new TextBlock { Text = Lang.Text("Instance.Saves.Info.AllowCommands"), Margin = new Thickness(0d, 3d, 0d, 3d) };
                     Grid.SetRow(headTextBlock, rowIndex);
                     Grid.SetColumn(headTextBlock, 0);
 
@@ -202,12 +204,12 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     var difficultyCombo = new MyComboBox
                     {
                         Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
-                        ToolTip = "修改设置前请确保该存档未在游戏中打开，否则会导致设置无效"
+                        ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave")
                     };
-                    difficultyCombo.Items.Add(new { Value = 0, Display = "和平" });
-                    difficultyCombo.Items.Add(new { Value = 1, Display = "简单" });
-                    difficultyCombo.Items.Add(new { Value = 2, Display = "普通" });
-                    difficultyCombo.Items.Add(new { Value = 3, Display = "困难" });
+                    difficultyCombo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.Difficulty.Peaceful") });
+                    difficultyCombo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.Difficulty.Easy") });
+                    difficultyCombo.Items.Add(new { Value = 2, Display = Lang.Text("Instance.Saves.Info.Difficulty.Normal") });
+                    difficultyCombo.Items.Add(new { Value = 3, Display = Lang.Text("Instance.Saves.Info.Difficulty.Hard") });
                     difficultyCombo.SelectedValuePath = "Value";
                     difficultyCombo.DisplayMemberPath = "Display";
                     difficultyCombo.SelectedValue = difficultyValue;
@@ -223,7 +225,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                     var lockCheckBox = new MyCheckBox
                     {
-                        Text = "锁定难度", ToolTip = "锁定当前难度设置，锁定后无法在游戏中更改游戏难度",
+                        Text = Lang.Text("Instance.Saves.Info.LockDifficulty"), ToolTip = Lang.Text("Instance.Saves.Info.LockDifficulty.ToolTip"),
                         VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10d, 0d, 0d, 0d)
                     };
 
@@ -284,7 +286,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                                 saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
                             }
 
-                            ModMain.Hint("难度设置修改成功", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
                         }
                         catch (Exception ex)
                         {
@@ -329,7 +331,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                                 saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
                             }
 
-                            ModMain.Hint("难度设置修改成功", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
                         }
                         catch (Exception ex)
                         {
@@ -341,7 +343,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     PanSettingsList.RowDefinitions.Add(new RowDefinition
                         { Height = new GridLength(1d, GridUnitType.Auto) });
 
-                    var headTextBlock = new TextBlock { Text = "游戏难度", Margin = new Thickness(0d, 3d, 0d, 3d) };
+                    var headTextBlock = new TextBlock { Text = Lang.Text("Instance.Saves.Info.GameDifficultyLabel"), Margin = new Thickness(0d, 3d, 0d, 3d) };
                     Grid.SetRow(headTextBlock, rowIndex);
                     Grid.SetColumn(headTextBlock, 0);
 
@@ -352,17 +354,17 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     PanSettingsList.Children.Add(difficultyPanel);
                 }
 
-                AddInfoTable("最后一次游玩",
-                    new DateTime(1970, 1, 1, 0, 0, 0)
-                        .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
-                        .ToLocalTime().ToString());
+                var lastPlayed = new DateTime(1970, 1, 1, 0, 0, 0)
+                    .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
+                    .ToLocalTime();
+                AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"), Lang.Date(lastPlayed, "g"));
 
                 NbtInt spawnX = null;
                 if (gameLevel.TryGet("SpawnX", out spawnX))
                 {
                     var spawnY = gameLevel.Get<NbtInt>("SpawnY");
                     var spawnZ = gameLevel.Get<NbtInt>("SpawnZ");
-                    AddInfoTable("出生点 (X/Y/Z)", $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}");
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}");
                 }
                 else
                 {
@@ -370,10 +372,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     var spawnXPos = spawnPos[0];
                     var spawnYPos = spawnPos[1];
                     var spawnZPos = spawnPos[2];
-                    AddInfoTable("出生点 (X/Y/Z)", $"{spawnXPos} / {spawnYPos} / {spawnZPos}");
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnXPos} / {spawnYPos} / {spawnZPos}");
                 }
 
-                var gameTypeName = "获取失败";
+                var gameTypeName = Lang.Text("Instance.Saves.Info.GetFailed");
 
                 NbtByte isHardcore = null;
 
@@ -388,7 +390,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                 if (isHardcore.Value == 1)
                 {
-                    gameTypeName = "极限模式";
+                    gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Hardcore");
                 }
                 else
                 {
@@ -397,34 +399,34 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     {
                         case 0:
                         {
-                            gameTypeName = "生存模式";
+                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Survival");
                             break;
                         }
                         case 1:
                         {
-                            gameTypeName = "创造模式";
+                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Creative");
                             break;
                         }
                         case 2:
                         {
-                            gameTypeName = "冒险模式";
+                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Adventure");
                             break;
                         }
                         case 3:
                         {
-                            gameTypeName = "旁观模式";
+                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Spectator");
                             break;
                         }
 
                         default:
                         {
-                            gameTypeName = "生存模式";
+                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Survival");
                             break;
                         }
                     }
                 }
 
-                AddInfoTable("游戏模式", gameTypeName);
+                AddInfoTable(Lang.Text("Instance.Saves.Info.GameMode"), gameTypeName);
 
                 if (hasDifficulty)
                 {
@@ -434,11 +436,11 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                     string difficultyName = difficultyRaw switch
                     {
-                        "0" or "peaceful" => "和平",
-                        "1" or "easy" => "简单",
-                        "2" or "normal" => "普通",
-                        "3" or "hard" => "困难",
-                        _ => "获取失败"
+                        "0" or "peaceful" => Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"),
+                        "1" or "easy" => Lang.Text("Instance.Saves.Info.Difficulty.Easy"),
+                        "2" or "normal" => Lang.Text("Instance.Saves.Info.Difficulty.Normal"),
+                        "3" or "hard" => Lang.Text("Instance.Saves.Info.Difficulty.Hard"),
+                        _ => Lang.Text("Instance.Saves.Info.GetFailed")
                     };
 
                     NbtByte lockedElement = gameLevel.Contains("difficulty_settings")
@@ -446,17 +448,21 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         : gameLevel.Get<NbtByte>("DifficultyLocked");
                     var isDifficultyLocked =
                         (lockedElement is not null && lockedElement.Value == 1) ||
-                        isHardcore.Value == 1 ? "是" :
-                        lockedElement is not null ? "否" : "获取失败";
+                        isHardcore.Value == 1 ? Lang.Text("Common.Option.Yes") :
+                        lockedElement is not null ? Lang.Text("Common.Option.No") : Lang.Text("Instance.Saves.Info.GetFailed");
                     if (Hintversion1_8.Visibility != Visibility.Visible)
-                        AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})");
+                        AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"), $"{difficultyName}  |  {Lang.Text("Instance.Saves.Info.DifficultyLocked", isDifficultyLocked)}");
                 }
 
                 var totalTicks = long.Parse(gameLevel.Get<NbtLong>("Time").Value.ToString());
-                var totalSeconds = totalTicks / 20.0d;
-                var playTime = TimeSpan.FromSeconds(totalSeconds);
-                var formattedPlayTime = $"{playTime.Days} 天 {playTime.Hours} 小时 {playTime.Minutes} 分钟";
-                AddInfoTable("游戏时长", formattedPlayTime);
+                var formattedPlayTime = Lang.TimeSpan(
+                    TimeSpan.FromSeconds(totalTicks / 20.0d),
+                    precision: 3,
+                    addAffixes: false,
+                    maxUnit: TimeUnit.Day,
+                    minUnit: TimeUnit.Second);
+
+                AddInfoTable(Lang.Text("Instance.Saves.Info.PlayTime"), formattedPlayTime);
                 PanContent.Visibility = Visibility.Visible;
             }
         }
@@ -506,12 +512,12 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
         contentStack.Children.Add(contentTextBlock);
 
-        if (isSeed && content != "获取失败")
+        if (isSeed && content != Lang.Text("Instance.Saves.Info.GetFailed"))
         {
             var BtnChunkbase = new MyIconButton
             {
                 Logo = Icon.IconButtonlink,
-                ToolTip = "跳转到 Chunkbase",
+                ToolTip = Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"),
                 Width = 22d,
                 Height = 22d
             };
@@ -524,13 +530,13 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 {
                     if (versionName is null)
                     {
-                        ModBase.Log("当前存档版本无法确定，因此无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"), ModBase.LogLevel.Hint);
                         return;
                     }
 
                     if (versionName.Any(c => char.IsLetter(c)))
                     {
-                        ModBase.Log($"当前存档版本 '{versionName}' 可能是预览版，不受支持，无法跳转到 Chunkbase", ModBase.LogLevel.Hint);
+                        ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName), ModBase.LogLevel.Hint);
                         return;
                     }
 

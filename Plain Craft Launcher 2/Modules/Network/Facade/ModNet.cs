@@ -53,11 +53,29 @@ public static class ModNet
     public static string NetGetCodeByLoader(IEnumerable<string> urls, int Timeout = 45000, bool IsJson = false,
         bool UseBrowserUserAgent = false)
     {
-        var temp = ModMain.RequestTaskTempFolder() + "download.txt";
-        FileDownloader.Download(urls, temp, UseBrowserUserAgent).GetAwaiter().GetResult();
-        var content = ModBase.ReadFile(temp);
-        File.Delete(temp);
-        return IsJson ? ModBase.GetJson(content).ToString() : content;
+        Exception? lastException = null;
+
+        foreach (var url in urls)
+        {
+            try
+            {
+                var content = Requester.Fetch(url, new FetchParam
+                {
+                    Method = "GET",
+                    Timeout = Timeout,
+                    UseBrowserUserAgent = UseBrowserUserAgent
+                });
+                
+                return IsJson ? ModBase.GetJson(content).ToString() : content;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                ModBase.Log(ex, $"[Fetch] 获取文件内容失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+            }
+        }
+
+        throw new Exception("无法获取文件内容", lastException);
     }
 
     public static string NetRequestRetry(string url, string method, string data = "", string? contentType = null,

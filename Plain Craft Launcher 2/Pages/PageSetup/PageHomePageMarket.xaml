@@ -11,7 +11,7 @@
                 <StackPanel x:Name="PanCustom" Margin="15,5,15,5">
                     <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                                   x:Name="PanLoad" UseAnimation="False" Margin="20,150,20,17">
-                        <local:MyLoading Text="正在加载主页市场" Margin="20,20,20,17" x:Name="Load"
+                        <local:MyLoading Text="{DynamicResource Setup.Ui.HomepageMarket.Loading}" Margin="20,20,20,17" x:Name="Load"
                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </local:MyCard>
                 </StackPanel>

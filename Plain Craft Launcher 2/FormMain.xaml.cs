@@ -164,15 +164,6 @@ public partial class FormMain
         ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
         ModBase.FrmHandle = new WindowInteropHelper(this).Handle;
         // 读取设置
-        _ = Config.Preference.Background.WallpaperOpacity;
-        _ = Config.Preference.Background.WallpaperBlurRadius;
-        _ = Config.Preference.WindowTitleType;
-        _ = Config.Preference.Hide.PageDownload;
-        _ = Config.Preference.Background.AutoPauseVideo; // 智能暂停视频背景
-        ModSetup.UiLogoType((int)Config.Preference.WindowTitleType);
-        ModSetup.UiLogoText(Config.Preference.WindowTitleCustomText);
-        ModSetup.UiLogoLeft(Config.Preference.TopBarLeftAlign);
-        PageSetupUI.HiddenRefresh();
         PageSetupUI.BackgroundRefresh(false, true);
         ModMusic.MusicRefreshPlay(false, true);
         // 扩展按钮
@@ -195,7 +186,7 @@ public partial class FormMain
         // 加载窗口
 
         ThemeManager.ThemeRefresh();
-
+        ModSetup.ApplyAll();
         Lifecycle.CurrentApplication.Resources["BlurSamplingRate"] = Config.Preference.Blur.SamplingRate * 0.01d;
         Lifecycle.CurrentApplication.Resources["BlurType"] = Config.Preference.Blur.KernelType;
         if (Config.Preference.Blur.IsEnabled)
@@ -230,7 +221,7 @@ public partial class FormMain
                 RenderTransform = null;
                 IsWindowLoadFinished = true;
                 ModBase.Log(
-                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ModBase.ExePathWithName}");
+                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
             }, After: true)
         }, "Form Show");
         // Timer 启动
@@ -304,7 +295,7 @@ public partial class FormMain
                     ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
                 }
 
-                SystemInfo.GetSystemInfo();
+                HardwareInfo.GetHardwareInfo();
             }
             catch (Exception ex)
             {
@@ -1695,7 +1686,7 @@ public partial class FormMain
                         ModMain.FrmDownloadLeft = new PageDownloadLeft();
                     foreach (var item in ModMain.FrmDownloadLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1727,7 +1718,7 @@ public partial class FormMain
                         ModMain.FrmInstanceLeft = new PageInstanceLeft();
                     foreach (var item in ModMain.FrmInstanceLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1741,7 +1732,7 @@ public partial class FormMain
                         ModMain.FrmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.FrmInstanceSavesLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1857,7 +1848,10 @@ public partial class FormMain
                 case PageType.Download: // 下载
                     {
                         ModMain.FrmDownloadLeft ??= new PageDownloadLeft();
-                        SubType = ModMain.FrmDownloadLeft.PageID;
+                        if (SubType != PageSubType.Default)
+                            ModMain.FrmDownloadLeft.PageID = SubType;
+                        else
+                            SubType = ModMain.FrmDownloadLeft.PageID;
                         // PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                         PageChangeAnim(ModMain.FrmDownloadLeft, (FrameworkElement)ModMain.FrmDownloadLeft.PageGet(SubType));
                         break;

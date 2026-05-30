@@ -29,8 +29,8 @@
             </local:MyCard>
             <local:MyCard HorizontalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False"
                           Margin="40,50">
-                <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                                 VerticalAlignment="Center" />
+            <local:MyLoading Text="{DynamicResource Download.Version.LabyMod.LoadingList}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
             </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>

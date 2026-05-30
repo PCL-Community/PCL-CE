@@ -22,7 +22,7 @@ public partial class PageDownloadInstall
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        LoadMinecraft.Text = Lang.Text("Download.Install.LoadingVersionList");
+        LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
@@ -2169,7 +2169,7 @@ public partial class PageDownloadInstall
     private string LoadQSLGetError()
     {
         if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
-            return Lang.Text("Download.Install.LoadingVersionList");
+            return Lang.Text("Download.Version.LoadingList");
         if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
             return $"{Lang.Text("Download.Install.State.GetVersionListFailed")}{((ModLoader.LoaderBase)LoadQSL.State).Error.Message}";
         if (SelectedAPIName is not null && !ReferenceEquals(SelectedAPIName, "QFAPI / QSL"))
@@ -2178,7 +2178,7 @@ public partial class PageDownloadInstall
         {
             if (SelectedQuilt is null)
                 return Lang.Text("Download.Install.Compat.RequiresQuilt");
-            return Lang.Text("Download.Install.LoadingVersionList");
+            return Lang.Text("Download.Version.LoadingList");
         }
 
         foreach (var Version in ModDownload.DlQSLLoader.Output)

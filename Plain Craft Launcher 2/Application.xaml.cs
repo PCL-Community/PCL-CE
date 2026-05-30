@@ -88,7 +88,7 @@ public partial class Application
             var currentOSVersion = NtInterop.GetCurrentOsVersion();
             if (currentOSVersion.Build < 17763)
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
-            if (ModBase.Is32BitSystem)
+            if (SystemInfo.Is32BitSystem)
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
             if (ModBase.ExePath.Contains(Path.GetTempPath()) || ModBase.ExePath.Contains(@"AppData\Local\Temp\"))
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
@@ -130,7 +130,7 @@ public partial class Application
         }
         catch (Exception ex)
         {
-            var FilePath = ModBase.ExePathWithName;
+            var FilePath = Basics.ExecutablePath;
             MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
                     string.IsNullOrEmpty(FilePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : FilePath),
                 Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);

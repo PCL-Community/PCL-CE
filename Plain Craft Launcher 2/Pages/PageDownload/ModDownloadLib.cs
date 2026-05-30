@@ -196,17 +196,18 @@ public static class ModDownloadLib
         loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side"), task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
+            var jsonPath = Path.Combine(instanceFolder, instanceName + ".json");
+            ModBase.WaitForFileReady(jsonPath);
             ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
             if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
-                    var json = ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json"));
+                    var json = ModBase.ReadFile(jsonPath);
                     json = json.Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                         .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                         .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd", "bbd00ca33b052f73a6312254780fc580d2da3535")
                         .Replace("76328", "87662");
-                    ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), json);
+                    ModBase.WriteFile(jsonPath, json);
                 }
                 catch (Exception ex)
                 {
@@ -230,7 +231,7 @@ public static class ModDownloadLib
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex.Side"), task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘
+            ModBase.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
             try
             {
                 var assetIndex = new ModMinecraft.McInstance(instanceFolder);
@@ -2013,6 +2014,7 @@ public static class ModDownloadLib
                 try
                 {
                     // 解压并获取、合并两个 Json 的信息
+                    ModBase.WaitForFileReady(InstallerAddress);
                     Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     Task.Progress = 0.2d;
                     var Json = (JsonObject)ModBase.GetJson(
@@ -2156,6 +2158,7 @@ public static class ModDownloadLib
                     ? Lang.Text("Minecraft.Download.Stage.InstallForge.MethodA")
                     : Lang.Text("Minecraft.Download.Stage.InstallForgeType", ForgeType), Task =>
                 {
+                    ModBase.WaitForFileReady(InstallerAddress);
                     var Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                     try
                     {
@@ -2268,6 +2271,7 @@ public static class ModDownloadLib
                     try
                     {
                         // 解压并获取信息
+                        ModBase.WaitForFileReady(InstallerAddress);
                         Installer = new ZipArchive(new FileStream(InstallerAddress, FileMode.Open));
                         Task.Progress = 0.2d;
                         var Json = (JsonObject)ModBase.GetJson(
@@ -2288,9 +2292,10 @@ public static class ModDownloadLib
                             Task.Progress = 0.6d;
                             // 解压支持库文件
                             Installer.Dispose();
-                            ModBase.ExtractFile(InstallerAddress, Path.Combine(InstallerAddress, "_unrar"));
-                            ModBase.CopyDirectory(Path.Combine(InstallerAddress, "_unrar", "maven"), Path.Combine(McFolder, "libraries"));
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            ModBase.ExtractFile(InstallerAddress, unrarDir);
+                            ModBase.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(McFolder, "libraries"));
+                            ModBase.DeleteDirectory(unrarDir);
                         }
                         else
                         {
@@ -2324,8 +2329,9 @@ public static class ModDownloadLib
                                 Installer.Dispose();
                             if (File.Exists(InstallerAddress))
                                 File.Delete(InstallerAddress);
-                            if (Directory.Exists(Path.Combine(InstallerAddress, "_unrar")))
-                            ModBase.DeleteDirectory(Path.Combine(InstallerAddress, "_unrar"));
+                            var unrarDir = Path.Combine(Path.GetDirectoryName(InstallerAddress), "_unrar");
+                            if (Directory.Exists(unrarDir))
+                                ModBase.DeleteDirectory(unrarDir);
                         }
                         catch (Exception ex)
                         {
@@ -3450,7 +3456,7 @@ public static class ModDownloadLib
         LoadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide"), Task =>
         {
-            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘（#3710）
+            ModBase.WaitForFileReady(Path.Combine(VersionFolder, VersionName + ".json"));
             ModBase.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + VersionFolder);
             Task.Output = ModMinecraft.McLibNetFilesFromInstance(new ModMinecraft.McInstance(VersionFolder));
         })
@@ -3979,18 +3985,18 @@ public static class ModDownloadLib
             { Show = false, Block = false });
         // Fabric API
         if (Request.FabricApi is not null)
-            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadFabricAPI"),
+            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadFabricApi"),
                     new List<DownloadFile> { Request.FabricApi.ToNetFile(ModsTempFolder) })
                 { ProgressWeight = 3d, Block = false });
         // LegacyFabric API
         if (Request.LegacyFabricApi is not null)
-            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLegacyFabricAPI"),
+            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLegacyFabricApi"),
                     new List<DownloadFile> { Request.LegacyFabricApi.ToNetFile(ModsTempFolder) })
                 { ProgressWeight = 3d, Block = false });
         // Quilted Fabric API (QFAPI) / Quilt Standard Libraries (QSL)
         if (Request.QSL is not null)
             LoaderList.Add(
-                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadQFAPI_QSL"),
+                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadQfapiQsl"),
                         new List<DownloadFile> { Request.QSL.ToNetFile(ModsTempFolder) })
                     { ProgressWeight = 3d, Block = false });
         // OptiFabric

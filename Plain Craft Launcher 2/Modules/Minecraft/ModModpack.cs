@@ -377,7 +377,7 @@ public static class ModModpack
         string QuiltVersion = null;
         foreach (var Entry in (dynamic)Json["minecraft"]["modLoaders"] ?? Array.Empty<JsonNode>())
         {
-            var Id = (Entry["id"] ?? "").ToString().ToLower();
+            string Id = (Entry["id"] ?? "").ToString().ToLower();
             if (Id.StartsWithF("forge-"))
             {
                 // Forge 指定
@@ -451,7 +451,7 @@ public static class ModModpack
             }
 
             ModList.Add((int)ModEntry["fileID"]);
-            if (ModEntry["required"] is not null && !ModEntry["required"].ToObject<bool>())
+            if (ModEntry["required"] is JsonValue { } jv && !jv.GetValue<bool>())
                 ModOptionalList.Add((int)ModEntry["fileID"]);
         }
 
@@ -799,7 +799,7 @@ public static class ModModpack
             }
 
             FileList.Add(new DownloadFile(Urls, TargetPath,
-                new ModBase.FileChecker(ActualSize: File["fileSize"].ToObject<long>(),
+                new ModBase.FileChecker(ActualSize: ((JsonNode)File["fileSize"]).GetValue<long>(),
                     Hash: File["hashes"]["sha1"].ToString()), true));
         }
 

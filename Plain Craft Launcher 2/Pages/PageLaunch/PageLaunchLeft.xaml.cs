@@ -852,7 +852,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            if (ex.GetType().Name == "ThreadInterruptedException")
+            if (ex is ThreadInterruptedException)
             {
                 Data.Output = "";
                 ModBase.Log("[Minecraft] 已取消皮肤获取：" + UserName);
@@ -956,7 +956,7 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            if (ex.GetType().Name == "ThreadInterruptedException")
+            if (ex is ThreadInterruptedException)
             {
                 Data.Output = "";
                 return;

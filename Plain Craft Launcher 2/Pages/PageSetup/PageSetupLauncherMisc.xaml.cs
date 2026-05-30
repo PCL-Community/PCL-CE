@@ -226,7 +226,7 @@ public partial class PageSetupLauncherMisc
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
         ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
-        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+        Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
 

@@ -12,6 +12,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Network;
 
 namespace PCL;
@@ -837,17 +838,18 @@ public static class ModMinecraft
                     {
                         if (ModBase.RunInUi())
                         {
-                            ModBase.Log("[Minecraft] 实例 JSON 文件为空或有误，由于代码在主线程运行，将不再进行重试", ModBase.LogLevel.Debug);
-                            ModBase.GetJson(_jsonText); // 触发异常
+                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{JsonPath}）", ModBase.LogLevel.Debug);
+                            Thread.Sleep(200);
+                            _jsonText = ModBase.ReadFile(JsonPath);
                         }
                         else
                         {
                             ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{JsonPath}）", ModBase.LogLevel.Debug);
                             Thread.Sleep(2000);
                             _jsonText = ModBase.ReadFile(JsonPath);
-                            if (!FastJsonCheck(_jsonText))
-                                ModBase.GetJson(_jsonText);
-                        } // 触发异常
+                        }
+                        if (!FastJsonCheck(_jsonText))
+                            ModBase.GetJson(_jsonText);
                     }
                 }
 
@@ -2700,7 +2702,7 @@ public static class ModMinecraft
                 }
 
                 if (Rule["os"]["arch"] is not null) // 操作系统架构
-                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == ModBase.Is32BitSystem;
+                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == SystemInfo.Is32BitSystem;
             }
 
             if (Rule["features"] is not null) // 标签
@@ -3044,7 +3046,7 @@ public static class ModMinecraft
             var downloadAddress =
                 "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" +
                 ModLaunch.MesaLoaderWindowsVersion + "/mesa-loader-windows-" + ModLaunch.MesaLoaderWindowsVersion + "-" +
-                (ModBase.Is32BitSystem ? "x86" : ModBase.IsArm64System ? "arm64" : "x64") + ".jar";
+                (SystemInfo.Is32BitSystem ? "x86" : SystemInfo.IsArm64System ? "arm64" : "x64") + ".jar";
             result.Add(new DownloadFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
         }
 

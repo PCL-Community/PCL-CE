@@ -10,6 +10,7 @@ using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
 using System.Globalization;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -1284,37 +1285,37 @@ public class CrashAnalyzer
                     }
 
                     // 输出环境与启动信息
-                    string EnvInfo = null;
-                    string McLauncherLog = null;
-                    McLauncherLog = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "PCL 启动器日志.txt"))
+                    var McLauncherLog = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "PCL 启动器日志.txt"))
                         .AfterLast("[Launch] ~ 基础参数 ~").BeforeFirst("开始 Minecraft 日志监控");
                     var LaunchScript = ModBase.ReadFile(Path.Combine(TempFolder, "Report", "启动脚本.bat"));
-                    EnvInfo += $"PCL CE 版本：{ModBase.VersionBaseName} {"\r\n"}";
-                    EnvInfo += $"识别码：{ModBase.UniqueAddress}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 档案信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()}){"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 实例信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo +=
-                        $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}{"\r\n"}";
-                    EnvInfo += $"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}{"\r\n"}";
-                    EnvInfo += $"{"\r\n"}- 环境信息 -{"\r\n"}";
-                    EnvInfo +=
-                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!ModBase.Is32BitSystem}, ARM64: {ModBase.IsArm64System}）{"\r\n"}";
-                    EnvInfo += $"CPU：{SystemInfo.CPUName}{"\r\n"}";
-                    EnvInfo +=
-                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(SystemInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(SystemInfo.SystemMemorySize, "N0")} MB){"\r\n"}";
-                    foreach (var GPU in SystemInfo.GPUs)
+                    var EnvInfo = new StringBuilder();
+                    EnvInfo.Append($"PCL CE 版本：{ModBase.VersionBaseName}\r\n");
+                    EnvInfo.Append($"识别码：{Identify.LauncherId}\r\n");
+                    EnvInfo.Append($"\r\n- 档案信息 -\r\n");
+                    EnvInfo.Append(
+                        $"档案名称：{McLauncherLog.Between("玩家用户名：", "[").TrimEnd('[').Trim()} (验证方式：{McLauncherLog.Between("验证方式：", "[").TrimEnd('[').Trim()})\r\n");
+                    EnvInfo.Append($"\r\n- 实例信息 -\r\n");
+                    EnvInfo.Append(
+                        $"选定的 Java 虚拟机：{McLauncherLog.Between("Java 信息：", "[").TrimEnd('[').Trim()}\r\n");
+                    EnvInfo.Append(
+                        $"Log4j2 NoLookups：{!LaunchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")}\r\n");
+                    EnvInfo.Append($"MC 文件夹：{McLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}\r\n");
+                    EnvInfo.Append($"\r\n- 环境信息 -\r\n");
+                    EnvInfo.Append(
+                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!SystemInfo.Is32BitSystem}, ARM64: {SystemInfo.IsArm64System}）\r\n");
+                    EnvInfo.Append($"CPU：{HardwareInfo.CPUName}\r\n");
+                    EnvInfo.Append(
+                        $"内存分配 (分配的内存 / 已安装物理内存)：{McLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(HardwareInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(HardwareInfo.SystemMemorySize, "N0")} MB)\r\n");
+                    for (int i = 0; i < HardwareInfo.GPUs.Count; i++)
                     {
-                        EnvInfo +=
-                            $"显卡 {SystemInfo.GPUs.IndexOf(GPU)}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})";
-                        EnvInfo += "\r\n";
+                        var GPU = HardwareInfo.GPUs[i];
+                        EnvInfo.Append(
+                            $"显卡 {i}：{GPU.Name} ({(GPU.Memory >= 4095L ? ">= " + GPU.Memory : GPU.Memory)} MB, {GPU.DriverVersion})");
+                        EnvInfo.Append("\r\n");
                     }
 
                     File.CreateText(Path.Combine(TempFolder, "Report", "环境与启动信息.txt")).Close();
-                    ModBase.WriteFile(Path.Combine(TempFolder, "Report", "环境与启动信息.txt"), EnvInfo, Encoding: Encoding.UTF8);
+                    ModBase.WriteFile(Path.Combine(TempFolder, "Report", "环境与启动信息.txt"), EnvInfo.ToString(), Encoding: Encoding.UTF8);
                     // 导出报告
                     ZipFile.CreateFromDirectory(Path.Combine(TempFolder, "Report"), FileAddress);
                     ModBase.DeleteDirectory(Path.Combine(TempFolder, "Report"));

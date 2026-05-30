@@ -35,7 +35,6 @@ public partial class PageSelectRight
     public PageSelectRight()
     {
         InitializeComponent();
-        Load.Text = Lang.Text("Select.Instance.Loading");
         PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;

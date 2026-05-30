@@ -46,7 +46,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         if (ModMain.FrmInstanceScreenshot is not null)
             await ModMain.FrmInstanceScreenshot.Reload();
         ModMain.FrmInstanceLeft.ItemScreenshot.Checked = true;
-        ModMain.Hint("正在刷新……", Log: false);
+        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -192,7 +192,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "打开截图失败！", ModBase.LogLevel.Hint);
+                        ModBase.Log(ex, Lang.Text("Instance.Screenshot.OpenFailed"), ModBase.LogLevel.Hint);
                     }
                 }; // 使用系统默认程序打开
                 Grid.SetRow(image, 1);
@@ -286,11 +286,11 @@ public partial class PageInstanceScreenshot : IRefreshable
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             RemoveItem(path);
             RefreshTip();
-            ModMain.Hint("已将截图移至回收站！");
+            ModMain.Hint(Lang.Text("Instance.Screenshot.Deleted"));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除截图失败！", ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Instance.Screenshot.DeleteFailed"), ModBase.LogLevel.Hint);
         }
     }
 
@@ -305,7 +305,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 {
                     ModBase.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
-                    ModMain.Hint("已复制截图到剪贴板！");
+                    ModMain.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
                     TryTime = 6;
                     return;
                 }
@@ -315,11 +315,11 @@ public partial class PageInstanceScreenshot : IRefreshable
                     ModBase.Log(ex, $"[Screenshot]第 {TryTime} 次复制尝试失败");
                 }
 
-            ModMain.Hint("截图复制失败！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), ModMain.HintType.Critical);
         }
         else
         {
-            ModMain.Hint("截图文件不存在！");
+            ModMain.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
         }
     }
 
