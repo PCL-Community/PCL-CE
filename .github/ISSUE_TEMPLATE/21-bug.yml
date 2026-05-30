@@ -1,7 +1,11 @@
-name: "[旧版] 综合 Bug 反馈"
-description: "遇见了与启动器功能相关的 Bug"
+name: "[新版] 综合 Bug 反馈"
+description: "遇见了与新版 PCL CE 启动器功能相关的 Bug"
+title: "[C#]: "
 type: "Bug"
 body:
+- type: text
+  id: "desc"
+  
 - type: checkboxes
   id: "yml-1"
   attributes:
