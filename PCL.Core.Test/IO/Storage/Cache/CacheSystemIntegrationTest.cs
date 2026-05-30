@@ -35,7 +35,7 @@ public class CacheSystemIntegrationTest
         };
 
         _cache = new CacheService(_options);
-        await _cache.StartAsync();
+        await _cache.InitializeAsync();
     }
 
     [TestCleanup]

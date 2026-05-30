@@ -9,7 +9,7 @@ namespace PCL.Core.IO.Storage.Cache;
 
 public class SqliteCacheStorage(string dbPath) : IDisposable
 {
-    private readonly string _connectionString = $"Data Source={dbPath};Pooling=False";
+    private readonly string _connectionString = $"Data Source={dbPath};Pooling=True";
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private bool _disposed;
 

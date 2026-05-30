@@ -1,6 +1,5 @@
 using Microsoft.Data.Sqlite;
 using PCL.Core.App;
-using PCL.Core.App.IoC;
 using PCL.Core.IO.Storage.Cache.Model;
 using System;
 using System.Collections.Generic;
@@ -14,9 +13,13 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Storage.Cache;
 
-[LifecycleScope("global_cache", "磁盘缓存服务")]
-[LifecycleService(LifecycleState.Loading, Priority = 500)]
-public class CacheService : ICacheService
+
+/// <summary>
+/// A cache service that provides asynchronous methods to store and retrieve data with support for expiration, tagging, grouping, and priority.<br/>
+/// It uses a combination of SQLite for metadata storage and the file system for large data storage.<br/>
+/// The service also includes an eviction mechanism to manage cache size and expired entries.<br/>
+/// </summary>
+public class CacheService : ICacheService, IAsyncDisposable
 {
     private readonly CacheOptions _options;
     private readonly SchemaManager _schemaManager;
@@ -64,8 +67,7 @@ public class CacheService : ICacheService
         _eviction = new CacheEvictionService(_db, _files, _options);
     }
 
-    [LifecycleStart]
-    public async Task StartAsync()
+    internal async Task InitializeAsync()
     {
         Directory.CreateDirectory(_options.FileCacheRoot);
         Directory.CreateDirectory(Path.GetDirectoryName(_options.DatabasePath)!);
@@ -77,26 +79,6 @@ public class CacheService : ICacheService
 
         _eviction.Start();
 
-    }
-
-    [LifecycleStop]
-    public async Task StopAsync()
-    {
-        _eviction.Stop();
-
-        try
-        {
-            await using var conn = new SqliteConnection($"Data Source={_options.DatabasePath}");
-            await conn.OpenAsync().ConfigureAwait(false);
-
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
-            await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-        }
-        catch { /* ignore */ }
-
-        _db.Dispose();
-        _files.Dispose();
     }
 
     /// <inheritdoc/>
@@ -439,4 +421,41 @@ public class CacheService : ICacheService
         => _db.GetComponentScanHashAsync(instancePath, compType, ct);
 
     #endregion
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        _eviction.Stop();
+
+        try
+        {
+            await using var conn = new SqliteConnection($"Data Source={_options.DatabasePath}");
+            await conn.OpenAsync().ConfigureAwait(false);
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+            await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
+        catch { /* ignore */ }
+
+        await CastAndDispose(_db).ConfigureAwait(false);
+        await CastAndDispose(_files).ConfigureAwait(false);
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync().ConfigureAwait(false);
+            else
+                resource.Dispose();
+        }
+    }
 }

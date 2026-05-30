@@ -49,7 +49,7 @@ public class CacheServiceTest
         };
 
         _cache = new CacheService(_options);
-        await _cache.StartAsync().ConfigureAwait(false);
+        await _cache.InitializeAsync().ConfigureAwait(false);
     }
 
     [TestCleanup]

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PCL.Core.IO.Storage.Cache;
 
-public class CacheKeyMaker
+public class CacheKeys
 {
     #region Instance
 
@@ -50,7 +50,10 @@ public class CacheKeyMaker
 
     /// <summary>API 响应缓存键</summary>
     public static string ApiResponse(string source, string url)
-        => _Build("api", source, _HashSegment(url));
+        => _Build("http", source, _HashSegment(url));
+
+    public static string ApiResponseMeta(string source, string url)
+        => _Build("http", "meta", source, _HashSegment(url));
 
     /// <summary>模组市场搜索缓存键</summary>
     public static string CompSearch(string source, string query, int page)
@@ -79,8 +82,6 @@ public class CacheKeyMaker
     public static string AccountList()
         => "accounts:list";  // 固定键，无需哈希
     #endregion
-
-
 
     private static string _Build(params string[] segments)
         => string.Join(':', segments);
