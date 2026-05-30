@@ -981,32 +981,32 @@ public static class ModComp
 
             if (!data.ContainsKey("Tags"))
             {
-                if (result.__TODO_RENAME_Tags__.Count == 0)
-                    result.__TODO_RENAME_Tags__.Add(Lang.Text("Download.Comp.Category.Other"));
+                if (result.Tags.Count == 0)
+                    result.Tags.Add(Lang.Text("Download.Comp.Category.Other"));
 
-                result.__TODO_RENAME_Tags__ = result.__TODO_RENAME_Tags__.Distinct().ToList();
-                result.__TODO_RENAME_Tags__.Sort();
+                result.Tags = result.Tags.Distinct().ToList();
+                result.Tags.Sort();
 
-                result.__TODO_RENAME_ModLoaders__ = result.__TODO_RENAME_ModLoaders__
+                result.ModLoaders = result.ModLoaders
                     .Distinct()
                     .OrderBy(t => t)
                     .ToList();
             }
 
-            fromCurseForge = result.__TODO_RENAME_FromCurseForge__;
-            type = result.__TODO_RENAME_Type__;
-            slug = result.__TODO_RENAME_Slug__;
-            id = result.__TODO_RENAME_Id__;
-            curseForgeFileIds = result.__TODO_RENAME_CurseForgeFileIds__;
-            rawName = result.__TODO_RENAME_RawName__;
-            description = result.__TODO_RENAME_Description__;
-            website = result.__TODO_RENAME_Website__;
-            lastUpdate = result.__TODO_RENAME_LastUpdate__;
-            downloadCount = result.__TODO_RENAME_DownloadCount__;
-            modLoaders = result.__TODO_RENAME_ModLoaders__;
-            tags = result.__TODO_RENAME_Tags__;
-            logoUrl = result.__TODO_RENAME_LogoUrl__;
-            drops = result.__TODO_RENAME_Drops__;
+            fromCurseForge = result.FromCurseForge;
+            type = result.Type;
+            slug = result.Slug;
+            id = result.Id;
+            curseForgeFileIds = result.CurseForgeFileIds;
+            rawName = result.RawName;
+            description = result.Description;
+            website = result.Website;
+            lastUpdate = result.LastUpdate;
+            downloadCount = result.DownloadCount;
+            modLoaders = result.ModLoaders;
+            tags = result.Tags;
+            logoUrl = result.LogoUrl;
+            drops = result.Drops;
 
             // 保存缓存
             compProjectCache[id] = this;
@@ -1014,52 +1014,52 @@ public static class ModComp
 
         private sealed class CompProjectBuildResult
         {
-            public bool __TODO_RENAME_FromCurseForge__;
-            public CompType __TODO_RENAME_Type__;
-            public string __TODO_RENAME_Slug__;
-            public string __TODO_RENAME_Id__;
-            public List<int> __TODO_RENAME_CurseForgeFileIds__ = [];
-            public string __TODO_RENAME_RawName__;
-            public string __TODO_RENAME_Description__;
-            public string __TODO_RENAME_Website__;
-            public DateTime? __TODO_RENAME_LastUpdate__;
-            public int __TODO_RENAME_DownloadCount__;
-            public List<CompLoaderType> __TODO_RENAME_ModLoaders__ = [];
-            public List<string> __TODO_RENAME_Tags__ = [];
-            public string __TODO_RENAME_LogoUrl__;
-            public List<int> __TODO_RENAME_Drops__ = [];
+            public bool FromCurseForge;
+            public CompType Type;
+            public string Slug;
+            public string Id;
+            public List<int> CurseForgeFileIds = [];
+            public string RawName;
+            public string Description;
+            public string Website;
+            public DateTime? LastUpdate;
+            public int DownloadCount;
+            public List<CompLoaderType> ModLoaders = [];
+            public List<string> Tags = [];
+            public string LogoUrl;
+            public List<int> Drops = [];
         }
 
         private static CompProjectBuildResult _BuildFromCompJson(JsonObject data)
         {
             var result = new CompProjectBuildResult
             {
-                __TODO_RENAME_FromCurseForge__ = (string)data["DataSource"] == "CurseForge",
-                __TODO_RENAME_Type__ = (CompType)data["Type"].ToObject<int>(),
-                __TODO_RENAME_Slug__ = (string)data["Slug"],
-                __TODO_RENAME_Id__ = (string)data["Id"],
-                __TODO_RENAME_RawName__ = (string)data["RawName"],
-                __TODO_RENAME_Description__ = (string)data["Description"],
-                __TODO_RENAME_Website__ = (string)data["Website"],
-                __TODO_RENAME_DownloadCount__ = (int)data["DownloadCount"],
-                __TODO_RENAME_Tags__ = ((JsonArray)data["Tags"]).Select(t => t.ToString()).ToList()
+                FromCurseForge = (string)data["DataSource"] == "CurseForge",
+                Type = (CompType)data["Type"].ToObject<int>(),
+                Slug = (string)data["Slug"],
+                Id = (string)data["Id"],
+                RawName = (string)data["RawName"],
+                Description = (string)data["Description"],
+                Website = (string)data["Website"],
+                DownloadCount = (int)data["DownloadCount"],
+                Tags = ((JsonArray)data["Tags"]).Select(t => t.ToString()).ToList()
             };
 
             if (data.TryGetPropertyValue("CurseForgeFileIds", out var id))
-                result.__TODO_RENAME_CurseForgeFileIds__ = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
+                result.CurseForgeFileIds = ((JsonArray)id).Select(t => t.ToObject<int>()).ToList();
 
             if (data.TryGetPropertyValue("LastUpdate", out var last))
-                result.__TODO_RENAME_LastUpdate__ = last?.ToObject<DateTime>();
+                result.LastUpdate = last?.ToObject<DateTime>();
 
             if (data.TryGetPropertyValue("ModLoaders", out var loaders))
-                result.__TODO_RENAME_ModLoaders__ = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
+                result.ModLoaders = ((JsonArray)loaders).Select(t => (CompLoaderType)t.ToObject<int>())
                     .ToList();
 
             if (data.TryGetPropertyValue("LogoUrl", out var url))
-                result.__TODO_RENAME_LogoUrl__ = (string)url;
+                result.LogoUrl = (string)url;
 
             if (data.TryGetPropertyValue("Drops", out var drops))
-                result.__TODO_RENAME_Drops__ = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
+                result.Drops = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
 
             return result;
         }
@@ -1068,39 +1068,39 @@ public static class ModComp
         {
             var result = new CompProjectBuildResult
             {
-                __TODO_RENAME_FromCurseForge__ = true,
+                FromCurseForge = true,
 
                 // 简单信息
-                __TODO_RENAME_Id__ = data["id"].ToString(),
-                __TODO_RENAME_Slug__ = (string)data["slug"],
-                __TODO_RENAME_RawName__ = (string)data["name"],
-                __TODO_RENAME_Description__ = (string)data["summary"],
-                __TODO_RENAME_Website__ = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
-                __TODO_RENAME_LastUpdate__ = data["dateReleased"]?.ToObject<DateTime>(), // #1194
-                __TODO_RENAME_DownloadCount__ = (int)data["downloadCount"]
+                Id = data["id"].ToString(),
+                Slug = (string)data["slug"],
+                RawName = (string)data["name"],
+                Description = (string)data["summary"],
+                Website = (data["links"]?["websiteUrl"]?.ToString() ?? "").TrimEnd('/'),
+                LastUpdate = data["dateReleased"]?.ToObject<DateTime>(), // #1194
+                DownloadCount = (int)data["downloadCount"]
             };
 
             if (data["logo"] is JsonObject { Count: > 0 } logo)
-                result.__TODO_RENAME_LogoUrl__ = string.IsNullOrEmpty((string)logo["thumbnailUrl"])
+                result.LogoUrl = string.IsNullOrEmpty((string)logo["thumbnailUrl"])
                     ? (string)logo["url"]
                     : (string)logo["thumbnailUrl"];
 
-            if (string.IsNullOrEmpty(result.__TODO_RENAME_LogoUrl__))
-                result.__TODO_RENAME_LogoUrl__ = null;
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
 
             // Type
-            result.__TODO_RENAME_Type__ = _GetCurseForgeTypeByWebsite(result.__TODO_RENAME_Website__);
+            result.Type = _GetCurseForgeTypeByWebsite(result.Website);
 
             // FileIndexes / VanillaMajorVersions / ModLoaders
             var files = new List<KeyValuePair<int, List<string>>>(); // FileId, GameVersions
 
             foreach (var file in (data["latestFiles"] as JsonArray) ?? [])
             {
-                var newFile = new CompFile((JsonObject)file, result.__TODO_RENAME_Type__);
+                var newFile = new CompFile((JsonObject)file, result.Type);
                 if (!newFile.Available)
                     continue;
 
-                result.__TODO_RENAME_ModLoaders__.AddRange(newFile.modLoaders);
+                result.ModLoaders.AddRange(newFile.modLoaders);
 
                 var gameVersions = file["gameVersions"]?.ToObject<List<string>>() ?? [];
                 if (!gameVersions.Any(ModMinecraft.McInstanceInfo.IsFormatFit))
@@ -1116,12 +1116,12 @@ public static class ModComp
                 select new KeyValuePair<int, List<string>>((int)File["fileId"], new[] { GameVersion }.ToList())
             );
 
-            result.__TODO_RENAME_CurseForgeFileIds__ = files
+            result.CurseForgeFileIds = files
                 .Select(f => f.Key)
                 .Distinct()
                 .ToList();
 
-            result.__TODO_RENAME_Drops__ = files
+            result.Drops = files
                 .SelectMany(f => f.Value)
                 .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
                 .Where(v => v > 0)
@@ -1129,7 +1129,7 @@ public static class ModComp
                 .OrderByDescending(v => v)
                 .ToList();
 
-            result.__TODO_RENAME_ModLoaders__ = result.__TODO_RENAME_ModLoaders__
+            result.ModLoaders = result.ModLoaders
                 .Distinct()
                 .OrderBy(t => t)
                 .ToList();
@@ -1144,7 +1144,7 @@ public static class ModComp
 
             foreach (var category in categories)
                 if (curseForgeCategoryLangKeys.TryGetValue(category, out var langKey))
-                    _AddTag(result.__TODO_RENAME_Tags__, langKey);
+                    _AddTag(result.Tags, langKey);
 
             return result;
         }
@@ -1156,20 +1156,20 @@ public static class ModComp
 
             var result = new CompProjectBuildResult
             {
-                __TODO_RENAME_FromCurseForge__ = false,
+                FromCurseForge = false,
 
                 // 简单信息
-                __TODO_RENAME_Id__ = (string)(data["project_id"] ?? data["id"]), // 两个 API 会返回的 key 不一样
-                __TODO_RENAME_Slug__ = slug,
-                __TODO_RENAME_RawName__ = (string)data["title"],
-                __TODO_RENAME_Description__ = (string)data["description"],
-                __TODO_RENAME_LastUpdate__ = data["date_modified"]?.ToObject<DateTime>(),
-                __TODO_RENAME_DownloadCount__ = (int)data["downloads"],
-                __TODO_RENAME_LogoUrl__ = (string)data["icon_url"],
-                __TODO_RENAME_Website__ = $"https://modrinth.com/{projectType}/{slug}",
+                Id = (string)(data["project_id"] ?? data["id"]), // 两个 API 会返回的 key 不一样
+                Slug = slug,
+                RawName = (string)data["title"],
+                Description = (string)data["description"],
+                LastUpdate = data["date_modified"]?.ToObject<DateTime>(),
+                DownloadCount = (int)data["downloads"],
+                LogoUrl = (string)data["icon_url"],
+                Website = $"https://modrinth.com/{projectType}/{slug}",
 
                 // Type
-                __TODO_RENAME_Type__ = projectType switch
+                Type = projectType switch
                 {
                     "modpack" => CompType.ModPack,
                     "resourcepack" => CompType.ResourcePack,
@@ -1178,12 +1178,12 @@ public static class ModComp
                 }
             };
 
-            if (string.IsNullOrEmpty(result.__TODO_RENAME_LogoUrl__))
-                result.__TODO_RENAME_LogoUrl__ = null;
+            if (string.IsNullOrEmpty(result.LogoUrl))
+                result.LogoUrl = null;
 
             // GameVersions
             // 搜索结果的键为 versions，获取特定工程的键为 game_versions
-            result.__TODO_RENAME_Drops__ = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
+            result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
                 .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v))
                 .Where(v => v > 0)
                 .Distinct()
@@ -1193,7 +1193,7 @@ public static class ModComp
             // Tags & ModLoaders
             foreach (var category in (data["loaders"] as JsonArray)?.Select(t => t.ToString()) ?? [])
                 if (modrinthLoaderTypes.TryGetValue(category ?? "", out var loader))
-                    result.__TODO_RENAME_ModLoaders__.Add(loader);
+                    result.ModLoaders.Add(loader);
 
             foreach (var category in (data["categories"] as JsonArray)?.Select(t => t.ToString()) ?? [])
             {
@@ -1201,27 +1201,27 @@ public static class ModComp
                 // 加载器
                 if (modrinthLoaderTypes.TryGetValue(category, out var loader))
                 {
-                    result.__TODO_RENAME_ModLoaders__.Add(loader);
+                    result.ModLoaders.Add(loader);
                 }
                 else
                 {
                     // Modrinth 将数据包标为 Mod，若包含数据包版本，则优先标为 DataPack
                     if (category.Equals("datapack", StringComparison.OrdinalIgnoreCase))
                     {
-                        result.__TODO_RENAME_Type__ = CompType.DataPack;
+                        result.Type = CompType.DataPack;
                     }
                     else
                     {
                         // 这些分类在资源包中不显示
                         if (resourcePackHiddenCategoryLangKeys.TryGetValue(category, out var hiddenLangKey))
                         {
-                            if (result.__TODO_RENAME_Type__ != CompType.ResourcePack)
-                                _AddTag(result.__TODO_RENAME_Tags__, hiddenLangKey);
+                            if (result.Type != CompType.ResourcePack)
+                                _AddTag(result.Tags, hiddenLangKey);
                         }
                         else
                         {
                             if (modrinthCategoryLangKeys.TryGetValue(category, out var langKey))
-                                _AddTag(result.__TODO_RENAME_Tags__, langKey);
+                                _AddTag(result.Tags, langKey);
                         }
                     }
                 }

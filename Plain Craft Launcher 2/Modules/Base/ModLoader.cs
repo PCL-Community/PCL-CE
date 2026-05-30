@@ -986,14 +986,14 @@ public static class ModLoader
     /// </summary>
     public class LoaderCombo<InputType> : LoaderCombo
     {
-        public new InputType __TODO_RENAME_Input__;
+        public new InputType typedInput;
 
         public LoaderCombo(string Name, IEnumerable<LoaderBase> Loaders) : base(Name, Loaders) { }
 
         public override void Start(object Input = null, bool IsForceRestart = false)
         {
-            this.__TODO_RENAME_Input__ = Conversions.ToGenericParameter<InputType>(Input);
-            base.Start(this.__TODO_RENAME_Input__, IsForceRestart);
+            this.typedInput = Conversions.ToGenericParameter<InputType>(Input);
+            base.Start(this.typedInput, IsForceRestart);
         }
     }
 

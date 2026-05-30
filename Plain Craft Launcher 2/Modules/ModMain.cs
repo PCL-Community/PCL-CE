@@ -1063,24 +1063,24 @@ public static class ModMain
         /// </summary>
         public MyListItem SetToListItem(MyListItem Item)
         {
-            string __TODO_RENAME_Logo__;
+            string logoPath;
             if (isEvent)
             {
                 if (eventType == "弹出窗口")
-                    __TODO_RENAME_Logo__ = ModBase.pathImage + "Blocks/GrassPath.png";
+                    logoPath = ModBase.pathImage + "Blocks/GrassPath.png";
                 else
-                    __TODO_RENAME_Logo__ = ModBase.pathImage + "Blocks/CommandBlock.png";
+                    logoPath = ModBase.pathImage + "Blocks/CommandBlock.png";
             }
             else
             {
-                __TODO_RENAME_Logo__ = ModBase.pathImage + "Blocks/Grass.png";
+                logoPath = ModBase.pathImage + "Blocks/Grass.png";
             }
 
             // 设置属性
             Item.SnapsToDevicePixels = true;
             Item.Title = title;
             Item.Info = desc;
-            Item.Logo = this.logo ?? __TODO_RENAME_Logo__;
+            Item.Logo = this.logo ?? logoPath;
             Item.Height = 42d;
             Item.Type = MyListItem.CheckType.Clickable;
             Item.Tag = this;
