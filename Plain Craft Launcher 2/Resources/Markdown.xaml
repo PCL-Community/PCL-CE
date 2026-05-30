@@ -4,7 +4,7 @@
 
     <!-- 基础文档样式 -->
     <Style TargetType="{x:Type FlowDocument}" x:Key="{x:Static markdig:Styles.DocumentStyleKey}">
-        <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI, Meiryo UI, sans-serif" />
+        <Setter Property="FontFamily" Value="{DynamicResource LaunchFontFamily}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="TextAlignment" Value="Left" />
         <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
