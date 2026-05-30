@@ -14,24 +14,24 @@ namespace PCL;
 
 public class ExportOption : DependencyObject
 {
-    public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
+    public static readonly DependencyProperty titleProperty = DependencyProperty.Register(
         nameof(Title), typeof(string), typeof(ExportOption)
     );
 
-    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(
+    public static readonly DependencyProperty descriptionProperty = DependencyProperty.Register(
         nameof(Description), typeof(string), typeof(ExportOption)
     );
 
     public string Title
     {
-        get => (string)GetValue(TitleProperty);
-        set => SetValue(TitleProperty, value);
+        get => (string)GetValue(titleProperty);
+        set => SetValue(titleProperty, value);
     }
 
     public string Description
     {
-        get => (string)GetValue(DescriptionProperty);
-        set => SetValue(DescriptionProperty, value);
+        get => (string)GetValue(descriptionProperty);
+        set => SetValue(descriptionProperty, value);
     }
 
     public string Rules { get; set; }
@@ -50,7 +50,7 @@ public class ExportOption : DependencyObject
 
 public partial class PageInstanceExport : IRefreshable
 {
-    private string CurrentVersion = "";
+    private string currentVersion = "";
 
     public PageInstanceExport()
     {
@@ -73,7 +73,7 @@ public partial class PageInstanceExport : IRefreshable
     private void PageInstanceExport_Loaded()
     {
         ModAnimation.AniControlEnabled += 1;
-        if ((CurrentVersion ?? "") != (PageInstanceLeft.Instance.PathInstance ?? ""))
+        if ((currentVersion ?? "") != (PageInstanceLeft.instance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
         CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json");
         ModAnimation.AniControlEnabled -= 1;
@@ -83,15 +83,15 @@ public partial class PageInstanceExport : IRefreshable
     {
         ModBase.Log("[Export] 刷新导出页面");
         HintOptiFine.Visibility =
-            PageInstanceLeft.Instance.Info.HasOptiFine ? Visibility.Visible : Visibility.Collapsed;
-        CurrentVersion = PageInstanceLeft.Instance.PathInstance;
+            PageInstanceLeft.instance.Info.hasOptiFine ? Visibility.Visible : Visibility.Collapsed;
+        currentVersion = PageInstanceLeft.instance.PathInstance;
         TextExportName.Text = "";
-        TextExportName.HintText = PageInstanceLeft.Instance.Name;
+        TextExportName.HintText = PageInstanceLeft.instance.Name;
         TextExportVersion.Text = "";
         TextExportVersion.HintText = "1.0.0";
         CheckAdvancedInclude.Checked = false;
         CheckAdvancedModrinth.Checked = false;
-        GetExportOption(CheckOptionsBasic).Description = PageInstanceLeft.Instance.GetDefaultDescription();
+        GetExportOption(CheckOptionsBasic).Description = PageInstanceLeft.instance.GetDefaultDescription();
         ResetConfigOverrides();
         ReloadAllSubOptions();
         RefreshAllOptionsUI();
@@ -126,7 +126,7 @@ public partial class PageInstanceExport : IRefreshable
 
     #region 子选项
 
-    private readonly string[] SubOptionBlackList = new[] { "Quark Programmer Art.zip", "+ EuphoriaPatches_" };
+    private readonly string[] subOptionBlackList = new[] { "Quark Programmer Art.zip", "+ EuphoriaPatches_" };
 
     /// <summary>
     ///     动态生成子文件夹下的选项，例如资源包、存档等。
@@ -144,14 +144,14 @@ public partial class PageInstanceExport : IRefreshable
         Panel.Children.Clear();
         foreach (var Folder in Folders)
         {
-            var TargetFolder = new DirectoryInfo(PageInstanceLeft.Instance.PathIndie + Folder);
-            if (!TargetFolder.Exists)
+            var targetFolder = new DirectoryInfo(PageInstanceLeft.instance.PathIndie + Folder);
+            if (!targetFolder.Exists)
                 continue;
             // 查找文件夹下的对应项
             if (AcceptCompressedFile)
-                foreach (var File in TargetFolder.EnumerateFiles("*.zip").Concat(TargetFolder.EnumerateFiles("*.rar")))
+                foreach (var File in targetFolder.EnumerateFiles("*.zip").Concat(targetFolder.EnumerateFiles("*.rar")))
                 {
-                    if (SubOptionBlackList.Any(b => File.Name.ContainsF(b)))
+                    if (subOptionBlackList.Any(b => File.Name.ContainsF(b)))
                         continue;
                     Panel.Children.Add(new MyCheckBox
                     {
@@ -180,13 +180,13 @@ public partial class PageInstanceExport : IRefreshable
                 }
 
             if (AcceptFolder)
-                foreach (var SubFolder in TargetFolder.EnumerateDirectories().OrderByDescending(f => f.LastWriteTime))
+                foreach (var SubFolder in targetFolder.EnumerateDirectories().OrderByDescending(f => f.LastWriteTime))
                 {
-                    if (SubOptionBlackList.Any(b => SubFolder.Name.ContainsF(b)))
+                    if (subOptionBlackList.Any(b => SubFolder.Name.ContainsF(b)))
                         continue;
                     if (!SubFolder.EnumerateFileSystemInfos().Any())
                         continue;
-                    var NewCheckBox = new MyCheckBox
+                    var newCheckBox = new MyCheckBox
                     {
                         Tag = new ExportOption
                         {
@@ -195,12 +195,12 @@ public partial class PageInstanceExport : IRefreshable
                         }
                     };
                     if (ReferenceEquals(Panel, PanOptionsSaves))
-                        GetExportOption(NewCheckBox).Description =
+                        GetExportOption(newCheckBox).Description =
                             Lang.Date(SubFolder.LastWriteTime, "g");
-                    Panel.Children.Add(NewCheckBox);
+                    Panel.Children.Add(newCheckBox);
                     if (Folder == "shaderpacks") // 处理文件夹形式光影包的配置文件
                     {
-                        var shaderConfig = new FileInfo(Path.Combine(TargetFolder.FullName,
+                        var shaderConfig = new FileInfo(Path.Combine(targetFolder.FullName,
                             $"{SubFolder.Name}.txt"));
                         if (shaderConfig.Exists)
                             Panel.Children.Add(new MyCheckBox
@@ -228,14 +228,14 @@ public partial class PageInstanceExport : IRefreshable
     private void RefreshAllOptionsUI()
     {
         // 预先归纳所有至多二级的文件/文件夹
-        var AllEntries = new List<string>();
+        var allEntries = new List<string>();
 
         bool IsValidDirectory(DirectoryInfo Folder)
         {
             try
             {
                 return Folder.Exists && Folder.EnumerateFileSystemInfos()
-                    .Any(i => !SubOptionBlackList.Any(b => i.Name.ContainsF(b)));
+                    .Any(i => !subOptionBlackList.Any(b => i.Name.ContainsF(b)));
             }
             catch
             {
@@ -245,28 +245,28 @@ public partial class PageInstanceExport : IRefreshable
 
         ; // 检查文件夹不为空
         // 一般是由于无法访问，或是一个指向已不存在的文件夹的链接（例如使用 mklink 创造的 resource 文件夹链接）
-        var PathInfo = new DirectoryInfo(PageInstanceLeft.Instance.PathIndie);
-        AllEntries.AddRange(PathInfo.EnumerateFiles().Select(f => f.Name));
-        foreach (var SubFolder in PathInfo.EnumerateDirectories().Where(IsValidDirectory))
+        var pathInfo = new DirectoryInfo(PageInstanceLeft.instance.PathIndie);
+        allEntries.AddRange(pathInfo.EnumerateFiles().Select(f => f.Name));
+        foreach (var SubFolder in pathInfo.EnumerateDirectories().Where(IsValidDirectory))
         {
-            AllEntries.Add($@"{SubFolder.Name}\");
-            AllEntries.AddRange(SubFolder.EnumerateFiles().Select(f => $@"{SubFolder.Name}\{f.Name}"));
-            AllEntries.AddRange(SubFolder.EnumerateDirectories().Where(IsValidDirectory)
+            allEntries.Add($@"{SubFolder.Name}\");
+            allEntries.AddRange(SubFolder.EnumerateFiles().Select(f => $@"{SubFolder.Name}\{f.Name}"));
+            allEntries.AddRange(SubFolder.EnumerateDirectories().Where(IsValidDirectory)
                 .Select(d => $@"{SubFolder.Name}\{d.Name}\"));
         }
 
-        ModBase.Log($"[Export] 共发现 {AllEntries.Count} 个可行的二级文件/文件夹");
+        ModBase.Log($"[Export] 共发现 {allEntries.Count} 个可行的二级文件/文件夹");
 
         // 确认选项是否应该被显示
         bool IsVisible(ExportOption TargetOption)
         {
             // 检查需要 OptiFine 或 Mod 加载器
-            if (TargetOption.RequireOptiFine && !PageInstanceLeft.Instance.Info.HasOptiFine)
+            if (TargetOption.RequireOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine)
                 return false;
-            if (TargetOption.RequireModLoader && !PageInstanceLeft.Instance.Modable)
+            if (TargetOption.RequireModLoader && !PageInstanceLeft.instance.Modable)
                 return false;
-            if (TargetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.Instance.Info.HasOptiFine &&
-                !PageInstanceLeft.Instance.Modable)
+            if (TargetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.instance.Info.hasOptiFine &&
+                !PageInstanceLeft.instance.Modable)
                 return false;
             // 粗略检查是否可能有符合规则的文件/文件夹
             return StandardizeLines((TargetOption.Rules ?? TargetOption.ShowRules).Split('|'), true).Any(Rule =>
@@ -276,7 +276,7 @@ public partial class PageInstanceExport : IRefreshable
                 // 检查前两级
                 try
                 {
-                    if (AllEntries.Any(Entry => LikeString(Entry, Rule)))
+                    if (allEntries.Any(Entry => LikeString(Entry, Rule)))
                         return true;
                 }
                 catch (Exception ex)
@@ -290,9 +290,9 @@ public partial class PageInstanceExport : IRefreshable
                 if (Rule.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Count() >= 3)
                 {
                     if (Rule.EndsWithF(@"\"))
-                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.Instance.PathIndie + Rule)); // 文件夹有效
+                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.instance.PathIndie + Rule)); // 文件夹有效
 
-                    return File.Exists(PageInstanceLeft.Instance.PathIndie + Rule);
+                    return File.Exists(PageInstanceLeft.instance.PathIndie + Rule);
                     // 文件有效
                 }
 
@@ -304,23 +304,23 @@ public partial class PageInstanceExport : IRefreshable
         // 逐个检查选项
         foreach (var CheckBox in GetAllOptions(true))
         {
-            var TargetOption = GetExportOption(CheckBox);
+            var targetOption = GetExportOption(CheckBox);
             // 名称与简介
             CheckBox.Inlines.Clear();
-            CheckBox.Inlines.Add(new Run(TargetOption.Title));
-            if (!string.IsNullOrEmpty(TargetOption.Description))
-                CheckBox.Inlines.Add(new Run("   " + TargetOption.Description) { Foreground = ThemeManager.ColorGray5 });
+            CheckBox.Inlines.Add(new Run(targetOption.Title));
+            if (!string.IsNullOrEmpty(targetOption.Description))
+                CheckBox.Inlines.Add(new Run("   " + targetOption.Description) { Foreground = ThemeManager.colorGray5 });
             // 可见性、默认勾选
-            if (string.IsNullOrEmpty(TargetOption.Rules) && string.IsNullOrEmpty(TargetOption.ShowRules))
+            if (string.IsNullOrEmpty(targetOption.Rules) && string.IsNullOrEmpty(targetOption.ShowRules))
             {
                 CheckBox.Visibility = Visibility.Visible;
-                CheckBox.Checked = TargetOption.DefaultChecked;
+                CheckBox.Checked = targetOption.DefaultChecked;
             }
             else
             {
-                var Pass = IsVisible(TargetOption);
-                CheckBox.Visibility = Pass ? Visibility.Visible : Visibility.Collapsed;
-                CheckBox.Checked = TargetOption.DefaultChecked && Pass;
+                var pass = IsVisible(targetOption);
+                CheckBox.Visibility = pass ? Visibility.Visible : Visibility.Collapsed;
+                CheckBox.Checked = targetOption.DefaultChecked && pass;
             }
         }
     }
@@ -332,12 +332,12 @@ public partial class PageInstanceExport : IRefreshable
     {
         foreach (var IgnoreLineRaw in Raw)
         {
-            var IgnoreLine = IgnoreLineRaw;
-            IgnoreLine = IgnoreLine.Trim();
-            if (string.IsNullOrEmpty(IgnoreLine) || IgnoreLine.StartsWithF("#") || IgnoreLine.StartsWithF("="))
+            var ignoreLine = IgnoreLineRaw;
+            ignoreLine = ignoreLine.Trim();
+            if (string.IsNullOrEmpty(ignoreLine) || ignoreLine.StartsWithF("#") || ignoreLine.StartsWithF("="))
                 continue;
-            IgnoreLine = IgnoreLine.Replace("/", @"\");
-            yield return IgnoreLine + (IgnoreLine.EndsWithF(@"\") && AddSuffixStarToFolderPath ? "*" : "");
+            ignoreLine = ignoreLine.Replace("/", @"\");
+            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && AddSuffixStarToFolderPath ? "*" : "");
         }
     }
 
@@ -376,7 +376,7 @@ public partial class PageInstanceExport : IRefreshable
 
     #region 配置文件
 
-    private const string Sperator = "==============================================================";
+    private const string sperator = "==============================================================";
 
     // ================ 导出内容段 ================
 
@@ -432,11 +432,11 @@ public partial class PageInstanceExport : IRefreshable
             {
                 if (CheckBox.Checked == false)
                     continue;
-                var TargetOption = GetExportOption(CheckBox);
-                if (TargetOption.Rules is null)
+                var targetOption = GetExportOption(CheckBox);
+                if (targetOption.Rules is null)
                     continue;
-                yield return $"# {TargetOption.Title}";
-                foreach (var Rule in TargetOption.Rules.Split('|'))
+                yield return $"# {targetOption.Title}";
+                foreach (var Rule in targetOption.Rules.Split('|'))
                     yield return Rule;
                 yield return "";
             }
@@ -453,17 +453,17 @@ public partial class PageInstanceExport : IRefreshable
 
     // ================ 追加内容段 ================
 
-    private List<string> ExtraFiles;
+    private List<string> extraFiles;
 
     /// <summary>
     ///     获取当前实际生效的追加内容。
     /// </summary>
     private IEnumerable<string> GetExtraFileLines()
     {
-        if (ExtraFiles is not null)
+        if (extraFiles is not null)
         {
             // 返回覆盖的列表
-            foreach (var File in ExtraFiles)
+            foreach (var File in extraFiles)
                 yield return File;
         }
         else
@@ -484,8 +484,8 @@ public partial class PageInstanceExport : IRefreshable
     private void ResetConfigOverrides()
     {
         RulesOverrides = null;
-        ConfigPackPath = null;
-        ExtraFiles = null;
+        configPackPath = null;
+        extraFiles = null;
         PanBack.ScrollToHome();
     }
 
@@ -503,47 +503,47 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            var ConfigPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectFileLocation"), "export_config.txt", Lang.Text("Instance.Export.ConfigFileFilter"),
+            var configPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectFileLocation"), "export_config.txt", Lang.Text("Instance.Export.ConfigFileFilter"),
                 (string?)States.System.ExportConfigPath);
-            if (string.IsNullOrEmpty(ConfigPath))
+            if (string.IsNullOrEmpty(configPath))
                 return;
-            States.System.ExportConfigPath = ConfigPath;
-            var ConfigLines = new List<string>();
+            States.System.ExportConfigPath = configPath;
+            var configLines = new List<string>();
             // ini 段
-            ConfigLines.Add("Name:" + TextExportName.Text);
-            ConfigLines.Add("Version:" + TextExportVersion.Text);
-            ConfigLines.Add("");
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncher"));
-            ConfigLines.Add("IncludeLauncher:" + CheckOptionsPcl.Checked);
-            ConfigLines.Add("");
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncherCustom"));
-            ConfigLines.Add("IncludeLauncherCustom:" + CheckOptionsPclCustom.Checked);
-            ConfigLines.Add("");
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles2"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles3"));
-            ConfigLines.Add("DontCheckHostedAssets:" + CheckAdvancedInclude.Checked);
-            ConfigLines.Add("");
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth2"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth3"));
-            ConfigLines.Add("ModrinthUploadMode:" + CheckAdvancedModrinth.Checked);
-            ConfigLines.Add("");
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath2"));
-            ConfigLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath3"));
-            ConfigLines.Add("PackPath:" + (ConfigPackPath ?? ""));
-            ConfigLines.Add("");
+            configLines.Add("Name:" + TextExportName.Text);
+            configLines.Add("Version:" + TextExportVersion.Text);
+            configLines.Add("");
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncher"));
+            configLines.Add("IncludeLauncher:" + CheckOptionsPcl.Checked);
+            configLines.Add("");
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncherCustom"));
+            configLines.Add("IncludeLauncherCustom:" + CheckOptionsPclCustom.Checked);
+            configLines.Add("");
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles3"));
+            configLines.Add("DontCheckHostedAssets:" + CheckAdvancedInclude.Checked);
+            configLines.Add("");
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth3"));
+            configLines.Add("ModrinthUploadMode:" + CheckAdvancedModrinth.Checked);
+            configLines.Add("");
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath3"));
+            configLines.Add("PackPath:" + (configPackPath ?? ""));
+            configLines.Add("");
             // 导出内容段
-            ConfigLines.Add(Sperator);
-            ConfigLines.AddRange(GetAllRules());
+            configLines.Add(sperator);
+            configLines.AddRange(GetAllRules());
             // 追加内容段
-            ConfigLines.Add(Sperator);
-            ConfigLines.AddRange(GetExtraFileLines());
+            configLines.Add(sperator);
+            configLines.AddRange(GetExtraFileLines());
             // 结束
-            ModBase.WriteFile(ConfigPath, ConfigLines.Join("\r\n"));
-            ModMain.Hint(Lang.Text("Instance.Export.SaveSuccess", ConfigPath), ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ConfigPath);
+            ModBase.WriteFile(configPath, configLines.Join("\r\n"));
+            ModMain.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), ModMain.HintType.Finish);
+            ModBase.OpenExplorer(configPath);
         }
         catch (Exception ex)
         {
@@ -565,49 +565,49 @@ public partial class PageInstanceExport : IRefreshable
             States.System.ExportConfigPath = configPath;
 
             var fileContent = ModBase.ReadFile(configPath);
-            var Segments = fileContent.Split(Sperator);
+            var segments = fileContent.Split(sperator);
 
-            if (Segments.Length == 0)
+            if (segments.Length == 0)
             {
                 ModMain.Hint(Lang.Text("Instance.Export.ConfigInvalid"), ModMain.HintType.Critical);
                 return;
             }
 
             // === 解析INI段 ===
-            var Ini = new Dictionary<string, string>();
-            foreach (var LineRaw in Segments[0].Split("\r\n".ToCharArray()))
+            var ini = new Dictionary<string, string>();
+            foreach (var LineRaw in segments[0].Split("\r\n".ToCharArray()))
             {
-                var Line = LineRaw;
-                Line = Line.Trim();
-                if (string.IsNullOrEmpty(Line) || Line.StartsWithF("#") || Line.StartsWithF("="))
+                var line = LineRaw;
+                line = line.Trim();
+                if (string.IsNullOrEmpty(line) || line.StartsWithF("#") || line.StartsWithF("="))
                     continue;
-                var Index = Line.IndexOfF(":");
-                if (Index > 0) Ini[Line.Substring(0, Index)] = Line.Substring(Index + 1);
+                var index = line.IndexOfF(":");
+                if (index > 0) ini[line.Substring(0, index)] = line.Substring(index + 1);
             }
 
             // 赋值到界面控件
-            TextExportName.Text = Ini.GetOrDefault("Name", "");
-            TextExportVersion.Text = Ini.GetOrDefault("Version", "");
+            TextExportName.Text = ini.GetOrDefault("Name", "");
+            TextExportVersion.Text = ini.GetOrDefault("Version", "");
             CheckOptionsPcl.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncher", true.ToString()));
+                Convert.ToBoolean(ini.GetOrDefault("IncludeLauncher", true.ToString()));
             CheckOptionsPclCustom.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("IncludeLauncherCustom", true.ToString()));
+                Convert.ToBoolean(ini.GetOrDefault("IncludeLauncherCustom", true.ToString()));
             CheckAdvancedModrinth.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("ModrinthUploadMode", false.ToString()));
+                Convert.ToBoolean(ini.GetOrDefault("ModrinthUploadMode", false.ToString()));
             CheckAdvancedInclude.Checked =
-                Convert.ToBoolean(Ini.GetOrDefault("DontCheckHostedAssets", false.ToString()));
-            ConfigPackPath = Ini.GetOrDefault("PackPath");
+                Convert.ToBoolean(ini.GetOrDefault("DontCheckHostedAssets", false.ToString()));
+            configPackPath = ini.GetOrDefault("PackPath");
 
             // === 解析导出内容段 ===
-            RulesOverrides = Segments[1].Replace("\r", "\n")
+            RulesOverrides = segments[1].Replace("\r", "\n")
                 .Replace("\n" + "\n", "\n").Split("\n").ToList();
 
             // === 解析追加内容段 ===
-            if (Segments.Length > 2)
-                ExtraFiles = Segments[2].Replace("\r", "\n")
+            if (segments.Length > 2)
+                extraFiles = segments[2].Replace("\r", "\n")
                     .Replace("\n" + "\n", "\n").Split("\n").ToList();
             else
-                ExtraFiles = null;
+                extraFiles = null;
 
             // 提示成功
             ModMain.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), ModMain.HintType.Finish);
@@ -626,13 +626,13 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            var ConfigPath = SystemDialogs.SelectFile(Lang.Text("Instance.Export.ConfigFileFilter"), Lang.Text("Instance.Export.SelectConfigFile"),
+            var configPath = SystemDialogs.SelectFile(Lang.Text("Instance.Export.ConfigFileFilter"), Lang.Text("Instance.Export.SelectConfigFile"),
                 (string?)States.System.ExportConfigPath);
-            if (string.IsNullOrEmpty(ConfigPath))
+            if (string.IsNullOrEmpty(configPath))
                 return;
 
             // 调用核心读取逻辑
-            ReadConfigFile(ConfigPath);
+            ReadConfigFile(configPath);
         }
 
         catch (Exception ex)
@@ -696,88 +696,88 @@ public partial class PageInstanceExport : IRefreshable
     /// <summary>
     ///     配置文件中指定的导出位置。
     /// </summary>
-    private string ConfigPackPath;
+    private string configPackPath;
 
     /// <summary>
     ///     开始导出。
     /// </summary>
     private void StartExport(object sender, MouseButtonEventArgs e)
     {
-        var PackName = string.IsNullOrEmpty(TextExportName.Text) ? TextExportName.HintText : TextExportName.Text;
-        var PackVersion = string.IsNullOrEmpty(TextExportVersion.Text) ? "1.0.0" : TextExportVersion.Text;
+        var packName = string.IsNullOrEmpty(TextExportName.Text) ? TextExportName.HintText : TextExportName.Text;
+        var packVersion = string.IsNullOrEmpty(TextExportVersion.Text) ? "1.0.0" : TextExportVersion.Text;
 
         // 重复任务检查
-        var LoaderName = Lang.Text("Instance.Export.ExportTask.Prefix") + PackName;
-        foreach (var OngoingLoader in ModLoader.LoaderTaskbar)
+        var loaderName = Lang.Text("Instance.Export.ExportTask.Prefix") + packName;
+        foreach (var OngoingLoader in ModLoader.loaderTaskbar)
         {
-            if ((OngoingLoader.Name ?? "") != (LoaderName ?? ""))
+            if ((OngoingLoader.name ?? "") != (loaderName ?? ""))
                 continue;
-            ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager);
+            ModMain.frmMain.PageChange(FormMain.PageType.TaskManager);
             return;
         }
 
         // 确认导出位置
-        string PackPath = null;
-        if (!string.IsNullOrWhiteSpace(ConfigPackPath) && !ConfigPackPath.EndsWithF(@"\") &&
-            !ConfigPackPath.EndsWithF("/"))
+        string packPath = null;
+        if (!string.IsNullOrWhiteSpace(configPackPath) && !configPackPath.EndsWithF(@"\") &&
+            !configPackPath.EndsWithF("/"))
             try
             {
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(ConfigPackPath));
-                PackPath = ConfigPackPath;
-                ModBase.Log($"[Export] 使用配置文件中指定的导出路径：{ConfigPackPath}");
+                Directory.CreateDirectory(ModBase.GetPathFromFullPath(configPackPath));
+                packPath = configPackPath;
+                ModBase.Log($"[Export] 使用配置文件中指定的导出路径：{configPackPath}");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{ConfigPackPath}）");
-                if (ModMain.MyMsgBox(Lang.Text("Instance.Export.PathError", ConfigPackPath) + "\r\n\r\n" + ex,
+                ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
+                if (ModMain.MyMsgBox(Lang.Text("Instance.Export.PathError", configPackPath) + "\r\n\r\n" + ex,
                         Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                     return;
             }
 
-        if (PackPath is null)
+        if (packPath is null)
         {
-            var Extensions = new List<string>();
+            var extensions = new List<string>();
             if (CheckAdvancedModrinth.Checked == false)
-                Extensions.Add(Lang.Text("Instance.Export.ZipFilter"));
+                extensions.Add(Lang.Text("Instance.Export.ZipFilter"));
             if (CheckOptionsPcl.Checked == false)
-                Extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
-            PackPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectSaveLocation"),
-                PackName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
-                Extensions.Join("|"));
-            ModBase.Log($"[Export] 手动指定的导出路径：{PackPath}");
+                extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
+            packPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectSaveLocation"),
+                packName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
+                extensions.Join("|"));
+            ModBase.Log($"[Export] 手动指定的导出路径：{packPath}");
         }
 
-        if (string.IsNullOrEmpty(PackPath))
+        if (string.IsNullOrEmpty(packPath))
             return;
 
         // 缓存所需参数
-        var CacheFolder = ModMain.RequestTaskTempFolder();
-        var OverridesFolder = Path.Combine(CacheFolder, "modpack", "overrides");
-        var McInstance = PageInstanceLeft.Instance;
-        var PathIndie = McInstance.PathIndie;
-        var CheckHostedAssets = (bool)!CheckAdvancedInclude.Checked;
-        var ModrinthUploadMode = (bool)CheckAdvancedModrinth.Checked;
-        var IncludePCL = (bool)CheckOptionsPcl.Checked;
-        var IncludePCLCustom = (bool)(IncludePCL ? CheckOptionsPclCustom.Checked : (bool?)false);
-        var AllRules = StandardizeLines(GetAllRules(), true).ToList();
-        var AllExtraFiles = StandardizeLines(GetExtraFileLines(), false).ToList();
-        ModBase.Log($"[Export] 准备导出整合包，共有 {AllRules.Count} 条规则，{AllExtraFiles.Count} 条追加内容行");
+        var cacheFolder = ModMain.RequestTaskTempFolder();
+        var overridesFolder = Path.Combine(cacheFolder, "modpack", "overrides");
+        var mcInstance = PageInstanceLeft.instance;
+        var pathIndie = mcInstance.PathIndie;
+        var checkHostedAssets = (bool)!CheckAdvancedInclude.Checked;
+        var modrinthUploadMode = (bool)CheckAdvancedModrinth.Checked;
+        var includePCL = (bool)CheckOptionsPcl.Checked;
+        var includePCLCustom = (bool)(includePCL ? CheckOptionsPclCustom.Checked : (bool?)false);
+        var allRules = StandardizeLines(GetAllRules(), true).ToList();
+        var allExtraFiles = StandardizeLines(GetExtraFileLines(), false).ToList();
+        ModBase.Log($"[Export] 准备导出整合包，共有 {allRules.Count} 条规则，{allExtraFiles.Count} 条追加内容行");
 
         // 构造步骤加载器
-        var Loaders = new List<ModLoader.LoaderBase>();
+        var loaders = new List<ModLoader.LoaderBase>();
 
         #region 准备 PCL 文件
         
         #if !RELEASE
-        if (IncludePCL)
-            Loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
+        if (includePCL)
+            loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", Loader =>
             {
                 UpdateManager.DownloadLatestPCL(Loader);
-                ModBase.CopyFile(Path.Combine(ModBase.PathTemp, "CE-Latest.exe"), Path.Combine(CacheFolder, "Plain Craft Launcher.exe"));
+                ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CE-Latest.exe"), Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
             })
             {
                 ProgressWeight = 0.5d,
-                Block = false
+                block = false
             });
         #endif
 
@@ -785,80 +785,80 @@ public partial class PageInstanceExport : IRefreshable
 
         #region 复制文件
 
-        Loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>("复制导出内容", Loader =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>("复制导出内容", Loader =>
         {
-            Loader.Output = new List<ModLocalComp.LocalCompFile>();
+            Loader.output = new List<ModLocalComp.LocalCompFile>();
             // 复制实例文件
-            var Progress = 0;
-            Action<DirectoryInfo> SearchFolder = null;
-            SearchFolder = Folder =>
+            var progress = 0;
+            Action<DirectoryInfo> searchFolder = null;
+            searchFolder = Folder =>
             {
                 // 文件夹：进一步搜索
                 foreach (var SubFolder in Folder.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
                 {
                     // 跳过部分又没用文件又多的文件夹，加快搜索
-                    if ((Folder.FullName ?? "") == (PathIndie ?? "") &&
+                    if ((Folder.FullName ?? "") == (pathIndie ?? "") &&
                         new[] { "assets", "versions", "libraries" }.Contains(SubFolder.Name))
                         continue;
                     if (new[] { "structureCacheV1", ".fabric", ".git", "avatar-cache", "cosmetic-cache" }.Contains(
                             SubFolder.Name))
                         continue;
-                    SearchFolder(SubFolder);
+                    searchFolder(SubFolder);
                 }
 
                 // 文件：检查规则并复制
                 foreach (var Entry in Folder.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
                 {
-                    var RelativePath = Entry.FullName.AfterFirst(PathIndie);
+                    var relativePath = Entry.FullName.AfterFirst(pathIndie);
                     // 检查规则
-                    var ShouldKeep = false;
-                    foreach (var Rule in AllRules)
+                    var shouldKeep = false;
+                    foreach (var Rule in allRules)
                     {
-                        var Revert = Rule.StartsWith("!");
-                        if (LikeString(RelativePath, Rule.TrimStart('!')))
-                            ShouldKeep = !Revert;
+                        var revert = Rule.StartsWith("!");
+                        if (LikeString(relativePath, Rule.TrimStart('!')))
+                            shouldKeep = !revert;
                     }
 
-                    if (!ShouldKeep)
+                    if (!shouldKeep)
                         continue;
-                    var TargetPath = OverridesFolder + RelativePath;
-                    ModBase.CopyFile(Entry.FullName, TargetPath);
+                    var targetPath = overridesFolder + relativePath;
+                    ModBase.CopyFile(Entry.FullName, targetPath);
                     // 若为压缩包，考虑联网获取路径
-                    if (CheckHostedAssets &&
+                    if (checkHostedAssets &&
                         new[] { ".zip", ".rar", ".jar", ".disabled", ".old" }.Contains(Entry.Extension.ToLower()) &&
-                        new[] { "mods", "packs", "openloader", "resource" }.Any(s => RelativePath.Contains(s)))
+                        new[] { "mods", "packs", "openloader", "resource" }.Any(s => relativePath.Contains(s)))
                     {
-                        var ModFile = new ModLocalComp.LocalCompFile(TargetPath);
-                        var Unused = ModFile.ModrinthHash; // 提前计算 Hash
-                        Unused = ModFile.CurseForgeHash.ToString();
-                        Loader.Output.Add(ModFile);
+                        var modFile = new ModLocalComp.LocalCompFile(targetPath);
+                        var unused = modFile.ModrinthHash; // 提前计算 Hash
+                        unused = modFile.CurseForgeHash.ToString();
+                        Loader.output.Add(modFile);
                     }
 
                     // 更新进度（进度并不准确，主要突出一个我还没似）
-                    Progress += 1;
-                    if (Progress == 25)
+                    progress += 1;
+                    if (progress == 25)
                     {
                         Loader.Progress += (0.94d - Loader.Progress) * 0.012d;
-                        Progress = 0;
+                        progress = 0;
                     }
                 }
             };
-            SearchFolder(new DirectoryInfo(PathIndie));
-            ModBase.Log($"[Export] 复制 overrides 文件完成，有 {Loader.Output.Count} 个文件需要联网检查");
+            searchFolder(new DirectoryInfo(pathIndie));
+            ModBase.Log($"[Export] 复制 overrides 文件完成，有 {Loader.output.Count} 个文件需要联网检查");
             Loader.Progress = 0.95d;
             // 复制追加内容到根目录
-            var BaseFolder = IncludePCL ? CacheFolder : Path.Combine(CacheFolder, "modpack");
-            foreach (var Line in AllExtraFiles)
+            var baseFolder = includePCL ? cacheFolder : Path.Combine(cacheFolder, "modpack");
+            foreach (var Line in allExtraFiles)
                 if (Line.EndsWithF(@"\") || Line.EndsWithF("/"))
                 {
                     if (Directory.Exists(Line))
-                        ModBase.CopyDirectory(Line, Path.Combine(BaseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
+                        ModBase.CopyDirectory(Line, Path.Combine(baseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
                     else
                         ModMain.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), ModMain.HintType.Critical);
                 }
                 else if (File.Exists(Line))
                 {
-                    ModBase.CopyFile(Line, BaseFolder + ModBase.GetFileNameFromPath(Line));
+                    ModBase.CopyFile(Line, baseFolder + ModBase.GetFileNameFromPath(Line));
                 }
                 else
                 {
@@ -867,28 +867,28 @@ public partial class PageInstanceExport : IRefreshable
 
             Loader.Progress = 0.97d;
             // 复制 PCL 实例设置
-            ModBase.CopyDirectory(Path.Combine(McInstance.PathInstance, "PCL"), Path.Combine(OverridesFolder, "PCL"));
+            ModBase.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
             #if RELEASE
                         // 复制 PCL 本体
-                        if (IncludePCL) ModBase.CopyFile(Basics.ExecutablePath, Path.Combine(CacheFolder, Basics.ExecutableName));
+                        if (includePCL) ModBase.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
             #endif
             // 复制 PCL 个性化内容
-            if (IncludePCLCustom)
+            if (includePCLCustom)
             {
-                if (Directory.Exists(Path.Combine(ModBase.ExePath, "PCL", "Pictures")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.ExePath, "PCL", "Pictures"), Path.Combine(CacheFolder, "PCL", "Pictures"));
-                if (Directory.Exists(Path.Combine(ModBase.ExePath, "PCL", "Musics")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.ExePath, "PCL", "Musics"), Path.Combine(CacheFolder, "PCL", "Musics"));
-                if (Directory.Exists(Path.Combine(ModBase.ExePath, "PCL", "Help")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.ExePath, "PCL", "Help"), Path.Combine(CacheFolder, "PCL", "Help"));
-                if (File.Exists(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml")))
-                    ModBase.CopyFile(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml"), Path.Combine(CacheFolder, "PCL", "Custom.xaml"));
-                if (File.Exists(Path.Combine(ModBase.ExePath, "PCL", "Setup.ini")))
-                    ModBase.CopyFile(Path.Combine(ModBase.ExePath, "PCL", "Setup.ini"), Path.Combine(CacheFolder, "PCL", "Setup.ini"));
-                if (File.Exists(Path.Combine(ModBase.ExePath, "PCL", "hints.txt")))
-                    ModBase.CopyFile(Path.Combine(ModBase.ExePath, "PCL", "hints.txt"), Path.Combine(CacheFolder, "PCL", "hints.txt"));
-                if (File.Exists(Path.Combine(ModBase.ExePath, "PCL", "Logo.png")))
-                    ModBase.CopyFile(Path.Combine(ModBase.ExePath, "PCL", "Logo.png"), Path.Combine(CacheFolder, "PCL", "Logo.png"));
+                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Pictures")))
+                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
+                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Musics")))
+                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
+                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Help")))
+                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Help"), Path.Combine(cacheFolder, "PCL", "Help"));
+                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml")))
+                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
+                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Setup.ini")))
+                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Setup.ini"), Path.Combine(cacheFolder, "PCL", "Setup.ini"));
+                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "hints.txt")))
+                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "hints.txt"), Path.Combine(cacheFolder, "PCL", "hints.txt"));
+                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Logo.png")))
+                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Logo.png"), Path.Combine(cacheFolder, "PCL", "Logo.png"));
             }
         })
         {
@@ -899,26 +899,26 @@ public partial class PageInstanceExport : IRefreshable
 
         #region 联网检查
 
-        Loaders.Add(
+        loaders.Add(
             new ModLoader.LoaderTask<List<ModLocalComp.LocalCompFile>,
                 Dictionary<ModLocalComp.LocalCompFile, List<string>>>("联网获取文件信息", Loader =>
             {
-                Loader.Output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
-                if (!CheckHostedAssets)
+                Loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
+                if (!checkHostedAssets)
                 {
                     ModBase.Log("[Export] 要求跳过联网获取步骤");
                     return;
                 }
 
-                if (!Loader.Input.Any())
+                if (!Loader.input.Any())
                 {
                     ModBase.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
                     return;
                 }
 
                 // 分平台获取下载地址
-                var EndedThreadCount = 0;
-                var FailedExceptions = new List<Exception>();
+                var endedThreadCount = 0;
+                var failedExceptions = new List<Exception>();
 
                 // 从 Modrinth 获取信息
                 // 查找对应的文件
@@ -927,33 +927,33 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     try
                     {
-                        var ModrinthHashes = Loader.Input.Select(m => m.ModrinthHash);
-                        var ModrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                        var modrinthHashes = Loader.input.Select(m => m.ModrinthHash);
+                        var modrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                             "https://api.modrinth.com/v2/version_files", "POST",
-                            $"{{\"hashes\": [\"{ModrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
+                            $"{{\"hashes\": [\"{modrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
                             "application/json"));
-                        foreach (var ModFile in Loader.Input)
+                        foreach (var ModFile in Loader.input)
                         {
-                            if (!ModrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
-                            if ((string)ModrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
+                            if (!modrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
+                            if ((string)modrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
                                 ModFile.ModrinthHash) continue;
-                            Loader.Output.AddToList(ModFile,
-                                (string)ModrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
+                            Loader.output.AddToList(ModFile,
+                                (string)modrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
                         }
 
-                        ModBase.Log($"[Export] 从 Modrinth 获取到 {ModrinthRaw.Count} 个本地资源项的对应信息");
+                        ModBase.Log($"[Export] 从 Modrinth 获取到 {modrinthRaw.Count} 个本地资源项的对应信息");
                     }
                     catch (Exception ex)
                     {
                         ModBase.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
-                        FailedExceptions.Add(ex);
+                        failedExceptions.Add(ex);
                     }
                     finally
                     {
-                        EndedThreadCount += 1;
+                        endedThreadCount += 1;
                         Loader.Progress += 0.45d;
                     }
-                }, "Modrinth - " + LoaderName);
+                }, "Modrinth - " + loaderName);
 
                 // 从 CurseForge 获取信息
                 // 查找对应的文件
@@ -962,40 +962,40 @@ public partial class PageInstanceExport : IRefreshable
                 {
                     try
                     {
-                        if (ModrinthUploadMode) return;
-                        var CurseForgeHashes = Loader.Input.Select(m => m.CurseForgeHash);
-                        var CurseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
+                        if (modrinthUploadMode) return;
+                        var curseForgeHashes = Loader.input.Select(m => m.CurseForgeHash);
+                        var curseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
                             ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
-                                $"{{\"fingerprints\": [{CurseForgeHashes.Join(",")}]}}", "application/json")))["data"][
+                                $"{{\"fingerprints\": [{curseForgeHashes.Join(",")}]}}", "application/json")))["data"][
                             "exactMatches"];
-                        foreach (JsonObject ResultJson in CurseForgeRaw.AsArray())
+                        foreach (JsonObject ResultJson in curseForgeRaw.AsArray())
                         {
                             if (!ResultJson.ContainsKey("file")) continue;
-                            var File = (JsonObject)ResultJson["file"];
-                            if (string.IsNullOrEmpty((string)File["downloadUrl"])) continue;
-                            var ModFile = Loader.Input.FirstOrDefault(m =>
-                                m.CurseForgeHash == File["fileFingerprint"].ToObject<uint>());
-                            if (ModFile is null) continue;
-                            Loader.Output.AddToList(ModFile,
-                                ModComp.CompFile.HandleCurseForgeDownloadUrls(File["downloadUrl"].ToString()));
+                            var file = (JsonObject)ResultJson["file"];
+                            if (string.IsNullOrEmpty((string)file["downloadUrl"])) continue;
+                            var modFile = Loader.input.FirstOrDefault(m =>
+                                m.CurseForgeHash == file["fileFingerprint"].ToObject<uint>());
+                            if (modFile is null) continue;
+                            Loader.output.AddToList(modFile,
+                                ModComp.CompFile.HandleCurseForgeDownloadUrls(file["downloadUrl"].ToString()));
                         }
 
-                        ModBase.Log($"[Export] 从 CurseForge 获取到 {CurseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
+                        ModBase.Log($"[Export] 从 CurseForge 获取到 {curseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
                     }
                     catch (Exception ex)
                     {
                         ModBase.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
-                        FailedExceptions.Add(ex);
+                        failedExceptions.Add(ex);
                     }
                     finally
                     {
-                        EndedThreadCount += 1;
+                        endedThreadCount += 1;
                         Loader.Progress += 0.45d;
                     }
-                }, "CurseForge - " + LoaderName); // Modrinth 上传模式下，不能从 CurseForge 获取信息
+                }, "CurseForge - " + loaderName); // Modrinth 上传模式下，不能从 CurseForge 获取信息
 
                 // 等待线程结束
-                while (EndedThreadCount != 2)
+                while (endedThreadCount != 2)
                 {
                     if (Loader.IsAborted)
                         return;
@@ -1003,94 +1003,94 @@ public partial class PageInstanceExport : IRefreshable
                 }
 
                 // 若失败，确认是否继续
-                if (FailedExceptions.Count == 1)
+                if (failedExceptions.Count == 1)
                 {
                     if (ModMain.MyMsgBox(
                             Lang.Text("Instance.Export.NetCheckPartialFailed.Message"),
                             Lang.Text("Instance.Export.NetCheckPartialFailed.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-                        throw FailedExceptions.First();
+                        throw failedExceptions.First();
                 }
-                else if (FailedExceptions.Count > 1)
+                else if (failedExceptions.Count > 1)
                 {
                     if (ModMain.MyMsgBox(
                             Lang.Text("Instance.Export.NetCheckAllFailed.Message"),
                             Lang.Text("Instance.Export.NetCheckAllFailed.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-                        throw FailedExceptions.First();
+                        throw failedExceptions.First();
                 }
             })
             {
-                Show = CheckHostedAssets,
-                ProgressWeight = CheckHostedAssets ? 2d : 0.01d
+                show = checkHostedAssets,
+                ProgressWeight = checkHostedAssets ? 2d : 0.01d
             });
 
         #endregion
 
         #region 生成压缩包
 
-        Loaders.Add(new ModLoader.LoaderTask<Dictionary<ModLocalComp.LocalCompFile, List<string>>, int>("生成压缩包",
+        loaders.Add(new ModLoader.LoaderTask<Dictionary<ModLocalComp.LocalCompFile, List<string>>, int>("生成压缩包",
             Loader =>
             {
                 // 整理文件列表
-                var Files = new JsonArray();
-                foreach (var Pair in Loader.Input)
+                var files = new JsonArray();
+                foreach (var Pair in Loader.input)
                 {
-                    var ModFile = Pair.Key;
-                    Files.Add(new JsonObject
+                    var modFile = Pair.Key;
+                    files.Add(new JsonObject
                     {
-                        { "path", ModFile.Path.AfterFirst(OverridesFolder).Replace(@"\", "/") },
+                        { "path", modFile.path.AfterFirst(overridesFolder).Replace(@"\", "/") },
                         {
                             "hashes",
                             new JsonObject
                             {
-                                { "sha1", ModFile.ModrinthHash }, { "sha512", ModBase.GetFileSHA512(ModFile.Path) }
+                                { "sha1", modFile.ModrinthHash }, { "sha512", ModBase.GetFileSHA512(modFile.path) }
                             }
                         },
                         { "downloads", new JsonArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com")).Select(s => (JsonNode)s).ToArray()) },
-                        { "fileSize", new FileInfo(ModFile.Path).Length }
+                        { "fileSize", new FileInfo(modFile.path).Length }
                     });
-                    File.Delete(ModFile.Path);
+                    File.Delete(modFile.path);
                 }
 
                 Loader.Progress = 0.2d;
                 // 导出最终 JSON 文件
-                var Dependencies = new JsonObject { { "minecraft", McInstance.Info.VanillaName } };
-                if (McInstance.Info.HasForge)
-                    Dependencies.Add("forge", McInstance.Info.Forge);
-                if (McInstance.Info.HasFabric)
-                    Dependencies.Add("fabric-loader", McInstance.Info.Fabric);
-                if (McInstance.Info.HasNeoForge)
-                    Dependencies.Add("neoforge", McInstance.Info.NeoForge);
-                var ResultJson = new JsonObject
+                var dependencies = new JsonObject { { "minecraft", mcInstance.Info.vanillaName } };
+                if (mcInstance.Info.hasForge)
+                    dependencies.Add("forge", mcInstance.Info.forge);
+                if (mcInstance.Info.hasFabric)
+                    dependencies.Add("fabric-loader", mcInstance.Info.fabric);
+                if (mcInstance.Info.hasNeoForge)
+                    dependencies.Add("neoforge", mcInstance.Info.neoForge);
+                var resultJson = new JsonObject
                 {
-                    { "game", "minecraft" }, { "formatVersion", 1 }, { "versionId", PackVersion }, { "name", PackName },
-                    { "summary", McInstance.Desc }, { "files", Files }, { "dependencies", Dependencies }
+                    { "game", "minecraft" }, { "formatVersion", 1 }, { "versionId", packVersion }, { "name", packName },
+                    { "summary", mcInstance.desc }, { "files", files }, { "dependencies", dependencies }
                 };
-                File.WriteAllText(Path.Combine(CacheFolder, "modpack", "modrinth.index.json"),
-                    ResultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
+                File.WriteAllText(Path.Combine(cacheFolder, "modpack", "modrinth.index.json"),
+                    resultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
                 // 打包
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(PackPath));
-                if (File.Exists(PackPath))
-                    File.Delete(PackPath);
-                if (IncludePCL)
+                Directory.CreateDirectory(ModBase.GetPathFromFullPath(packPath));
+                if (File.Exists(packPath))
+                    File.Delete(packPath);
+                if (includePCL)
                 {
                     // 首次压缩整合包
-                    ZipFile.CreateFromDirectory(Path.Combine(CacheFolder, "modpack"), Path.Combine(CacheFolder, "modpack.mrpack"));
+                    ZipFile.CreateFromDirectory(Path.Combine(cacheFolder, "modpack"), Path.Combine(cacheFolder, "modpack.mrpack"));
                     Loader.Progress = 0.5d;
-                    Directory.Delete(Path.Combine(CacheFolder, "modpack"), true);
+                    Directory.Delete(Path.Combine(cacheFolder, "modpack"), true);
                     Loader.Progress = 0.6d;
                     // 二次压缩整合包
-                    ZipFile.CreateFromDirectory(CacheFolder, PackPath);
+                    ZipFile.CreateFromDirectory(cacheFolder, packPath);
                     Loader.Progress = 0.9d;
                 }
                 else
                 {
                     // 直接压缩整合包
-                    ZipFile.CreateFromDirectory(Path.Combine(CacheFolder, "modpack"), PackPath);
+                    ZipFile.CreateFromDirectory(Path.Combine(cacheFolder, "modpack"), packPath);
                     Loader.Progress = 0.8d;
                 }
 
-                Directory.Delete(CacheFolder, true);
-                ModBase.OpenExplorer(PackPath);
+                Directory.Delete(cacheFolder, true);
+                ModBase.OpenExplorer(packPath);
             })
         {
             ProgressWeight = 6d
@@ -1099,13 +1099,13 @@ public partial class PageInstanceExport : IRefreshable
         #endregion
 
         // 启动
-        var MainLoader = new ModLoader.LoaderCombo<string>(LoaderName, Loaders)
+        var mainLoader = new ModLoader.LoaderCombo<string>(loaderName, loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
-        MainLoader.Start();
-        ModLoader.LoaderTaskbarAdd(MainLoader);
-        ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.FrmMain.BtnExtraDownload.Ribble();
-        ModMain.FrmMain.PageChange(FormMain.PageType.TaskManager);
+        mainLoader.Start();
+        ModLoader.LoaderTaskbarAdd(mainLoader);
+        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain.BtnExtraDownload.Ribble();
+        ModMain.frmMain.PageChange(FormMain.PageType.TaskManager);
     }
 
     #endregion

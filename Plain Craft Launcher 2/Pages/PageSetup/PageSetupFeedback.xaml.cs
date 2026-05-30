@@ -23,18 +23,18 @@ public partial class PageSetupFeedback
 
     private bool _isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> loader;
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
     private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, loader, _ => RefreshList());
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
@@ -142,7 +142,7 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in Loader.Output)
+        foreach (var item in loader.output)
         {
             if (item.Tags.Contains(((long)TagId.Processing).ToString()))
                 PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));

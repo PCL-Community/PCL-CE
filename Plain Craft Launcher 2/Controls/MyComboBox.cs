@@ -9,26 +9,26 @@ public class MyComboBox : ComboBox
 {
     public delegate void TextChangedEventHandler(object sender, TextChangedEventArgs e);
 
-    public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
+    public static readonly DependencyProperty hintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyComboBox), new PropertyMetadata("", (d, e) =>
         {
             var c = (MyComboBox)d;
-            if (c.TextBox is not null)
-                c.TextBox.HintText = (string)e.NewValue;
+            if (c.textBox is not null)
+                c.textBox.HintText = (string)e.NewValue;
         }));
 
     private string _Text;
 
     // 鼠标按下接口
-    private bool IsMouseDown;
+    private bool isMouseDown;
 
     // 修复 WPF Bug：下拉框文本修改后，依然误认为还选择着此前的选项，导致再次点击该选项时内容不变
-    private bool IsTextChanging;
-    private double RealWidth; // 由于下拉框 Popup 宽度与 Width 一致，故不能为 NaN（Auto）
-    private MyTextBox TextBox;
+    private bool isTextChanging;
+    private double realWidth; // 由于下拉框 Popup 宽度与 Width 一致，故不能为 NaN（Auto）
+    private MyTextBox textBox;
 
     // 基础
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyComboBox()
     {
@@ -49,8 +49,8 @@ public class MyComboBox : ComboBox
 
     public string HintText
     {
-        get => (string)GetValue(HintTextProperty);
-        set => SetValue(HintTextProperty, value);
+        get => (string)GetValue(hintTextProperty);
+        set => SetValue(hintTextProperty, value);
     }
 
     public new string Text
@@ -59,8 +59,8 @@ public class MyComboBox : ComboBox
         {
             if (IsEditable)
             {
-                if (TextBox is null) return _Text ?? "";
-                return TextBox.Text ?? "";
+                if (textBox is null) return _Text ?? "";
+                return textBox.Text ?? "";
             }
 
             return (SelectedItem ?? "").ToString();
@@ -69,10 +69,10 @@ public class MyComboBox : ComboBox
         {
             if (IsEditable)
             {
-                if (TextBox is null)
+                if (textBox is null)
                     _Text = value;
                 else
-                    TextBox.Text = value;
+                    textBox.Text = value;
             }
             else
             {
@@ -93,17 +93,17 @@ public class MyComboBox : ComboBox
             return;
         try
         {
-            TextBox = (MyTextBox)Template.FindName("PART_EditableTextBox", this);
-            TextBox.AddHandler(LostFocusEvent, new RoutedEventHandler((_, _) => RefreshColor()));
-            TextBox.ChangedEventList.Add((sender, e) => TextChanged?.Invoke(sender, (TextChangedEventArgs)e));
-            TextBox.Tag = Tag; // 有时需要用文本框的 Tag 来写入设置
+            textBox = (MyTextBox)Template.FindName("PART_EditableTextBox", this);
+            textBox.AddHandler(LostFocusEvent, new RoutedEventHandler((_, _) => RefreshColor()));
+            textBox.changedEventList.Add((sender, e) => TextChanged?.Invoke(sender, (TextChangedEventArgs)e));
+            textBox.Tag = Tag; // 有时需要用文本框的 Tag 来写入设置
             if (string.IsNullOrEmpty(Text))
-                TextBox.Text = _Text;
+                textBox.Text = _Text;
             else
                 TextChanged?.Invoke(this, null);
             if (HintText.Length > 0)
-                TextBox.HintText = HintText;
-            TextBox.SetResourceReference(TextBoxBase.CaretBrushProperty, "ColorBrushGray1");
+                textBox.HintText = HintText;
+            textBox.SetResourceReference(TextBoxBase.CaretBrushProperty, "ColorBrushGray1");
         }
         catch (Exception ex)
         {
@@ -113,48 +113,48 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
     }
 
     private void MyComboBox_PreviewMouseLeftButtonUp(object sender, EventArgs e)
     {
-        IsMouseDown = false;
+        isMouseDown = false;
     }
 
     // 指向动画
     public void RefreshColor()
     {
         // 判断当前颜色
-        string ForeColorName;
-        string BackColorName;
-        int Time;
+        string foreColorName;
+        string backColorName;
+        int time;
         if (IsEnabled)
         {
-            if (IsMouseDown || IsDropDownOpen ||
+            if (isMouseDown || IsDropDownOpen ||
                 (IsEditable && ((MyTextBox)Template.FindName("PART_EditableTextBox", this)).IsFocused))
             {
-                ForeColorName = "ColorBrush3";
-                BackColorName = "ColorBrush7";
-                Time = 10;
+                foreColorName = "ColorBrush3";
+                backColorName = "ColorBrush7";
+                time = 10;
             }
             else if (IsMouseOver)
             {
-                ForeColorName = "ColorBrush4";
-                BackColorName = "ColorBrush7";
-                Time = 100;
+                foreColorName = "ColorBrush4";
+                backColorName = "ColorBrush7";
+                time = 100;
             }
             else
             {
-                ForeColorName = "ColorBrushBg0";
-                BackColorName = "ColorBrushHalfWhite";
-                Time = 100;
+                foreColorName = "ColorBrushBg0";
+                backColorName = "ColorBrushHalfWhite";
+                time = 100;
             }
         }
         else
         {
-            ForeColorName = "ColorBrushGray5";
-            BackColorName = "ColorBrushGray6";
-            Time = 200;
+            foreColorName = "ColorBrushGray5";
+            backColorName = "ColorBrushGray6";
+            time = 200;
         }
 
         // 触发颜色动画
@@ -164,28 +164,28 @@ public class MyComboBox : ComboBox
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(this, ForegroundProperty, ForeColorName, Time),
-                    ModAnimation.AaColor(this, BackgroundProperty, BackColorName, Time)
-                }, "MyComboBox Color " + Uuid);
+                    ModAnimation.AaColor(this, ForegroundProperty, foreColorName, time),
+                    ModAnimation.AaColor(this, BackgroundProperty, backColorName, time)
+                }, "MyComboBox Color " + uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyComboBox Color " + Uuid);
-            SetResourceReference(ForegroundProperty, ForeColorName);
-            SetResourceReference(BackgroundProperty, BackColorName);
+            ModAnimation.AniStop("MyComboBox Color " + uuid);
+            SetResourceReference(ForegroundProperty, foreColorName);
+            SetResourceReference(BackgroundProperty, backColorName);
         }
     }
 
     private void MyComboBox_DropDownOpened(object sender, EventArgs e)
     {
-        RealWidth = Width;
+        realWidth = Width;
         if (DropDownWidthSync)
             Width = ActualWidth;
         try
         {
             var popup = (Grid)Template.FindName("PanPopup", this);
-            popup.Opacity = ModMain.FrmMain.Opacity;
+            popup.Opacity = ModMain.frmMain.Opacity;
             if (!DropDownWidthSync)
                 popup.MinWidth = ActualWidth;
         }
@@ -197,22 +197,22 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_DropDownClosed(object sender, EventArgs e)
     {
-        Width = RealWidth;
+        Width = realWidth;
     }
 
     private void MyComboBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (IsTextChanging || !IsEditable)
+        if (isTextChanging || !IsEditable)
             return;
         if (SelectedItem is null || Text == SelectedItem.ToString()) return;
         {
-            var RawText = Text;
-            var RawSelectionStart = TextBox.SelectionStart;
-            IsTextChanging = true;
+            var rawText = Text;
+            var rawSelectionStart = textBox.SelectionStart;
+            isTextChanging = true;
             SelectedItem = null;
-            Text = RawText;
-            TextBox.SelectionStart = RawSelectionStart;
-            IsTextChanging = false;
+            Text = rawText;
+            textBox.SelectionStart = rawSelectionStart;
+            isTextChanging = false;
         }
     }
 

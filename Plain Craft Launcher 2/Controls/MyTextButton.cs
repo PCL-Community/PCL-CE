@@ -10,10 +10,10 @@ public class MyTextButton : Label
 
     // 指向动画
 
-    private const int AnimationTimeIn = 100;
-    private const int AnimationTimeOut = 200;
+    private const int animationTimeIn = 100;
+    private const int animationTimeOut = 200;
 
-    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyTextButton), new PropertyMetadata("", (sender, e) =>
         {
             if (Equals(e.OldValue, e.NewValue)) return;
@@ -24,23 +24,23 @@ public class MyTextButton : Label
                     ModAnimation.AaOpacity(button, -button.Opacity, 50),
                     ModAnimation.AaCode(() => button.Content = e.NewValue, After: true),
                     ModAnimation.AaOpacity(button, 1d, 170)
-                }, "MyTextButton Text " + button.Uuid);
+                }, "MyTextButton Text " + button.uuid);
         }));
     
-    private string ColorName;
+    private string colorName;
 
     // 鼠标事件
 
-    public bool IsMouseDown;
+    public bool isMouseDown;
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyTextButton()
     {
         SetResourceReference(ForegroundProperty, "ColorBrush1");
-        Background = ThemeManager.ColorSemiTransparent;
+        Background = ThemeManager.colorSemiTransparent;
         PreviewMouseLeftButtonDown += MyTextButton_MouseLeftButtonDown;
         MouseLeave += (_, _) => MyTextButton_MouseLeave();
         PreviewMouseLeftButtonUp += MyTextButton_MouseLeftButtonUp;
@@ -55,36 +55,36 @@ public class MyTextButton : Label
 
     public string Text
     {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => (string)GetValue(textProperty);
+        set => SetValue(textProperty, value);
     }
 
     public event ClickEventHandler? Click;
 
     private (string ForeName, int Time) GetVisualState()
     {
-        if (IsMouseDown)
+        if (isMouseDown)
             return ("ColorBrush4", 30);
         if (IsMouseOver)
-            return ("ColorBrush3", AnimationTimeIn);
-        return ("ColorBrush1", AnimationTimeOut);
+            return ("ColorBrush3", animationTimeIn);
+        return ("ColorBrush1", animationTimeOut);
     }
 
     private void MyTextButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
         e.Handled = true;
     }
 
     private void MyTextButton_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
     }
 
     private void MyTextButton_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown) return;
-        IsMouseDown = false;
+        if (!isMouseDown) return;
+        isMouseDown = false;
         ModBase.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
         ModMain.RaiseCustomEvent(this);
@@ -96,11 +96,11 @@ public class MyTextButton : Label
         var (ForeName, Time) = GetVisualState();
 
         // 重复性验证
-        if ((ColorName ?? "") == (ForeName ?? ""))
+        if ((colorName ?? "") == (ForeName ?? ""))
             return;
-        ColorName = ForeName;
+        colorName = ForeName;
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
-            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
+            "MyTextButton Color " + uuid, ControlVisualHelpers.ShouldAnimate(this));
     }
 }

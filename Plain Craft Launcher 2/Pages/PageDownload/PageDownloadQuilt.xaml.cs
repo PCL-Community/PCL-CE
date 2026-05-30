@@ -14,7 +14,7 @@ public partial class PageDownloadQuilt
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlQuiltListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlQuiltListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,13 +27,13 @@ public partial class PageDownloadQuilt
         // 结果数据化
         try
         {
-            var Versions = (JsonArray)ModDownload.DlQuiltListLoader.Output.Value["installer"];
+            var versions = (JsonArray)ModDownload.dlQuiltListLoader.output.value["installer"];
             PanVersions.Children.Clear();
-            foreach (var Version in Versions)
+            foreach (var Version in versions)
                 PanVersions.Children.Add(
                     ModDownloadLib.QuiltDownloadListItem((JsonObject)Version,
                         (a, b) => this.Quilt_Selected((MyListItem)a, b)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
         }
         catch (Exception ex)
         {

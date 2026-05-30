@@ -18,12 +18,12 @@ namespace PCL;
 
 public partial class PageInstanceOverall
 {
-    private ModLoader.LoaderCombo<int> InstanceInfoLoader;
+    private ModLoader.LoaderCombo<int> instanceInfoLoader;
 
-    private bool IsLoad;
+    private bool isLoad;
 
-    public MyListItem ItemVersion;
-    private MyCompItem ModpackCompItem;
+    public MyListItem itemVersion;
+    private MyCompItem modpackCompItem;
 
     public PageInstanceOverall()
     {
@@ -57,9 +57,9 @@ public partial class PageInstanceOverall
         Reload();
 
         // 非重复加载部分
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
         PanDisplay.TriggerForceResize();
     }
 
@@ -70,28 +70,28 @@ public partial class PageInstanceOverall
     {
         ModAnimation.AniControlEnabled += 1;
 
-        var instance = PageInstanceLeft.Instance;
+        var instance = PageInstanceLeft.instance;
         // 刷新设置项目
         ComboDisplayType.SelectedIndex = States.Instance.CardType[instance.PathInstance];
-        BtnDisplayStar.Text = instance.IsStar ? Lang.Text("Instance.Overall.Unfavorite") : Lang.Text("Instance.Overall.Favorite");
+        BtnDisplayStar.Text = instance.isStar ? Lang.Text("Instance.Overall.Unfavorite") : Lang.Text("Instance.Overall.Favorite");
         BtnFolderMods.Visibility = instance.Modable ? Visibility.Visible : Visibility.Collapsed;
         // 刷新实例显示
         PanDisplayItem.Children.Clear();
-        ItemVersion = PageSelectRight.McVersionListItem(instance);
-        ItemVersion.IsHitTestVisible = false;
-        PanDisplayItem.Children.Add(ItemVersion);
-        ModMain.FrmMain.PageNameRefresh();
+        itemVersion = PageSelectRight.McVersionListItem(instance);
+        itemVersion.IsHitTestVisible = false;
+        PanDisplayItem.Children.Add(itemVersion);
+        ModMain.frmMain.PageNameRefresh();
         // 刷新实例信息
         GetInstanceInfo();
         // 刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0;
-        var Logo = States.Instance.LogoPath[instance.PathInstance];
-        var LogoCustom = States.Instance.IsLogoCustom[instance.PathInstance];
-        if (LogoCustom)
+        var logo = States.Instance.LogoPath[instance.PathInstance];
+        var logoCustom = States.Instance.IsLogoCustom[instance.PathInstance];
+        if (logoCustom)
             foreach (MyComboBoxItem Selection in ComboDisplayLogo.Items)
-                if (Equals(Selection.Tag, Logo) ||
+                if (Equals(Selection.Tag, logo) ||
                     (Equals(Selection.Tag, @"PCL\Logo.png") &&
-                     Logo.EndsWith(@"PCL\Logo.png")))
+                     logo.EndsWith(@"PCL\Logo.png")))
                 {
                     ComboDisplayLogo.SelectedItem = Selection;
                     break;
@@ -102,7 +102,7 @@ public partial class PageInstanceOverall
 
     private void GetInstanceInfo()
     {
-        ModpackCompItem = null;
+        modpackCompItem = null;
         ModBase.RunInUi(() =>
         {
             PanInfo.Children.Clear();
@@ -111,24 +111,24 @@ public partial class PageInstanceOverall
         var loaders = new List<ModLoader.LoaderBase>();
         loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadModpackInfoTask"), _ =>
         {
-            var modpackId = States.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
+            var modpackId = States.Instance.ModpackId[PageInstanceLeft.instance.PathInstance];
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
                 if (compProjects.Count > 0)
                     ModBase.RunInUi(() =>
                     {
-                        ModpackCompItem = compProjects.First().ToCompItem(false, false);
-                        ModpackCompItem.Tag = compProjects.First();
+                        modpackCompItem = compProjects.First().ToCompItem(false, false);
+                        modpackCompItem.Tag = compProjects.First();
                     });
             }
         })
         {
-            Block = true
+            block = true
         });
         loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadInstanceInfoTask"), _ => ModBase.RunInUi(() =>
         {
-            var instance = PageInstanceLeft.Instance;
+            var instance = PageInstanceLeft.instance;
             var instanceInfo = instance.Info;
             List<MyListItem> items = [];
             var launchCount = States.Instance.LaunchCount[instance.PathInstance];
@@ -152,56 +152,56 @@ public partial class PageInstanceOverall
                 });
             items.Add(new MyListItem
             {
-                Title = "Minecraft", Info = instanceInfo.VanillaName,
+                Title = "Minecraft", Info = instanceInfo.vanillaName,
                 Logo = "pack://application:,,,/images/Blocks/Grass.png"
             });
-            if (instanceInfo.HasForge)
+            if (instanceInfo.hasForge)
                 items.Add(new MyListItem
                 {
-                    Title = "Forge", Info = instanceInfo.Forge, Logo = "pack://application:,,,/images/Blocks/Anvil.png"
+                    Title = "Forge", Info = instanceInfo.forge, Logo = "pack://application:,,,/images/Blocks/Anvil.png"
                 });
-            if (instanceInfo.HasNeoForge)
+            if (instanceInfo.hasNeoForge)
                 items.Add(new MyListItem
                 {
-                    Title = "NeoForge", Info = instanceInfo.NeoForge,
+                    Title = "NeoForge", Info = instanceInfo.neoForge,
                     Logo = "pack://application:,,,/images/Blocks/NeoForge.png"
                 });
-            if (instanceInfo.HasCleanroom)
+            if (instanceInfo.hasCleanroom)
                 items.Add(new MyListItem
                 {
-                    Title = "Cleanroom", Info = instanceInfo.Cleanroom,
+                    Title = "Cleanroom", Info = instanceInfo.cleanroom,
                     Logo = "pack://application:,,,/images/Blocks/Cleanroom.png"
                 });
-            if (instanceInfo.HasFabric)
+            if (instanceInfo.hasFabric)
                 items.Add(new MyListItem
                 {
-                    Title = "Fabric", Info = instanceInfo.Fabric,
+                    Title = "Fabric", Info = instanceInfo.fabric,
                     Logo = "pack://application:,,,/images/Blocks/Fabric.png"
                 });
-            if (instanceInfo.HasQuilt)
+            if (instanceInfo.hasQuilt)
                 items.Add(new MyListItem
                 {
-                    Title = "Quilt", Info = instanceInfo.Quilt, Logo = "pack://application:,,,/images/Blocks/Quilt.png"
+                    Title = "Quilt", Info = instanceInfo.quilt, Logo = "pack://application:,,,/images/Blocks/Quilt.png"
                 });
-            if (instanceInfo.HasOptiFine)
+            if (instanceInfo.hasOptiFine)
                 items.Add(new MyListItem
                 {
-                    Title = "OptiFine", Info = instanceInfo.OptiFine,
+                    Title = "OptiFine", Info = instanceInfo.optiFine,
                     Logo = "pack://application:,,,/images/Blocks/GrassPath.png"
                 });
-            if (instanceInfo.HasLiteLoader)
+            if (instanceInfo.hasLiteLoader)
                 items.Add(new MyListItem
                     { Title = "LiteLoader", Info = Lang.Text("Instance.Overall.Info.Installed"), Logo = "pack://application:,,,/images/Blocks/Egg.png" });
-            if (instanceInfo.HasLegacyFabric)
+            if (instanceInfo.hasLegacyFabric)
                 items.Add(new MyListItem
                 {
-                    Title = "Legacy Fabric", Info = instanceInfo.LegacyFabric,
+                    Title = "Legacy Fabric", Info = instanceInfo.legacyFabric,
                     Logo = "pack://application:,,,/images/Blocks/Fabric.png"
                 });
-            if (instanceInfo.HasLabyMod)
+            if (instanceInfo.hasLabyMod)
                 items.Add(new MyListItem
                 {
-                    Title = "LabyMod", Info = instanceInfo.LabyMod,
+                    Title = "LabyMod", Info = instanceInfo.labyMod,
                     Logo = "pack://application:,,,/images/Blocks/LabyMod.png"
                 });
             var wrapPanel = new WrapPanel { Margin = new Thickness(0, -5, -20, 7) };
@@ -212,16 +212,16 @@ public partial class PageInstanceOverall
             }
 
             PanInfo.Children.Clear();
-            if (ModpackCompItem is not null)
+            if (modpackCompItem is not null)
             {
-                PanInfo.Children.Add(ModpackCompItem);
+                PanInfo.Children.Add(modpackCompItem);
                 PanInfo.Children.Add(new TextBlock());
             }
 
             PanInfo.Children.Add(wrapPanel);
         })));
-        InstanceInfoLoader = new ModLoader.LoaderCombo<int>("Instance Info Loader", loaders) { Show = false };
-        InstanceInfoLoader.Start();
+        instanceInfoLoader = new ModLoader.LoaderCombo<int>("Instance Info Loader", loaders) { show = false };
+        instanceInfoLoader.Start();
     }
 
     #region 卡片：个性化
@@ -229,7 +229,7 @@ public partial class PageInstanceOverall
     // 实例分类
     private void ComboDisplayType_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!(IsLoad && ModAnimation.AniControlEnabled == 0))
+        if (!(isLoad && ModAnimation.AniControlEnabled == 0))
             return;
         if (ComboDisplayType.SelectedIndex != 1)
         {
@@ -237,17 +237,17 @@ public partial class PageInstanceOverall
             try
             {
                 // 若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] = ComboDisplayType.SelectedIndex;
-                PageInstanceLeft.Instance.DisplayType = (ModMinecraft.McInstanceCardType)States.Instance.CardType[PageInstanceLeft.Instance.PathInstance];
-                ModMain.FrmInstanceLeft.RefreshModDisabled();
+                States.Instance.CardType[PageInstanceLeft.instance.PathInstance] = ComboDisplayType.SelectedIndex;
+                PageInstanceLeft.instance.displayType = (ModMinecraft.McInstanceCardType)States.Instance.CardType[PageInstanceLeft.instance.PathInstance];
+                ModMain.frmInstanceLeft.RefreshModDisabled();
 
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
-                ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.instance.Name + "）", ModBase.LogLevel.Feedback);
             }
 
             Reload(); // 更新 “打开 Mod 文件夹” 按钮
@@ -269,15 +269,15 @@ public partial class PageInstanceOverall
                     States.Hint.HideGameInstance = true;
                 }
 
-                States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
+                States.Instance.CardType[PageInstanceLeft.instance.PathInstance] =
                     (int)ModMinecraft.McInstanceCardType.Hidden;
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
-                ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.instance.Name + " 失败", ModBase.LogLevel.Feedback);
             }
         }
     }
@@ -287,19 +287,19 @@ public partial class PageInstanceOverall
     {
         try
         {
-            var OldInfo = States.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
-            var NewInfo = ModMain.MyMsgBoxInput(Lang.Text("Instance.Overall.Description.EditTitle"), Lang.Text("Instance.Overall.Description.EditMessage"), OldInfo,
+            var oldInfo = States.Instance.CustomInfo[PageInstanceLeft.instance.PathInstance];
+            var newInfo = ModMain.MyMsgBoxInput(Lang.Text("Instance.Overall.Description.EditTitle"), Lang.Text("Instance.Overall.Description.EditMessage"), oldInfo,
                 [], Lang.Text("Instance.Overall.Description.Default"));
-            if (NewInfo is not null && (OldInfo ?? "") != (NewInfo ?? ""))
-                States.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance] = NewInfo;
-            PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
+            if (newInfo is not null && (oldInfo ?? "") != (newInfo ?? ""))
+                States.Instance.CustomInfo[PageInstanceLeft.instance.PathInstance] = newInfo;
+            PageInstanceLeft.instance = new ModMinecraft.McInstance(PageInstanceLeft.instance.Name).Load();
             Reload();
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 描述更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "实例 " + PageInstanceLeft.instance.Name + " 描述更改失败", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -309,78 +309,78 @@ public partial class PageInstanceOverall
         try
         {
             // 确认输入的新名称
-            var OldName = PageInstanceLeft.Instance.Name;
-            var OldPath = PageInstanceLeft.Instance.PathInstance;
+            var oldName = PageInstanceLeft.instance.Name;
+            var oldPath = PageInstanceLeft.instance.PathInstance;
             // 修改此部分的同时修改快速安装的实例名检测*
-            var NewName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Overall.Name.EditTitle"), "", OldName,
-                [new FolderNameValidator(ModMinecraft.McFolderSelected + "versions", ignoreCase: false)]);
-            if (string.IsNullOrWhiteSpace(NewName))
+            var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Overall.Name.EditTitle"), "", oldName,
+                [new FolderNameValidator(ModMinecraft.mcFolderSelected + "versions", ignoreCase: false)]);
+            if (string.IsNullOrWhiteSpace(newName))
                 return;
-            var NewPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", NewName);
+            var newPath = Path.Combine(ModMinecraft.mcFolderSelected, "versions", newName);
             // 获取临时中间名，以防止仅修改大小写的重命名失败
-            var TempName = NewName + "_temp";
-            var TempPath = Path.Combine(ModMinecraft.McFolderSelected, "versions", TempName);
-            var IsCaseChangedOnly = (NewName.ToLower() ?? "") == (OldName.ToLower() ?? "");
+            var tempName = newName + "_temp";
+            var tempPath = Path.Combine(ModMinecraft.mcFolderSelected, "versions", tempName);
+            var isCaseChangedOnly = (newName.ToLower() ?? "") == (oldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
-            JsonObject JsonObject;
+            JsonObject jsonObject;
             try
             {
-                JsonObject = (JsonObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.Instance.PathInstance +
-                                                                       PageInstanceLeft.Instance.Name + ".json"));
+                jsonObject = (JsonObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.instance.PathInstance +
+                                                                       PageInstanceLeft.instance.Name + ".json"));
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, "重命名读取 Json 时失败");
-                JsonObject = PageInstanceLeft.Instance.JsonObject;
+                jsonObject = PageInstanceLeft.instance.JsonObject;
             }
 
             // 重命名主文件夹
-            FileSystem.RenameDirectory(OldPath, TempName);
-            FileSystem.RenameDirectory(TempPath, NewName);
+            FileSystem.RenameDirectory(oldPath, tempName);
+            FileSystem.RenameDirectory(tempPath, newName);
             // 清理 ini 缓存
-            ModBase.IniClearCache(Path.Combine(PageInstanceLeft.Instance.PathIndie, "options.txt"));
+            ModBase.IniClearCache(Path.Combine(PageInstanceLeft.instance.PathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
-            if (Directory.Exists($"{NewPath}{OldName}-natives"))
+            if (Directory.Exists($"{newPath}{oldName}-natives"))
             {
-                if (IsCaseChangedOnly)
+                if (isCaseChangedOnly)
                 {
-                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{OldName}natives_temp");
-                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives_temp", $"{NewName}-natives");
+                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives", $"{oldName}natives_temp");
+                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives_temp", $"{newName}-natives");
                 }
                 else
                 {
-                    ModBase.DeleteDirectory($"{NewPath}{NewName}-natives");
-                    FileSystem.RenameDirectory($"{NewPath}{OldName}-natives", $"{NewName}-natives");
+                    ModBase.DeleteDirectory($"{newPath}{newName}-natives");
+                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives", $"{newName}-natives");
                 }
             }
 
-            if (File.Exists($"{NewPath}{OldName}.jar"))
+            if (File.Exists($"{newPath}{oldName}.jar"))
             {
-                if (IsCaseChangedOnly)
+                if (isCaseChangedOnly)
                 {
-                    FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{OldName}_temp.jar");
-                    FileSystem.RenameFile($"{NewPath}{OldName}_temp.jar", $"{NewName}.jar");
+                    FileSystem.RenameFile($"{newPath}{oldName}.jar", $"{oldName}_temp.jar");
+                    FileSystem.RenameFile($"{newPath}{oldName}_temp.jar", $"{newName}.jar");
                 }
                 else
                 {
-                    File.Delete($"{NewPath}{NewName}.jar");
-                    FileSystem.RenameFile($"{NewPath}{OldName}.jar", $"{NewName}.jar");
+                    File.Delete($"{newPath}{newName}.jar");
+                    FileSystem.RenameFile($"{newPath}{oldName}.jar", $"{newName}.jar");
                 }
             }
 
             // 替换实例设置文件中的路径
-            if (File.Exists(NewPath + @"PCL\Setup.ini"))
-                ModBase.WriteFile(NewPath + @"PCL\Setup.ini",
-                    ModBase.ReadFile(NewPath + @"PCL\Setup.ini").Replace(OldPath, NewPath));
+            if (File.Exists(newPath + @"PCL\Setup.ini"))
+                ModBase.WriteFile(newPath + @"PCL\Setup.ini",
+                    ModBase.ReadFile(newPath + @"PCL\Setup.ini").Replace(oldPath, newPath));
             // 更改已选中的实例
-            if ((ModBase.ReadIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version") ?? "") == (OldName ?? ""))
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
+            if ((ModBase.ReadIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
+                ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", newName);
             // 写入实例 Json
             try
             {
-                JsonObject["id"] = NewName;
-                ModBase.WriteFile(NewPath + NewName + ".json", JsonObject.ToString());
+                jsonObject["id"] = newName;
+                ModBase.WriteFile(newPath + newName + ".json", jsonObject.ToString());
             }
             catch (Exception ex)
             {
@@ -389,12 +389,12 @@ public partial class PageInstanceOverall
 
             // 刷新与提示
             ModMain.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), ModMain.HintType.Finish);
-            PageInstanceLeft.Instance = new ModMinecraft.McInstance(NewName).Load();
+            PageInstanceLeft.instance = new ModMinecraft.McInstance(newName).Load();
             if (ModMinecraft.McInstanceSelected is not null &&
-                ModMinecraft.McInstanceSelected.Equals(PageInstanceLeft.Instance))
-                ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version", NewName);
+                ModMinecraft.McInstanceSelected.Equals(PageInstanceLeft.instance))
+                ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", newName);
             Reload();
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
@@ -406,48 +406,48 @@ public partial class PageInstanceOverall
     // 实例图标
     private void ComboDisplayLogo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!(IsLoad && ModAnimation.AniControlEnabled == 0))
+        if (!(isLoad && ModAnimation.AniControlEnabled == 0))
             return;
         // 选择 自定义 时修改图片
         try
         {
             if (ReferenceEquals(ComboDisplayLogo.SelectedItem, ItemDisplayLogoCustom))
             {
-                var FileName = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Icon.SelectFile.Filter"), Lang.Text("Instance.Overall.Icon.SelectFile.Title"));
-                if (string.IsNullOrEmpty(FileName))
+                var fileName = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Icon.SelectFile.Filter"), Lang.Text("Instance.Overall.Icon.SelectFile.Title"));
+                if (string.IsNullOrEmpty(fileName))
                 {
                     Reload(); // 还原选项
                     return;
                 }
 
-                ModBase.CopyFile(FileName, PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
+                ModBase.CopyFile(fileName, PageInstanceLeft.instance.PathInstance + @"PCL\Logo.png");
             }
             else
             {
-                File.Delete(PageInstanceLeft.Instance.PathInstance + @"PCL\Logo.png");
+                File.Delete(PageInstanceLeft.instance.PathInstance + @"PCL\Logo.png");
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.instance.Name + "）", ModBase.LogLevel.Feedback);
         }
 
         // 进行更改
         try
         {
-            string NewLogo = ((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag?.ToString();
-            States.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
-            States.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
+            string newLogo = ((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag?.ToString();
+            States.Instance.LogoPath[PageInstanceLeft.instance.PathInstance] = newLogo;
+            States.Instance.IsLogoCustom[PageInstanceLeft.instance.PathInstance] = !string.IsNullOrEmpty(newLogo);
             // 刷新显示
-            ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
-            PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
+            ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+            PageInstanceLeft.instance = new ModMinecraft.McInstance(PageInstanceLeft.instance.Name).Load();
             Reload();
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.instance.Name + "）", ModBase.LogLevel.Feedback);
         }
     }
 
@@ -456,16 +456,16 @@ public partial class PageInstanceOverall
     {
         try
         {
-            States.Instance.Starred[PageInstanceLeft.Instance.PathInstance] = !PageInstanceLeft.Instance.IsStar;
-            PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
+            States.Instance.Starred[PageInstanceLeft.instance.PathInstance] = !PageInstanceLeft.instance.isStar;
+            PageInstanceLeft.instance = new ModMinecraft.McInstance(PageInstanceLeft.instance.Name).Load();
             Reload();
-            ModMinecraft.McInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            ModMinecraft.mcInstanceListForceRefresh = true;
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.Instance.Name + " 收藏状态更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "实例 " + PageInstanceLeft.instance.Name + " 收藏状态更改失败", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -476,7 +476,7 @@ public partial class PageInstanceOverall
     // 实例文件夹
     private void BtnFolderVersion_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
-        OpenVersionFolder(PageInstanceLeft.Instance);
+        OpenVersionFolder(PageInstanceLeft.instance);
     }
 
     public static void OpenVersionFolder(ModMinecraft.McInstance Version)
@@ -487,17 +487,17 @@ public partial class PageInstanceOverall
     // 存档文件夹
     private void BtnFolderSaves_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
-        var FolderPath = PageInstanceLeft.Instance.PathIndie + @"saves\";
-        Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        var folderPath = PageInstanceLeft.instance.PathIndie + @"saves\";
+        Directory.CreateDirectory(folderPath);
+        ModBase.OpenExplorer(folderPath);
     }
 
     // Mod 文件夹
     private void BtnFolderMods_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
-        var FolderPath = PageInstanceLeft.Instance.PathIndie + @"mods\";
-        Directory.CreateDirectory(FolderPath);
-        ModBase.OpenExplorer(FolderPath);
+        var folderPath = PageInstanceLeft.instance.PathIndie + @"mods\";
+        Directory.CreateDirectory(folderPath);
+        ModBase.OpenExplorer(folderPath);
     }
 
     #endregion
@@ -510,12 +510,12 @@ public partial class PageInstanceOverall
         try
         {
             // 弹窗要求指定脚本的保存位置
-            var SavePath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Overall.Script.SelectSaveTitle"), "启动 " + PageInstanceLeft.Instance.Name + ".bat",
+            var savePath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Overall.Script.SelectSaveTitle"), "启动 " + PageInstanceLeft.instance.Name + ".bat",
                 Lang.Text("Instance.Overall.Script.FileFilter"));
-            if (string.IsNullOrEmpty(SavePath))
+            if (string.IsNullOrEmpty(savePath))
                 return;
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (ModLaunch.McLaunchLoader.State == ModBase.LoadState.Loading)
+            if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
             {
                 ModMain.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), ModMain.HintType.Critical);
                 return;
@@ -523,9 +523,9 @@ public partial class PageInstanceOverall
 
             // 生成脚本
             if (ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-                    { SaveBatch = SavePath, Instance = PageInstanceLeft.Instance }))
+                    { saveBatch = savePath, instance = PageInstanceLeft.instance }))
             {
-                if (ModProfile.SelectedProfile.Type == ModLaunch.McLoginType.Legacy)
+                if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Legacy)
                     ModMain.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
                 else
                     ModMain.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
@@ -533,7 +533,7 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.instance.Name + "）", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -543,29 +543,29 @@ public partial class PageInstanceOverall
         try
         {
             // 忽略文件检查提示
-            if ((bool)ModMinecraft.ShouldIgnoreFileCheck(PageInstanceLeft.Instance))
+            if ((bool)ModMinecraft.ShouldIgnoreFileCheck(PageInstanceLeft.instance))
             {
                 ModMain.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
                 return;
             }
 
             // 重复任务检查
-            var taskName = PageInstanceLeft.Instance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
-            foreach (var OngoingLoader in ModLoader.LoaderTaskbar)
+            var taskName = PageInstanceLeft.instance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
+            foreach (var OngoingLoader in ModLoader.loaderTaskbar)
             {
-                if ((OngoingLoader.Name ?? "") != (taskName ?? ""))
+                if ((OngoingLoader.name ?? "") != (taskName ?? ""))
                     continue;
                 ModMain.Hint(Lang.Text("Instance.Overall.Repair.Processing"), ModMain.HintType.Critical);
                 return;
             }
 
             // 启动
-            var Loader = new ModLoader.LoaderCombo<string>(taskName,
-                ModDownload.DlClientFix(PageInstanceLeft.Instance, true,
+            var loader = new ModLoader.LoaderCombo<string>(taskName,
+                ModDownload.DlClientFix(PageInstanceLeft.instance, true,
                     ModDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
-            Loader.OnStateChanged = _ =>
+            loader.OnStateChanged = _ =>
             {
-                switch (Loader.State)
+                switch (loader.State)
                 {
                     case ModBase.LoadState.Finished:
                     {
@@ -574,7 +574,7 @@ public partial class PageInstanceOverall
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + Loader.Error.Message, ModMain.HintType.Critical);
+                        ModMain.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, ModMain.HintType.Critical);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
@@ -584,14 +584,14 @@ public partial class PageInstanceOverall
                     }
                 }
             };
-            Loader.Start(PageInstanceLeft.Instance.Name);
-            ModLoader.LoaderTaskbarAdd(Loader);
-            ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.FrmMain.BtnExtraDownload.Ribble();
+            loader.Start(PageInstanceLeft.instance.Name);
+            ModLoader.LoaderTaskbarAdd(loader);
+            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.Instance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.instance.Name + "）", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -600,9 +600,9 @@ public partial class PageInstanceOverall
     {
         try
         {
-            var CurrentVersion = PageInstanceLeft.Instance.Info;
-            if (!(CurrentVersion.Drop == 99) &&
-                ModMinecraft.CompareVersion(CurrentVersion.VanillaName, "1.5.2") == -1 && CurrentVersion.HasForge)
+            var currentVersion = PageInstanceLeft.instance.Info;
+            if (!(currentVersion.Drop == 99) &&
+                ModMinecraft.CompareVersion(currentVersion.vanillaName, "1.5.2") == -1 && currentVersion.hasForge)
             {
                 ModMain.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
                 return;
@@ -610,51 +610,51 @@ public partial class PageInstanceOverall
 
             // 确认操作
             if (ModMain.MyMsgBox(
-                    Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.Instance.Name), Lang.Text("Instance.Overall.Reset.ConfirmTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
+                    Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.instance.Name), Lang.Text("Instance.Overall.Reset.ConfirmTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                 return;
 
             // 备份实例核心文件
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".json",
-                PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
+            ModBase.CopyFile(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name + ".json",
+                PageInstanceLeft.instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.instance.Name +
                 ".json");
-            ModBase.CopyFile(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name + ".jar",
-                PageInstanceLeft.Instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.Instance.Name +
+            ModBase.CopyFile(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name + ".jar",
+                PageInstanceLeft.instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.instance.Name +
                 ".jar");
             // 提交安装申请
-            var Request = new ModDownloadLib.McInstallRequest
+            var request = new ModDownloadLib.McInstallRequest
             {
-                TargetInstanceName = PageInstanceLeft.Instance.Name,
-                TargetInstanceFolder = $@"{ModMinecraft.McFolderSelected}versions\{PageInstanceLeft.Instance.Name}\",
-                MinecraftName = CurrentVersion.VanillaName,
-                OptiFineEntry = CurrentVersion.HasOptiFine
+                targetInstanceName = PageInstanceLeft.instance.Name,
+                targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{PageInstanceLeft.instance.Name}\",
+                minecraftName = currentVersion.vanillaName,
+                optiFineEntry = currentVersion.hasOptiFine
                     ? new ModDownload.DlOptiFineListEntry
                     {
-                        Inherit = CurrentVersion.VanillaName,
-                        DisplayName = CurrentVersion.VanillaName + " " + CurrentVersion.OptiFine
+                        Inherit = currentVersion.vanillaName,
+                        displayName = currentVersion.vanillaName + " " + currentVersion.optiFine
                     }
                     : null,
-                ForgeEntry = CurrentVersion.HasForge
-                    ? new ModDownload.DlForgeVersionEntry(CurrentVersion.Forge, null, CurrentVersion.VanillaName)
-                        { Category = "installer" }
+                forgeEntry = currentVersion.hasForge
+                    ? new ModDownload.DlForgeVersionEntry(currentVersion.forge, null, currentVersion.vanillaName)
+                        { category = "installer" }
                     : null,
-                ForgeVersion = CurrentVersion.HasForge ? CurrentVersion.Forge : null,
-                NeoForgeVersion = CurrentVersion.HasNeoForge ? CurrentVersion.NeoForge : null,
-                CleanroomVersion = CurrentVersion.HasCleanroom ? CurrentVersion.Cleanroom : null,
-                FabricVersion = CurrentVersion.HasFabric ? CurrentVersion.Fabric : null,
-                QuiltVersion = CurrentVersion.HasQuilt ? CurrentVersion.Quilt : null,
-                LiteLoaderEntry = CurrentVersion.HasLiteLoader
-                    ? new ModDownload.DlLiteLoaderListEntry { Inherit = CurrentVersion.VanillaName }
+                forgeVersion = currentVersion.hasForge ? currentVersion.forge : null,
+                neoForgeVersion = currentVersion.hasNeoForge ? currentVersion.neoForge : null,
+                cleanroomVersion = currentVersion.hasCleanroom ? currentVersion.cleanroom : null,
+                fabricVersion = currentVersion.hasFabric ? currentVersion.fabric : null,
+                quiltVersion = currentVersion.hasQuilt ? currentVersion.quilt : null,
+                liteLoaderEntry = currentVersion.hasLiteLoader
+                    ? new ModDownload.DlLiteLoaderListEntry { inherit = currentVersion.vanillaName }
                     : null,
-                LegacyFabricVersion = CurrentVersion.HasLegacyFabric ? CurrentVersion.LegacyFabric : null
+                legacyFabricVersion = currentVersion.hasLegacyFabric ? currentVersion.legacyFabric : null
             };
             // .MinecraftJson = CurrentVersion.McName,
-            if (!ModDownloadLib.McInstall(Request, Lang.Text("Common.Action.Reset")))
+            if (!ModDownloadLib.McInstall(request, Lang.Text("Common.Action.Reset")))
                 return;
-            ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
+            ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.instance.Name + " 失败", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -664,8 +664,8 @@ public partial class PageInstanceOverall
         try
         {
             ModLaunch.McLaunchStart(new ModLaunch.McLaunchOptions
-                { Instance = PageInstanceLeft.Instance, IsTest = true });
-            ModMain.FrmMain.PageChange(FormMain.PageType.Launch);
+                { instance = PageInstanceLeft.instance, isTest = true });
+            ModMain.frmMain.PageChange(FormMain.PageType.Launch);
         }
         catch (Exception ex)
         {
@@ -682,10 +682,10 @@ public partial class PageInstanceOverall
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
             var isIsolatedInstance =
-                PageInstanceLeft.Instance.State != ModMinecraft.McInstanceState.Error &&
+                PageInstanceLeft.instance.state != ModMinecraft.McInstanceState.Error &&
                 !string.Equals(
-                    PageInstanceLeft.Instance.PathIndie,
-                    ModMinecraft.McFolderSelected,
+                    PageInstanceLeft.instance.PathIndie,
+                    ModMinecraft.mcFolderSelected,
                     StringComparison.OrdinalIgnoreCase
                 );
 
@@ -698,7 +698,7 @@ public partial class PageInstanceOverall
             };
 
             var confirmResult = ModMain.MyMsgBox(
-                Lang.Text(confirmMessageKey, PageInstanceLeft.Instance.Name),
+                Lang.Text(confirmMessageKey, PageInstanceLeft.instance.Name),
                 Lang.Text("Instance.Overall.Delete.ConfirmTitle"),
                 Button2: Lang.Text("Common.Action.Cancel"),
                 IsWarn: isIsolatedInstance || isShiftPressed
@@ -708,9 +708,9 @@ public partial class PageInstanceOverall
             {
                 case 1:
                 {
-                    var instancePath = PageInstanceLeft.Instance.PathInstance;
-                    var instanceName = PageInstanceLeft.Instance.Name;
-                    ModBase.IniClearCache(Path.Combine(PageInstanceLeft.Instance.PathIndie, "options.txt"));
+                    var instancePath = PageInstanceLeft.instance.PathInstance;
+                    var instanceName = PageInstanceLeft.instance.Name;
+                    ModBase.IniClearCache(Path.Combine(PageInstanceLeft.instance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instancePath);
                     if (isShiftPressed)
@@ -735,17 +735,17 @@ public partial class PageInstanceOverall
                 }
             }
 
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
-            ModMain.FrmMain.PageBack();
+            ModMain.frmMain.PageBack();
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 被主动取消");
+            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.instance.Name + " 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.Instance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.instance.Name + " 失败", ModBase.LogLevel.Msgbox);
         }
     }
 
@@ -753,22 +753,22 @@ public partial class PageInstanceOverall
     private void BtnManagePatch_Click(object sender, MouseButtonEventArgs e)
     {
         switch (ModMain.MyMsgBox(
-                    Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.Instance.Name),
+                    Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.instance.Name),
                     Lang.Text("Instance.Overall.Patch.ConfirmTitle"), Button2: Lang.Text("Common.Action.Cancel")))
         {
             case 1:
             {
-                var UserInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
-                if (UserInput is null || string.IsNullOrWhiteSpace(UserInput))
+                var userInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
+                if (userInput is null || string.IsNullOrWhiteSpace(userInput))
                     return;
                 ModMain.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
                 ModBase.RunInNewThread(() =>
                 {
-                    var Core = new GameCore(PageInstanceLeft.Instance.PathInstance + PageInstanceLeft.Instance.Name +
+                    var core = new GameCore(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name +
                                             ".jar");
-                    Core.AddToCore(UserInput);
+                    core.AddToCore(userInput);
                     ModMain.Hint(Lang.Text("Instance.Overall.Patch.Success"), ModMain.HintType.Finish);
-                    Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance] = true;
+                    Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.instance] = true;
                 });
                 break;
             }

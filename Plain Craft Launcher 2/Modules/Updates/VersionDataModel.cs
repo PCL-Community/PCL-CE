@@ -2,9 +2,9 @@ namespace PCL;
 
 public class VersionDataModel
 {
-    public string Changelog;
-    public string SHA256;
-    public string Source;
-    public int VersionCode;
-    public string VersionName;
+    public string changelog;
+    public string sHA256;
+    public string source;
+    public int versionCode;
+    public string versionName;
 }

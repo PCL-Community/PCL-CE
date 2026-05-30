@@ -18,7 +18,7 @@ public partial class PageDownloadLiteLoader
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.DlLiteLoaderListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlLiteLoaderListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -32,52 +32,52 @@ public partial class PageDownloadLiteLoader
         try
         {
             // 归类
-            var Dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
-            for (var VersionCode = 30; VersionCode >= 0; VersionCode -= 1)
-                Dict.Add("1." + VersionCode, new List<ModDownload.DlLiteLoaderListEntry>());
-            Dict.Add(ModMinecraft.UNKNOWN_VERSION_KEY, []);
-            foreach (var Version in ModDownload.DlLiteLoaderListLoader.Output.Value)
+            var dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
+            for (var versionCode = 30; versionCode >= 0; versionCode -= 1)
+                dict.Add("1." + versionCode, new List<ModDownload.DlLiteLoaderListEntry>());
+            dict.Add(ModMinecraft.uNKNOWN_VERSION_KEY, []);
+            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.value)
             {
-                var MainVersion = "1." + Version.Inherit.Split(".")[1];
-                if (Dict.ContainsKey(MainVersion))
-                    Dict[MainVersion].Add(Version);
+                var mainVersion = "1." + Version.inherit.Split(".")[1];
+                if (dict.ContainsKey(mainVersion))
+                    dict[mainVersion].Add(Version);
                 else
-                    Dict[ModMinecraft.UNKNOWN_VERSION_KEY].Add(Version);
+                    dict[ModMinecraft.uNKNOWN_VERSION_KEY].Add(Version);
             }
 
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Pair in Dict)
+            foreach (var Pair in dict)
             {
                 if (!Pair.Value.Any())
                     continue;
                 // 增加卡片
-                var NewCard = new MyCard
+                var newCard = new MyCard
                 {
-                    Title = (Pair.Key == ModMinecraft.UNKNOWN_VERSION_KEY
+                    Title = (Pair.Key == ModMinecraft.uNKNOWN_VERSION_KEY
                         ? Lang.Text("Minecraft.Version.Unknown")
                         : Pair.Key) + " (" + Pair.Value.Count + ")",
                     Margin = new Thickness(0d, 0d, 0d, 15d)
                 };
-                var NewStack = new StackPanel
+                var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
-                NewCard.Children.Add(NewStack);
-                NewCard.SwapControl = NewStack;
-                NewCard.IsSwapped = true;
-                NewCard.InstallMethod = Stack =>
+                newCard.Children.Add(newStack);
+                newCard.swapControl = newStack;
+                newCard.IsSwapped = true;
+                newCard.InstallMethod = Stack =>
                 {
                     Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                        ModMinecraft.CompareVersion(a.inherit, b.inherit) == 1);
                     foreach (var item in (IEnumerable)Stack.Tag)
                         Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
                 };
-                PanMain.Children.Add(NewCard);
+                PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)

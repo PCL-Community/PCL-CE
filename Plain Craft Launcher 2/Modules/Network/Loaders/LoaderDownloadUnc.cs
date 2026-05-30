@@ -5,26 +5,26 @@ namespace PCL.Network.Loaders;
 
 public class LoaderDownloadUnc : ModLoader.LoaderBase
 {
-    public string Unc;
-    public string SavePath;
+    public string unc;
+    public string savePath;
     private CancellationTokenSource? _cancellationTokenSource;
 
     public LoaderDownloadUnc(string name, Tuple<string, string> file)
     {
-        Name = name;
-        Unc = file.Item1;
-        SavePath = file.Item2;
+        base.name = name;
+        unc = file.Item1;
+        savePath = file.Item2;
     }
 
     public override void Start(object Input = null, bool IsForceRestart = false)
     {
         if (Input is Tuple<string, string> input)
         {
-            Unc = input.Item1;
-            SavePath = input.Item2;
+            unc = input.Item1;
+            savePath = input.Item2;
         }
 
-        lock (LockState)
+        lock (lockState)
         {
             if (State == ModBase.LoadState.Loading)
                 return;
@@ -32,7 +32,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{Uuid}");
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)
@@ -40,8 +40,8 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Directory.CreateDirectory(Path.GetDirectoryName(SavePath) ?? throw new IOException("下载路径无效"));
-            ModBase.CopyFile(Unc, SavePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(savePath) ?? throw new IOException("下载路径无效"));
+            ModBase.CopyFile(unc, savePath);
             State = ModBase.LoadState.Finished;
         }
         catch (OperationCanceledException)

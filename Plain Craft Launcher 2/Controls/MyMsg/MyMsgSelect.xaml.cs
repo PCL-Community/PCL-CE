@@ -9,10 +9,10 @@ namespace PCL;
 
 public partial class MyMsgSelect
 {
-    private readonly ModMain.MyMsgBoxConverter MyConverter;
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly ModMain.MyMsgBoxConverter myConverter;
+    private readonly int uuid = ModBase.GetUuid();
 
-    private int SelectedIndex = -1;
+    private int selectedIndex = -1;
 
     public MyMsgSelect(ModMain.MyMsgBoxConverter Converter)
     {
@@ -21,12 +21,12 @@ public partial class MyMsgSelect
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
-            MyConverter = Converter;
-            LabTitle.Text = Converter.Title;
-            ConfigurePrimaryButton(Converter.Button1, Converter.IsWarn);
-            ConfigureSecondaryButton(Converter.Button2);
+            myConverter = Converter;
+            LabTitle.Text = Converter.title;
+            ConfigurePrimaryButton(Converter.button1, Converter.isWarn);
+            ConfigureSecondaryButton(Converter.button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            InitializeSelectionList(Converter.Content);
+            InitializeSelectionList(Converter.content);
         }
 
         catch (Exception ex)
@@ -102,10 +102,10 @@ public partial class MyMsgSelect
             // 动画
             Opacity = 0d;
             ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (MyConverter.IsWarn
+                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                    (myConverter.isWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.FrmMain.PanMsgBackground.Background, 200),
+                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -116,7 +116,7 @@ public partial class MyMsgSelect
                     ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                         -TransformRotate.Angle, 300, 60,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "MyMsgBox " + Uuid);
+                }, "MyMsgBox " + uuid);
             // 记录日志
             ModBase.Log("[Control] 选择弹窗：" + LabTitle.Text);
         }
@@ -130,7 +130,7 @@ public partial class MyMsgSelect
     private void Close()
     {
         // 结束线程阻塞
-        MyConverter.WaitFrame.Continue = false;
+        myConverter.waitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
@@ -138,9 +138,9 @@ public partial class MyMsgSelect
             ModAnimation.AaCode(() =>
             {
                 if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.FrmMain.PanMsgBackground,
+                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.FrmMain.PanMsgBackground.Background, 200,
+                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
@@ -149,31 +149,31 @@ public partial class MyMsgSelect
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
-        }, "MyMsgBox " + Uuid);
+        }, "MyMsgBox " + uuid);
     }
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
-        if (MyConverter.IsExited || SelectedIndex == -1)
+        if (myConverter.isExited || selectedIndex == -1)
             return;
-        MyConverter.IsExited = true;
-        MyConverter.Result = SelectedIndex;
+        myConverter.isExited = true;
+        myConverter.result = selectedIndex;
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (MyConverter.IsExited)
+        if (myConverter.isExited)
             return;
-        MyConverter.IsExited = true;
-        MyConverter.Result = null;
+        myConverter.isExited = true;
+        myConverter.result = null;
         Close();
     }
 
     private void OnChecked(IMyRadio sender, EventArgs e)
     {
         Btn1.IsEnabled = true;
-        SelectedIndex = PanSelection.Children.IndexOf((UIElement)sender);
+        selectedIndex = PanSelection.Children.IndexOf((UIElement)sender);
     }
 
     private void Drag(object sender, MouseButtonEventArgs e)
@@ -182,7 +182,7 @@ public partial class MyMsgSelect
         {
             if (e.LeftButton == MouseButtonState.Pressed)
                 if (e.GetPosition(ShapeLine).Y <= 2d)
-                    ModMain.FrmMain.DragMove();
+                    ModMain.frmMain.DragMove();
         }
         catch (Exception ex)
         {

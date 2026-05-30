@@ -6,16 +6,16 @@ namespace PCL;
 
 public class MyScrollViewer : ScrollViewer
 {
-    private readonly string TooltipHideId;
+    private readonly string tooltipHideId;
 
 
-    private double RealOffset;
+    private double realOffset;
 
-    public MyScrollBar ScrollBar;
+    public MyScrollBar scrollBar;
 
     public MyScrollViewer()
     {
-        TooltipHideId = $"HideTooltip_{GetHashCode()}";
+        tooltipHideId = $"HideTooltip_{GetHashCode()}";
         PreviewMouseWheel += MyScrollViewer_PreviewMouseWheel;
         ScrollChanged += MyScrollViewer_ScrollChanged;
         IsVisibleChanged += MyScrollViewer_IsVisibleChanged;
@@ -46,37 +46,37 @@ public class MyScrollViewer : ScrollViewer
         e.Handled = true;
         PerformVerticalOffsetDelta(-e.Delta);
 
-        if (Application.ShowingTooltips.Count > 0)
-            foreach (var TooltipBorder in Application.ShowingTooltips)
+        if (Application.showingTooltips.Count > 0)
+            foreach (var TooltipBorder in Application.showingTooltips)
                 // 建议：如果动画已经在执行，则不再重复触发
-                ModAnimation.AniStart(ModAnimation.AaOpacity(TooltipBorder, -1, 100), TooltipHideId);
+                ModAnimation.AniStart(ModAnimation.AaOpacity(TooltipBorder, -1, 100), tooltipHideId);
     }
 
     public void PerformVerticalOffsetDelta(double Delta)
     {
         ModAnimation.AniStart(ModAnimation.AaDouble(AnimDelta =>
         {
-            RealOffset = ModBase.MathClamp(RealOffset + (double)AnimDelta, 0d, ExtentHeight - ActualHeight);
-            ScrollToVerticalOffset(RealOffset);
+            realOffset = ModBase.MathClamp(realOffset + (double)AnimDelta, 0d, ExtentHeight - ActualHeight);
+            ScrollToVerticalOffset(realOffset);
         }, Delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
     }
 
     private void MyScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        RealOffset = VerticalOffset;
-        if (ModMain.FrmMain is not null &&
+        realOffset = VerticalOffset;
+        if (ModMain.frmMain is not null &&
             (e.VerticalChange != 0 || e.ViewportHeightChange != 0))
-            ModMain.FrmMain.BtnExtraBack.ShowRefresh();
+            ModMain.frmMain.BtnExtraBack.ShowRefresh();
     }
 
     private void MyScrollViewer_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        ModMain.FrmMain.BtnExtraBack.ShowRefresh();
+        ModMain.frmMain.BtnExtraBack.ShowRefresh();
     }
 
     private void Load()
     {
-        ScrollBar = (MyScrollBar)GetTemplateChild("PART_VerticalScrollBar");
+        scrollBar = (MyScrollBar)GetTemplateChild("PART_VerticalScrollBar");
     }
 
     private void MyScrollViewer_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

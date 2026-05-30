@@ -17,11 +17,11 @@ public partial class MySkin
 
     // 皮肤储存
     private string _Address;
-    private bool IsChanging;
+    private bool isChanging;
 
     // 点击
-    private bool IsSkinMouseDown;
-    public ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Loader;
+    private bool isSkinMouseDown;
+    public ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader;
 
     public MySkin()
     {
@@ -68,7 +68,7 @@ public partial class MySkin
     private void PanSkin_MouseLeave(object sender, MouseEventArgs e)
     {
         ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200), "Skin Shadow");
-        IsSkinMouseDown = false;
+        isSkinMouseDown = false;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
@@ -76,7 +76,7 @@ public partial class MySkin
 
     private void PanSkin_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        IsSkinMouseDown = true;
+        isSkinMouseDown = true;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
@@ -87,20 +87,20 @@ public partial class MySkin
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
                 Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
-        if (!IsSkinMouseDown) return;
-        IsSkinMouseDown = false;
+        if (!isSkinMouseDown) return;
+        isSkinMouseDown = false;
         Click?.Invoke(sender, e);
     }
 
     // 保存皮肤
     public void BtnSkinSave_Click(object sender, RoutedEventArgs e)
     {
-        Save(Loader);
+        Save(loader);
     }
 
     public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Loader)
     {
-        var Address = Loader.Output;
+        var address = Loader.output;
         if (Loader.State != ModBase.LoadState.Finished)
         {
             ModMain.Hint(Lang.Text("Launch.Skin.Fetching"), ModMain.HintType.Critical);
@@ -111,19 +111,19 @@ public partial class MySkin
 
         try
         {
-            var FileAddress = SystemDialogs.SelectSaveFile(Lang.Text("Launch.Skin.SaveDialog.Title"),
-                ModBase.GetFileNameFromPath(Address),
+            var fileAddress = SystemDialogs.SelectSaveFile(Lang.Text("Launch.Skin.SaveDialog.Title"),
+                ModBase.GetFileNameFromPath(address),
                 Lang.Text("Launch.Skin.SaveDialog.Filter"));
-            if (!FileAddress.Contains(@"\")) return;
-            File.Delete(FileAddress);
-            if (Address.StartsWith(ModBase.PathImage))
+            if (!fileAddress.Contains(@"\")) return;
+            File.Delete(fileAddress);
+            if (address.StartsWith(ModBase.pathImage))
             {
-                var Image = new MyBitmap(Address);
-                Image.Save(FileAddress);
+                var image = new MyBitmap(address);
+                image.Save(fileAddress);
             }
             else
             {
-                ModBase.CopyFile(Address, FileAddress);
+                ModBase.CopyFile(address, fileAddress);
             }
 
             ModMain.Hint(Lang.Text("Launch.Skin.SaveSuccess"), ModMain.HintType.Finish);
@@ -147,16 +147,16 @@ public partial class MySkin
         try
         {
             // 检查文件存在
-            Address = Loader.Output;
+            Address = loader.output;
             if (string.IsNullOrEmpty(Address))
-                throw new Exception("皮肤加载器 " + Loader.Name + " 没有输出");
-            if (!Address.StartsWith(ModBase.PathImage) && !File.Exists(Address))
+                throw new Exception("皮肤加载器 " + loader.name + " 没有输出");
+            if (!Address.StartsWith(ModBase.pathImage) && !File.Exists(Address))
                 throw new FileNotFoundException("皮肤文件未找到", Address);
             // 加载
-            MyBitmap Image;
+            MyBitmap image;
             try
             {
-                Image = new MyBitmap(Address);
+                image = new MyBitmap(Address);
             }
             catch (Exception ex) // #2272
             {
@@ -167,30 +167,30 @@ public partial class MySkin
 
             ImgBack.Tag = Address;
             // 大小检查
-            var Scale = (int)Math.Round(Image.Pic.Width / 64d);
-            if (Image.Pic.Width < 32 || Image.Pic.Height < 32)
+            var scale = (int)Math.Round(image.pic.Width / 64d);
+            if (image.pic.Width < 32 || image.pic.Height < 32)
             {
                 ImgFore.Source = null;
                 ImgBack.Source = null;
-                throw new Exception("图片大小不足，长为 " + Image.Pic.Height + "，宽为 " + Image.Pic.Width);
+                throw new Exception("图片大小不足，长为 " + image.pic.Height + "，宽为 " + image.pic.Width);
             }
 
-            MyBitmap SkinHead = null;
+            MyBitmap skinHead = null;
             // 头发层（附加层）
-            if (Image.Pic.Width >= 64 && Image.Pic.Height >= 32)
+            if (image.pic.Width >= 64 && image.pic.Height >= 32)
             {
-                if (Image.Pic.GetPixel(1, 1).A == 0 ||
-                    Image.Pic.GetPixel(Image.Pic.Width - 1, Image.Pic.Height - 1).A == 0 ||
-                    Image.Pic.GetPixel(Image.Pic.Width - 2, (int)Math.Round(Image.Pic.Height / 2d - 2d)).A == 0 ||
-                    (Image.Pic.GetPixel(1, 1) != Image.Pic.GetPixel(Scale * 41, Scale * 9) &&
-                     Image.Pic.GetPixel(Image.Pic.Width - 1, Image.Pic.Height - 1) !=
-                     Image.Pic.GetPixel(Scale * 41, Scale * 9) &&
-                     Image.Pic.GetPixel(Image.Pic.Width - 2, (int)Math.Round(Image.Pic.Height / 2d - 2d)) !=
-                     Image.Pic.GetPixel(Scale * 41, Scale * 9))) // 如果图片中有任何透明像素（避免纯色白底）
+                if (image.pic.GetPixel(1, 1).A == 0 ||
+                    image.pic.GetPixel(image.pic.Width - 1, image.pic.Height - 1).A == 0 ||
+                    image.pic.GetPixel(image.pic.Width - 2, (int)Math.Round(image.pic.Height / 2d - 2d)).A == 0 ||
+                    (image.pic.GetPixel(1, 1) != image.pic.GetPixel(scale * 41, scale * 9) &&
+                     image.pic.GetPixel(image.pic.Width - 1, image.pic.Height - 1) !=
+                     image.pic.GetPixel(scale * 41, scale * 9) &&
+                     image.pic.GetPixel(image.pic.Width - 2, (int)Math.Round(image.pic.Height / 2d - 2d)) !=
+                     image.pic.GetPixel(scale * 41, scale * 9))) // 如果图片中有任何透明像素（避免纯色白底）
                     // 或是头部颜色和透明区均不一样
                 {
-                    ImgFore.Source = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
-                    SkinHead = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
+                    ImgFore.Source = image.Clip(scale * 40, scale * 8, scale * 8, scale * 8);
+                    skinHead = image.Clip(scale * 40, scale * 8, scale * 8, scale * 8);
                 }
                 else
                 {
@@ -203,50 +203,50 @@ public partial class MySkin
             }
 
             // 脸层
-            ImgBack.Source = Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8);
+            ImgBack.Source = image.Clip(scale * 8, scale * 8, scale * 8, scale * 8);
             // 用于显示档案列表头像的图片
-            var SkinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
+            var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
-            var CachePath = ModBase.PathTemp + $@"Cache\Skin\Head\{SkinHeadId}.png";
-            ModProfile.SelectedProfile.SkinHeadId = SkinHeadId;
+            var cachePath = ModBase.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
+            ModProfile.selectedProfile.skinHeadId = skinHeadId;
             ModProfile.SaveProfile();
-            var CompleteHead = new Bitmap(56, 56);
-            using (var g = Graphics.FromImage(CompleteHead))
+            var completeHead = new Bitmap(56, 56);
+            using (var g = Graphics.FromImage(completeHead))
             {
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
                 g.PixelOffsetMode = PixelOffsetMode.Half;
-                using (Bitmap FaceBitmap = Image.Clip(Scale * 8, Scale * 8, Scale * 8, Scale * 8))
+                using (Bitmap faceBitmap = image.Clip(scale * 8, scale * 8, scale * 8, scale * 8))
                 {
-                    g.DrawImage(FaceBitmap, new Rectangle(4, 4, 48, 48));
+                    g.DrawImage(faceBitmap, new Rectangle(4, 4, 48, 48));
                 }
 
                 if (ImgFore.Source is not null)
                 {
-                    using Bitmap HairBitmap = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
-                    g.DrawImage(HairBitmap, new Rectangle(0, 0, 56, 56));
+                    using Bitmap hairBitmap = image.Clip(scale * 40, scale * 8, scale * 8, scale * 8);
+                    g.DrawImage(hairBitmap, new Rectangle(0, 0, 56, 56));
                 }
             }
 
-            if (!Directory.Exists(ModBase.PathTemp + @"Cache\Skin\Head"))
-                Directory.CreateDirectory(ModBase.PathTemp + @"Cache\Skin\Head");
-            CompleteHead.Save(CachePath, ImageFormat.Png);
-            ModBase.Log("[Skin] 载入头像成功：" + Loader.Name);
+            if (!Directory.Exists(ModBase.pathTemp + @"Cache\Skin\Head"))
+                Directory.CreateDirectory(ModBase.pathTemp + @"Cache\Skin\Head");
+            completeHead.Save(cachePath, ImageFormat.Png);
+            ModBase.Log("[Skin] 载入头像成功：" + loader.name);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Avatar", (Address ?? "null") + "," + Loader.Name), ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Avatar", (Address ?? "null") + "," + loader.name), ModBase.LogLevel.Hint);
         }
     }
 
     private object ScaleToSize(Bitmap Bitmap, int Width, int Height)
     {
-        var ScaledBitmap = new Bitmap(Width, Height);
-        using var g = Graphics.FromImage(ScaledBitmap);
+        var scaledBitmap = new Bitmap(Width, Height);
+        using var g = Graphics.FromImage(scaledBitmap);
         g.InterpolationMode = InterpolationMode.NearestNeighbor;
         g.PixelOffsetMode = PixelOffsetMode.Half;
         g.DrawImage(Bitmap, 0, 0, Width, Height);
 
-        return ScaledBitmap;
+        return scaledBitmap;
     }
 
     /// <summary>
@@ -262,7 +262,7 @@ public partial class MySkin
     // 刷新缓存
     public void RefreshClick(object sender, RoutedEventArgs e)
     {
-        RefreshCache(Loader);
+        RefreshCache(loader);
     }
 
     /// <summary>
@@ -270,10 +270,10 @@ public partial class MySkin
     /// </summary>
     public static void RefreshCache(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> sender = null)
     {
-        var HasLoaderRunning =
-            PageLaunchLeft.SkinLoaders.Any(SkinLoader => SkinLoader.State == ModBase.LoadState.Loading);
+        var hasLoaderRunning =
+            PageLaunchLeft.skinLoaders.Any(SkinLoader => SkinLoader.State == ModBase.LoadState.Loading);
 
-        if (ModMain.FrmLaunchLeft is not null && HasLoaderRunning)
+        if (ModMain.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
             ModMain.Hint(Lang.Text("Launch.Skin.Refresh.Busy"));
         else
@@ -285,16 +285,16 @@ public partial class MySkin
                 {
                     ModMain.Hint(Lang.Text("Launch.Skin.Refreshing"));
                     ModBase.Log("[Skin] 正在清空皮肤缓存");
-                    if (Directory.Exists(ModBase.PathTemp + @"Cache\Skin"))
-                        ModBase.DeleteDirectory(ModBase.PathTemp + @"Cache\Skin");
-                    if (Directory.Exists(ModBase.PathTemp + @"Cache\Uuid"))
-                        ModBase.DeleteDirectory(ModBase.PathTemp + @"Cache\Uuid");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Skin\IndexAuth.ini");
-                    ModBase.IniClearCache(ModBase.PathTemp + @"Cache\Uuid\Mojang.ini");
+                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Skin"))
+                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Skin");
+                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Uuid"))
+                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Uuid");
+                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini");
+                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexAuth.ini");
+                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini");
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
-                                 : new[] { PageLaunchLeft.SkinLegacy, PageLaunchLeft.SkinMs })
+                                 : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
                         SkinLoader.WaitForExit(IsForceRestart: true);
                     ModMain.Hint(Lang.Text("Launch.Skin.RefreshSuccess"), ModMain.HintType.Finish);
                 }
@@ -318,10 +318,10 @@ public partial class MySkin
         {
             try
             {
-                ModBase.WriteIni(ModBase.PathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.SelectedProfile.Uuid,
+                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.uuid,
                     SkinAddress);
-                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.SelectedProfile.Uuid} -> {SkinAddress}");
-                foreach (var SkinLoader in new[] { PageLaunchLeft.SkinMs, PageLaunchLeft.SkinLegacy })
+                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.uuid} -> {SkinAddress}");
+                foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
                     SkinLoader.WaitForExit(IsForceRestart: true);
                 ModMain.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), ModMain.HintType.Finish);
             }
@@ -335,43 +335,43 @@ public partial class MySkin
     public void BtnSkinCape_Click(object sender, RoutedEventArgs e)
     {
         // 检查条件，获取新披风
-        if (IsChanging)
+        if (isChanging)
         {
             ModMain.Hint(Lang.Text("Launch.Skin.Cape.Changing"));
             return;
         }
 
-        if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Failed)
+        if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Failed)
         {
             ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), ModMain.HintType.Critical);
             return;
         }
 
         ModMain.Hint(Lang.Text("Launch.Skin.Cape.FetchingList"));
-        IsChanging = true;
+        isChanging = true;
         // 开始实际获取
         ModBase.RunInNewThread(() =>
         {
             try
             {
                 // 获取登录信息
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
-                    ModLaunch.McLoginMsLoader.WaitForExit(ModProfile.GetLoginData());
-                if (ModLaunch.McLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                    ModLaunch.mcLoginMsLoader.WaitForExit(ModProfile.GetLoginData());
+                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
                     ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), ModMain.HintType.Critical);
                     return;
                 }
 
-                var AccessToken = ModLaunch.McLoginMsLoader.Output.AccessToken;
-                var Uuid = ModLaunch.McLoginMsLoader.Output.Uuid;
-                var SkinData = (JsonObject)ModBase.GetJson(ModLaunch.McLoginMsLoader.Output.ProfileJson);
-                foreach (var itemSkin in SkinData["capes"].AsArray())
+                var accessToken = ModLaunch.mcLoginMsLoader.output.accessToken;
+                var uuid = ModLaunch.mcLoginMsLoader.output.uuid;
+                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.profileJson);
+                foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)
                         continue;
-                    var localFile = $@"{ModBase.PathTemp}Cache\Capes\{itemSkin["alias"]}.png";
-                    var capeFrontFile = $@"{ModBase.PathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
+                    var localFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}.png";
+                    var capeFrontFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
                     if (File.Exists(localFile) && File.Exists(capeFrontFile))
                     {
                         itemSkin["url"] = capeFrontFile;
@@ -389,12 +389,12 @@ public partial class MySkin
                 }
 
                 // 获取玩家的所有披风
-                int? SelId = null;
+                int? selId = null;
                 ModBase.RunInUiWait(() =>
                 {
                     try
                     {
-                        var SelectionControl = new List<IMyRadio>
+                        var selectionControl = new List<IMyRadio>
                         {
                             new MyListItem
                             {
@@ -402,7 +402,7 @@ public partial class MySkin
                                 Info = "Null"
                             }
                         };
-                        SelectionControl.AddRange(from Cape in SkinData["capes"].AsArray()
+                        selectionControl.AddRange(from Cape in skinData["capes"].AsArray()
                             let CapeAlias = Cape["alias"].ToString()
                             let CapeName = _GetCapeDisplayName(CapeAlias)
                             let state = Cape["state"]
@@ -417,7 +417,7 @@ public partial class MySkin
                                 LogoScale = 0.8d
                             });
 
-                        SelId = ModMain.MyMsgBoxSelect(SelectionControl, Lang.Text("Launch.Skin.Cape.SelectTitle"),
+                        selId = ModMain.MyMsgBoxSelect(selectionControl, Lang.Text("Launch.Skin.Cape.SelectTitle"),
                             Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
                     }
                     catch (Exception ex)
@@ -425,24 +425,24 @@ public partial class MySkin
                         ModBase.Log(ex, Lang.Text("Launch.Skin.Cape.Error.List"), ModBase.LogLevel.Feedback);
                     }
                 });
-                if (SelId is null)
+                if (selId is null)
                     return;
                 // 发送请求
-                var Result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/capes/active",
+                var result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/capes/active",
                     new FetchParam
                     {
-                        Method = SelId is 0 ? "DELETE" : "PUT",
-                        Content = SelId is 0
+                        Method = selId is 0 ? "DELETE" : "PUT",
+                        Content = selId is 0
                             ? ""
-                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"]?.ToString() }.ToJsonString(),
+                            : new JsonObject { ["capeId"] = skinData["capes"][(int)(selId - 1)]["id"]?.ToString() }.ToJsonString(),
                         ContentType = "application/json",
-                        Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } }
+                        Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + accessToken } }
                     }
                 );
-                if (Result.Contains("\"errorMessage\""))
+                if (result.Contains("\"errorMessage\""))
                     ModMain.Hint(
                         Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JsonObject)ModBase.GetJson(Result))["errorMessage"]), ModMain.HintType.Critical);
+                            ((JsonObject)ModBase.GetJson(result))["errorMessage"]), ModMain.HintType.Critical);
                 else
                     ModMain.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), ModMain.HintType.Finish);
             }
@@ -452,7 +452,7 @@ public partial class MySkin
             }
             finally
             {
-                IsChanging = false;
+                isChanging = false;
             }
         }, "Cape Change");
     }

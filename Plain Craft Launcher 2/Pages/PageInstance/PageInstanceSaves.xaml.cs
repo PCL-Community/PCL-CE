@@ -16,12 +16,12 @@ public partial class PageInstanceSaves : IRefreshable
     private readonly DispatcherTimer fileSystemRefreshTimer;
     private readonly DispatcherTimer searchTimer;
     private FileSystemWatcher fileSystemWatcher;
-    private bool IsLoad;
+    private bool isLoad;
 
-    private object QuickPlayFeature = false;
+    private object quickPlayFeature = false;
 
     private List<string> saveFolders = new();
-    private string WorldPath;
+    private string worldPath;
 
     public PageInstanceSaves()
     {
@@ -48,9 +48,9 @@ public partial class PageInstanceSaves : IRefreshable
 
     public static void Refresh()
     {
-        if (ModMain.FrmInstanceSaves is not null)
-            ModMain.FrmInstanceSaves.Reload();
-        ModMain.FrmInstanceLeft.ItemWorld.Checked = true;
+        if (ModMain.frmInstanceSaves is not null)
+            ModMain.frmInstanceSaves.Reload();
+        ModMain.frmInstanceLeft.ItemWorld.Checked = true;
         ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
     }
 
@@ -58,15 +58,15 @@ public partial class PageInstanceSaves : IRefreshable
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        WorldPath = PageInstanceLeft.Instance.PathIndie + @"saves\";
-        if (!Directory.Exists(WorldPath))
-            Directory.CreateDirectory(WorldPath);
+        worldPath = PageInstanceLeft.instance.PathIndie + @"saves\";
+        if (!Directory.Exists(worldPath))
+            Directory.CreateDirectory(worldPath);
         Reload();
 
         // 非重复加载部分
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
         CheckQuickPlay();
 
         // 初始化文件系统监视器和排序按钮
@@ -91,11 +91,11 @@ public partial class PageInstanceSaves : IRefreshable
         if (fileSystemWatcher is not null) fileSystemWatcher.Dispose();
 
         // 确保目录存在
-        if (!Directory.Exists(WorldPath))
-            Directory.CreateDirectory(WorldPath);
+        if (!Directory.Exists(worldPath))
+            Directory.CreateDirectory(worldPath);
 
         fileSystemWatcher = new FileSystemWatcher();
-        fileSystemWatcher.Path = WorldPath;
+        fileSystemWatcher.Path = worldPath;
         fileSystemWatcher.IncludeSubdirectories = false;
         fileSystemWatcher.NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.LastWrite;
 
@@ -191,13 +191,13 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.Instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
                         ModBase.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
                     else
                     {
-                        saveLogo = ModBase.PathImage + "Icons/NoIcon.png";
+                        saveLogo = ModBase.pathImage + "Icons/NoIcon.png";
                     }
 
                     var worldItem = new MyListItem
@@ -208,21 +208,21 @@ public partial class PageInstanceSaves : IRefreshable
                             Lang.Text("Instance.Saves.CreationTime", Lang.Date(Directory.GetCreationTime(curFolder), "d"), Lang.Date(Directory.GetLastWriteTime(curFolder), "d")),
                         Type = MyListItem.CheckType.Clickable
                     };
-                    worldItem.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                    worldItem.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
-                    var BtnOpen = new MyIconButton
+                    var btnOpen = new MyIconButton
                     {
                         Logo = Icon.IconButtonOpen,
                         ToolTip = Lang.Text("Common.Action.Open")
                     };
-                    BtnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
-                    var BtnDelete = new MyIconButton
+                    btnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
+                    var btnDelete = new MyIconButton
                     {
                         Logo = Icon.IconButtonDelete,
                         ToolTip = Lang.Text("Common.Action.Delete")
                     };
-                    BtnDelete.Click += (_, _) =>
+                    btnDelete.Click += (_, _) =>
                     {
                         worldItem.IsEnabled = false;
                         worldItem.Info = Lang.Text("Instance.Saves.Deleting");
@@ -242,12 +242,12 @@ public partial class PageInstanceSaves : IRefreshable
                             }
                         });
                     };
-                    var BtnCopy = new MyIconButton
+                    var btnCopy = new MyIconButton
                     {
                         Logo = Icon.IconButtonCopy,
                         ToolTip = Lang.Text("Common.Action.Copy")
                     };
-                    BtnCopy.Click += (_, _) =>
+                    btnCopy.Click += (_, _) =>
                     {
                         try
                         {
@@ -267,34 +267,34 @@ public partial class PageInstanceSaves : IRefreshable
                             ModBase.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), ModBase.LogLevel.Hint);
                         }
                     };
-                    var BtnInfo = new MyIconButton
+                    var btnInfo = new MyIconButton
                     {
                         Logo = Icon.IconButtonInfo,
                         ToolTip = Lang.Text("Instance.Saves.Details")
                     };
-                    BtnInfo.Click += (_, _) => ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.VersionSaves, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                    btnInfo.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
 
-                    var BtnLaunch = new MyIconButton
+                    var btnLaunch = new MyIconButton
                     {
                         Logo = Icon.IconPlayGame,
                         ToolTip = Lang.Text("Instance.Saves.QuickPlay")
                     };
-                    BtnLaunch.Click += (_, _) =>
+                    btnLaunch.Click += (_, _) =>
                     {
-                        var WorldName = GetFileNameFromPath(tmpCurFolder);
-                        var LaunchOptions = new ModLaunch.McLaunchOptions
+                        var worldName = GetFileNameFromPath(tmpCurFolder);
+                        var launchOptions = new ModLaunch.McLaunchOptions
                         {
-                            WorldName = WorldName,
-                            Instance = PageInstanceLeft.Instance
+                            worldName = worldName,
+                            instance = PageInstanceLeft.instance
                         };
-                        ModLaunch.McLaunchStart(LaunchOptions);
-                        ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
+                        ModLaunch.McLaunchStart(launchOptions);
+                        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
                     };
-                    if ((bool)QuickPlayFeature)
-                        worldItem.Buttons = new[] { BtnOpen, BtnDelete, BtnCopy, BtnInfo, BtnLaunch };
+                    if ((bool)quickPlayFeature)
+                        worldItem.Buttons = new[] { btnOpen, btnDelete, btnCopy, btnInfo, btnLaunch };
                     else
-                        worldItem.Buttons = new[] { BtnOpen, BtnDelete, BtnCopy, BtnInfo };
+                        worldItem.Buttons = new[] { btnOpen, btnDelete, btnCopy, btnInfo };
 
                     PanList.Children.Add(worldItem);
                 }
@@ -312,8 +312,8 @@ public partial class PageInstanceSaves : IRefreshable
     {
         try
         {
-            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.Instance);
-            QuickPlayFeature = cur.HasArguments("--quickPlaySingleplayer");
+            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.instance);
+            quickPlayFeature = cur.HasArguments("--quickPlaySingleplayer");
         }
         catch (Exception ex)
         {
@@ -327,19 +327,19 @@ public partial class PageInstanceSaves : IRefreshable
         {
             ModBase.Log("[World] 刷新存档文件");
             saveFolders.Clear();
-            if (Directory.Exists(WorldPath))
-                saveFolders = Directory.EnumerateDirectories(WorldPath).ToList();
+            if (Directory.Exists(worldPath))
+                saveFolders = Directory.EnumerateDirectories(worldPath).ToList();
             else
                 saveFolders = new List<string>();
 
-            if (ModBase.ModeDebug)
+            if (ModBase.modeDebug)
                 ModBase.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", ModBase.LogLevel.Debug);
             PanList.Children.Clear();
             CheckQuickPlay();
 
-            if (ModBase.ModeDebug)
+            if (ModBase.modeDebug)
             {
-                if ((bool)QuickPlayFeature)
+                if ((bool)quickPlayFeature)
                     ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogLevel.Debug);
                 else
                     ModBase.Log("[World] 该实例不支持存档快捷启动", ModBase.LogLevel.Debug);
@@ -363,7 +363,7 @@ public partial class PageInstanceSaves : IRefreshable
 
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(WorldPath);
+        ModBase.OpenExplorer(worldPath);
     }
 
     private void BtnPaste_Click(object sender, MouseButtonEventArgs e)
@@ -372,20 +372,20 @@ public partial class PageInstanceSaves : IRefreshable
         var loaders = new List<ModLoader.LoaderBase>();
         loaders.Add(new ModLoader.LoaderTask<int, int>("Copy saves", _ =>
         {
-            var Copied = 0;
+            var copied = 0;
             foreach (var i in files)
                 try
                 {
                     if (Directory.Exists(i))
                     {
-                        if (Directory.Exists(WorldPath + GetFolderNameFromPath(i)))
+                        if (Directory.Exists(worldPath + GetFolderNameFromPath(i)))
                         {
                             ModMain.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
                         }
                         else
                         {
-                            ModBase.CopyDirectory(i, WorldPath + GetFolderNameFromPath(i));
-                            Copied += 1;
+                            ModBase.CopyDirectory(i, worldPath + GetFolderNameFromPath(i));
+                            copied += 1;
                         }
                     }
                     else
@@ -398,16 +398,16 @@ public partial class PageInstanceSaves : IRefreshable
                     ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint);
                 }
 
-            if (Copied > 0)
-                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", Copied.ToString()), ModMain.HintType.Finish);
+            if (copied > 0)
+                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), ModMain.HintType.Finish);
             ModBase.RunInUi(() => Reload());
         }));
-        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.Instance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
+        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.instance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
-        ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.FrmMain.BtnExtraDownload.Ribble();
+        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain.BtnExtraDownload.Ribble();
     }
 
     #region 搜索和排序
@@ -495,10 +495,10 @@ public partial class PageInstanceSaves : IRefreshable
                     var folderName = GetFolderNameFromPath(saveFolder);
                     var searchSource = new List<ModBase.SearchSource>();
                     searchSource.Add(new ModBase.SearchSource(folderName, 1d));
-                    queryList.Add(new ModBase.SearchEntry<string> { Item = saveFolder, SearchSource = searchSource });
+                    queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.Item).ToList();
+                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
             }
             else
             {

@@ -18,7 +18,7 @@ internal static class ModStyle
         public delegate void TimerTickDelegate(TimerRun sender);
 
         // 定义依赖属性
-        public static readonly DependencyProperty UpdateIntervalProperty =
+        public static readonly DependencyProperty updateIntervalProperty =
             DependencyProperty.Register(nameof(UpdateInterval), typeof(TimeSpan), typeof(TimerRun),
                 new PropertyMetadata(TimeSpan.FromSeconds(1d)));
 
@@ -41,10 +41,10 @@ internal static class ModStyle
         // UpdateInterval 属性
         public TimeSpan UpdateInterval
         {
-            get => (TimeSpan)GetValue(UpdateIntervalProperty);
+            get => (TimeSpan)GetValue(updateIntervalProperty);
             set
             {
-                if (value > TimeSpan.Zero) SetValue(UpdateIntervalProperty, value);
+                if (value > TimeSpan.Zero) SetValue(updateIntervalProperty, value);
             }
         }
 
@@ -65,15 +65,15 @@ internal static class ModStyle
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            if (ReferenceEquals(e.Property, UpdateIntervalProperty) && _timer is not null)
+            if (ReferenceEquals(e.Property, updateIntervalProperty) && _timer is not null)
                 _timer.Interval = UpdateInterval;
         }
 
-        public event TimerTickDelegate? TimerTick;
+        public event TimerTickDelegate? timerTick;
 
         private void _timerTick(object sender, EventArgs e)
         {
-            TimerTick?.Invoke(this);
+            timerTick?.Invoke(this);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -174,11 +174,11 @@ internal static class ModStyle
 
             lab.Inlines.Clear();
 
-            var HasItalicProperty = false; // 斜体
-            var HasDeleteLineProperty = false; // 删除线
-            var HasStrickThroughProperty = false; // 下划线
-            var HasBlodProperty = false; // 粗体
-            var IsRandomText = false; // 随机文本模式
+            var hasItalicProperty = false; // 斜体
+            var hasDeleteLineProperty = false; // 删除线
+            var hasStrickThroughProperty = false; // 下划线
+            var hasBlodProperty = false; // 粗体
+            var isRandomText = false; // 随机文本模式
 
             var color = isDarkMode ? "#FFFFFF" : "#888888";
             var isColorCode = false;
@@ -205,7 +205,7 @@ internal static class ModStyle
                             case 'k':
                             case 'K': // 随机字符
                             {
-                                IsRandomText = true;
+                                isRandomText = true;
                                 // 开始新的Run用于随机文本
                                 if (!string.IsNullOrEmpty(curRun.Text))
                                 {
@@ -219,32 +219,32 @@ internal static class ModStyle
                             }
                             case 'l': // 粗体
                             {
-                                HasBlodProperty = true;
+                                hasBlodProperty = true;
                                 break;
                             }
                             case 'o': // 斜体
                             {
-                                HasItalicProperty = true;
+                                hasItalicProperty = true;
                                 break;
                             }
                             case 'n': // 下划线
                             {
-                                HasStrickThroughProperty = true;
+                                hasStrickThroughProperty = true;
                                 break;
                             }
                             case 'm': // 删除线
                             {
-                                HasDeleteLineProperty = true;
+                                hasDeleteLineProperty = true;
                                 break;
                             }
                             case 'r': // 重置
                             {
                                 color = isDarkMode ? "#FFFFFF" : "#888888";
-                                HasBlodProperty = false;
-                                HasItalicProperty = false;
-                                HasStrickThroughProperty = false;
-                                HasDeleteLineProperty = false;
-                                IsRandomText = false;
+                                hasBlodProperty = false;
+                                hasItalicProperty = false;
+                                hasStrickThroughProperty = false;
+                                hasDeleteLineProperty = false;
+                                isRandomText = false;
                                 break;
                             }
                         }
@@ -256,12 +256,12 @@ internal static class ModStyle
                     }
 
                     curRun.Foreground = new SolidColorBrush(new ModBase.MyColor(color));
-                    curRun.FontWeight = HasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
-                    curRun.FontStyle = HasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
-                    curRun.TextDecorations = HasStrickThroughProperty ? TextDecorations.Strikethrough : null;
-                    curRun.TextDecorations = HasDeleteLineProperty ? TextDecorations.Underline : null;
+                    curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
+                    curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
+                    curRun.TextDecorations = hasStrickThroughProperty ? TextDecorations.Strikethrough : null;
+                    curRun.TextDecorations = hasDeleteLineProperty ? TextDecorations.Underline : null;
                 }
-                else if (IsRandomText)
+                else if (isRandomText)
                 {
                     // 随机模式下，添加随机字符
                     curRun.Text += randomChars[random.Next(randomChars.Length)].ToString();
@@ -280,7 +280,7 @@ internal static class ModStyle
                 foreach (var run in randomTextRuns)
                 {
                     run.UpdateInterval = TimeSpan.FromMilliseconds(20d);
-                    run.TimerTick += sender =>
+                    run.timerTick += sender =>
                     {
                         if (!string.IsNullOrEmpty(sender.Text))
                         {

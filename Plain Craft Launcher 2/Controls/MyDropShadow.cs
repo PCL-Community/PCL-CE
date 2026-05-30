@@ -6,12 +6,12 @@ namespace PCL;
 
 public class MyDropShadow : Decorator
 {
-    public static readonly DependencyProperty ColorProperty = DependencyProperty.Register("Color", typeof(Color),
+    public static readonly DependencyProperty colorProperty = DependencyProperty.Register("Color", typeof(Color),
         typeof(MyDropShadow),
         new FrameworkPropertyMetadata(Color.FromArgb(0x71, 0x0, 0x0, 0x0),
             FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes));
 
-    public static readonly DependencyProperty ShadowRadiusProperty = DependencyProperty.Register("ShadowRadius",
+    public static readonly DependencyProperty shadowRadiusProperty = DependencyProperty.Register("ShadowRadius",
         typeof(double), typeof(MyDropShadow),
         new FrameworkPropertyMetadata(5d, FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes));
 
@@ -30,8 +30,8 @@ public class MyDropShadow : Decorator
     /// </summary>
     public Color Color
     {
-        get => (Color)GetValue(ColorProperty);
-        set => SetValue(ColorProperty, value);
+        get => (Color)GetValue(colorProperty);
+        set => SetValue(colorProperty, value);
     }
 
     /// <summary>
@@ -39,8 +39,8 @@ public class MyDropShadow : Decorator
     /// </summary>
     public double ShadowRadius
     {
-        get => (double)GetValue(ShadowRadiusProperty);
-        set => SetValue(ShadowRadiusProperty, value);
+        get => (double)GetValue(shadowRadiusProperty);
+        set => SetValue(shadowRadiusProperty, value);
     }
 
     /// <summary>

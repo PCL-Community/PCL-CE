@@ -14,7 +14,7 @@ public partial class FontSelector
 {
     public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
 
-    public static readonly DependencyProperty TooltipProperty = DependencyProperty.Register(nameof(Tooltip),
+    public static readonly DependencyProperty tooltipProperty = DependencyProperty.Register(nameof(Tooltip),
         typeof(string), typeof(FontSelector), new PropertyMetadata(null, OnTooltipChanged));
 
     private bool _isInitializing;
@@ -31,8 +31,8 @@ public partial class FontSelector
 
     public string Tooltip
     {
-        get => (string)GetValue(TooltipProperty);
-        set => SetValue(TooltipProperty, value);
+        get => (string)GetValue(tooltipProperty);
+        set => SetValue(tooltipProperty, value);
     }
 
     public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = [];

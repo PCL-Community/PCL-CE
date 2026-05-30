@@ -15,30 +15,30 @@ public partial class MyLoading
 
     public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
 
-    private readonly int Uuid = ModBase.GetUuid();
+    private readonly int uuid = ModBase.GetUuid();
 
     public bool AutoRun { get; set; } = true;
 
-    public event IsErrorChangedEventHandler? IsErrorChanged;
-    public event StateChangedEventHandler? StateChanged;
+    public event IsErrorChangedEventHandler? isErrorChanged;
+    public event StateChangedEventHandler? stateChanged;
     public event ClickEventHandler? Click;
 
     #region 颜色
 
     public SolidColorBrush Foreground
     {
-        get => (SolidColorBrush)GetValue(ForegroundProperty);
-        set => SetValue(ForegroundProperty, value);
+        get => (SolidColorBrush)GetValue(foregroundProperty);
+        set => SetValue(foregroundProperty, value);
     }
 
-    public static readonly DependencyProperty ForegroundProperty =
+    public static readonly DependencyProperty foregroundProperty =
         DependencyProperty.Register("Foreground", typeof(SolidColorBrush), typeof(MyLoading));
 
     public MyLoading()
     {
         InitializeComponent();
-        SetResourceReference(ForegroundProperty, "ColorBrush3");
-        IsErrorChanged += (_, _) => RefreshText();
+        SetResourceReference(foregroundProperty, "ColorBrush3");
+        isErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();
         Loaded += (_, _) => InitState();
         Loaded += (_, _) => RefreshState();
@@ -69,21 +69,21 @@ public partial class MyLoading
 
     public string Text
     {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => (string)GetValue(textProperty);
+        set => SetValue(textProperty, value);
     }
 
-    public static readonly DependencyProperty TextProperty =
+    public static readonly DependencyProperty textProperty =
         DependencyProperty.Register("Text", typeof(string), typeof(MyLoading),
             new PropertyMetadata("", (d, e) => ((MyLoading)d).RefreshText()));
 
     public string TextError
     {
-        get => (string)GetValue(TextErrorProperty);
-        set => SetValue(TextErrorProperty, value);
+        get => (string)GetValue(textErrorProperty);
+        set => SetValue(textErrorProperty, value);
     }
 
-    public static readonly DependencyProperty TextErrorProperty =
+    public static readonly DependencyProperty textErrorProperty =
         DependencyProperty.Register("TextError", typeof(string), typeof(MyLoading),
             new PropertyMetadata("加载失败", (d, e) => ((MyLoading)d).RefreshText()));
 
@@ -100,15 +100,15 @@ public partial class MyLoading
             {
                 if (TextErrorInherit && State.IsLoader)
                 {
-                    var Ex = State.Error;
-                    if (Ex is null)
+                    var ex = State.Error;
+                    if (ex is null)
                     {
                         LabText.Text = "未知错误";
                     }
                     else
                     {
-                        while (Ex.InnerException is not null) Ex = Ex.InnerException;
-                        LabText.Text = ModBase.StrTrim(Ex.Message).ToString();
+                        while (ex.InnerException is not null) ex = ex.InnerException;
+                        LabText.Text = ModBase.StrTrim(ex.Message).ToString();
                         if (new[]
                             {
                             "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
@@ -157,15 +157,15 @@ public partial class MyLoading
         {
             if (__State is not null)
             {
-                __State.ProgressChanged -= (_, _) => RefreshText();
-                __State.LoadingStateChanged -= (_, _) => RefreshState();
+                __State.progressChanged -= (_, _) => RefreshText();
+                __State.loadingStateChanged -= (_, _) => RefreshState();
             }
 
             __State = value;
             if (__State is not null)
             {
-                __State.ProgressChanged += (_, _) => RefreshText();
-                __State.LoadingStateChanged += (_, _) => RefreshState();
+                __State.progressChanged += (_, _) => RefreshText();
+                __State.loadingStateChanged += (_, _) => RefreshState();
             }
         }
     }
@@ -213,12 +213,12 @@ public partial class MyLoading
         {
             if (_OuterState == value)
                 return;
-            var OldValue = _OuterState;
+            var oldValue = _OuterState;
             _OuterState = value;
             // 引发事件
-            StateChanged?.Invoke(this, value, OldValue);
-            if (OldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
-                IsErrorChanged?.Invoke(this, value == MyLoadingState.Error);
+            stateChanged?.Invoke(this, value, oldValue);
+            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
+                isErrorChanged?.Invoke(this, value == MyLoadingState.Error);
         }
     }
 
@@ -233,11 +233,11 @@ public partial class MyLoading
         {
             if (_InnerState == value)
                 return;
-            var OldValue = _InnerState;
+            var oldValue = _InnerState;
             _InnerState = value;
             // 引发事件
             AniLoop();
-            if (OldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
+            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
                 ErrorAnimation(this, value == MyLoadingState.Error);
         }
     }
@@ -254,16 +254,16 @@ public partial class MyLoading
     /// <summary>
     ///     主动画循环是否正在运行中。
     /// </summary>
-    private bool IsLooping;
+    private bool isLooping;
 
     private void AniLoop()
     {
         // 这坨循环代码也是老屎坑了，救救.jpg
-        if (!HasAnimation || IsLooping || !(InnerState == MyLoadingState.Run) || ModAnimation.AniSpeed > 10d ||
+        if (!HasAnimation || isLooping || !(InnerState == MyLoadingState.Run) || ModAnimation.aniSpeed > 10d ||
             !IsLoaded)
             return;
-        IsLooping = true;
-        ErrorAnimationWaiting = true;
+        isLooping = true;
+        errorAnimationWaiting = true;
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaRotateTransform(PathPickaxe, -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
@@ -278,7 +278,7 @@ public partial class MyLoading
                 PathLeft.Margin = new Thickness(7d, 41d, 0d, 0d);
                 PathRight.Opacity = 1d;
                 PathRight.Margin = new Thickness(14d, 41d, 0d, 0d);
-                ErrorAnimationWaiting = false;
+                errorAnimationWaiting = false;
             }),
             ModAnimation.AaOpacity(PathLeft, -1, 100, 50),
             ModAnimation.AaX(PathLeft, -5, 180, Ease: new ModAnimation.AniEaseOutFluent()),
@@ -288,31 +288,31 @@ public partial class MyLoading
             ModAnimation.AaY(PathRight, -6, 180, Ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() =>
             {
-                IsLooping = false;
+                isLooping = false;
                 AniLoop();
             }, After: true)
-        }, "MyLoader Loop " + Uuid + "/" + ModBase.GetUuid());
+        }, "MyLoader Loop " + uuid + "/" + ModBase.GetUuid());
     }
 
     /// <summary>
     ///     镐子是否还没挥下去，要求错误动画等待。
     /// </summary>
-    private bool ErrorAnimationWaiting;
+    private bool errorAnimationWaiting;
 
     private void ErrorAnimation(object sender, bool isError)
     {
         if (isError)
         {
             // 非错误变为错误
-            var Wait = ErrorAnimationWaiting ? 400 : 0;
+            var wait = errorAnimationWaiting ? 400 : 0;
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
-                    ModAnimation.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + Wait),
+                    ModAnimation.AaColor(PanBack, foregroundProperty, "ColorBrushRedLight", 300),
+                    ModAnimation.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + wait),
                     ModAnimation.AaScaleTransform(PathError, 1d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
-                        400, 300 + Wait, new ModAnimation.AniEaseOutBack())
-                }, "MyLoader Error " + Uuid);
+                        400, 300 + wait, new ModAnimation.AniEaseOutBack())
+                }, "MyLoader Error " + uuid);
         }
         else
         {
@@ -323,8 +323,8 @@ public partial class MyLoading
                     ModAnimation.AaOpacity(PathError, -PathError.Opacity, 100),
                     ModAnimation.AaScaleTransform(PathError, 0.5d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
                         200),
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrush3", 300)
-                }, "MyLoader Error " + Uuid);
+                    ModAnimation.AaColor(PanBack, foregroundProperty, "ColorBrush3", 300)
+                }, "MyLoader Error " + uuid);
         }
     }
 
@@ -337,17 +337,17 @@ public partial class MyLoading
         Click?.Invoke(sender, e);
     }
 
-    private bool IsMouseDown;
+    private bool isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-        IsMouseDown = true;
+        isMouseDown = true;
     }
 
     private void Button_MouseLeave(object sender, object e)
     {
-        IsMouseDown = false;
+        isMouseDown = false;
     }
 
     #endregion
@@ -365,8 +365,8 @@ public interface ILoadingTrigger
     Exception? Error { get; }
 
     MyLoadingState LoadingState { get; set; }
-    event LoadingStateChangedEventHandler? LoadingStateChanged;
-    event ProgressChangedEventHandler? ProgressChanged;
+    event LoadingStateChangedEventHandler? loadingStateChanged;
+    event ProgressChangedEventHandler? progressChanged;
 }
 
 public class MyLoadingStateSimulator : ILoadingTrigger
@@ -380,9 +380,9 @@ public class MyLoadingStateSimulator : ILoadingTrigger
         {
             if (_LoadingState == value)
                 return;
-            var OldState = _LoadingState;
+            var oldState = _LoadingState;
             _LoadingState = value;
-            LoadingStateChanged?.Invoke(value, OldState);
+            loadingStateChanged?.Invoke(value, oldState);
         }
     }
 
@@ -391,6 +391,6 @@ public class MyLoadingStateSimulator : ILoadingTrigger
     public double Progress => 0;
     public Exception? Error => null;
 
-    public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
-    public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
+    public event ILoadingTrigger.LoadingStateChangedEventHandler? loadingStateChanged;
+    public event ILoadingTrigger.ProgressChangedEventHandler? progressChanged;
 }

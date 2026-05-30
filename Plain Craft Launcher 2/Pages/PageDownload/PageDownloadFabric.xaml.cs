@@ -14,7 +14,7 @@ public partial class PageDownloadFabric
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlFabricListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlFabricListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,13 +27,13 @@ public partial class PageDownloadFabric
         // 结果数据化
         try
         {
-            var Versions = (JsonArray)ModDownload.DlFabricListLoader.Output.Value["installer"];
+            var versions = (JsonArray)ModDownload.dlFabricListLoader.output.value["installer"];
             PanVersions.Children.Clear();
-            foreach (var Version in Versions)
+            foreach (var Version in versions)
                 PanVersions.Children.Add(
                     ModDownloadLib.FabricDownloadListItem((JsonObject)Version,
                         (sender, e) => Fabric_Selected((MyListItem)sender, e)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
         }
         catch (Exception ex)
         {

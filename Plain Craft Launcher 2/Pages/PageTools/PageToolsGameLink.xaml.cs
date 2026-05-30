@@ -22,7 +22,7 @@ public partial class PageToolsGameLink
 {
     static PageToolsGameLink()
     {
-        InitLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
+        initLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
             new[] { new ModLoader.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask) { ProgressWeight = 0.5d } });
     }
 
@@ -31,7 +31,7 @@ public partial class PageToolsGameLink
         InitializeComponent();
         LoaderInit();
         Loaded += (_, _) => Reload();
-        PageEnter += PageLinkLobby_OnPageEnter;
+        pageEnter += PageLinkLobby_OnPageEnter;
     }
 
     #region 初始化
@@ -39,9 +39,9 @@ public partial class PageToolsGameLink
     // 加载器初始化
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanContent, null, InitLoader, AutoRun: false);
+        PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, AutoRun: false);
         // 注册自定义的 OnStateChanged
-        InitLoader.OnStateChangedUi += OnLoadStateChanged;
+        initLoader.onStateChangedUi += OnLoadStateChanged;
 
         LobbyService.OnNeedDownloadEasyTier += () => ModLink.DownloadEasyTier();
         LobbyService.DiscoveredWorlds.CollectionChanged += OnDiscoveredWorldsChanged;
@@ -52,7 +52,7 @@ public partial class PageToolsGameLink
         LobbyService.OnServerStarted += OnServerStartedHandler;
         LobbyService.OnServerException += OnServerExceptionHandler;
 
-        if (LobbyAnnouncementLoader is null)
+        if (lobbyAnnouncementLoader is null)
         {
             var loaders = new List<ModLoader.LoaderBase>();
             loaders.Add(new ModLoader.LoaderTask<int, int>("大厅界面初始化", _ => ModBase.RunInUi(() =>
@@ -62,7 +62,7 @@ public partial class PageToolsGameLink
                 HintAnnounce.Text = "正在连接到大厅服务器...";
             })));
             loaders.Add(new ModLoader.LoaderTask<int, int>("大厅公告获取", _ => GetAnnouncement()) { ProgressWeight = 0.5d });
-            LobbyAnnouncementLoader = new ModLoader.LoaderCombo<int>("Lobby Announcement", loaders) { Show = false };
+            lobbyAnnouncementLoader = new ModLoader.LoaderCombo<int>("Lobby Announcement", loaders) { show = false };
         }
     }
 
@@ -96,7 +96,7 @@ public partial class PageToolsGameLink
         HintAnnounce.Theme = MyHint.Themes.Blue;
 
         // 加载公告
-        LobbyAnnouncementLoader.Start();
+        lobbyAnnouncementLoader.Start();
         if (_linkAnnounceUpdateCancelSource is not null)
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
@@ -123,7 +123,7 @@ public partial class PageToolsGameLink
         }
     }
 
-    private static readonly ModLoader.LoaderCombo<int> InitLoader;
+    private static readonly ModLoader.LoaderCombo<int> initLoader;
 
     private static async void InitTask(ModLoader.LoaderTask<int, int> task)
     {
@@ -288,7 +288,7 @@ public partial class PageToolsGameLink
 
     #region 公告
 
-    public static ModLoader.LoaderCombo<int> LobbyAnnouncementLoader;
+    public static ModLoader.LoaderCombo<int> lobbyAnnouncementLoader;
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
 
     private CancellationTokenSource _linkAnnounceUpdateCancelSource;
@@ -447,7 +447,7 @@ public partial class PageToolsGameLink
                     // 版本过滤
                     var minVer = notice["minVer"].ToObject<double>();
                     var maxVer = notice["maxVer"].ToObject<double>();
-                    if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
+                    if (ModBase.versionCode < minVer || ModBase.versionCode > maxVer) continue;
 
                     // 类型映射
                     var type = LinkAnnounceType.Notice;
@@ -878,32 +878,32 @@ public partial class PageToolsGameLink
         _loadStep = step;
         ModBase.RunInUiWait(() =>
         {
-            if (ModMain.FrmToolsGameLink is null || !ModMain.FrmToolsGameLink.LabLoadDesc.IsLoaded)
+            if (ModMain.frmToolsGameLink is null || !ModMain.frmToolsGameLink.LabLoadDesc.IsLoaded)
                 return;
-            ModMain.FrmToolsGameLink.LabLoadDesc.Text = intro;
-            ModMain.FrmToolsGameLink.UpdateProgress();
+            ModMain.frmToolsGameLink.LabLoadDesc.Text = intro;
+            ModMain.frmToolsGameLink.UpdateProgress();
         });
     }
 
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (InitLoader.State != ModBase.LoadState.Failed)
+        if (initLoader.State != ModBase.LoadState.Failed)
             return;
-        InitLoader.Start(IsForceRestart: true);
+        initLoader.Start(IsForceRestart: true);
     }
 
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (InitLoader.State == ModBase.LoadState.Loading)
+        if (initLoader.State == ModBase.LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
-            InitLoader.Abort();
+            initLoader.Abort();
         }
         else
         {
-            InitLoader.State = ModBase.LoadState.Waiting;
+            initLoader.State = ModBase.LoadState.Waiting;
         }
     }
 
@@ -911,7 +911,7 @@ public partial class PageToolsGameLink
     private void UpdateProgress(double value = -1)
     {
         if (value == -1)
-            value = InitLoader.Progress;
+            value = initLoader.Progress;
         var displayingProgress = ColumnProgressA.Width.Value;
         if (Math.Round(value - displayingProgress, 3) == 0d)
             return;
@@ -999,11 +999,11 @@ public partial class PageToolsGameLink
 
     private void PageLinkLobby_OnPageEnter()
     {
-        ModMain.FrmToolsGameLink.PanEula.Visibility =
+        ModMain.frmToolsGameLink.PanEula.Visibility =
             CurrentSubpage == Subpages.PanEula ? Visibility.Visible : Visibility.Collapsed;
-        ModMain.FrmToolsGameLink.PanSelect.Visibility =
+        ModMain.frmToolsGameLink.PanSelect.Visibility =
             CurrentSubpage == Subpages.PanSelect ? Visibility.Visible : Visibility.Collapsed;
-        ModMain.FrmToolsGameLink.PanFinish.Visibility =
+        ModMain.frmToolsGameLink.PanFinish.Visibility =
             CurrentSubpage == Subpages.PanFinish ? Visibility.Visible : Visibility.Collapsed;
     }
 

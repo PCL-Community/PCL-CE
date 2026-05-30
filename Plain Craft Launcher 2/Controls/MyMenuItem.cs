@@ -10,13 +10,13 @@ public class MyMenuItem : MenuItem
 {
     // 指向动画
 
-    private const int AnimationTimeIn = 100;
-    private const int AnimationTimeOut = 200;
-    private string ColorName;
+    private const int animationTimeIn = 100;
+    private const int animationTimeOut = 200;
+    private string colorName;
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyMenuItem()
     {
@@ -29,19 +29,19 @@ public class MyMenuItem : MenuItem
     private (string BackName, string ForeName, int Time) GetVisualState()
     {
         if (!IsEnabled)
-            return ("ColorBrushTransparent", "ColorBrushGray5", AnimationTimeOut);
+            return ("ColorBrushTransparent", "ColorBrushGray5", animationTimeOut);
         if (IsMouseOver)
-            return ("ColorBrush6", "ColorBrush2", AnimationTimeIn);
-        return ("ColorBrushTransparent", "ColorBrush1", AnimationTimeOut);
+            return ("ColorBrush6", "ColorBrush2", animationTimeIn);
+        return ("ColorBrushTransparent", "ColorBrush1", animationTimeOut);
     }
 
     private void MyMenuItem_Loaded(object sender, RoutedEventArgs e)
     {
         if (Icon is not null)
         {
-            var IconControl = (Path)GetTemplateChild("Icon");
-            if (IconControl is not null)
-                IconControl.Data = (Geometry)new GeometryConverter().ConvertFromString(Icon.ToString());
+            var iconControl = (Path)GetTemplateChild("Icon");
+            if (iconControl is not null)
+                iconControl.Data = (Geometry)new GeometryConverter().ConvertFromString(Icon.ToString());
             // 对父级设置透明度
         }
 
@@ -53,9 +53,9 @@ public class MyMenuItem : MenuItem
         var (BackName, ForeName, Time) = GetVisualState();
 
         // 重复性验证
-        if ((ColorName ?? "") == (BackName ?? ""))
+        if ((colorName ?? "") == (BackName ?? ""))
             return;
-        ColorName = BackName;
+        colorName = BackName;
         // 触发颜色动画
         if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
         {
@@ -65,12 +65,12 @@ public class MyMenuItem : MenuItem
                 {
                     ModAnimation.AaColor(this, BackgroundProperty, BackName, Time),
                     ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time)
-                }, "MyMenuItem Color " + Uuid);
+                }, "MyMenuItem Color " + uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyMenuItem Color " + Uuid);
+            ModAnimation.AniStop("MyMenuItem Color " + uuid);
             SetResourceReference(BackgroundProperty, BackName);
             SetResourceReference(ForegroundProperty, ForeName);
         }

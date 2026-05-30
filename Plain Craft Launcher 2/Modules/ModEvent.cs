@@ -37,7 +37,7 @@ namespace PCL
     /// </summary>
     public static class CustomEventService
     {
-        public static readonly DependencyProperty EventsProperty =
+        public static readonly DependencyProperty eventsProperty =
             DependencyProperty.RegisterAttached(
                 "Events",
                 typeof(CustomEventCollection),
@@ -46,17 +46,17 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEvents(DependencyObject d, CustomEventCollection value) =>
-            d.SetValue(EventsProperty, value);
+            d.SetValue(eventsProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEventCollection GetEvents(DependencyObject d)
         {
-            if (d.GetValue(EventsProperty) is null)
-                d.SetValue(EventsProperty, new CustomEventCollection());
-            return (CustomEventCollection)d.GetValue(EventsProperty);
+            if (d.GetValue(eventsProperty) is null)
+                d.SetValue(eventsProperty, new CustomEventCollection());
+            return (CustomEventCollection)d.GetValue(eventsProperty);
         }
 
-        public static readonly DependencyProperty EventTypeProperty =
+        public static readonly DependencyProperty eventTypeProperty =
             DependencyProperty.RegisterAttached(
                 "EventType",
                 typeof(CustomEvent.EventType),
@@ -65,13 +65,13 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventType(DependencyObject d, CustomEvent.EventType value) =>
-            d.SetValue(EventTypeProperty, value);
+            d.SetValue(eventTypeProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEvent.EventType GetEventType(DependencyObject d) =>
-            (CustomEvent.EventType)d.GetValue(EventTypeProperty);
+            (CustomEvent.EventType)d.GetValue(eventTypeProperty);
 
-        public static readonly DependencyProperty EventDataProperty =
+        public static readonly DependencyProperty eventDataProperty =
             DependencyProperty.RegisterAttached(
                 "EventData",
                 typeof(string),
@@ -80,11 +80,11 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventData(DependencyObject d, string value) =>
-            d.SetValue(EventDataProperty, value);
+            d.SetValue(eventDataProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static string GetEventData(DependencyObject d) =>
-            (string)d.GetValue(EventDataProperty);
+            (string)d.GetValue(eventDataProperty);
     }
 
     /// <summary>
@@ -198,8 +198,8 @@ namespace PCL
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
-                                ServerIp = args.Length >= 2 ? args[1] : null,
-                                Instance = new ModMinecraft.McInstance(args[0])
+                                serverIp = args.Length >= 2 ? args[1] : null,
+                                instance = new ModMinecraft.McInstance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
@@ -214,7 +214,7 @@ namespace PCL
 
                     case EventType.刷新主页:
                     case EventType.刷新页面:
-                        if (ModMain.FrmMain?.PageRight is IRefreshable refreshable)
+                        if (ModMain.frmMain?.pageRight is IRefreshable refreshable)
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
@@ -227,7 +227,7 @@ namespace PCL
                         break;
 
                     case EventType.刷新主页市场:
-                        ModMain.FrmHomePageMarket?.Refresh();
+                        ModMain.frmHomePageMarket?.Refresh();
                         if (args[0] == "")
                             ModMain.Hint("已刷新主页市场！", ModMain.HintType.Finish);
                         break;
@@ -276,7 +276,7 @@ namespace PCL
                             var subType = args.Length == 1
                                 ? FormMain.PageSubType.Default
                                 : (FormMain.PageSubType)Enum.Parse(typeof(FormMain.PageSubType), args[1], true);
-                            ModMain.FrmMain?.PageChange(pageType, subType);
+                            ModMain.frmMain?.PageChange(pageType, subType);
                         });
                         break;
 
@@ -410,10 +410,10 @@ namespace PCL
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help");
+                location = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)

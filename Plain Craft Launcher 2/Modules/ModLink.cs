@@ -27,8 +27,8 @@ public static class ModLink
             return false;
         }
 
-        if (ModProfile.SelectedProfile is not null)
-            if (ModProfile.SelectedProfile.Username.Contains("|"))
+        if (ModProfile.selectedProfile is not null)
+            if (ModProfile.selectedProfile.username.Contains("|"))
             {
                 ModMain.Hint("MC 玩家 ID 不可包含分隔符 (|) ！");
                 return false;
@@ -95,16 +95,16 @@ public static class ModLink
             return false;
         }
 
-        if (DlEasyTierLoader is not null)
+        if (dlEasyTierLoader is not null)
         {
-            if (DlEasyTierLoader.State == ModBase.LoadState.Loading)
+            if (dlEasyTierLoader.State == ModBase.LoadState.Loading)
             {
                 ModMain.Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！");
                 return false;
             }
 
-            if (DlEasyTierLoader.State == ModBase.LoadState.Failed ||
-                DlEasyTierLoader.State == ModBase.LoadState.Aborted)
+            if (dlEasyTierLoader.State == ModBase.LoadState.Failed ||
+                dlEasyTierLoader.State == ModBase.LoadState.Aborted)
             {
                 ModMain.Hint("正在下载 EasyTier，请稍后...");
                 DownloadEasyTier();
@@ -183,25 +183,25 @@ public static class ModLink
     public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFinding()
     {
         // Java 进程 PID 查询
-        var PIDLookupResult = new List<string>();
-        var JavaNames = new List<string>();
-        JavaNames.Add("java");
-        JavaNames.Add("javaw");
+        var pIDLookupResult = new List<string>();
+        var javaNames = new List<string>();
+        javaNames.Add("java");
+        javaNames.Add("javaw");
 
-        foreach (var TargetJava in JavaNames)
+        foreach (var TargetJava in javaNames)
         {
-            var JavaProcesses = Process.GetProcessesByName(TargetJava);
-            ModBase.Log($"[MCDetect] 找到 {TargetJava} 进程 {JavaProcesses.Length} 个");
+            var javaProcesses = Process.GetProcessesByName(TargetJava);
+            ModBase.Log($"[MCDetect] 找到 {TargetJava} 进程 {javaProcesses.Length} 个");
 
-            if (JavaProcesses is null || JavaProcesses.Length == 0)
+            if (javaProcesses is null || javaProcesses.Length == 0)
             {
             }
             else
             {
-                foreach (var p in JavaProcesses)
+                foreach (var p in javaProcesses)
                 {
                     ModBase.Log("[MCDetect] 检测到 Java 进程，PID: " + p.Id);
-                    PIDLookupResult.Add(p.Id.ToString());
+                    pIDLookupResult.Add(p.Id.ToString());
                 }
             }
         }
@@ -209,10 +209,10 @@ public static class ModLink
         var res = new List<Tuple<int, McPingResult, string>>();
         try
         {
-            if (PIDLookupResult.Count == 0)
+            if (pIDLookupResult.Count == 0)
                 return res;
             var lookupList = new List<Tuple<int, int>>();
-            foreach (var pid in PIDLookupResult)
+            foreach (var pid in pIDLookupResult)
             {
                 var infos = new List<Tuple<int, int>>();
                 var ports = PortFinder.GetProcessPort(int.Parse(pid));
@@ -309,11 +309,11 @@ public static class ModLink
 
     #region EasyTier
 
-    public static ModLoader.LoaderCombo<JsonObject> DlEasyTierLoader;
+    public static ModLoader.LoaderCombo<JsonObject> dlEasyTierLoader;
 
     public static int DownloadEasyTier()
     {
-        var dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
+        var dlTargetPath = $"{ModBase.pathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
 
         Basics.RunInNewThread(() =>
         {
@@ -340,7 +340,7 @@ public static class ModLink
                 loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
                     ModBase.ExtractFile(dlTargetPath,
                         Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
-                ) { Block = true });
+                ) { block = true });
 
                 // 3. Cleanup
                 loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", _ =>
@@ -352,16 +352,16 @@ public static class ModLink
                 // 4. Update UI hint
                 loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", _ =>
                     HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
-                ) { Show = false });
+                ) { show = false });
 
                 // Start loader combo
-                DlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
-                DlEasyTierLoader.Start();
+                dlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
+                dlEasyTierLoader.Start();
 
                 // Taskbar and UI notification
-                ModLoader.LoaderTaskbarAdd(DlEasyTierLoader);
-                ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-                ModMain.FrmMain.BtnExtraDownload.Ribble();
+                ModLoader.LoaderTaskbarAdd(dlEasyTierLoader);
+                ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+                ModMain.frmMain.BtnExtraDownload.Ribble();
             }
             catch (Exception ex)
             {

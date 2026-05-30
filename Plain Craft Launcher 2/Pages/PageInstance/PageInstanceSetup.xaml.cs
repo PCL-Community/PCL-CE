@@ -18,7 +18,7 @@ namespace PCL;
 
 public partial class PageInstanceSetup
 {
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageInstanceSetup()
     {     
@@ -78,9 +78,9 @@ public partial class PageInstanceSetup
         ModAnimation.AniControlEnabled -= 1;
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         // 内存自动刷新
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
@@ -94,47 +94,47 @@ public partial class PageInstanceSetup
         try
         {
             // 启动参数
-            TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.Instance.PathInstance];
-            CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.Instance.PathInstance];
-            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.Instance.PathInstance];
-            var _unused = PageInstanceLeft.Instance.PathIndie; // 触发自动判定
-            ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] ? 0 : 1;
+            TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.instance.PathInstance];
+            CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.instance.PathInstance];
+            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.instance.PathInstance];
+            var _unused = PageInstanceLeft.instance.PathIndie; // 触发自动判定
+            ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.instance.PathInstance] ? 0 : 1;
             CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
             TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : Lang.Text("Instance.Setup.FollowGlobal");
             RefreshJavaComboBox();
 
             // 游戏内存
-            var ramType = Config.Instance.MemorySolution[PageInstanceLeft.Instance.PathInstance];
+            var ramType = Config.Instance.MemorySolution[PageInstanceLeft.instance.PathInstance];
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
-            SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
+            SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.instance.PathInstance];
 
             // 服务器
-            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance];
-            ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance.PathInstance];
-            ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.instance.PathInstance];
+            ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.instance.PathInstance];
+            comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
             ServerLogin(ComboServerLoginRequire.SelectedIndex);
-            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance.PathInstance];
-            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance.PathInstance];
-            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance.PathInstance];
+            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.instance.PathInstance];
+            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.instance.PathInstance];
+            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.instance.PathInstance];
 
             // 高级设置
-            ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance];
-            TextAdvanceClasspathHead.Text = Config.Instance.ClasspathHead[PageInstanceLeft.Instance.PathInstance];
-            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.Instance.PathInstance];
-            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance.PathInstance];
-            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance];
-            CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance];
-            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
-            if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.Instance.PathInstance] == 2)
+            ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.instance.PathInstance];
+            TextAdvanceClasspathHead.Text = Config.Instance.ClasspathHead[PageInstanceLeft.instance.PathInstance];
+            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.instance.PathInstance];
+            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.instance.PathInstance];
+            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.instance.PathInstance];
+            CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.instance.PathInstance];
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.instance.PathInstance];
+            if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.instance.PathInstance] == 2)
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
-                Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.Instance.PathInstance);
-                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
+                Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.instance.PathInstance);
+                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.instance.PathInstance] = true;
             }
 
-            CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance];
-            CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance];
-            CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.instance.PathInstance];
+            CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.instance.PathInstance];
+            CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.instance.PathInstance];
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -143,10 +143,10 @@ public partial class PageInstanceSetup
             }
             else
             {
-                CheckAdvanceDisableJLW.Checked = Config.Instance.DisableJlw[PageInstanceLeft.Instance.PathInstance];
+                CheckAdvanceDisableJLW.Checked = Config.Instance.DisableJlw[PageInstanceLeft.instance.PathInstance];
             }
-            CheckUseDebugLog4j2Config.Checked = Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance];
-            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance];
+            CheckUseDebugLog4j2Config.Checked = Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.instance.PathInstance];
+            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.instance.PathInstance];
         }
 
         catch (Exception ex)
@@ -160,10 +160,10 @@ public partial class PageInstanceSetup
     {
         try
         {
-            if (!Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
-                Config.InstanceAuth.Reset(PageInstanceLeft.Instance.PathInstance);
+            if (!Config.InstanceAuth.AuthLocked[PageInstanceLeft.instance.PathInstance])
+                Config.InstanceAuth.Reset(PageInstanceLeft.instance.PathInstance);
 
-            Config.Instance.Reset(PageInstanceLeft.Instance.PathInstance);
+            Config.Instance.Reset(PageInstanceLeft.instance.PathInstance);
 
             ModBase.Log("[Setup] 已初始化实例独立设置");
             ModMain.Hint(Lang.Text("Instance.Setup.Initialize.Success"), ModMain.HintType.Finish, false);
@@ -207,7 +207,7 @@ public partial class PageInstanceSetup
             "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
             _ => throw new ArgumentOutOfRangeException()
         };
-        setting[PageInstanceLeft.Instance.PathInstance] = value;
+        setting[PageInstanceLeft.instance.PathInstance] = value;
     }
 
     private void SliderChange(object o, bool user)
@@ -225,7 +225,7 @@ public partial class PageInstanceSetup
 
     private static void SetInstanceByTag(string tag, object value)
     {
-        var path = PageInstanceLeft.Instance.PathInstance;
+        var path = PageInstanceLeft.instance.PathInstance;
         switch (tag)
         {
             case "VersionRamType": Config.Instance.MemorySolution[path] = (int)value; break;
@@ -255,13 +255,13 @@ public partial class PageInstanceSetup
             "VersionAdvanceDisableLwjglUnsafeAgent" => Config.Instance.DisableLwjglUnsafeAgent,
             _ => throw new ArgumentOutOfRangeException()
         };
-        setting[PageInstanceLeft.Instance.PathInstance] = value;
+        setting[PageInstanceLeft.instance.PathInstance] = value;
     }
 
     // 切换到全局设置
     private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.FrmMain.PageChange(FormMain.PageType.Setup);
+        ModMain.frmMain.PageChange(FormMain.PageType.Setup);
     }
 
     #region 游戏内存
@@ -278,56 +278,56 @@ public partial class PageInstanceSetup
     public void RefreshRam(bool ShowAnim)
     {
         if (LabRamGame is null || LabRamUsed is null ||
-            ModMain.FrmMain.PageCurrent != FormMain.PageType.InstanceSetup ||
-            ModMain.FrmInstanceLeft.PageID != FormMain.PageSubType.VersionSetup)
+            ModMain.frmMain.pageCurrent != FormMain.PageType.InstanceSetup ||
+            ModMain.frmInstanceLeft.pageID != FormMain.PageSubType.VersionSetup)
             return;
         // 获取内存情况
-        var RamGame = Math.Round(GetRam(PageInstanceLeft.Instance), 5);
+        var ramGame = Math.Round(GetRam(PageInstanceLeft.instance), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        var RamTotal = Math.Round((double)(phyRam.Total / 1024 / 1024 / 1024), 1);
-        var RamAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
-        var RamGameActual = Math.Round(Math.Min(RamGame, RamAvailable), 5);
-        var RamUsed = Math.Round(RamTotal - RamAvailable, 5);
-        var RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        var ramTotal = Math.Round((double)(phyRam.Total / 1024 / 1024 / 1024), 1);
+        var ramAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
+        var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
+        var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
+        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
         // 设置最大可用内存
-        if (RamTotal <= 1.5d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));
-        else if (RamTotal <= 8d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 1.5d) / 0.5d) + 12d);
-        else if (RamTotal <= 16d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 8d) / 1d) + 25d);
+        if (ramTotal <= 1.5d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
+        else if (ramTotal <= 8d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 1.5d) / 0.5d) + 12d);
+        else if (ramTotal <= 16d)
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 8d) / 1d) + 25d);
         else
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((RamTotal - 16d) / 2d) + 33d);
+            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(RamGame, "N1")} GB{(RamGame != RamGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(RamGameActual, "N1"))})" : "")}";
-        LabRamUsed.Text = $"{Lang.Number(RamUsed, "N1")} GB";
-        LabRamTotal.Text = $" / {Lang.Number(RamTotal, "N1")} GB";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
+        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
         LabRamWarn.Visibility =
-            RamGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance) && !SystemInfo.Is32BitSystem &&
+            ramGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.instance) && !SystemInfo.Is32BitSystem &&
             ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-        HintRamTooHigh.Visibility = RamGame / RamTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
+        HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
         if (ShowAnim)
         {
             // 宽度动画
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, RamUsed - ColumnRamUsed.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamGame, RamGameActual - ColumnRamGame.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamGame, ramGameActual - ColumnRamGame.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, RamEmpty - ColumnRamEmpty.Width.Value, 800,
+                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, ramEmpty - ColumnRamEmpty.Width.Value, 800,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
                 }, "VersionSetup Ram Grid");
         }
         else
         {
             // 宽度设置
-            ColumnRamUsed.Width = new GridLength(RamUsed, GridUnitType.Star);
-            ColumnRamGame.Width = new GridLength(RamGameActual, GridUnitType.Star);
-            ColumnRamEmpty.Width = new GridLength(RamEmpty, GridUnitType.Star);
+            ColumnRamUsed.Width = new GridLength(ramUsed, GridUnitType.Star);
+            ColumnRamGame.Width = new GridLength(ramGameActual, GridUnitType.Star);
+            ColumnRamEmpty.Width = new GridLength(ramEmpty, GridUnitType.Star);
         }
     }
 
@@ -336,8 +336,8 @@ public partial class PageInstanceSetup
         RefreshRam(true);
     }
 
-    private int RamTextLeft = 2;
-    private int RamTextRight = 1;
+    private int ramTextLeft = 2;
+    private int ramTextRight = 1;
 
     /// <summary>
     ///     刷新 UI 上的文本位置。
@@ -345,28 +345,28 @@ public partial class PageInstanceSetup
     private void RefreshRamText()
     {
         // 获取宽度信息
-        var RectUsedWidth = RectRamUsed.ActualWidth;
-        var TotalWidth = PanRamDisplay.ActualWidth;
-        var LabGameWidth = LabRamGame.ActualWidth;
-        var LabUsedWidth = LabRamUsed.ActualWidth;
-        var LabTotalWidth = LabRamTotal.ActualWidth;
-        var LabGameTitleWidth = LabRamGameTitle.ActualWidth;
-        var LabUsedTitleWidth = LabRamUsedTitle.ActualWidth;
+        var rectUsedWidth = RectRamUsed.ActualWidth;
+        var totalWidth = PanRamDisplay.ActualWidth;
+        var labGameWidth = LabRamGame.ActualWidth;
+        var labUsedWidth = LabRamUsed.ActualWidth;
+        var labTotalWidth = LabRamTotal.ActualWidth;
+        var labGameTitleWidth = LabRamGameTitle.ActualWidth;
+        var labUsedTitleWidth = LabRamUsedTitle.ActualWidth;
         // 左侧
-        int Left;
-        if (RectUsedWidth - 30d < LabUsedWidth || RectUsedWidth - 30d < LabUsedTitleWidth)
+        int left;
+        if (rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth)
             // 全写不下了
-            Left = 0;
-        else if (RectUsedWidth - 25d < LabUsedWidth + LabTotalWidth)
+            left = 0;
+        else if (rectUsedWidth - 25d < labUsedWidth + labTotalWidth)
             // 显示不下完整数据
-            Left = 1;
+            left = 1;
         else
             // 正常
-            Left = 2;
-        if (RamTextLeft != Left)
+            left = 2;
+        if (ramTextLeft != left)
         {
-            RamTextLeft = Left;
-            switch (Left)
+            ramTextLeft = left;
+            switch (left)
             {
                 case 0:
                 {
@@ -405,56 +405,56 @@ public partial class PageInstanceSetup
         }
 
         // 右侧
-        int Right;
-        if (TotalWidth < LabGameWidth + 2d + RectUsedWidth || TotalWidth < LabGameTitleWidth + 2d + RectUsedWidth)
+        int right;
+        if (totalWidth < labGameWidth + 2d + rectUsedWidth || totalWidth < labGameTitleWidth + 2d + rectUsedWidth)
             // 挤到最右边
-            Right = 0;
+            right = 0;
         else
             // 正常情况
-            Right = 1;
-        if (Right == 0)
+            right = 1;
+        if (right == 0)
         {
             if (ModAnimation.AniControlEnabled == 0 &&
-                (RamTextRight != Right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
+                (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
             {
                 // 需要动画
                 ModAnimation.AniStart(
                     new[]
                     {
-                        ModAnimation.AaX(LabRamGame, TotalWidth - LabGameWidth - LabRamGame.Margin.Left, 100,
+                        ModAnimation.AaX(LabRamGame, totalWidth - labGameWidth - LabRamGame.Margin.Left, 100,
                             Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(LabRamGameTitle, TotalWidth - LabGameTitleWidth - LabRamGameTitle.Margin.Left,
+                        ModAnimation.AaX(LabRamGameTitle, totalWidth - labGameTitleWidth - LabRamGameTitle.Margin.Left,
                             100, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                     }, "VersionSetup Ram TextRight");
             }
             else
             {
                 // 不需要动画
-                LabRamGame.Margin = new Thickness(TotalWidth - LabGameWidth, 3d, 0d, 0d);
-                LabRamGameTitle.Margin = new Thickness(TotalWidth - LabGameTitleWidth, 0d, 0d, 5d);
+                LabRamGame.Margin = new Thickness(totalWidth - labGameWidth, 3d, 0d, 0d);
+                LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
             }
         }
         else if (ModAnimation.AniControlEnabled == 0 &&
-                 (RamTextRight != Right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
+                 (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
         {
             // 需要动画
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaX(LabRamGame, 2d + RectUsedWidth - LabRamGame.Margin.Left, 100,
+                    ModAnimation.AaX(LabRamGame, 2d + rectUsedWidth - LabRamGame.Margin.Left, 100,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaX(LabRamGameTitle, 2d + RectUsedWidth - LabRamGameTitle.Margin.Left, 100,
+                    ModAnimation.AaX(LabRamGameTitle, 2d + rectUsedWidth - LabRamGameTitle.Margin.Left, 100,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "VersionSetup Ram TextRight");
         }
         else
         {
             // 不需要动画
-            LabRamGame.Margin = new Thickness(2d + RectUsedWidth, 3d, 0d, 0d);
-            LabRamGameTitle.Margin = new Thickness(2d + RectUsedWidth, 0d, 0d, 5d);
+            LabRamGame.Margin = new Thickness(2d + rectUsedWidth, 3d, 0d, 0d);
+            LabRamGameTitle.Margin = new Thickness(2d + rectUsedWidth, 0d, 0d, 5d);
         }
 
-        RamTextRight = Right;
+        ramTextRight = right;
     }
 
     /// <summary>
@@ -472,94 +472,94 @@ public partial class PageInstanceSetup
         // ------------------------------------------
 
         // 使用当前实例的设置
-        var RamGive = default(double);
+        var ramGive = default(double);
         if (Config.Instance.MemorySolution[instancePath] == 0)
         {
             // 自动配置
-            var RamAvailable =
+            var ramAvailable =
                 Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10)) / 10;
             // 确定需求的内存值
-            double RamMininum; // 无论如何也需要保证的最低限度内存
-            double RamTarget1; // 估计能勉强带动了的内存
-            double RamTarget2; // 估计没啥问题了的内存
-            double RamTarget3; // 安装过多附加组件需要的内存
-            if (Version is not null && !Version.IsLoaded)
+            double ramMininum; // 无论如何也需要保证的最低限度内存
+            double ramTarget1; // 估计能勉强带动了的内存
+            double ramTarget2; // 估计没啥问题了的内存
+            double ramTarget3; // 安装过多附加组件需要的内存
+            if (Version is not null && !Version.isLoaded)
                 Version.Load();
             if (Version is not null && Version.Modable)
             {
                 // 可安装 Mod 的实例
-                var ModDir = new DirectoryInfo(Version.PathIndie + @"mods\");
-                var ModCount = ModDir.Exists ? ModDir.GetFiles().Length : 0;
-                RamMininum = 0.5d + ModCount / 150d;
-                RamTarget1 = 1.5d + ModCount / 90d;
-                RamTarget2 = 2.7d + ModCount / 50d;
-                RamTarget3 = 4.5d + ModCount / 25d;
+                var modDir = new DirectoryInfo(Version.PathIndie + @"mods\");
+                var modCount = modDir.Exists ? modDir.GetFiles().Length : 0;
+                ramMininum = 0.5d + modCount / 150d;
+                ramTarget1 = 1.5d + modCount / 90d;
+                ramTarget2 = 2.7d + modCount / 50d;
+                ramTarget3 = 4.5d + modCount / 25d;
             }
-            else if (Version is not null && Version.Info.HasOptiFine)
+            else if (Version is not null && Version.Info.hasOptiFine)
             {
                 // OptiFine 实例
-                RamMininum = 0.5d;
-                RamTarget1 = 1.5d;
-                RamTarget2 = 3d;
-                RamTarget3 = 5d;
+                ramMininum = 0.5d;
+                ramTarget1 = 1.5d;
+                ramTarget2 = 3d;
+                ramTarget3 = 5d;
             }
             else
             {
                 // 普通实例
-                RamMininum = 0.5d;
-                RamTarget1 = 1.5d;
-                RamTarget2 = 2.5d;
-                RamTarget3 = 4d;
+                ramMininum = 0.5d;
+                ramTarget1 = 1.5d;
+                ramTarget2 = 2.5d;
+                ramTarget3 = 4d;
             }
 
-            double RamDelta;
+            double ramDelta;
             // 预分配内存，阶段一，0 ~ T1，100%
-            RamDelta = RamTarget1;
-            RamGive += Math.Min(RamAvailable, RamDelta);
-            RamAvailable -= RamDelta;
-            if (RamAvailable >= 0.1d)
+            ramDelta = ramTarget1;
+            ramGive += Math.Min(ramAvailable, ramDelta);
+            ramAvailable -= ramDelta;
+            if (ramAvailable >= 0.1d)
             {
                 // 预分配内存，阶段二，T1 ~ T2，70%
-                RamDelta = RamTarget2 - RamTarget1;
-                RamGive += Math.Min(RamAvailable * 0.7d, RamDelta);
-                RamAvailable -= RamDelta / 0.7d;
-                if (RamAvailable >= 0.1d)
+                ramDelta = ramTarget2 - ramTarget1;
+                ramGive += Math.Min(ramAvailable * 0.7d, ramDelta);
+                ramAvailable -= ramDelta / 0.7d;
+                if (ramAvailable >= 0.1d)
                 {
                     // 预分配内存，阶段三，T2 ~ T3，40%
-                    RamDelta = RamTarget3 - RamTarget2;
-                    RamGive += Math.Min(RamAvailable * 0.4d, RamDelta);
-                    RamAvailable -= RamDelta / 0.4d;
-                    if (RamAvailable >= 0.1d)
+                    ramDelta = ramTarget3 - ramTarget2;
+                    ramGive += Math.Min(ramAvailable * 0.4d, ramDelta);
+                    ramAvailable -= ramDelta / 0.4d;
+                    if (ramAvailable >= 0.1d)
                     {
                         // 预分配内存，阶段四，T3 ~ T3 * 2，15%
-                        RamDelta = RamTarget3;
-                        RamGive += Math.Min(RamAvailable * 0.15d, RamDelta);
-                        RamAvailable -= RamDelta / 0.15d;
+                        ramDelta = ramTarget3;
+                        ramGive += Math.Min(ramAvailable * 0.15d, ramDelta);
+                        ramAvailable -= ramDelta / 0.15d;
                     }
                 }
             }
 
             // 不低于最低值
-            RamGive = Math.Round(Math.Max(RamGive, RamMininum), 1);
+            ramGive = Math.Round(Math.Max(ramGive, ramMininum), 1);
         }
         else
         {
             // 手动配置
-            var Value = Config.Instance.CustomMemorySize[instancePath];
-            if (Value <= 12)
-                RamGive = Value * 0.1d + 0.3d;
-            else if (Value <= 25)
-                RamGive = (Value - 12) * 0.5d + 1.5d;
-            else if (Value <= 33)
-                RamGive = (Value - 25) * 1 + 8;
+            var value = Config.Instance.CustomMemorySize[instancePath];
+            if (value <= 12)
+                ramGive = value * 0.1d + 0.3d;
+            else if (value <= 25)
+                ramGive = (value - 12) * 0.5d + 1.5d;
+            else if (value <= 33)
+                ramGive = (value - 25) * 1 + 8;
             else
-                RamGive = (Value - 33) * 2 + 16;
+                ramGive = (value - 33) * 2 + 16;
         }
 
         // 若使用 32 位 Java，则限制为 1G
-        if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.Instance))
-            RamGive = Math.Min(1d, RamGive);
-        return RamGive;
+        if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.instance))
+            ramGive = Math.Min(1d, ramGive);
+        return ramGive;
     }
 
     #endregion
@@ -567,7 +567,7 @@ public partial class PageInstanceSetup
     #region 服务器
 
     // 全局
-    private int ComboServerLoginLast;
+    private int comboServerLoginLast;
 
     private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
@@ -581,10 +581,10 @@ public partial class PageInstanceSetup
         if ((ComboServerLoginRequire.SelectedIndex == 2 || ComboServerLoginRequire.SelectedIndex == 3) &&
             !TextServerAuthServer.IsValidated)
             return;
-        if (ComboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
+        if (comboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
             return;
-        ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-        Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance.PathInstance] = ComboServerLoginRequire.SelectedIndex;
+        comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+        Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.instance.PathInstance] = ComboServerLoginRequire.SelectedIndex;
     }
 
     private void TextServerAuthServer_MouseLeave(object sender, RoutedEventArgs e)
@@ -612,7 +612,7 @@ public partial class PageInstanceSetup
             ModMain.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
         }
 
-        ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+        comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
         ComboChange(ComboServerLoginRequire, null);
     }
 
@@ -630,7 +630,7 @@ public partial class PageInstanceSetup
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
+        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.instance.PathInstance])
         {
             HintServerLoginLock.Visibility = Visibility.Visible;
             ComboServerLoginRequire.IsEnabled = false;
@@ -698,7 +698,7 @@ public partial class PageInstanceSetup
                 Lang.Text("Instance.Setup.LockLoginMethod.Message"),
                 Lang.Text("Instance.Setup.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
         {
-            Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance] = true;
+            Config.InstanceAuth.AuthLocked[PageInstanceLeft.instance.PathInstance] = true;
             Reload();
         }
     }
@@ -706,12 +706,12 @@ public partial class PageInstanceSetup
     // 跳转新建档案
     private void BtnServerNewProfile_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
-        PageLoginAuth.DraggedAuthServer = TextServerAuthServer.Text;
+        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
+        PageLoginAuth.draggedAuthServer = TextServerAuthServer.Text;
         ModBase.RunInNewThread(() =>
         {
             Thread.Sleep(150);
-            ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
         });
     }
 
@@ -731,7 +731,7 @@ public partial class PageInstanceSetup
             return;
 
         // 获取实例的 Java 偏好（已兼容新旧格式）
-        var preference = ModJava.GetInstanceJavaPreference(PageInstanceLeft.Instance);
+        var preference = ModJava.GetInstanceJavaPreference(PageInstanceLeft.instance);
 
         // === 1. 初始化固定选项（使用类型安全的 Tag） ===
         ComboArgumentJava.Items.Clear();
@@ -809,7 +809,7 @@ public partial class PageInstanceSetup
         }
         catch (Exception ex)
         {
-            Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = "使用全局设置";
+            Config.Instance.SelectedJava[PageInstanceLeft.instance.PathInstance] = "使用全局设置";
             ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
@@ -955,7 +955,7 @@ public partial class PageInstanceSetup
 
         // 保存配置
         var json = JsonSerializer.Serialize(preference, JsonCompat.SerializerOptions);
-        Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = json;
+        Config.Instance.SelectedJava[PageInstanceLeft.instance.PathInstance] = json;
 
 
         ModBase.Log(logMessage);
@@ -967,26 +967,26 @@ public partial class PageInstanceSetup
     #region 其他设置
 
     // 版本隔离警告
-    private bool IsReverting;
+    private bool isReverting;
 
     private void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (IsReverting)
+        if (isReverting)
             return;
         if (ModMain.MyMsgBox(
                 Lang.Text("Instance.Setup.IsolationWarning.Message"),
                 Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
         {
-            IsReverting = true;
+            isReverting = true;
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
-            IsReverting = false;
+            isReverting = false;
         }
         else
         {
             bool newValue = ComboArgumentIndieV2.SelectedIndex == 0;
-            Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] = newValue;
+            Config.Instance.IndieV2[PageInstanceLeft.instance.PathInstance] = newValue;
         }
     }
 

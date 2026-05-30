@@ -8,13 +8,13 @@ namespace PCL;
 
 public partial class PageSpeedLeft
 {
-    private const int WatcherInterval = 300;
+    private const int watcherInterval = 300;
 
     // 定时器任务
-    private readonly Dictionary<string, MyCard> RightCards = new();
+    private readonly Dictionary<string, MyCard> rightCards = new();
 
     // 初始化
-    private bool IsLoad;
+    private bool isLoad;
 
     public PageSpeedLeft()
     {
@@ -30,17 +30,17 @@ public partial class PageSpeedLeft
         // 如果在页面切换动画的 “上一页消失” 部分已经完成了下载，就直接尝试返回
         TryReturnToHome();
 
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
 
         // 监控定时器
-        var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, WatcherInterval) };
+        var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, watcherInterval) };
         timer.Tick += (_, _) => Watcher();
         timer.Start();
 
         // 非调试模式隐藏线程数
-        if (!ModBase.ModeDebug)
+        if (!ModBase.modeDebug)
         {
             RowDefinitions[12].Height = new GridLength(0d);
             RowDefinitions[13].Height = new GridLength(0d);
@@ -51,13 +51,13 @@ public partial class PageSpeedLeft
 
     private void Watcher()
     {
-        if (ModMain.FrmMain.PageCurrent != FormMain.PageType.TaskManager)
+        if (ModMain.frmMain.pageCurrent != FormMain.PageType.TaskManager)
             return;
         try
         {
             #region 更新左边栏
 
-            if (!ModLoader.LoaderTaskbar.Any())
+            if (!ModLoader.loaderTaskbar.Any())
             {
                 // 无任务
                 LabProgress.Text = Lang.Number(1d, "P0");
@@ -68,14 +68,14 @@ public partial class PageSpeedLeft
             else
             {
                 // 有任务，输出基本信息
-                var Tasks = ModLoader.LoaderTaskbar.Where(l => l.Show).ToList(); // 筛选掉启动 MC 的任务（#6270）
-                var RawPercent = Tasks.Any()
+                var tasks = ModLoader.loaderTaskbar.Where(l => l.show).ToList(); // 筛选掉启动 MC 的任务（#6270）
+                var rawPercent = tasks.Any()
                     ? ModBase.MathClamp(
-                        Tasks.Average(l => l.Progress),
+                        tasks.Average(l => l.Progress),
                         0, 1)
                     : 1d;
-                var PredictText = Lang.Number(RawPercent, "P2");
-                LabProgress.Text = RawPercent > 0.999999d ? Lang.Number(1d, "P0") : PredictText;
+                var predictText = Lang.Number(rawPercent, "P2");
+                LabProgress.Text = rawPercent > 0.999999d ? Lang.Number(1d, "P0") : predictText;
                 LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
                 LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : Lang.Number(ModNet.NetManager.FileRemain, "N0");
                 LabThread.Text = Lang.Number(ModNet.NetManager.ThreadCount, "N0") + " / " +
@@ -90,11 +90,11 @@ public partial class PageSpeedLeft
             ModBase.Log(ex, "任务管理左栏监视出错", ModBase.LogLevel.Feedback);
         }
 
-        if (ModMain.FrmSpeedRight is null || ModMain.FrmSpeedRight.PanMain is null)
+        if (ModMain.frmSpeedRight is null || ModMain.frmSpeedRight.PanMain is null)
             return;
         try
         {
-            foreach (var Loader in ModLoader.LoaderTaskbar.ToList())
+            foreach (var Loader in ModLoader.loaderTaskbar.ToList())
                 TaskRefresh(Loader);
         }
         catch (Exception ex)
@@ -105,27 +105,27 @@ public partial class PageSpeedLeft
 
     public void TaskRefresh(ModLoader.LoaderBase Loader)
     {
-        if (Loader is null || !Loader.Show)
+        if (Loader is null || !Loader.show)
             return;
         try
         {
             // 获取实际加载器列表
-            var LoaderList = ((ModLoader.LoaderCombo)Loader).GetLoaderList();
-            if (RightCards.ContainsKey(Loader.Name))
+            var loaderList = ((ModLoader.LoaderCombo)Loader).GetLoaderList();
+            if (rightCards.ContainsKey(Loader.name))
             {
                 // 已有此卡片
-                Grid Card = RightCards[Loader.Name];
-                var NewValue = Loader.Progress + (double)Loader.State;
-                if (ModBase.Val(Card.Tag) == NewValue)
+                Grid card = rightCards[Loader.name];
+                var newValue = Loader.Progress + (double)Loader.State;
+                if (ModBase.Val(card.Tag) == newValue)
                     return;
-                Card.Tag = NewValue;
-                if (Card.Children.Count <= 3)
+                card.Tag = newValue;
+                if (card.Children.Count <= 3)
                 {
-                    ModBase.Log("[Watcher] 元素不足的卡片：" + Loader.Name, ModBase.LogLevel.Debug);
+                    ModBase.Log("[Watcher] 元素不足的卡片：" + Loader.name, ModBase.LogLevel.Debug);
                     return;
                 }
 
-                Card = (Grid)Card.Children[3];
+                card = (Grid)card.Children[3];
                 try
                 {
                     switch (Loader.State)
@@ -134,19 +134,19 @@ public partial class PageSpeedLeft
                         {
                             #region 失败，更新卡片
 
-                            Card.RowDefinitions.Clear();
-                            Card.Children.Clear();
-                            Card.Children.Add((UIElement)ModBase.GetObjectFromXML(
+                            card.RowDefinitions.Clear();
+                            card.Children.Clear();
+                            card.Children.Add((UIElement)ModBase.GetObjectFromXML(
                                 "<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Stretch=\"Uniform\" Tag=\"Failed\" Data=\"F1 M2.5,0 L0,2.5 7.5,10 0,17.5 2.5,20 10,12.5 17.5,20 20,17.5 12.5,10 20,2.5 17.5,0 10,7.5 2.5,0Z\" Height=\"15\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"0\" Fill=\"{DynamicResource ColorBrush3}\" Margin=\"0,1,0,0\" VerticalAlignment=\"Top\"/>"));
-                            var Tb = (TextBlock)ModBase.GetObjectFromXML(
+                            var tb = (TextBlock)ModBase.GetObjectFromXML(
                                 "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TextWrapping=\"Wrap\" HorizontalAlignment=\"Left\" ToolTip=\"单击复制错误详情\" Grid.Column=\"1\" Grid.Row=\"0\" Margin=\"0,0,0,5\" />");
-                            Tb.Text = Loader.Error.ToString();
-                            Tb.MouseLeftButtonDown += (sender, _) =>
+                            tb.Text = Loader.Error.ToString();
+                            tb.MouseLeftButtonDown += (sender, _) =>
                             {
                                 ModBase.ClipboardSet(((TextBlock)sender).Text, false);
                                 ModMain.Hint("已复制错误详情！", ModMain.HintType.Finish);
                             };
-                            Card.Children.Add(Tb);
+                            card.Children.Add(tb);
                             break;
                         }
 
@@ -156,7 +156,7 @@ public partial class PageSpeedLeft
                         {
                             #region 完成，销毁卡片并返回
 
-                            ModAnimation.AniDispose((MyCard)Card.Parent, true, _ => TryReturnToHome());
+                            ModAnimation.AniDispose((MyCard)card.Parent, true, _ => TryReturnToHome());
                             break;
                         }
 
@@ -171,28 +171,28 @@ public partial class PageSpeedLeft
                             {
                                 try
                                 {
-                                    if (Card.Children.Count < LoaderList.Count * 2)
+                                    if (card.Children.Count < loaderList.Count * 2)
                                     {
                                         ModBase.Log(
-                                            $"[Watcher] 刷新任务管理卡片 {Loader.Name} 失败：卡片中仅有 {Card.Children.Count} 个子项，要求至少有 {LoaderList.Count * 2} 个子项",
+                                            $"[Watcher] 刷新任务管理卡片 {Loader.name} 失败：卡片中仅有 {card.Children.Count} 个子项，要求至少有 {loaderList.Count * 2} 个子项",
                                             ModBase.LogLevel.Debug);
                                         break;
                                     }
 
-                                    var Row = 0;
-                                    foreach (var SubTask in LoaderList)
+                                    var row = 0;
+                                    foreach (var SubTask in loaderList)
                                     {
                                         switch (SubTask.State)
                                         {
                                             case ModBase.LoadState.Waiting:
                                             {
-                                                if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Waiting")
+                                                if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Waiting")
                                                 {
-                                                    Card.Children.RemoveAt(Row * 2);
-                                                    Card.Children.Insert(Row * 2,
+                                                    card.Children.RemoveAt(row * 2);
+                                                    card.Children.Insert(row * 2,
                                                         (UIElement)ModBase.GetObjectFromXML(
                                                             "<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Stretch=\"Uniform\" Tag=\"Waiting\" Data=\"F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z\" Width=\"18\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"" +
-                                                            Row +
+                                                            row +
                                                             "\" Fill=\"{DynamicResource ColorBrush3}\" Margin=\"0,7,0,0\" VerticalAlignment=\"Top\" Height=\"6\"/>"));
                                                 }
 
@@ -200,16 +200,16 @@ public partial class PageSpeedLeft
                                             }
                                             case ModBase.LoadState.Loading:
                                             {
-                                                if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Loading")
+                                                if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Loading")
                                                 {
-                                                    Card.Children.RemoveAt(Row * 2);
-                                                    Card.Children.Insert(Row * 2,
+                                                    card.Children.RemoveAt(row * 2);
+                                                    card.Children.Insert(row * 2,
                                                         (UIElement)ModBase.GetObjectFromXML(
-                                                            $"<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\"/>"));
+                                                            $"<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Foreground=\"{{DynamicResource ColorBrush3}}\"/>"));
                                                 }
                                                 else
                                                 {
-                                                    ((TextBlock)Card.Children[Row * 2]).Text =
+                                                    ((TextBlock)card.Children[row * 2]).Text =
                                                         $"{Lang.Number(SubTask.Progress, "P0")}";
                                                 }
 
@@ -217,24 +217,24 @@ public partial class PageSpeedLeft
                                             }
                                             case ModBase.LoadState.Finished:
                                             {
-                                                if ((string)((FrameworkElement)Card.Children[Row * 2]).Tag != "Finished")
+                                                if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Finished")
                                                 {
-                                                    Card.Children.RemoveAt(Row * 2);
-                                                    Card.Children.Insert(Row * 2,
+                                                    card.Children.RemoveAt(row * 2);
+                                                    card.Children.Insert(row * 2,
                                                         (UIElement)ModBase.GetObjectFromXML(
-                                                            $"<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>"));
+                                                            $"<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\" Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>"));
                                                 }
 
                                                 break;
                                             }
                                         }
 
-                                        Row += 1;
+                                        row += 1;
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    ModBase.Log(ex, $"刷新任务管理卡片 {Loader.Name} 失败", ModBase.LogLevel.Feedback);
+                                    ModBase.Log(ex, $"刷新任务管理卡片 {Loader.name} 失败", ModBase.LogLevel.Feedback);
                                 }
                             } while (false);
 
@@ -255,97 +255,97 @@ public partial class PageSpeedLeft
                 {
                     #region 没有卡片且未中断或完成，添加新的卡片
 
-                    var CardXAML = $@"
+                    var cardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
-                            Tag=""{Loader.Progress + (double)Loader.State}"" Title=""{ModBase.EscapeXML(Loader.Name)}"" Margin=""0,0,0,15"">
+                            Tag=""{Loader.Progress + (double)Loader.State}"" Title=""{ModBase.EscapeXML(Loader.name)}"" Margin=""0,0,0,15"">
                             <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
                                     <ColumnDefinition/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>";
-                    foreach (var SubTask in LoaderList)
-                        CardXAML += "<RowDefinition Height=\"26\"/>";
-                    CardXAML += "</Grid.RowDefinitions>";
-                    var Row = 0;
-                    foreach (var SubTask in LoaderList)
+                    foreach (var SubTask in loaderList)
+                        cardXAML += "<RowDefinition Height=\"26\"/>";
+                    cardXAML += "</Grid.RowDefinitions>";
+                    var row = 0;
+                    foreach (var SubTask in loaderList)
                     {
                         switch (SubTask.State)
                         {
                             case ModBase.LoadState.Waiting:
                             {
-                                CardXAML +=
-                                    $"<Path Stretch=\"Uniform\" Tag=\"Waiting\" Data=\"F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z\" Width=\"18\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,7,0,0\" VerticalAlignment=\"Top\" Height=\"6\"/>";
+                                cardXAML +=
+                                    $"<Path Stretch=\"Uniform\" Tag=\"Waiting\" Data=\"F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z\" Width=\"18\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,7,0,0\" VerticalAlignment=\"Top\" Height=\"6\"/>";
                                 break;
                             }
                             case ModBase.LoadState.Loading:
                             {
-                                CardXAML += $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
+                                cardXAML += $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
                                 break;
                             }
                             case ModBase.LoadState.Finished:
                             {
-                                CardXAML +=
-                                    $"<Path Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>";
+                                cardXAML +=
+                                    $"<Path Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>";
                                 break;
                             }
 
                             default:
                             {
-                                CardXAML +=
-                                    $"<Path Stretch=\"Uniform\" Tag=\"Failed\" Data=\"F1 M2.5,0 L0,2.5 7.5,10 0,17.5 2.5,20 10,12.5 17.5,20 20,17.5 12.5,10 20,2.5 17.5,0 10,7.5 2.5,0Z\" Height=\"15\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{Row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,1,0,0\" VerticalAlignment=\"Top\"/>";
+                                cardXAML +=
+                                    $"<Path Stretch=\"Uniform\" Tag=\"Failed\" Data=\"F1 M2.5,0 L0,2.5 7.5,10 0,17.5 2.5,20 10,12.5 17.5,20 20,17.5 12.5,10 20,2.5 17.5,0 10,7.5 2.5,0Z\" Height=\"15\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,1,0,0\" VerticalAlignment=\"Top\"/>";
                                 break;
                             }
                         }
 
-                        CardXAML += $"<TextBlock Text=\"{ModBase.EscapeXML(SubTask.Name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{Row}\"/>";
-                        Row += 1;
+                        cardXAML += $"<TextBlock Text=\"{ModBase.EscapeXML(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
+                        row += 1;
                     }
 
-                    CardXAML += "</Grid></local:MyCard>";
+                    cardXAML += "</Grid></local:MyCard>";
                     // 实例化控件
-                    MyCard Card;
+                    MyCard card;
                     try
                     {
-                        Card = (MyCard)ModBase.GetObjectFromXML(CardXAML);
+                        card = (MyCard)ModBase.GetObjectFromXML(cardXAML);
                     }
                     catch (Exception ex)
                     {
                         ModBase.Log(ex, "新建任务管理卡片失败");
-                        ModBase.Log($"出错的卡片内容：\r\n{CardXAML}");
+                        ModBase.Log($"出错的卡片内容：\r\n{cardXAML}");
                         throw;
                     }
 
-                    ModMain.FrmSpeedRight.PanMain.Children.Insert(0, Card);
-                    RightCards.Add(Loader.Name, Card);
-                    ModBase.Log($"[Watcher] 新建任务管理卡片：{Loader.Name}");
+                    ModMain.frmSpeedRight.PanMain.Children.Insert(0, card);
+                    rightCards.Add(Loader.name, card);
+                    ModBase.Log($"[Watcher] 新建任务管理卡片：{Loader.name}");
                     // 添加取消按钮
-                    var Cancel = new MyIconButton
+                    var cancel = new MyIconButton
                     {
                         Name = "BtnCancel",
                         Logo = "F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z", Height = 20d,
                         Margin = new Thickness(0d, 10d, 10d, 0d), LogoScale = 1.1d,
                         HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top
                     };
-                    Card.Children.Add(Cancel);
-                    Cancel.Click += (sender, e) =>
+                    card.Children.Add(cancel);
+                    cancel.Click += (sender, e) =>
                     {
                         ModAnimation.AniDispose((MyIconButton)sender, false);
-                        ModAnimation.AniDispose(Card, true, _ =>
+                        ModAnimation.AniDispose(card, true, _ =>
                         {
-                            if (ModMain.FrmSpeedRight.PanMain.Children.Count == 0 &&
-                                ModMain.FrmMain.PageCurrent == FormMain.PageType.TaskManager)
-                                ModMain.FrmMain.PageBack();
+                            if (ModMain.frmSpeedRight.PanMain.Children.Count == 0 &&
+                                ModMain.frmMain.pageCurrent == FormMain.PageType.TaskManager)
+                                ModMain.frmMain.PageBack();
                         });
-                        RightCards.Remove(Loader.Name);
-                        ModLoader.LoaderTaskbar.Remove(Loader);
-                        ModBase.Log($"[Taskbar] 关闭任务管理卡片：{Loader.Name}，且移出任务列表");
+                        rightCards.Remove(Loader.name);
+                        ModLoader.loaderTaskbar.Remove(Loader);
+                        ModBase.Log($"[Taskbar] 关闭任务管理卡片：{Loader.name}，且移出任务列表");
                         ModBase.RunInThread(() => Loader.Abort());
                     };
                     // 如果已经失败，再刷新一次，修改成失败的控件
                     if (Loader.State == ModBase.LoadState.Failed)
                     {
-                        Card.Tag = null; // 避免重复导致刷新无效
+                        card.Tag = null; // 避免重复导致刷新无效
                         TaskRefresh(Loader);
                     }
                 }
@@ -366,14 +366,14 @@ public partial class PageSpeedLeft
 
     public void TaskRemove(ModLoader.LoaderBase Loader)
     {
-        if (RightCards.ContainsKey(Loader.Name))
+        if (rightCards.ContainsKey(Loader.name))
             ModBase.RunInUiWait(() =>
             {
                 // 移除已有的卡片
-                Grid Card = RightCards[Loader.Name];
-                ModMain.FrmSpeedRight.PanMain.Children.Remove(Card);
-                RightCards.Remove(Loader.Name);
-                ModBase.Log($"[Watcher] 移除任务管理卡片：{Loader.Name}");
+                Grid card = rightCards[Loader.name];
+                ModMain.frmSpeedRight.PanMain.Children.Remove(card);
+                rightCards.Remove(Loader.name);
+                ModBase.Log($"[Watcher] 移除任务管理卡片：{Loader.name}");
             });
     }
 
@@ -382,7 +382,7 @@ public partial class PageSpeedLeft
     /// </summary>
     private void TryReturnToHome()
     {
-        if (ModMain.FrmSpeedRight.PanMain.Children.Count == 0 &&
-            ModMain.FrmMain.PageCurrent == FormMain.PageType.TaskManager) ModMain.FrmMain.PageBack();
+        if (ModMain.frmSpeedRight.PanMain.Children.Count == 0 &&
+            ModMain.frmMain.pageCurrent == FormMain.PageType.TaskManager) ModMain.frmMain.PageBack();
     }
 }

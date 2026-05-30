@@ -14,7 +14,7 @@ public partial class PageDownloadLabyMod
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.DlLabyModListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlLabyModListLoader, _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,21 +27,21 @@ public partial class PageDownloadLabyMod
         // 结果数据化
         try
         {
-            var Versions = ModDownload.DlLabyModListLoader.Output.Value;
-            if (Versions is null)
+            var versions = ModDownload.dlLabyModListLoader.output.value;
+            if (versions is null)
                 return;
-            var ProductionEntry = new JsonObject();
-            ProductionEntry.Add("channel", "production");
-            ProductionEntry.Add("version", Versions["production"]["labyModVersion"].ToString());
-            var SnapshotEntry = new JsonObject();
-            SnapshotEntry.Add("channel", "snapshot");
-            SnapshotEntry.Add("version", Versions["snapshot"]["labyModVersion"].ToString());
+            var productionEntry = new JsonObject();
+            productionEntry.Add("channel", "production");
+            productionEntry.Add("version", versions["production"]["labyModVersion"].ToString());
+            var snapshotEntry = new JsonObject();
+            snapshotEntry.Add("channel", "snapshot");
+            snapshotEntry.Add("version", versions["snapshot"]["labyModVersion"].ToString());
             PanVersions.Children.Clear();
-            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(ProductionEntry,
+            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(productionEntry,
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
-            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(SnapshotEntry,
+            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(snapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", Versions.Count);
+            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
         }
         catch (Exception ex)
         {

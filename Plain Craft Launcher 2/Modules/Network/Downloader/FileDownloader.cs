@@ -87,7 +87,7 @@ public static class FileDownloader
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
             MaxTryAgainOnFailure = 2,
             BlockTimeout = 60000,
-            DownloadFileExtension = ModNet.NetDownloadEnd,
+            DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
             CustomHttpClientFactory = () => NetworkService.GetClient(),
@@ -143,7 +143,7 @@ public static class FileDownloader
         {
             await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);
             await tcs.Task.ConfigureAwait(false);
-            var tempPath = localPath + ModNet.NetDownloadEnd;
+            var tempPath = localPath + ModNet.netDownloadEnd;
             if (!File.Exists(localPath) && File.Exists(tempPath))
             {
                 for (var retry = 0; retry < 5; retry++)
@@ -175,7 +175,7 @@ public static class FileDownloader
 
     private static void CleanupTempFiles(string localPath)
     {
-        var tempPath = localPath + ModNet.NetDownloadEnd;
+        var tempPath = localPath + ModNet.netDownloadEnd;
         TryDeleteFile(localPath);
         TryDeleteFile(tempPath);
     }

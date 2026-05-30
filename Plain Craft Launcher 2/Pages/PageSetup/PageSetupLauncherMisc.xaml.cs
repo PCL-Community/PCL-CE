@@ -12,9 +12,9 @@ namespace PCL;
 
 public partial class PageSetupLauncherMisc
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupLauncherMisc()
     {
@@ -29,9 +29,9 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         SliderLoad();
@@ -139,15 +139,15 @@ public partial class PageSetupLauncherMisc
     // 滑动条
     private void SliderLoad()
     {
-        SliderDebugAnim.GetHintText = new Func<object, object>(v =>
+        SliderDebugAnim.getHintText = new Func<object, object>(v =>
             (int)v > 29
                 ? Lang.Text("Common.Action.Close")
                 : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
+        SliderAniFPS.getHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
-        SliderMaxLog.GetHintText = new Func<object, object>(v =>
+        SliderMaxLog.getHintText = new Func<object, object>(v =>
         {
             var val = Convert.ToInt32(v);
             return val switch
@@ -211,7 +211,7 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.exePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);

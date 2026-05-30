@@ -9,11 +9,11 @@ namespace PCL;
 
 public partial class PageLogLeft
 {
-    public ModWatcher.Watcher CurrentLog;
-    public int CurrentUuid;
-    public Dictionary<int, FlowDocument> FlowDocuments = new();
-    public int IsLoading;
-    public List<KeyValuePair<int, ModWatcher.Watcher>> ShownLogs = new();
+    public ModWatcher.Watcher currentLog;
+    public int currentUuid;
+    public Dictionary<int, FlowDocument> flowDocuments = new();
+    public int isLoading;
+    public List<KeyValuePair<int, ModWatcher.Watcher>> shownLogs = new();
 
     public PageLogLeft()
     {
@@ -25,53 +25,53 @@ public partial class PageLogLeft
     private void PageLogLeft_Loaded(object sender, RoutedEventArgs e)
     {
         Reload();
-        ModMain.FrmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
     private void PageLogLeft_Unloaded(object sender, RoutedEventArgs e)
     {
-        ModMain.FrmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
     private void Reload()
     {
         try
         {
-            if (ShownLogs.Count == 0)
+            if (shownLogs.Count == 0)
             {
-                ModMain.FrmMain.PageChange((FormMain.PageType)ModMain.FrmMain.PageCurrentSub);
+                ModMain.frmMain.PageChange((FormMain.PageType)ModMain.frmMain.PageCurrentSub);
                 return;
             }
 
-            IsLoading += 1;
+            isLoading += 1;
 
             // 创建 UI
-            ModMain.FrmLogLeft.PanList.Children.Clear();
+            ModMain.frmLogLeft.PanList.Children.Clear();
 
             // 测试实例列表
             // TODO(i18n): 文本 @ PageLog 左侧 - 列表标题
-            ModMain.FrmLogLeft.PanList.Children.Add(new TextBlock
+            ModMain.frmLogLeft.PanList.Children.Add(new TextBlock
                 { Text = "测试实例列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
-            foreach (var item in ShownLogs)
+            foreach (var item in shownLogs)
             {
                 // 添加控件
-                var Uuid = item.Key;
-                var Version = item.Value.Version;
-                var Proc = item.Value.GameProcess;
-                var NewItem = new MyListItem
+                var uuid = item.Key;
+                var version = item.Value.version;
+                var proc = item.Value.gameProcess;
+                var newItem = new MyListItem
                 {
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = Version.Name, Info = $"{Version.Info} - {Lang.Date(Proc.StartTime, "T")}", Height = 40d, Tag = Uuid
+                    Title = version.Name, Info = $"{version.Info} - {Lang.Date(proc.StartTime, "T")}", Height = 40d, Tag = uuid
                 };
-                NewItem.Changed += ModMain.FrmLogLeft.Version_Change;
+                newItem.changed += ModMain.frmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var RemoveButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
+                var removeButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
-                RemoveButton.Click += (a, b) => ModMain.FrmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
-                NewItem.Buttons = new[] { RemoveButton };
-                if (Uuid == CurrentUuid)
-                    NewItem.Checked = true;
-                ModMain.FrmLogLeft.PanList.Children.Add(NewItem);
+                removeButton.Click += (a, b) => ModMain.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
+                newItem.Buttons = new[] { removeButton };
+                if (uuid == currentUuid)
+                    newItem.Checked = true;
+                ModMain.frmLogLeft.PanList.Children.Add(newItem);
             }
 
             // 通知日志保留设置
@@ -82,7 +82,7 @@ public partial class PageLogLeft
                 ModMain.Hint("实时日志默认只保留 500 行，你可以在 实时日志行数 设置中修改！");
             }
 
-            IsLoading -= 1;
+            isLoading -= 1;
         }
         catch (Exception ex)
         {
@@ -92,46 +92,46 @@ public partial class PageLogLeft
 
     private void OnLogOutput(ModWatcher.Watcher sender, ModWatcher.LogOutputEventArgs e)
     {
-        foreach (var Item in ShownLogs)
-            if (Item.Value.GameProcess.Id == sender.GameProcess.Id)
+        foreach (var Item in shownLogs)
+            if (Item.Value.gameProcess.Id == sender.gameProcess.Id)
             {
-                var Uuid = Item.Key;
-                Thickness Margin;
-                if (Item.Value.GameProcess.HasExited)
-                    Margin = new Thickness(0d, 12d, 0d, 0d);
+                var uuid = Item.Key;
+                Thickness margin;
+                if (Item.Value.gameProcess.HasExited)
+                    margin = new Thickness(0d, 12d, 0d, 0d);
                 else
-                    Margin = new Thickness(0d);
+                    margin = new Thickness(0d);
                 ModBase.RunInUi(() =>
                 {
-                    var Paragraph = new Paragraph(new Run(e.LogText)) { Foreground = e.Color, Margin = Margin };
-                    FlowDocuments[Uuid].Blocks.Add(Paragraph);
-                    var MaxLog = (ulong)Config.System.MaxGameLog;
-                    switch (MaxLog)
+                    var paragraph = new Paragraph(new Run(e.logText)) { Foreground = e.color, Margin = margin };
+                    flowDocuments[uuid].Blocks.Add(paragraph);
+                    var maxLog = (ulong)Config.System.MaxGameLog;
+                    switch (maxLog)
                     {
                         case <= 5UL:
                         {
-                            MaxLog = (ulong)Math.Round(MaxLog * 10m + 50m);
+                            maxLog = (ulong)Math.Round(maxLog * 10m + 50m);
                             break;
                         }
                         case <= 13UL:
                         {
-                            MaxLog = (ulong)Math.Round(MaxLog * 50m - 150m);
+                            maxLog = (ulong)Math.Round(maxLog * 50m - 150m);
                             break;
                         }
                         case <= 28UL:
                         {
-                            MaxLog = (ulong)Math.Round(MaxLog * 100m - 800m);
+                            maxLog = (ulong)Math.Round(maxLog * 100m - 800m);
                             break;
                         }
                         default:
                         {
-                            MaxLog = 18446744073709551615UL;
+                            maxLog = 18446744073709551615UL;
                             break;
                         }
                     }
 
-                    while (FlowDocuments[Uuid].Blocks.Count > (decimal)MaxLog)
-                        FlowDocuments[Uuid].Blocks.Remove(FlowDocuments[Uuid].Blocks.FirstBlock);
+                    while (flowDocuments[uuid].Blocks.Count > (decimal)maxLog)
+                        flowDocuments[uuid].Blocks.Remove(flowDocuments[uuid].Blocks.FirstBlock);
                 });
                 return;
             }
@@ -140,62 +140,62 @@ public partial class PageLogLeft
     public void Add(ModWatcher.Watcher watcher)
     {
         var uuid = ModBase.GetUuid();
-        ShownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
-        watcher.LogOutput += OnLogOutput;
-        ModBase.RunInUi(() => FlowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
+        shownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
+        watcher.logOutput += OnLogOutput;
+        ModBase.RunInUi(() => flowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
         SelectionChange(uuid);
-        ModMain.FrmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
     public void SelectionChange(int Uuid)
     {
-        if (IsLoading > 0)
+        if (isLoading > 0)
             return;
         // If CurrentUuid > 0 Then FlowDocuments(CurrentUuid) = FrmLogRight.PanLog.Document
         if (Uuid <= 0)
         {
-            CurrentUuid = -1;
-            CurrentLog = null;
+            currentUuid = -1;
+            currentLog = null;
         }
         else
         {
-            foreach (var item in ShownLogs)
+            foreach (var item in shownLogs)
                 if (item.Key == Uuid)
                 {
-                    CurrentUuid = Uuid;
-                    CurrentLog = item.Value;
+                    currentUuid = Uuid;
+                    currentLog = item.Value;
                     break;
                 }
         }
 
         ModBase.RunInUi(() =>
         {
-            ModMain.FrmLogRight.Reload();
+            ModMain.frmLogRight.Reload();
             Reload();
         });
     }
 
     public void RemoveItem(int Uuid)
     {
-        for (int i = 0, loopTo = ShownLogs.Count - 1; i <= loopTo; i++)
+        for (int i = 0, loopTo = shownLogs.Count - 1; i <= loopTo; i++)
         {
-            var item = ShownLogs[i];
+            var item = shownLogs[i];
             if (item.Key != Uuid)
                 continue;
-            ShownLogs.RemoveAt(i);
-            if (CurrentUuid == item.Key)
+            shownLogs.RemoveAt(i);
+            if (currentUuid == item.Key)
             {
-                if (ShownLogs.Count == 0)
+                if (shownLogs.Count == 0)
                     // 没有可以显示的了
                     SelectionChange(-1);
                 else
-                    SelectionChange(ShownLogs[new[] { new[] { i, ShownLogs.Count - 1 }.Min(), 0 }.Max()].Key);
+                    SelectionChange(shownLogs[new[] { new[] { i, shownLogs.Count - 1 }.Min(), 0 }.Max()].Key);
             }
             else
             {
                 ModBase.RunInUi(() =>
                 {
-                    ModMain.FrmLogRight.Reload();
+                    ModMain.frmLogRight.Reload();
                     Reload();
                 });
             }
@@ -203,7 +203,7 @@ public partial class PageLogLeft
             break;
         }
 
-        ModMain.FrmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
     public void Remove_Click(object sender, RoutedEventArgs e)

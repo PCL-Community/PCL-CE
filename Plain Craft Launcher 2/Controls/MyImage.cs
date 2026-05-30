@@ -45,7 +45,7 @@ public class MyImage : Image
                     ModBase.Log(ex, $"加载图片失败（{value}）");
                     try
                     {
-                        if (value.StartsWithF(ModBase.PathTemp) && File.Exists(value)) File.Delete(value);
+                        if (value.StartsWithF(ModBase.pathTemp) && File.Exists(value)) File.Delete(value);
                     }
                     catch
                     {
@@ -70,14 +70,14 @@ public class MyImage : Image
             return;
         }
 
-        var Url = Source;
-        var TempPath = GetTempPath(Url);
-        var TempFile = new FileInfo(TempPath);
-        var EnableCache = this.EnableCache;
-        if (EnableCache && TempFile.Exists)
+        var url = Source;
+        var tempPath = GetTempPath(url);
+        var tempFile = new FileInfo(tempPath);
+        var enableCache = this.EnableCache;
+        if (enableCache && tempFile.Exists)
         {
-            ActualSource = TempPath;
-            if (DateTime.Now - TempFile.LastWriteTime < FileCacheExpiredTime)
+            ActualSource = tempPath;
+            if (DateTime.Now - tempFile.LastWriteTime < fileCacheExpiredTime)
                 return; // 无需刷新缓存
         }
 
@@ -88,7 +88,7 @@ public class MyImage : Image
                 // 下载
                 ActualSource = LoadingSource;
 
-                var resp = await DownloadImageAsync(Url);
+                var resp = await DownloadImageAsync(url);
                 if (!string.IsNullOrEmpty(resp))
                 {
                     ActualSource = resp;
@@ -105,13 +105,13 @@ public class MyImage : Image
             catch (Exception ex)
             {
                 // 更换备用地址
-                ModBase.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
-                TempPath = GetTempPath(Url);
-                TempFile = new FileInfo(TempPath);
-                if (EnableCache && TempFile.Exists)
+                ModBase.Log(ex, $"Online image get fail（source = {url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                tempPath = GetTempPath(url);
+                tempFile = new FileInfo(tempPath);
+                if (enableCache && tempFile.Exists)
                 {
-                    ActualSource = TempPath;
-                    if (DateTime.Now - TempFile.LastWriteTime < FileCacheExpiredTime)
+                    ActualSource = tempPath;
+                    if (DateTime.Now - tempFile.LastWriteTime < fileCacheExpiredTime)
                         return;
                 }
             }
@@ -130,7 +130,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string Url)
     {
-        return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
+        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
@@ -174,15 +174,15 @@ public class MyImage : Image
 
     #region 公开属性
 
-    public TimeSpan FileCacheExpiredTime = TimeSpan.FromDays(14d);
+    public TimeSpan fileCacheExpiredTime = TimeSpan.FromDays(14d);
 
     public bool EnableCache
     {
-        get => (bool)GetValue(EnableCacheProperty);
-        set => SetValue(EnableCacheProperty, value);
+        get => (bool)GetValue(enableCacheProperty);
+        set => SetValue(enableCacheProperty, value);
     }
 
-    public new static readonly DependencyProperty EnableCacheProperty =
+    public new static readonly DependencyProperty enableCacheProperty =
         DependencyProperty.Register("EnableCache", typeof(bool), typeof(MyImage), new PropertyMetadata(true));
 
     /// <summary>
@@ -208,7 +208,7 @@ public class MyImage : Image
 
     private string _Source = "";
 
-    public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
+    public new static readonly DependencyProperty sourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyImage)sender).Source = e.NewValue.ToString();

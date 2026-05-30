@@ -26,7 +26,7 @@ public partial class PageLoginProfile
     public void Reload()
     {
         RefreshProfileList();
-        ModMain.FrmLoginProfileSkin = null;
+        ModMain.frmLoginProfileSkin = null;
         // RunInNewThread(Sub()
         // Thread.Sleep(800)
         // RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
@@ -43,7 +43,7 @@ public partial class PageLoginProfile
         ModProfile.GetProfile();
         try
         {
-            foreach (var Profile in ModProfile.ProfileList)
+            foreach (var Profile in ModProfile.profileList)
                 ProfileCollection.Add(new ProfileItem(Profile));
             ModBase.Log("[Profile] 档案列表刷新完成");
         }
@@ -52,7 +52,7 @@ public partial class PageLoginProfile
             ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
         }
 
-        if (!ModProfile.ProfileList.Any())
+        if (!ModProfile.profileList.Any())
         {
             States.Hint.LaunchWithProfile = true;
             HintCreate.Visibility = Visibility.Visible;
@@ -69,16 +69,16 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = (string)ModProfile.GetProfileInfo(profile);
-            var LogoPath = ModBase.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
-            if (!(File.Exists(LogoPath) && !(new FileInfo(LogoPath).Length == 0L)))
-                LogoPath = Icon.IconButtonUser;
-            Logo = LogoPath;
+            var logoPath = ModBase.pathTemp + $@"Cache\Skin\Head\{profile.skinHeadId}.png";
+            if (!(File.Exists(logoPath) && !(new FileInfo(logoPath).Length == 0L)))
+                logoPath = Icon.IconButtonUser;
+            Logo = logoPath;
         }
 
         public string Info { get; private set; }
         public string Logo { get; private set; }
         public ModProfile.McProfile Profile { get; }
-        public string Username => Profile.Username;
+        public string Username => Profile.username;
     }
 
     #region 控件
@@ -87,21 +87,21 @@ public partial class PageLoginProfile
     {
         var item = (MyListItem)sender;
         var tag = (ModProfile.McProfile)item.Tag;
-        ModProfile.SelectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
-        ModBase.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
-        ModProfile.LastUsedProfile =
-            ModProfile.ProfileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
+        ModProfile.selectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
+        ModBase.Log($"[Profile] 选定档案: {tag.username}, 以 {tag.type} 方式验证");
+        ModProfile.lastUsedProfile =
+            ModProfile.profileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
         ModProfile.SaveProfile(); // 保存档案配置，确保切换后的档案被正确保存
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.McLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginMsLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginAuthLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginLegacyLoader.State = ModBase.LoadState.Waiting;
 
         ModBase.RunInUi(() =>
         {
-            ModMain.FrmLaunchLeft.RefreshPage(true);
-            ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
+            ModMain.frmLaunchLeft.RefreshPage(true);
+            ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
         });
     }
 
@@ -135,7 +135,7 @@ public partial class PageLoginProfile
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
         btnDelete.Click += DeleteProfile;
         // 根据档案类型显示不同的菜单项
-        if (((ModProfile.McProfile)sender.Tag).Type == ModLaunch.McLoginType.Legacy)
+        if (((ModProfile.McProfile)sender.Tag).type == ModLaunch.McLoginType.Legacy)
             sender.Buttons = new[] { btnEditUuid, btnDelete };
         else
             sender.Buttons = new[] { btnCopyUuid, btnDelete };
@@ -159,14 +159,14 @@ public partial class PageLoginProfile
 
     private void CopyProfileUuid(object sender, EventArgs e)
     {
-        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) ModBase.ClipboardSet(profile.Uuid);
+        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) ModBase.ClipboardSet(profile.uuid);
     }
 
     // 编辑验证服务器名称
     private void EditProfileServer(object sender, EventArgs e)
     {
         var profile = (ModProfile.McProfile)((MyIconButton)sender).Tag;
-        string name = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"), Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.ServerName);
+        string name = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"), Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.serverName);
         if (name is not null) ModProfile.EditAuthServerName(profile, name);
     }
 

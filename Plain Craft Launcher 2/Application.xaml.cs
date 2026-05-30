@@ -18,7 +18,7 @@ namespace PCL;
 
 public partial class Application
 {
-    public static readonly List<Border> ShowingTooltips = new();
+    public static readonly List<Border> showingTooltips = new();
 
     public Application()
     {
@@ -58,11 +58,11 @@ public partial class Application
             }
 
             // 初始化文件结构
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Pictures");
-            Directory.CreateDirectory(ModBase.ExePath + @"PCL\Musics");
-            Directory.CreateDirectory(Path.Combine(ModBase.PathTemp, "Cache"));
-            Directory.CreateDirectory(Path.Combine(ModBase.PathTemp, "Download"));
-            Directory.CreateDirectory(ModBase.PathAppdata);
+            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");
+            Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
+            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Cache"));
+            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Download"));
+            Directory.CreateDirectory(ModBase.pathAppdata);
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
                 new FrameworkPropertyMetadata(300));
@@ -79,8 +79,8 @@ public partial class Application
             // 设置初始窗口
             if (Config.Preference.ShowStartupLogo)
             {
-                ModMain.FrmStart = new SplashScreen(@"Images\icon.ico");
-                ModMain.FrmStart.Show(false, true);
+                ModMain.frmStart = new SplashScreen(@"Images\icon.ico");
+                ModMain.frmStart.Show(false, true);
             }
 
             // 检测异常环境
@@ -90,10 +90,10 @@ public partial class Application
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
             if (SystemInfo.Is32BitSystem)
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
-            if (ModBase.ExePath.Contains(Path.GetTempPath()) || ModBase.ExePath.Contains(@"AppData\Local\Temp\"))
+            if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
-            if (ModBase.ExePath.ContainsF("wechat_files", true) || ModBase.ExePath.ContainsF("WeChat Files", true) ||
-                ModBase.ExePath.ContainsF("Tencent Files", true))
+            if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
+                ModBase.exePath.ContainsF("Tencent Files", true))
                 problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
             if (problemList.Count != 0)
                 ModMain.MyMsgBox(
@@ -112,27 +112,27 @@ public partial class Application
             _ = Config.Preference.Font;
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
-                updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")
+                updateBranchCfg.SetValue(ModBase.versionBaseName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
-                var oldLogFile = $@"{ModBase.ExePath}PCL\Log-CE{i}.log";
+                var oldLogFile = $@"{ModBase.exePath}PCL\Log-CE{i}.log";
                 if (File.Exists(oldLogFile))
                     File.Delete(oldLogFile);
             }
 
             // 计时
-            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.ApplicationStartTick) + " ms");
-            ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
+            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
+            ModBase.applicationStartTick = TimeUtils.GetTimeTick();
             ModAnimation.AniControlEnabled += 1;
         }
         catch (Exception ex)
         {
-            var FilePath = Basics.ExecutablePath;
+            var filePath = Basics.ExecutablePath;
             MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
-                    string.IsNullOrEmpty(FilePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : FilePath),
+                    string.IsNullOrEmpty(filePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : filePath),
                 Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);
             FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
         }
@@ -141,7 +141,7 @@ public partial class Application
     // 结束
     private void Application_SessionEnding(object sender, SessionEndingCancelEventArgs e)
     {
-        ModMain.FrmMain.EndProgram(false);
+        ModMain.frmMain.EndProgram(false);
     }
 
 // Error handling for unhandled exceptions
@@ -150,7 +150,7 @@ public partial class Application
         try
         {
             e.Handled = true;
-            if (ModBase.IsProgramEnded) return;
+            if (ModBase.isProgramEnded) return;
 
             ModBase.FeedbackInfo();
 
@@ -188,12 +188,12 @@ public partial class Application
 
     private void TooltipLoaded(object sender, EventArgs e)
     {
-        ShowingTooltips.Add((Border)sender);
+        showingTooltips.Add((Border)sender);
     }
 
     private void TooltipUnloaded(object sender, RoutedEventArgs e)
     {
-        ShowingTooltips.Remove((Border)sender);
+        showingTooltips.Remove((Border)sender);
     }
 
     // 自定义监听器类

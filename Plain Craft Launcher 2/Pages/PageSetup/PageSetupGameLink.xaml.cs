@@ -9,9 +9,9 @@ namespace PCL;
 
 public partial class PageSetupGameLink
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupGameLink()
     {
@@ -29,9 +29,9 @@ public partial class PageSetupGameLink
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();

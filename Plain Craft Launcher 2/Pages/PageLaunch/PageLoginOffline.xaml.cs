@@ -19,7 +19,7 @@ public partial class PageLoginOffline
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
     private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
@@ -39,50 +39,50 @@ public partial class PageLoginOffline
     private void BtnLogin_Click(object sender, EventArgs e)
     {
         // 玩家 ID 输入检查
-        var Username = TextName.Text;
-        var UsernameValidateResult = new RegexValidator("^[A-z0-9_]{3,16}$").Validate(Username);
-        if (!UsernameValidateResult.IsValid)
+        var username = TextName.Text;
+        var usernameValidateResult = new RegexValidator("^[A-z0-9_]{3,16}$").Validate(username);
+        if (!usernameValidateResult.IsValid)
                 if (ModMain.MyMsgBox(
                         Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
                         Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true, ForceWait: true) == 2)
                 return;
         // UUID
-        string UserUuid = null;
+        string userUuid = null;
         if (RadioUuidCustom.Checked)
         {
             // 自定义输入检查
-            var UuidInput = TextUuid.Text.Replace("-", "");
-            var UuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(UuidInput);
-            if (RadioUuidCustom.Checked && !UuidValidateResult.IsValid)
+            var uuidInput = TextUuid.Text.Replace("-", "");
+            var uuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(uuidInput);
+            if (RadioUuidCustom.Checked && !uuidValidateResult.IsValid)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", UuidValidateResult), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), ModMain.HintType.Critical);
                 return;
             }
 
-            UserUuid = UuidInput;
+            userUuid = uuidInput;
         }
         else if (RadioUuidLegacy.Checked)
         {
-            UserUuid = ModProfile.GetOfflineUuid(Username, isLegacy: true);
+            userUuid = ModProfile.GetOfflineUuid(username, isLegacy: true);
         }
         else
         {
-            UserUuid = ModProfile.GetOfflineUuid(Username);
+            userUuid = ModProfile.GetOfflineUuid(username);
         }
 
         // 创建档案
-        var NewProfile = new ModProfile.McProfile
+        var newProfile = new ModProfile.McProfile
         {
-            Type = ModLaunch.McLoginType.Legacy,
-            Uuid = UserUuid,
-            Username = Username,
-            Desc = ""
+            type = ModLaunch.McLoginType.Legacy,
+            uuid = userUuid,
+            username = username,
+            desc = ""
         };
-        ModProfile.ProfileList.Add(NewProfile);
+        ModProfile.profileList.Add(newProfile);
         ModProfile.SaveProfile();
-        ModProfile.SelectedProfile = NewProfile;
-        ModProfile.IsCreatingProfile = false;
+        ModProfile.selectedProfile = newProfile;
+        ModProfile.isCreatingProfile = false;
         ModMain.Hint(Lang.Text("Launch.Account.Profile.Created"), ModMain.HintType.Finish);
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 }

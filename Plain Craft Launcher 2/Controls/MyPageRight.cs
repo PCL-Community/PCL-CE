@@ -23,21 +23,21 @@ public class MyPageRight : AdornerDecorator
         PageExit // 切换页面导致的全部退出动画
     }
 
-    private static readonly DependencyProperty PanScrollProperty =
+    private static readonly DependencyProperty panScrollProperty =
     DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
 
     private PageStates _PageState = PageStates.Empty;
 
     private bool _panScrollNullWarned;
 
-    public int PageUuid = ModBase.GetUuid();
+    public int pageUuid = ModBase.GetUuid();
 
     // “返回顶部” 按钮检测的滚动区域
     public MyScrollViewer PanScroll
     {
         get
         {
-            var res = GetValue((DependencyProperty)PanScrollProperty);
+            var res = GetValue((DependencyProperty)panScrollProperty);
             if (res is null && !_panScrollNullWarned)
             {
                 _panScrollNullWarned = true;
@@ -46,7 +46,7 @@ public class MyPageRight : AdornerDecorator
 
             return (MyScrollViewer)res;
         }
-        set => SetValue(PanScrollProperty, value);
+        set => SetValue(panScrollProperty, value);
     }
 
     public PageStates PageState
@@ -57,20 +57,20 @@ public class MyPageRight : AdornerDecorator
             if (_PageState == value)
                 return;
             _PageState = value;
-            if (ModBase.ModeDebug)
+            if (ModBase.modeDebug)
                 ModBase.Log("[UI] 页面状态切换为 " + ModBase.GetStringFromEnum(value));
         }
     }
 
     #region 加载器
 
-    private ModLoader.LoaderBase PageLoader;
-    private Func<object>? PageLoaderInputInvoke;
-    private MyLoading? PageLoaderUi;
-    private FrameworkElement PanLoader;
-    private FrameworkElement PanContent;
-    private FrameworkElement? PanAlways;
-    private bool PageLoaderAutoRun;
+    private ModLoader.LoaderBase pageLoader;
+    private Func<object>? pageLoaderInputInvoke;
+    private MyLoading? pageLoaderUi;
+    private FrameworkElement panLoader;
+    private FrameworkElement panContent;
+    private FrameworkElement? panAlways;
+    private bool pageLoaderAutoRun;
 
     // 初始化
     /// <summary>
@@ -87,49 +87,49 @@ public class MyPageRight : AdornerDecorator
         Func<object>? InputInvoke = null, bool AutoRun = true)
     {
         // 初始化参数
-        this.PanLoader = PanLoader;
-        this.PanContent = PanContent;
-        this.PanAlways = PanAlways;
-        PageLoader = RealLoader;
-        PageLoaderUi = LoaderUi;
-        PageLoaderInputInvoke = InputInvoke;
-        PageLoaderAutoRun = AutoRun;
+        this.panLoader = PanLoader;
+        this.panContent = PanContent;
+        this.panAlways = PanAlways;
+        pageLoader = RealLoader;
+        pageLoaderUi = LoaderUi;
+        pageLoaderInputInvoke = InputInvoke;
+        pageLoaderAutoRun = AutoRun;
         // 添加结束 Invoke
         if (FinishedInvoke is not null)
-            RealLoader.PreviewFinish += _ =>
+            RealLoader.previewFinish += _ =>
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
                 ModBase.RunInUiWait(() => FinishedInvoke(RealLoader));
                 Thread.Sleep(20); // 由于大量初始化控件会导致掉帧，延迟触发 State 改变事件
             };
-        RealLoader.OnStateChangedUi += (Loader, NewState, OldState) =>
+        RealLoader.onStateChangedUi += (Loader, NewState, OldState) =>
             ModBase.RunInUi(() => PageLoaderState(Loader, NewState, OldState));
         // 隐藏 UI
         PanLoader.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Collapsed;
         PanAlways?.Visibility = Visibility.Collapsed;
         // 初次运行加载器
-        if (PageLoaderAutoRun)
+        if (pageLoaderAutoRun)
         {
-            if (PageLoader is ModLoader.LoaderTask task)
+            if (pageLoader is ModLoader.LoaderTask task)
             {
-                task.Start(task.StartGetInputNoType(null, PageLoaderInputInvoke));
+                task.Start(task.StartGetInputNoType(null, pageLoaderInputInvoke));
             }
             else
             {
-                object? Input = null;
-                if (PageLoaderInputInvoke is not null)
-                    Input = PageLoaderInputInvoke();
-                PageLoader.Start(Input);
+                object? input = null;
+                if (pageLoaderInputInvoke is not null)
+                    input = pageLoaderInputInvoke();
+                pageLoader.Start(input);
             }
         }
 
-        if (PageLoader.State == ModBase.LoadState.Finished && FinishedInvoke is not null)
+        if (pageLoader.State == ModBase.LoadState.Finished && FinishedInvoke is not null)
             ModBase.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
-        PageLoaderUi.State = RealLoader;
-        PageLoaderUi.Click += (_, _) =>
+        pageLoaderUi.State = RealLoader;
+        pageLoaderUi.Click += (_, _) =>
         {
             if (RealLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件
@@ -138,17 +138,17 @@ public class MyPageRight : AdornerDecorator
     // 重试
     public void PageLoaderRestart(object Input = null, bool IsForceRestart = true) // 由外部调用的重试
     {
-        if (!PageLoaderAutoRun)
+        if (!pageLoaderAutoRun)
             return;
-        if (PageLoader is LoaderTask task)
+        if (pageLoader is LoaderTask task)
         {
-            PageLoader.Start(task.StartGetInputNoType(Input, PageLoaderInputInvoke), IsForceRestart);
+            pageLoader.Start(task.StartGetInputNoType(Input, pageLoaderInputInvoke), IsForceRestart);
         }
         else
         {
-            if (Input is null && PageLoaderInputInvoke is not null)
-                Input = PageLoaderInputInvoke;
-            PageLoader.Start(Input, IsForceRestart);
+            if (Input is null && pageLoaderInputInvoke is not null)
+                Input = pageLoaderInputInvoke;
+            pageLoader.Start(Input, IsForceRestart);
         }
     }
 
@@ -163,30 +163,30 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnEnter()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnEnter");
-        PageEnter?.Invoke();
+        pageEnter?.Invoke();
         switch (PageState)
         {
             case PageStates.Empty:
             {
-                if (PageLoader is null || PageLoader.State == ModBase.LoadState.Finished ||
-                    PageLoader.State == ModBase.LoadState.Waiting || PageLoader.State == ModBase.LoadState.Aborted)
+                if (pageLoader is null || pageLoader.State == ModBase.LoadState.Finished ||
+                    pageLoader.State == ModBase.LoadState.Waiting || pageLoader.State == ModBase.LoadState.Aborted)
                 {
                     // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
                     PageState = PageStates.ContentEnter;
-                    TriggerEnterAnimation(PanAlways, (FrameworkElement)(PanContent ?? Child));
+                    TriggerEnterAnimation(panAlways, (FrameworkElement)(panContent ?? Child));
                 }
-                else if (PageLoader.State == ModBase.LoadState.Loading)
+                else if (pageLoader.State == ModBase.LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
-                        "PageRight PageChange " + PageUuid);
+                        "PageRight PageChange " + pageUuid);
                 }
                 else // PageLoader.State = LoadState.Failed
                 {
                     PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(PanAlways, PanLoader);
+                    TriggerEnterAnimation(panAlways, panLoader);
                 }
 
                 break;
@@ -194,22 +194,22 @@ public class MyPageRight : AdornerDecorator
             case PageStates.ContentExit:
             {
                 // 和上面的一样，但是不管 PanAlways
-                if (PageLoader is null || PageLoader.State == ModBase.LoadState.Finished ||
-                    PageLoader.State == ModBase.LoadState.Waiting || PageLoader.State == ModBase.LoadState.Aborted)
+                if (pageLoader is null || pageLoader.State == ModBase.LoadState.Finished ||
+                    pageLoader.State == ModBase.LoadState.Waiting || pageLoader.State == ModBase.LoadState.Aborted)
                 {
                     PageState = PageStates.ContentEnter;
-                    TriggerEnterAnimation((FrameworkElement)(PanContent ?? Child));
+                    TriggerEnterAnimation((FrameworkElement)(panContent ?? Child));
                 }
-                else if (PageLoader.State == ModBase.LoadState.Loading)
+                else if (pageLoader.State == ModBase.LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400),
-                        "PageRight PageChange " + PageUuid);
+                        "PageRight PageChange " + pageUuid);
                 }
                 else // PageLoader.State = LoadState.Failed
                 {
                     PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(PanLoader);
+                    TriggerEnterAnimation(panLoader);
                 }
 
                 break;
@@ -226,7 +226,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageEnterEventHandler? PageEnter;
+    public event PageEnterEventHandler? pageEnter;
 
     public delegate void PageEnterEventHandler();
 
@@ -236,16 +236,16 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnExit()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnExit");
-        PageExit?.Invoke();
+        pageExit?.Invoke();
         switch (PageState)
         {
             case PageStates.ContentEnter:
             case PageStates.ContentStay:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(PanAlways, (FrameworkElement)(PanContent ?? Child));
+                TriggerExitAnimation(panAlways, (FrameworkElement)(panContent ?? Child));
                 break;
             }
             case PageStates.LoaderEnter:
@@ -253,21 +253,21 @@ public class MyPageRight : AdornerDecorator
             case PageStates.LoaderStay:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(PanAlways, PanLoader);
+                TriggerExitAnimation(panAlways, panLoader);
                 break;
             }
             case PageStates.LoaderWait:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(PanAlways);
+                TriggerExitAnimation(panAlways);
                 break;
             }
             case PageStates.LoaderExit:
             case PageStates.ContentExit:
             {
                 PageState = PageStates.PageExit;
-                if (PanAlways is not null)
-                    TriggerExitAnimation(PanAlways, (FrameworkElement)(PanContent ?? Child));
+                if (panAlways is not null)
+                    TriggerExitAnimation(panAlways, (FrameworkElement)(panContent ?? Child));
                 break;
             }
             case PageStates.PageExit:
@@ -278,7 +278,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageExitEventHandler? PageExit;
+    public event PageExitEventHandler? pageExit;
 
     public delegate void PageExitEventHandler();
 
@@ -290,21 +290,21 @@ public class MyPageRight : AdornerDecorator
     {
         if (PageState == PageStates.Empty)
             return;
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnForceExit");
         PageState = PageStates.Empty;
-        ModAnimation.AniStop("PageRight PageChange " + PageUuid);
+        ModAnimation.AniStop("PageRight PageChange " + pageUuid);
         // 由于动画会被强制中止，所以需要手动进行隐藏
-        if (PageLoader is null && Child is not null)
+        if (pageLoader is null && Child is not null)
         {
             Child.Visibility = Visibility.Collapsed;
         }
         else
         {
-            PanContent.Visibility = Visibility.Collapsed;
-            PanLoader.Visibility = Visibility.Collapsed;
-            if (PanAlways is not null)
-                PanAlways.Visibility = Visibility.Collapsed;
+            panContent.Visibility = Visibility.Collapsed;
+            panLoader.Visibility = Visibility.Collapsed;
+            if (panAlways is not null)
+                panAlways.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -314,9 +314,9 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     public void PageOnContentExit()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnContentExit");
-        if (PageLoader is not null && PageLoader.State == ModBase.LoadState.Loading)
+        if (pageLoader is not null && pageLoader.State == ModBase.LoadState.Loading)
             throw new Exception("在调用 PageOnContentExit 时，加载器不能为 Loading 状态");
         // Loading 的加载器可能触发进一步变化，难以预测会触发子页面的动画还是加载器完成的动画
         switch (PageState)
@@ -325,7 +325,7 @@ public class MyPageRight : AdornerDecorator
             case PageStates.ContentStay:
             {
                 PageState = PageStates.ContentExit;
-                TriggerExitAnimation(PanContent);
+                TriggerExitAnimation(panContent);
                 break;
             }
             case PageStates.LoaderExit:
@@ -338,7 +338,7 @@ public class MyPageRight : AdornerDecorator
             case PageStates.LoaderStay:
             {
                 PageState = PageStates.ContentExit;
-                TriggerExitAnimation(PanLoader);
+                TriggerExitAnimation(panLoader);
                 break;
             }
             case PageStates.LoaderWait:
@@ -357,7 +357,7 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnEnterAnimationFinished()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnEnterAnimationFinished");
         switch (PageState)
         {
@@ -370,7 +370,7 @@ public class MyPageRight : AdornerDecorator
             {
                 PageState = PageStates.LoaderStayForce;
                 ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderStayFinished, 400),
-                    "PageRight PageChange " + PageUuid);
+                    "PageRight PageChange " + pageUuid);
                 break;
             }
 
@@ -388,7 +388,7 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnExitAnimationFinished()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnExitAnimationFinished");
         switch (PageState)
         {
@@ -405,7 +405,7 @@ public class MyPageRight : AdornerDecorator
             case PageStates.LoaderExit:
             {
                 PageState = PageStates.ContentEnter;
-                TriggerEnterAnimation(PanContent);
+                TriggerEnterAnimation(panContent);
                 break;
             }
 
@@ -423,17 +423,17 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnLoaderWaitFinished()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnLoaderWaitFinished");
         switch (PageState)
         {
             case PageStates.LoaderWait:
             {
                 PageState = PageStates.LoaderEnter;
-                if (PanAlways is not null && PanAlways.Visibility == Visibility.Collapsed)
-                    TriggerEnterAnimation(PanAlways, PanLoader);
+                if (panAlways is not null && panAlways.Visibility == Visibility.Collapsed)
+                    TriggerEnterAnimation(panAlways, panLoader);
                 else
-                    TriggerEnterAnimation(PanLoader);
+                    TriggerEnterAnimation(panLoader);
 
                 break;
             }
@@ -452,16 +452,16 @@ public class MyPageRight : AdornerDecorator
     /// </summary>
     private void PageOnLoaderStayFinished()
     {
-        if (ModBase.ModeDebug)
+        if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnLoaderStayFinished");
         switch (PageState)
         {
             case PageStates.LoaderStayForce:
             {
-                if (PageLoader.State == ModBase.LoadState.Finished)
+                if (pageLoader.State == ModBase.LoadState.Finished)
                 {
                     PageState = PageStates.LoaderExit;
-                    TriggerExitAnimation(PanLoader);
+                    TriggerExitAnimation(panLoader);
                 }
                 else
                 {
@@ -491,7 +491,7 @@ public class MyPageRight : AdornerDecorator
             {
                 if (OldState == ModBase.LoadState.Failed || OldState == ModBase.LoadState.Loading)
                     return;
-                if (ModBase.ModeDebug)
+                if (ModBase.modeDebug)
                     ModBase.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
                 // （重新）开始运行
                 // 需要从部分状态切换到 ReloadExit
@@ -501,7 +501,7 @@ public class MyPageRight : AdornerDecorator
                     case PageStates.ContentStay:
                     {
                         PageState = PageStates.ContentExit;
-                        TriggerExitAnimation(PanContent);
+                        TriggerExitAnimation(panContent);
                         break;
                     }
                     case PageStates.LoaderExit:
@@ -519,7 +519,7 @@ public class MyPageRight : AdornerDecorator
             {
                 if (OldState != ModBase.LoadState.Failed && OldState != ModBase.LoadState.Loading)
                     return;
-                if (ModBase.ModeDebug)
+                if (ModBase.modeDebug)
                     ModBase.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
                 // 运行结束
                 // 需要从 LoaderWait 切换到 ContentEnter，或从 LoaderStay 切换到 LoaderExit
@@ -528,17 +528,17 @@ public class MyPageRight : AdornerDecorator
                     case PageStates.LoaderWait:
                     {
                         PageState = PageStates.ContentEnter;
-                        if (PanAlways is not null && PanAlways.Visibility == Visibility.Collapsed)
-                            TriggerEnterAnimation(PanAlways, PanContent);
+                        if (panAlways is not null && panAlways.Visibility == Visibility.Collapsed)
+                            TriggerEnterAnimation(panAlways, panContent);
                         else
-                            TriggerEnterAnimation(PanContent);
+                            TriggerEnterAnimation(panContent);
 
                         break;
                     }
                     case PageStates.LoaderStay:
                     {
                         PageState = PageStates.LoaderExit;
-                        TriggerExitAnimation(PanLoader);
+                        TriggerExitAnimation(panLoader);
                         break;
                     }
                 }
@@ -555,13 +555,13 @@ public class MyPageRight : AdornerDecorator
     // 逐个进入动画
     public void TriggerEnterAnimation(params FrameworkElement[] Elements)
     {
-        var RealElements = Elements.Where(e => e is not null);
-        foreach (var Element in RealElements)
+        var realElements = Elements.Where(e => e is not null);
+        foreach (var Element in realElements)
             Element.Visibility = Visibility.Visible; // 页面均处于默认的隐藏状态
-        var AniList = new List<ModAnimation.AniData>();
-        var Delay = 0;
+        var aniList = new List<ModAnimation.AniData>();
+        var delay = 0;
         // 基础动画
-        foreach (var Element in RealElements)
+        foreach (var Element in realElements)
         {
             foreach (var Control in GetAllAnimControls(Element, true))
             {
@@ -580,37 +580,37 @@ public class MyPageRight : AdornerDecorator
                 {
                     Control.Opacity = 0d;
                     Control.RenderTransform = new TranslateTransform(0d, -16);
-                    AniList.Add(ModAnimation.AaOpacity(Control, 1d, 100, Delay,
+                    aniList.Add(ModAnimation.AaOpacity(Control, 1d, 100, delay,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-                    AniList.Add(ModAnimation.AaTranslateY(Control, 5d, 250, Delay,
+                    aniList.Add(ModAnimation.AaTranslateY(Control, 5d, 250, delay,
                         new ModAnimation.AniEaseOutFluent()));
-                    AniList.Add(ModAnimation.AaTranslateY(Control, 11d, 350, Delay, new ModAnimation.AniEaseOutBack()));
-                    Delay += 25;
+                    aniList.Add(ModAnimation.AaTranslateY(Control, 11d, 350, delay, new ModAnimation.AniEaseOutBack()));
+                    delay += 25;
                 }
         }
 
         // 滚动条动画
-        var Scroll = GetFirstScrollViewer(RealElements);
-        if (Scroll is not null)
+        var scroll = GetFirstScrollViewer(realElements);
+        if (scroll is not null)
         {
-            if (Scroll.RenderTransform is not TranslateTransform)
-                Scroll.RenderTransform = new TranslateTransform(10d, 0d);
-            AniList.Add(ModAnimation.AaTranslateX(Scroll, -((TranslateTransform)Scroll.RenderTransform).X, 350, 0,
+            if (scroll.RenderTransform is not TranslateTransform)
+                scroll.RenderTransform = new TranslateTransform(10d, 0d);
+            aniList.Add(ModAnimation.AaTranslateX(scroll, -((TranslateTransform)scroll.RenderTransform).X, 350, 0,
                 new ModAnimation.AniEaseOutFluent()));
         }
 
         // 结束
-        AniList.Add(ModAnimation.AaCode(() => PageOnEnterAnimationFinished(), After: true));
-        ModAnimation.AniStart(AniList, "PageRight PageChange " + PageUuid, true);
+        aniList.Add(ModAnimation.AaCode(() => PageOnEnterAnimationFinished(), After: true));
+        ModAnimation.AniStart(aniList, "PageRight PageChange " + pageUuid, true);
     }
 
     // 逐个退出动画
     public void TriggerExitAnimation(params FrameworkElement[] Elements)
     {
-        var RealElements = Elements.Where(e => e is not null);
-        var AniList = new List<ModAnimation.AniData>();
-        var Delay = 0;
-        foreach (var Element in RealElements)
+        var realElements = Elements.Where(e => e is not null);
+        var aniList = new List<ModAnimation.AniData>();
+        var delay = 0;
+        foreach (var Element in realElements)
         foreach (var Control in GetAllAnimControls(Element))
             if (Control is MyExtraTextButton)
             {
@@ -619,44 +619,44 @@ public class MyPageRight : AdornerDecorator
             else
             {
                 Control.IsHitTestVisible = false;
-                AniList.Add(ModAnimation.AaOpacity(Control, -1, 70, Delay));
-                AniList.Add(ModAnimation.AaTranslateY(Control, -6, 70, Delay));
-                Delay += 15;
+                aniList.Add(ModAnimation.AaOpacity(Control, -1, 70, delay));
+                aniList.Add(ModAnimation.AaTranslateY(Control, -6, 70, delay));
+                delay += 15;
             }
 
         // 滚动条动画
-        var Scroll = GetFirstScrollViewer(RealElements);
-        if (Scroll is not null)
+        var scroll = GetFirstScrollViewer(realElements);
+        if (scroll is not null)
         {
-            if (Scroll.RenderTransform is not TranslateTransform)
-                Scroll.RenderTransform = new TranslateTransform();
-            AniList.Add(ModAnimation.AaTranslateX(Scroll, 10d - ((TranslateTransform)Scroll.RenderTransform).X, 90, 0,
+            if (scroll.RenderTransform is not TranslateTransform)
+                scroll.RenderTransform = new TranslateTransform();
+            aniList.Add(ModAnimation.AaTranslateX(scroll, 10d - ((TranslateTransform)scroll.RenderTransform).X, 90, 0,
                 new ModAnimation.AniEaseInFluent()));
         }
 
         // 结束
-        AniList.Add(ModAnimation.AaCode(() =>
+        aniList.Add(ModAnimation.AaCode(() =>
         {
-            foreach (var Element in RealElements)
+            foreach (var Element in realElements)
                 Element.Visibility = Visibility.Collapsed;
             PageOnExitAnimationFinished();
         }, After: true));
-        ModAnimation.AniStart(AniList, "PageRight PageChange " + PageUuid);
+        ModAnimation.AniStart(aniList, "PageRight PageChange " + pageUuid);
     }
 
     /// <summary>
     ///     禁用页面切换动画的控件列表。
     /// </summary>
-    public List<FrameworkElement> DisabledPageAnimControls = new();
+    public List<FrameworkElement> disabledPageAnimControls = new();
 
     /// <summary>
     ///     遍历获取所有需要生成动画的控件。
     /// </summary>
     internal IEnumerable<FrameworkElement> GetAllAnimControls(FrameworkElement Element, bool IgnoreInvisibility = false)
     {
-        var AllControls = new List<FrameworkElement>();
-        _GetAllAnimControls(Element, ref AllControls, IgnoreInvisibility);
-        return AllControls.Except(DisabledPageAnimControls);
+        var allControls = new List<FrameworkElement>();
+        _GetAllAnimControls(Element, ref allControls, IgnoreInvisibility);
+        return allControls.Except(disabledPageAnimControls);
     }
 
     private void _GetAllAnimControls(FrameworkElement Element, ref List<FrameworkElement> AllControls,
@@ -671,9 +671,9 @@ public class MyPageRight : AdornerDecorator
         }
         else if (Element is ContentControl)
         {
-                var Content = ((ContentControl)Element).Content;
-                if (Content is FrameworkElement)
-                    _GetAllAnimControls((FrameworkElement)Content, ref AllControls, IgnoreInvisibility);
+                var content = ((ContentControl)Element).Content;
+                if (content is FrameworkElement)
+                    _GetAllAnimControls((FrameworkElement)content, ref AllControls, IgnoreInvisibility);
         }
         else if (Element is Panel)
         {
@@ -692,7 +692,7 @@ public class MyPageRight : AdornerDecorator
             {
                 if (Viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
                     continue;
-                return Viewer.ScrollBar;
+                return Viewer.scrollBar;
             }
 
             foreach (var Control in LogicalTreeHelper.GetChildren(Element))
@@ -700,7 +700,7 @@ public class MyPageRight : AdornerDecorator
                 {
                     if (ChildViewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
                         return null;
-                    return ChildViewer.ScrollBar;
+                    return ChildViewer.scrollBar;
                 }
         }
 

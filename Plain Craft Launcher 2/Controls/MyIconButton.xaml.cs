@@ -20,8 +20,8 @@ public partial class MyIconButton
     }
 
     // 务必放在 IsMouseDown 更新之后
-    private const int AnimationColorIn = 120;
-    private const int AnimationColorOut = 150;
+    private const int animationColorIn = 120;
+    private const int animationColorOut = 150;
 
     private SolidColorBrush _Foreground = new(Color.FromRgb(128, 128, 128));
 
@@ -29,7 +29,7 @@ public partial class MyIconButton
 
     // 自定义属性
 
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyIconButton()
     {
@@ -82,7 +82,7 @@ public partial class MyIconButton
     // 自定义事件
     public event ClickEventHandler? Click;
 
-    private string ColorAnimationKey => "MyIconButton Color " + Uuid;
+    private string ColorAnimationKey => "MyIconButton Color " + uuid;
 
     private static ModBase.MyColor GetTransparentBackground()
     {
@@ -116,25 +116,25 @@ public partial class MyIconButton
         switch (Theme)
         {
             case Themes.Color:
-                animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty, "ColorBrush2", AnimationColorIn));
+                animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty, "ColorBrush2", animationColorIn));
                 break;
             case Themes.White:
                 animations.Add(ModAnimation.AaColor(PanBack, BackgroundProperty,
-                    new ModBase.MyColor(50d, 255d, 255d, 255d) - PanBack.Background, AnimationColorIn));
+                    new ModBase.MyColor(50d, 255d, 255d, 255d) - PanBack.Background, animationColorIn));
                 break;
             case Themes.Red:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                    new ModBase.MyColor(255d, 76d, 76d) - Path.Fill, AnimationColorIn));
+                    new ModBase.MyColor(255d, 76d, 76d) - Path.Fill, animationColorIn));
                 break;
             case Themes.Black:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
                     (ThemeManager.IsDarkMode
                         ? new ModBase.MyColor(230d, 255d, 255d, 255d)
-                        : new ModBase.MyColor(230d, 0d, 0d, 0d)) - Path.Fill, AnimationColorIn));
+                        : new ModBase.MyColor(230d, 0d, 0d, 0d)) - Path.Fill, animationColorIn));
                 break;
             case Themes.Custom:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                    new ModBase.MyColor(255d, Foreground) - Path.Fill, AnimationColorIn));
+                    new ModBase.MyColor(255d, Foreground) - Path.Fill, animationColorIn));
                 break;
         }
 
@@ -147,30 +147,30 @@ public partial class MyIconButton
         switch (Theme)
         {
             case Themes.Color:
-                animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty, "ColorBrush4", AnimationColorOut));
+                animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty, "ColorBrush4", animationColorOut));
                 PanBack.Background = GetTransparentBackground();
                 break;
             case Themes.White:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                    new ModBase.MyColor(234d, 242d, 254d), AnimationColorOut));
+                    new ModBase.MyColor(234d, 242d, 254d), animationColorOut));
                 animations.Add(ModAnimation.AaColor(PanBack, BackgroundProperty,
-                    GetTransparentBackground() - PanBack.Background, AnimationColorOut));
+                    GetTransparentBackground() - PanBack.Background, animationColorOut));
                 break;
             case Themes.Red:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                    new ModBase.MyColor(160d, 255d, 76d, 76d) - Path.Fill, AnimationColorOut));
+                    new ModBase.MyColor(160d, 255d, 76d, 76d) - Path.Fill, animationColorOut));
                 PanBack.Background = GetTransparentBackground();
                 break;
             case Themes.Black:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
                     (ThemeManager.IsDarkMode
                         ? new ModBase.MyColor(160d, 255d, 255d, 255d)
-                        : new ModBase.MyColor(160d, 0d, 0d, 0d)) - Path.Fill, AnimationColorOut));
+                        : new ModBase.MyColor(160d, 0d, 0d, 0d)) - Path.Fill, animationColorOut));
                 PanBack.Background = GetTransparentBackground();
                 break;
             case Themes.Custom:
                 animations.Add(ModAnimation.AaColor(Path, Shape.FillProperty,
-                    new ModBase.MyColor(160d, Foreground) - Path.Fill, AnimationColorOut));
+                    new ModBase.MyColor(160d, Foreground) - Path.Fill, animationColorOut));
                 PanBack.Background = GetTransparentBackground();
                 break;
         }
@@ -205,10 +205,10 @@ public partial class MyIconButton
     }
 
     //鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-    private bool IsMouseDown = false;
+    private bool isMouseDown = false;
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下图标按钮" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         Click?.Invoke(sender, e);
@@ -219,20 +219,20 @@ public partial class MyIconButton
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
         Focus();
         // 指向
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(PanBack, 0.8d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
                 Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-            "MyIconButton Scale " + Uuid);
+            "MyIconButton Scale " + uuid);
     }
 
     private void Button_MouseUp()
     {
-        if (IsMouseDown)
+        if (isMouseDown)
         {
-            IsMouseDown = false;
+            isMouseDown = false;
             ModAnimation.AniStart(
                 new[]
                 {
@@ -240,7 +240,7 @@ public partial class MyIconButton
                         250, Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaScaleTransform(PanBack, -0.05d, 250,
                         Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-                }, "MyIconButton Scale " + Uuid);
+                }, "MyIconButton Scale " + uuid);
         }
 
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
@@ -248,13 +248,13 @@ public partial class MyIconButton
 
     private void Button_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
         ModAnimation.AniStart(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanBack, 1d - ((ScaleTransform)PanBack.RenderTransform).ScaleX, 250,
                     Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyIconButton Scale " + Uuid);
+            }, "MyIconButton Scale " + uuid);
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -301,6 +301,6 @@ public static partial class ModAnimation
                 if (CallBack is not null)
                     CallBack(Control);
             }, After: true)
-        }, "MyIconButton Dispose " + Control.Uuid);
+        }, "MyIconButton Dispose " + Control.uuid);
     }
 }

@@ -12,14 +12,14 @@ namespace PCL;
 
 public static partial class ModAnimation
 {
-    private static int AniCount;
-    private static int AniFPSCounter;
-    private static long AniFPSTimer;
+    private static int aniCount;
+    private static int aniFPSCounter;
+    private static long aniFPSTimer;
 
     /// <summary>
     ///     当前的动画 FPS。
     /// </summary>
-    public static int AniFPS;
+    public static int aniFPS;
 
     /// <summary>
     ///     开始动画执行。
@@ -27,11 +27,11 @@ public static partial class ModAnimation
     public static void AniStart()
     {
         // 初始化计时器
-        AniLastTick = TimeUtils.GetTimeTick();
-        AniFPSTimer = AniLastTick;
-        AniRunning = true; // 标记动画执行开始
+        aniLastTick = TimeUtils.GetTimeTick();
+        aniFPSTimer = aniLastTick;
+        aniRunning = true; // 标记动画执行开始
 
-        var MinFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
+        var minFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
 
 
         ModBase.RunInNewThread(() =>
@@ -42,42 +42,42 @@ public static partial class ModAnimation
                 while (true)
                 {
                     // 两帧之间的间隔时间
-                    var DeltaTime =
-                        (long)Math.Round(ModBase.MathClamp(TimeUtils.GetTimeTick() - AniLastTick, 0, 100000));
-                    if (DeltaTime < MinFrameGap)
+                    var deltaTime =
+                        (long)Math.Round(ModBase.MathClamp(TimeUtils.GetTimeTick() - aniLastTick, 0, 100000));
+                    if (deltaTime < minFrameGap)
                     {
                         // 限制 FPS
                         Thread.Sleep(1);
                         continue;
                     }
 
-                    AniLastTick = TimeUtils.GetTimeTick();
+                    aniLastTick = TimeUtils.GetTimeTick();
                     // 记录 FPS
-                    if (ModBase.ModeDebug)
+                    if (ModBase.modeDebug)
                     {
-                        if (ModBase.MathClamp(AniLastTick - AniFPSTimer, 0d, 100000d) >= 500d)
+                        if (ModBase.MathClamp(aniLastTick - aniFPSTimer, 0d, 100000d) >= 500d)
                         {
-                            AniFPS = AniFPSCounter;
-                            AniFPSCounter = 0;
-                            AniFPSTimer = AniLastTick;
+                            aniFPS = aniFPSCounter;
+                            aniFPSCounter = 0;
+                            aniFPSTimer = aniLastTick;
                         }
 
-                        AniFPSCounter += 2;
+                        aniFPSCounter += 2;
                     }
 
                     // 执行动画
                     ModBase.RunInUiWait(() =>
                     {
-                        AniCount = 0;
-                        AniTimer((int)Math.Round(DeltaTime * AniSpeed));
+                        aniCount = 0;
+                        AniTimer((int)Math.Round(deltaTime * aniSpeed));
                         // #If DEBUG Then
                         // FrmMain.Title = "F " & AniFPS & ", A " & AniCount & ", R " & NetManage.FileRemain
                         // #Else
                         // If ModeDebug Then FrmMain.Title = "FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManage.FileRemain
                         // #End If
-                        if (RandomUtils.NextInt(0, 64 * (ModBase.ModeDebug ? 5 : 30)) == 0 &&
-                            ((AniFPS < 62 && AniFPS > 0) || AniCount > 4 || ModNet.NetManager.FileRemain != 0))
-                            ModBase.Log("[Report] FPS " + AniFPS + ", 动画 " + AniCount + ", 下载中 " +
+                        if (RandomUtils.NextInt(0, 64 * (ModBase.modeDebug ? 5 : 30)) == 0 &&
+                            ((aniFPS < 62 && aniFPS > 0) || aniCount > 4 || ModNet.NetManager.FileRemain != 0))
+                            ModBase.Log("[Report] FPS " + aniFPS + ", 动画 " + aniCount + ", 下载中 " +
                                         ModNet.NetManager.FileRemain + "（" +
                                         ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
                     });
@@ -100,58 +100,58 @@ public static partial class ModAnimation
     {
         try
         {
-            if (DeltaTick / AniSpeed > 100d)
+            if (DeltaTick / aniSpeed > 100d)
                 ModBase.Log("[Animation] 两个动画帧间隔 " + DeltaTick + " ms", ModBase.LogLevel.Developer);
             var i = -1;
             // 循环每个动画组
-            while (i + 1 < AniGroups.Count)
+            while (i + 1 < aniGroups.Count)
             {
                 i += 1;
                 // 初始化
-                var Entry = AniGroups.Values.ElementAtOrDefault(i);
-                if (Entry.StartTick > AniLastTick)
+                var entry = aniGroups.Values.ElementAtOrDefault(i);
+                if (entry.startTick > aniLastTick)
                     continue; // 跳过本刻之后开始的动画
-                var CanRemoveAfter = true; // 是否应该去除“之后”标记
+                var canRemoveAfter = true; // 是否应该去除“之后”标记
                 var ii = 0;
 
                 // 循环每个动画
-                while (ii < Entry.Data.Count)
+                while (ii < entry.data.Count)
                 {
-                    var Anim = Entry.Data[ii];
+                    var anim = entry.data[ii];
                     // 执行种类
-                    if (!Anim.IsAfter) // 之前
+                    if (!anim.isAfter) // 之前
                     {
-                        CanRemoveAfter = false; // 取消“之后”标记 
+                        canRemoveAfter = false; // 取消“之后”标记 
                         // 增加执行时间
-                        Anim.TimeFinished += DeltaTick;
+                        anim.timeFinished += DeltaTick;
                         // 执行动画
-                        if (Anim.TimeFinished > 0)
+                        if (anim.timeFinished > 0)
                         {
-                            Anim = AniRun(Anim);
-                            AniCount += 1;
+                            anim = AniRun(anim);
+                            aniCount += 1;
                         }
 
                         // 如果当前动画已执行完毕
-                        if (Anim.TimeFinished >= Anim.TimeTotal)
+                        if (anim.timeFinished >= anim.timeTotal)
                         {
                             // 如果是去向颜色资源的动画，设置引用
-                            if (Anim.TypeMain == AniType.Color &&
-                                !string.Equals(((dynamic)Anim.Obj)[2] as string, "", StringComparison.Ordinal))
-                                ((dynamic)Anim.Obj)[0]
-                                    .SetResourceReference(((dynamic)Anim.Obj)[1], ((dynamic)Anim.Obj)[2]);
+                            if (anim.typeMain == AniType.Color &&
+                                !string.Equals(((dynamic)anim.obj)[2] as string, "", StringComparison.Ordinal))
+                                ((dynamic)anim.obj)[0]
+                                    .SetResourceReference(((dynamic)anim.obj)[1], ((dynamic)anim.obj)[2]);
                             // 删除
-                            Entry.Data.RemoveAt(ii);
+                            entry.data.RemoveAt(ii);
                             goto NextAni;
                         }
 
-                        Entry.Data[ii] = Anim;
+                        entry.data[ii] = anim;
                     }
-                    else if (CanRemoveAfter) // 之后
+                    else if (canRemoveAfter) // 之后
                     {
                         // 之后改为之前
-                        CanRemoveAfter = false;
-                        Anim.IsAfter = false;
-                        Entry.Data[ii] = Anim;
+                        canRemoveAfter = false;
+                        anim.isAfter = false;
+                        entry.data[ii] = anim;
                         // 重新循环该动画
                         goto NextAni;
                     }
@@ -166,14 +166,14 @@ public static partial class ModAnimation
                 }
 
                 // 如果当前动画组都执行完毕则删除
-                if (!Entry.Data.Any())
+                if (!entry.data.Any())
                 {
                     // 为了避免新添加的动画影响顺序，不能 RemoveAt(i)
                     // 为了允许动画在执行中添加同名动画组，不能按名字移除
-                    for (int Current = 0, loopTo = AniGroups.Count - 1; Current <= loopTo; Current++)
-                        if (AniGroups.ElementAt(Current).Value.Uuid == Entry.Uuid)
+                    for (int current = 0, loopTo = aniGroups.Count - 1; current <= loopTo; current++)
+                        if (aniGroups.ElementAt(current).Value.uuid == entry.uuid)
                         {
-                            AniGroups.Remove(AniGroups.ElementAt(Current).Key, out _);
+                            aniGroups.Remove(aniGroups.ElementAt(current).Key, out _);
                             break;
                         }
 
@@ -196,100 +196,100 @@ public static partial class ModAnimation
     {
         try
         {
-            switch (Ani.TypeMain)
+            switch (Ani.typeMain)
             {
                 case AniType.Number:
                 {
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
-                        Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
-                    if (Delta != 0d)
-                        switch (Ani.TypeSub)
+                    var delta = ModBase.MathPercent(0d, (double)Ani.value,
+                        Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, Ani.timePercent));
+                    if (delta != 0d)
+                        switch (Ani.typeSub)
                         {
                             case AniTypeSub.X:
                             {
-                                ModBase.DeltaLeft((FrameworkElement)Ani.Obj, Delta);
+                                ModBase.DeltaLeft((FrameworkElement)Ani.obj, delta);
                                 break;
                             }
                             case AniTypeSub.Y:
                             {
-                                ModBase.DeltaTop((FrameworkElement)Ani.Obj, Delta);
+                                ModBase.DeltaTop((FrameworkElement)Ani.obj, delta);
                                 break;
                             }
                             case AniTypeSub.Opacity:
                             {
-                                ((dynamic)Ani.Obj).Opacity = ModBase.MathClamp(
-                                    Convert.ToDouble(((dynamic)Ani.Obj).Opacity) + Delta, 0d, 1d);
+                                ((dynamic)Ani.obj).Opacity = ModBase.MathClamp(
+                                    Convert.ToDouble(((dynamic)Ani.obj).Opacity) + delta, 0d, 1d);
                                 break;
                             }
                             case AniTypeSub.Width:
                             {
-                                var Obj = (FrameworkElement)Ani.Obj;
-                                Obj.Width = Math.Max((double.IsNaN(Obj.Width) ? Obj.ActualWidth : Obj.Width) + Delta,
+                                var obj = (FrameworkElement)Ani.obj;
+                                obj.Width = Math.Max((double.IsNaN(obj.Width) ? obj.ActualWidth : obj.Width) + delta,
                                     0d);
                                 break;
                             }
                             case AniTypeSub.Height:
                             {
-                                var Obj = (FrameworkElement)Ani.Obj;
-                                Obj.Height =
-                                    Math.Max((double.IsNaN(Obj.Height) ? Obj.ActualHeight : Obj.Height) + Delta, 0d);
+                                var obj = (FrameworkElement)Ani.obj;
+                                obj.Height =
+                                    Math.Max((double.IsNaN(obj.Height) ? obj.ActualHeight : obj.Height) + delta, 0d);
                                 break;
                             }
                             case AniTypeSub.Value:
                             {
-                                ((dynamic)Ani.Obj).Value += Delta;
+                                ((dynamic)Ani.obj).Value += delta;
                                 break;
                             }
                             case AniTypeSub.Radius:
                             {
-                                ((dynamic)Ani.Obj).Radius += Delta;
+                                ((dynamic)Ani.obj).Radius += delta;
                                 break;
                             }
                             case AniTypeSub.StrokeThickness:
                             {
-                                ((dynamic)Ani.Obj).StrokeThickness =
-                                    Math.Max(Convert.ToDouble(((dynamic)Ani.Obj).StrokeThickness) + Delta, 0);
+                                ((dynamic)Ani.obj).StrokeThickness =
+                                    Math.Max(Convert.ToDouble(((dynamic)Ani.obj).StrokeThickness) + delta, 0);
                                 break;
                             }
                             case AniTypeSub.BorderThickness:
                             {
-                                ((dynamic)Ani.Obj).BorderThickness =
-                                    new Thickness(((Thickness)((dynamic)Ani.Obj).BorderThickness).Bottom + Delta);
+                                ((dynamic)Ani.obj).BorderThickness =
+                                    new Thickness(((Thickness)((dynamic)Ani.obj).BorderThickness).Bottom + delta);
                                 break;
                             }
                             case AniTypeSub.TranslateX:
                             {
-                                if (((dynamic)Ani.Obj).RenderTransform is null ||
-                                    !(((dynamic)Ani.Obj).RenderTransform is TranslateTransform))
-                                    ((dynamic)Ani.Obj).RenderTransform = new TranslateTransform(0d, 0d);
-                                ((TranslateTransform)((dynamic)Ani.Obj).RenderTransform).X += Delta;
+                                if (((dynamic)Ani.obj).RenderTransform is null ||
+                                    !(((dynamic)Ani.obj).RenderTransform is TranslateTransform))
+                                    ((dynamic)Ani.obj).RenderTransform = new TranslateTransform(0d, 0d);
+                                ((TranslateTransform)((dynamic)Ani.obj).RenderTransform).X += delta;
                                 break;
                             }
                             case AniTypeSub.TranslateY:
                             {
-                                if (((dynamic)Ani.Obj).RenderTransform is null ||
-                                    !(((dynamic)Ani.Obj).RenderTransform is TranslateTransform))
-                                    ((dynamic)Ani.Obj).RenderTransform = new TranslateTransform(0d, 0d);
-                                ((TranslateTransform)((dynamic)Ani.Obj).RenderTransform).Y += Delta;
+                                if (((dynamic)Ani.obj).RenderTransform is null ||
+                                    !(((dynamic)Ani.obj).RenderTransform is TranslateTransform))
+                                    ((dynamic)Ani.obj).RenderTransform = new TranslateTransform(0d, 0d);
+                                ((TranslateTransform)((dynamic)Ani.obj).RenderTransform).Y += delta;
                                 break;
                             }
                             case AniTypeSub.Double:
                             {
-                                ((dynamic)Ani.Obj)[0].SetValue(((dynamic)Ani.Obj)[1],
-                                    Convert.ToDouble(((dynamic)Ani.Obj)[0].GetValue(((dynamic)Ani.Obj)[1])) + Delta);
+                                ((dynamic)Ani.obj)[0].SetValue(((dynamic)Ani.obj)[1],
+                                    Convert.ToDouble(((dynamic)Ani.obj)[0].GetValue(((dynamic)Ani.obj)[1])) + delta);
                                 break;
                             }
                             case AniTypeSub.DoubleParam:
                             {
-                                ((ParameterizedThreadStart)Ani.Obj)(Delta);
+                                ((ParameterizedThreadStart)Ani.obj)(delta);
                                 break;
                             }
                             case AniTypeSub.GridLengthWidth:
                             {
-                                ((dynamic)Ani.Obj).Width =
+                                ((dynamic)Ani.obj).Width =
                                     new GridLength(
                                         Convert.ToDouble(
-                                            Math.Max(Convert.ToDouble(((dynamic)Ani.Obj).Width.Value) + Delta, 0)),
+                                            Math.Max(Convert.ToDouble(((dynamic)Ani.obj).Width.Value) + delta, 0)),
                                         GridUnitType.Star);
                                 break;
                             }
@@ -301,114 +301,114 @@ public static partial class ModAnimation
                 case AniType.Color:
                 {
                     // 利用 Last 记录了余下的小数值
-                    var Delta = ModBase.MathPercent(new ModBase.MyColor(0d, 0d, 0d, 0d), (ModBase.MyColor)Ani.Value,
-                                    Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent)) +
-                                (ModBase.MyColor)Ani.ValueLast;
-                    var Obj = (FrameworkElement)((dynamic)Ani.Obj)[0];
-                    var Prop = (DependencyProperty)((dynamic)Ani.Obj)[1];
-                    var NewColor = new ModBase.MyColor(Obj.GetValue(Prop)) + Delta;
-                    Obj.SetValue(Prop, Prop.PropertyType.Name == "Color" ? (Color)NewColor : (SolidColorBrush)NewColor);
-                    Ani.ValueLast = NewColor - new ModBase.MyColor(Obj.GetValue(Prop));
+                    var delta = ModBase.MathPercent(new ModBase.MyColor(0d, 0d, 0d, 0d), (ModBase.MyColor)Ani.value,
+                                    Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, Ani.timePercent)) +
+                                (ModBase.MyColor)Ani.valueLast;
+                    var obj = (FrameworkElement)((dynamic)Ani.obj)[0];
+                    var prop = (DependencyProperty)((dynamic)Ani.obj)[1];
+                    var newColor = new ModBase.MyColor(obj.GetValue(prop)) + delta;
+                    obj.SetValue(prop, prop.PropertyType.Name == "Color" ? (Color)newColor : (SolidColorBrush)newColor);
+                    Ani.valueLast = newColor - new ModBase.MyColor(obj.GetValue(prop));
                     break;
                 }
 
                 case AniType.Scale:
                 {
-                    var Obj = (FrameworkElement)Ani.Obj;
-                    var Delta = Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent);
-                    Obj.Margin = new Thickness(
-                        Obj.Margin.Left +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
-                        Obj.Margin.Top + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta),
-                        Obj.Margin.Right +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
-                        Obj.Margin.Bottom +
-                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta));
-                    Obj.Width = Math.Max(
-                        Obj.Width + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Width), Delta), 0d);
-                    Obj.Height =
+                    var obj = (FrameworkElement)Ani.obj;
+                    var delta = Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, Ani.timePercent);
+                    obj.Margin = new Thickness(
+                        obj.Margin.Left +
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Left), delta),
+                        obj.Margin.Top + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Top), delta),
+                        obj.Margin.Right +
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Left), delta),
+                        obj.Margin.Bottom +
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Top), delta));
+                    obj.Width = Math.Max(
+                        obj.Width + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Width), delta), 0d);
+                    obj.Height =
                         Math.Max(
-                            Obj.Height + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Height), Delta), 0d);
+                            obj.Height + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.value).Height), delta), 0d);
                     break;
                 }
 
                 case AniType.TextAppear:
                 {
-                    var hideFlag = (bool)((dynamic)Ani.Value)[1];
-                    var textLength = ((dynamic)Ani.Value)[0].ToString().Length;
-                    var TextCount = (int)Math.Round(
+                    var hideFlag = (bool)((dynamic)Ani.value)[1];
+                    var textLength = ((dynamic)Ani.value)[0].ToString().Length;
+                    var textCount = (int)Math.Round(
                         (double)(hideFlag ? textLength : 0) + Math.Round(
                             textLength *
                             (hideFlag ? -1 : 1) *
-                            Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, 0d)));
-                    var originalText = ((dynamic)Ani.Value)[0].ToString();
-                    var NewText = originalText.Substring(0, Math.Min(TextCount, originalText.Length));
+                            Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, 0d)));
+                    var originalText = ((dynamic)Ani.value)[0].ToString();
+                    var newText = originalText.Substring(0, Math.Min(textCount, originalText.Length));
                     // 添加乱码
-                    if (TextCount < originalText.Length)
+                    if (textCount < originalText.Length)
                     {
-                        var NextText = originalText.Substring(TextCount, 1);
-                        if (Convert.ToInt32(Convert.ToChar(NextText)) >= Convert.ToInt32(Convert.ToChar(128)))
-                            NewText += Encoding.GetEncoding("GB18030").GetString(new[]
+                        var nextText = originalText.Substring(textCount, 1);
+                        if (Convert.ToInt32(Convert.ToChar(nextText)) >= Convert.ToInt32(Convert.ToChar(128)))
+                            newText += Encoding.GetEncoding("GB18030").GetString(new[]
                             {
                                 (byte)RandomUtils.NextInt(16 + 160, 87 + 160),
                                 (byte)RandomUtils.NextInt(1 + 160, 89 + 160)
                             });
                         else
-                            NewText += RandomUtils.PickRandom(
+                            newText += RandomUtils.PickRandom(
                                 @"0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
                                     .ToCharArray());
                     }
 
                     // 设置文本
-                    if (Ani.Obj is TextBlock)
-                        ((dynamic)Ani.Obj).Text = NewText;
+                    if (Ani.obj is TextBlock)
+                        ((dynamic)Ani.obj).Text = newText;
                     else
-                        ((dynamic)Ani.Obj).Context = NewText;
+                        ((dynamic)Ani.obj).Context = newText;
 
                     break;
                 }
 
                 case AniType.Code:
                 {
-                    ((ThreadStart)Ani.Value)();
+                    ((ThreadStart)Ani.value)();
                     break;
                 }
 
                 case AniType.ScaleTransform:
                 {
-                    var Obj = (FrameworkElement)Ani.Obj;
-                    if (!(Obj.RenderTransform is ScaleTransform))
+                    var obj = (FrameworkElement)Ani.obj;
+                    if (!(obj.RenderTransform is ScaleTransform))
                     {
-                        Obj.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        Obj.RenderTransform = new ScaleTransform(1d, 1d);
+                        obj.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                        obj.RenderTransform = new ScaleTransform(1d, 1d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
-                        Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
-                    ((ScaleTransform)Obj.RenderTransform).ScaleX =
-                        Math.Max(((ScaleTransform)Obj.RenderTransform).ScaleX + Delta, 0d);
-                    ((ScaleTransform)Obj.RenderTransform).ScaleY =
-                        Math.Max(((ScaleTransform)Obj.RenderTransform).ScaleY + Delta, 0d);
+                    var delta = ModBase.MathPercent(0d, (double)Ani.value,
+                        Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, Ani.timePercent));
+                    ((ScaleTransform)obj.RenderTransform).ScaleX =
+                        Math.Max(((ScaleTransform)obj.RenderTransform).ScaleX + delta, 0d);
+                    ((ScaleTransform)obj.RenderTransform).ScaleY =
+                        Math.Max(((ScaleTransform)obj.RenderTransform).ScaleY + delta, 0d);
                     break;
                 }
 
                 case AniType.RotateTransform:
                 {
-                    var Obj = (FrameworkElement)Ani.Obj;
-                    if (!(Obj.RenderTransform is RotateTransform))
+                    var obj = (FrameworkElement)Ani.obj;
+                    if (!(obj.RenderTransform is RotateTransform))
                     {
-                        Obj.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        Obj.RenderTransform = new RotateTransform(0d);
+                        obj.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                        obj.RenderTransform = new RotateTransform(0d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
-                        Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
-                    ((RotateTransform)Obj.RenderTransform).Angle = ((RotateTransform)Obj.RenderTransform).Angle + Delta;
+                    var delta = ModBase.MathPercent(0d, (double)Ani.value,
+                        Ani.ease.GetDelta(Ani.timeFinished / (double)Ani.timeTotal, Ani.timePercent));
+                    ((RotateTransform)obj.RenderTransform).Angle = ((RotateTransform)obj.RenderTransform).Angle + delta;
                     break;
                 }
             }
 
-            Ani.TimePercent = Ani.TimeFinished / (double)Ani.TimeTotal; // 修改执行百分比
+            Ani.timePercent = Ani.timeFinished / (double)Ani.timeTotal; // 修改执行百分比
         }
         catch (Exception ex)
         {
@@ -423,32 +423,32 @@ public static partial class ModAnimation
     /// <summary>
     ///     动画速度。最大为 200。
     /// </summary>
-    public static double AniSpeed = 1d;
+    public static double aniSpeed = 1d;
 
     /// <summary>
     ///     动画组列表。
     /// </summary>
-    public static ConcurrentDictionary<string, AniGroupEntry> AniGroups = new();
+    public static ConcurrentDictionary<string, AniGroupEntry> aniGroups = new();
 
     public class AniGroupEntry
     {
-        public List<AniData> Data;
-        public long StartTick;
-        public int Uuid = ModBase.GetUuid();
+        public List<AniData> data;
+        public long startTick;
+        public int uuid = ModBase.GetUuid();
     }
 
     /// <summary>
     ///     上一次记刻的时间。
     /// </summary>
-    private static long AniLastTick;
+    private static long aniLastTick;
 
     /// <summary>
     ///     动画模块是否正在运行。
     /// </summary>
-    public static bool AniRunning;
+    public static bool aniRunning;
 
     private static int _AniControlEnabled;
-    private static readonly object AniControlEnabledLock = new();
+    private static readonly object aniControlEnabledLock = new();
 
     /// <summary>
     ///     控件动画执行是否开启。先 +1，再 -1。
@@ -458,7 +458,7 @@ public static partial class ModAnimation
         get => _AniControlEnabled;
         set
         {
-            lock (AniControlEnabledLock)
+            lock (aniControlEnabledLock)
             {
                 _AniControlEnabled = value;
             }
@@ -479,67 +479,67 @@ public static partial class ModAnimation
         ///     动画种类。
         /// </summary>
         /// <remarks></remarks>
-        public AniType TypeMain;
+        public AniType typeMain;
 
         /// <summary>
         ///     动画副种类。
         /// </summary>
         /// <remarks></remarks>
-        public AniTypeSub TypeSub;
+        public AniTypeSub typeSub;
 
         /// <summary>
         ///     动画总长度。
         /// </summary>
         /// <remarks></remarks>
-        public int TimeTotal;
+        public int timeTotal;
 
         /// <summary>
         ///     已经执行的动画长度。如果为负数则为延迟。
         /// </summary>
         /// <remarks></remarks>
-        public int TimeFinished;
+        public int timeFinished;
 
         /// <summary>
         ///     已经完成的百分比。
         /// </summary>
         /// <remarks></remarks>
-        public double TimePercent;
+        public double timePercent;
 
         /// <summary>
         ///     是否为“以后”。
         /// </summary>
         /// <remarks></remarks>
-        public bool IsAfter;
+        public bool isAfter;
 
         /// <summary>
         ///     插值器类型。
         /// </summary>
         /// <remarks></remarks>
-        public AniEase Ease;
+        public AniEase ease;
 
         /// <summary>
         ///     动画对象。
         /// </summary>
         /// <remarks></remarks>
-        public object Obj;
+        public object obj;
 
         /// <summary>
         ///     动画值。
         /// </summary>
         /// <remarks></remarks>
-        public object Value;
+        public object value;
 
         /// <summary>
         ///     上次执行时的动画值。
         /// </summary>
         /// <remarks></remarks>
-        public object ValueLast;
+        public object valueLast;
 
         public override string ToString()
         {
-            return ModBase.GetStringFromEnum(TypeMain) + " | " + TimeFinished + "/" + TimeTotal + "(" +
-                   Math.Round(TimePercent * 100d) + "%)" +
-                   (Obj is null ? "" : " | " + Obj + "(" + Obj.GetType().Name + ")");
+            return ModBase.GetStringFromEnum(typeMain) + " | " + timeFinished + "/" + timeTotal + "(" +
+                   Math.Round(timePercent * 100d) + "%)" +
+                   (obj is null ? "" : " | " + obj + "(" + obj.GetType().Name + ")");
         }
     }
 
@@ -632,14 +632,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.X,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.X,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -659,14 +659,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Y,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Y,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -686,14 +686,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Width,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Width,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -713,14 +713,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Height,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Height,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -740,14 +740,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Opacity,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Opacity,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -767,14 +767,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Value,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Value,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -794,14 +794,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.Radius,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.Radius,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -821,14 +821,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.BorderThickness,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.BorderThickness,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -846,14 +846,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.StrokeThickness,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.StrokeThickness,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -871,14 +871,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.GridLengthWidth,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.GridLengthWidth,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -901,9 +901,9 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number, TypeSub = AniTypeSub.Double, TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(), Obj = new[] { Obj, Prop, "" }, Value = Value, IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number, typeSub = AniTypeSub.Double, timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(), obj = new[] { Obj, Prop, "" }, value = Value, isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -922,8 +922,8 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number, TypeSub = AniTypeSub.DoubleParam, TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(), Obj = Lambda, Value = Value, IsAfter = After, TimeFinished = -Delay
+            typeMain = AniType.Number, typeSub = AniTypeSub.DoubleParam, timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(), obj = Lambda, value = Value, isAfter = After, timeFinished = -Delay
         };
     }
 
@@ -946,9 +946,9 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
-            Obj = new object[] { Obj, Prop, "" }, Value = Value, IsAfter = After, TimeFinished = -Delay,
-            ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
+            typeMain = AniType.Color, timeTotal = Time, ease = Ease ?? new AniEaseLinear(),
+            obj = new object[] { Obj, Prop, "" }, value = Value, isAfter = After, timeFinished = -Delay,
+            valueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
         };
     }
 
@@ -969,11 +969,11 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Color, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(),
-            Obj = new object[] { Obj, Prop, Res },
-            Value = new ModBase.MyColor(System.Windows.Application.Current.FindResource(Res)) -
+            typeMain = AniType.Color, timeTotal = Time, ease = Ease ?? new AniEaseLinear(),
+            obj = new object[] { Obj, Prop, Res },
+            value = new ModBase.MyColor(System.Windows.Application.Current.FindResource(Res)) -
                     new ModBase.MyColor(Obj.GetValue(Prop)),
-            IsAfter = After, TimeFinished = -Delay, ValueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
+            isAfter = After, timeFinished = -Delay, valueLast = new ModBase.MyColor(0d, 0d, 0d, 0d)
         };
     }
 
@@ -994,19 +994,19 @@ public static partial class ModAnimation
     public static AniData AaScale(object Obj, double Value, int Time = 400, int Delay = 0, AniEase Ease = null,
         bool After = false, bool Absolute = false)
     {
-        ModBase.MyRect ChangeRect;
+        ModBase.MyRect changeRect;
         if (Absolute)
-            ChangeRect = new ModBase.MyRect(-0.5d * Value, -0.5d * Value, Value, Value);
+            changeRect = new ModBase.MyRect(-0.5d * Value, -0.5d * Value, Value, Value);
         else
-            ChangeRect = new ModBase.MyRect(
+            changeRect = new ModBase.MyRect(
                 Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualWidth * Value),
                 Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualHeight * Value),
                 Convert.ToDouble(((dynamic)Obj).ActualWidth * Value),
                 Convert.ToDouble(((dynamic)Obj).ActualHeight * Value));
         return new AniData
         {
-            TypeMain = AniType.Scale, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(), Obj = Obj,
-            Value = ChangeRect, IsAfter = After, TimeFinished = -Delay
+            typeMain = AniType.Scale, timeTotal = Time, ease = Ease ?? new AniEaseLinear(), obj = Obj,
+            value = changeRect, isAfter = After, timeFinished = -Delay
         };
     }
 
@@ -1029,13 +1029,13 @@ public static partial class ModAnimation
         // Are we cool yet？
         return new AniData
         {
-            TypeMain = AniType.TextAppear, Ease = Ease ?? new AniEaseLinear(),
-            TimeTotal = TimePerText
+            typeMain = AniType.TextAppear, ease = Ease ?? new AniEaseLinear(),
+            timeTotal = TimePerText
                 ? Time * (Obj is TextBlock ? ((dynamic)Obj).Text : ((dynamic)Obj).Context.ToString()).ToString().Length
                 : Time,
-            Obj = Obj,
-            Value = new[] { Obj is TextBlock ? ((dynamic)Obj).Text : ((dynamic)Obj).Context.ToString(), Hide },
-            IsAfter = After, TimeFinished = -Delay
+            obj = Obj,
+            value = new[] { Obj is TextBlock ? ((dynamic)Obj).Text : ((dynamic)Obj).Context.ToString(), Hide },
+            isAfter = After, timeFinished = -Delay
         };
     }
 
@@ -1053,11 +1053,11 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Code,
-            TimeTotal = 1,
-            Value = Code,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Code,
+            timeTotal = 1,
+            value = Code,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -1079,8 +1079,8 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.ScaleTransform, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(), Obj = Obj,
-            Value = Value, IsAfter = After, TimeFinished = -Delay
+            typeMain = AniType.ScaleTransform, timeTotal = Time, ease = Ease ?? new AniEaseLinear(), obj = Obj,
+            value = Value, isAfter = After, timeFinished = -Delay
         };
     }
 
@@ -1102,8 +1102,8 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.RotateTransform, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(), Obj = Obj,
-            Value = Value, IsAfter = After, TimeFinished = -Delay
+            typeMain = AniType.RotateTransform, timeTotal = Time, ease = Ease ?? new AniEaseLinear(), obj = Obj,
+            value = Value, isAfter = After, timeFinished = -Delay
         };
     }
 
@@ -1123,14 +1123,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.TranslateX,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.TranslateX,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -1148,14 +1148,14 @@ public static partial class ModAnimation
     {
         return new AniData
         {
-            TypeMain = AniType.Number,
-            TypeSub = AniTypeSub.TranslateY,
-            TimeTotal = Time,
-            Ease = Ease ?? new AniEaseLinear(),
-            Obj = Obj,
-            Value = Value,
-            IsAfter = After,
-            TimeFinished = -Delay
+            typeMain = AniType.Number,
+            typeSub = AniTypeSub.TranslateY,
+            timeTotal = Time,
+            ease = Ease ?? new AniEaseLinear(),
+            obj = Obj,
+            value = Value,
+            isAfter = After,
+            timeFinished = -Delay
         };
     }
 
@@ -1167,17 +1167,17 @@ public static partial class ModAnimation
     /// <remarks></remarks>
     public static List<AniData> AaStack(StackPanel Stack, int Time = 100, int Delay = 25)
     {
-        List<AniData> AaStackRet = default;
-        AaStackRet = new List<AniData>();
-        var AniDelay = 0;
+        List<AniData> aaStackRet = default;
+        aaStackRet = new List<AniData>();
+        var aniDelay = 0;
         foreach (var Item in Stack.Children)
         {
             ((dynamic)Item).Opacity = 0;
-            AaStackRet.Add(AaOpacity(Item, 1d, Time, AniDelay));
-            AniDelay += Delay;
+            aaStackRet.Add(AaOpacity(Item, 1d, Time, aniDelay));
+            aniDelay += Delay;
         }
 
-        return AaStackRet;
+        return aaStackRet;
     }
 
     #endregion
@@ -1220,22 +1220,22 @@ public static partial class ModAnimation
     /// </summary>
     public class AniEaseInout : AniEase
     {
-        private readonly AniEase EaseIn;
-        private readonly double EaseInPercent;
-        private readonly AniEase EaseOut;
+        private readonly AniEase easeIn;
+        private readonly double easeInPercent;
+        private readonly AniEase easeOut;
 
         public AniEaseInout(AniEase EaseIn, AniEase EaseOut, double EaseInPercent = 0.5d)
         {
-            this.EaseIn = EaseIn;
-            this.EaseOut = EaseOut;
-            this.EaseInPercent = EaseInPercent;
+            this.easeIn = EaseIn;
+            this.easeOut = EaseOut;
+            this.easeInPercent = EaseInPercent;
         }
 
         public override double GetValue(double t)
         {
-            if (t < EaseInPercent) return EaseInPercent * EaseIn.GetValue(t / EaseInPercent);
+            if (t < easeInPercent) return easeInPercent * easeIn.GetValue(t / easeInPercent);
 
-            return (1d - EaseInPercent) * EaseOut.GetValue((t - EaseInPercent) / (1d - EaseInPercent)) + EaseInPercent;
+            return (1d - easeInPercent) * easeOut.GetValue((t - easeInPercent) / (1d - easeInPercent)) + easeInPercent;
         }
     }
 
@@ -1298,16 +1298,16 @@ public static partial class ModAnimation
     /// </summary>
     public class AniEaseInoutFluent : AniEase
     {
-        private readonly AniEaseInout Ease;
+        private readonly AniEaseInout ease;
 
         public AniEaseInoutFluent(AniEasePower Power = AniEasePower.Middle, double Middle = 0.5d)
         {
-            Ease = new AniEaseInout(new AniEaseInFluent(Power), new AniEaseOutFluent(Power), Middle);
+            ease = new AniEaseInout(new AniEaseInFluent(Power), new AniEaseOutFluent(Power), Middle);
         }
 
         public override double GetValue(double t)
         {
-            return Ease.GetValue(t);
+            return ease.GetValue(t);
         }
     }
 
@@ -1383,16 +1383,16 @@ public static partial class ModAnimation
     /// </summary>
     public class AniEaseInCar : AniEase
     {
-        private readonly AniEaseInout Ease;
+        private readonly AniEaseInout ease;
 
         public AniEaseInCar(double Middle = 0.7d, AniEasePower Power = AniEasePower.Middle)
         {
-            Ease = new AniEaseInout(new AniEaseInBack(Power), new AniEaseOutFluent(Power), Middle);
+            ease = new AniEaseInout(new AniEaseInBack(Power), new AniEaseOutFluent(Power), Middle);
         }
 
         public override double GetValue(double t)
         {
-            return Ease.GetValue(t);
+            return ease.GetValue(t);
         }
     }
 
@@ -1401,16 +1401,16 @@ public static partial class ModAnimation
     /// </summary>
     public class AniEaseOutCar : AniEase
     {
-        private readonly AniEaseInout Ease;
+        private readonly AniEaseInout ease;
 
         public AniEaseOutCar(double Middle = 0.3d, AniEasePower Power = AniEasePower.Middle)
         {
-            Ease = new AniEaseInout(new AniEaseInFluent(Power), new AniEaseOutBack(Power), Middle);
+            ease = new AniEaseInout(new AniEaseInFluent(Power), new AniEaseOutBack(Power), Middle);
         }
 
         public override double GetValue(double t)
         {
-            return Ease.GetValue(t);
+            return ease.GetValue(t);
         }
     }
 
@@ -1465,15 +1465,15 @@ public static partial class ModAnimation
     public static void AniStart(IList AniGroup, string Name = "", bool RefreshTime = false)
     {
         if (RefreshTime)
-            AniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
+            aniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
         // 添加到正在执行的动画组
-        var NewEntry = new AniGroupEntry
-            { Data = ModBase.GetFullList<AniData>(AniGroup), StartTick = TimeUtils.GetTimeTick() };
+        var newEntry = new AniGroupEntry
+            { data = ModBase.GetFullList<AniData>(AniGroup), startTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(Name))
-            Name = NewEntry.Uuid.ToString();
+            Name = newEntry.uuid.ToString();
         else
             AniStop(Name);
-        AniGroups.TryAdd(Name, NewEntry);
+        aniGroups.TryAdd(Name, newEntry);
     }
 
     /// <summary>
@@ -1490,7 +1490,7 @@ public static partial class ModAnimation
     /// <param name="name">需要停止的动画组的名称。</param>
     public static void AniStop(string Name)
     {
-        AniGroups.Remove(Name, out _);
+        aniGroups.Remove(Name, out _);
     }
 
     /// <summary>
@@ -1498,7 +1498,7 @@ public static partial class ModAnimation
     /// </summary>
     public static bool AniIsRun(string Name)
     {
-        return AniGroups.ContainsKey(Name);
+        return aniGroups.ContainsKey(Name);
     }
 
     #endregion

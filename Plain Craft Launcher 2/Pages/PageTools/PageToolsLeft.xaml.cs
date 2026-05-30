@@ -6,8 +6,8 @@ namespace PCL;
 
 public partial class PageToolsLeft
 {
-    private bool IsLoad;
-    private bool IsPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
+    private bool isLoad;
+    private bool isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
 
     public PageToolsLeft()
     {
@@ -19,22 +19,22 @@ public partial class PageToolsLeft
 
     private void PageLinkLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        var IsHiddenPage = false;
+        var isHiddenPage = false;
         var hide = Config.Preference.Hide;
 
-        if (ItemGameLink.Checked && hide.ToolsGameLink) IsHiddenPage = true;
-        if (ItemTest.Checked && hide.ToolsTest) IsHiddenPage = true;
-        if (ItemLauncherHelp.Checked && hide.ToolsHelp) IsHiddenPage = true;
+        if (ItemGameLink.Checked && hide.ToolsGameLink) isHiddenPage = true;
+        if (ItemTest.Checked && hide.ToolsTest) isHiddenPage = true;
+        if (ItemLauncherHelp.Checked && hide.ToolsHelp) isHiddenPage = true;
         if (PageSetupUI.HiddenForceShow)
-            IsHiddenPage = false;
+            isHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
-        if (IsLoad && !IsHiddenPage)
+        if (isLoad && !isHiddenPage)
             return;
-        IsLoad = true;
+        isLoad = true;
         // 刷新子页面隐藏情况
         PageSetupUI.HiddenRefresh();
         // 选择第一个未被禁用的子页面
-        if (IsPageSwitched) 
+        if (isPageSwitched) 
             return;
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.ToolsGameLink)
@@ -49,7 +49,7 @@ public partial class PageToolsLeft
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
     {
-        IsPageSwitched = false;
+        isPageSwitched = false;
     }
 
     public void Refresh(object sender, EventArgs e)
@@ -62,17 +62,17 @@ public partial class PageToolsLeft
         {
             case (double)FormMain.PageSubType.ToolsGameLink:
             {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                ModMain.FrmToolsGameLink.Reload();
+                if (ModMain.frmToolsGameLink is null)
+                    ModMain.frmToolsGameLink = new PageToolsGameLink();
+                ModMain.frmToolsGameLink.Reload();
                 ItemGameLink.Checked = true;
                 break;
             }
             case (double)FormMain.PageSubType.ToolsLauncherHelp:
             {
-                if (ModMain.FrmToolsHelp is null)
-                    ModMain.FrmToolsHelp = new PageToolsHelp();
-                ModMain.FrmToolsHelp.Refresh();
+                if (ModMain.frmToolsHelp is null)
+                    ModMain.frmToolsHelp = new PageToolsHelp();
+                ModMain.frmToolsHelp.Refresh();
                 ItemLauncherHelp.Checked = true;
                 break;
             }
@@ -81,8 +81,8 @@ public partial class PageToolsLeft
 
     public static void RefreshHelp()
     {
-        ModMain.FrmToolsHelp.PageLoaderRestart();
-        ModMain.FrmToolsHelp.SearchBox.Text = "";
+        ModMain.frmToolsHelp.PageLoaderRestart();
+        ModMain.frmToolsHelp.SearchBox.Text = "";
     }
 
     #region 页面切换
@@ -90,7 +90,7 @@ public partial class PageToolsLeft
     /// <summary>
     ///     当前页面的编号。
     /// </summary>
-    public FormMain.PageSubType PageID = FormMain.PageSubType.ToolsGameLink;
+    public FormMain.PageSubType pageID = FormMain.PageSubType.ToolsGameLink;
 
     /// <summary>
     ///     勾选事件改变页面。
@@ -106,26 +106,26 @@ public partial class PageToolsLeft
 
     public object PageGet(FormMain.PageSubType? ID = null)
     {
-        var targetID = ID ?? PageID;
+        var targetID = ID ?? pageID;
         switch (ID)
         {
             case FormMain.PageSubType.ToolsGameLink:
             {
-                if (ModMain.FrmToolsGameLink is null)
-                    ModMain.FrmToolsGameLink = new PageToolsGameLink();
-                return ModMain.FrmToolsGameLink;
+                if (ModMain.frmToolsGameLink is null)
+                    ModMain.frmToolsGameLink = new PageToolsGameLink();
+                return ModMain.frmToolsGameLink;
             }
             case FormMain.PageSubType.ToolsTest:
             {
-                if (ModMain.FrmToolsTest is null)
-                    ModMain.FrmToolsTest = new PageToolsTest();
-                return ModMain.FrmToolsTest;
+                if (ModMain.frmToolsTest is null)
+                    ModMain.frmToolsTest = new PageToolsTest();
+                return ModMain.frmToolsTest;
             }
             case FormMain.PageSubType.ToolsLauncherHelp:
             {
-                if (ModMain.FrmToolsHelp is null)
-                    ModMain.FrmToolsHelp = new PageToolsHelp();
-                return ModMain.FrmToolsHelp;
+                if (ModMain.frmToolsHelp is null)
+                    ModMain.frmToolsHelp = new PageToolsHelp();
+                return ModMain.frmToolsHelp;
             }
 
             default:
@@ -140,14 +140,14 @@ public partial class PageToolsLeft
     /// </summary>
     public void PageChange(FormMain.PageSubType ID)
     {
-        if (PageID == ID)
+        if (pageID == ID)
             return;
         ModAnimation.AniControlEnabled += 1;
-        IsPageSwitched = true;
+        isPageSwitched = true;
         try
         {
             PageChangeRun((MyPageRight)PageGet(ID));
-            PageID = ID;
+            pageID = ID;
         }
         catch (Exception ex)
         {
@@ -164,21 +164,21 @@ public partial class PageToolsLeft
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (Target.Parent is not null)
             Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.FrmMain.PageRight = Target;
-        ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnExit();
+        ModMain.frmMain.pageRight = Target;
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
-                ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.FrmMain.PanMainRight.Child = ModMain.FrmMain.PageRight;
-                ModMain.FrmMain.PageRight.Opacity = 0d;
+                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+                ModMain.frmMain.pageRight.Opacity = 0d;
             }, 130),
             ModAnimation.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.FrmMain.PageRight.Opacity = 1d;
-                ModMain.FrmMain.PageRight.PageOnEnter();
+                ModMain.frmMain.pageRight.Opacity = 1d;
+                ModMain.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }

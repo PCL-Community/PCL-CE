@@ -20,8 +20,8 @@ public partial class PageLaunchRight : IRefreshable
     public PageLaunchRight()
     {
         InitializeComponent();
-        OnlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
-            { ReloadTimeout = 10 * 60 * 1000 };
+        onlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
+            { reloadTimeout = 10 * 60 * 1000 };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
         Unloaded += (_, _) => _DisposeHomepageLiveWatcher();
@@ -31,7 +31,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         PanBack.ScrollToHome();
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
-        PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
+        PanLog.Visibility = ModBase.modeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
@@ -70,7 +70,7 @@ public partial class PageLaunchRight : IRefreshable
             {
                 try
                 {
-                    lock (RefreshLock)
+                    lock (refreshLock)
                     {
                         RefreshReal();
                     }
@@ -78,7 +78,7 @@ public partial class PageLaunchRight : IRefreshable
                 catch (Exception ex)
                 {
                     ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                        ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
                 }
             }, $"刷新主页 #{ModBase.GetUuid()}");
     }
@@ -94,7 +94,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             // 本地文件
             LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = ModBase.ReadFile(Path.Combine(ModBase.ExePath, "PCL", "Custom.xaml"));
+            content = ModBase.ReadFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"));
         }
         else if (uiCustomType == 2)
         {
@@ -206,10 +206,10 @@ public partial class PageLaunchRight : IRefreshable
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
                     {
-                        if (ModMain.FrmHomepageNews is null)
-                            ModMain.FrmHomepageNews = new PageHomepageNewsView();
+                        if (ModMain.frmHomepageNews is null)
+                            ModMain.frmHomepageNews = new PageHomepageNewsView();
                         PanCustom.Children.Clear();
-                        PanCustom.Children.Add(ModMain.FrmHomepageNews);
+                        PanCustom.Children.Add(ModMain.frmHomepageNews);
                     });
                     return;
             }
@@ -225,14 +225,14 @@ public partial class PageLaunchRight : IRefreshable
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
 
-        var cachePath = Path.Combine(ModBase.PathTemp, "Cache", "Custom.xaml");
+        var cachePath = Path.Combine(ModBase.pathTemp, "Cache", "Custom.xaml");
         var cachedUrl = (string)States.UI.SavedHomepageUrl;
 
         if (url == cachedUrl && File.Exists(cachePath))
         {
             LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
             // 后台更新缓存
-            OnlineLoader.Start(url);
+            onlineLoader.Start(url);
             return ModBase.ReadFile(cachePath);
         }
 
@@ -240,11 +240,11 @@ public partial class PageLaunchRight : IRefreshable
         HintWrapper.Show(Lang.Text("Launch.Homepage.Loading"));
         ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
         States.UI.SavedHomepageVersion = "";
-        OnlineLoader.Start(url); // 下载完成后将会再次触发更新
+        onlineLoader.Start(url); // 下载完成后将会再次触发更新
         return "";
     }
 
-    private readonly object RefreshLock = new();
+    private readonly object refreshLock = new();
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
@@ -293,63 +293,63 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     // 联网获取主页文件
-    private readonly ModLoader.LoaderTask<string, int> OnlineLoader;
+    private readonly ModLoader.LoaderTask<string, int> onlineLoader;
 
     private void OnlineLoaderSub(ModLoader.LoaderTask<string, int> Task)
     {
-        var Address = Task.Input; // #3721 中连续触发两次导致内容变化
+        var address = Task.input; // #3721 中连续触发两次导致内容变化
         try
         {
             // 获取版本校验地址
-            string VersionAddress;
-            if (Address.Contains(".xaml"))
+            string versionAddress;
+            if (address.Contains(".xaml"))
             {
-                VersionAddress = Address.Replace(".xaml", ".xaml.ini");
+                versionAddress = address.Replace(".xaml", ".xaml.ini");
             }
             else
             {
-                VersionAddress = Address.BeforeFirst("?");
-                if (!VersionAddress.EndsWith("/"))
-                    VersionAddress += "/";
-                VersionAddress += "version";
-                if (Address.Contains("?"))
-                    VersionAddress += "?" + Address.AfterFirst("?");
+                versionAddress = address.BeforeFirst("?");
+                if (!versionAddress.EndsWith("/"))
+                    versionAddress += "/";
+                versionAddress += "version";
+                if (address.Contains("?"))
+                    versionAddress += "?" + address.AfterFirst("?");
             }
 
             // 校验版本
-            var Version = "";
-            var NeedDownload = true;
+            var version = "";
+            var needDownload = true;
             try
             {
-                Version = Requester.FetchString(VersionAddress);
-                if (Version.Length > 1000)
-                    throw new Exception($"获取的主页版本过长（{Version.Length} 字符）");
-                var CurrentVersion = States.UI.SavedHomepageVersion;
-                if (!string.IsNullOrEmpty(Version) && !string.IsNullOrEmpty(CurrentVersion) &&
-                    (Version ?? "") == (CurrentVersion ?? ""))
+                version = Requester.FetchString(versionAddress);
+                if (version.Length > 1000)
+                    throw new Exception($"获取的主页版本过长（{version.Length} 字符）");
+                var currentVersion = States.UI.SavedHomepageVersion;
+                if (!string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(currentVersion) &&
+                    (version ?? "") == (currentVersion ?? ""))
                 {
-                    ModBase.Log($"[Page] 当前缓存的主页已为最新，当前版本：{Version}，检查源：{VersionAddress}");
-                    NeedDownload = false;
+                    ModBase.Log($"[Page] 当前缓存的主页已为最新，当前版本：{version}，检查源：{versionAddress}");
+                    needDownload = false;
                 }
                 else
                 {
-                    ModBase.Log($"[Page] 需要下载联网主页，当前版本：{Version}，检查源：{VersionAddress}");
+                    ModBase.Log($"[Page] 需要下载联网主页，当前版本：{version}，检查源：{versionAddress}");
                 }
             }
             catch (Exception exx)
             {
                 ModBase.Log(exx, "联网获取主页版本失败", ModBase.LogLevel.Developer);
-                ModBase.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{VersionAddress}");
+                ModBase.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{versionAddress}");
             }
 
             // 实际下载
-            if (NeedDownload)
+            if (needDownload)
             {
-                var FileContent = Requester.FetchString(Address);
-                ModBase.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
-                States.UI.SavedHomepageUrl = Address;
-                States.UI.SavedHomepageVersion = Version;
-                ModBase.WriteFile(ModBase.PathTemp + @"Cache\Custom.xaml", FileContent);
+                var fileContent = Requester.FetchString(address);
+                ModBase.Log($"[Page] 已联网下载主页，内容长度：{fileContent.Length}，来源：{address}");
+                States.UI.SavedHomepageUrl = address;
+                States.UI.SavedHomepageVersion = version;
+                ModBase.WriteFile(ModBase.pathTemp + @"Cache\Custom.xaml", fileContent);
             }
 
             // 要求刷新
@@ -357,7 +357,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", Address), ModBase.ModeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", address), ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
         }
     }
 
@@ -370,14 +370,14 @@ public partial class PageLaunchRight : IRefreshable
         ModBase.Log("[Page] 要求强制刷新主页");
         ClearCache();
         // 实际的刷新
-        if (ModMain.FrmMain.PageCurrent.Page == FormMain.PageType.Launch)
+        if (ModMain.frmMain.pageCurrent.page == FormMain.PageType.Launch)
         {
             PanBack.ScrollToHome();
             Refresh();
         }
         else
         {
-            ModMain.FrmMain.PageChange(FormMain.PageType.Launch);
+            ModMain.frmMain.PageChange(FormMain.PageType.Launch);
         }
     }
 
@@ -391,8 +391,8 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     private void ClearCache()
     {
-        LoadedContentHash = -1;
-        OnlineLoader.Input = "";
+        loadedContentHash = -1;
+        onlineLoader.input = "";
         States.UI.SavedHomepageUrl = "";
         States.UI.SavedHomepageVersion = "";
         ModBase.Log("[Page] 已清空主页缓存");
@@ -404,16 +404,16 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     private void LoadContent(string Content)
     {
-        lock (LoadContentLock)
+        lock (loadContentLock)
         {
             // 如果加载目标内容一致则不加载
-            var Hash = Content.GetHashCode();
-            if (Hash == LoadedContentHash)
+            var hash = Content.GetHashCode();
+            if (hash == loadedContentHash)
             {
                 _ApplyHomepageLivePatchesFromFile();
                 return;
             }
-            LoadedContentHash = Hash;
+            loadedContentHash = hash;
             // 实际加载内容
             PanCustom.Children.Clear();
             if (string.IsNullOrWhiteSpace(Content))
@@ -422,7 +422,7 @@ public partial class PageLaunchRight : IRefreshable
                 return;
             }
 
-            var LoadStartTime = DateTime.Now;
+            var loadStartTime = DateTime.Now;
             try
             {
                 // 修改时应同时修改 PageOtherHelpDetail.Init
@@ -437,7 +437,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch (Exception ex)
             {
-                if (ModBase.ModeDebug)
+                if (ModBase.modeDebug)
                 {
                     ModBase.Log(ex, $"加载失败的主页内容：\r\n{Content}");
                     if (ModMain.MyMsgBox(
@@ -457,10 +457,10 @@ public partial class PageLaunchRight : IRefreshable
                 return;
             }
 
-            var LoadCostTime = (DateTime.Now - LoadStartTime).Milliseconds;
-            ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {LoadCostTime}ms");
-            if (LoadCostTime > 3000)
-                ModMain.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(LoadCostTime / 1000d, 1), "N1")));
+            var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
+            ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
+            if (loadCostTime > 3000)
+                ModMain.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
         }
 
         return;
@@ -469,10 +469,10 @@ public partial class PageLaunchRight : IRefreshable
         ForceRefresh();
     }
 
-    private int LoadedContentHash = -1;
-    private readonly object LoadContentLock = new();
-    private const string HomepageLivePatchFileName = "CustomLive.json";
-    private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
+    private int loadedContentHash = -1;
+    private readonly object loadContentLock = new();
+    private const string homepageLivePatchFileName = "CustomLive.json";
+    private const string homepageLiveSupportFileName = "CustomLive.supported.json";
     // Keep the reflection patch surface explicit because patch files are written by external tools.
     private static readonly Dictionary<string, string> _homepageLiveAllowedProperties = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -498,7 +498,7 @@ public partial class PageLaunchRight : IRefreshable
             Directory.CreateDirectory(directory);
             _WriteHomepageLiveSupportMarker(directory);
 
-            _homepageLiveWatcher = new FileSystemWatcher(directory, HomepageLivePatchFileName)
+            _homepageLiveWatcher = new FileSystemWatcher(directory, homepageLivePatchFileName)
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
             };
@@ -570,7 +570,7 @@ public partial class PageLaunchRight : IRefreshable
         if (PanCustom.Children.Count == 0) return;
         if ((int)Config.Preference.Homepage.Type != 1) return;
 
-        var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLivePatchFileName);
+        var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLivePatchFileName);
         if (!File.Exists(file)) return;
 
         try
@@ -608,7 +608,7 @@ public partial class PageLaunchRight : IRefreshable
 
     private static string _GetHomepageLiveDirectory()
     {
-        return Path.Combine(ModBase.ExePath, "PCL");
+        return Path.Combine(ModBase.exePath, "PCL");
     }
 
     private static void _WriteHomepageLiveSupportMarker(string directory)
@@ -619,10 +619,10 @@ public partial class PageLaunchRight : IRefreshable
             {
                 ["processId"] = Environment.ProcessId,
                 ["processPath"] = Environment.ProcessPath ?? "",
-                ["patchFile"] = HomepageLivePatchFileName,
+                ["patchFile"] = homepageLivePatchFileName,
                 ["startedAt"] = DateTime.Now.ToString("O", CultureInfo.InvariantCulture)
             };
-            File.WriteAllText(Path.Combine(directory, HomepageLiveSupportFileName), marker.ToString(Newtonsoft.Json.Formatting.None));
+            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName), marker.ToString(Newtonsoft.Json.Formatting.None));
         }
         catch (Exception ex)
         {
@@ -634,7 +634,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         try
         {
-            var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
+            var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLiveSupportFileName);
             if (!File.Exists(file)) return;
 
             var marker = JObject.Parse(_ReadHomepageLivePatchFile(file));

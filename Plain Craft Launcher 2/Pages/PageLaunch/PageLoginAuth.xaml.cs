@@ -12,10 +12,10 @@ namespace PCL;
 
 public partial class PageLoginAuth
 {
-    public static string DraggedAuthServer;
+    public static string draggedAuthServer;
 
     // 预设服务器
-    private static readonly Dictionary<string, string> PredefinedAuthServers = new()
+    private static readonly Dictionary<string, string> predefinedAuthServers = new()
     {
         { Lang.Text("Launch.Account.Auth.Preset.LittleSkin"), "https://littleskin.cn/api/yggdrasil" },
         { Lang.Text("Common.Option.Customize"), "" }
@@ -39,10 +39,10 @@ public partial class PageLoginAuth
     {
         var serverItems = TextServer.Items;
         serverItems.Clear();
-        foreach (var serverName in PredefinedAuthServers.Keys)
+        foreach (var serverName in predefinedAuthServers.Keys)
             serverItems.Add(new MyComboBoxItem { Content = serverName });
-        TextServer.Text = DraggedAuthServer;
-        DraggedAuthServer = null;
+        TextServer.Text = draggedAuthServer;
+        draggedAuthServer = null;
     }
 
     private void BtnBack_Click(object sender, EventArgs e)
@@ -50,7 +50,7 @@ public partial class PageLoginAuth
         TextServer.Text = null;
         TextName.Text = null;
         TextPass.Password = null;
-        ModMain.FrmLaunchLeft.RefreshPage(true);
+        ModMain.frmLaunchLeft.RefreshPage(true);
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -70,28 +70,28 @@ public partial class PageLoginAuth
 
         BtnLogin.IsEnabled = false;
         BtnBack.IsEnabled = false;
-        var LoginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
+        var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
         {
-            BaseUrl = TextServer.Text.EndsWithF("/") ? $"{TextServer.Text}authserver" : $"{TextServer.Text}/authserver",
-            UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
-            Type = ModLaunch.McLoginType.Auth
+            baseUrl = TextServer.Text.EndsWithF("/") ? $"{TextServer.Text}authserver" : $"{TextServer.Text}/authserver",
+            userName = TextName.Text, password = TextPass.Password, description = "Authlib-Injector",
+            type = ModLaunch.McLoginType.Auth
         };
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             try
             {
-                ModProfile.IsCreatingProfile = true;
-                ModLaunch.McLoginAuthLoader.Start(LoginData, true);
-                while (ModLaunch.McLoginAuthLoader.State == ModBase.LoadState.Loading)
+                ModProfile.isCreatingProfile = true;
+                ModLaunch.mcLoginAuthLoader.Start(loginData, true);
+                while (ModLaunch.mcLoginAuthLoader.State == ModBase.LoadState.Loading)
                 {
-                    BtnLogin.Text = Lang.Number(ModLaunch.McLoginAuthLoader.Progress, "P0");
+                    BtnLogin.Text = Lang.Number(ModLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
                 }
 
-                switch (ModLaunch.McLoginAuthLoader.State)
+                switch (ModLaunch.mcLoginAuthLoader.State)
                 {
                     case ModBase.LoadState.Finished:
-                        ModMain.FrmLaunchLeft.RefreshPage(true);
+                        ModMain.frmLaunchLeft.RefreshPage(true);
                         break;
                     case ModBase.LoadState.Aborted:
                         ModMain.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
@@ -101,10 +101,10 @@ public partial class PageLoginAuth
                     case ModBase.LoadState.Failed:
                     default:
                     {
-                        if (ModLaunch.McLoginAuthLoader.Error is null)
+                        if (ModLaunch.mcLoginAuthLoader.Error is null)
                             throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
-                        throw new Exception(ModLaunch.McLoginAuthLoader.Error.Message,
-                            ModLaunch.McLoginAuthLoader.Error);
+                        throw new Exception(ModLaunch.mcLoginAuthLoader.Error.Message,
+                            ModLaunch.mcLoginAuthLoader.Error);
                     }
                 }
             }
@@ -124,7 +124,7 @@ public partial class PageLoginAuth
             }
             finally
             {
-                ModProfile.IsCreatingProfile = false;
+                ModProfile.isCreatingProfile = false;
                 BtnLogin.IsEnabled = true;
                 BtnBack.IsEnabled = true;
                 BtnLogin.Text = Lang.Text("Launch.Account.Auth.Login");
@@ -190,15 +190,15 @@ public partial class PageLoginAuth
     // 切换注册按钮可见性
     private void ReloadRegisterButton()
     {
-        var Address = Config.InstanceAuth.AuthRegisterAddress.ToString();
-        BtnLink.Visibility = new HttpValidator().Validate(Address).IsValid
+        var address = Config.InstanceAuth.AuthRegisterAddress.ToString();
+        BtnLink.Visibility = new HttpValidator().Validate(address).IsValid
             ? Visibility.Visible
             : Visibility.Collapsed;
     }
 
     private void TextServer_TextChanged(object sender, TextChangedEventArgs e)
     {
-        PredefinedAuthServers.TryGetValue(TextServer.Text, out var server);
+        predefinedAuthServers.TryGetValue(TextServer.Text, out var server);
         if (server is not null) TextServer.Text = server;
     }
 }

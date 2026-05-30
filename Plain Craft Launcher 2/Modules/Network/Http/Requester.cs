@@ -144,7 +144,7 @@ public static class Requester
             ParallelCount = Math.Max(1, ModNet.NetTaskThreadLimit),
             ParallelDownload = ModNet.NetTaskThreadLimit > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
-            DownloadFileExtension = ModNet.NetDownloadEnd,
+            DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });

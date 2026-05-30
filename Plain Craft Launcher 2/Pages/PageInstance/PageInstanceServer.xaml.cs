@@ -14,10 +14,10 @@ namespace PCL;
 
 public partial class PageInstanceServer : MyPageRight
 {
-    private const int DebounceInterval = 2000;
+    private const int debounceInterval = 2000;
 
-    public static readonly List<MinecraftServerInfo> ServerList = new();
-    private static readonly List<ServerCard> ServerCardList = new();
+    public static readonly List<MinecraftServerInfo> serverList = new();
+    private static readonly List<ServerCard> serverCardList = new();
 
     private CancellationTokenSource _cts;
 
@@ -32,20 +32,20 @@ public partial class PageInstanceServer : MyPageRight
 
     private async void PageLoaded(object e, RoutedEventArgs sender)
     {
-        ServerList.Clear();
-        ServerCardList.Clear();
+        serverList.Clear();
+        serverCardList.Clear();
         PanServers.Children.Clear();
 
         await LoadServersFromFile();
         RefreshTip();
 
-        foreach (var server in ServerList)
+        foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
         }
 
@@ -76,7 +76,7 @@ public partial class PageInstanceServer : MyPageRight
         // Read NBT file
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
             ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
@@ -89,16 +89,16 @@ public partial class PageInstanceServer : MyPageRight
 
         // Write back to NBT file
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
         {
             ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
         // Remove server from list and UI
-        ServerList.RemoveAt(index);
-        ServerCardList.Remove((ServerCard)sender);
-        if (ServerList.Count == 0) RefreshTip();
+        serverList.RemoveAt(index);
+        serverCardList.Remove((ServerCard)sender);
+        if (serverList.Count == 0) RefreshTip();
 
         // Remove UI element
         PanServers.Children.Remove((UIElement)sender);
@@ -111,7 +111,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"),
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
@@ -137,7 +137,7 @@ public partial class PageInstanceServer : MyPageRight
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
         {
             ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
@@ -145,8 +145,8 @@ public partial class PageInstanceServer : MyPageRight
 
         var serverCard = sender as ServerCard;
 
-        serverCard.Server.Name = e.Param1;
-        serverCard.Server.Address = e.Param2;
+        serverCard.server.Name = e.Param1;
+        serverCard.server.Address = e.Param2;
 
         await serverCard.RefreshServerStatus(true);
 
@@ -180,7 +180,7 @@ public partial class PageInstanceServer : MyPageRight
 
     private void BtnRefresh_Click(object sender, MouseButtonEventArgs e)
     {
-        if ((DateTime.Now - _lastRefresh).TotalMilliseconds < DebounceInterval)
+        if ((DateTime.Now - _lastRefresh).TotalMilliseconds < debounceInterval)
         {
             ModMain.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
             return;
@@ -210,20 +210,20 @@ public partial class PageInstanceServer : MyPageRight
                 Address = result.Address,
                 Status = ServerStatus.Unknown
             };
-            ServerList.Add(newServer);
+            serverList.Add(newServer);
 
             RefreshTip();
 
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(newServer);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
             await serverCard.RefreshServerStatus(false);
 
-            var serversDatPath = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat");
+            var serversDatPath = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
 
             NbtList nbtData;
             if (!File.Exists(serversDatPath))
@@ -267,9 +267,9 @@ public partial class PageInstanceServer : MyPageRight
     /// </summary>
     private async Task LoadServersFromFile()
     {
-        ServerList.Clear();
+        serverList.Clear();
 
-        var serversFile = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat");
+        var serversFile = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 
@@ -310,7 +310,7 @@ public partial class PageInstanceServer : MyPageRight
                     ModBase.Log($"  名字: {name}");
                     ModBase.Log($"  IP: {ip}");
                     // Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
-                    ServerList.Add(new MinecraftServerInfo
+                    serverList.Add(new MinecraftServerInfo
                     {
                         Name = name,
                         Address = ip,
@@ -335,20 +335,20 @@ public partial class PageInstanceServer : MyPageRight
 
         RefreshTip();
 
-        foreach (var server in ServerList)
+        foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.removeServer += RemoveServerEvent;
+            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
-            ServerCardList.Add(serverCard);
+            serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
         }
     }
 
     private void RefreshTip()
     {
-        if (ServerList.Count == 0)
+        if (serverList.Count == 0)
         {
             ModBase.Log(Lang.Text("Instance.Server.NoServersFound"));
             PanNoServer.Visibility = Visibility.Visible;
@@ -378,7 +378,7 @@ public partial class PageInstanceServer : MyPageRight
         var tasks = new List<Task>();
         try
         {
-            var snapshot = ServerCardList.ToList();
+            var snapshot = serverCardList.ToList();
             foreach (var server in snapshot)
             {
                 var currentServer = server;

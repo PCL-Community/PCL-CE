@@ -1349,7 +1349,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">区域格式</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">跟随系统区域格式</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">同步界面语言</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。&#x0a;&#x0a;为确保工作效率与便捷性，迁移过程中仅确保“English (US)”与“简体中文（中国大陆）”部分可用。其余语言将在未来迁移工作完成后，交由社区于翻译平台进行翻译贡献。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">语言设置已更新</sys:String>
 
     <!-- Setup.Left -->
@@ -1594,9 +1594,11 @@
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">提醒</sys:String>
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">继续</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Label">进程优先级</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.High">高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.RealTime">实时（使游戏以最高优先级运行，谨慎使用，可能严重影响系统运行）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">极高（谨慎使用，可能严重影响其他程序运行）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.AboveNormal">高（优先保证游戏运行，游戏性能更佳，但可能造成其他程序卡顿）</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Normal">中（平衡）</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.Low">低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.BelowNormal">低（优先保证其他程序运行，但可能让游戏卡顿，适合挂机时使用）</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Label">窗口大小</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">全屏</sys:String>

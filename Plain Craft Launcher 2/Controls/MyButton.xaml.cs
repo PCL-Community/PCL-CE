@@ -19,17 +19,17 @@ public partial class MyButton
     }
 
     // 自定义事件
-    private const int AnimationColorIn = 100;
-    private const int AnimationColorOut = 200;
+    private const int animationColorIn = 100;
+    private const int animationColorOut = 200;
 
-    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
     // 属性穿透
-    public new static readonly DependencyProperty PaddingProperty = DependencyProperty.Register("Padding",
+    public new static readonly DependencyProperty paddingProperty = DependencyProperty.Register("Padding",
         typeof(Thickness), typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyButton)sender).PanFore.Padding = (Thickness)e.NewValue;
@@ -41,7 +41,7 @@ public partial class MyButton
     
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     public MyButton()
     {
@@ -62,8 +62,8 @@ public partial class MyButton
 
     public string Text
     {
-        get => (string)GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
+        get => (string)GetValue(textProperty);
+        set => SetValue(textProperty, value);
     } // 显示文本
 
     public Thickness TextPadding
@@ -114,7 +114,7 @@ public partial class MyButton
             new[]
             {
                 ModAnimation.AaColor(PanFore, BorderBrushProperty, resourceKey, duration)
-            }, "MyButton Color " + Uuid);
+            }, "MyButton Color " + uuid);
     }
 
     private void RefreshColor(object obj = null, object e = null)
@@ -124,23 +124,23 @@ public partial class MyButton
             if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
             {
                 if (IsEnabled)
-                    StartBorderBrushAnimation(GetBorderBrushResourceKey(), IsMouseOver ? AnimationColorIn : AnimationColorOut);
+                    StartBorderBrushAnimation(GetBorderBrushResourceKey(), IsMouseOver ? animationColorIn : animationColorOut);
                 else
                     // 不可用（Gray 4）
                     ModAnimation.AniStart(
                         new[]
                         {
                             ModAnimation.AaColor(PanFore, BorderBrushProperty,
-                                ThemeManager.ColorGray4 - PanFore.BorderBrush, AnimationColorOut)
-                        }, "MyButton Color " + Uuid);
+                                ThemeManager.colorGray4 - PanFore.BorderBrush, animationColorOut)
+                        }, "MyButton Color " + uuid);
             }
             else
             {
-                ModAnimation.AniStop("MyButton Color " + Uuid);
+                ModAnimation.AniStop("MyButton Color " + uuid);
                 if (IsEnabled)
                     PanFore.SetResourceReference(BorderBrushProperty, GetBorderBrushResourceKey());
                 else
-                    PanFore.BorderBrush = ThemeManager.ColorGray4;
+                    PanFore.BorderBrush = ThemeManager.colorGray4;
             }
         }
         catch (Exception ex)
@@ -150,10 +150,10 @@ public partial class MyButton
     }
 
     // 实现自定义事件
-    private bool IsMouseDown = false;
+    private bool isMouseDown = false;
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
@@ -162,7 +162,7 @@ public partial class MyButton
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
         Focus();
         ModAnimation.AniStart(
             new[]
@@ -170,40 +170,40 @@ public partial class MyButton
                 ModAnimation.AaScaleTransform(PanFore, 0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
                     Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
                 ModAnimation.AaScaleTransform(PanFore, -0.01d, 700, Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyButton Scale " + Uuid);
+            }, "MyButton Scale " + uuid);
     }
 
     private void Button_MouseEnter()
     {
         ModAnimation.AniStart(
             ModAnimation.AaColor(PanFore, BackgroundProperty,
-                _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7", AnimationColorIn),
-            "MyButton Background " + Uuid);
+                _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7", animationColorIn),
+            "MyButton Background " + uuid);
     }
 
     private void Button_MouseUp()
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
-        IsMouseDown = false;
+        isMouseDown = false;
         ModAnimation.AniStart(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 300, 10,
                     new ModAnimation.AniEaseOutFluent())
-            }, "MyButton Scale " + Uuid);
+            }, "MyButton Scale " + uuid);
     }
 
     private void Button_MouseLeave()
     {
         ModAnimation.AniStart(
-            ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", AnimationColorOut),
-            "MyButton Background " + Uuid);
-        if (!IsMouseDown)
+            ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", animationColorOut),
+            "MyButton Background " + uuid);
+        if (!isMouseDown)
             return;
-        IsMouseDown = false;
+        isMouseDown = false;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + Uuid);
+                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + uuid);
     }
 }

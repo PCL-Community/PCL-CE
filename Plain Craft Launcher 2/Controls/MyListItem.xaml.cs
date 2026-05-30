@@ -17,16 +17,16 @@ public partial class MyListItem : IMyRadio
 
     public delegate void LogoClickEventHandler(object sender, MouseButtonEventArgs e);
 
-    public bool IsMouseOverAnimationEnabled = true;
+    public bool isMouseOverAnimationEnabled = true;
 
-    private string StateLast;
+    private string stateLast;
 
     public object tag { get; set; }
     public event IMyRadio.CheckEventHandler? Check;
-    public event IMyRadio.ChangedEventHandler? Changed;
+    public event IMyRadio.ChangedEventHandler? changed;
 
     public event ClickEventHandler? Click;
-    public event LogoClickEventHandler? LogoClick;
+    public event LogoClickEventHandler? logoClick;
 
     public void RefreshColor(object sender, EventArgs e)
     {
@@ -38,101 +38,101 @@ public partial class MyListItem : IMyRadio
         }
 
         // 判断当前颜色
-        string StateNew;
-        int Time;
-        if (IsMouseDown && !(Type == CheckType.RadioBox && Checked))
+        string stateNew;
+        int time;
+        if (isMouseDown && !(Type == CheckType.RadioBox && Checked))
         {
-            StateNew = "MouseDown";
-            Time = 120;
+            stateNew = "MouseDown";
+            time = 120;
         }
-        else if (IsMouseOver && IsMouseOverAnimationEnabled)
+        else if (IsMouseOver && isMouseOverAnimationEnabled)
         {
-            StateNew = "MouseOver";
-            Time = 120;
+            stateNew = "MouseOver";
+            time = 120;
         }
         else
         {
-            StateNew = "Idle";
-            Time = 180;
+            stateNew = "Idle";
+            time = 180;
         }
 
-        if ((StateLast ?? "") == (StateNew ?? ""))
+        if ((stateLast ?? "") == (stateNew ?? ""))
             return;
-        StateLast = StateNew;
+        stateLast = stateNew;
         // 触发颜色动画
         if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
         {
             // 有动画
-            var Ani = new List<ModAnimation.AniData>();
-            if (IsMouseOver && IsMouseOverAnimationEnabled)
+            var ani = new List<ModAnimation.AniData>();
+            if (IsMouseOver && isMouseOverAnimationEnabled)
             {
-                if (ButtonStack is not null)
+                if (buttonStack is not null)
                 {
-                    Ani.Add(ModAnimation.AaOpacity(ButtonStack, 1d - ButtonStack.Opacity, (int)Math.Round(Time * 0.7d),
-                        (int)Math.Round(Time * 0.3d)));
-                    Ani.Add(ModAnimation.AaDouble(
+                    ani.Add(ModAnimation.AaOpacity(buttonStack, 1d - buttonStack.Opacity, (int)Math.Round(time * 0.7d),
+                        (int)Math.Round(time * 0.3d)));
+                    ani.Add(ModAnimation.AaDouble(
                         i => ColumnPaddingRight.Width =
                             new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                         Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25) - ColumnPaddingRight.Width.Value,
-                        (int)Math.Round(Time * 0.3d), (int)Math.Round(Time * 0.7d)));
+                        (int)Math.Round(time * 0.3d), (int)Math.Round(time * 0.7d)));
                 }
 
-                Ani.AddRange(new[]
+                ani.AddRange(new[]
                 {
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                        IsMouseDown ? "ColorBrush6" : "ColorBrushBg1", Time),
-                    ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, Time,
+                        isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
+                    ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
                         Ease: new ModAnimation.AniEaseOutFluent())
                 });
                 if (IsScaleAnimationEnabled)
                 {
-                    Ani.Add(ModAnimation.AaScaleTransform(RectBack,
-                        1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(Time * 1.6d),
+                    ani.Add(ModAnimation.AaScaleTransform(RectBack,
+                        1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.6d),
                         Ease: new ModAnimation.AniEaseOutFluent()));
-                    if (IsMouseDown)
-                        Ani.Add(ModAnimation.AaScaleTransform(this, 0.98d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(Time * 0.9d), Ease: new ModAnimation.AniEaseOutFluent()));
+                    if (isMouseDown)
+                        ani.Add(ModAnimation.AaScaleTransform(this, 0.98d - ((ScaleTransform)RenderTransform).ScaleX,
+                            (int)Math.Round(time * 0.9d), Ease: new ModAnimation.AniEaseOutFluent()));
                     else
-                        Ani.Add(ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(Time * 1.2d), Ease: new ModAnimation.AniEaseOutFluent()));
+                        ani.Add(ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
+                            (int)Math.Round(time * 1.2d), Ease: new ModAnimation.AniEaseOutFluent()));
                 }
             }
             else
             {
-                if (ButtonStack is not null)
+                if (buttonStack is not null)
                 {
-                    Ani.Add(ModAnimation.AaOpacity(ButtonStack, -ButtonStack.Opacity, (int)Math.Round(Time * 0.4d)));
-                    Ani.Add(ModAnimation.AaDouble(
+                    ani.Add(ModAnimation.AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
+                    ani.Add(ModAnimation.AaDouble(
                         i => ColumnPaddingRight.Width =
                             new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                        MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(Time * 0.4d)));
+                        MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
                 }
 
-                Ani.Add(ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, Time));
+                ani.Add(ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time));
                 if (IsScaleAnimationEnabled)
-                    Ani.AddRange(new[]
+                    ani.AddRange(new[]
                     {
                         ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                            IsMouseDown ? "ColorBrush6" : "ColorBrush7", Time),
-                        ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, Time * 3,
+                            isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
+                        ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
                             Ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaScaleTransform(RectBack,
-                            0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, Time,
+                            0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, time,
                             Ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaScaleTransform(RectBack, -0.246d, 1, After: true)
                     });
             }
 
-            ModAnimation.AniStart(Ani, "ListItem Color " + Uuid);
+            ModAnimation.AniStart(ani, "ListItem Color " + uuid);
         }
         else
         {
             // 无动画
-            if (IsMouseOver && IsMouseOverAnimationEnabled)
+            if (IsMouseOver && isMouseOverAnimationEnabled)
             {
-                if (ButtonStack is not null)
+                if (buttonStack is not null)
                 {
-                    ButtonStack.Opacity = 1d;
+                    buttonStack.Opacity = 1d;
                     ColumnPaddingRight.Width = new GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25));
                 }
 
@@ -144,9 +144,9 @@ public partial class MyListItem : IMyRadio
             }
             else
             {
-                if (ButtonStack is not null)
+                if (buttonStack is not null)
                 {
-                    ButtonStack.Opacity = 0d;
+                    buttonStack.Opacity = 0d;
                     ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
                 }
 
@@ -160,16 +160,16 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            ModAnimation.AniStop("ListItem Color " + Uuid);
+            ModAnimation.AniStop("ListItem Color " + uuid);
         }
     }
 
     private void MyListItem_Loaded(object sender, RoutedEventArgs e)
     {
         if (Checked)
-            SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+            SetResourceReference(foregroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
         else
-            SetResourceReference(ForegroundProperty, "ColorBrush1");
+            SetResourceReference(foregroundProperty, "ColorBrush1");
         ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
         if (CustomEventService.GetEventType(this) == CustomEvent.EventType.打开帮助 && !(Title != "" && Info != "")) // #3266
         {
@@ -203,7 +203,7 @@ public partial class MyListItem : IMyRadio
         {
             if (_RectBack is null)
             {
-                var Rect = new Border
+                var rect = new Border
                 {
                     Name = "RectBack",
                     CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6 : 0),
@@ -214,12 +214,12 @@ public partial class MyListItem : IMyRadio
                     IsHitTestVisible = false,
                     Opacity = 0d
                 };
-                Rect.SetResourceReference(Border.BackgroundProperty, "ColorBrush7");
-                Rect.SetResourceReference(Border.BorderBrushProperty, "ColorBrush6");
-                SetColumnSpan(Rect, 999);
-                SetRowSpan(Rect, 999);
-                Children.Insert(0, Rect);
-                _RectBack = Rect;
+                rect.SetResourceReference(Border.BackgroundProperty, "ColorBrush7");
+                rect.SetResourceReference(Border.BorderBrushProperty, "ColorBrush6");
+                SetColumnSpan(rect, 999);
+                SetRowSpan(rect, 999);
+                Children.Insert(0, rect);
+                _RectBack = rect;
                 // <!--<Border x:Name = "RectBack" CornerRadius="3" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" 
                 // IsHitTestVisible = "False" Opacity="0" BorderThickness="1" 
                 // Grid.ColumnSpan = "4" Background="{DynamicResource ColorBrush7}" BorderBrush="{DynamicResource ColorBrush6}"/>-->
@@ -230,13 +230,13 @@ public partial class MyListItem : IMyRadio
     }
 
     // 按钮
-    public FrameworkElement ButtonStack;
+    public FrameworkElement buttonStack;
 
     // 图标
-    public FrameworkElement PathLogo;
+    public FrameworkElement pathLogo;
 
     // 勾选条
-    public Border RectCheck;
+    public Border rectCheck;
 
 
     /// <summary>
@@ -250,17 +250,17 @@ public partial class MyListItem : IMyRadio
         {
             if (_PanTags is not null)
                 return _PanTags;
-            var NewStack = new StackPanel
+            var newStack = new StackPanel
             {
                 IsHitTestVisible = false,
                 Orientation = Orientation.Horizontal,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(3.5d, 0d, -3, 0d)
             };
-            SetColumn(NewStack, 3);
-            SetRow(NewStack, 2);
-            PanBack.Children.Add(NewStack);
-            _PanTags = NewStack;
+            SetColumn(newStack, 3);
+            SetRow(newStack, 2);
+            PanBack.Children.Add(newStack);
+            _PanTags = newStack;
             return _PanTags;
         }
     }
@@ -279,7 +279,7 @@ public partial class MyListItem : IMyRadio
             PanTags.Visibility = list.Any() ? Visibility.Visible : Visibility.Collapsed;
             foreach (var TagText in list)
             {
-                var NewTag = new Border
+                var newTag = new Border
                 {
                     Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
                     Padding = new Thickness(3d, 1d, 3d, 1d),
@@ -288,14 +288,14 @@ public partial class MyListItem : IMyRadio
                     SnapsToDevicePixels = true,
                     UseLayoutRounding = false
                 };
-                var TagTextBlock = new TextBlock
+                var tagTextBlock = new TextBlock
                 {
                     Text = TagText,
                     Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
                     FontSize = 11d
                 };
-                NewTag.Child = TagTextBlock;
-                PanTags.Children.Add(NewTag);
+                newTag.Child = tagTextBlock;
+                PanTags.Children.Add(newTag);
             }
         }
     }
@@ -309,7 +309,7 @@ public partial class MyListItem : IMyRadio
         {
             if (_LabInfo is null)
             {
-                var Lab = new TextBlock
+                var lab = new TextBlock
                 {
                     Name = "LabInfo",
                     SnapsToDevicePixels = false,
@@ -322,10 +322,10 @@ public partial class MyListItem : IMyRadio
                     Margin = new Thickness(4d, 0d, 0d, 0d),
                     Opacity = 0.6d
                 };
-                SetColumn(Lab, 4);
-                SetRow(Lab, 2);
-                PanBack.Children.Add(Lab);
-                _LabInfo = Lab;
+                SetColumn(lab, 4);
+                SetRow(lab, 2);
+                PanBack.Children.Add(lab);
+                _LabInfo = lab;
                 // <TextBlock Grid.Row="2" SnapsToDevicePixels="False" UseLayoutRounding="False" HorizontalAlignment="Left" x:Name = "LabInfo" IsHitTestVisible="False" Grid.Column="2" 
                 // TextTrimming = "CharacterEllipsis" Visibility="Collapsed" FontSize="12" Foreground="{StaticResource ColorBrushGray2}" Margin="4,0,0,0" />
             }
@@ -339,7 +339,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int Uuid = ModBase.GetUuid();
+    public int uuid = ModBase.GetUuid();
 
     /// <summary>
     ///     是否启用缩放动画。
@@ -380,10 +380,10 @@ public partial class MyListItem : IMyRadio
         {
             _Buttons = value;
             // 没有特殊按钮，移除原 Stack
-            if (ButtonStack is not null)
+            if (buttonStack is not null)
             {
-                Children.Remove(ButtonStack);
-                ButtonStack = null;
+                Children.Remove(buttonStack);
+                buttonStack = null;
             }
 
             // 添加新 Stack
@@ -412,7 +412,7 @@ public partial class MyListItem : IMyRadio
                         SetColumnSpan(Btn, 10);
                         SetRowSpan(Btn, 10);
                         Children.Add(Btn);
-                        ButtonStack = Btn;
+                        buttonStack = Btn;
                     }
 
                     break;
@@ -421,14 +421,14 @@ public partial class MyListItem : IMyRadio
                 default:
                 {
                     // 有复数按钮，使用 StackPanel
-                    ButtonStack = new StackPanel
+                    buttonStack = new StackPanel
                     {
                         Opacity = 0d, Margin = new Thickness(0d, 0d, 5d, 0d), SnapsToDevicePixels = false,
                         Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
                         VerticalAlignment = VerticalAlignment.Center, UseLayoutRounding = false
                     };
-                    SetColumnSpan(ButtonStack, 10);
-                    SetRowSpan(ButtonStack, 10);
+                    SetColumnSpan(buttonStack, 10);
+                    SetRowSpan(buttonStack, 10);
                     // 构造按钮
                     foreach (var Btn in value)
                     {
@@ -436,10 +436,10 @@ public partial class MyListItem : IMyRadio
                             Btn.Height = 25d;
                         if (Btn.Width.Equals(double.NaN))
                             Btn.Width = 25d;
-                        ((StackPanel)ButtonStack).Children.Add(Btn);
+                        ((StackPanel)buttonStack).Children.Add(Btn);
                     }
 
-                    Children.Add(ButtonStack);
+                    Children.Add(buttonStack);
                     break;
                 }
             }
@@ -451,37 +451,37 @@ public partial class MyListItem : IMyRadio
 
     public string Title
     {
-        get => (string)GetValue(TitleProperty);
-        set => SetValue(TitleProperty, value.Replace("\r", "").Replace("\n", ""));
+        get => (string)GetValue(titleProperty);
+        set => SetValue(titleProperty, value.Replace("\r", "").Replace("\n", ""));
     }
 
-    public static readonly DependencyProperty TitleProperty =
+    public static readonly DependencyProperty titleProperty =
         DependencyProperty.Register("Title", typeof(string), typeof(MyListItem));
 
     // 字号
     public double FontSize
     {
-        get => (double)GetValue(FontSizeProperty);
-        set => SetValue(FontSizeProperty, value);
+        get => (double)GetValue(fontSizeProperty);
+        set => SetValue(fontSizeProperty, value);
     }
 
-    public static readonly DependencyProperty FontSizeProperty =
+    public static readonly DependencyProperty fontSizeProperty =
         DependencyProperty.Register("FontSize", typeof(double), typeof(MyListItem), new PropertyMetadata(14d));
 
     // 信息
     public string Info
     {
-        get => (string)GetValue(InfoProperty);
+        get => (string)GetValue(infoProperty);
         set
         {
             if (Info == value)
                 return;
             value = value?.Replace("\r", "").Replace("\n", "");
-            SetValue(InfoProperty, value);
+            SetValue(infoProperty, value);
         }
     }
 
-    public static readonly DependencyProperty InfoProperty = DependencyProperty.Register("Info", typeof(string),
+    public static readonly DependencyProperty infoProperty = DependencyProperty.Register("Info", typeof(string),
         typeof(MyListItem), new PropertyMetadata("", OnInfoChanged));
 
     public MyListItem()
@@ -511,16 +511,16 @@ public partial class MyListItem : IMyRadio
     // 图片
     public string Logo
     {
-        get => (string)GetValue(LogoProperty);
+        get => (string)GetValue(logoProperty);
         set
         {
             if (Logo == value)
                 return;
-            SetValue(LogoProperty, value);
+            SetValue(logoProperty, value);
         }
     }
 
-    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register("Logo", typeof(string),
+    public static readonly DependencyProperty logoProperty = DependencyProperty.Register("Logo", typeof(string),
         typeof(MyListItem), new PropertyMetadata("", OnLogoChanged));
 
     private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -533,15 +533,15 @@ public partial class MyListItem : IMyRadio
     private void UpdateLogo(string _Logo)
     {
         // 删除旧 Logo
-            if (PathLogo is not null)
-            Children.Remove(PathLogo);
+            if (pathLogo is not null)
+            Children.Remove(pathLogo);
         // 添加新 Logo
         if (!string.IsNullOrEmpty(_Logo))
         {
             if (_Logo.StartsWithF("http", true))
             {
                 // 网络图片
-                PathLogo = new MyImage
+                pathLogo = new MyImage
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
@@ -551,12 +551,12 @@ public partial class MyListItem : IMyRadio
                     SnapsToDevicePixels = true,
                     UseLayoutRounding = false
                 };
-                RenderOptions.SetBitmapScalingMode(PathLogo, BitmapScalingMode.Linear);
+                RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
             }
             else if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
             {
                 // 位图
-                PathLogo = new Canvas
+                pathLogo = new Canvas
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
@@ -568,16 +568,16 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (_Logo.Contains(ModBase.PathTemp + @"Cache\Skin\Head") ||
-                    _Logo.Contains(ModBase.PathTemp + @"Cache\Cape"))
-                    RenderOptions.SetBitmapScalingMode(PathLogo, BitmapScalingMode.NearestNeighbor);
+                if (_Logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
+                    _Logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
+                    RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.NearestNeighbor);
                 else
-                    RenderOptions.SetBitmapScalingMode(PathLogo, BitmapScalingMode.Linear);
+                    RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
             }
             else
             {
                 // 矢量图
-                PathLogo = new Path
+                pathLogo = new Path
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
@@ -590,24 +590,24 @@ public partial class MyListItem : IMyRadio
                     SnapsToDevicePixels = false,
                     UseLayoutRounding = false
                 };
-                PathLogo.SetBinding(Shape.FillProperty, new Binding("Foreground") { Source = this });
+                pathLogo.SetBinding(Shape.FillProperty, new Binding("Foreground") { Source = this });
             }
 
-            SetColumn(PathLogo, 2);
-            SetRowSpan(PathLogo, 4);
+            SetColumn(pathLogo, 2);
+            SetRowSpan(pathLogo, 4);
             OnSizeChanged(); // 设置边距
-            Children.Add(PathLogo);
+            Children.Add(pathLogo);
             // 图标的点击事件
             if (LogoClickable)
             {
-                PathLogo.MouseLeave += (sender, e) => IsLogoDown = false;
-                PathLogo.MouseLeftButtonDown += (sender, e) => IsLogoDown = true;
-                PathLogo.MouseLeftButtonUp += (sender, e) =>
+                pathLogo.MouseLeave += (sender, e) => isLogoDown = false;
+                pathLogo.MouseLeftButtonDown += (sender, e) => isLogoDown = true;
+                pathLogo.MouseLeftButtonUp += (sender, e) =>
                 {
-                    if (IsLogoDown)
+                    if (isLogoDown)
                     {
-                        IsLogoDown = false;
-                        LogoClick?.Invoke(((FrameworkElement)sender).Tag, e);
+                        isLogoDown = false;
+                        logoClick?.Invoke(((FrameworkElement)sender).Tag, e);
                     }
                 };
             }
@@ -625,8 +625,8 @@ public partial class MyListItem : IMyRadio
         set
         {
             _LogoScale = value;
-        if (PathLogo is not null)
-                PathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+        if (pathLogo is not null)
+                pathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
 
@@ -636,7 +636,7 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public bool LogoClickable { get; set; } = false;
 
-    private bool IsLogoDown;
+    private bool isLogoDown;
 
     // 勾选选项
     public enum CheckType
@@ -664,18 +664,18 @@ public partial class MyListItem : IMyRadio
             if (_Type == CheckType.None || _Type == CheckType.Clickable)
             {
                 // 移除竖条控件
-                if (RectCheck is not null)
+                if (rectCheck is not null)
                 {
-                    Children.Remove(RectCheck);
-                    RectCheck = null;
+                    Children.Remove(rectCheck);
+                    rectCheck = null;
                 }
 
                 SetChecked(false, false, false);
             }
             // 添加竖条控件
-            else if (RectCheck is null)
+            else if (rectCheck is null)
             {
-                RectCheck = new Border
+                rectCheck = new Border
                 {
                     Width = 5d,
                     Height = Checked ? double.NaN : 0d,
@@ -686,9 +686,9 @@ public partial class MyListItem : IMyRadio
                     SnapsToDevicePixels = false,
                     Margin = Checked ? new Thickness(-1, 6d, 0d, 6d) : new Thickness(-1, 0d, 0d, 0d)
                 };
-                RectCheck.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
-                SetRowSpan(RectCheck, 4);
-                Children.Add(RectCheck);
+                rectCheck.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
+                SetRowSpan(rectCheck, 4);
+                Children.Add(rectCheck);
             }
         }
     }
@@ -700,12 +700,12 @@ public partial class MyListItem : IMyRadio
         ColumnCheck.Width =
             new GridLength(_Type == CheckType.None || _Type == CheckType.Clickable ? Height < 40d ? 4 : 2 : 6);
         ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
-        if (PathLogo is not null)
+        if (pathLogo is not null)
         {
             if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
-                PathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
+                pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
             else
-                PathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
+                pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
         }
 
         LabTitle.Margin = new Thickness(4d, 0d, 0d, Height < 40d ? 0 : 2);
@@ -732,17 +732,17 @@ public partial class MyListItem : IMyRadio
         {
             // 自定义属性基础
 
-            var ChangedEventArgs = new ModBase.RouteEventArgs(user);
-            var RawValue = _Checked;
+            var changedEventArgs = new ModBase.RouteEventArgs(user);
+            var rawValue = _Checked;
             if (Type == CheckType.RadioBox)
             {
                 if (IsInitialized && value != _Checked)
                 {
                     _Checked = value;
-                    Changed?.Invoke(this, ChangedEventArgs);
-                    if (ChangedEventArgs.Handled)
+                    changed?.Invoke(this, changedEventArgs);
+                    if (changedEventArgs.handled)
                     {
-                        _Checked = RawValue;
+                        _Checked = rawValue;
                         return;
                     }
                 }
@@ -756,10 +756,10 @@ public partial class MyListItem : IMyRadio
                 _Checked = value;
                 if (IsInitialized)
                 {
-                    Changed?.Invoke(this, ChangedEventArgs);
-                    if (ChangedEventArgs.Handled)
+                    changed?.Invoke(this, changedEventArgs);
+                    if (changedEventArgs.handled)
                     {
-                        _Checked = RawValue;
+                        _Checked = rawValue;
                         return;
                     }
                 }
@@ -767,9 +767,9 @@ public partial class MyListItem : IMyRadio
 
             if (value)
             {
-                var CheckEventArgs = new ModBase.RouteEventArgs(user);
-                Check?.Invoke(this, CheckEventArgs);
-                if (CheckEventArgs.Handled)
+                var checkEventArgs = new ModBase.RouteEventArgs(user);
+                Check?.Invoke(this, checkEventArgs);
+                if (checkEventArgs.handled)
                     return;
             }
 
@@ -779,27 +779,27 @@ public partial class MyListItem : IMyRadio
             {
                 if (Parent is null)
                     return;
-                var RadioboxList = new List<MyListItem>();
-                var CheckedCount = 0;
+                var radioboxList = new List<MyListItem>();
+                var checkedCount = 0;
                 // 收集控件列表与选中个数
                 foreach (var ControlRaw in ((Panel)Parent).Children)
                 {
-                    var Control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
-                    if (Control is MyListItem listItem && listItem.Type == CheckType.RadioBox)
+                    var control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
+                    if (control is MyListItem listItem && listItem.Type == CheckType.RadioBox)
                     {
-                        RadioboxList.Add(listItem);
+                        radioboxList.Add(listItem);
                         if (listItem.Checked)
-                            CheckedCount += 1;
+                            checkedCount += 1;
                     }
                 }
 
                 // 判断选中情况
-                switch (CheckedCount)
+                switch (checkedCount)
                 {
                     case 0:
                     {
                         // 没有任何单选框被选中，选择第一个
-                        RadioboxList[0].Checked = true;
+                        radioboxList[0].Checked = true;
                         break;
                     }
                     case var @case when @case > 1:
@@ -808,21 +808,21 @@ public partial class MyListItem : IMyRadio
                         if (Checked)
                         {
                             // 如果本控件选中，则取消其他所有控件的选中
-                            foreach (var Control in RadioboxList)
+                            foreach (var Control in radioboxList)
                                 if (Control.Checked && !Control.Equals(this))
                                     Control.Checked = false;
                         }
                         else
                         {
                             // 如果本控件未选中，则只保留第一个选中的控件
-                            var FirstChecked = false;
-                            foreach (var Control in RadioboxList)
+                            var firstChecked = false;
+                            foreach (var Control in radioboxList)
                                 if (Control.Checked)
                                 {
-                                    if (FirstChecked)
+                                    if (firstChecked)
                                         Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
                                     else
-                                        FirstChecked = true;
+                                        firstChecked = true;
                                 }
                         }
 
@@ -835,25 +835,25 @@ public partial class MyListItem : IMyRadio
 
             if (IsLoaded && ModAnimation.AniControlEnabled == 0 && anime) // 防止默认属性变更触发动画
             {
-                var Anim = new List<ModAnimation.AniData>();
+                var anim = new List<ModAnimation.AniData>();
                 if (Checked)
                 {
                     // 由无变有
-                    if (RectCheck is not null)
+                    if (rectCheck is not null)
                     {
                         // 统一静态属性：固定高度、居中对齐、无额外边距
-                        RectCheck.Height = customHeight;
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        RectCheck.Opacity = 1d;
+                        rectCheck.Height = customHeight;
+                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
+                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                        rectCheck.Opacity = 1d;
 
                         // 初始化缩放中心为正中心
                         var scale = new ScaleTransform(1d, 0d);
-                        RectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        RectCheck.RenderTransform = scale;
+                        rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                        rectCheck.RenderTransform = scale;
 
                         // 动画：让 ScaleY 从 0 弹性放大到 1
-                        Anim.Add(ModAnimation.AaDouble(
+                        anim.Add(ModAnimation.AaDouble(
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             1d - scale.ScaleY,
                             300,
@@ -861,66 +861,66 @@ public partial class MyListItem : IMyRadio
                         ));
                     }
 
-                    Anim.Add(ModAnimation.AaColor(this, ForegroundProperty,
+                    anim.Add(ModAnimation.AaColor(this, foregroundProperty,
                         Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
                 }
                 else
                 {
                     // 由有变无
-                    if (RectCheck is not null)
+                    if (rectCheck is not null)
                     {
-                        if (RectCheck.RenderTransform is not ScaleTransform)
+                        if (rectCheck.RenderTransform is not ScaleTransform)
                         {
-                            RectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                            RectCheck.RenderTransform = new ScaleTransform(1d, 1d);
+                            rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                            rectCheck.RenderTransform = new ScaleTransform(1d, 1d);
                         }
 
-                        var scale = (ScaleTransform)RectCheck.RenderTransform;
+                        var scale = (ScaleTransform)rectCheck.RenderTransform;
 
                         // 动画：让 ScaleY 从当前值缩减到 0
-                        Anim.Add(ModAnimation.AaDouble(
+                        anim.Add(ModAnimation.AaDouble(
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             -scale.ScaleY,
                             120,
                             Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
                         ));
-                        Anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
+                        anim.Add(ModAnimation.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
                     }
 
-                    Anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
+                    anim.Add(ModAnimation.AaColor(this, foregroundProperty, "ColorBrush1", 120));
                 }
 
-                ModAnimation.AniStart(Anim, "MyListItem Checked " + Uuid);
+                ModAnimation.AniStart(anim, "MyListItem Checked " + uuid);
             }
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyListItem Checked " + Uuid);
+                ModAnimation.AniStop("MyListItem Checked " + uuid);
                 if (Checked)
                 {
-                    if (RectCheck is not null)
+                    if (rectCheck is not null)
                     {
-                        RectCheck.Height = customHeight; // 应用自定义固定高度
-                        RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        RectCheck.Opacity = 1d;
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
-                        RectCheck.RenderTransform = null; // 清除缩放
+                        rectCheck.Height = customHeight; // 应用自定义固定高度
+                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                        rectCheck.Opacity = 1d;
+                        rectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
+                        rectCheck.RenderTransform = null; // 清除缩放
                     }
 
-                    SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+                    SetResourceReference(foregroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
                 }
                 else
                 {
-                    if (RectCheck is not null)
+                    if (rectCheck is not null)
                     {
-                        RectCheck.Height = 0d;
-                        RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        RectCheck.Opacity = 0d;
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        RectCheck.RenderTransform = null;
+                        rectCheck.Height = 0d;
+                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                        rectCheck.Opacity = 0d;
+                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
+                        rectCheck.RenderTransform = null;
                     }
 
-                    SetResourceReference(ForegroundProperty, "ColorBrush1");
+                    SetResourceReference(foregroundProperty, "ColorBrush1");
                 }
             }
         }
@@ -933,11 +933,11 @@ public partial class MyListItem : IMyRadio
     // 前景色绑定
     public Brush Foreground
     {
-        get => (Brush)GetValue(ForegroundProperty);
-        set => SetValue(ForegroundProperty, value);
+        get => (Brush)GetValue(foregroundProperty);
+        set => SetValue(foregroundProperty, value);
     }
 
-    public static readonly DependencyProperty ForegroundProperty = DependencyProperty.Register("Foreground",
+    public static readonly DependencyProperty foregroundProperty = DependencyProperty.Register("Foreground",
         typeof(Brush), typeof(MyListItem), new PropertyMetadata(ThemeManager.AppResources["ColorBrush1"]));
 
     // 菜单与按钮绑定
@@ -953,7 +953,7 @@ public partial class MyListItem : IMyRadio
         set
         {
             field = value;
-            if (PathLogo is Canvas) _canvasClipHandlerAdded = false;
+            if (pathLogo is Canvas) _canvasClipHandlerAdded = false;
             ApplyLogoCornerRadius();
         }
     } = new CornerRadius(-1);
@@ -975,9 +975,9 @@ public partial class MyListItem : IMyRadio
 
     private void ApplyLogoCornerRadius()
     {
-        if (PathLogo is null || !IsLogoCornerRadiusEnabled()) return;
+        if (pathLogo is null || !IsLogoCornerRadiusEnabled()) return;
 
-        switch (PathLogo)
+        switch (pathLogo)
         {
             case MyImage myImage:
                 myImage.CornerRadius = LogoCornerRadius;
@@ -1008,7 +1008,7 @@ public partial class MyListItem : IMyRadio
     // 触发点击事件
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
         Click?.Invoke(sender, e);
         if (e.Handled)
@@ -1048,23 +1048,23 @@ public partial class MyListItem : IMyRadio
     }
 
     // 鼠标点击判定
-    private bool IsMouseDown;
+    private bool isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (IsMouseDirectlyOver && !(Type == CheckType.None))
         {
-            IsMouseDown = true;
-            if (ButtonStack is not null)
-                ButtonStack.IsHitTestVisible = false;
+            isMouseDown = true;
+            if (buttonStack is not null)
+                buttonStack.IsHitTestVisible = false;
         }
     }
 
     private void Button_MouseLeave(object sender, object e)
     {
-        IsMouseDown = false;
-        if (ButtonStack is not null)
-            ButtonStack.IsHitTestVisible = true;
+        isMouseDown = false;
+        if (buttonStack is not null)
+            buttonStack.IsHitTestVisible = true;
     }
 
     #endregion
