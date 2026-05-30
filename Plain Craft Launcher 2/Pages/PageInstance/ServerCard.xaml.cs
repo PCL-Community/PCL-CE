@@ -85,16 +85,16 @@ public partial class ServerCard
         {
             _manager.SetSelectedIconByName("loading");
             MotdRenderer.ClearCanvas();
-            ServerPlayer.Text = "正在连接";
-            ServerMotD.Text = "正在连接...";
+            ServerPlayer.Text = Lang.Text("Instance.Server.Card.Connecting");
+            ServerMotD.Text = Lang.Text("Instance.Server.Card.ConnectingDots");
             ServerMotD.Visibility = Visibility.Visible;
         }
         else if (Server.Status == ServerStatus.Offline)
         {
             _manager.SetSelectedIconByName("signal_offline");
             MotdRenderer.ClearCanvas();
-            ServerPlayer.Text = "离线";
-            ServerMotD.Text = "服务器离线";
+            ServerPlayer.Text = Lang.Text("Instance.Server.Card.Offline");
+            ServerMotD.Text = Lang.Text("Instance.Server.Card.ServerOffline");
             ServerMotD.Visibility = Visibility.Visible;
         }
     }
@@ -132,7 +132,7 @@ public partial class ServerCard
     /// </summary>
     public async Task RefreshServerStatus(bool withHint, CancellationToken token = default)
     {
-        if (withHint) ModMain.Hint($"正在刷新服务器 {Server.Name} 的状态...");
+        if (withHint) ModMain.Hint(Lang.Text("Instance.Server.Card.RefreshingStatus", Server.Name));
         Server.Status = ServerStatus.Pinging;
         await Dispatcher.InvokeAsync(() => UpdateServerUi());
         var serverInfo = await PageInstanceServer.PingServer(Server, token);
@@ -153,12 +153,12 @@ public partial class ServerCard
             };
             ModLaunch.McLaunchStart(launchOptions);
             ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
-            ModMain.Hint($"正在连接到服务器 {Server.Name}...");
+            ModMain.Hint(Lang.Text("Instance.Server.Card.ConnectingTo", Server.Name));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "启动服务器失败", ModBase.LogLevel.Feedback);
-            ModMain.Hint("启动服务器失败：" + ex.Message, ModMain.HintType.Critical);
+            ModBase.Log(ex, Lang.Text("Instance.Server.Card.LaunchFailed"), ModBase.LogLevel.Feedback);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), ModMain.HintType.Critical);
         }
     }
 
@@ -170,12 +170,12 @@ public partial class ServerCard
         try
         {
             Clipboard.SetText(Server.Address);
-            ModMain.Hint($"已复制服务器地址：{Server.Address}", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.AddressCopied", Server.Address), ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "复制服务器地址失败");
-            ModMain.Hint("复制服务器地址失败", ModMain.HintType.Critical);
+            ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
+            ModMain.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), ModMain.HintType.Critical);
         }
     }
 
@@ -207,17 +207,17 @@ public partial class ServerCard
 
         catch (Exception ex)
         {
-            ModMain.Hint("编辑服务器信息失败：" + ex.Message, ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), ModMain.HintType.Critical);
         }
     }
 
     private void BtnRemove_Click(object sender, RoutedEventArgs e)
     {
         if (ModMain.MyMsgBox(
-                $"""
-                 你确定要移除服务器 {Server.Name} 吗？
-                 '{Server.Address}' 将从您的列表中移除，包括游戏内列表，且无法恢复。
-                 """, "移除服务器确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
+                Lang.Text("Instance.Server.Card.RemoveConfirmMessage", Server.Name, Server.Address),
+                Lang.Text("Instance.Server.Card.RemoveConfirmTitle"), Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Cancel")
+            ) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
     }
 
     public class ResultEventArgs : EventArgs

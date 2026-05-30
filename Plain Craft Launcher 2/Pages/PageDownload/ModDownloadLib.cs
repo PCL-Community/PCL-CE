@@ -3985,18 +3985,18 @@ public static class ModDownloadLib
             { Show = false, Block = false });
         // Fabric API
         if (Request.FabricApi is not null)
-            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadFabricAPI"),
+            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadFabricApi"),
                     new List<DownloadFile> { Request.FabricApi.ToNetFile(ModsTempFolder) })
                 { ProgressWeight = 3d, Block = false });
         // LegacyFabric API
         if (Request.LegacyFabricApi is not null)
-            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLegacyFabricAPI"),
+            LoaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLegacyFabricApi"),
                     new List<DownloadFile> { Request.LegacyFabricApi.ToNetFile(ModsTempFolder) })
                 { ProgressWeight = 3d, Block = false });
         // Quilted Fabric API (QFAPI) / Quilt Standard Libraries (QSL)
         if (Request.QSL is not null)
             LoaderList.Add(
-                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadQFAPI_QSL"),
+                new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadQfapiQsl"),
                         new List<DownloadFile> { Request.QSL.ToNetFile(ModsTempFolder) })
                     { ProgressWeight = 3d, Block = false });
         // OptiFabric

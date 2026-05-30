@@ -7,6 +7,7 @@ using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -373,7 +374,7 @@ public static class ModJava
         string? targetName = null;
         JsonNode? targetValue = null;
         var Components =
-            (JsonObject)((JsonObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(ModBase.Is32BitSystem ? "86" : "64")}"];
+            (JsonObject)((JsonObject)ModBase.GetJson(IndexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
         if (Components.ContainsKey(Loader.Input)) // 精确匹配
         {
             targetName = Loader.Input;

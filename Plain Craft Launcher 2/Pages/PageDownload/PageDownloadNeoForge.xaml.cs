@@ -2,7 +2,6 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -13,7 +12,6 @@ public partial class PageDownloadNeoForge
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.NeoForge.LoadingList");
     }
 
     private void LoaderInit()

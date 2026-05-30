@@ -18,7 +18,6 @@ public partial class PageSetupJava
     public PageSetupJava()
     {
         InitializeComponent();
-        PanLoad.Text = Lang.Text("Setup.Launch.Java.Loading");
         Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }

@@ -126,7 +126,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <local:MyLoading x:Name="Load" Margin="20,20,20,17" />
+            <local:MyLoading Text="{DynamicResource Launch.Homepage.News.Loading}" x:Name="Load" Margin="20,20,20,17" />
         </local:MyCard>
     </Grid>
 </local:MyPageRight>

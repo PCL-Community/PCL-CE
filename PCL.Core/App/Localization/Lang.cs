@@ -132,23 +132,39 @@ public static class Lang
     /// <param name="span">
     ///     要格式化的时间间隔。负值表示过去，正值表示未来。
     /// </param>
-    /// <param name="isShortForm">
-    ///     如果为 <see langword="true" />，仅显示一个时间单位；否则显示两个时间单位。
+    /// <param name="precision">
+    ///     要显示的时间单位数量。例如值为 <c>1</c> 时仅显示最大的一项时间单位，值为 <c>2</c> 时显示两项时间单位。
+    /// </param>
+    /// <param name="addAffixes">
+    ///     如果为 <see langword="true" />，会根据 <paramref name="span" /> 的正负为文本添加“过去”或“未来”语义；
+    ///     如果为 <see langword="false" />，仅返回格式化后的时间间隔本身。
+    /// </param>
+    /// <param name="maxUnit">
+    ///     允许显示的最大时间单位。
+    /// </param>
+    /// <param name="minUnit">
+    ///     允许显示的最小时间单位。
     /// </param>
     /// <returns>
-    ///     使用当前展示区域性格式化后的时间间隔文本。
+    ///     使用当前展示区域性格式化后的时间间隔文本；当 <paramref name="addAffixes" /> 为 <see langword="true" /> 时，
+    ///     返回值会包含相对于当前时间的过去或未来语义。
     /// </returns>
-    public static string TimeSpan(TimeSpan span, bool isShortForm = false)
+    public static string TimeSpan(
+        TimeSpan span, int precision = 2, bool addAffixes = true,
+        TimeUnit maxUnit = TimeUnit.Year, TimeUnit minUnit = TimeUnit.Hour)
     {
         var isPast = span.TotalMilliseconds < 0;
         if (isPast) span = span.Negate();
 
         var text = span.Humanize(
-            isShortForm ? 1 : 2,
-            maxUnit: TimeUnit.Year,
-            minUnit: TimeUnit.Hour,
+            precision,
+            maxUnit: maxUnit,
+            minUnit: minUnit,
             culture: Culture);
-        return Text(isPast ? "Common.Format.TimeSpan.Past" : "Common.Format.TimeSpan.Future", text);
+
+        return addAffixes
+            ? Text(isPast ? "Common.Format.TimeSpan.Past" : "Common.Format.TimeSpan.Future", text)
+            : text;
     }
 
     /// <summary>

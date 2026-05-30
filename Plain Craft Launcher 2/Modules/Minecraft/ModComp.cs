@@ -1675,7 +1675,7 @@ public static class ModComp
 
                     if (LastUpdate is not null)
                     {
-                        newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, true);
+                        newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, 1);
                     }
                     else
                     {

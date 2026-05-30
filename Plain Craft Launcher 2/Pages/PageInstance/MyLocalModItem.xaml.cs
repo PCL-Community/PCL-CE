@@ -37,7 +37,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            $"当前版本：{CurrentName}（{Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now)}）{"\r\n"}最新版本：{NewestName}（{Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now)}）";
+            Lang.Text("Instance.Resource.Item.UpdateCompare", CurrentName, Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now), NewestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
     }
 
     public void Refresh()
@@ -48,7 +48,7 @@ public partial class MyLocalCompItem
             if (Entry.CanUpdate)
             {
                 BtnUpdate.Visibility = Visibility.Visible;
-                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}{"\r\n"}点击以更新，右键查看更新日志。";
+                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
             }
             else
             {
@@ -136,7 +136,7 @@ public partial class MyLocalCompItem
                 NewDescription += ": " + Entry.Comp.Description.Replace("\r", "").Replace("\n", "");
             else if (Entry.Description is not null)
                 NewDescription += ": " + Entry.Description.Replace("\r", "").Replace("\n", "");
-            else if (!Entry.IsFileAvailable) NewDescription += ": " + "存在错误，无法获取信息";
+            else if (!Entry.IsFileAvailable) NewDescription += ": " + Lang.Text("Instance.Resource.Item.InfoUnavailable");
             Description = NewDescription;
             if (Checked)
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
@@ -186,7 +186,7 @@ public partial class MyLocalCompItem
             // 标签
             if (Entry.IsFolder)
                 // 为文件夹添加标签
-                Tags = new List<string> { "文件夹" };
+                Tags = new List<string> { Lang.Text("Instance.Resource.Item.FolderTag") };
             else if (Entry.Comp is not null) Tags = Entry.Comp.Tags;
         }));
     }
@@ -292,15 +292,16 @@ public partial class MyLocalCompItem
             }
         }
 
-        ModBase.Log("打开更新日志出现错误", ModBase.LogLevel.Hint);
+        ModBase.Log(Lang.Text("Instance.Resource.Item.OpenChangelogFailed"), ModBase.LogLevel.Hint);
     }
 
     // 触发更新
     private void BtnUpdate_Click(object sender, EventArgs e)
     {
         switch (ModMain.MyMsgBox(
-                    $"是否要更新 {Entry.Name}？{"\r\n"}{"\r\n"}{GetUpdateCompareDescription()}", "更新确认",
-                    "更新", "查看更新日志", Lang.Text("Common.Action.Cancel")))
+                    $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
+                    Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
+                    Lang.Text("Instance.Resource.Item.Update"), Lang.Text("Instance.Resource.Item.ViewChangelog"), Lang.Text("Common.Action.Cancel")))
         {
             case 1: // 更新
             {
@@ -448,7 +449,7 @@ public partial class MyLocalCompItem
                 case ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable:
                 {
                     LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    value += " [错误]";
+                    value += Lang.Text("Instance.Resource.Item.ErrorSuffix");
                     break;
                 }
             }

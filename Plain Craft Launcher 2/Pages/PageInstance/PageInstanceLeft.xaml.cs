@@ -171,7 +171,11 @@ public partial class PageInstanceLeft : IRefreshable
 
     public void Reset(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox("是否要初始化该实例的实例独立设置？该操作不可撤销。", "初始化确认", Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+        if (ModMain.MyMsgBox(Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
+                Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
+                Button2: Lang.Text("Common.Action.Cancel"),
+                IsWarn: true)
+            == 1)
         {
             if (ModMain.FrmInstanceSetup is null)
                 ModMain.FrmInstanceSetup = new PageInstanceSetup();

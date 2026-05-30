@@ -10,12 +10,12 @@
             <local:MyCard Margin="0,15" Title="">
                 <Grid Margin="10,7" Name="PanDisplayItem" />
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="实例信息">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Info.Title}">
                 <StackPanel x:Name="PanInfo" Margin="15,40,25,5">
-                    <local:MyLoading Text="正在获取信息" Margin="0,0,0,10" />
+                    <local:MyLoading x:Name="LabInfoLoading" Text="{DynamicResource Instance.Overall.Info.Loading}" Margin="0,0,0,10" />
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="个性化" x:Name="PanDisplay">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Personalization.Title}" x:Name="PanDisplay">
                 <StackPanel Margin="25,40,25,15">
                     <Grid x:Name="PanDisplayIcon" HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
@@ -27,44 +27,44 @@
                             <RowDefinition Height="9" />
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="图标" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Icon.Title}" Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Column="1" x:Name="ComboDisplayLogo">
                             <local:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" Tag="" />
                             <local:MyComboBoxItem Content="{DynamicResource Common.Option.Customize}" x:Name="ItemDisplayLogoCustom" />
-                            <local:MyComboBoxItem Content="圆石"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cobblestone}"
                                                   Tag="pack://application:,,,/images/Blocks/CobbleStone.png" />
-                            <local:MyComboBoxItem Content="命令方块"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.CommandBlock}"
                                                   Tag="pack://application:,,,/images/Blocks/CommandBlock.png" />
-                            <local:MyComboBoxItem Content="金块" Tag="pack://application:,,,/images/Blocks/GoldBlock.png" />
-                            <local:MyComboBoxItem Content="草方块" Tag="pack://application:,,,/images/Blocks/Grass.png" />
-                            <local:MyComboBoxItem Content="土径" Tag="pack://application:,,,/images/Blocks/GrassPath.png" />
-                            <local:MyComboBoxItem Content="铁砧" Tag="pack://application:,,,/images/Blocks/Anvil.png" />
-                            <local:MyComboBoxItem Content="红石块"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GoldBlock}" Tag="pack://application:,,,/images/Blocks/GoldBlock.png" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GrassBlock}" Tag="pack://application:,,,/images/Blocks/Grass.png" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.DirtPath}" Tag="pack://application:,,,/images/Blocks/GrassPath.png" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Anvil}" Tag="pack://application:,,,/images/Blocks/Anvil.png" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneBlock}"
                                                   Tag="pack://application:,,,/images/Blocks/RedstoneBlock.png" />
-                            <local:MyComboBoxItem Content="红石灯（开）"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOn}"
                                                   Tag="pack://application:,,,/images/Blocks/RedstoneLampOn.png" />
-                            <local:MyComboBoxItem Content="红石灯（关）"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOff}"
                                                   Tag="pack://application:,,,/images/Blocks/RedstoneLampOff.png" />
-                            <local:MyComboBoxItem Content="鸡蛋" Tag="pack://application:,,,/images/Blocks/Egg.png" />
-                            <local:MyComboBoxItem Content="布料（Fabric）"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Egg}" Tag="pack://application:,,,/images/Blocks/Egg.png" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Fabric}"
                                                   Tag="pack://application:,,,/images/Blocks/Fabric.png" />
-                            <local:MyComboBoxItem Content="方格（Quilt）"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Quilt}"
                                                   Tag="pack://application:,,,/images/Blocks/Quilt.png" />
-                            <local:MyComboBoxItem Content="狐狸（NeoForge）"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.NeoForgeFox}"
                                                   Tag="pack://application:,,,/images/Blocks/NeoForge.png" />
-                            <local:MyComboBoxItem Content="Cleanroom"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cleanroom}"
                                                   Tag="pack://application:,,,/images/Blocks/Cleanroom.png" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="分类"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Category.Title}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Column="1" Grid.Row="2" x:Name="ComboDisplayType">
                             <local:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" />
-                            <local:MyComboBoxItem Content="从实例列表中隐藏"
-                                                  ToolTip="该实例默认将不会在实例列表中显示。&#xa;在实例列表页面按下 F11，即可查看所有隐藏的实例。" />
-                            <local:MyComboBoxItem Content="可安装 Mod 的实例" />
-                            <local:MyComboBoxItem Content="常规实例" />
-                            <local:MyComboBoxItem Content="不常用实例" />
-                            <local:MyComboBoxItem Content="愚人节版本" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Hidden}"
+                                                  ToolTip="{DynamicResource Instance.Overall.Category.Hidden.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Modable}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Regular}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.LessUsed}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.AprilFools}" />
                         </local:MyComboBox>
                     </Grid>
                     <Grid Margin="0,15,0,7" Height="35">
@@ -73,19 +73,19 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnDisplayRename" Text="修改实例名"
+                        <local:MyButton x:Name="BtnDisplayRename" Text="{DynamicResource Instance.Overall.Rename}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" />
-                        <local:MyButton x:Name="BtnDisplayDesc" Text="修改实例描述"
+                        <local:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnDisplayStar" Text="加入收藏夹"
+                        <local:MyButton x:Name="BtnDisplayStar" Text="{DynamicResource Instance.Overall.Favorite}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="快捷方式" x:Name="PanFolder">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Shortcuts.Title}" x:Name="PanFolder">
                 <StackPanel Margin="25,40,25,15">
                     <Grid Margin="0,2,0,7" Height="35">
                         <Grid.ColumnDefinitions>
@@ -93,35 +93,35 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnFolderVersion" Text="实例文件夹" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnFolderVersion" Text="{DynamicResource Instance.Overall.Shortcuts.InstanceFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" />
-                        <local:MyButton x:Name="BtnFolderSaves" Text="存档文件夹" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnFolderSaves" Text="{DynamicResource Instance.Overall.Shortcuts.SavesFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnFolderMods" Text="Mod 文件夹" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnFolderMods" Text="{DynamicResource Instance.Overall.Shortcuts.ModsFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="高级管理" x:Name="PanManage">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Manage.Title}" x:Name="PanManage">
                 <StackPanel Margin="25,40,25,15">
                     <WrapPanel Margin="0,-5,-20,7">
-                        <local:MyButton x:Name="BtnManageScript" Text="导出启动脚本" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageScript" Text="{DynamicResource Instance.Overall.Manage.ExportLaunchScript}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0" Height="35" />
-                        <local:MyButton x:Name="BtnManageTest" Text="测试游戏" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageTest" Text="{DynamicResource Instance.Overall.Manage.TestGame}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0"
                                         Height="35" />
-                        <local:MyButton x:Name="BtnManageCheck" Text="补全文件" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageCheck" Text="{DynamicResource Instance.Overall.Manage.RepairFiles}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0"
-                                        ToolTip="校验实例依赖文件是否完整，并重新下载 Assets 索引与缺失、校验失败的文件。&#xa;若游戏缺失音效，请尝试此项。"
+                                        ToolTip="{DynamicResource Instance.Overall.Manage.RepairFiles.ToolTip}"
                                         Height="35" />
                         <local:MyButton x:Name="BtnManageRestore" Text="{DynamicResource Common.Action.Reset}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0"
-                                        ToolTip="重新从互联网获取此实例的安装信息，并执行自动安装。&#xa;你的存档、Mod、资源包等信息不会丢失。&#xa;若游戏因 Libraries 等资源缺失无法启动，请尝试此项。"
+                                        ToolTip="{DynamicResource Instance.Overall.Manage.Reinstall.ToolTip}"
                                         Height="35" />
-                        <local:MyButton x:Name="BtnManageDelete" Text="删除实例" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageDelete" Text="{DynamicResource Instance.Overall.Manage.Delete}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0"
                                         ColorType="Red" Height="35" />
-                        <local:MyButton x:Name="BtnManagePatch" Text="修补核心" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManagePatch" Text="{DynamicResource Instance.Overall.Manage.PatchCore}" MinWidth="140" Padding="13,0"
                                         Margin="0,7,20,0"
                                         Height="35" />
                     </WrapPanel>

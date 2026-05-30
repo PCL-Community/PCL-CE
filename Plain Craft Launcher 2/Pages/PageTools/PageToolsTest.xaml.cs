@@ -255,7 +255,7 @@ public partial class PageToolsTest
                     }
 
                     num += ModBase.DeleteDirectory(ModBase.PathTemp, true);
-                    num += ModBase.DeleteDirectory(ModBase.OsDrive + @"ProgramData\PCL\", true);
+                    num += ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true);
                     if (num != 0)
                     {
                         ModMain.MyMsgBox($"""
@@ -263,7 +263,7 @@ public partial class PageToolsTest
                                            PCL 即将自动重启……
                                            """,
                             "缓存已清理", Lang.Text("Common.Action.Confirm"), "", "", false, true, true);
-                        Process.Start(new ProcessStartInfo(ModBase.ExePathWithName));
+                        Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
                         FormMain.EndProgramForce();
                     }
                     else

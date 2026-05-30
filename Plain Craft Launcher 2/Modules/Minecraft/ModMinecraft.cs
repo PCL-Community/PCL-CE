@@ -12,6 +12,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.OS;
 using PCL.Network;
 
 namespace PCL;
@@ -2701,7 +2702,7 @@ public static class ModMinecraft
                 }
 
                 if (Rule["os"]["arch"] is not null) // 操作系统架构
-                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == ModBase.Is32BitSystem;
+                    IsRightRule = IsRightRule && Rule["os"]["arch"].ToString() == "x86" == SystemInfo.Is32BitSystem;
             }
 
             if (Rule["features"] is not null) // 标签
@@ -3045,7 +3046,7 @@ public static class ModMinecraft
             var downloadAddress =
                 "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" +
                 ModLaunch.MesaLoaderWindowsVersion + "/mesa-loader-windows-" + ModLaunch.MesaLoaderWindowsVersion + "-" +
-                (ModBase.Is32BitSystem ? "x86" : ModBase.IsArm64System ? "arm64" : "x64") + ".jar";
+                (SystemInfo.Is32BitSystem ? "x86" : SystemInfo.IsArm64System ? "arm64" : "x64") + ".jar";
             result.Add(new DownloadFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
         }
 

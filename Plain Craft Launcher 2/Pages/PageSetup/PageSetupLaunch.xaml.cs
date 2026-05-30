@@ -75,7 +75,7 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
-            if (ModBase.IsArm64System)
+            if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
                 CheckAdvanceDisableJLW.IsEnabled = false;
@@ -245,7 +245,7 @@ public partial class PageSetupLaunch
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
         LabRamWarn.Visibility =
-            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !ModBase.Is32BitSystem && ModJava.Javas.ExistAnyJava()
+            ramGame == 1d && !ModJava.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;

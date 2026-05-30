@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
@@ -79,7 +80,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
-            var selfSha256 = ModBase.GetFileSHA256(ModBase.ExePathWithName);
+            var selfSha256 = ModBase.GetFileSHA256(Basics.ExecutablePath);
             var remoteUpdSha256 = deJsonData.sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.patches.Contains(patchFileName))
@@ -104,7 +105,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 var diff = new BsDiff();
                 var newFile = diff
-                    .ApplyAsync(ModBase.ReadFileBytes(ModBase.ExePathWithName), ModBase.ReadFileBytes(tempPath))
+                    .ApplyAsync(ModBase.ReadFileBytes(Basics.ExecutablePath), ModBase.ReadFileBytes(tempPath))
                     .GetAwaiter().GetResult();
                 ModBase.WriteFile(output, newFile);
             }

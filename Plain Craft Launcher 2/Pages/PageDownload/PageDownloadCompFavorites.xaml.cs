@@ -25,8 +25,7 @@ public partial class PageDownloadCompFavorites
         KeyDown += Page_KeyDown;
         InitializeComponent();
         {
-            PanSearchBox.HintText = Lang.Text("Download.Comp.Favorites.Search.Hint");
-            Load.Text = Lang.Text("Download.Comp.Favorites.Loading");
+
             // 这是选择收藏夹旁边那个图标按钮
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
@@ -832,7 +831,7 @@ public partial class PageDownloadCompFavorites
             }
 
             var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Action.No"), Button2: Lang.Text("Common.Action.Yes"), Button3: Lang.Text("Common.Action.No"));
+            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Option.No"), Button2: Lang.Text("Common.Option.Yes"), Button3: Lang.Text("Common.Option.No"));
             if (res == 2)
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);

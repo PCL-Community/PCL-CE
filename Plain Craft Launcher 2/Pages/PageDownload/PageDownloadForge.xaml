@@ -25,8 +25,8 @@
             <StackPanel Name="PanMain" Margin="20,15,20,5" Grid.IsSharedSizeScope="True" />
             <local:MyCard HorizontalAlignment="Center" Margin="40,50" SnapsToDevicePixels="True" x:Name="PanLoad"
                           UseAnimation="False">
-                <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                                 VerticalAlignment="Center" />
+            <local:MyLoading Text="{DynamicResource Download.Version.Forge.LoadingList}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
             </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>
