@@ -309,21 +309,25 @@ public partial class MyLocalCompItem
                 {
                     case ModComp.CompType.Mod:
                     {
+                        ModMain.FrmInstanceMod ??= new PageInstanceCompResource(ModComp.CompType.Mod);
                         ModMain.FrmInstanceMod.UpdateResource(new[] { Entry });
                         break;
                     }
                     case ModComp.CompType.ResourcePack:
                     {
+                        ModMain.FrmInstanceResourcePack ??= new PageInstanceCompResource(ModComp.CompType.ResourcePack);
                         ModMain.FrmInstanceResourcePack.UpdateResource(new[] { Entry });
                         break;
                     }
                     case ModComp.CompType.Shader:
                     {
+                        ModMain.FrmInstanceShader ??= new PageInstanceCompResource(ModComp.CompType.Shader);
                         ModMain.FrmInstanceShader.UpdateResource(new[] { Entry });
                         break;
                     }
                     case ModComp.CompType.DataPack:
                     {
+                        ModMain.FrmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
                         ModMain.FrmInstanceSavesDatapack.UpdateResource(new[] { Entry });
                         break;
                     }

@@ -63,6 +63,7 @@ public partial class MySearchBox : MyCard
     private void Text_TextChanged(object sender, TextChangedEventArgs e)
     {
         UpdateClearButtonState();
+        SetCurrentValue(TextProperty, TextBox.Text);
 
         TextChanged?.Invoke(sender, e);
     }

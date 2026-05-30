@@ -164,15 +164,6 @@ public partial class FormMain
         ModBase.ApplicationStartTick = TimeUtils.GetTimeTick();
         ModBase.FrmHandle = new WindowInteropHelper(this).Handle;
         // 读取设置
-        _ = Config.Preference.Background.WallpaperOpacity;
-        _ = Config.Preference.Background.WallpaperBlurRadius;
-        _ = Config.Preference.WindowTitleType;
-        _ = Config.Preference.Hide.PageDownload;
-        _ = Config.Preference.Background.AutoPauseVideo; // 智能暂停视频背景
-        ModSetup.UiLogoType((int)Config.Preference.WindowTitleType);
-        ModSetup.UiLogoText(Config.Preference.WindowTitleCustomText);
-        ModSetup.UiLogoLeft(Config.Preference.TopBarLeftAlign);
-        PageSetupUI.HiddenRefresh();
         PageSetupUI.BackgroundRefresh(false, true);
         ModMusic.MusicRefreshPlay(false, true);
         // 扩展按钮
@@ -195,7 +186,7 @@ public partial class FormMain
         // 加载窗口
 
         ThemeManager.ThemeRefresh();
-
+        ModSetup.ApplyAll();
         Lifecycle.CurrentApplication.Resources["BlurSamplingRate"] = Config.Preference.Blur.SamplingRate * 0.01d;
         Lifecycle.CurrentApplication.Resources["BlurType"] = Config.Preference.Blur.KernelType;
         if (Config.Preference.Blur.IsEnabled)
