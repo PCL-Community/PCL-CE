@@ -57,11 +57,11 @@ public enum GameWindowSizeMode
 /// </summary>
 public enum GameProcessPriority
 {
-    RealTime = 0,
-    High = 1,
-    AboveNormal = 2,
-    Normal = 3,
-    BelowNormal = 4
+    AboveNormal = 0,
+    Normal = 1,
+    BelowNormal = 2,
+    High = 3,
+    RealTime = 4
 }
 
 /// <summary>
