@@ -126,6 +126,12 @@
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "DotNet.Glob",
+      "info": "Copyright (c) 2015 - present Darrell Tunnell",
+      "website": "https://github.com/dazinator/DotNet.Glob",
+      "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
     }
   ]
 }
