@@ -513,6 +513,11 @@ public static class ModLoader
 
         public abstract bool ShouldStart(ref object? input, bool isForceRestart = false, bool ignoreReloadTimeout = false);
 
+        /// <summary>
+        ///     无类型的输出值，用于在非泛型上下文中访问 Output。
+        /// </summary>
+        public abstract object? OutputNoType { get; }
+
         // 装箱！装箱！装箱圣地！
         public abstract object? StartGetInputNoType(object? input = null, Func<object>? inputDelegate = null);
 
@@ -530,6 +535,8 @@ public static class ModLoader
         // 执行事件
         protected internal Action<LoaderTask<InputType, OutputType>> LoadDelegate;
         public OutputType Output = default;
+
+        public override object? OutputNoType => Output;
 
         private CancellationTokenSource? CancelToken;
 
@@ -869,7 +876,7 @@ public static class ModLoader
                                 goto Restart;
                             }
 
-                            input = ((dynamic)loader).Output; // 何意味啊，没法匹配 LoaderTask<,>
+                            input = task.OutputNoType;
                         }
 
                         if (loader.Block && !isFinished)
