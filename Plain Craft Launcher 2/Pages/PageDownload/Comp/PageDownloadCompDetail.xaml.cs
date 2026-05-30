@@ -451,8 +451,9 @@ public partial class PageDownloadCompDetail
                         }
                         catch (Exception depEx)
                         {
-                            ModBase.Log(depEx, "[CompDeps] 依赖解析失败");
-                            return;
+                            ModBase.Log(depEx, "[CompDeps] 依赖解析失败，跳过前置安装");
+                            ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
+                                "前置解析失败", Button1: "继续下载", IsWarn: true, ForceWait: true);
                         }
                     }
 

@@ -138,17 +138,6 @@ public static class ModCompDependency
             ProjectId = compProject.id,
             Source = source,
             ProjectName = compProject.TranslatedName ?? compProject.rawName,
-            RequiredDependencies = files
-                .SelectMany(static compFile => compFile.dependencies)
-                .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Select(dependencyId => new ModDependencyReference
-                {
-                    ProjectId = dependencyId,
-                    Source = source,
-                    IsRequired = true,
-                })
-                .ToList(),
             Files = files.Select(compFile => new ModDependencyFile
             {
                 Id = compFile.id,

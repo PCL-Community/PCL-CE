@@ -25,7 +25,6 @@ public sealed record class ModDependencyProject
     public string ProjectId { get; init; } = string.Empty;
     public string Source { get; init; } = string.Empty;
     public string? ProjectName { get; init; }
-    public List<ModDependencyReference> RequiredDependencies { get; init; } = [];
     public List<ModDependencyFile> Files { get; init; } = [];
 }
 
