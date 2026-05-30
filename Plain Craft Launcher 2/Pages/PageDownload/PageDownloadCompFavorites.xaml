@@ -15,7 +15,7 @@
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" />
+                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{DynamicResource Download.Comp.Favorites.Search.Hint}" />
                             <local:MyCard Margin="15,0,0,0" Height="40" CanSwap="False" Grid.Column="1">
                                 <StackPanel Orientation="Horizontal">
                                     <local:MyComboBox Margin="8,0,-1,0" VerticalAlignment="Center" Height="27"
@@ -97,7 +97,7 @@
         </local:MyCard>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50">
-            <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+            <local:MyLoading Text="{DynamicResource Download.Comp.Favorites.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
         </local:MyCard>
     </Grid>

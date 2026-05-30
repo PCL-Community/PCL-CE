@@ -48,9 +48,9 @@
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" Margin="40">
-            <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                             Click="Load_Click"
-                             VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
+        <local:MyLoading Text="{DynamicResource Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                         Click="Load_Click"
+                         VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
         </local:MyCard>
     </Grid>
 </local:MyPageRight>

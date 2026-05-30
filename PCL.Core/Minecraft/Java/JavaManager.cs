@@ -60,14 +60,14 @@ public class JavaManager
         try
         {
             var items = JsonSerializer.Deserialize<JavaStorageItem[]>(States.Game.JavaList);
-            if (items == null) return;
+            if (items is null) return;
 
             var itemsAdded = new List<JavaEntry>();
 
             foreach (var item in items)
             {
                 var parserResult = _parser.Parse(item.Path);
-                if (parserResult == null)
+                if (parserResult is null)
                 {
                     LogWrapper.Trace(ModuleName, $"Can not find Java {item.Path}, skip");
                     continue;
@@ -147,7 +147,7 @@ public class JavaManager
 
         var scannedEntries = pathSet.Keys
             .Select(_parser.Parse)
-            .Where(inst => inst != null)
+            .Where(inst => inst is not null)
             .Select(inst => new JavaEntry
             {
                 Installation = inst!,
@@ -222,7 +222,7 @@ public class JavaManager
             if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
             var installation = _parser.Parse(javaExePath);
-            if (installation == null) return null;
+            if (installation is null) return null;
 
             var exePath = _NormalizePath(installation.JavaExePath);
             lock (_javaEntrys)
@@ -257,7 +257,7 @@ public class JavaManager
             if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
             var installation = _parser.Parse(javaExePath);
-            if (installation == null) return null;
+            if (installation is null) return null;
 
             var exePath = _NormalizePath(installation.JavaExePath);
             lock (_javaEntrys)

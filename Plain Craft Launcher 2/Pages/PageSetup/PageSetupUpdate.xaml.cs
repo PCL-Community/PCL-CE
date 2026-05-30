@@ -4,6 +4,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -38,7 +39,7 @@ public partial class PageSetupUpdate
             // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
             if (await UpdateManager.RemoteServer.IsLatestAsync(
                     UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                    ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
+                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
                     SemVer.Parse(ModBase.VersionBaseName),
                     ModBase.VersionCode))
             {
@@ -73,7 +74,7 @@ public partial class PageSetupUpdate
                     UpdateInfo = UpdateManager.RemoteServer.GetLatestVersion(
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
-                            : UpdateChannel.stable, ModBase.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                            : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
                     TextUpdateName.Text = "PCL CE " + VersionNameFormat(UpdateInfo.VersionName);
                     var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
@@ -154,7 +155,7 @@ public partial class PageSetupUpdate
         {
             ModMain.MyMsgBox(
                 Lang.Text("Setup.Update.DotNetMissing.Message", UpdateInfo.VersionName,
-                    ModBase.IsArm64System ? "Arm64" : "x64"),
+                    SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
                 Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);

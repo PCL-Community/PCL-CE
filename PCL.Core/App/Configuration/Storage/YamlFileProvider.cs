@@ -46,7 +46,7 @@ public class YamlFileProvider : CommonFileProvider, IEnumerableKeyProvider
     public YamlFileProvider(string path) : base(path)
     {
         var rootNode = _LoadFile(path);
-        if (rootNode != null)
+        if (rootNode is not null)
         {
             _rootNode = rootNode;
             return;

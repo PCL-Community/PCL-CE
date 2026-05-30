@@ -69,29 +69,25 @@ public partial class MyLoading
         }
     }
 
-    private string _Text = Lang.Text("Common.State.Loading");
-
     public string Text
     {
-        get => _Text;
-        set
-        {
-            _Text = value;
-            RefreshText();
-        }
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
-    private string _TextError = "加载失败";
+    public static readonly DependencyProperty TextProperty =
+        DependencyProperty.Register("Text", typeof(string), typeof(MyLoading),
+            new PropertyMetadata("", (d, e) => ((MyLoading)d).RefreshText()));
 
     public string TextError
     {
-        get => _TextError;
-        set
-        {
-            _TextError = value;
-            RefreshText();
-        }
+        get => (string)GetValue(TextErrorProperty);
+        set => SetValue(TextErrorProperty, value);
     }
+
+    public static readonly DependencyProperty TextErrorProperty =
+        DependencyProperty.Register("TextError", typeof(string), typeof(MyLoading),
+            new PropertyMetadata("加载失败", (d, e) => ((MyLoading)d).RefreshText()));
 
     /// <summary>
     ///     是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。
@@ -161,14 +157,14 @@ public partial class MyLoading
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (__State != null)
+            if (__State is not null)
             {
                 __State.ProgressChanged -= (_, _) => RefreshText();
                 __State.LoadingStateChanged -= (_, _) => RefreshState();
             }
 
             __State = value;
-            if (__State != null)
+            if (__State is not null)
             {
                 __State.ProgressChanged += (_, _) => RefreshText();
                 __State.LoadingStateChanged += (_, _) => RefreshState();
@@ -298,9 +294,6 @@ public partial class MyLoading
                 AniLoop();
             }, After: true)
         }, "MyLoader Loop " + Uuid + "/" + ModBase.GetUuid());
-        if (ShowProgress)
-        {
-        }
     }
 
     /// <summary>

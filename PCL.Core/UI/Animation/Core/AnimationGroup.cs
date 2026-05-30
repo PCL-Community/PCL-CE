@@ -99,7 +99,7 @@ public abstract class AnimationGroup : AnimationBase
         }
 
         // 如果都未解析出特定值，直接返回默认目标
-        if (targetObject == null || targetProperty == null)
+        if (targetObject is null || targetProperty is null)
             return defaultTarget;
 
         return new WpfAnimatable(targetObject, targetProperty);

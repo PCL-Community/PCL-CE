@@ -79,13 +79,13 @@ public sealed partial class DependencyCheckService
             return false;
         }
 
-        if (jnode == null) return false;
+        if (jnode is null) return false;
         if (jnode.GetValueKind().Equals(JsonValueKind.Array))
         {
             var hasPack = false;
             foreach (var node in jnode.AsArray())
             {
-                if (node != null && CheckPackSuit(node, id))
+                if (node is not null && CheckPackSuit(node, id))
                 {
                     hasPack = true;
                     break;
@@ -104,7 +104,7 @@ public sealed partial class DependencyCheckService
         static bool CheckPackSuit(JsonNode jnode, string id)
         {
             var findedPackName = jnode["Name"]?.GetValue<string>();
-            return findedPackName != null && findedPackName.Contains(id);
+            return findedPackName is not null && findedPackName.Contains(id);
         }
     }
 }

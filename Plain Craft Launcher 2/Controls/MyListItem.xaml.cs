@@ -408,7 +408,6 @@ public partial class MyListItem : IMyRadio
                         Btn.SnapsToDevicePixels = false;
                         Btn.HorizontalAlignment = HorizontalAlignment.Right;
                         Btn.VerticalAlignment = VerticalAlignment.Center;
-                        Btn.SnapsToDevicePixels = false;
                         Btn.UseLayoutRounding = false;
                         SetColumnSpan(Btn, 10);
                         SetRowSpan(Btn, 10);
@@ -536,7 +535,7 @@ public partial class MyListItem : IMyRadio
     private void UpdateLogo(string _Logo)
     {
         // 删除旧 Logo
-        if (!(PathLogo == null))
+            if (PathLogo is not null)
             Children.Remove(PathLogo);
         // 添加新 Logo
         if (!string.IsNullOrEmpty(_Logo))
@@ -628,7 +627,7 @@ public partial class MyListItem : IMyRadio
         set
         {
             _LogoScale = value;
-            if (!(PathLogo == null))
+        if (PathLogo is not null)
                 PathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
@@ -667,7 +666,7 @@ public partial class MyListItem : IMyRadio
             if (_Type == CheckType.None || _Type == CheckType.Clickable)
             {
                 // 移除竖条控件
-                if (!(RectCheck == null))
+                if (RectCheck is not null)
                 {
                     Children.Remove(RectCheck);
                     RectCheck = null;
@@ -676,7 +675,7 @@ public partial class MyListItem : IMyRadio
                 SetChecked(false, false, false);
             }
             // 添加竖条控件
-            else if (RectCheck == null)
+            else if (RectCheck is null)
             {
                 RectCheck = new Border
                 {
@@ -739,7 +738,7 @@ public partial class MyListItem : IMyRadio
             var RawValue = _Checked;
             if (Type == CheckType.RadioBox)
             {
-                if (IsInitialized && !(value == _Checked))
+                if (IsInitialized && value != _Checked)
                 {
                     _Checked = value;
                     Changed?.Invoke(this, ChangedEventArgs);
@@ -780,7 +779,7 @@ public partial class MyListItem : IMyRadio
 
             if (Type == CheckType.RadioBox)
             {
-                if (Parent == null)
+                if (Parent is null)
                     return;
                 var RadioboxList = new List<MyListItem>();
                 var CheckedCount = 0;
@@ -872,7 +871,7 @@ public partial class MyListItem : IMyRadio
                     // 由有变无
                     if (RectCheck is not null)
                     {
-                        if (!(RectCheck.RenderTransform is ScaleTransform))
+                        if (RectCheck.RenderTransform is not ScaleTransform)
                         {
                             RectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
                             RectCheck.RenderTransform = new ScaleTransform(1d, 1d);
@@ -901,7 +900,7 @@ public partial class MyListItem : IMyRadio
                 ModAnimation.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         RectCheck.Height = customHeight; // 应用自定义固定高度
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
@@ -914,7 +913,7 @@ public partial class MyListItem : IMyRadio
                 }
                 else
                 {
-                    if (RectCheck != null)
+                    if (RectCheck is not null)
                     {
                         RectCheck.Height = 0d;
                         RectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);

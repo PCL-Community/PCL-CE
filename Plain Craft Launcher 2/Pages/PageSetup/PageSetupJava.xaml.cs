@@ -18,7 +18,6 @@ public partial class PageSetupJava
     public PageSetupJava()
     {
         InitializeComponent();
-        PanLoad.Text = Lang.Text("Setup.Launch.Java.Loading");
         Loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }
@@ -162,7 +161,7 @@ public partial class PageSetupJava
             try
             {
                 var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
-                if (target == null)
+                if (target is null)
                 {
                     ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                     return;

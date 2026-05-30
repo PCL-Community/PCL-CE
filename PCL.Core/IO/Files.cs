@@ -221,7 +221,7 @@ public static class Files {
         try {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
-            if (encoding == null) return await File.ReadAllTextAsync(fullPath, cancelToken);
+            if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken);
             return await File.ReadAllTextAsync(fullPath, encoding, cancelToken);
         } catch (Exception ex) {
             LogWrapper.Warn(ex, $"读取文件出错：{filePath}");
@@ -332,7 +332,7 @@ public static class Files {
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>写入是否成功</returns>
     public static async Task<bool> WriteFileAsync(string filePath, Stream? stream, CancellationToken cancelToken = default) {
-        if (stream == null) return false;
+        if (stream is null) return false;
         try {
             var fullPath = GetFullPath(filePath);
             var directoryName = Path.GetDirectoryName(fullPath);
@@ -648,7 +648,7 @@ public static class Files {
         }
 
         var dataObject = Clipboard.GetDataObject();
-        if (dataObject == null || !dataObject.GetDataPresent(DataFormats.FileDrop)) {
+        if (dataObject is null || !dataObject.GetDataPresent(DataFormats.FileDrop)) {
             return 0;
         }
 
@@ -684,11 +684,11 @@ public static class Files {
     /// <returns>合并后的 JSON 对象。如果输入无效，返回源或目标的深拷贝。</returns>
     /// <exception cref="ArgumentNullException">如果 target 和 source 均为 null，则抛出异常。</exception>
     public static JsonNode MergeJson(JsonNode target, JsonNode source) {
-        if (target == null && source == null) {
+        if (target is null && source is null) {
             throw new ArgumentNullException(nameof(target), "目标和源 JSON 不能同时为 null。");
         }
 
-        if (target == null) {
+        if (target is null) {
             return source.DeepClone();
         }
 
@@ -702,7 +702,7 @@ public static class Files {
         foreach (var (key, sourceValue) in sourceObj) {
             var targetValue = result[key];
 
-            if (sourceValue == null) {
+            if (sourceValue is null) {
                 // 忽略 null 值，保留目标值
                 continue;
             }
@@ -717,7 +717,7 @@ public static class Files {
 
                 // 添加目标数组元素
                 foreach (var item in targetArray) {
-                    if (item == null) {
+                    if (item is null) {
                         continue;
                     }
                     var itemStr = item.ToJsonString();
@@ -728,7 +728,7 @@ public static class Files {
 
                 // 添加源数组元素（源覆盖目标）
                 foreach (var item in sourceArray) {
-                    if (item == null) {
+                    if (item is null) {
                         continue;
                     }
                     var itemStr = item.ToJsonString();

@@ -12,7 +12,7 @@
     </local:MyScrollViewer.Resources>
     <StackPanel Orientation="Vertical" Margin="25">
         <StackPanel x:Name="PanAlways">
-            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" />
+            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" HintText="{DynamicResource Download.Comp.Search.Hint}" />
             <local:MyCard Margin="0,0,0,15">
                 <Grid Margin="7" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
@@ -54,7 +54,7 @@
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Relevance}" Tag="2" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Downloads}" Tag="3" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Follows}" Tag="4" />
-                        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Newest}" Tag="5" />
+                        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Latest}" Tag="5" />
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Sort.Updated}" Tag="6" />
                     </local:MyComboBox>
                     <!--版本-->
@@ -85,10 +85,10 @@
                     <local:MyComboBox x:Name="ComboSearchLoader" Grid.Row="2" Grid.Column="3" MaxDropDownHeight="320">
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.Any}"
                                               IsSelected="True" Tag="0" />
-                        <local:MyComboBoxItem Content="Forge" Tag="1" />
-                        <local:MyComboBoxItem Content="NeoForge" Tag="6" />
-                        <local:MyComboBoxItem Content="Fabric" Tag="4" />
-                        <local:MyComboBoxItem Content="Quilt" Tag="5" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Forge}" Tag="1" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.NeoForge}" Tag="6" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Fabric}" Tag="4" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Quilt}" Tag="5" />
                     </local:MyComboBox>
                     <local:MyComboBox x:Name="ComboSearchShaderLoader" Visibility="Collapsed" Grid.Row="2"
                                       Grid.Column="3" MaxDropDownHeight="320">
@@ -97,8 +97,8 @@
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.VanillaAvailable}"
                                               Tag="/vanilla"
                                               ToolTip="{DynamicResource Download.Comp.Filter.Loader.VanillaAvailable.ToolTip}" />
-                        <local:MyComboBoxItem Content="Iris" Tag="/iris" />
-                        <local:MyComboBoxItem Content="OptiFine" Tag="/optifine" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Iris}" Tag="/iris" />
+                        <local:MyComboBoxItem Content="{DynamicResource Common.Installation.OptiFine}" Tag="/optifine" />
                     </local:MyComboBox>
                     <!--按钮-->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="6">

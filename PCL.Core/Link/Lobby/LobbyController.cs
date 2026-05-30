@@ -163,7 +163,7 @@ public sealed class LobbyController
         using var ping = McPingServiceFactory.CreateService("127.0.0.1", port);
         var info = await ping.PingAsync().ConfigureAwait(false);
 
-        if (info != null) return true;
+        if (info is not null) return true;
 
         LogWrapper.Warn("Link", $"本地 MC 局域网实例 ({port}) 疑似已关闭");
 
@@ -177,13 +177,13 @@ public sealed class LobbyController
     {
         McForward?.Stop();
         McBroadcast?.Stop();
-        if (ScfClientEntity != null)
+        if (ScfClientEntity is not null)
         {
             await ScfClientEntity.EasyTier.StopAsync().ConfigureAwait(false);
             await ScfClientEntity.Client.DisposeAsync().ConfigureAwait(false);
             ScfClientEntity = null;
         }
-        else if (ScfServerEntity != null)
+        else if (ScfServerEntity is not null)
         {
             await ScfServerEntity.EasyTier.StopAsync().ConfigureAwait(false);
             await ScfServerEntity.Server.DisposeAsync().ConfigureAwait(false);
@@ -224,7 +224,7 @@ public sealed class LobbyController
         {
             HttpContent httpContent = new StringContent(sendData.ToJsonString(), Encoding.UTF8, "application/json");
             var key = EnvironmentInterop.GetSecret("TelemetryKey");
-            if (key == null)
+            if (key is null)
             {
                 if (RequiresLogin)
                 {

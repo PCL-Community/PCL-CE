@@ -33,19 +33,13 @@ public class MyScrollViewer : ScrollViewer
         var src = e.Source;
         if (Content is FrameworkElement element && element.TemplatedParent is null)
         {
-            if (src is ComboBox)
+            switch (src)
             {
-                if (((ComboBox)src).IsDropDownOpen)
+                case ComboBox { IsDropDownOpen: true }:
+                case TextBox { AcceptsReturn: true }:
+                case ComboBoxItem:
+                case CheckBox:
                     return;
-            }
-            else if (src is TextBox)
-            {
-                if (((TextBox)src).AcceptsReturn)
-                    return;
-            }
-            else if (src is ComboBoxItem || src is CheckBox)
-            {
-                return;
             }
         }
 
@@ -87,7 +81,7 @@ public class MyScrollViewer : ScrollViewer
 
     private void MyScrollViewer_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
-        if (e.NewFocus is not null && e.NewFocus is MySlider)
+        if (e.NewFocus is MySlider)
             e.Handled = true; // #3854，阻止获得焦点时自动滚动
     }
 }

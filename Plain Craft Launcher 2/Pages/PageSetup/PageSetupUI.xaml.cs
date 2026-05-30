@@ -308,7 +308,7 @@ public partial class PageSetupUI
 
     public void BackgroundRefreshUI(bool Show, int Count)
     {
-        if (PanBackgroundOpacity == null)
+        if (PanBackgroundOpacity is null)
             return;
         if (Show)
         {
@@ -406,7 +406,7 @@ public partial class PageSetupUI
                     }
                 }
 
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI is not null)
                     ModMain.FrmSetupUI.BackgroundRefreshUI(false, 0);
             }
             else
@@ -448,7 +448,7 @@ public partial class PageSetupUI
                     }
                 }
 
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI is not null)
                     ModMain.FrmSetupUI.BackgroundRefreshUI(true, Pic.Count);
             }
         }

@@ -76,17 +76,17 @@ public class DnsQuery : IDisposable
             ]
         );
 
-        if (queryResponse.All(static x => x == null))
+        if (queryResponse.All(static x => x is null))
         {
             LogWrapper.Warn(ModuleName, $"Failed to query IP for host {host} using DoH, use system default DNS");
             return await System.Net.Dns.GetHostAddressesAsync(host, cts);
         }
 
-        return queryResponse.Where(static x => x != null)
+        return queryResponse.Where(static x => x is not null)
             .SelectMany(static x => x!.Answers)
             .Where(static x => x.Type is DnsQueryType.A or DnsQueryType.AAAA)
             .Select(static x => x.Resource as DnsIpAddressResource)
-            .Where(static x => x != null)
+            .Where(static x => x is not null)
             .Select(static x => x!.IPAddress)
             .ToArray();
     }

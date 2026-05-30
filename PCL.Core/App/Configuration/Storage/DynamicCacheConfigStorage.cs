@@ -17,14 +17,14 @@ public class DynamicCacheConfigStorage : ConfigStorage
     protected override bool OnAccess<TKey, TValue>(StorageAction action, ref TKey key, [NotNullWhen(true)] ref TValue value, object? context)
     {
         ConfigStorage? storage;
-        if (context == null) storage = _nullContextCache;
+        if (context is null) storage = _nullContextCache;
         else _cache.TryGetValue(context, out storage);
-        if (storage == null)
+        if (storage is null)
         {
             try
             {
                 storage = StorageFactory(context);
-                if (context == null) _nullContextCache = storage;
+                if (context is null) _nullContextCache = storage;
                 else _cache[context] = storage;
             }
             catch (Exception ex)

@@ -75,7 +75,7 @@ public static class ModLink
                 return false;
             }
 
-            if (!(NatayarkProfileManager.NaidProfile.Status == 0))
+            if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
                 ModMain.Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", ModMain.HintType.Critical);
                 return false;
@@ -323,7 +323,7 @@ public static class ModLink
                 var loaders = new List<ModLoader.LoaderBase>();
 
                 // Setup download addresses
-                var architecture = ModBase.IsArm64System ? "arm64" : "x86_64";
+                var architecture = SystemInfo.IsArm64System ? "arm64" : "x86_64";
                 var addresses = new List<string>
                 {
                     $"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{architecture}-v{ETInfoProvider.ETVersion}.zip",

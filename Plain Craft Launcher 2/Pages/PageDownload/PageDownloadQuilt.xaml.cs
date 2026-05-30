@@ -9,7 +9,6 @@ public partial class PageDownloadQuilt
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.Quilt.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 

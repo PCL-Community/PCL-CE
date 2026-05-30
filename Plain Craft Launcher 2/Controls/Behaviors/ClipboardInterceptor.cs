@@ -45,15 +45,18 @@ public sealed class ClipboardInterceptor
 
     private static void OnEnableSafeClipboardChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
+        if (!(bool)e.NewValue)
+            return;
+
         switch (d)
         {
-            case TextBox box when (bool)e.NewValue:
+            case TextBox box:
                 AddCommandBindingsToTextBox(box);
                 break;
-            case RichTextBox box when (bool)e.NewValue:
+            case RichTextBox box:
                 AddCommandBindingsToRichTextBox(box);
                 break;
-            case DataGrid grid when (bool)e.NewValue:
+            case DataGrid grid:
                 AddCommandBindingsToDataGrid(grid);
                 break;
         }
@@ -84,15 +87,7 @@ public sealed class ClipboardInterceptor
         if (tb is null || tb.SelectionLength <= 0)
             return;
 
-        try
-        {
-            Clipboard.Clear();
-            Clipboard.SetDataObject(tb.SelectedText, true);
-        }
-        catch
-        {
-        }
-
+        TrySetClipboardText(tb.SelectedText);
         e.Handled = true;
     }
 
@@ -102,14 +97,7 @@ public sealed class ClipboardInterceptor
         if (tb is null || tb.SelectionLength <= 0)
             return;
 
-        try
-        {
-            Clipboard.Clear();
-            Clipboard.SetDataObject(tb.SelectedText, true);
-        }
-        catch
-        {
-        }
+        TrySetClipboardText(tb.SelectedText);
 
         tb.SelectedText = string.Empty;
         e.Handled = true;
@@ -149,15 +137,7 @@ public sealed class ClipboardInterceptor
         if (string.IsNullOrEmpty(textRange.Text))
             return;
 
-        try
-        {
-            Clipboard.Clear();
-            Clipboard.SetDataObject(textRange.Text, true);
-        }
-        catch
-        {
-        }
-
+        TrySetClipboardText(textRange.Text);
         e.Handled = true;
     }
 
@@ -171,14 +151,7 @@ public sealed class ClipboardInterceptor
         if (string.IsNullOrEmpty(selection.Text))
             return;
 
-        try
-        {
-            Clipboard.Clear();
-            Clipboard.SetDataObject(selection.Text, true);
-        }
-        catch
-        {
-        }
+        TrySetClipboardText(selection.Text);
 
         selection.Text = string.Empty;
         e.Handled = true;
@@ -224,17 +197,21 @@ public sealed class ClipboardInterceptor
             sb.AppendLine(rowText);
         }
 
-        var sbStr = sb.ToString().TrimEnd('\r', '\n');
+        TrySetClipboardText(sb.ToString().TrimEnd('\r', '\n'));
+        e.Handled = true;
+    }
 
+    private static bool TrySetClipboardText(string text)
+    {
         try
         {
             Clipboard.Clear();
-            Clipboard.SetDataObject(sbStr, true);
+            Clipboard.SetDataObject(text, true);
+            return true;
         }
         catch
         {
+            return false;
         }
-
-        e.Handled = true;
     }
 }

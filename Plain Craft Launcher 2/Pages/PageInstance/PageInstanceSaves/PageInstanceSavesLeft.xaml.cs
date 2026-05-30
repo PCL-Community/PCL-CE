@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -35,7 +36,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         InitializeComponent();
         Loaded += Page_Loaded;
-        ItemBackup.Check += PageCheck;
         ItemInfo.Check += PageCheck;
         ItemDatapack.Check += PageCheck;
         BtnOpenFolder.Click += BtnOpenFolder_Click;
@@ -62,12 +62,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
                     ModMain.FrmInstanceSavesInfo = new PageInstanceSavesInfo();
                 return ModMain.FrmInstanceSavesInfo;
             }
-            case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                return ModMain.FrmInstanceSavesBackup;
-            }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
                 if (ModMain.FrmInstanceSavesDatapack is null)
@@ -77,7 +71,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的实例设置子页面种类：" + (int)ID);
+                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)ID));
             }
         }
     }
@@ -97,7 +91,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)ID), ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -143,17 +137,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         switch (SubType)
         {
-            case FormMain.PageSubType.VersionSavesBackup:
-            {
-                if (ModMain.FrmInstanceSavesBackup is null)
-                    ModMain.FrmInstanceSavesBackup = new PageInstanceSavesBackup();
-                if (ItemBackup.Checked)
-                    ModMain.FrmInstanceSavesBackup.Refresh();
-                else
-                    ItemBackup.Checked = true;
-
-                break;
-            }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
                 if (ModMain.FrmInstanceSavesDatapack is null)
@@ -167,7 +150,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
             }
         }
 
-        ModMain.Hint("刷新中……");
+        ModMain.Hint(Lang.Text("Instance.Saves.Left.Refreshing"));
     }
 
     #endregion

@@ -16,6 +16,8 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
@@ -87,7 +89,6 @@ public static class ModMain
     public static PageInstanceServer? FrmInstanceServer;
     public static PageInstanceSavesLeft? FrmInstanceSavesLeft;
     public static PageInstanceSavesInfo? FrmInstanceSavesInfo;
-    public static PageInstanceSavesBackup? FrmInstanceSavesBackup;
     public static PageInstanceSavesDatapack? FrmInstanceSavesDatapack;
     public static PageDownloadCompDetail? FrmDownloadCompDetail;
     public static PageHomepageNewsView? FrmHomepageNews;
@@ -327,7 +328,7 @@ public static class ModMain
                     }
                 }
 
-                if (DoubleStack != null)
+                if (DoubleStack is not null)
                 {
                     var doubleStackTag = (object[])DoubleStack.Tag;
                     // 有重复提示，且该提示的进入动画已播放
@@ -1455,12 +1456,12 @@ public static class ModMain
     public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
     {
     // 预处理
-    if (text == null) return null;
+    if (text is null) return null;
     
     Func<string, string> replacer = (s) =>
     {
-        if (s == null) return "";
-        if (escapeHandler == null) return s;
+        if (s is null) return "";
+        if (escapeHandler is null) return s;
         if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
         return escapeHandler(s);
     };
@@ -1470,7 +1471,7 @@ public static class ModMain
     text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
     text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
     text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
-    text = text.Replace("{identify}", replacer(ModBase.UniqueAddress));
+    text = text.Replace("{identify}", replacer(Identify.LauncherId));
     text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
     text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
     text = text.Replace("{path_temp}", replacer(ModBase.PathTemp));
@@ -1486,7 +1487,7 @@ public static class ModMain
     text = text.Replace("{java}", replacer(ModLaunch.McLaunchJavaSelected?.Installation.JavaFolder));
     text = text.Replace("{minecraft}", replacer(ModMinecraft.McFolderSelected));
     
-    if (ModMinecraft.McInstanceSelected != null)
+    if (ModMinecraft.McInstanceSelected is not null)
     {
         text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
         text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
@@ -1573,7 +1574,7 @@ public static class ModMain
             try
             {
                 ModBase.Log("[System] 开始清理任务缓存文件夹");
-                ModBase.DeleteDirectory($@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\");
+                ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp"));
                 ModBase.DeleteDirectory($@"{ModBase.PathTemp}TaskTemp\");
                 ModBase.Log("[System] 已清理任务缓存文件夹");
             }
@@ -1621,7 +1622,7 @@ public static class ModMain
 
         // 使用备用路径
         ResultFolder =
-            $@"{ModBase.OsDrive}ProgramData\PCL\TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
         Directory.CreateDirectory(ResultFolder);
         ModBase.CheckPermission(ResultFolder);
         return ResultFolder;

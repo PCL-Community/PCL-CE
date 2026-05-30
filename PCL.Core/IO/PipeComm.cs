@@ -58,7 +58,7 @@ public static class PipeComm
                     {
                         var pid = KernelInterop.GetNamedPipeClientProcessId(pipe.SafePipeHandle.DangerousGetHandle());
                         clientProcessId = (int)pid;
-                        if (allowedProcessId != null)
+                        if (allowedProcessId is not null)
                         {
                             var denied = allowedProcessId.All(id => id != clientProcessId);
                             if (denied)
@@ -73,7 +73,7 @@ public static class PipeComm
                     }
                     catch (Exception)
                     {
-                        if (allowedProcessId != null)
+                        if (allowedProcessId is not null)
                         {
                             hasNextLoop = true;
                             throw;

@@ -197,7 +197,7 @@ public partial class PageLaunchRight : IRefreshable
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
                     {
-                        if (ModMain.FrmHomepageNews == null) 
+                        if (ModMain.FrmHomepageNews is null)
                             ModMain.FrmHomepageNews = new PageHomepageNewsView();
                         PanCustom.Children.Clear();
                         PanCustom.Children.Add(ModMain.FrmHomepageNews);
@@ -259,7 +259,7 @@ public partial class PageLaunchRight : IRefreshable
         }
 
         // 嵌入式资源
-        if (lines == null || lines.Length == 0)
+        if (lines is null || lines.Length == 0)
         {
             using (var reader = new StreamReader(Application.GetResourceStream(new Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream))
             {

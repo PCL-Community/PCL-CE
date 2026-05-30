@@ -45,7 +45,7 @@ public class ModSetup : IConfigScope
     private void InvokeEventMethod(string key, Func<object> valueGetter)
     {
         var method = _methodCache.GetOrAdd(key, typeof(ModSetup).GetMethod);
-        if (method == null) return;
+        if (method is null) return;
         var para = method.GetParameters();
         if (para.Length < 1) return;
         var paraType = para[0].ParameterType;
@@ -85,7 +85,7 @@ public class ModSetup : IConfigScope
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + Value);
         ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "Version",
-            ModMinecraft.McInstanceSelected == null ? "" : ModMinecraft.McInstanceSelected.Name);
+            ModMinecraft.McInstanceSelected is null ? "" : ModMinecraft.McInstanceSelected.Name);
     }
 
     public void LaunchFolderSelect(string Value)
@@ -184,7 +184,7 @@ public class ModSetup : IConfigScope
 
     public void UiBackgroundSuit(int Value)
     {
-        if (ModMain.FrmMain.ImgBack.Background == null)
+        if (ModMain.FrmMain.ImgBack.Background is null)
             return;
         var Width = ((ImageBrush)ModMain.FrmMain.ImgBack.Background).ImageSource.Width;
         var Height = ((ImageBrush)ModMain.FrmMain.ImgBack.Background).ImageSource.Height;
@@ -390,7 +390,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Collapsed;
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -408,7 +408,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (!(ModMain.FrmSetupUI == null))
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -426,7 +426,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Visible;
@@ -445,7 +445,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null)
+                if (ModMain.FrmSetupUI is not null)
                 {
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -471,7 +471,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI != null) 
+                if (ModMain.FrmSetupUI is not null) 
                     ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
@@ -480,7 +480,7 @@ public class ModSetup : IConfigScope
         }
 
         _ = Config.Preference.TopBarLeftAlign;
-        if (ModMain.FrmSetupUI != null)
+        if (ModMain.FrmSetupUI is not null)
             ModMain.FrmSetupUI.CardLogo.TriggerForceResize();
     }
 

@@ -49,7 +49,7 @@ public partial class NewsViewModel : ObservableObject
             resp.EnsureSuccessStatusCode();
             var json = await resp.AsJsonAsync<ApiResponse>();
 
-            if (json?.Result?.Results != null)
+            if (json?.Result?.Results is not null)
             {
                 foreach (var item in json.Result.Results)
                 {

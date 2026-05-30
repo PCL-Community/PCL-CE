@@ -406,7 +406,7 @@ public partial class MySkin
                             let CapeAlias = Cape["alias"].ToString()
                             let CapeName = _GetCapeDisplayName(CapeAlias)
                             let state = Cape["state"]
-                            let active = state is not null & state.ToString().ToUpper().Equals("ACTIVE")
+                            let active = state is not null && state.ToString().ToUpper().Equals("ACTIVE")
                             select new MyListItem
                             {
                                 Title = CapeName,
@@ -434,7 +434,7 @@ public partial class MySkin
                         Method = SelId is 0 ? "DELETE" : "PUT",
                         Content = SelId is 0
                             ? ""
-                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"] }.ToJsonString(),
+                            : new JsonObject { ["capeId"] = SkinData["capes"][(int)(SelId - 1)]["id"]?.ToString() }.ToJsonString(),
                         ContentType = "application/json",
                         Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } }
                     }

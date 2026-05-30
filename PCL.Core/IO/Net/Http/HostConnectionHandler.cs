@@ -40,7 +40,7 @@ public class HostConnectionHandler
         }
 
         var addresses = await _dnsQuery.QueryForIpAsync(host, cancellationToken).ConfigureAwait(false);
-        if (addresses == null || addresses.Length == 0)
+        if (addresses is null || addresses.Length == 0)
         {
             throw new HttpRequestException($"DNS resolution failed for {host}");
         }
@@ -112,7 +112,7 @@ public class HostConnectionHandler
 
         foreach (var ip in addresses)
         {
-            if (addressCache != null &&
+            if (addressCache is not null &&
                 addressCache.TryGetValue(ip, out var successTime) &&
                 now - successTime <= _CacheDuration)
             {

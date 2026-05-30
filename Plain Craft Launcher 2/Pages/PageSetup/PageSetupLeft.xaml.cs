@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 
@@ -89,7 +88,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupUI:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.UI.Message"),
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Ui.Message"),
                         Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
                 {
                     if (ModMain.FrmSetupUI is null)

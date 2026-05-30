@@ -59,8 +59,8 @@
             </StackPanel>
             <local:MyCard Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                           SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="0,0,0,8">
-                <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                                 VerticalAlignment="Center" />
+            <local:MyLoading Text="{DynamicResource Download.Version.LoadingList}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
             </local:MyCard>
         </Grid>
     </local:MyScrollViewer>

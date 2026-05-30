@@ -8,6 +8,7 @@ using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils.Validate;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -68,7 +69,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0)
         {
-            ModMain.Hint("无法找到服务器在列表中的索引", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
             return;
         }
 
@@ -78,7 +79,7 @@ public partial class PageInstanceServer : MyPageRight
                 Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
-            ModMain.Hint("无法读取服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -90,7 +91,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -103,7 +104,7 @@ public partial class PageInstanceServer : MyPageRight
         PanServers.Children.Remove((UIElement)sender);
 
         // Success message
-        ModMain.Hint("服务器已移除", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Removed"), ModMain.HintType.Finish);
     }
 
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
@@ -114,7 +115,7 @@ public partial class PageInstanceServer : MyPageRight
                 "servers");
         if (nbtData is null)
         {
-            ModMain.Hint("无法读取服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -122,7 +123,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0 || index >= nbtData.Count)
         {
-            ModMain.Hint("无法找到服务器在列表中的索引", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
             return;
         }
 
@@ -138,7 +139,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint("无法写入服务器数据文件", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
         }
 
@@ -150,7 +151,7 @@ public partial class PageInstanceServer : MyPageRight
         await serverCard.RefreshServerStatus(true);
 
         // Success message
-        ModMain.Hint("服务器信息已更新", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Updated"), ModMain.HintType.Finish);
     }
 
     /// <summary>
@@ -172,8 +173,8 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical));
+            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
+            ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical));
         }
     }
 
@@ -181,26 +182,26 @@ public partial class PageInstanceServer : MyPageRight
     {
         if ((DateTime.Now - _lastRefresh).TotalMilliseconds < DebounceInterval)
         {
-            ModMain.Hint("请勿频繁刷新！");
+            ModMain.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
             return;
         }
 
         _lastRefresh = DateTime.Now;
-        ModMain.Hint("正在刷新服务器列表，请稍候...");
+        ModMain.Hint(Lang.Text("Instance.Server.RefreshingList"));
         try
         {
             RefreshServers();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新服务器列表失败", ModBase.LogLevel.Feedback);
-            ModMain.Hint("刷新服务器列表失败：" + ex.Message, ModMain.HintType.Critical);
+            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
+            ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical);
         }
     }
 
     private async void BtnAddServer_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = GetServerInfo(new MinecraftServerInfo { Name = "Minecraft服务器", Address = "" });
+        var result = GetServerInfo(new MinecraftServerInfo { Name = Lang.Text("Instance.Server.DefaultName"), Address = "" });
         if (result.Success)
         {
             var newServer = new MinecraftServerInfo
@@ -250,12 +251,12 @@ public partial class PageInstanceServer : MyPageRight
 
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
-        var newName = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name,
+        var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
             [new NullOrWhiteSpaceValidator()]);
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
-        var newAddress = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address,
+        var newAddress = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.AddressPrompt"), server.Address,
             [new NullOrWhiteSpaceValidator()]);
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
         return (newName, newAddress, true);
@@ -280,7 +281,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取servers.dat文件失败");
+            ModBase.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
         }
     }
 
@@ -349,14 +350,14 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (ServerList.Count == 0)
         {
-            ModBase.Log("没有找到任何服务器");
+            ModBase.Log(Lang.Text("Instance.Server.NoServersFound"));
             PanNoServer.Visibility = Visibility.Visible;
             PanContent.Visibility = Visibility.Collapsed;
             PanServers.Visibility = Visibility.Collapsed;
             return;
         }
 
-        ModBase.Log("找到服务器列表");
+        ModBase.Log(Lang.Text("Instance.Server.FoundServers"));
         PanNoServer.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Visible;
         PanServers.Visibility = Visibility.Visible;

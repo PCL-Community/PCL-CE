@@ -423,7 +423,7 @@ public static class ModLoader
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
-            else if (Error == null)
+            else if (Error is null)
             {
                 throw new Exception("未知错误！");
             }
@@ -459,7 +459,7 @@ public static class ModLoader
             {
                 throw new ThreadInterruptedException("加载器执行已中断。");
             }
-            else if (Error == null)
+            else if (Error is null)
             {
                 throw new Exception("未知错误！");
             }
@@ -556,7 +556,7 @@ public static class ModLoader
 
         public override object? StartGetInputNoType(object? Input = null, Func<object?>? InputDelegate = null)
         {
-            return StartGetInput(Input == null ? default : (InputType?)Input, InputDelegate == null ? null : () => (InputType?)InputDelegate());
+            return StartGetInput(Input is null ? default : (InputType?)Input, InputDelegate is null ? null : () => (InputType?)InputDelegate());
         }
 
         // 代码执行
@@ -858,7 +858,7 @@ public static class ModLoader
                         if (loader.GetType().Name.StartsWithF("LoaderTask"))
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
+                            var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
 
@@ -882,7 +882,7 @@ public static class ModLoader
                         if (loader.GetType().Name.StartsWithF("LoaderTask"))
                         {
                             var genericArg = loader.GetType().GenericTypeArguments.FirstOrDefault();
-                            var shouldInput = input != null && genericArg == input.GetType()
+                            var shouldInput = input is not null && genericArg == input.GetType()
                                 ? input
                                 : null;
 
@@ -909,7 +909,7 @@ public static class ModLoader
                         if (blocked)
                             continue;
 
-                        if (input != null)
+                        if (input is not null)
                         {
                             var loaderType = loader.GetType().Name;
 
@@ -1008,7 +1008,7 @@ public static class ModLoader
 
         public override bool Equals(object obj)
         {
-            if (!(obj is LoaderFolderDictionaryEntry))
+            if (obj is not LoaderFolderDictionaryEntry)
                 return false;
             var entry = (LoaderFolderDictionaryEntry)obj;
             return EqualityComparer<DateTime?>.Default.Equals(LastCheckTime, entry.LastCheckTime) &&

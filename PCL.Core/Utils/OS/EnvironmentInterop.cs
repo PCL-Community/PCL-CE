@@ -19,11 +19,11 @@ public static partial class EnvironmentInterop
     public static bool ReadVariable<TValue>(string key, ref TValue target, bool detailLog = true)
     {
         var envValue = Environment.GetEnvironmentVariable(key);
-        if (envValue == null) return false;
+        if (envValue is null) return false;
         var valueLog = detailLog ? $" = {envValue}" : string.Empty;
         LogWrapper.Debug(LogModule, $"读取到环境变量 {key}{valueLog}");
         var value = envValue.Convert<TValue>();
-        if (value == null)
+        if (value is null)
         {
             LogWrapper.Warn(LogModule, $"环境变量 {key} 类型转换失败");
             return false;

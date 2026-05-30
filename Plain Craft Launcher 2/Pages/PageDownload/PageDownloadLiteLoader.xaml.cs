@@ -13,7 +13,6 @@ public partial class PageDownloadLiteLoader
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        Load.Text = Lang.Text("Download.Version.LiteLoader.LoadingList");
         BtnWeb.Click += BtnWeb_Click;
     }
 

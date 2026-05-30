@@ -41,7 +41,7 @@ public sealed partial class MemSwapService
             {
                 try
                 {
-                    if (result == null)
+                    if (result is null)
                     {
                         var after = KernelInterop.GetAvailablePhysicalMemoryBytes();
                         Context.Info($"处理后内存量 {ByteStream.GetReadableLength((long)after)}");

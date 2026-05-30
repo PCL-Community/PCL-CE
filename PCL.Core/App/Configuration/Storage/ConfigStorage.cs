@@ -104,7 +104,7 @@ public abstract class ConfigStorage : IConfigProvider
             ? "Stack:\n|=> " + string.Join("\n|=> ", StackHelper.GetStack(includeParameters: true, needFileInfo: needFileInfo).Skip(1))
             : "Caller: " + StackHelper.GetDirectCallerName(includeParameters: true, skipAppFrames: 2);
         var msg = $"Storage Access: {accessAction} {ToString()}\n" +
-            $"|- Context: {(accessContext == null ? "" : "(" + accessContext.GetType().Name + ") ")}{context}\n" +
+            $"|- Context: {(accessContext is null ? "" : "(" + accessContext.GetType().Name + ") ")}{context}\n" +
             $"|- Key: ({typeof(TKey).Name}) {key}\n" +
             $"|- Value: ({typeof(TValue).Name}) {(accessHasValue ? value : "undefined")}\n" +
             $"|- {caller}";

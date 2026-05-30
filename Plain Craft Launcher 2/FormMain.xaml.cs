@@ -138,9 +138,9 @@ public partial class FormMain
             _helper.DragDrop += (_, _) => FileDrag(_helper.DropFilePaths);
         }
 
-        if (!(ModMain.FrmLaunchLeft.Parent == null))
+        if (ModMain.FrmLaunchLeft.Parent is not null)
             ModMain.FrmLaunchLeft.SetValue(ContentPresenter.ContentProperty, null);
-        if (!(ModMain.FrmLaunchRight.Parent == null))
+        if (ModMain.FrmLaunchRight.Parent is not null)
             ModMain.FrmLaunchRight.SetValue(ContentPresenter.ContentProperty, null);
         PanMainLeft.Child = ModMain.FrmLaunchLeft;
         PageLeft = ModMain.FrmLaunchLeft;
@@ -231,7 +231,7 @@ public partial class FormMain
                 RenderTransform = null;
                 IsWindowLoadFinished = true;
                 ModBase.Log(
-                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{ModBase.ExePathWithName}");
+                    $"[System] DPI：{ModBase.DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
             }, After: true)
         }, "Form Show");
         // Timer 启动
@@ -307,7 +307,7 @@ public partial class FormMain
                     ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
                 }
 
-                SystemInfo.GetSystemInfo();
+                HardwareInfo.GetHardwareInfo();
             }
             catch (Exception ex)
             {
@@ -1267,7 +1267,7 @@ public partial class FormMain
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
-                if (Config.Preference.Theme.ColorMode == ColorMode.System &
+                if (Config.Preference.Theme.ColorMode == ColorMode.System &&
                     (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
         }
@@ -1486,8 +1486,7 @@ public partial class FormMain
         VersionInstall = 10,
         VersionServer = 11,
         VersionSavesInfo = 0,
-        VersionSavesBackup = 1,
-        VersionSavesDatapack = 2
+        VersionSavesDatapack = 1
     }
 
     /// <summary>
@@ -1701,7 +1700,7 @@ public partial class FormMain
                         ModMain.FrmDownloadLeft = new PageDownloadLeft();
                     foreach (var item in ModMain.FrmDownloadLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1733,7 +1732,7 @@ public partial class FormMain
                         ModMain.FrmInstanceLeft = new PageInstanceLeft();
                     foreach (var item in ModMain.FrmInstanceLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1747,7 +1746,7 @@ public partial class FormMain
                         ModMain.FrmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.FrmInstanceSavesLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)SubType)
                         {
                             listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
@@ -1863,7 +1862,10 @@ public partial class FormMain
                 case PageType.Download: // 下载
                     {
                         ModMain.FrmDownloadLeft ??= new PageDownloadLeft();
-                        SubType = ModMain.FrmDownloadLeft.PageID;
+                        if (SubType != PageSubType.Default)
+                            ModMain.FrmDownloadLeft.PageID = SubType;
+                        else
+                            SubType = ModMain.FrmDownloadLeft.PageID;
                         // PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                         PageChangeAnim(ModMain.FrmDownloadLeft, (FrameworkElement)ModMain.FrmDownloadLeft.PageGet(SubType));
                         break;
@@ -1972,9 +1974,9 @@ public partial class FormMain
         ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         ModAnimation.AniControlEnabled += 1;
         // 清除新页面关联性
-        if (!(TargetLeft.Parent == null))
+        if (TargetLeft.Parent is not null)
             TargetLeft.SetValue(ContentPresenter.ContentProperty, null);
-        if (!(TargetRight == null) && !(TargetRight.Parent == null))
+        if (TargetRight is not null && TargetRight.Parent is not null)
             TargetRight.SetValue(ContentPresenter.ContentProperty, null);
         PageLeft = (MyPageLeft)TargetLeft;
         PageRight = (MyPageRight)TargetRight;

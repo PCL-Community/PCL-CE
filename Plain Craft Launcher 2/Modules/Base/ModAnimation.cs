@@ -259,7 +259,7 @@ public static partial class ModAnimation
                             }
                             case AniTypeSub.TranslateX:
                             {
-                                if (((dynamic)Ani.Obj).RenderTransform == null ||
+                                if (((dynamic)Ani.Obj).RenderTransform is null ||
                                     !(((dynamic)Ani.Obj).RenderTransform is TranslateTransform))
                                     ((dynamic)Ani.Obj).RenderTransform = new TranslateTransform(0d, 0d);
                                 ((TranslateTransform)((dynamic)Ani.Obj).RenderTransform).X += Delta;
@@ -267,7 +267,7 @@ public static partial class ModAnimation
                             }
                             case AniTypeSub.TranslateY:
                             {
-                                if (((dynamic)Ani.Obj).RenderTransform == null ||
+                                if (((dynamic)Ani.Obj).RenderTransform is null ||
                                     !(((dynamic)Ani.Obj).RenderTransform is TranslateTransform))
                                     ((dynamic)Ani.Obj).RenderTransform = new TranslateTransform(0d, 0d);
                                 ((TranslateTransform)((dynamic)Ani.Obj).RenderTransform).Y += Delta;

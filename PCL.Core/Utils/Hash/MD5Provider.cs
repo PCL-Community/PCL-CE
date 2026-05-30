@@ -18,7 +18,7 @@ public class MD5Provider : IHashProvider {
 
     public byte[] ComputeHash(string input, Encoding? en = null)
     {
-        return ComputeHash(en == null ? Encoding.UTF8.GetBytes(input) : en.GetBytes(input));
+        return ComputeHash(en is null ? Encoding.UTF8.GetBytes(input) : en.GetBytes(input));
     }
 
     public byte[] ComputeHash(Stream input)

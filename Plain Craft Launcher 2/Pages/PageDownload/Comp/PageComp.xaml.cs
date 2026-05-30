@@ -219,7 +219,6 @@ public partial class PageComp
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
-        PanSearchBox.HintText = Lang.Text("Download.Comp.Search.Hint");
         Load.StateChanged += Load_State;
         BtnPageFirst.Click += BtnPageFirst_Click;
         BtnPageLeft.Click += BtnPageLeft_Click;
