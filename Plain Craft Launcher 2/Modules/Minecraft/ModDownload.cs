@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -808,12 +808,12 @@ public static class ModDownload
 
     private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
-        var Result = Requester.FetchJson(
+        var Result = Requester.FetchString(
             "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", new RequestParam
             {
                 Encoding = Encoding.Default,
                 UseBrowserUserAgent = true
-            })?.ToString() ?? "";
+            });
         if (Result.Length < 200)
             throw new Exception(Lang.Text("Minecraft.Download.Error.VersionListOperationFailed", "Forge", Result));
         // 获取所有版本信息

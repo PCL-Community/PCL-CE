@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Globalization;
 using System.Text.Json.Nodes;
 using PCL.Core.App.Localization;
 
@@ -42,7 +43,7 @@ public static class McVersionClassifier
 
     public static DateTime GetReleaseTime(JsonObject version)
     {
-        return version["releaseTime"]?.GetValue<DateTime>() ?? DateTime.MinValue;
+        return _GetDateTime(version, "releaseTime");
     }
 
     private static McVersionCategory _ClassifySnapshotOrPending(JsonObject version, string idLower)
@@ -159,8 +160,43 @@ public static class McVersionClassifier
         };
     }
 
+    private static DateTime _GetDateTime(JsonObject obj, string key)
+    {
+        var node = obj[key];
+        switch (node)
+        {
+            case null:
+                break;
+            case JsonValue value:
+            {
+                if (value.TryGetValue<DateTime>(out var dateTime))
+                    return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
+
+                if (value.TryGetValue<string>(out var text))
+                {
+                    if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                            out var dateTimeOffset))
+                        return dateTimeOffset.LocalDateTime;
+
+                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal,
+                            out dateTime))
+                        return dateTime.Kind == DateTimeKind.Utc ? dateTime.ToLocalTime() : dateTime;
+                }
+
+                break;
+            }
+        }
+
+        return DateTime.MinValue;
+    }
+
     private static string _GetString(JsonObject obj, string key)
     {
-        return obj[key]?.GetValue<string>() ?? "";
+        var node = obj[key];
+        if (node is null) return "";
+
+        return node is JsonValue value && value.TryGetValue<string>(out var result)
+            ? result
+            : node.ToString();
     }
 }

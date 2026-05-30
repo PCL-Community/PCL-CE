@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -451,7 +451,7 @@ public static class ModModpack
             }
 
             ModList.Add((int)ModEntry["fileID"]);
-            if (ModEntry["required"] is JsonValue { } jv && !jv.GetValue<bool>())
+            if (ModEntry["required"] is JsonNode requiredNode && !requiredNode.ToObject<bool>())
                 ModOptionalList.Add((int)ModEntry["fileID"]);
         }
 
@@ -799,7 +799,7 @@ public static class ModModpack
             }
 
             FileList.Add(new DownloadFile(Urls, TargetPath,
-                new ModBase.FileChecker(ActualSize: ((JsonNode)File["fileSize"]).GetValue<long>(),
+                new ModBase.FileChecker(ActualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
                     Hash: File["hashes"]["sha1"].ToString()), true));
         }
 
