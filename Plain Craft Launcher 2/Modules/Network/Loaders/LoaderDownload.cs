@@ -11,13 +11,12 @@ public class LoaderDownload : ModLoader.LoaderBase
     public ModBase.SafeList<PCL.Network.DownloadFile> Files;
     private int _fileRemain;
     private readonly object _fileRemainLock = new();
-    private double _progress;
     private CancellationTokenSource? _cancellationTokenSource;
     public int FailCount { get; set; }
 
     public override double Progress
     {
-        get => State >= ModBase.LoadState.Finished ? 1 : (Files.Any() ? _progress : 0);
+        get => State >= ModBase.LoadState.Finished ? 1 : (Files.Any() ? Files.Average(file => file.Progress) : 0);
         set => throw new Exception("文件下载不允许指定进度");
     }
 
@@ -27,16 +26,7 @@ public class LoaderDownload : ModLoader.LoaderBase
         Files = new ModBase.SafeList<PCL.Network.DownloadFile>(fileTasks ?? new List<PCL.Network.DownloadFile>());
     }
 
-    public void RefreshStat()
-    {
-        if (!Files.Any())
-        {
-            _progress = 0;
-            return;
-        }
-
-        _progress = Files.Average(file => file.Progress);
-    }
+    public void RefreshStat() { }
 
     public override void Start(object Input = null, bool IsForceRestart = false)
     {
@@ -57,7 +47,6 @@ public class LoaderDownload : ModLoader.LoaderBase
         }
 
         ModNet.NetManager.Start(this);
-        RefreshStat();
 
         ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
@@ -97,7 +86,6 @@ public class LoaderDownload : ModLoader.LoaderBase
                 {
                     if (entered)
                         semaphore.Release();
-                    RefreshStat();
                 }
             }).ToList();
 

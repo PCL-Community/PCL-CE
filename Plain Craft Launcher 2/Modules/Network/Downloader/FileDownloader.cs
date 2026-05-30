@@ -102,7 +102,7 @@ public static class FileDownloader
                 return;
 
             trackedFile.State = PCL.Network.NetState.Downloading;
-            trackedFile.TotalSize = args.TotalBytesToReceive > 0 ? args.TotalBytesToReceive : trackedFile.TotalSize;
+            trackedFile.TotalSize = Math.Max(trackedFile.TotalSize, args.TotalBytesToReceive);
             trackedFile.IsUnknownSize = trackedFile.TotalSize <= 0;
             trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, args.ReceivedBytesSize);
             trackedFile.Speed = Math.Max(0L, (long)Math.Round(args.BytesPerSecondSpeed));
@@ -115,7 +115,7 @@ public static class FileDownloader
                 return;
 
             trackedFile.State = PCL.Network.NetState.Reading;
-            trackedFile.TotalSize = args.TotalBytesToReceive;
+            trackedFile.TotalSize = Math.Max(trackedFile.TotalSize, args.TotalBytesToReceive);
             trackedFile.IsUnknownSize = args.TotalBytesToReceive <= 0;
             trackedFile.DownloadedBytes = 0;
             trackedFile.Speed = 0;
