@@ -260,7 +260,7 @@ public static class ModLoader
         /// </summary>
         public Action<LoaderBase> OnStateChanged
         {
-            set { onStateChangedUi += (Loader, NewState, OldState) => value(Loader); }
+            set { OnStateChangedUi += (Loader, NewState, OldState) => value(Loader); }
         }
 
         // 状态监控
@@ -302,10 +302,10 @@ public static class ModLoader
                         }
                     }
 
-                    onStateChangedUi?.Invoke(this, value, oldState);
+                    OnStateChangedUi?.Invoke(this, value, oldState);
                 });
                 if (hasOnStateChangedThread)
-                    ModBase.RunInThread(() => onStateChangedThread?.Invoke(this, value, oldState));
+                    ModBase.RunInThread(() => OnStateChangedThread?.Invoke(this, value, oldState));
             }
         }
 
@@ -345,7 +345,7 @@ public static class ModLoader
                     return;
                 var oldValue = _Progress;
                 _Progress = value;
-                progressChanged?.Invoke(value, oldValue);
+                ProgressChanged?.Invoke(value, oldValue);
             }
         }
 
@@ -365,12 +365,12 @@ public static class ModLoader
                     return;
                 var oldState = _LoadingState;
                 _LoadingState = value;
-                loadingStateChanged?.Invoke(value, oldState);
+                LoadingStateChanged?.Invoke(value, oldState);
             }
         }
 
-        public event ILoadingTrigger.LoadingStateChangedEventHandler? loadingStateChanged;
-        public event ILoadingTrigger.ProgressChangedEventHandler? progressChanged;
+        public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
+        public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 
         public virtual void InitParent(LoaderBase Parent)
         {
@@ -382,21 +382,21 @@ public static class ModLoader
         /// <summary>
         ///     当状态改变时，在工作线程触发代码。在添加事件后，必须将 HasOnStateChangedThread 设为 True。
         /// </summary>
-        public event OnStateChangedThreadEventHandler? onStateChangedThread;
+        public event OnStateChangedThreadEventHandler? OnStateChangedThread;
 
         /// <summary>
         ///     当状态改变时，在 UI 线程触发代码。
         /// </summary>
-        public event OnStateChangedUiEventHandler? onStateChangedUi;
+        public event OnStateChangedUiEventHandler? OnStateChangedUi;
 
         /// <summary>
         ///     在加载器目标事件执行完成，加载器状态即将变为 Finish 时调用。可以视为扩展加载器目标事件。
         /// </summary>
-        public event PreviewFinishEventHandler? previewFinish;
+        public event PreviewFinishEventHandler? PreviewFinish;
 
         protected void RaisePreviewFinish()
         {
-            previewFinish?.Invoke(this);
+            PreviewFinish?.Invoke(this);
         }
 
         // 状态变化
@@ -700,7 +700,7 @@ public static class ModLoader
                 if (Loader is not null)
                 {
                     this.loaders.Add(Loader);
-                    Loader.onStateChangedThread += SubTaskStateChanged;
+                    Loader.OnStateChangedThread += SubTaskStateChanged;
                     Loader.hasOnStateChangedThread = true;
                 }
 

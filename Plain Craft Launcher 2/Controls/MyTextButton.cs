@@ -13,7 +13,7 @@ public class MyTextButton : Label
     private const int animationTimeIn = 100;
     private const int animationTimeOut = 200;
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyTextButton), new PropertyMetadata("", (sender, e) =>
         {
             if (Equals(e.OldValue, e.NewValue)) return;
@@ -55,8 +55,8 @@ public class MyTextButton : Label
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
     public event ClickEventHandler? Click;

@@ -66,12 +66,12 @@ public partial class PageDownloadOptiFine
                     { Title = title + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
                 newCard.InstallMethod = Stack =>
                 {

@@ -143,7 +143,7 @@ public partial class PageInstanceInstall
             fabricVersion = selectedFabric,
             fabricApi = selectedFabricApi,
             quiltVersion = selectedQuilt,
-            qSL = selectedQSL,
+            qsl = selectedQSL,
             optiFabric = selectedOptiFabric,
             liteLoaderEntry = selectedLiteLoader,
             labyModChannel = selectedLabyModChannel,
@@ -1348,7 +1348,7 @@ public partial class PageInstanceInstall
 
                 var panInfo = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = topestVersions
                 };
@@ -1374,12 +1374,12 @@ public partial class PageInstanceInstall
                         { Title = GetVersionTypeTitle(Pair.Key) + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                     var newStack = new StackPanel
                     {
-                        Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                        Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                         VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                         Tag = Pair.Value
                     };
                     newCard.Children.Add(newStack);
-                    newCard.swapControl = newStack;
+                    newCard.SwapControl = newStack;
                     // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
                     newCard.InstallMethod = StackInstall;
                     newCard.IsSwapped = true;
@@ -1945,7 +1945,7 @@ public partial class PageInstanceInstall
             // 可视化
             PanFabric.Children.Clear();
             PanFabric.Tag = versions;
-            CardFabric.swapControl = PanFabric;
+            CardFabric.SwapControl = PanFabric;
             CardFabric.InstallMethod = stack =>
             {
                 foreach (var item in (IEnumerable)stack.Tag)
@@ -2192,7 +2192,7 @@ public partial class PageInstanceInstall
             // 可视化
             PanLegacyFabric.Children.Clear();
             PanLegacyFabric.Tag = versions;
-            CardLegacyFabric.swapControl = PanLegacyFabric;
+            CardLegacyFabric.SwapControl = PanLegacyFabric;
             CardLegacyFabric.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
@@ -2405,7 +2405,7 @@ public partial class PageInstanceInstall
             // 可视化
             PanQuilt.Children.Clear();
             PanQuilt.Tag = versions;
-            CardQuilt.swapControl = PanQuilt;
+            CardQuilt.SwapControl = PanQuilt;
             CardQuilt.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
@@ -2777,7 +2777,7 @@ public partial class PageInstanceInstall
             // MyMsgBox(If(ProcessedVersions.ToString, "Nothing"))
             PanLabyMod.Children.Clear();
             PanLabyMod.Tag = processedVersions;
-            CardLabyMod.swapControl = PanLabyMod;
+            CardLabyMod.SwapControl = PanLabyMod;
             CardLabyMod.InstallMethod = Stack =>
             {
                 foreach (JsonObject item in (IEnumerable)Stack.Tag)

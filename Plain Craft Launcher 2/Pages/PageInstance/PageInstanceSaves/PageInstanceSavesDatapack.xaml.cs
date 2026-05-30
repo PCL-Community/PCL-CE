@@ -62,7 +62,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
-        pageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectedAllWithAnimation;
         // Handles
         Load.Click += Load_Click;
         BtnManageOpen.Click += BtnManageOpen_Click;
@@ -73,7 +73,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        Load.stateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -251,7 +251,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             };
             newItem.CurrentSwipe = currentSwipSelect;
             newItem.Tags = Entry.Tags;
-            Entry.onCompUpdate += _ => newItem.Refresh();
+            Entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
             ModAnimation.AniControlEnabled -= 1;
             return newItem;
@@ -267,7 +267,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BuildLocalCompItemBtnHandler(MyLocalCompItem sender, EventArgs e)
     {
         // 点击事件
-        sender.changed += (ss, e) => CheckChanged((MyLocalCompItem)ss, e);
+        sender.Changed += (ss, e) => CheckChanged((MyLocalCompItem)ss, e);
 
         // 文件项的点击事件：切换选中状态
         sender.Click += (ss, e) =>

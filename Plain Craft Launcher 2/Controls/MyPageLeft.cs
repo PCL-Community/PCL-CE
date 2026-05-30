@@ -6,7 +6,7 @@ namespace PCL;
 
 public class MyPageLeft : Grid
 {
-    public static DependencyProperty animatedControlProperty =
+    public static DependencyProperty AnimatedControlProperty =
         DependencyProperty.Register("AnimatedControl", typeof(FrameworkElement), typeof(MyPageLeft));
 
     private readonly int uuid = ModBase.GetUuid();
@@ -18,7 +18,7 @@ public class MyPageLeft : Grid
     {
         get
         {
-            var res = GetValue(animatedControlProperty);
+            var res = GetValue(AnimatedControlProperty);
             if (res is null && !_animatedControlNullWarned)
             {
                 _animatedControlNullWarned = true;
@@ -27,7 +27,7 @@ public class MyPageLeft : Grid
 
             return (FrameworkElement)res;
         }
-        set => SetValue(animatedControlProperty, value);
+        set => SetValue(AnimatedControlProperty, value);
     }
 
     public void TriggerShowAnimation()

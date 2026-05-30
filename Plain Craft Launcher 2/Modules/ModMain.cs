@@ -450,18 +450,18 @@ public static class ModMain
 
     private static void HideAllHint()
     {
-        foreach (Border Control in frmMain!.PanHint.Children)
+        foreach (Border control in frmMain!.PanHint.Children)
         {
-            var controlTag = (object[])Control.Tag;
-            Control.IsHitTestVisible = false;
+            var controlTag = (object[])control.Tag;
+            control.IsHitTestVisible = false;
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaX(Control, -50, 200, Ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaOpacity(Control, -1, 150, Ease: new ModAnimation.AniEaseInFluent()),
+                    ModAnimation.AaX(control, -50, 200, Ease: new ModAnimation.AniEaseInFluent()),
+                    ModAnimation.AaOpacity(control, -1, 150, Ease: new ModAnimation.AniEaseInFluent()),
                     ModAnimation.AaCode(() => controlTag[0] = false),
-                    ModAnimation.AaHeight(Control, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(), After: true),
-                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(Control), After: true)
+                    ModAnimation.AaHeight(control, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(), After: true),
+                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(control), After: true)
                 }, $"Hint Hide {controlTag[1]}");
         }
     }
@@ -1026,8 +1026,8 @@ public static class ModMain
             showInPublic = (bool)(jsonData["ShowInPublic"] ?? showInPublic);
             showInSnapshot = (bool)(jsonData["ShowInSnapshot"] ?? showInSnapshot);
             types = new List<string>();
-            foreach (var NameOfType in (IEnumerable)(jsonData["Types"] ?? ModBase.GetJson("[]")))
-                types.Add(NameOfType.ToString());
+            foreach (var nameOfType in (IEnumerable)(jsonData["Types"] ?? ModBase.GetJson("[]")))
+                types.Add(nameOfType.ToString());
             // 加载事件信息
             if ((bool)(jsonData["IsEvent"] ?? false))
             {
@@ -1114,17 +1114,17 @@ public static class ModMain
                     var ignoreList = new List<string>();
                     // 读取自定义文件
                     if (Directory.Exists(ModBase.exePath + @"PCL\Help\"))
-                        foreach (var File in ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Help\"))
-                            switch (File.Extension.ToLower() ?? "")
+                        foreach (var file in ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Help\"))
+                            switch (file.Extension.ToLower() ?? "")
                             {
                                 case ".helpignore":
                                 {
                                     // 加载忽略列表
-                                    ModBase.Log("[Help] 发现 .helpignore 文件：" + File.FullName);
-                                    foreach (var Line in ModBase.ReadFile(File.FullName)
+                                    ModBase.Log("[Help] 发现 .helpignore 文件：" + file.FullName);
+                                    foreach (var line in ModBase.ReadFile(file.FullName)
                                                  .Split("\r\n".ToCharArray()))
                                     {
-                                        var realString = Line.BeforeFirst("#").Trim();
+                                        var realString = line.BeforeFirst("#").Trim();
                                         if (string.IsNullOrWhiteSpace(realString))
                                             continue;
                                         ignoreList.Add(realString);
@@ -1136,30 +1136,30 @@ public static class ModMain
                                 }
                                 case ".json":
                                 {
-                                    fileList.Add(File.FullName);
+                                    fileList.Add(file.FullName);
                                     break;
                                 }
                             }
 
                     ModBase.Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " + fileList.Count + " 条");
                     // 读取自带文件
-                    foreach (var File in ModBase.EnumerateFiles(ModBase.pathHelpFolder))
+                    foreach (var file in ModBase.EnumerateFiles(ModBase.pathHelpFolder))
                     {
                         // 跳过非 Json 文件与以 . 开头的文件夹
-                        if (File.Extension.ToLower() != ".json" || File.Directory.FullName
+                        if (file.Extension.ToLower() != ".json" || file.Directory.FullName
                                 .Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "").Contains(@"\."))
                             continue;
                         // 检查忽略列表
-                        var realPath = File.FullName.Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "");
-                        foreach (var Ignore in ignoreList)
-                            if (realPath.RegexCheck(Ignore))
+                        var realPath = file.FullName.Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "");
+                        foreach (var ignore in ignoreList)
+                            if (realPath.RegexCheck(ignore))
                             {
                                 if (ModBase.modeDebug)
-                                    ModBase.Log("[Help] 已忽略 " + realPath + "：" + Ignore);
+                                    ModBase.Log("[Help] 已忽略 " + realPath + "：" + ignore);
                                 goto NextFile;
                             }
 
-                        fileList.Add(File.FullName);
+                        fileList.Add(file.FullName);
                         NextFile: ;
                     }
 
@@ -1175,17 +1175,17 @@ public static class ModMain
 
                 // 将文件实例化
                 var dict = new List<HelpEntry>();
-                foreach (var FilePath in fileList)
+                foreach (var filePath in fileList)
                     try
                     {
-                        var entry = new HelpEntry(FilePath);
+                        var entry = new HelpEntry(filePath);
                         dict.Add(entry);
                         if (ModBase.modeDebug)
-                            ModBase.Log("[Help] 已加载的帮助条目：" + entry.title + " ← " + FilePath);
+                            ModBase.Log("[Help] 已加载的帮助条目：" + entry.title + " ← " + filePath);
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "初始化帮助条目失败（" + FilePath + "）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, "初始化帮助条目失败（" + filePath + "）", ModBase.LogLevel.Msgbox);
                     }
 
                 // 回设
@@ -1416,36 +1416,36 @@ public static class ModMain
     /// </summary>
     public static void SetGPUPreference(string Executeable, bool WantHighPerformance = true)
     {
-        const string gPU_PERFERENCE_REG_KEY = @"Software\Microsoft\DirectX\UserGpuPreferences";
-        const string gPU_PERFERENCE_REG_VALUE_HIGH = "GpuPreference=2;";
-        const string gPU_PERFERENCE_REG_VALUE_DEFAULT = "GpuPreference=0;";
+        const string GPU_PERFERENCE_REG_KEY = @"Software\Microsoft\DirectX\UserGpuPreferences";
+        const string GPU_PERFERENCE_REG_VALUE_HIGH = "GpuPreference=2;";
+        const string GPU_PERFERENCE_REG_VALUE_DEFAULT = "GpuPreference=0;";
         // Const GPU_PERFERENCE_REG_VALUE_POWER_SAVING As String = "GpuPreference=1;"
 
         var isCurrentHighPerformance = false;
         // 查看现有设置
         // 就知道 My.Computer，改个注册表 Microsoft.Win32.Registry 几年前的 API 了不用，还在这 My.Computer 都 5202 年了 My 你大爷
-        using (var readOnlyKey = Registry.CurrentUser.OpenSubKey(gPU_PERFERENCE_REG_KEY, false))
+        using (var readOnlyKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, false))
         {
             if (readOnlyKey is not null)
             {
                 var currentValue = readOnlyKey.GetValue(Executeable);
-                if (gPU_PERFERENCE_REG_VALUE_HIGH == (currentValue?.ToString() ?? "")) isCurrentHighPerformance = true;
+                if (GPU_PERFERENCE_REG_VALUE_HIGH == (currentValue?.ToString() ?? "")) isCurrentHighPerformance = true;
             }
             else
             {
                 // 创建父级键
                 ModBase.Log("[System] 需要创建显卡设置的父级键");
-                Registry.CurrentUser.CreateSubKey(gPU_PERFERENCE_REG_KEY);
+                Registry.CurrentUser.CreateSubKey(GPU_PERFERENCE_REG_KEY);
             }
         }
 
         ModBase.Log($"[System] 当前程序 ({Executeable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
         if (isCurrentHighPerformance ^ WantHighPerformance)
             // 写入新设置
-            using (var writeKey = Registry.CurrentUser.OpenSubKey(gPU_PERFERENCE_REG_KEY, true))
+            using (var writeKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, true))
             {
                 writeKey.SetValue(Executeable,
-                    WantHighPerformance ? gPU_PERFERENCE_REG_VALUE_HIGH : gPU_PERFERENCE_REG_VALUE_DEFAULT);
+                    WantHighPerformance ? GPU_PERFERENCE_REG_VALUE_HIGH : GPU_PERFERENCE_REG_VALUE_DEFAULT);
                 ModBase.Log($"[System] 已调整程序 ({Executeable}) 显卡设置: {WantHighPerformance}");
             }
     }

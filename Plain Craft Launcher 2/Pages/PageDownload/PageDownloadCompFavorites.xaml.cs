@@ -34,7 +34,7 @@ public partial class PageDownloadCompFavorites
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
-        Load.stateChanged += Load_State;
+        Load.StateChanged += Load_State;
         Btn_FavoritesCancel.Click += Btn_FavoritesCancel_Clicked;
         Btn_SelectCancel.Click += Btn_SelectCancel_Clicked;
         Btn_FavoritesShare.Click += Btn_FavoritesShare_Clicked;
@@ -342,7 +342,7 @@ public partial class PageDownloadCompFavorites
                         ((ModComp.CompProject)CompItem.Tag).type, null, null, null)
                 });
         // ---其它事件---
-        CompItem.changed += ItemCheckStatusChanged;
+        CompItem.Changed += ItemCheckStatusChanged;
     }
 
     #endregion

@@ -25,21 +25,21 @@ public partial class MySearchBox : MyCard
     // 属性
     public string HintText
     {
-        get => (string)GetValue(hintTextProperty);
-        set => SetValue(hintTextProperty, value);
+        get => (string)GetValue(HintTextProperty);
+        set => SetValue(HintTextProperty, value);
     }
 
-    public static readonly DependencyProperty hintTextProperty =
+    public static readonly DependencyProperty HintTextProperty =
         DependencyProperty.Register("HintText", typeof(string), typeof(MySearchBox),
             new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.HintText = (string)e.NewValue));
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
-    public static readonly DependencyProperty textProperty =
+    public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register("Text", typeof(string), typeof(MySearchBox),
             new PropertyMetadata(string.Empty, (d, e) => ((MySearchBox)d).TextBox.Text = (string)e.NewValue));
 
@@ -63,7 +63,7 @@ public partial class MySearchBox : MyCard
     private void Text_TextChanged(object sender, TextChangedEventArgs e)
     {
         UpdateClearButtonState();
-        SetCurrentValue(textProperty, TextBox.Text);
+        SetCurrentValue(TextProperty, TextBox.Text);
 
         TextChanged?.Invoke(sender, e);
     }
@@ -74,11 +74,11 @@ public partial class MySearchBox : MyCard
         TextBox.Focus();
     }
 
-    public event SearchEventHandler? search;
+    public event SearchEventHandler? Search;
 
     private void BtnSearch_Click(object sender, MouseButtonEventArgs e)
     {
-        search?.Invoke(sender, e);
+        Search?.Invoke(sender, e);
     }
 
     private void UpdateClearButtonState()

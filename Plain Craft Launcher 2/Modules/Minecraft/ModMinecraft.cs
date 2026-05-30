@@ -19,7 +19,7 @@ namespace PCL;
 
 public static class ModMinecraft
 {
-    public const string uNKNOWN_VERSION_KEY = "UnknownVersion";
+    public const string UNKNOWN_VERSION_KEY = "UnknownVersion";
 
     /// <summary>
     ///     发送 Minecraft 更新提示。
@@ -2625,7 +2625,7 @@ public static class ModMinecraft
         /// <summary>
         ///     文件的 SHA1。
         /// </summary>
-        public string sHA1;
+        public string sha1;
 
         /// <summary>
         ///     文件大小。若无有效数据即为 0。
@@ -2692,7 +2692,7 @@ public static class ModMinecraft
                         if (Rule["os"]["version"] is not null) // 操作系统版本
                         {
                             var cr = Rule["os"]["version"].ToString();
-                            isRightRule = isRightRule && oSVersion.RegexCheck(cr);
+                            isRightRule = isRightRule && osVersion.RegexCheck(cr);
                         }
                     }
                     else
@@ -2727,7 +2727,7 @@ public static class ModMinecraft
         return required;
     }
 
-    private static readonly string oSVersion = Environment.OSVersion.Version.ToString();
+    private static readonly string osVersion = Environment.OSVersion.Version.ToString();
 
     /// <summary>
     ///     递归获取 Minecraft 某一实例的完整支持库列表。
@@ -2794,7 +2794,7 @@ public static class ModMinecraft
             result.Add(new McLibToken
             {
                 localPath = realInstance.PathInstance + realInstance.Name + ".jar", size = 0L, isNatives = false,
-                Url = clientUrl, sHA1 = clientSHA1
+                Url = clientUrl, sha1 = clientSHA1
             });
         }
 
@@ -2857,7 +2857,7 @@ public static class ModMinecraft
                                     .Replace("/", @"\")),
                             init.size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
-                            init.isNatives = false, init.sHA1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
+                            init.isNatives = false, init.sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
                             init.isLocal = isLocal, init).init);
                     }
                     else
@@ -2865,7 +2865,7 @@ public static class ModMinecraft
                         basicArray.Add(new McLibToken
                         {
                             originalName = (string)library["name"], Url = rootUrl, localPath = localPath, size = 0L,
-                            isNatives = false, sHA1 = null, isLocal = isLocal
+                            isNatives = false, sha1 = null, isLocal = isLocal
                         });
                     }
                 }
@@ -2875,7 +2875,7 @@ public static class ModMinecraft
                     basicArray.Add(new McLibToken
                     {
                         originalName = (string)library["name"], Url = rootUrl, localPath = localPath, size = 0L,
-                        isNatives = false, sHA1 = null
+                        isNatives = false, sha1 = null
                     });
                 }
             }
@@ -2899,7 +2899,7 @@ public static class ModMinecraft
                             size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             isNatives = true,
-                            sHA1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
+                            sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
                             isLocal = isLocal
                         });
                     else
@@ -2909,7 +2909,7 @@ public static class ModMinecraft
                             localPath = McLibGet((string)library["name"], customMcFolder: CustomMcFolder)
                                 .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                                 .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                            size = 0L, isNatives = true, sHA1 = null, isLocal = isLocal
+                            size = 0L, isNatives = true, sha1 = null, isLocal = isLocal
                         });
                 }
                 catch (Exception ex)
@@ -2921,7 +2921,7 @@ public static class ModMinecraft
                         localPath = McLibGet((string)library["name"], customMcFolder: CustomMcFolder)
                             .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                             .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                        size = 0L, isNatives = true, sHA1 = null, isLocal = false
+                        size = 0L, isNatives = true, sha1 = null, isLocal = false
                     });
                 }
             }
@@ -3119,7 +3119,7 @@ public static class ModMinecraft
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new ModBase.FileChecker(ActualSize: token.size == 0L ? -1 : token.size, Hash: token.sHA1);
+            var checker = new ModBase.FileChecker(ActualSize: token.size == 0L ? -1 : token.size, Hash: token.sha1);
             if (checker.Check(token.localPath) is null)
                 continue;
             if (token.isLocal)
@@ -3179,8 +3179,8 @@ public static class ModMinecraft
                 // LabyMod 只有一个下载源
                 urls.Add(token.Url);
                 ModBase.Log(
-                    $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.sHA1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(Hash: token.sHA1); // 只校验 SHA1
+                    $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.sha1}，由于 LabyMod 乱写 Size，已忽略 Size");
+                checker = new ModBase.FileChecker(Hash: token.sha1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {

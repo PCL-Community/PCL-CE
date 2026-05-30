@@ -93,8 +93,8 @@ public partial class PageLogRight
         // 绑定日志输出
         PanLog.Document = ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid];
         // 绑定事件
-        ModMain.frmLogLeft.currentLog.logOutput += OnLogOutput;
-        ModMain.frmLogLeft.currentLog.gameExit += OnGameExit;
+        ModMain.frmLogLeft.currentLog.LogOutput += OnLogOutput;
+        ModMain.frmLogLeft.currentLog.GameExit += OnGameExit;
         RefreshLabText();
     }
 

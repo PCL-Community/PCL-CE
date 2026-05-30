@@ -22,14 +22,14 @@ public partial class MyRadioBox : IMyRadio
     private const int animationTimeOfCheck = 150; // 勾选状态变更动画长度
 
     // 在使用 XAML 设置 Checked 属性时，不会触发 Checked_Set 方法，所以需要在这里手动触发 UI 改变
-    public static readonly DependencyProperty checkedProperty = DependencyProperty.Register("Checked", typeof(bool),
+    public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool),
         typeof(MyRadioBox), new PropertyMetadata(false, (dRaw, e) =>
         {
             var d = (MyRadioBox)dRaw;
             if (!d.IsLoaded) d.SyncUI();
         }));
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioBox), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyRadioBox)sender).LabText.Text = (string)e.NewValue;
@@ -59,7 +59,7 @@ public partial class MyRadioBox : IMyRadio
     // 自定义属性
     public bool Checked
     {
-        get => (bool)GetValue(checkedProperty);
+        get => (bool)GetValue(CheckedProperty);
         set => SetChecked(value, false);
     }
 
@@ -67,12 +67,12 @@ public partial class MyRadioBox : IMyRadio
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     } // 内容
 
     public event IMyRadio.CheckEventHandler? Check;
-    public event IMyRadio.ChangedEventHandler? changed;
+    public event IMyRadio.ChangedEventHandler? Changed;
     public event PreviewCheckEventHandler? PreviewCheck;
     public event PreviewChangeEventHandler? PreviewChange;
 
@@ -103,7 +103,7 @@ public partial class MyRadioBox : IMyRadio
                 PreviewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
             if (value != Checked)
             {
-                SetValue(checkedProperty, value);
+                SetValue(CheckedProperty, value);
                 isChanged = true;
             }
 
@@ -161,7 +161,7 @@ public partial class MyRadioBox : IMyRadio
             {
                 if (Checked)
                     Check?.Invoke(this, new ModBase.RouteEventArgs(user));
-                changed?.Invoke(this, new ModBase.RouteEventArgs(user));
+                Changed?.Invoke(this, new ModBase.RouteEventArgs(user));
                 ModMain.RaiseCustomEvent(this);
             }
 

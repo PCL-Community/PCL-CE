@@ -498,8 +498,8 @@ public static class ModComp
                 {
                     var rawProjectsData =
                         ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/projects?ids=[\"{Ids.Join("\",\"")}\"]");
-                    foreach (var RawData in (IEnumerable)rawProjectsData)
-                        res.Add(new CompProject((JsonObject)RawData));
+                    foreach (var rawData in (IEnumerable)rawProjectsData)
+                        res.Add(new CompProject((JsonObject)rawData));
                 });
             }
             catch (Exception ex)
@@ -2288,16 +2288,16 @@ public static class ModComp
             }
 
             var wordWeights = new Dictionary<string, double>();
-            foreach (var Result in searchResults)
+            foreach (var result in searchResults)
             {
-                foreach (var Word in ExtractWords(Result))
+                foreach (var word in ExtractWords(result))
                 {
-                    var similarity = Result.searchSource.Any(s => s.aliases.Contains(request.searchText))
+                    var similarity = result.searchSource.Any(s => s.aliases.Contains(request.searchText))
                         ? 100000
-                        : Result.similarity;
-                    if (!wordWeights.ContainsKey(Word))
-                        wordWeights.Add(Word, 0);
-                    wordWeights[Word] += similarity;
+                        : result.similarity;
+                    if (!wordWeights.ContainsKey(word))
+                        wordWeights.Add(word, 0);
+                    wordWeights[word] += similarity;
                 }
             }
 
@@ -3148,8 +3148,8 @@ public static class ModComp
                     $"https://api.modrinth.com/v2/projects?ids=[\"{undoneDeps.Join("\",\"")}\"]");
             }
 
-            foreach (var Project in projects)
-                new CompProject((JsonObject)Project);
+            foreach (var project in projects)
+                new CompProject((JsonObject)project);
         }
 
         // 5. 建立文件与依赖工程的关联映射
@@ -3229,9 +3229,9 @@ public static class ModComp
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
-            foreach (var Dep in deps)
+            foreach (var dep in deps)
             {
-                var item = compProjectCache[Dep].ToCompItem(false, false);
+                var item = compProjectCache[dep].ToCompItem(false, false);
                 Stack.Children.Add(item);
             }
         }
@@ -3253,9 +3253,9 @@ public static class ModComp
                 Margin = new Thickness(6d, 2d, 0d, 5d)
             });
             // 添加前置列表
-            foreach (var Dep in optionalDeps)
+            foreach (var dep in optionalDeps)
             {
-                var item = compProjectCache[Dep].ToCompItem(false, false);
+                var item = compProjectCache[dep].ToCompItem(false, false);
                 Stack.Children.Add(item);
             }
         }

@@ -332,7 +332,7 @@ public static class ModJava
                     { ProgressWeight = 2d },
                 javaDownloadLoader
             });
-        javaDownloadLoader.onStateChangedThread += (Raw, NewState, OldState) =>
+        javaDownloadLoader.OnStateChangedThread += (Raw, NewState, OldState) =>
         {
             if ((NewState == ModBase.LoadState.Failed || NewState == ModBase.LoadState.Aborted) &&
                 lastJavaBaseDir is not null)

@@ -42,12 +42,12 @@ public partial class PageDownloadForge
                     { Title = Version.Replace("_p", " P"), Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Version
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.InstallMethod = Stack =>
                 {
                     var loadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
@@ -56,7 +56,7 @@ public partial class PageDownloadForge
                             ModDownload.DlForgeVersionMain);
                     loadingPickaxe.State = loader;
                     loader.Start(Stack.Tag);
-                    loadingPickaxe.stateChanged += (a, b, c) =>
+                    loadingPickaxe.StateChanged += (a, b, c) =>
                         ModMain.frmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
                     loadingPickaxe.Click += (a, b) => ModMain.frmDownloadForge.Forge_Click((MyLoading)a, b);
                     Stack.Children.Add(loadingPickaxe);
@@ -88,8 +88,8 @@ public partial class PageDownloadForge
         var card = (MyCard)((FrameworkElement)sender.Parent).Parent;
         var loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State;
         // 载入列表
-        ((StackPanel)card.swapControl).Children.Clear();
-        ((StackPanel)card.swapControl).Tag = loader.output;
+        ((StackPanel)card.SwapControl).Children.Clear();
+        ((StackPanel)card.SwapControl).Tag = loader.output;
         card.InstallMethod = Stack =>
         {
             Stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.version > b.version);
