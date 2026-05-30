@@ -1098,7 +1098,7 @@ public partial class FormMain
                         try
                         {
                             ModBase.ExtractFile(FilePath, ExtractFolder);
-                            var SaveRoot = WorldImportHelper.GetSaveRootDirectory(ExtractFolder);
+                            var SaveRoot = SaveImportHelper.GetSaveRootDirectory(ExtractFolder);
                             if (SaveRoot is null)
                             {
                                 ModMain.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), ModMain.HintType.Critical);

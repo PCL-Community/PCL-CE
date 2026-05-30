@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PCL.Core.Minecraft;
 
-public static class WorldImportHelper
+public static class SaveImportHelper
 {
     public static string? GetSaveRootDirectory(string extractedDirectory)
     {

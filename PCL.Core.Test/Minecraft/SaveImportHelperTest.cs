@@ -6,7 +6,7 @@ using PCL.Core.Minecraft;
 namespace PCL.Core.Test.Minecraft;
 
 [TestClass]
-public class WorldImportHelperTest
+public class SaveImportHelperTest
 {
     private string _tempDirectory = null!;
 
@@ -29,7 +29,7 @@ public class WorldImportHelperTest
     {
         File.WriteAllText(Path.Combine(_tempDirectory, "level.dat"), "");
 
-        var result = WorldImportHelper.GetSaveRootDirectory(_tempDirectory);
+        var result = SaveImportHelper.GetSaveRootDirectory(_tempDirectory);
 
         Assert.AreEqual(Path.GetFullPath(_tempDirectory), result);
     }
@@ -41,7 +41,7 @@ public class WorldImportHelperTest
         Directory.CreateDirectory(worldDirectory);
         File.WriteAllText(Path.Combine(worldDirectory, "level.dat"), "");
 
-        var result = WorldImportHelper.GetSaveRootDirectory(_tempDirectory);
+        var result = SaveImportHelper.GetSaveRootDirectory(_tempDirectory);
 
         Assert.AreEqual(Path.GetFullPath(worldDirectory), result);
     }
@@ -54,7 +54,7 @@ public class WorldImportHelperTest
         Directory.CreateDirectory(worldDirectory);
         File.WriteAllText(Path.Combine(worldDirectory, "level.dat"), "");
 
-        var result = WorldImportHelper.GetSaveRootDirectory(_tempDirectory);
+        var result = SaveImportHelper.GetSaveRootDirectory(_tempDirectory);
 
         Assert.AreEqual(Path.GetFullPath(worldDirectory), result);
     }
@@ -66,7 +66,7 @@ public class WorldImportHelperTest
         Directory.CreateDirectory(worldDirectory);
         File.WriteAllText(Path.Combine(worldDirectory, "readme.txt"), "");
 
-        var result = WorldImportHelper.GetSaveRootDirectory(_tempDirectory);
+        var result = SaveImportHelper.GetSaveRootDirectory(_tempDirectory);
 
         Assert.IsNull(result);
     }
@@ -78,7 +78,7 @@ public class WorldImportHelperTest
         Directory.CreateDirectory(Path.Combine(_tempDirectory, "OtherWorld"));
         File.WriteAllText(Path.Combine(_tempDirectory, "MyWorld", "level.dat"), "");
 
-        var result = WorldImportHelper.GetSaveRootDirectory(_tempDirectory);
+        var result = SaveImportHelper.GetSaveRootDirectory(_tempDirectory);
 
         Assert.IsNull(result);
     }
