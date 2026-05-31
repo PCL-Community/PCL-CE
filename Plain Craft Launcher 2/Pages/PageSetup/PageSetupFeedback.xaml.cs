@@ -52,7 +52,7 @@ public partial class PageSetupFeedback
             {
                 Retries = 3,
                 UseBrowserUserAgent = true
-            }) as JsonArray;
+            }) as JsonArray; // 获取近期 200 条数据就够了
         if (list is null)
             throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
