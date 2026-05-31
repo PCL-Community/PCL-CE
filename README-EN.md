@@ -55,11 +55,8 @@ You can still try using the latest launcher version on unsupported platforms, bu
 - `All other directories` use [Apache License 2.0](https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE)
 
 ## 🌟 Statistic
-![Alt](https://repobeats.axiom.co/api/embed/3e46296e6e3a134991a783480fd2f62723bb0353.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/803751b94f0b1e8682bf9b5aba0f0dd9f2d156fd.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=MUXUE1230/PCL-N&type=Date)](https://www.star-history.com/#MUXUE1230/PCL-N&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=MuXue1230-owo/PCL-N&type=Date)](https://www.star-history.com/#MuXue1230-owo0/PCL-N&Date)
 
 **Views** (Total / Today): [![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL-N)](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL-N&web=true)
-## ❤️ Contributors
-
-[![](https://contrib.rocks/image?repo=MUXUE1230/PCL-N)](https://github.com/MuXue1230-owo/PCL-N/graphs/contributors)
