@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Scaffolding.Server.Handlers;
 
@@ -14,7 +15,7 @@ public class PlayerPingHandler : IRequestHandler
     /// <inheritdoc />
     public string RequestType { get; } = "c:player_ping";
 
-    private static readonly JsonSerializerOptions _JsonOptions = new()
+    private static readonly JsonSerializerOptions _JsonOptions = new(JsonCompat.SerializerOptions)
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull

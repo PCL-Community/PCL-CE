@@ -14,6 +14,7 @@ using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -21,7 +22,7 @@ public partial class PageToolsGameLink
 {
     static PageToolsGameLink()
     {
-        InitLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
+        initLoader = new ModLoader.LoaderCombo<int>("大厅初始化",
             new[] { new ModLoader.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask) { ProgressWeight = 0.5d } });
     }
 
@@ -38,9 +39,9 @@ public partial class PageToolsGameLink
     // 加载器初始化
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanContent, null, InitLoader, AutoRun: false);
+        PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, autoRun: false);
         // 注册自定义的 OnStateChanged
-        InitLoader.OnStateChangedUi += OnLoadStateChanged;
+        initLoader.OnStateChangedUi += OnLoadStateChanged;
 
         LobbyService.OnNeedDownloadEasyTier += () => ModLink.DownloadEasyTier();
         LobbyService.DiscoveredWorlds.CollectionChanged += OnDiscoveredWorldsChanged;
@@ -51,7 +52,7 @@ public partial class PageToolsGameLink
         LobbyService.OnServerStarted += OnServerStartedHandler;
         LobbyService.OnServerException += OnServerExceptionHandler;
 
-        if (LobbyAnnouncementLoader is null)
+        if (lobbyAnnouncementLoader is null)
         {
             var loaders = new List<ModLoader.LoaderBase>();
             loaders.Add(new ModLoader.LoaderTask<int, int>("大厅界面初始化", _ => ModBase.RunInUi(() =>
@@ -61,7 +62,7 @@ public partial class PageToolsGameLink
                 HintAnnounce.Text = "正在连接到大厅服务器...";
             })));
             loaders.Add(new ModLoader.LoaderTask<int, int>("大厅公告获取", _ => GetAnnouncement()) { ProgressWeight = 0.5d });
-            LobbyAnnouncementLoader = new ModLoader.LoaderCombo<int>("Lobby Announcement", loaders) { Show = false };
+            lobbyAnnouncementLoader = new ModLoader.LoaderCombo<int>("Lobby Announcement", loaders) { show = false };
         }
     }
 
@@ -82,7 +83,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception secEx)
         {
-            ModBase.Log(secEx, "Occured an exception when exit server.");
+            ModBase.Log(secEx, "Occurred an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }
@@ -95,7 +96,7 @@ public partial class PageToolsGameLink
         HintAnnounce.Theme = MyHint.Themes.Blue;
 
         // 加载公告
-        LobbyAnnouncementLoader.Start();
+        lobbyAnnouncementLoader.Start();
         if (_linkAnnounceUpdateCancelSource is not null)
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
@@ -113,7 +114,7 @@ public partial class PageToolsGameLink
 
     private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.LinkEulaConfig.Reset();
@@ -122,7 +123,7 @@ public partial class PageToolsGameLink
         }
     }
 
-    private static readonly ModLoader.LoaderCombo<int> InitLoader;
+    private static readonly ModLoader.LoaderCombo<int> initLoader;
 
     private static async void InitTask(ModLoader.LoaderTask<int, int> task)
     {
@@ -158,7 +159,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Occured an exception when exit server.");
+            ModBase.Log(ex, "Occurred an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }
@@ -287,7 +288,7 @@ public partial class PageToolsGameLink
 
     #region 公告
 
-    public static ModLoader.LoaderCombo<int> LobbyAnnouncementLoader;
+    public static ModLoader.LoaderCombo<int> lobbyAnnouncementLoader;
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
 
     private CancellationTokenSource _linkAnnounceUpdateCancelSource;
@@ -422,7 +423,7 @@ public partial class PageToolsGameLink
                 LobbyInfoProvider.RequiresLogin = (bool)jObj["requireLogin"];
                 LobbyInfoProvider.RequiresRealName = (bool)jObj["requireRealname"];
 
-                if (jObj["version"].GetValue<double>() > LobbyInfoProvider.ProtocolVersion)
+                if (jObj["version"].ToObject<double>() > LobbyInfoProvider.ProtocolVersion)
                 {
                     ModBase.RunInUi(() =>
                     {
@@ -444,9 +445,9 @@ public partial class PageToolsGameLink
                     if (string.IsNullOrWhiteSpace(content)) continue;
 
                     // 版本过滤
-                    var minVer = notice["minVer"].GetValue<double>();
-                    var maxVer = notice["maxVer"].GetValue<double>();
-                    if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
+                    var minVer = notice["minVer"].ToObject<double>();
+                    var maxVer = notice["maxVer"].ToObject<double>();
+                    if (ModBase.versionCode < minVer || ModBase.versionCode > maxVer) continue;
 
                     // 类型映射
                     var type = LinkAnnounceType.Notice;
@@ -743,7 +744,7 @@ public partial class PageToolsGameLink
             BtnInputPort.IsEnabled = false;
             if (!ModLink.LobbyPrecheck()) return;
             var input = ModMain.MyMsgBoxInput("请输入端口",
-                ValidateRules: [new IntValidator(65535,1024)]);
+                validateRules: [new IntValidator(65535,1024)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -877,32 +878,32 @@ public partial class PageToolsGameLink
         _loadStep = step;
         ModBase.RunInUiWait(() =>
         {
-            if (ModMain.FrmToolsGameLink is null || !ModMain.FrmToolsGameLink.LabLoadDesc.IsLoaded)
+            if (ModMain.frmToolsGameLink is null || !ModMain.frmToolsGameLink.LabLoadDesc.IsLoaded)
                 return;
-            ModMain.FrmToolsGameLink.LabLoadDesc.Text = intro;
-            ModMain.FrmToolsGameLink.UpdateProgress();
+            ModMain.frmToolsGameLink.LabLoadDesc.Text = intro;
+            ModMain.frmToolsGameLink.UpdateProgress();
         });
     }
 
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (InitLoader.State != ModBase.LoadState.Failed)
+        if (initLoader.State != ModBase.LoadState.Failed)
             return;
-        InitLoader.Start(IsForceRestart: true);
+        initLoader.Start(isForceRestart: true);
     }
 
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (InitLoader.State == ModBase.LoadState.Loading)
+        if (initLoader.State == ModBase.LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
-            InitLoader.Abort();
+            initLoader.Abort();
         }
         else
         {
-            InitLoader.State = ModBase.LoadState.Waiting;
+            initLoader.State = ModBase.LoadState.Waiting;
         }
     }
 
@@ -910,7 +911,7 @@ public partial class PageToolsGameLink
     private void UpdateProgress(double value = -1)
     {
         if (value == -1)
-            value = InitLoader.Progress;
+            value = initLoader.Progress;
         var displayingProgress = ColumnProgressA.Width.Value;
         if (Math.Round(value - displayingProgress, 3) == 0d)
             return;
@@ -927,9 +928,9 @@ public partial class PageToolsGameLink
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnProgressA, newProgress - ColumnProgressA.Width.Value, 300,
-                        Ease: new ModAnimation.AniEaseOutFluent()),
+                        ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaGridLengthWidth(ColumnProgressB, 1d - newProgress - ColumnProgressB.Width.Value, 300,
-                        Ease: new ModAnimation.AniEaseOutFluent())
+                        ease: new ModAnimation.AniEaseOutFluent())
                 }, "LobbyController Progress");
         }
     }
@@ -947,7 +948,7 @@ public partial class PageToolsGameLink
     private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
-        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             CurrentSubpage = Subpages.PanSelect;
             BtnFinishExit.Text = "退出大厅";
@@ -967,7 +968,7 @@ public partial class PageToolsGameLink
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-            Lang.Text("Common.Action.Copy"), "返回", Button1Action: () => ModBase.ClipboardSet(ip));
+            Lang.Text("Common.Action.Copy"), "返回", button1Action: () => ModBase.ClipboardSet(ip));
     }
 
     #endregion
@@ -998,11 +999,11 @@ public partial class PageToolsGameLink
 
     private void PageLinkLobby_OnPageEnter()
     {
-        ModMain.FrmToolsGameLink.PanEula.Visibility =
+        ModMain.frmToolsGameLink.PanEula.Visibility =
             CurrentSubpage == Subpages.PanEula ? Visibility.Visible : Visibility.Collapsed;
-        ModMain.FrmToolsGameLink.PanSelect.Visibility =
+        ModMain.frmToolsGameLink.PanSelect.Visibility =
             CurrentSubpage == Subpages.PanSelect ? Visibility.Visible : Visibility.Collapsed;
-        ModMain.FrmToolsGameLink.PanFinish.Visibility =
+        ModMain.frmToolsGameLink.PanFinish.Visibility =
             CurrentSubpage == Subpages.PanFinish ? Visibility.Visible : Visibility.Collapsed;
     }
 

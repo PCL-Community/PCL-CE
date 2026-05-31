@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json.Nodes;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -42,7 +43,7 @@ public static class McVersionClassifier
 
     public static DateTime GetReleaseTime(JsonObject version)
     {
-        return version["releaseTime"]?.GetValue<DateTime>() ?? DateTime.MinValue;
+        return _GetDateTime(version, "releaseTime");
     }
 
     private static McVersionCategory _ClassifySnapshotOrPending(JsonObject version, string idLower)
@@ -159,8 +160,20 @@ public static class McVersionClassifier
         };
     }
 
+    private static DateTime _GetDateTime(JsonObject obj, string key)
+    {
+        return JsonCompat.TryGetDateTime(obj[key], out var dateTime)
+            ? dateTime
+            : DateTime.MinValue;
+    }
+
     private static string _GetString(JsonObject obj, string key)
     {
-        return obj[key]?.GetValue<string>() ?? "";
+        var node = obj[key];
+        if (node is null) return "";
+
+        return node is JsonValue value && value.TryGetValue<string>(out var result)
+            ? result
+            : node.ToString();
     }
 }

@@ -8,9 +8,9 @@ public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统�
 
     private readonly IEnumerable<IUpdateSource> _sources;
 
-    public UpdatesRandomModel(IEnumerable<IUpdateSource> Sources)
+    public UpdatesRandomModel(IEnumerable<IUpdateSource> sources)
     {
-        _sources = Sources;
+        _sources = sources;
         var rand = new Random(DateTime.Now.Millisecond);
         _randIndex = rand.Next(0, _sources.Count() - 1);
     }

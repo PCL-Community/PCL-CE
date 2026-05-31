@@ -26,10 +26,10 @@ namespace PCL;
 
 public partial class PageToolsTest
 {
-    private Bitmap CurrentSkinBitmap;
-    private Bitmap GeneratedHeadBitmap;
+    private Bitmap currentSkinBitmap;
+    private Bitmap generatedHeadBitmap;
 
-    private int HeadSize = 64;
+    private int headSize = 64;
     private string skinPath = "";
 
     public PageToolsTest()
@@ -48,7 +48,7 @@ public partial class PageToolsTest
         TextDownloadFolder.Validate();
 
         if (!string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) || string.IsNullOrEmpty(TextDownloadFolder.Text))
-            TextDownloadFolder.Text = ModBase.ExePath + @"PCL\MyDownload\";
+            TextDownloadFolder.Text = ModBase.exePath + @"PCL\MyDownload\";
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
@@ -83,27 +83,27 @@ public partial class PageToolsTest
         States.Tool.DownloadUserAgent = TextUserAgent.Text;
     }
 
-    private static void DownloadState(ModLoader.LoaderCombo<int> Loader)
+    private static void DownloadState(ModLoader.LoaderCombo<int> loader)
     {
         try
         {
-            switch (Loader.State)
+            switch (loader.State)
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
+                    ModMain.Hint($"{loader.name}完成！", ModMain.HintType.Finish);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Failed:
                 {
-                    ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(loader.Error, $"{loader.name}失败", ModBase.LogLevel.Msgbox);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
-                    ModMain.Hint($"{Loader.Name}已取消！");
+                    ModMain.Hint($"{loader.name}已取消！");
                     break;
                 }
             }
@@ -113,45 +113,45 @@ public partial class PageToolsTest
         }
     }
 
-    public static void StartCustomDownload(string Url, string FileName, string Folder = null, string UserAgent = "")
+    public static void StartCustomDownload(string url, string fileName, string folder = null, string userAgent = "")
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(Folder))
+            if (string.IsNullOrWhiteSpace(folder))
             {
-                Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName);
-                if (!Folder.Contains(@"\")) return;
-                if (Folder.EndsWith(FileName)) Folder = Folder[..^FileName.Length];
+                folder = SystemDialogs.SelectSaveFile("选择文件保存位置", fileName);
+                if (!folder.Contains(@"\")) return;
+                if (folder.EndsWith(fileName)) folder = folder[..^fileName.Length];
             }
 
-            Folder = Folder.Replace("/", @"\").TrimEnd(new[] { '\\' }) + @"\";
+            folder = folder.Replace("/", @"\").TrimEnd(new[] { '\\' }) + @"\";
             try
             {
-                Directory.CreateDirectory(Folder);
-                ModBase.CheckPermissionWithException(Folder);
+                Directory.CreateDirectory(folder);
+                ModBase.CheckPermissionWithException(folder);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"访问文件夹失败（{Folder}）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, $"访问文件夹失败（{folder}）", ModBase.LogLevel.Hint);
                 return;
             }
 
-            ModBase.Log("[Download] 自定义下载文件名：" + FileName);
-            ModBase.Log("[Download] 自定义下载文件目标：" + Folder);
+            ModBase.Log("[Download] 自定义下载文件名：" + fileName);
+            ModBase.Log("[Download] 自定义下载文件目标：" + folder);
             var uuid = ModBase.GetUuid();
             ModLoader.LoaderBase loaderdownload;
-            if (new HttpValidator().Validate(Url).IsValid)
-                loaderdownload = new LoaderDownload($"自定义下载文件：{FileName} ",
-                    new List<DownloadFile> { new(new[] { Url }, Folder + FileName, null, true, UserAgent) });
+            if (new HttpValidator().Validate(url).IsValid)
+                loaderdownload = new LoaderDownload($"自定义下载文件：{fileName} ",
+                    new List<DownloadFile> { new(new[] { url }, folder + fileName, null, true, userAgent) });
             else // UNC 路径
-                loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{FileName} ",
-                    new Tuple<string, string>(Url, Folder + FileName));
+                loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{fileName} ",
+                    new Tuple<string, string>(url, folder + fileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>($"自定义下载 ({uuid}) ", new[] { loaderdownload })
                 { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
             loaderCombo.Start();
             ModLoader.LoaderTaskbarAdd(loaderCombo);
-            ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.FrmMain.BtnExtraDownload.Ribble();
+            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -171,15 +171,15 @@ public partial class PageToolsTest
         if (luckValue >= 60)
             ModMain.MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title);
         else
-            ModMain.MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn: luckValue <= 30);
+            ModMain.MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, isWarn: luckValue <= 30);
     }
 
     public static void RubbishClear()
     {
         ModBase.RunInUi(() =>
         {
-            if (ModMain.FrmToolsTest is not null && ModMain.FrmToolsTest.BtnClear is not null)
-                ModMain.FrmToolsTest.BtnClear.IsEnabled = false;
+            if (ModMain.frmToolsTest is not null && ModMain.frmToolsTest.BtnClear is not null)
+                ModMain.frmToolsTest.BtnClear.IsEnabled = false;
         });
         // 只有当没有运行中的Minecraft游戏且启动器不在加载状态时才能清理
 
@@ -200,7 +200,7 @@ public partial class PageToolsTest
         {
             try
             {
-                if (!ModWatcher.HasRunningMinecraft && ModLaunch.McLaunchLoader.State != ModBase.LoadState.Loading)
+                if (!ModWatcher.hasRunningMinecraft && ModLaunch.mcLaunchLoader.State != ModBase.LoadState.Loading)
                 {
                     if (ModNet.HasDownloadingTask())
                     {
@@ -208,7 +208,7 @@ public partial class PageToolsTest
                         return;
                     }
 
-                    if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.Start();
+                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.Start();
                     if (States.Hint.CleanJunkFile <= 2)
                     {
                         if (ModMain.MyMsgBox(
@@ -224,8 +224,8 @@ public partial class PageToolsTest
 
                     var num = 0;
                     var cleanMcFolderList = new List<DirectoryInfo>();
-                    if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.WaitForExit();
-                    foreach (var mcFolder in ModMinecraft.McFolderList)
+                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.WaitForExit();
+                    foreach (var mcFolder in ModMinecraft.mcFolderList)
                     {
                         cleanMcFolderList.Add(new DirectoryInfo(mcFolder.Location));
                         var dirInfo = new DirectoryInfo(mcFolder.Location + "versions");
@@ -254,7 +254,7 @@ public partial class PageToolsTest
                                 num += ModBase.DeleteDirectory(dirInfo2.FullName, true);
                     }
 
-                    num += ModBase.DeleteDirectory(ModBase.PathTemp, true);
+                    num += ModBase.DeleteDirectory(ModBase.pathTemp, true);
                     num += ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true);
                     if (num != 0)
                     {
@@ -284,16 +284,16 @@ public partial class PageToolsTest
             {
                 ModBase.RunInUiWait(() =>
                 {
-                    if (ModMain.FrmToolsTest is not null && ModMain.FrmToolsTest.BtnClear is not null)
-                        ModMain.FrmToolsTest.BtnClear.IsEnabled = true;
+                    if (ModMain.frmToolsTest is not null && ModMain.frmToolsTest.BtnClear is not null)
+                        ModMain.frmToolsTest.BtnClear.IsEnabled = true;
                 });
             }
         }, "Rubbish Clear");
     }
 
     [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
-    private static extern uint NtSetSystemInformation(int SystemInformationClass, nint SystemInformation,
-        int SystemInformationLength);
+    private static extern uint NtSetSystemInformation(int systemInformationClass, nint systemInformation,
+        int systemInformationLength);
     public static bool AskTrulyWantMemoryOptimize()
     {
         var memLoad = KernelInterop.GetMemoryLoadPercent();
@@ -308,8 +308,8 @@ public partial class PageToolsTest
             Lang.Text("Common.Action.Confirm"),
             "了解 Mem Reduct",
             Lang.Text("Common.Action.Cancel"),
-            IsWarn: true,
-            Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
+            isWarn: true,
+            button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
         );
         return s == 1;
     }
@@ -408,26 +408,26 @@ public partial class PageToolsTest
     // 下载正版玩家皮肤
     private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
-        var ID = TextSkinID.Text;
+        var id = TextSkinID.Text;
         ModMain.Hint("正在获取皮肤...");
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                if (ID.Length < 3)
+                if (id.Length < 3)
                 {
                     ModMain.Hint("这不是一个有效的 ID...");
                 }
                 else
                 {
-                    var Result = (string)ModProfile.McLoginMojangUuid(ID, true);
-                    Result = ModMinecraft.McSkinGetAddress(Result, "Mojang");
-                    Result = ModMinecraft.McSkinDownload(Result);
+                    var result = (string)ModProfile.McLoginMojangUuid(id, true);
+                    result = ModMinecraft.McSkinGetAddress(result, "Mojang");
+                    result = ModMinecraft.McSkinDownload(result);
                     ModBase.RunInUi(() =>
                     {
-                        var Path = SystemDialogs.SelectSaveFile("保存皮肤", $"{ID}.png", "皮肤图片文件(*.png)|*.png");
-                        ModBase.CopyFile(Result, Path);
-                        ModMain.Hint($"玩家 {ID} 的皮肤已保存！", ModMain.HintType.Finish);
+                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{id}.png", "皮肤图片文件(*.png)|*.png");
+                        ModBase.CopyFile(result, path);
+                        ModMain.Hint($"玩家 {id} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
                 }
             }
@@ -436,11 +436,11 @@ public partial class PageToolsTest
                 if (ex.ToString().Contains("429"))
                 {
                     ModMain.Hint("获取皮肤太过频繁，请 5 分钟之后再试！", ModMain.HintType.Critical);
-                    ModBase.Log($"获取正版皮肤失败（{ID}）：获取皮肤太过频繁，请 5 分钟后再试！");
+                    ModBase.Log($"获取正版皮肤失败（{id}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
                 {
-                    ModBase.Log(ex, $"获取正版皮肤失败（{ID}）");
+                    ModBase.Log(ex, $"获取正版皮肤失败（{id}）");
                 }
             }
         });
@@ -570,7 +570,7 @@ public partial class PageToolsTest
 
     private async Task DownloadImageToLocalAsync(string imageUrl)
     {
-        var savePath = ModBase.PathTemp + @"Download\" + ModBase.GetHash(imageUrl) + ".png";
+        var savePath = ModBase.pathTemp + @"Download\" + ModBase.GetHash(imageUrl) + ".png";
         var client = NetworkService.GetClient();
         try
         {
@@ -633,7 +633,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
+        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), hintText: "\"sURe\".ToUpper()", isWarn: true) ==
             "SURE") throw new Exception("手动崩溃");
     }
 
@@ -657,21 +657,21 @@ public partial class PageToolsTest
         {
             using (var stream = new FileStream(skinPath, FileMode.Open, FileAccess.Read))
             {
-                CurrentSkinBitmap = new Bitmap(stream);
+                currentSkinBitmap = new Bitmap(stream);
             }
 
             this.skinPath = skinPath;
 
-            if (CurrentSkinBitmap.Width != CurrentSkinBitmap.Height)
+            if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
                 ModMain.Hint("图片的大小不正确！请确认你选择了正确的文件！", ModMain.HintType.Critical);
                 SkinPreviewBorder.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            GeneratedHeadBitmap = GenerateHeadFromSkin(CurrentSkinBitmap);
+            generatedHeadBitmap = GenerateHeadFromSkin(currentSkinBitmap);
 
-            ImgFace.Source = BitmapToBitmapImage(GeneratedHeadBitmap);
+            ImgFace.Source = BitmapToBitmapImage(generatedHeadBitmap);
             ImgHair.Source = null;
 
             SkinPreviewBorder.Visibility = Visibility.Visible;
@@ -689,8 +689,8 @@ public partial class PageToolsTest
     private Bitmap GenerateHeadFromSkin(Bitmap skinBitmap)
     {
         var scale = skinBitmap.Width / 64;
-        HeadSize = GetHeadSize();
-        var headBitmap = new Bitmap(HeadSize, HeadSize);
+        headSize = GetHeadSize();
+        var headBitmap = new Bitmap(headSize, headSize);
 
         using (var g = Graphics.FromImage(headBitmap))
         {
@@ -707,7 +707,7 @@ public partial class PageToolsTest
     private void DrawFaceLayer(Graphics g, Bitmap skinBitmap, int scale)
     {
         var faceRect = new Rectangle(8 * scale, 8 * scale, 8 * scale, 8 * scale);
-        var faceSize = HeadSize - HeadSize / 8;
+        var faceSize = headSize - headSize / 8;
         var faceScaled = new Bitmap(faceSize, faceSize);
 
         using (var gFace = Graphics.FromImage(faceScaled))
@@ -717,24 +717,24 @@ public partial class PageToolsTest
             gFace.DrawImage(skinBitmap, new Rectangle(0, 0, faceSize, faceSize), faceRect, GraphicsUnit.Pixel);
         }
 
-        var offset = HeadSize / 16;
+        var offset = headSize / 16;
         g.DrawImage(faceScaled, offset, offset, faceSize, faceSize);
     }
 
     private void DrawHairLayer(Bitmap headBitmap, Bitmap skinBitmap, int scale)
     {
         var hairRect = new Rectangle(40 * scale, 8 * scale, 8 * scale, 8 * scale);
-        var hairScaled = new Bitmap(HeadSize, HeadSize);
+        var hairScaled = new Bitmap(headSize, headSize);
 
         using (var gHair = Graphics.FromImage(hairScaled))
         {
             gHair.InterpolationMode = InterpolationMode.NearestNeighbor;
             gHair.PixelOffsetMode = PixelOffsetMode.Half;
-            gHair.DrawImage(skinBitmap, new Rectangle(0, 0, HeadSize, HeadSize), hairRect, GraphicsUnit.Pixel);
+            gHair.DrawImage(skinBitmap, new Rectangle(0, 0, headSize, headSize), hairRect, GraphicsUnit.Pixel);
         }
 
-        for (int x = 0, loopTo = HeadSize - 1; x <= loopTo; x++)
-        for (int y = 0, loopTo1 = HeadSize - 1; y <= loopTo1; y++)
+        for (int x = 0, loopTo = headSize - 1; x <= loopTo; x++)
+        for (int y = 0, loopTo1 = headSize - 1; y <= loopTo1; y++)
         {
             var pixel = hairScaled.GetPixel(x, y);
             if (pixel.A > 0) headBitmap.SetPixel(x, y, pixel);
@@ -743,7 +743,7 @@ public partial class PageToolsTest
 
     private void BtnSaveHead_Click(object sender, MouseButtonEventArgs e)
     {
-        if (GeneratedHeadBitmap is null)
+        if (generatedHeadBitmap is null)
         {
             ModMain.Hint("请先选择皮肤！", ModMain.HintType.Critical);
             return;
@@ -753,13 +753,13 @@ public partial class PageToolsTest
         if (string.IsNullOrEmpty(savePath))
             return;
 
-        GeneratedHeadBitmap.Save(savePath, ImageFormat.Png);
+        generatedHeadBitmap.Save(savePath, ImageFormat.Png);
         ModMain.Hint("头像保存成功！", ModMain.HintType.Finish);
     }
 
     private void CmbHeadSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CurrentSkinBitmap is not null && skinPath is not null) LoadAndGenerateHead(skinPath);
+        if (currentSkinBitmap is not null && skinPath is not null) LoadAndGenerateHead(skinPath);
     }
 
     private BitmapImage BitmapToBitmapImage(Bitmap bitmap)

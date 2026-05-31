@@ -39,7 +39,7 @@ public static class Requester
 
     public static async Task<JsonNode> FetchJsonAsync(string url, RequestParam param = default)
     {
-        return JsonNode.Parse(await FetchStringAsync(url, param).ConfigureAwait(false))!;
+        return ModBase.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
     }
 
     public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default) where T : JsonNode
@@ -144,7 +144,7 @@ public static class Requester
             ParallelCount = Math.Max(1, ModNet.NetTaskThreadLimit),
             ParallelDownload = ModNet.NetTaskThreadLimit > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
-            DownloadFileExtension = ModNet.NetDownloadEnd,
+            DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });

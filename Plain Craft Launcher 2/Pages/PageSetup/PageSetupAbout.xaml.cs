@@ -4,15 +4,16 @@ using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL;
 
 public partial class PageSetupAbout
 {
     // 彩蛋
-    private int ClickCount;
+    private int clickCount;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupAbout()
     {
@@ -28,13 +29,13 @@ public partial class PageSetupAbout
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.versionBaseName)
+            .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
+            .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
         LoadContributersAsync();
     }
 
@@ -46,7 +47,7 @@ public partial class PageSetupAbout
                        .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync())
             {
                 response.EnsureSuccessStatusCode();
-                var cos = await response.AsJsonAsync<List<GitHubContributor>>();
+                var cos = await response.AsJsonAsync<List<GitHubContributor>>(JsonCompat.SerializerOptions);
                 Contributors.Clear();
                 foreach (var item in cos)
                     Contributors.Add((GitHubContributor)item);
@@ -65,10 +66,10 @@ public partial class PageSetupAbout
 
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ClickCount < 200)
+        if (clickCount < 200)
         {
-            ClickCount += 1;
-            switch (ClickCount)
+            clickCount += 1;
+            switch (clickCount)
             {
                 case 5:
                 {

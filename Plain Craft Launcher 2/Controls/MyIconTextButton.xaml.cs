@@ -24,8 +24,8 @@ public partial class MyIconTextButton
 
     // 动画
 
-    private const int AnimationTimeOfMouseIn = 100; // 鼠标指向动画长度
-    private const int AnimationTimeOfMouseOut = 150; // 鼠标移出动画长度
+    private const int animationTimeOfMouseIn = 100; // 鼠标指向动画长度
+    private const int animationTimeOfMouseOut = 150; // 鼠标移出动画长度
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyIconTextButton), new PropertyMetadata((sender, e) =>
@@ -37,7 +37,7 @@ public partial class MyIconTextButton
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
     private double _LogoScale = 1d;
-    private bool IsMouseDown;
+    private bool isMouseDown;
 
     // 基础
 
@@ -135,10 +135,10 @@ public partial class MyIconTextButton
 
     private void MyIconTextButton_MouseUp()
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
-        IsMouseDown = false;
+        isMouseDown = false;
         Click?.Invoke(this, new ModBase.RouteEventArgs(true));
         ModMain.RaiseCustomEvent(this);
         RefreshColor();
@@ -146,13 +146,13 @@ public partial class MyIconTextButton
 
     private void MyIconTextButton_MouseDown()
     {
-        IsMouseDown = true;
+        isMouseDown = true;
         RefreshColor();
     }
 
     private void MyIconTextButton_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
         RefreshColor();
     }
 
@@ -162,24 +162,24 @@ public partial class MyIconTextButton
         {
             if (ControlVisualHelpers.ShouldAnimate(this, e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
             {
-                if (IsMouseDown)
+                if (isMouseDown)
                 {
                     StartBackgroundAnimation("ColorBrush6", 70);
                 }
                 else if (IsMouseOver)
                 {
-                    StartForegroundAnimation("ColorBrush3", AnimationTimeOfMouseIn);
-                    StartBackgroundAnimation("ColorBrushBg1", AnimationTimeOfMouseIn);
+                    StartForegroundAnimation("ColorBrush3", animationTimeOfMouseIn);
+                    StartBackgroundAnimation("ColorBrushBg1", animationTimeOfMouseIn);
                 }
                 else if (IsEnabled)
                 {
-                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), AnimationTimeOfMouseOut);
-                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
+                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), animationTimeOfMouseOut);
+                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
                 }
                 else
                 {
                     StartForegroundAnimation("ColorBrushGray5", 100);
-                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
+                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
                 }
             }
 
@@ -188,7 +188,7 @@ public partial class MyIconTextButton
                 // 不使用动画
                 ModAnimation.AniStop(CheckedAnimationKey);
                 ModAnimation.AniStop(ColorAnimationKey);
-                Background = ThemeManager.ColorSemiTransparent;
+                Background = ThemeManager.colorSemiTransparent;
                 var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
                 ShapeLogo.SetResourceReference(Shape.FillProperty, foregroundKey);
                 LabText.SetResourceReference(TextBlock.ForegroundProperty, foregroundKey);

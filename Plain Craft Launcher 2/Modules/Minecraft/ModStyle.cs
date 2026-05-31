@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.UI.Controls;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -28,7 +29,7 @@ internal static class ModStyle
         public TimerRun(TimeSpan interval = default, bool autoStart = false)
         {
             _timer = new DispatcherTimer();
-            _timer.Tick += _timerTick;
+            _timer.Tick += _TimerTick;
             UpdateInterval = interval == default ? TimeSpan.FromSeconds(1d) : interval;
             AutoStart = autoStart;
             Loaded += OnLoaded;
@@ -55,7 +56,7 @@ internal static class ModStyle
                 return;
             _isDisposed = true;
             // 资源释放
-            _timer.Tick -= _timerTick;
+            _timer.Tick -= _TimerTick;
             _timer?.Stop();
             _timer = null;
         }
@@ -70,7 +71,7 @@ internal static class ModStyle
 
         public event TimerTickDelegate? TimerTick;
 
-        private void _timerTick(object sender, EventArgs e)
+        private void _TimerTick(object sender, EventArgs e)
         {
             TimerTick?.Invoke(this);
         }
@@ -173,11 +174,11 @@ internal static class ModStyle
 
             lab.Inlines.Clear();
 
-            var HasItalicProperty = false; // 斜体
-            var HasDeleteLineProperty = false; // 删除线
-            var HasStrickThroughProperty = false; // 下划线
-            var HasBlodProperty = false; // 粗体
-            var IsRandomText = false; // 随机文本模式
+            var hasItalicProperty = false; // 斜体
+            var hasDeleteLineProperty = false; // 删除线
+            var hasStrickThroughProperty = false; // 下划线
+            var hasBlodProperty = false; // 粗体
+            var isRandomText = false; // 随机文本模式
 
             var color = isDarkMode ? "#FFFFFF" : "#888888";
             var isColorCode = false;
@@ -204,7 +205,7 @@ internal static class ModStyle
                             case 'k':
                             case 'K': // 随机字符
                             {
-                                IsRandomText = true;
+                                isRandomText = true;
                                 // 开始新的Run用于随机文本
                                 if (!string.IsNullOrEmpty(curRun.Text))
                                 {
@@ -218,32 +219,32 @@ internal static class ModStyle
                             }
                             case 'l': // 粗体
                             {
-                                HasBlodProperty = true;
+                                hasBlodProperty = true;
                                 break;
                             }
                             case 'o': // 斜体
                             {
-                                HasItalicProperty = true;
+                                hasItalicProperty = true;
                                 break;
                             }
                             case 'n': // 下划线
                             {
-                                HasStrickThroughProperty = true;
+                                hasStrickThroughProperty = true;
                                 break;
                             }
                             case 'm': // 删除线
                             {
-                                HasDeleteLineProperty = true;
+                                hasDeleteLineProperty = true;
                                 break;
                             }
                             case 'r': // 重置
                             {
                                 color = isDarkMode ? "#FFFFFF" : "#888888";
-                                HasBlodProperty = false;
-                                HasItalicProperty = false;
-                                HasStrickThroughProperty = false;
-                                HasDeleteLineProperty = false;
-                                IsRandomText = false;
+                                hasBlodProperty = false;
+                                hasItalicProperty = false;
+                                hasStrickThroughProperty = false;
+                                hasDeleteLineProperty = false;
+                                isRandomText = false;
                                 break;
                             }
                         }
@@ -255,12 +256,12 @@ internal static class ModStyle
                     }
 
                     curRun.Foreground = new SolidColorBrush(new ModBase.MyColor(color));
-                    curRun.FontWeight = HasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
-                    curRun.FontStyle = HasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
-                    curRun.TextDecorations = HasStrickThroughProperty ? TextDecorations.Strikethrough : null;
-                    curRun.TextDecorations = HasDeleteLineProperty ? TextDecorations.Underline : null;
+                    curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
+                    curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
+                    curRun.TextDecorations = hasStrickThroughProperty ? TextDecorations.Strikethrough : null;
+                    curRun.TextDecorations = hasDeleteLineProperty ? TextDecorations.Underline : null;
                 }
-                else if (IsRandomText)
+                else if (isRandomText)
                 {
                     // 随机模式下，添加随机字符
                     curRun.Text += randomChars[random.Next(randomChars.Length)].ToString();

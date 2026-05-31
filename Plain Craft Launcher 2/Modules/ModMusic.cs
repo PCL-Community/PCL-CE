@@ -13,14 +13,14 @@ public static class ModMusic
     /// <summary>
     ///     当前正在播放的 NAudio.Wave.WaveOutEvent。
     /// </summary>
-    public static WaveOutEvent MusicNAudio;
+    public static WaveOutEvent musicNAudio;
 
     /// <summary>
     ///     当前播放的音乐地址。
     /// </summary>
-    private static string MusicCurrent = "";
+    private static string musicCurrent = "";
 
-    private static void MusicLoop(bool IsFirstLoad = false)
+    private static void MusicLoop(bool isFirstLoad = false)
     {
         WaveOutEvent currentWave = null;
         AudioFileReader reader = null;
@@ -28,15 +28,15 @@ public static class ModMusic
         try
         {
             currentWave = new WaveOutEvent();
-            MusicNAudio = currentWave;
+            musicNAudio = currentWave;
             currentWave.DeviceNumber = -1; // 使用默认设备
 
-            reader = new AudioFileReader(MusicCurrent);
+            reader = new AudioFileReader(musicCurrent);
             currentWave.Init(reader);
             currentWave.Play();
 
             // 首次加载且用户未启用自动播放，则暂停
-            if (IsFirstLoad && !Config.Preference.Music.StartOnStartup) currentWave.Pause();
+            if (isFirstLoad && !Config.Preference.Music.StartOnStartup) currentWave.Pause();
 
             MusicRefreshUI();
 
@@ -44,7 +44,7 @@ public static class ModMusic
             currentWave.Volume = lastVolume / 1000.0f;
 
             // 播放主循环
-            while (currentWave.Equals(MusicNAudio) && currentWave.PlaybackState != PlaybackState.Stopped)
+            while (currentWave.Equals(musicNAudio) && currentWave.PlaybackState != PlaybackState.Stopped)
             {
                 // 音量动态更新
                 var currentVolume = Config.Preference.Music.Volume;
@@ -58,7 +58,7 @@ public static class ModMusic
                 if (reader.TotalTime.TotalMilliseconds > 0d)
                 {
                     var progress = reader.CurrentTime.TotalMilliseconds / reader.TotalTime.TotalMilliseconds;
-                    ModBase.RunInUi(() => ModMain.FrmMain.BtnExtraMusic.Progress = progress);
+                    ModBase.RunInUi(() => ModMain.frmMain.BtnExtraMusic.Progress = progress);
                 }
 
                 Thread.Sleep(100);
@@ -66,16 +66,16 @@ public static class ModMusic
 
             // 播放结束，继续下一首
             if (currentWave.PlaybackState == PlaybackState.Stopped &&
-                (MusicAllList?.Any() is { } arg5 ? arg5 : (bool?)null).GetValueOrDefault())
-                MusicStartPlay(DequeueNextMusicAddress(), IsFirstLoad);
+                (musicAllList?.Any() is { } arg5 ? arg5 : (bool?)null).GetValueOrDefault())
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"播放音乐出现内部错误（{MusicCurrent}）", ModBase.LogLevel.Developer);
+            ModBase.Log(ex, $"播放音乐出现内部错误（{musicCurrent}）", ModBase.LogLevel.Developer);
 
             // 错误处理：精准提示用户
-            var fileName = ModBase.GetFileNameFromPath(MusicCurrent);
+            var fileName = ModBase.GetFileNameFromPath(musicCurrent);
             if (ex is MmException)
             {
                 var msg = ex.Message;
@@ -91,8 +91,8 @@ public static class ModMusic
             {
                 ModMain.Hint($"播放失败（{fileName}）：PCL 不支持中途变更音频属性的音乐文件", ModMain.HintType.Critical);
             }
-            else if ((!MusicCurrent.EndsWithF(".wav", true) && !MusicCurrent.EndsWithF(".mp3", true) &&
-                      !MusicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
+            else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
+                      !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
             {
                 ModMain.Hint($"播放失败（{fileName}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac", ModMain.HintType.Critical);
             }
@@ -102,17 +102,17 @@ public static class ModMusic
             }
 
             // 移除无效文件
-            MusicAllList?.Remove(MusicCurrent);
-            MusicWaitingList?.Remove(MusicCurrent);
+            musicAllList?.Remove(musicCurrent);
+            musicWaitingList?.Remove(musicCurrent);
             MusicRefreshUI();
 
             Thread.Sleep(2000);
 
             // 尝试播放下一首
             if (ex is FileNotFoundException)
-                MusicRefreshPlay(true, IsFirstLoad);
+                MusicRefreshPlay(true, isFirstLoad);
             else
-                MusicStartPlay(DequeueNextMusicAddress(), IsFirstLoad);
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
         }
         finally
         {
@@ -127,29 +127,29 @@ public static class ModMusic
     /// <summary>
     ///     接下来要播放的音乐文件路径。未初始化时为 Nothing。
     /// </summary>
-    public static List<string> MusicWaitingList;
+    public static List<string> musicWaitingList;
 
     /// <summary>
     ///     全部音乐文件路径。未初始化时为 Nothing。
     /// </summary>
-    public static List<string> MusicAllList;
+    public static List<string> musicAllList;
 
     /// <summary>
     ///     初始化音乐播放列表。
     /// </summary>
-    /// <param name="ForceReload">强制全部重新载入列表。</param>
-    /// <param name="PreventFirst">在重载列表时避免让某项成为第一项。</param>
-    private static void MusicListInit(bool ForceReload, string PreventFirst = null)
+    /// <param name="forceReload">强制全部重新载入列表。</param>
+    /// <param name="preventFirst">在重载列表时避免让某项成为第一项。</param>
+    private static void MusicListInit(bool forceReload, string preventFirst = null)
     {
-        if (ForceReload)
-            MusicAllList = null;
+        if (forceReload)
+            musicAllList = null;
 
         try
         {
-            if (MusicAllList is null)
+            if (musicAllList is null)
             {
-                MusicAllList = new List<string>();
-                var musicDir = Path.Combine(ModBase.ExePath, "PCL", "Musics");
+                musicAllList = new List<string>();
+                var musicDir = Path.Combine(ModBase.exePath, "PCL", "Musics");
                 Directory.CreateDirectory(musicDir);
                 foreach (var file in ModBase.EnumerateFiles(musicDir))
                 {
@@ -157,22 +157,22 @@ public static class ModMusic
                     // 忽略非音频文件
                     if (new[] { ".ini", ".jpg", ".txt", ".cfg", ".lrc", ".db", ".png" }.Contains(ext))
                         continue;
-                    MusicAllList.Add(file.FullName);
+                    musicAllList.Add(file.FullName);
                 }
             }
 
             // 根据设置决定是否随机
             if (Config.Preference.Music.ShufflePlayback)
-                MusicWaitingList = RandomUtils.Shuffle(new List<string>(MusicAllList));
+                musicWaitingList = RandomUtils.Shuffle(new List<string>(musicAllList));
             else
-                MusicWaitingList = new List<string>(MusicAllList);
+                musicWaitingList = new List<string>(musicAllList);
 
             // 避免 PreventFirst 成为第一项
-            if (PreventFirst is not null && MusicWaitingList.Count > 0 && string.Equals(MusicWaitingList[0],
-                    PreventFirst, StringComparison.OrdinalIgnoreCase))
+            if (preventFirst is not null && musicWaitingList.Count > 0 && string.Equals(musicWaitingList[0],
+                    preventFirst, StringComparison.OrdinalIgnoreCase))
             {
-                MusicWaitingList.RemoveAt(0);
-                MusicWaitingList.Add(PreventFirst);
+                musicWaitingList.RemoveAt(0);
+                musicWaitingList.Add(preventFirst);
             }
         }
 
@@ -188,13 +188,13 @@ public static class ModMusic
     /// </summary>
     private static string DequeueNextMusicAddress()
     {
-        if (MusicAllList is null || !MusicAllList.Any() || !MusicWaitingList.Any()) MusicListInit(false);
+        if (musicAllList is null || !musicAllList.Any() || !musicWaitingList.Any()) MusicListInit(false);
 
-        if (MusicWaitingList.Any())
+        if (musicWaitingList.Any())
         {
-            var nextMusic = MusicWaitingList[0];
-            MusicWaitingList.RemoveAt(0);
-            if (!MusicWaitingList.Any()) MusicListInit(false, nextMusic);
+            var nextMusic = musicWaitingList[0];
+            musicWaitingList.RemoveAt(0);
+            if (!musicWaitingList.Any()) MusicListInit(false, nextMusic);
             return nextMusic;
         }
 
@@ -214,37 +214,37 @@ public static class ModMusic
         {
             try
             {
-                if ((MusicAllList?.Any() is { } arg1 ? arg1 : null) == false)
+                if ((musicAllList?.Any() is { } arg1 ? arg1 : null) == false)
                 {
-                    ModMain.FrmMain.BtnExtraMusic.Show = false;
+                    ModMain.frmMain.BtnExtraMusic.Show = false;
                 }
                 else
                 {
-                    ModMain.FrmMain.BtnExtraMusic.Show = true;
-                    var fileName = ModBase.GetFileNameWithoutExtentionFromPath(MusicCurrent);
-                    var isSingle = MusicAllList.Count == 1;
+                    ModMain.frmMain.BtnExtraMusic.Show = true;
+                    var fileName = ModBase.GetFileNameWithoutExtentionFromPath(musicCurrent);
+                    var isSingle = musicAllList.Count == 1;
                     string tipText;
                     if (MusicState == MusicStates.Pause)
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = Icon.IconPlay;
-                        ModMain.FrmMain.BtnExtraMusic.LogoScale = 0.8d;
+                        ModMain.frmMain.BtnExtraMusic.Logo = Icon.IconPlay;
+                        ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
                         tipText = $"已暂停：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
                     }
                     else
                     {
-                        ModMain.FrmMain.BtnExtraMusic.Logo = Icon.IconMusic;
-                        ModMain.FrmMain.BtnExtraMusic.LogoScale = 1d;
+                        ModMain.frmMain.BtnExtraMusic.Logo = Icon.IconMusic;
+                        ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
                         tipText = $"正在播放：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");
                     }
 
-                    ModMain.FrmMain.BtnExtraMusic.ToolTip = tipText;
-                    ToolTipService.SetVerticalOffset(ModMain.FrmMain.BtnExtraMusic,
+                    ModMain.frmMain.BtnExtraMusic.ToolTip = tipText;
+                    ToolTipService.SetVerticalOffset(ModMain.frmMain.BtnExtraMusic,
                         tipText.Contains("\n") ? 10 : 16);
                 }
 
-                ModMain.FrmSetupUI?.MusicRefreshUI();
+                ModMain.frmSetupUI?.MusicRefreshUI();
             }
             catch (Exception ex)
             {
@@ -255,7 +255,7 @@ public static class ModMusic
 
     public static void MusicControlPause()
     {
-        if (MusicNAudio is null)
+        if (musicNAudio is null)
         {
             ModMain.Hint("音乐播放尚未开始！", ModMain.HintType.Critical);
             return;
@@ -285,10 +285,10 @@ public static class ModMusic
 
     public static void MusicControlNext()
     {
-        if (MusicAllList?.Count is { } arg2 && arg2 == 1)
+        if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
-            MusicStartPlay(MusicCurrent);
-            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(MusicCurrent), ModMain.HintType.Finish);
+            MusicStartPlay(musicCurrent);
+            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(musicCurrent), ModMain.HintType.Finish);
         }
         else
         {
@@ -315,10 +315,10 @@ public static class ModMusic
     {
         get
         {
-            if (MusicNAudio is null)
+            if (musicNAudio is null)
                 return MusicStates.Stop;
-            return MusicNAudio.PlaybackState == PlaybackState.Paused ? MusicStates.Pause :
-                MusicNAudio.PlaybackState == PlaybackState.Stopped ? MusicStates.Stop : MusicStates.Play;
+            return musicNAudio.PlaybackState == PlaybackState.Paused ? MusicStates.Pause :
+                musicNAudio.PlaybackState == PlaybackState.Stopped ? MusicStates.Stop : MusicStates.Play;
         }
     }
 
@@ -329,21 +329,21 @@ public static class ModMusic
         Pause
     }
 
-    public static void MusicRefreshPlay(bool ShowHint, bool IsFirstLoad = false)
+    public static void MusicRefreshPlay(bool showHint, bool isFirstLoad = false)
     {
         try
         {
             MusicListInit(true);
 
-            if ((MusicAllList?.Any() is { } arg3 ? arg3 : null) == false)
+            if ((musicAllList?.Any() is { } arg3 ? arg3 : null) == false)
             {
-                if (MusicNAudio is not null)
+                if (musicNAudio is not null)
                 {
-                    MusicNAudio = null;
-                    if (ShowHint)
+                    musicNAudio = null;
+                    if (showHint)
                         ModMain.Hint("背景音乐已清除！", ModMain.HintType.Finish);
                 }
-                else if (ShowHint)
+                else if (showHint)
                 {
                     ModMain.Hint("未检测到可用的背景音乐！", ModMain.HintType.Critical);
                 }
@@ -353,15 +353,15 @@ public static class ModMusic
                 var addr = DequeueNextMusicAddress();
                 if (addr is null)
                 {
-                    if (ShowHint)
+                    if (showHint)
                         ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
                 }
                 else
                 {
                     try
                     {
-                        MusicStartPlay(addr, IsFirstLoad);
-                        if (ShowHint)
+                        MusicStartPlay(addr, isFirstLoad);
+                        if (showHint)
                             ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
                                 false);
                     }
@@ -381,13 +381,13 @@ public static class ModMusic
         }
     }
 
-    private static void MusicStartPlay(string Address, bool IsFirstLoad = false)
+    private static void MusicStartPlay(string address, bool isFirstLoad = false)
     {
-        if (string.IsNullOrEmpty(Address))
+        if (string.IsNullOrEmpty(address))
             return;
-        ModBase.Log("[Music] 播放开始：" + Address);
-        MusicCurrent = Address;
-        ModBase.RunInNewThread(() => MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal);
+        ModBase.Log("[Music] 播放开始：" + address);
+        musicCurrent = address;
+        ModBase.RunInNewThread(() => MusicLoop(isFirstLoad), "Music", ThreadPriority.BelowNormal);
     }
 
     public static bool MusicPause()
@@ -401,7 +401,7 @@ public static class ModMusic
         ModBase.RunInThread(() =>
         {
             ModBase.Log("[Music] 已暂停播放");
-            MusicNAudio?.Pause();
+            musicNAudio?.Pause();
             MusicRefreshUI();
         });
         return true;
@@ -409,7 +409,7 @@ public static class ModMusic
 
     public static bool MusicResume()
     {
-        if (MusicState == MusicStates.Play || MusicAllList.Count == 0)
+        if (MusicState == MusicStates.Play || musicAllList.Count == 0)
         {
             ModBase.Log($"[Music] 无需继续播放，当前状态为 {MusicState}");
             return false;
@@ -420,13 +420,13 @@ public static class ModMusic
             ModBase.Log("[Music] 已恢复播放");
             try
             {
-                MusicNAudio?.Play();
+                musicNAudio?.Play();
             }
             catch
             {
                 // 参考 PR #5415：设备变更后需 Stop + Play
-                MusicNAudio?.Stop();
-                MusicNAudio?.Play();
+                musicNAudio?.Stop();
+                musicNAudio?.Play();
             }
 
             MusicRefreshUI();

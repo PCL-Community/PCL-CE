@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Secret;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -12,12 +13,10 @@ public class EncryptedFileConfigStorage(ConfigStorage source) : ConfigStorage
 {
     public ConfigStorage Source { get; } = source;
 
-    private static readonly JsonSerializerOptions _SerializerOptions = new()
+    private static readonly JsonSerializerOptions _SerializerOptions = new(JsonCompat.SerializerOptions)
     {
         WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
         AllowOutOfOrderMetadataProperties = true,
     };
 

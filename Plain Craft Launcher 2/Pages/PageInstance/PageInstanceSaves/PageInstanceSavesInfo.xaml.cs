@@ -49,7 +49,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
     {
         try
         {
-            var saveDatPath = Path.Combine(PageInstanceSavesLeft.CurrentSave, "level.dat");
+            var saveDatPath = Path.Combine(PageInstanceSavesLeft.currentSave, "level.dat");
             using (var fs = new FileStream(saveDatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var saveInfo = new NbtFile();
@@ -74,9 +74,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     gameVersion.TryGet("Id", out versionId);
                 }
 
-                var CurrentVersionId = versionId?.Value ?? default(int?);
-                ModMain.FrmInstanceSavesLeft.ItemDatapack.Visibility =
-                    !CurrentVersionId.HasValue || CurrentVersionId < 1444 ? Visibility.Collapsed : Visibility.Visible;
+                var currentVersionId = versionId?.Value ?? default(int?);
+                ModMain.frmInstanceSavesLeft.ItemDatapack.Visibility =
+                    !currentVersionId.HasValue || currentVersionId < 1444 ? Visibility.Collapsed : Visibility.Visible;
 
                 var hasDifficulty = gameLevel.Contains("Difficulty") || gameLevel.Contains("difficulty_settings");
                 var hasAllowCommands = gameLevel.Contains("allowCommands");
@@ -116,7 +116,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     }
                     else
                     {
-                        string worldGenSettingsDatPath = System.IO.Path.Combine(PageInstanceSavesLeft.CurrentSave, "data", "minecraft", "world_gen_settings.dat");
+                        string worldGenSettingsDatPath = System.IO.Path.Combine(PageInstanceSavesLeft.currentSave, "data", "minecraft", "world_gen_settings.dat");
                         NbtFile worldGenSettingsNbt = new NbtFile(worldGenSettingsDatPath);
                         var worldGenSettings = worldGenSettingsNbt.RootTag.Get<NbtCompound>("data");
                         seed = worldGenSettings.Get<NbtLong>("seed").Value.ToString();
@@ -514,17 +514,17 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
         if (isSeed && content != Lang.Text("Instance.Saves.Info.GetFailed"))
         {
-            var BtnChunkbase = new MyIconButton
+            var btnChunkbase = new MyIconButton
             {
                 Logo = Icon.IconButtonlink,
                 ToolTip = Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"),
                 Width = 22d,
                 Height = 22d
             };
-            contentStack.Children.Add(BtnChunkbase);
+            contentStack.Children.Add(btnChunkbase);
 
 
-            BtnChunkbase.Click += (_, _) =>
+            btnChunkbase.Click += (_, _) =>
             {
                 try
                 {

@@ -7,7 +7,7 @@ namespace PCL;
 
 public partial class PageSetupGameManage
 {
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupGameManage()
     {
@@ -21,9 +21,9 @@ public partial class PageSetupGameManage
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         Reload();
@@ -46,6 +46,7 @@ public partial class PageSetupGameManage
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
@@ -120,8 +121,8 @@ public partial class PageSetupGameManage
     // 滑动条
     private void SliderLoad()
     {
-        SliderDownloadThread.GetHintText = new Func<object, object>(v => (int)v + 1);
-        SliderDownloadSpeed.GetHintText = new Func<object, object>(v =>
+        SliderDownloadThread.getHintText = new Func<object, object>(v => (int)v + 1);
+        SliderDownloadSpeed.getHintText = new Func<object, object>(v =>
         {
             int value = (int)v;
             switch (value)
@@ -148,7 +149,7 @@ public partial class PageSetupGameManage
             ModMain.MyMsgBox(
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), isWarn: true);
         }
     }
 }

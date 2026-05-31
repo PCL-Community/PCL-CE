@@ -22,29 +22,29 @@ public partial class PageSetupFeedback
         Upnext = 8550609020L
     }
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> loader;
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
     private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, loader, _ => RefreshList());
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
     }
 
-    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
+    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> task)
     {
         JsonArray list;
         list = (JsonArray)Requester.FetchJson(
@@ -90,7 +90,7 @@ public partial class PageSetupFeedback
             res.Add(item);
         }
 
-        Task.Output = res;
+        task.output = res;
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
@@ -101,7 +101,7 @@ public partial class PageSetupFeedback
         li.Title = item.Title;
         li.Type = MyListItem.CheckType.Clickable;
         li.Info = commonInfo;
-        li.Logo = ModBase.PathImage + logo;
+        li.Logo = ModBase.pathImage + logo;
         li.Tags = item.Type;
 
         li.Click += (sender, e) => ShowFeedbackDetail(item);
@@ -116,7 +116,7 @@ public partial class PageSetupFeedback
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
-                    $"#{item.ID} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+                    $"#{item.ID} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {
@@ -143,7 +143,7 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in Loader.Output)
+        foreach (var item in loader.output)
         {
             if (item.Tags.Contains(((long)TagID.Processing).ToString()))
                 PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));

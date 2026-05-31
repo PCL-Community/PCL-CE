@@ -12,7 +12,7 @@ public class AnimatedBackgroundGrid : Grid
 
     private readonly DependencyProperty _animatableBrushProperty;
 
-    public readonly int Uuid = ModBase.GetUuid();
+    public readonly int uuid = ModBase.GetUuid();
 
     private bool _isAnimating;
 
@@ -64,7 +64,7 @@ public class AnimatedBackgroundGrid : Grid
                 {
                     ModAnimation.AaColor(grid.AnimatableElement, grid._animatableBrushProperty,
                         new ModBase.MyColor(brush) - grid.AnimatableBrush, 300)
-                }, "MyCard Theme " + grid.Uuid);
+                }, "MyCard Theme " + grid.uuid);
             await Task.Delay(300);
             grid.AnimatableBrush = brush;
             grid.IsAnimating = false;

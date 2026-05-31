@@ -10,6 +10,7 @@ using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Logging;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.EasyTier;
 // ReSharper disable InconsistentNaming, CompareOfFloatsByEqualityOperator
@@ -142,11 +143,11 @@ public static class ETInfoProvider
 
             var playerList = new List<ETPlayerInfo>();
             ETPlayerInfo? localInfo = null;
-            if (JsonNode.Parse(output) is not JsonArray json)
+            if (JsonCompat.ParseNode(output) is not JsonArray json)
                 return new Tuple<List<ETPlayerInfo>?, ETPlayerInfo?>(null, null);
             foreach (var p in json)
             {
-                var info = p.Deserialize<ETPeerInfo>();
+                var info = p.Deserialize<ETPeerInfo>(JsonCompat.SerializerOptions);
                 if (info is null) { continue; }
                 if (info.Hostname.StartsWith("PublicServer")) { continue; } // 服务器
                 var hostnameSplit = info.Hostname.Split('|');

@@ -199,7 +199,7 @@ namespace PCL
                             var options = new ModLaunch.McLaunchOptions
                             {
                                 ServerIp = args.Length >= 2 ? args[1] : null,
-                                Instance = new ModMinecraft.McInstance(args[0])
+                                instance = new ModMinecraft.Instance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
@@ -214,7 +214,7 @@ namespace PCL
 
                     case EventType.刷新主页:
                     case EventType.刷新页面:
-                        if (ModMain.FrmMain?.PageRight is IRefreshable refreshable)
+                        if (ModMain.frmMain?.pageRight is IRefreshable refreshable)
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
@@ -227,7 +227,7 @@ namespace PCL
                         break;
 
                     case EventType.刷新主页市场:
-                        ModMain.FrmHomePageMarket?.Refresh();
+                        ModMain.frmHomePageMarket?.Refresh();
                         if (args[0] == "")
                             ModMain.Hint("已刷新主页市场！", ModMain.HintType.Finish);
                         break;
@@ -276,7 +276,7 @@ namespace PCL
                             var subType = args.Length == 1
                                 ? FormMain.PageSubType.Default
                                 : (FormMain.PageSubType)Enum.Parse(typeof(FormMain.PageSubType), args[1], true);
-                            ModMain.FrmMain?.PageChange(pageType, subType);
+                            ModMain.frmMain?.PageChange(pageType, subType);
                         });
                         break;
 
@@ -410,10 +410,10 @@ namespace PCL
                 workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
             }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl)))
+            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl)))
             {
-                location = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.PathTemp, "CE", "Help");
+                location = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl);
+                workingDir = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help");
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
             }
             else if (type == EventType.打开文件 || type == EventType.执行命令)

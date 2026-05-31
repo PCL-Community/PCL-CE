@@ -10,6 +10,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Essentials;
 
@@ -71,7 +72,7 @@ public sealed partial class PromoteService
         return AddOperationFunction(name, arg =>
         {
             if (arg is null) return OperationErrEmpty;
-            var obj = JsonSerializer.Deserialize<TValue>(arg);
+            var obj = JsonSerializer.Deserialize<TValue>(arg, JsonCompat.SerializerOptions);
             return operation(obj);
         });
     }
