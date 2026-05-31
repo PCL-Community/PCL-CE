@@ -14,19 +14,19 @@ public partial class MyMsgSelect
 
     private int selectedIndex = -1;
 
-    public MyMsgSelect(ModMain.MyMsgBoxConverter Converter)
+    public MyMsgSelect(ModMain.MyMsgBoxConverter converter)
     {
         try
         {
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
-            myConverter = Converter;
-            LabTitle.Text = Converter.title;
-            ConfigurePrimaryButton(Converter.button1, Converter.isWarn);
-            ConfigureSecondaryButton(Converter.button2);
+            myConverter = converter;
+            LabTitle.Text = converter.Title;
+            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigureSecondaryButton(converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            InitializeSelectionList(Converter.content);
+            InitializeSelectionList(converter.Content);
         }
 
         catch (Exception ex)
@@ -103,7 +103,7 @@ public partial class MyMsgSelect
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.isWarn
+                    (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
@@ -130,7 +130,7 @@ public partial class MyMsgSelect
     private void Close()
     {
         // 结束线程阻塞
-        myConverter.waitFrame.Continue = false;
+        myConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
@@ -141,32 +141,32 @@ public partial class MyMsgSelect
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
+            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited || selectedIndex == -1)
+        if (myConverter.IsExited || selectedIndex == -1)
             return;
-        myConverter.isExited = true;
-        myConverter.result = selectedIndex;
+        myConverter.IsExited = true;
+        myConverter.Result = selectedIndex;
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        myConverter.isExited = true;
-        myConverter.result = null;
+        myConverter.IsExited = true;
+        myConverter.Result = null;
         Close();
     }
 

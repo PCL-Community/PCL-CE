@@ -44,7 +44,7 @@ public partial class PageSetupFeedback
         isLoaded = true;
     }
 
-    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
+    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> task)
     {
         JsonArray list;
         list = (JsonArray)Requester.FetchJson(
@@ -90,7 +90,7 @@ public partial class PageSetupFeedback
             res.Add(item);
         }
 
-        Task.output = res;
+        task.output = res;
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
@@ -116,7 +116,7 @@ public partial class PageSetupFeedback
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
-                    $"#{item.ID} {item.Title}", Button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+                    $"#{item.ID} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {

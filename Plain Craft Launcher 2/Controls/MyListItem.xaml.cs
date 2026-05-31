@@ -82,19 +82,19 @@ public partial class MyListItem : IMyRadio
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                         isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
                     ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        Ease: new ModAnimation.AniEaseOutFluent())
+                        ease: new ModAnimation.AniEaseOutFluent())
                 });
                 if (IsScaleAnimationEnabled)
                 {
                     ani.Add(ModAnimation.AaScaleTransform(RectBack,
                         1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.6d),
-                        Ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new ModAnimation.AniEaseOutFluent()));
                     if (isMouseDown)
                         ani.Add(ModAnimation.AaScaleTransform(this, 0.98d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 0.9d), Ease: new ModAnimation.AniEaseOutFluent()));
+                            (int)Math.Round(time * 0.9d), ease: new ModAnimation.AniEaseOutFluent()));
                     else
                         ani.Add(ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 1.2d), Ease: new ModAnimation.AniEaseOutFluent()));
+                            (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
                 }
             }
             else
@@ -115,15 +115,15 @@ public partial class MyListItem : IMyRadio
                         ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                             isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
                         ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
-                            Ease: new ModAnimation.AniEaseOutFluent()),
+                            ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaScaleTransform(RectBack,
                             0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, time,
-                            Ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaScaleTransform(RectBack, -0.246d, 1, After: true)
+                            ease: new ModAnimation.AniEaseOutFluent()),
+                        ModAnimation.AaScaleTransform(RectBack, -0.246d, 1, after: true)
                     });
             }
 
-            ModAnimation.AniStart(ani, "ListItem Color " + uuid);
+            ModAnimation.AniStart(ani, "ListItem Color " + Uuid);
         }
         else
         {
@@ -160,7 +160,7 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            ModAnimation.AniStop("ListItem Color " + uuid);
+            ModAnimation.AniStop("ListItem Color " + Uuid);
         }
     }
 
@@ -339,7 +339,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     /// <summary>
     ///     是否启用缩放动画。
@@ -857,7 +857,7 @@ public partial class MyListItem : IMyRadio
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             1d - scale.ScaleY,
                             300,
-                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)
+                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)
                         ));
                     }
 
@@ -882,7 +882,7 @@ public partial class MyListItem : IMyRadio
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             -scale.ScaleY,
                             120,
-                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
+                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
                         ));
                         anim.Add(ModAnimation.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
                     }
@@ -890,12 +890,12 @@ public partial class MyListItem : IMyRadio
                     anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
                 }
 
-                ModAnimation.AniStart(anim, "MyListItem Checked " + uuid);
+                ModAnimation.AniStart(anim, "MyListItem Checked " + Uuid);
             }
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyListItem Checked " + uuid);
+                ModAnimation.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
                     if (rectCheck is not null)

@@ -6,7 +6,7 @@ public class MyScrollBar : ScrollBar
 {
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyScrollBar()
     {
@@ -62,12 +62,12 @@ public class MyScrollBar : ScrollBar
                     {
                         ModAnimation.AaColor(this, ForegroundProperty, newColor, time),
                         ModAnimation.AaOpacity(this, newOpacity - Opacity, time)
-                    }, "MyScrollBar Color " + uuid);
+                    }, "MyScrollBar Color " + Uuid);
             }
             else
             {
                 // 无动画
-                ModAnimation.AniStop("MyScrollBar Color " + uuid);
+                ModAnimation.AniStop("MyScrollBar Color " + Uuid);
                 SetResourceReference(ForegroundProperty, newColor);
                 Opacity = newOpacity;
             }

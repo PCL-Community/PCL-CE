@@ -23,7 +23,8 @@ public class HttpResponseException:HttpRequestException,IDisposable
         
     }
 
-    public HttpResponseException(HttpResponseMessage? response):this($"{(int?)response?.StatusCode} {response?.ReasonPhrase ?? Enum.GetName(response.StatusCode)}")
+    public HttpResponseException(HttpResponseMessage? response) : this(
+        $"{(int?)response?.StatusCode} {response?.ReasonPhrase ?? (response is null ? "undefined" : Enum.GetName(response.StatusCode))})")
     {
         Response = response;
     }

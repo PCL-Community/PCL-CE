@@ -170,7 +170,7 @@ public partial class PageSetupLauncherMisc
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), Log: false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
@@ -184,7 +184,7 @@ public partial class PageSetupLauncherMisc
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
+                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -225,7 +225,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), button1: Lang.Text("Setup.Misc.Import.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }

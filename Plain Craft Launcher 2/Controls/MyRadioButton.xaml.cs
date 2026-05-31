@@ -44,7 +44,7 @@ public partial class MyRadioButton
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyRadioButton()
     {
@@ -273,11 +273,11 @@ public partial class MyRadioButton
                                         animationTimeOfCheck),
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                                         color3 - LabText.Foreground, animationTimeOfCheck)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(255d, 255d, 255d) - Background, animationTimeOfCheck),
-                                "MyRadioButton Color " + uuid);
+                                "MyRadioButton Color " + Uuid);
                         }
                         else if (isMouseDown)
                         {
@@ -286,7 +286,7 @@ public partial class MyRadioButton
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(120d,
                                         new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background, 60),
-                                "MyRadioButton Color " + uuid);
+                                "MyRadioButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
                         {
@@ -299,12 +299,12 @@ public partial class MyRadioButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                                         new ModBase.MyColor(255d, 255d, 255d) - LabText.Foreground,
                                         animationTimeOfMouseIn)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(50d,
                                         new ModBase.MyColor(ThemeManager.AppResources["ColorObject8"])) - Background,
-                                    animationTimeOfMouseIn), "MyRadioButton Color " + uuid);
+                                    animationTimeOfMouseIn), "MyRadioButton Color " + Uuid);
                         }
                         else
                         {
@@ -318,11 +318,11 @@ public partial class MyRadioButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                                         new ModBase.MyColor(255d, 255d, 255d) - LabText.Foreground,
                                         animationTimeOfMouseOut)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
-                                    Background, animationTimeOfMouseOut), "MyRadioButton Color " + uuid);
+                                    Background, animationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
                         break;
@@ -340,17 +340,17 @@ public partial class MyRadioButton
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                                         new ModBase.MyColor(255d, 255d, 255d) - LabText.Foreground,
                                         animationTimeOfCheck)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush3", animationTimeOfCheck),
-                                "MyRadioButton Color " + uuid);
+                                "MyRadioButton Color " + Uuid);
                         }
                         else if (isMouseDown)
                         {
                             // 按下
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush6", animationTimeOfMouseIn),
-                                "MyRadioButton Color " + uuid);
+                                "MyRadioButton Color " + Uuid);
                         }
                         else if (IsMouseOver)
                         {
@@ -362,10 +362,10 @@ public partial class MyRadioButton
                                         animationTimeOfMouseIn),
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
                                         animationTimeOfMouseIn)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty, "ColorBrush7", animationTimeOfMouseIn),
-                                "MyRadioButton Color " + uuid);
+                                "MyRadioButton Color " + Uuid);
                         }
                         else
                         {
@@ -377,11 +377,11 @@ public partial class MyRadioButton
                                         animationTimeOfMouseOut),
                                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3",
                                         animationTimeOfMouseOut)
-                                }, "MyRadioButton Checked " + uuid);
+                                }, "MyRadioButton Checked " + Uuid);
                             ModAnimation.AniStart(
                                 ModAnimation.AaColor(this, BackgroundProperty,
                                     new ModBase.MyColor(ThemeManager.AppResources["ColorBrushSemiTransparent"]) -
-                                    Background, animationTimeOfMouseOut), "MyRadioButton Color " + uuid);
+                                    Background, animationTimeOfMouseOut), "MyRadioButton Color " + Uuid);
                         }
 
                         break;
@@ -392,8 +392,8 @@ public partial class MyRadioButton
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyRadioButton Checked " + uuid);
-                ModAnimation.AniStop("MyRadioButton Color " + uuid);
+                ModAnimation.AniStop("MyRadioButton Checked " + Uuid);
+                ModAnimation.AniStop("MyRadioButton Color " + Uuid);
                 switch (ColorType)
                 {
                     case ColorState.White:

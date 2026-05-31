@@ -28,9 +28,9 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public void RefreshStat() { }
 
-    public override void Start(object Input = null, bool IsForceRestart = false)
+    public override void Start(object input = null, bool isForceRestart = false)
     {
-        if (Input is List<PCL.Network.DownloadFile> inputFiles)
+        if (input is List<PCL.Network.DownloadFile> inputFiles)
             files = new ModBase.SafeList<PCL.Network.DownloadFile>(inputFiles);
 
         lock (lockState)
@@ -48,7 +48,7 @@ public class LoaderDownload : ModLoader.LoaderBase
 
         ModNet.NetManager.Start(this);
 
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{uuid}");
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)

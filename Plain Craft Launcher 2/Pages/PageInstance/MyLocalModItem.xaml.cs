@@ -14,8 +14,8 @@ public partial class MyLocalCompItem
 {
     private string GetUpdateCompareDescription()
     {
-        var currentName = Entry.compFile.fileName.Replace(".jar", "");
-        var newestName = Entry.UpdateFile.fileName.Replace(".jar", "");
+        var currentName = Entry.compFile.FileName.Replace(".jar", "");
+        var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
         // 简化名称对比
         var currentSegs = currentName.Split('-').ToList();
         var newestSegs = newestName.Split('-').ToList();
@@ -37,7 +37,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.compFile.releaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.releaseDate - DateTime.Now));
+            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.compFile.ReleaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
     }
 
     public void Refresh()
@@ -133,7 +133,7 @@ public partial class MyLocalCompItem
             }
 
             if (Entry.Comp is not null)
-                newDescription += ": " + Entry.Comp.description.Replace("\r", "").Replace("\n", "");
+                newDescription += ": " + Entry.Comp.Description.Replace("\r", "").Replace("\n", "");
             else if (Entry.Description is not null)
                 newDescription += ": " + Entry.Description.Replace("\r", "").Replace("\n", "");
             else if (!Entry.IsFileAvailable) newDescription += ": " + Lang.Text("Instance.Resource.Item.InfoUnavailable");
@@ -187,7 +187,7 @@ public partial class MyLocalCompItem
             if (Entry.IsFolder)
                 // 为文件夹添加标签
                 Tags = new List<string> { Lang.Text("Instance.Resource.Item.FolderTag") };
-            else if (Entry.Comp is not null) Tags = Entry.Comp.tags;
+            else if (Entry.Comp is not null) Tags = Entry.Comp.Tags;
         }));
     }
 
@@ -227,15 +227,15 @@ public partial class MyLocalCompItem
             {
                 ModAnimation.AaColor(RectBack, Border.BackgroundProperty, isMouseDown ? "ColorBrush6" : "ColorBrushBg1",
                     time),
-                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, Ease: new ModAnimation.AniEaseOutFluent())
+                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, ease: new ModAnimation.AniEaseOutFluent())
             });
             if (isMouseDown)
                 ani.Add(ModAnimation.AaScaleTransform(RectBack,
                     0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                    Ease: new ModAnimation.AniEaseOutFluent()));
+                    ease: new ModAnimation.AniEaseOutFluent()));
             else
                 ani.Add(ModAnimation.AaScaleTransform(RectBack, 1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    (int)Math.Round(time * 1.2d), Ease: new ModAnimation.AniEaseOutFluent()));
+                    (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
         }
         else
         {
@@ -243,12 +243,12 @@ public partial class MyLocalCompItem
             {
                 ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time),
                 ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    time, Ease: new ModAnimation.AniEaseOutFluent()),
-                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, After: true)
+                    time, ease: new ModAnimation.AniEaseOutFluent()),
+                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
             });
         }
 
-        ModAnimation.AniStart(ani, "LocalModItem Color " + uuid);
+        ModAnimation.AniStart(ani, "LocalModItem Color " + Uuid);
     }
 
     // 触发虚拟化内容
@@ -272,7 +272,7 @@ public partial class MyLocalCompItem
     {
         if (Entry.Comp is not null)
         {
-            if (!Information.IsNumeric(Entry.Comp.id))
+            if (!Information.IsNumeric(Entry.Comp.Id))
             {
                 var modrinthUrl = Entry.changelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
                 if (modrinthUrl is not null)
@@ -305,7 +305,7 @@ public partial class MyLocalCompItem
         {
             case 1: // 更新
             {
-                switch (Entry.Comp.type)
+                switch (Entry.Comp.Type)
                 {
                     case ModComp.CompType.Mod:
                     {
@@ -420,7 +420,7 @@ public partial class MyLocalCompItem
 
     #region 基础属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     // Logo
     public string Logo
@@ -714,9 +714,9 @@ public partial class MyLocalCompItem
                         // 由无变有
                         var delta = 32d - RectCheck.ActualHeight;
                         anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.4d, 200,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.6d, 300,
-                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
@@ -729,14 +729,14 @@ public partial class MyLocalCompItem
                     {
                         // 由有变无
                         anim.Add(ModAnimation.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,
                             LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
                     }
 
-                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + uuid);
+                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
                 }
                 else
                 {
@@ -762,7 +762,7 @@ public partial class MyLocalCompItem
                                 : "ColorBrushGray4");
                     }
 
-                    ModAnimation.AniStop("MyLocalCompItem Checked " + uuid);
+                    ModAnimation.AniStop("MyLocalCompItem Checked " + Uuid);
                 }
             }
             catch (Exception ex)

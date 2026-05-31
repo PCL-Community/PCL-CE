@@ -27,7 +27,7 @@ public partial class PageDownloadFabric
         // 结果数据化
         try
         {
-            var versions = (JsonArray)ModDownload.dlFabricListLoader.output.value["installer"];
+            var versions = (JsonArray)ModDownload.dlFabricListLoader.output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in versions)
                 PanVersions.Children.Add(

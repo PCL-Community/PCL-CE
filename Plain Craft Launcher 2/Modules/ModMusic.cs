@@ -20,7 +20,7 @@ public static class ModMusic
     /// </summary>
     private static string musicCurrent = "";
 
-    private static void MusicLoop(bool IsFirstLoad = false)
+    private static void MusicLoop(bool isFirstLoad = false)
     {
         WaveOutEvent currentWave = null;
         AudioFileReader reader = null;
@@ -36,7 +36,7 @@ public static class ModMusic
             currentWave.Play();
 
             // 首次加载且用户未启用自动播放，则暂停
-            if (IsFirstLoad && !Config.Preference.Music.StartOnStartup) currentWave.Pause();
+            if (isFirstLoad && !Config.Preference.Music.StartOnStartup) currentWave.Pause();
 
             MusicRefreshUI();
 
@@ -67,7 +67,7 @@ public static class ModMusic
             // 播放结束，继续下一首
             if (currentWave.PlaybackState == PlaybackState.Stopped &&
                 (musicAllList?.Any() is { } arg5 ? arg5 : (bool?)null).GetValueOrDefault())
-                MusicStartPlay(DequeueNextMusicAddress(), IsFirstLoad);
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
         }
 
         catch (Exception ex)
@@ -110,9 +110,9 @@ public static class ModMusic
 
             // 尝试播放下一首
             if (ex is FileNotFoundException)
-                MusicRefreshPlay(true, IsFirstLoad);
+                MusicRefreshPlay(true, isFirstLoad);
             else
-                MusicStartPlay(DequeueNextMusicAddress(), IsFirstLoad);
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
         }
         finally
         {
@@ -137,11 +137,11 @@ public static class ModMusic
     /// <summary>
     ///     初始化音乐播放列表。
     /// </summary>
-    /// <param name="ForceReload">强制全部重新载入列表。</param>
-    /// <param name="PreventFirst">在重载列表时避免让某项成为第一项。</param>
-    private static void MusicListInit(bool ForceReload, string PreventFirst = null)
+    /// <param name="forceReload">强制全部重新载入列表。</param>
+    /// <param name="preventFirst">在重载列表时避免让某项成为第一项。</param>
+    private static void MusicListInit(bool forceReload, string preventFirst = null)
     {
-        if (ForceReload)
+        if (forceReload)
             musicAllList = null;
 
         try
@@ -168,11 +168,11 @@ public static class ModMusic
                 musicWaitingList = new List<string>(musicAllList);
 
             // 避免 PreventFirst 成为第一项
-            if (PreventFirst is not null && musicWaitingList.Count > 0 && string.Equals(musicWaitingList[0],
-                    PreventFirst, StringComparison.OrdinalIgnoreCase))
+            if (preventFirst is not null && musicWaitingList.Count > 0 && string.Equals(musicWaitingList[0],
+                    preventFirst, StringComparison.OrdinalIgnoreCase))
             {
                 musicWaitingList.RemoveAt(0);
-                musicWaitingList.Add(PreventFirst);
+                musicWaitingList.Add(preventFirst);
             }
         }
 
@@ -329,7 +329,7 @@ public static class ModMusic
         Pause
     }
 
-    public static void MusicRefreshPlay(bool ShowHint, bool IsFirstLoad = false)
+    public static void MusicRefreshPlay(bool showHint, bool isFirstLoad = false)
     {
         try
         {
@@ -340,10 +340,10 @@ public static class ModMusic
                 if (musicNAudio is not null)
                 {
                     musicNAudio = null;
-                    if (ShowHint)
+                    if (showHint)
                         ModMain.Hint("背景音乐已清除！", ModMain.HintType.Finish);
                 }
-                else if (ShowHint)
+                else if (showHint)
                 {
                     ModMain.Hint("未检测到可用的背景音乐！", ModMain.HintType.Critical);
                 }
@@ -353,15 +353,15 @@ public static class ModMusic
                 var addr = DequeueNextMusicAddress();
                 if (addr is null)
                 {
-                    if (ShowHint)
+                    if (showHint)
                         ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
                 }
                 else
                 {
                     try
                     {
-                        MusicStartPlay(addr, IsFirstLoad);
-                        if (ShowHint)
+                        MusicStartPlay(addr, isFirstLoad);
+                        if (showHint)
                             ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
                                 false);
                     }
@@ -381,13 +381,13 @@ public static class ModMusic
         }
     }
 
-    private static void MusicStartPlay(string Address, bool IsFirstLoad = false)
+    private static void MusicStartPlay(string address, bool isFirstLoad = false)
     {
-        if (string.IsNullOrEmpty(Address))
+        if (string.IsNullOrEmpty(address))
             return;
-        ModBase.Log("[Music] 播放开始：" + Address);
-        musicCurrent = Address;
-        ModBase.RunInNewThread(() => MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal);
+        ModBase.Log("[Music] 播放开始：" + address);
+        musicCurrent = address;
+        ModBase.RunInNewThread(() => MusicLoop(isFirstLoad), "Music", ThreadPriority.BelowNormal);
     }
 
     public static bool MusicPause()

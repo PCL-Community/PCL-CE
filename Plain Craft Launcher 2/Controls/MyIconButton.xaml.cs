@@ -29,7 +29,7 @@ public partial class MyIconButton
 
     // 自定义属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyIconButton()
     {
@@ -82,7 +82,7 @@ public partial class MyIconButton
     // 自定义事件
     public event ClickEventHandler? Click;
 
-    private string ColorAnimationKey => "MyIconButton Color " + uuid;
+    private string ColorAnimationKey => "MyIconButton Color " + Uuid;
 
     private static ModBase.MyColor GetTransparentBackground()
     {
@@ -224,8 +224,8 @@ public partial class MyIconButton
         // 指向
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(PanBack, 0.8d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-            "MyIconButton Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+            "MyIconButton Scale " + Uuid);
     }
 
     private void Button_MouseUp()
@@ -237,10 +237,10 @@ public partial class MyIconButton
                 new[]
                 {
                     ModAnimation.AaScaleTransform(PanBack, 1.05d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
-                        250, Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+                        250, ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaScaleTransform(PanBack, -0.05d, 250,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-                }, "MyIconButton Scale " + uuid);
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+                }, "MyIconButton Scale " + Uuid);
         }
 
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
@@ -253,8 +253,8 @@ public partial class MyIconButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanBack, 1d - ((ScaleTransform)PanBack.RenderTransform).ScaleX, 250,
-                    Ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyIconButton Scale " + uuid);
+                    ease: new ModAnimation.AniEaseOutFluent())
+            }, "MyIconButton Scale " + Uuid);
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -283,24 +283,24 @@ public partial class MyIconButton
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyIconButton Control, bool RemoveFromChildren,
-        ParameterizedThreadStart CallBack = null)
+    public static void AniDispose(MyIconButton control, bool removeFromChildren,
+        ParameterizedThreadStart callBack = null)
     {
-        if (!Control.IsHitTestVisible)
+        if (!control.IsHitTestVisible)
             return;
-        Control.IsHitTestVisible = false;
+        control.IsHitTestVisible = false;
         AniStart(new[]
         {
-            AaScaleTransform(Control, -1.5d, 200, Ease: new AniEaseInFluent()),
+            AaScaleTransform(control, -1.5d, 200, ease: new AniEaseInFluent()),
             AaCode(() =>
             {
-                if (RemoveFromChildren)
-                    ((Panel)Control.Parent).Children.Remove(Control);
+                if (removeFromChildren)
+                    ((Panel)control.Parent).Children.Remove(control);
                 else
-                    Control.Visibility = Visibility.Collapsed;
-                if (CallBack is not null)
-                    CallBack(Control);
-            }, After: true)
-        }, "MyIconButton Dispose " + Control.uuid);
+                    control.Visibility = Visibility.Collapsed;
+                if (callBack is not null)
+                    callBack(control);
+            }, after: true)
+        }, "MyIconButton Dispose " + control.Uuid);
     }
 }

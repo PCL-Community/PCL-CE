@@ -58,16 +58,16 @@ public partial class MyCompItem
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                         isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
                     ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        Ease: new ModAnimation.AniEaseOutFluent())
+                        ease: new ModAnimation.AniEaseOutFluent())
                 });
                 if (isMouseDown)
                     ani.Add(ModAnimation.AaScaleTransform(RectBack,
                         0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        Ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new ModAnimation.AniEaseOutFluent()));
                 else
                     ani.Add(ModAnimation.AaScaleTransform(RectBack,
                         1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        Ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new ModAnimation.AniEaseOutFluent()));
             }
             else
             {
@@ -79,17 +79,17 @@ public partial class MyCompItem
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                         isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
                     ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                        time, Ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, After: true)
+                        time, ease: new ModAnimation.AniEaseOutFluent()),
+                    ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
                 });
             }
 
-            ModAnimation.AniStart(ani, "CompItem Color " + uuid);
+            ModAnimation.AniStart(ani, "CompItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("CompItem Color " + uuid);
+            ModAnimation.AniStop("CompItem Color " + Uuid);
             if (_RectBack is not null)
                 RectBack.Opacity = 0d;
             if (PanButtons is not null)
@@ -99,7 +99,7 @@ public partial class MyCompItem
 
     #region 基础属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     // Logo
     public string Logo
@@ -231,7 +231,7 @@ public partial class MyCompItem
         if (Tag is ModComp.CompProject)
         {
             var project = (ModComp.CompProject)Tag;
-            ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.id);
+             ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.Id);
         }
     }
 

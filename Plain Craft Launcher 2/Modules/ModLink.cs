@@ -28,7 +28,7 @@ public static class ModLink
         }
 
         if (ModProfile.selectedProfile is not null)
-            if (ModProfile.selectedProfile.username.Contains("|"))
+            if (ModProfile.selectedProfile.Username.Contains("|"))
             {
                 ModMain.Hint("MC 玩家 ID 不可包含分隔符 (|) ！");
                 return false;
@@ -123,7 +123,7 @@ public static class ModLink
     {
         [DllImport("iphlpapi.dll", SetLastError = true)]
         public static extern int GetExtendedTcpTable(nint pTcpTable, ref int dwOutBufLen, bool bOrder, int ulAf,
-            int TableClass, int reserved);
+            int tableClass, int reserved);
 
         public static List<int> GetProcessPort(int dwProcessId)
         {

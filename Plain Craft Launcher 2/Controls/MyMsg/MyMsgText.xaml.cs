@@ -11,7 +11,7 @@ public partial class MyMsgText
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
 
-    public MyMsgText(ModMain.MyMsgBoxConverter Converter)
+    public MyMsgText(ModMain.MyMsgBoxConverter converter)
     {
         try
         {
@@ -19,12 +19,12 @@ public partial class MyMsgText
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
-            myConverter = Converter;
-            LabTitle.Text = Converter.title;
-            LabCaption.Text = Converter.text;
-            ConfigurePrimaryButton(Converter.button1, Converter.isWarn);
-            ConfigureSecondaryButton(Btn2, Converter.button2);
-            ConfigureSecondaryButton(Btn3, Converter.button3);
+            myConverter = converter;
+            LabTitle.Text = converter.Title;
+            LabCaption.Text = converter.Text;
+            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigureSecondaryButton(Btn2, converter.Button2);
+            ConfigureSecondaryButton(Btn3, converter.Button3);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -69,7 +69,7 @@ public partial class MyMsgText
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.isWarn
+                    (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
@@ -96,8 +96,8 @@ public partial class MyMsgText
     private void Close()
     {
         // 结束线程阻塞
-        if (myConverter.forceWait || !string.IsNullOrEmpty(myConverter.button2))
-            myConverter.waitFrame.Continue = false;
+        if (myConverter.ForceWait || !string.IsNullOrEmpty(myConverter.Button2))
+            myConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
@@ -108,61 +108,61 @@ public partial class MyMsgText
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
+            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
     public void Btn1_Click(object? sender = null, MouseButtonEventArgs? e = null)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        if (myConverter.button1Action is not null)
+        if (myConverter.Button1Action is not null)
         {
-            myConverter.button1Action();
+            myConverter.Button1Action();
         }
         else
         {
-            myConverter.isExited = true;
-            myConverter.result = 1;
+            myConverter.IsExited = true;
+            myConverter.Result = 1;
             Close();
         }
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        if (myConverter.button2Action is not null)
+        if (myConverter.Button2Action is not null)
         {
-            myConverter.button2Action();
+            myConverter.Button2Action();
         }
         else
         {
-            myConverter.isExited = true;
-            myConverter.result = 2;
+            myConverter.IsExited = true;
+            myConverter.Result = 2;
             Close();
         }
     }
 
     public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        if (myConverter.button3Action is not null)
+        if (myConverter.Button3Action is not null)
         {
-            myConverter.button3Action();
+            myConverter.Button3Action();
         }
         else
         {
-            myConverter.isExited = true;
-            myConverter.result = 3;
+            myConverter.IsExited = true;
+            myConverter.Result = 3;
             Close();
         }
     }
