@@ -19,8 +19,8 @@ public sealed class SaveParserFactory
     {
         _parsers =
         [
-            new Version1216PlusSaveParser(),  // >= 26w04a (1.21.6+)
-            new Version116To1215SaveParser(), // 1.16 ~ 1.21.5
+            new Version261PlusSaveParser(),  // >= 26.1-snapshot-6
+            new Version116To1211SaveParser(), // 1.16 ~ 1.21.11
             new Version113To1152SaveParser(), // 1.13 ~ 1.15.2
             new Version19To1122SaveParser(),  // 1.9 ~ 1.12.2
             new Version131To189SaveParser(),  // 1.3.1 ~ 1.8.9

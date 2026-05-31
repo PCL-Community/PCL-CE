@@ -5,16 +5,16 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 
 /// <summary>
-/// 26w04a(1.21.6) 及之后的存档格式。
+/// 26.1-snapshot-6 及之后的存档格式（新版本号体系）。
 /// 特征：DataVersion >= 4189 或存在 difficulty_settings 复合标签。
 /// 变更：
 ///   - 出生点迁移到 spawn.pos int[3]
 ///   - 难度迁移到 difficulty_settings 复合标签（字符串型）
 ///   - 种子可能在外部文件 data/minecraft/world_gen_settings.dat 中
 /// </summary>
-internal sealed class Version1216PlusSaveParser : ISaveParser
+internal sealed class Version261PlusSaveParser : ISaveParser
 {
-    public SaveFormatVersion FormatVersion => SaveFormatVersion.Version1216Plus;
+    public SaveFormatVersion FormatVersion => SaveFormatVersion.Version261Plus;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
         => dataVersion >= 4189 || data.Contains("difficulty_settings");
@@ -23,7 +23,7 @@ internal sealed class Version1216PlusSaveParser : ISaveParser
     {
         var baseInfo = new Version19To1122SaveParser().Parse(folderPath, data, createdAt, modifiedAt);
 
-        var seed = Version116To1215SaveParser.ReadWorldGenSeed(data)
+        var seed = Version116To1211SaveParser.ReadWorldGenSeed(data)
                 ?? ReadSeedFromExternalFile(folderPath);
 
         var spawn = Pre113SaveParser.TryReadSpawnFromPos(data)
@@ -87,7 +87,7 @@ internal sealed class Version1216PlusSaveParser : ISaveParser
 
     /// <summary>
     /// 从外部文件 data/minecraft/world_gen_settings.dat 中读取种子。
-    /// 此文件在 26w04a+ 中替代 level.dat 内的常规存放位置。
+    /// 此文件在 26.1-snapshot-6+ 中替代 level.dat 内的常规存放位置。
     /// </summary>
     internal static long? ReadSeedFromExternalFile(string folderPath)
     {

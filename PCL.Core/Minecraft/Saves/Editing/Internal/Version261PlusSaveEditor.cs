@@ -6,11 +6,11 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
-/// 26w04a(1.21.6) 及之后的存档编辑器。
+/// 26.1-snapshot-6 及之后的存档编辑器（2026 新版本号体系）。
 /// 写入 difficulty_settings 复合标签（字符串型难度 + 字节型锁定）。
 /// allowCommands 路径与旧版一致。
 /// </summary>
-internal sealed class Version1216PlusSaveEditor : ISaveEditor
+internal sealed class Version261PlusSaveEditor : ISaveEditor
 {
     /// <summary>处理 DataVersion >= 4189 的存档。</summary>
     public bool CanHandle(int? dataVersion)
@@ -40,7 +40,7 @@ internal sealed class Version1216PlusSaveEditor : ISaveEditor
         }
 
         var changed = false;
-        changed |= Pre1216SaveEditor.WriteAllowCommands(data, changes);
+        changed |= Pre261SaveEditor.WriteAllowCommands(data, changes);
         changed |= WriteDifficulty(ds!, changes);
         changed |= WriteLocked(ds!, changes);
 

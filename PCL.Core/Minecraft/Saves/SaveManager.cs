@@ -34,7 +34,7 @@ public class SaveManager
         IEnumerable<ISaveEditor>? customEditors = null)
     {
         _parserFactory = parserFactory ?? new SaveParserFactory();
-        _editors = customEditors?.ToArray() ?? [new Pre1216SaveEditor(), new Version1216PlusSaveEditor()];
+        _editors = customEditors?.ToArray() ?? [new Pre261SaveEditor(), new Version261PlusSaveEditor()];
     }
 
     /// <summary>

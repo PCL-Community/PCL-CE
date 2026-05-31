@@ -4,13 +4,13 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 
 /// <summary>
-/// 1.16 ~ 1.21.5(25w03a) 的存档格式。
+/// 1.16 ~ 1.21.11 的存档格式。
 /// 特征：DataVersion 在 [2567, 4189) 之间。
 /// 变更：种子从 Data.RandomSeed 迁移到 Data.WorldGenSettings.seed。
 /// </summary>
-internal sealed class Version116To1215SaveParser : ISaveParser
+internal sealed class Version116To1211SaveParser : ISaveParser
 {
-    public SaveFormatVersion FormatVersion => SaveFormatVersion.Version116To1215;
+    public SaveFormatVersion FormatVersion => SaveFormatVersion.Version116To1211;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
         => dataVersion.HasValue && dataVersion.Value >= 2567 && dataVersion.Value < 4189;

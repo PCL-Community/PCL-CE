@@ -236,7 +236,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
             difficultyCombo.Items.Add(new { Value = 3, Display = Lang.Text("Instance.Saves.Info.Difficulty.Hard") });
             difficultyCombo.SelectedValuePath = "Value";
             difficultyCombo.DisplayMemberPath = "Display";
-            difficultyCombo.SelectedValue = (byte)_currentSaveInfo.Difficulty.Value;
+            difficultyCombo.SelectedValue = (int)_currentSaveInfo.Difficulty.Value;
 
             var lockCheckBox = new MyCheckBox
             {
@@ -259,7 +259,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
             difficultyCombo.SelectionChanged += async (_, _) =>
             {
                 if (_suppressEvents || difficultyCombo.SelectedValue is null) return;
-                var newDifficulty = (Difficulty)(byte)difficultyCombo.SelectedValue;
+                var newDifficulty = (Difficulty)(int)difficultyCombo.SelectedValue;
                 var isHardcore = _currentSaveInfo.IsHardcore;
 
                 var changes = new SaveChanges { Difficulty = new Editable<Difficulty>(newDifficulty) };
@@ -272,7 +272,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
             lockCheckBox.Change += async (_, user) =>
             {
                 if (_suppressEvents || !user || difficultyCombo.SelectedValue is null) return;
-                var newDifficulty = (Difficulty)(byte)difficultyCombo.SelectedValue;
+                var newDifficulty = (Difficulty)(int)difficultyCombo.SelectedValue;
                 var isHardcore = _currentSaveInfo.IsHardcore;
 
                 var changes = new SaveChanges { Difficulty = new Editable<Difficulty>(newDifficulty) };

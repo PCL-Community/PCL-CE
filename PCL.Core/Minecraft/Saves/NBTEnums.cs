@@ -50,9 +50,9 @@ public enum SaveFormatVersion
     /// <summary>1.13 ~ 1.15.2</summary>
     Version113To1152,
 
-    /// <summary>1.16 ~ 25w03a（1.21.5 的快照）</summary>
-    Version116To1215,
+    /// <summary>1.16 ~ 1.21.11（即 25w46a，1.x 体系的最后一个版本）</summary>
+    Version116To1211,
 
-    /// <summary>26w04a 及之后</summary>
-    Version1216Plus,
+    /// <summary>26.1-snapshot-6 及之后（2026 新版本号体系）</summary>
+    Version261Plus,
 }

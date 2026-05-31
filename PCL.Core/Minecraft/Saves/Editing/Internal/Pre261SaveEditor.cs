@@ -6,10 +6,10 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
-/// 1.21.5 及之前的存档编辑器。
+/// 26.1 之前的存档编辑器（含整个 1.x 版本体系）。
 /// 写入字节型 NBT 标签：allowCommands、Difficulty、DifficultyLocked。
 /// </summary>
-internal sealed class Pre1216SaveEditor : ISaveEditor
+internal sealed class Pre261SaveEditor : ISaveEditor
 {
     /// <summary>处理所有 DataVersion 为 null 或 &lt; 4189 的存档。</summary>
     public bool CanHandle(int? dataVersion)
