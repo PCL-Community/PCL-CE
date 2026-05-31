@@ -105,7 +105,7 @@
                         Grid.Row="2"
                         Grid.Column="2"
                         Height="35"
-                        local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL2-N"
+                        local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL-N"
                         local:CustomEventService.EventType="打开网页"
                         Text="{DynamicResource Setup.About.SourceCode}" />
                 </Grid>
@@ -228,7 +228,7 @@
                         <local:MyButton
                             Margin="0,0,20,0"
                             ColorType="Highlight"
-                            local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL2-N"
+                            local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL-N"
                             local:CustomEventService.EventType="打开网页"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.Legal.CommunitySource}" />

@@ -6,20 +6,20 @@
 
 # PCL N Edition
 
-[![Stars](https://img.shields.io/github/stars/MuXue1230-owo/PCL2-N?style=flat&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTggLjI1YS43NS43NSAwIDAgMSAuNjczLjQxOGwxLjg4MiAzLjgxNSA0LjIxLjYxMmEuNzUuNzUgMCAwIDEgLjQxNiAxLjI3OWwtMy4wNDYgMi45Ny43MTkgNC4xOTJhLjc1MS43NTEgMCAwIDEtMS4wODguNzkxTDggMTIuMzQ3bC0zLjc2NiAxLjk4YS43NS43NSAwIDAgMS0xLjA4OC0uNzlsLjcyLTQuMTk0TC44MTggNi4zNzRhLjc1Ljc1IDAgMCAxIC40MTYtMS4yOGw0LjIxLS42MTFMNy4zMjcuNjY4QS43NS43NSAwIDAgMSA4IC4yNVoiIGZpbGw9IiNlYWM1NGYiLz48L3N2Zz4=&logoSize=auto&label=stars&labelColor=444444&color=eac54f)](https://github.com/MuXue1230-owo/PCL2-N/)
-![GitHub Release](https://img.shields.io/github/v/release/MuXue1230-owo/PCL2-N?label=release&logo=github)
-[![Issues](https://img.shields.io/github/issues/MuXue1230-owo/PCL2-N?style=flat&label=issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/MuXue1230-owo/PCL2-N/issues)
-[![Pull requests](https://img.shields.io/github/issues-pr/MuXue1230-owo/PCL2-N?style=flat&label=pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/MuXue1230-owo/PCL2-N/pulls)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MuXue1230-owo/PCL2-N/build-test.yml)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/MuXue1230-owo/PCL2-N/total)
+[![Stars](https://img.shields.io/github/stars/MuXue1230-owo/PCL-N?style=flat&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTggLjI1YS43NS43NSAwIDAgMSAuNjczLjQxOGwxLjg4MiAzLjgxNSA0LjIxLjYxMmEuNzUuNzUgMCAwIDEgLjQxNiAxLjI3OWwtMy4wNDYgMi45Ny43MTkgNC4xOTJhLjc1MS43NTEgMCAwIDEtMS4wODguNzkxTDggMTIuMzQ3bC0zLjc2NiAxLjk4YS43NS43NSAwIDAgMS0xLjA4OC0uNzlsLjcyLTQuMTk0TC44MTggNi4zNzRhLjc1Ljc1IDAgMCAxIC40MTYtMS4yOGw0LjIxLS42MTFMNy4zMjcuNjY4QS43NS43NSAwIDAgMSA4IC4yNVoiIGZpbGw9IiNlYWM1NGYiLz48L3N2Zz4=&logoSize=auto&label=stars&labelColor=444444&color=eac54f)](https://github.com/MuXue1230-owo/PCL-N/)
+![GitHub Release](https://img.shields.io/github/v/release/MuXue1230-owo/PCL-N?label=release&logo=github)
+[![Issues](https://img.shields.io/github/issues/MuXue1230-owo/PCL-N?style=flat&label=issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/MuXue1230-owo/PCL-N/issues)
+[![Pull requests](https://img.shields.io/github/issues-pr/MuXue1230-owo/PCL-N?style=flat&label=pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/MuXue1230-owo/PCL-N/pulls)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MuXue1230-owo/PCL-N/build-test.yml)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/MuXue1230-owo/PCL-N/total)
 [![Bilibili](https://img.shields.io/badge/Threads-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
-[download](https://github.com/MuXue1230-owo/PCL2-N/releases/latest) |
+[download](https://github.com/MuXue1230-owo/PCL-N/releases/latest) |
 [Upstream repo](https://github.com/Meloong-Git/PCL) |
 [Help Center repo](https://github.com/MuXue1230-owo/PCL2NHelp)
 
-[Submit issues](https://github.com/MuXue1230-owo/PCL2-N/issues/new/choose) |
-[Contribution Guidelines](https://github.com/MuXue1230-owo/PCL2-N/wiki/开发指南)
+[Submit issues](https://github.com/MuXue1230-owo/PCL-N/issues/new/choose) |
+[Contribution Guidelines](https://github.com/MuXue1230-owo/PCL-N/wiki/开发指南)
 
 </div>
 
@@ -56,15 +56,15 @@ You can still try using the latest launcher version on unsupported platforms, bu
 
 ## 🔒 License
 
-- `Plain Craft Launcher 2/` uses [Custom License](https://github.com/MuXue1230-owo/PCL2-N/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
-- `All other directories` use [Apache License 2.0](https://github.com/MuXue1230-owo/PCL2-N/blob/dev/LICENSE)
+- `Plain Craft Launcher 2/` uses [Custom License](https://github.com/MuXue1230-owo/PCL-N/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
+- `All other directories` use [Apache License 2.0](https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE)
 
 ## 🌟 Statistic
 ![Alt](https://repobeats.axiom.co/api/embed/3e46296e6e3a134991a783480fd2f62723bb0353.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=MUXUE1230/PCL2-N&type=Date)](https://www.star-history.com/#MUXUE1230/PCL2-N&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=MUXUE1230/PCL-N&type=Date)](https://www.star-history.com/#MUXUE1230/PCL-N&Date)
 
-**Views** (Total / Today): [![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL2-N)](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL2-N&web=true)
+**Views** (Total / Today): [![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL-N)](https://hits.zkitefly.eu.org/?tag=https://github.com/MuXue1230-owo/PCL-N&web=true)
 ## ❤️ Contributors
 
-[![](https://contrib.rocks/image?repo=MUXUE1230/PCL2-N)](https://github.com/MuXue1230-owo/PCL2-N/graphs/contributors)
+[![](https://contrib.rocks/image?repo=MUXUE1230/PCL-N)](https://github.com/MuXue1230-owo/PCL-N/graphs/contributors)

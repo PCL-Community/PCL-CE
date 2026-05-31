@@ -24,7 +24,7 @@ body = """
 
 ---
 
-[GPG 签名公钥](https://github.com/MuXue1230-owo/PCL2-N/blob/dev/GPG-PUBLIC-KEY.asc)
+[GPG 签名公钥](https://github.com/MuXue1230-owo/PCL-N/blob/dev/GPG-PUBLIC-KEY.asc)
 公钥指纹 `81D9430A309B84272D518584EDF4453F0BBB862E`
 
 """

@@ -46,7 +46,7 @@ public partial class FormMain
                 Changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(Changelog,
                     Lang.Text("Main.UpdateLog.Title", ModBase.VersionBranchName, ModBase.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
-                2) ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/releases");
+                2) ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/releases");
         }, "UpdateLog Output");
     }
 
@@ -248,7 +248,7 @@ public partial class FormMain
                         $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
                         Lang.Text("Main.SpecialVersion.Title"), Lang.Text("Main.SpecialVersion.IUnderstand"), Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), IsWarn: true, Button2Action: () =>
                         {
-                            ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/releases/latest");
+                            ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/releases/latest");
                             EndProgram(false);
                         });
                 }
@@ -599,7 +599,7 @@ public partial class FormMain
             if (!IsLogShown)
             {
                 ModBase.FeedbackInfo();
-                ModBase.Log("请在 https://github.com/MuXue1230-owo/PCL2-N/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
+                ModBase.Log("请在 https://github.com/MuXue1230-owo/PCL-N/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
                 IsLogShown = true;
                 ModBase.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last());
             }

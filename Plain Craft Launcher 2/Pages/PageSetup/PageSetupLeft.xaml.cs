@@ -151,7 +151,7 @@ public partial class PageSetupLeft
                 }
                 case 2:
                 {
-                    ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/issues/");
+                    ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/issues/");
                     break;
                 }
             }
