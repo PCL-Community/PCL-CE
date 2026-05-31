@@ -3233,6 +3233,10 @@ public static class ModComp
             {
                  var item = compProjectCache[dep].ToCompItem(false, false);
                  stack.Children.Add(item);
+            }
+        }
+
+        // 可选前置
         if (optionalDeps.Any())
         {
             optionalDeps.Sort();
