@@ -57,7 +57,7 @@ public class HashCacheTest
             testFiles.Add(file.FilePath, file.SHA256);
         }
 
-        var hashCache = new HashCache(_tempDir);
+        var hashCache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         for (var i = 0; i < 5; i++)
         {
@@ -72,7 +72,7 @@ public class HashCacheTest
     public async Task TestSingleFile_SingleDB_AllAlgorithms_Concurrent()
     {
         var file = await CreateRandomFile(_tempDir, 4096).ConfigureAwait(false);
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var tasks = new Task<string>[]
         {
@@ -110,7 +110,7 @@ public class HashCacheTest
     public async Task TestSingleFile_SingleDB_SameAlgo_HeavyConcurrent()
     {
         var file = await CreateRandomFile(_tempDir, 1024).ConfigureAwait(false);
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var count = 100;
         var tasks = new Task<string>[count];
@@ -130,7 +130,7 @@ public class HashCacheTest
         for (var i = 0; i < files.Length; i++)
             files[i] = await CreateRandomFile(_tempDir, RandomNumberGenerator.GetInt32(1, 65536)).ConfigureAwait(false);
 
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var tasks = new List<Task>();
         var results = new ConcurrentBag<(string path, string algo, string hash)>();
@@ -191,7 +191,7 @@ public class HashCacheTest
         for (var i = 0; i < files.Length; i++)
             files[i] = await CreateRandomFile(_tempDir, RandomNumberGenerator.GetInt32(1, 16384)).ConfigureAwait(false);
 
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var tasks = files.Select(f => Task.Run(() => cache.GetSHA256Async(f.FilePath)));
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -207,9 +207,9 @@ public class HashCacheTest
         for (var i = 0; i < files.Length; i++)
             files[i] = await CreateRandomFile(_tempDir, RandomNumberGenerator.GetInt32(1, 8192)).ConfigureAwait(false);
 
-        var cache1 = new HashCache(_tempDir);
-        var cache2 = new HashCache(_tempDir);
-        var cache3 = new HashCache(_tempDir);
+        var cache1 = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
+        var cache2 = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
+        var cache3 = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var results = new ConcurrentBag<(int fileIndex, int algoIndex, string hash)>();
         var tasks = new List<Task>();
@@ -258,10 +258,10 @@ public class HashCacheTest
         var existingFile = await CreateRandomFile(_tempDir, 2048).ConfigureAwait(false);
         var newFile = await CreateRandomFile(_tempDir, 2048).ConfigureAwait(false);
 
-        var preload = new HashCache(_tempDir);
+        var preload = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
         await preload.GetSHA256Async(existingFile.FilePath).ConfigureAwait(false);
 
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
         var tasks = new Task<string>[]
         {
             cache.GetSHA256Async(existingFile.FilePath),
@@ -282,7 +282,7 @@ public class HashCacheTest
     {
         var bigFile = await CreateRandomFile(_tempDir, 1024 * 1024).ConfigureAwait(false);
         var smallFile = await CreateRandomFile(_tempDir, 128).ConfigureAwait(false);
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var bigTask = cache.GetSHA512Async(bigFile.FilePath);
         var smallTasks = new Task<string>[20];
@@ -301,7 +301,7 @@ public class HashCacheTest
     public async Task TestFileModifiedDuringConcurrentAccess()
     {
         var file = await CreateRandomFile(_tempDir, 512).ConfigureAwait(false);
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var hash1 = await cache.GetSHA256Async(file.FilePath).ConfigureAwait(false);
         Assert.AreEqual(file.SHA256, hash1);
@@ -324,7 +324,7 @@ public class HashCacheTest
     public async Task TestConcurrentDeleteAndQuery()
     {
         var file = await CreateRandomFile(_tempDir, 256).ConfigureAwait(false);
-        var cache = new HashCache(_tempDir);
+        var cache = new HashCache(Path.Combine(_tempDir, ".hash_cache.db"));
 
         var hash = await cache.GetSHA256Async(file.FilePath).ConfigureAwait(false);
         Assert.AreEqual(file.SHA256, hash);

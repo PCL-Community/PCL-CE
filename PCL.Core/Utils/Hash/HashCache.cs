@@ -1,5 +1,4 @@
 using Microsoft.Data.Sqlite;
-using PCL.Core.IO;
 using PCL.Core.Utils.Exts;
 using System;
 using System.IO;
@@ -10,15 +9,13 @@ namespace PCL.Core.Utils.Hash;
 public class HashCache
 {
     private readonly string _dbPath;
-    private readonly string _directory;
 
-    public HashCache(string directory)
+    public HashCache(string dbPath)
     {
-        _directory = directory ?? throw new ArgumentNullException(nameof(directory));
-        _directory = Path.GetFullPath(directory);
-        if (!Directory.Exists(_directory))
-            Directory.CreateDirectory(_directory);
-        _dbPath = Path.Combine(_directory, ".hash_cache.db");
+        _dbPath = dbPath ?? throw new ArgumentNullException(nameof(dbPath));
+        var dir = Path.GetDirectoryName(Path.GetFullPath(_dbPath));
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
         _Initialize();
     }
 
@@ -89,9 +86,6 @@ public class HashCache
             throw new ArgumentNullException(nameof(filePath));
 
         var fullPath = Path.GetFullPath(filePath);
-
-        if (!Files.IsPathWithinDirectory(fullPath, _directory))
-            throw new ArgumentException($"文件路径 \"{fullPath}\" 不在缓存目录 \"{_directory}\" 内");
 
         if (!File.Exists(fullPath))
         {
