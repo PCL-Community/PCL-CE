@@ -36,12 +36,6 @@ public class HashCache
             )
             """;
         cmd.ExecuteNonQuery();
-        try
-        {
-            cmd.CommandText = "ALTER TABLE HashCache ADD COLUMN MurmurHash2 TEXT NULL";
-            cmd.ExecuteNonQuery();
-        }
-        catch (SqliteException) { }
     }
 
     private SqliteConnection _CreateConnection()
