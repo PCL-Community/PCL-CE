@@ -18,7 +18,7 @@ internal sealed class Version19To1122SaveParser : ISaveParser
     {
         // 字段布局与 1.3.1 ~ 1.8.9 兼容，在此基础上追加 Version 信息
         var baseInfo = new Version131To189SaveParser().Parse(folderPath, data, createdAt, modifiedAt);
-        (var versionName, var versionId) = Pre113SaveParser.ReadVersion(data);
+        (var versionName, var versionId) = NbtReadHelper.ReadVersion(data);
         return baseInfo with { VersionName = versionName, VersionId = versionId };
     }
 }

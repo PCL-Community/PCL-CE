@@ -26,8 +26,8 @@ internal sealed class Version261PlusSaveParser : ISaveParser
         var seed = Version116To1211SaveParser.ReadWorldGenSeed(data)
                 ?? ReadSeedFromExternalFile(folderPath);
 
-        var spawn = Pre113SaveParser.TryReadSpawnFromPos(data)
-                 ?? Pre113SaveParser.TryReadSpawnFromFields(data);
+        var spawn = NbtReadHelper.TryReadSpawnFromPos(data)
+                 ?? NbtReadHelper.TryReadSpawnFromFields(data);
 
         var difficulty = ReadDifficultySettings(data);
         var isHardcore = ReadHardcore(data);
@@ -64,7 +64,7 @@ internal sealed class Version261PlusSaveParser : ISaveParser
                 _ => null,
             };
         }
-        return Pre113SaveParser.ReadDifficultyByte(data);
+        return NbtReadHelper.ReadDifficultyByte(data);
     }
 
     /// <summary>从 difficulty_settings.hardcore 读取极限模式标志。</summary>

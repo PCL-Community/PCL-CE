@@ -21,8 +21,8 @@ internal sealed class Version116To1211SaveParser : ISaveParser
         return baseInfo with
         {
             Seed = ReadWorldGenSeed(data),
-            Spawn = Pre113SaveParser.TryReadSpawnFromPos(data)
-                 ?? Pre113SaveParser.TryReadSpawnFromFields(data),
+            Spawn = NbtReadHelper.TryReadSpawnFromPos(data)
+                 ?? NbtReadHelper.TryReadSpawnFromFields(data),
         };
     }
 
@@ -32,6 +32,6 @@ internal sealed class Version116To1211SaveParser : ISaveParser
         if (data.TryGet<NbtCompound>("WorldGenSettings", out var wgs) &&
             wgs!.TryGet<NbtLong>("seed", out var seed))
             return seed!.Value;
-        return Pre113SaveParser.TryGetLong(data, "RandomSeed");
+        return NbtReadHelper.TryGetLong(data, "RandomSeed");
     }
 }
