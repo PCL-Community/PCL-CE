@@ -640,7 +640,7 @@ public static class ModLaunch
 
         // 尝试加载
         loader.WaitForExit(data.input, mcLoginLoader, data.isForceRestarting);
-        data.output = (McLoginResult)((dynamic)loader).Output;
+        data.output = (McLoginResult)((dynamic)loader).output;
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
         ModBase.Log("[Profile] 选定档案加载完成");
     }
