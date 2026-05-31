@@ -27,7 +27,7 @@ public partial class NetworkService
         _cacheService = CacheServiceManager.Current;
         // 重新构建服务提供者，添加带缓存的 HTTP 客户端
         var services = new ServiceCollection();
-        services.AddHttpClient("default").SetHandlerLifetime(TimeSpan.FromMinutes(_lifetime))
+        services.AddHttpClient("default")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 UseProxy = true,
