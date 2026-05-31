@@ -3033,7 +3033,7 @@ public static class ModLaunch
     private static string GetNativesFolder()
     {
         var result = Path.Combine(ModMinecraft.McInstanceSelected.PathInstance, ModMinecraft.McInstanceSelected.Name + "-natives");
-        if (SystemInfo.IsGBKEncoding || result.IsASCII())
+        if (SystemInfo.IsGbkEncoding || result.IsASCII())
             return result;
         result = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "bin", "natives");
         if (result.IsASCII())

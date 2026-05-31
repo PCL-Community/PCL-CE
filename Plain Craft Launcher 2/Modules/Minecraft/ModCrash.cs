@@ -1302,13 +1302,13 @@ public class CrashAnalyzer
                     envInfo.Append($"MC 文件夹：{mcLauncherLog.Between("MC 文件夹：", "[").TrimEnd('[').Trim()}\r\n");
                     envInfo.Append($"\r\n- 环境信息 -\r\n");
                     envInfo.Append(
-                        $"操作系统：{SystemInfo.OSInfo}（64 位：{!SystemInfo.Is32BitSystem}, ARM64: {SystemInfo.IsArm64System}）\r\n");
-                    envInfo.Append($"CPU：{HardwareInfo.CPUName}\r\n");
+                        $"操作系统：{SystemInfo.OsInfo}（64 位：{!SystemInfo.Is32BitSystem}, ARM64: {SystemInfo.IsArm64System}）\r\n");
+                    envInfo.Append($"CPU：{HardwareInfo.CpuName}\r\n");
                     envInfo.Append(
                         $"内存分配 (分配的内存 / 已安装物理内存)：{mcLauncherLog.Between("分配的内存：", "[").TrimEnd('[').Trim()} / {Lang.Number(HardwareInfo.SystemMemorySize / 1024d, "N2")} GB ({Lang.Number(HardwareInfo.SystemMemorySize, "N0")} MB)\r\n");
-                    for (int i = 0; i < HardwareInfo.GPUs.Count; i++)
+                    for (int i = 0; i < HardwareInfo.GpUs.Count; i++)
                     {
-                        var gPU = HardwareInfo.GPUs[i];
+                        var gPU = HardwareInfo.GpUs[i];
                         envInfo.Append(
                             $"显卡 {i}：{gPU.Name} ({(gPU.Memory >= 4095L ? ">= " + gPU.Memory : gPU.Memory)} MB, {gPU.DriverVersion})");
                         envInfo.Append("\r\n");

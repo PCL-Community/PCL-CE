@@ -1,34 +1,33 @@
 using System;
 using System.Collections.Generic;
 using System.Management;
-using System.Runtime.InteropServices;
 using PCL.Core.Logging;
 
 namespace PCL.Core.Utils.OS;
 
 public static class HardwareInfo
 {
-    private static readonly object _lock = new();
+    private static readonly object _Lock = new();
     
     /// <summary>
     /// 系统 CPU 信息
     /// </summary>
-    public static string CPUName = "Unknown";
+    public static string CpuName = "Unknown";
 
     /// <summary>
     /// 系统 GPU 信息
     /// </summary>
-    public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
+    public static IReadOnlyList<GpuInfo> GpUs { get; private set; } = [];
 
     /// <summary>
     /// 已安装物理内存大小，单位 MB
     /// </summary>
-    public static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
+    public static readonly long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 
-    public readonly record struct GPUInfo(string Name, string DriverVersion, long Memory);
+    public readonly record struct GpuInfo(string Name, string DriverVersion, long Memory);
 
     /// <summary>
-    /// 获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
+    /// 获取系统信息，例如 CPU 与 GPU，并存储到 CpuName 和 GPUs
     /// </summary>
     public static void GetHardwareInfo()
     {
@@ -37,8 +36,9 @@ public static class HardwareInfo
         try
         {
             using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
-            foreach (ManagementObject queryObj in searcher.Get())
+            foreach (var o in searcher.Get())
             {
+                var queryObj = (ManagementObject)o;
                 cpuName = queryObj["Name"]?.ToString()?.Trim();
                 break;
             }
@@ -49,14 +49,15 @@ public static class HardwareInfo
         }
 
         // GPU
-        var gpuList = new List<GPUInfo>();
+        var gpuList = new List<GpuInfo>();
         try
         {
             using var searcher =
                 new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
-            foreach (ManagementObject queryObj in searcher.Get())
+            foreach (var o in searcher.Get())
             {
-                var gpuInfo = new GPUInfo
+                var queryObj = (ManagementObject)o;
+                var gpuInfo = new GpuInfo
                 {
                     Name = queryObj["Name"]?.ToString() ?? "",
                     DriverVersion = queryObj["DriverVersion"]?.ToString() ?? "",
@@ -72,12 +73,12 @@ public static class HardwareInfo
             LogWrapper.Warn(ex, "获取 GPU 信息时出错");
         }
 
-        lock (_lock)
+        lock (_Lock)
         {
             if (cpuName is not null)
-                CPUName = cpuName;
+                CpuName = cpuName;
             if (gpuList.Count > 0)
-                GPUs = gpuList;
+                GpUs = gpuList;
         }
         LogWrapper.Info("已获取系统硬件信息");
     }
