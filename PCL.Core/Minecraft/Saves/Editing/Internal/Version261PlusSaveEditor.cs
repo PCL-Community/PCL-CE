@@ -7,14 +7,11 @@ namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
 /// 26.1-snapshot-6 及之后的存档编辑器（2026 新版本号体系）。
-/// 写入 difficulty_settings 复合标签（字符串型难度 + 字节型锁定）。
-/// allowCommands 路径与旧版一致。
 /// </summary>
 internal sealed class Version261PlusSaveEditor : ISaveEditor
 {
-    /// <summary>处理 DataVersion >= 4189 的存档。</summary>
     public bool CanHandle(int? dataVersion)
-        => dataVersion >= 4189;
+        => dataVersion >= DataVersionBoundaries.DifficultySettings;
 
     public async Task<bool> ApplyChangesAsync(string levelDatPath, SaveChanges changes, CancellationToken ct)
     {

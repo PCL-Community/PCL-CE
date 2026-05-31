@@ -190,7 +190,7 @@ public class SaveManagerTest
             data.Add(new fNbt.NbtString("LevelName", "NextGenWorld"));
             data.Add(new fNbt.NbtLong("LastPlayed", 0));
             data.Add(new fNbt.NbtLong("Time", 0));
-            data.Add(new fNbt.NbtInt("DataVersion", 4200));
+            data.Add(new fNbt.NbtInt("DataVersion", 4800));
             data.Add(new fNbt.NbtInt("GameType", 0));
             var ds = new fNbt.NbtCompound("difficulty_settings");
             ds.Add(new fNbt.NbtString("difficulty", "hard"));
@@ -216,7 +216,7 @@ public class SaveManagerTest
             data.Add(new fNbt.NbtString("LevelName", "SpawnTest"));
             data.Add(new fNbt.NbtLong("LastPlayed", 0));
             data.Add(new fNbt.NbtLong("Time", 0));
-            data.Add(new fNbt.NbtInt("DataVersion", 4200));
+            data.Add(new fNbt.NbtInt("DataVersion", 4800));
             data.Add(new fNbt.NbtInt("GameType", 0));
             var spawn = new fNbt.NbtCompound("spawn");
             spawn.Add(new fNbt.NbtIntArray("pos", [256, 70, -128]));
@@ -363,7 +363,7 @@ public class SaveManagerTest
             data.Add(new fNbt.NbtString("LevelName", "NextGenEdit"));
             data.Add(new fNbt.NbtLong("LastPlayed", 0));
             data.Add(new fNbt.NbtLong("Time", 0));
-            data.Add(new fNbt.NbtInt("DataVersion", 4300));
+            data.Add(new fNbt.NbtInt("DataVersion", 4800));
             data.Add(new fNbt.NbtInt("GameType", 0));
             data.Add(new fNbt.NbtByte("allowCommands", 1));
             var ds = new fNbt.NbtCompound("difficulty_settings");

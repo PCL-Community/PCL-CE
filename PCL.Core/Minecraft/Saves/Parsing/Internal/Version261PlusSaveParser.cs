@@ -5,8 +5,8 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 
 /// <summary>
-/// 26.1-snapshot-6 及之后的存档格式（新版本号体系）。
-/// 特征：DataVersion >= 4189 或存在 difficulty_settings 复合标签。
+/// 26.1-snapshot-6 及之后的存档格式（2026 新版本号体系）。
+/// 特征：DataVersion >= 4774 或存在 difficulty_settings 复合标签。
 /// 变更：
 ///   - 出生点迁移到 spawn.pos int[3]
 ///   - 难度迁移到 difficulty_settings 复合标签（字符串型）
@@ -14,14 +14,20 @@ namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 /// </summary>
 internal sealed class Version261PlusSaveParser : ISaveParser
 {
+    private readonly ISaveParser _baseParser;
+
+    public Version261PlusSaveParser() : this(new Version19To1122SaveParser()) { }
+    public Version261PlusSaveParser(ISaveParser baseParser) => _baseParser = baseParser;
+
     public SaveFormatVersion FormatVersion => SaveFormatVersion.Version261Plus;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
-        => dataVersion >= 4189 || data.Contains("difficulty_settings");
+        => dataVersion >= DataVersionBoundaries.DifficultySettings
+        || data.Contains("difficulty_settings");
 
     public SaveInfo Parse(string folderPath, NbtCompound data, DateTime createdAt, DateTime modifiedAt)
     {
-        var baseInfo = new Version19To1122SaveParser().Parse(folderPath, data, createdAt, modifiedAt);
+        var baseInfo = _baseParser.Parse(folderPath, data, createdAt, modifiedAt);
 
         var seed = Version116To1211SaveParser.ReadWorldGenSeed(data)
                 ?? ReadSeedFromExternalFile(folderPath);
@@ -46,10 +52,6 @@ internal sealed class Version261PlusSaveParser : ISaveParser
 
     // ── difficulty_settings 复合标签解析 ──
 
-    /// <summary>
-    /// 从 difficulty_settings.difficulty 读取字符串型难度。
-    /// 不存在时回退到旧版字节型 Difficulty 字段。
-    /// </summary>
     internal static Difficulty? ReadDifficultySettings(NbtCompound data)
     {
         if (data.TryGet<NbtCompound>("difficulty_settings", out var ds) &&
@@ -67,7 +69,6 @@ internal sealed class Version261PlusSaveParser : ISaveParser
         return NbtReadHelper.ReadDifficultyByte(data);
     }
 
-    /// <summary>从 difficulty_settings.hardcore 读取极限模式标志。</summary>
     internal static bool ReadHardcore(NbtCompound data)
     {
         if (data.TryGet<NbtCompound>("difficulty_settings", out var ds) &&
@@ -76,7 +77,6 @@ internal sealed class Version261PlusSaveParser : ISaveParser
         return data.TryGet<NbtByte>("hardcore", out var legacyHc) && legacyHc!.Value == 1;
     }
 
-    /// <summary>从 difficulty_settings.locked 读取难度锁定标志。</summary>
     internal static bool ReadLocked(NbtCompound data)
     {
         if (data.TryGet<NbtCompound>("difficulty_settings", out var ds) &&
@@ -85,10 +85,6 @@ internal sealed class Version261PlusSaveParser : ISaveParser
         return data.TryGet<NbtByte>("DifficultyLocked", out var dl) && dl!.Value == 1;
     }
 
-    /// <summary>
-    /// 从外部文件 data/minecraft/world_gen_settings.dat 中读取种子。
-    /// 此文件在 26.1-snapshot-6+ 中替代 level.dat 内的常规存放位置。
-    /// </summary>
     internal static long? ReadSeedFromExternalFile(string folderPath)
     {
         var externalPath = Path.Combine(folderPath, "data", "minecraft", "world_gen_settings.dat");

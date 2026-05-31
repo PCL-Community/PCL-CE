@@ -4,16 +4,24 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 
 /// <summary>
-/// 1.13 ~ 1.15.2 的存档格式。
-/// 特征：DataVersion 在 [1444, 2567) 之间，新增 DataPacks 字段。
+/// 17w47a(1.13) ~ 1.15.2 的存档格式。
+/// 特征：DataVersion 在 [1443, 2536) 之间，新增 DataPacks 字段。
+/// 其他字段布局与 1.9 ~ 1.12.2 一致，直接复用。
 /// </summary>
 internal sealed class Version113To1152SaveParser : ISaveParser
 {
+    private readonly ISaveParser _baseParser;
+
+    public Version113To1152SaveParser() : this(new Version19To1122SaveParser()) { }
+    public Version113To1152SaveParser(ISaveParser baseParser) => _baseParser = baseParser;
+
     public SaveFormatVersion FormatVersion => SaveFormatVersion.Version113To1152;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
-        => dataVersion.HasValue && dataVersion.Value >= 1444 && dataVersion.Value < 2567;
+        => dataVersion.HasValue
+        && dataVersion.Value >= DataVersionBoundaries.Flattening
+        && dataVersion.Value < DataVersionBoundaries.WorldGenSettings;
 
     public SaveInfo Parse(string folderPath, NbtCompound data, DateTime createdAt, DateTime modifiedAt)
-        => new Version19To1122SaveParser().Parse(folderPath, data, createdAt, modifiedAt);
+        => _baseParser.Parse(folderPath, data, createdAt, modifiedAt);
 }

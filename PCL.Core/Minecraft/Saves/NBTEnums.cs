@@ -44,13 +44,13 @@ public enum SaveFormatVersion
     /// <summary>1.3.1 ~ 1.8.9</summary>
     Version131To189,
 
-    /// <summary>1.9 ~ 1.12.2</summary>
+    /// <summary>15w32a(1.9) ~ 1.12.2</summary>
     Version19To1122,
 
-    /// <summary>1.13 ~ 1.15.2</summary>
+    /// <summary>17w47a(1.13) ~ 1.15.2</summary>
     Version113To1152,
 
-    /// <summary>1.16 ~ 1.21.11（即 25w46a，1.x 体系的最后一个版本）</summary>
+    /// <summary>20w20a(1.16) ~ 1.21.11</summary>
     Version116To1211,
 
     /// <summary>26.1-snapshot-6 及之后（2026 新版本号体系）</summary>
