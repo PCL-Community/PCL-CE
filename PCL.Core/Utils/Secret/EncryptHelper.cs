@@ -148,14 +148,14 @@ public static class EncryptHelper
 
     private static byte[] _GetKey()
     {
+        Span<byte> store = stackalloc byte[Encoding.UTF8.GetByteCount(Key)];
+        Key.GetBytes(Encoding.UTF8, store);
+        var space = (ReadOnlySpan<byte>)store;
         var keyFile = Path.Combine(Paths.SharedData, "UserKey.bin");
         if (File.Exists(keyFile))
         {
             var buf = File.ReadAllBytes(keyFile);
             var data = EncryptionData.FromBytes(buf);
-            Span<byte> store = stackalloc byte[22];
-            Key.GetBytes(Encoding.UTF8, store);
-            var space = (ReadOnlySpan<byte>)store;
             return data.Version switch
             {
                 1 => ProtectedData.Unprotect(data.Data.AsSpan(), DataProtectionScope.CurrentUser, space),
@@ -169,7 +169,7 @@ public static class EncryptHelper
         var storeData = EncryptionData.ToBytes(new EncryptionData
         {
             Version = 2,
-            Data = CngProtectedData.Protect(randomKey, CngDataProtectionScope.CurrentUser)
+            Data = CngProtectedData.Protect(randomKey, CngDataProtectionScope.CurrentUser, space)
         });
 
         var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
