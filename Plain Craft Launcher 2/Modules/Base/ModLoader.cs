@@ -869,7 +869,7 @@ public static class ModLoader
                                 goto Restart;
                             }
 
-                            input = ((dynamic)loader).Output; // 何意味啊，没法匹配 LoaderTask<,>
+                            input = ((dynamic)loader).output; // 何意味啊，没法匹配 LoaderTask<,>
                         }
 
                         if (loader.block && !isFinished)
