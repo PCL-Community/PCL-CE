@@ -31,7 +31,7 @@ public partial class PageToolsGameLink
         InitializeComponent();
         LoaderInit();
         Loaded += (_, _) => Reload();
-        pageEnter += PageLinkLobby_OnPageEnter;
+        PageEnter += PageLinkLobby_OnPageEnter;
     }
 
     #region 初始化
@@ -41,7 +41,7 @@ public partial class PageToolsGameLink
     {
         PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, AutoRun: false);
         // 注册自定义的 OnStateChanged
-        initLoader.onStateChangedUi += OnLoadStateChanged;
+        initLoader.OnStateChangedUi += OnLoadStateChanged;
 
         LobbyService.OnNeedDownloadEasyTier += () => ModLink.DownloadEasyTier();
         LobbyService.DiscoveredWorlds.CollectionChanged += OnDiscoveredWorldsChanged;

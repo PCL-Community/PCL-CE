@@ -382,10 +382,10 @@ public partial class PageSetupUI
                 }
             };
             ModMain.frmMain.VideoBack.MediaFailed -= videoHandler;
-            ModVideoBack.gamingStateChanged -= ModVideoBack.OnGamingStateChanged;
-            ModVideoBack.forcePlayChanged -= ModVideoBack.OnForcePlayChanged;
-            ModVideoBack.gamingStateChanged += ModVideoBack.OnGamingStateChanged;
-            ModVideoBack.forcePlayChanged += ModVideoBack.OnForcePlayChanged;
+            ModVideoBack.GamingStateChanged -= ModVideoBack.OnGamingStateChanged;
+            ModVideoBack.ForcePlayChanged -= ModVideoBack.OnForcePlayChanged;
+            ModVideoBack.GamingStateChanged += ModVideoBack.OnGamingStateChanged;
+            ModVideoBack.ForcePlayChanged += ModVideoBack.OnForcePlayChanged;
             if (!Config.Preference.Background.AutoPauseVideo)
                 ModVideoBack.ForcePlay = true;
             // 加载

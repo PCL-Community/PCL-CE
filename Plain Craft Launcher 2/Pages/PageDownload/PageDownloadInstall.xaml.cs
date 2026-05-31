@@ -24,68 +24,68 @@ public partial class PageDownloadInstall
         InitializeComponent();
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         BtnBack.Click += (_, _) => ExitSelectPage();
-        CardOptiFine.swap += (_, _) => ReloadSelected();
-        LoadOptiFine.stateChanged += (_, _, _) => ReloadSelected();
-        CardForge.swap += (_, _) => ReloadSelected();
-        LoadForge.stateChanged += (_, _, _) => ReloadSelected();
-        CardNeoForge.swap += (_, _) => ReloadSelected();
-        LoadNeoForge.stateChanged += (_, _, _) => ReloadSelected();
-        CardFabric.swap += (_, _) => ReloadSelected();
-        LoadFabric.stateChanged += (_, _, _) => ReloadSelected();
-        CardFabricApi.swap += (_, _) => ReloadSelected();
-        LoadFabricApi.stateChanged += (_, _, _) => ReloadSelected();
-        CardOptiFabric.swap += (_, _) => ReloadSelected();
-        LoadOptiFabric.stateChanged += (_, _, _) => ReloadSelected();
-        CardLiteLoader.swap += (_, _) => ReloadSelected();
-        LoadLiteLoader.stateChanged += (_, _, _) => ReloadSelected();
-        LoadQuilt.stateChanged += (_, _, _) => ReloadSelected();
-        CardQuilt.swap += (_, _) => ReloadSelected();
-        LoadQSL.stateChanged += (_, _, _) => ReloadSelected();
-        CardQSL.swap += (_, _) => ReloadSelected();
-        LoadCleanroom.stateChanged += (_, _, _) => ReloadSelected();
-        CardCleanroom.swap += (_, _) => ReloadSelected();
-        LoadLabyMod.stateChanged += (_, _, _) => ReloadSelected();
-        CardLabyMod.swap += (_, _) => ReloadSelected();
+        CardOptiFine.Swap += (_, _) => ReloadSelected();
+        LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
+        CardForge.Swap += (_, _) => ReloadSelected();
+        LoadForge.StateChanged += (_, _, _) => ReloadSelected();
+        CardNeoForge.Swap += (_, _) => ReloadSelected();
+        LoadNeoForge.StateChanged += (_, _, _) => ReloadSelected();
+        CardFabric.Swap += (_, _) => ReloadSelected();
+        LoadFabric.StateChanged += (_, _, _) => ReloadSelected();
+        CardFabricApi.Swap += (_, _) => ReloadSelected();
+        LoadFabricApi.StateChanged += (_, _, _) => ReloadSelected();
+        CardOptiFabric.Swap += (_, _) => ReloadSelected();
+        LoadOptiFabric.StateChanged += (_, _, _) => ReloadSelected();
+        CardLiteLoader.Swap += (_, _) => ReloadSelected();
+        LoadLiteLoader.StateChanged += (_, _, _) => ReloadSelected();
+        LoadQuilt.StateChanged += (_, _, _) => ReloadSelected();
+        CardQuilt.Swap += (_, _) => ReloadSelected();
+        LoadQSL.StateChanged += (_, _, _) => ReloadSelected();
+        CardQSL.Swap += (_, _) => ReloadSelected();
+        LoadCleanroom.StateChanged += (_, _, _) => ReloadSelected();
+        CardCleanroom.Swap += (_, _) => ReloadSelected();
+        LoadLabyMod.StateChanged += (_, _, _) => ReloadSelected();
+        CardLabyMod.Swap += (_, _) => ReloadSelected();
         TextSelectName.TextChanged += TextSelectName_TextChanged;
-        TextSelectName.validateChanged += TextSelectName_ValidateChanged;
+        TextSelectName.ValidateChanged += TextSelectName_ValidateChanged;
         CardOptiFine.PreviewSwap += CardOptiFine_PreviewSwap;
-        LoadOptiFine.stateChanged += (_, _, _) => OptiFine_Loaded();
+        LoadOptiFine.StateChanged += (_, _, _) => OptiFine_Loaded();
         BtnOptiFineClear.MouseLeftButtonUp += OptiFine_Clear;
         CardLiteLoader.PreviewSwap += CardLiteLoader_PreviewSwap;
-        LoadLiteLoader.stateChanged += (_, _, _) => LiteLoader_Loaded();
+        LoadLiteLoader.StateChanged += (_, _, _) => LiteLoader_Loaded();
         BtnLiteLoaderClear.MouseLeftButtonUp += LiteLoader_Clear;
         CardForge.PreviewSwap += CardForge_PreviewSwap;
-        LoadForge.stateChanged += (_, _, _) => Forge_Loaded();
+        LoadForge.StateChanged += (_, _, _) => Forge_Loaded();
         BtnForgeClear.MouseLeftButtonUp += Forge_Clear;
         CardNeoForge.PreviewSwap += CardNeoForge_PreviewSwap;
-        LoadNeoForge.stateChanged += (_, _, _) => NeoForge_Loaded();
+        LoadNeoForge.StateChanged += (_, _, _) => NeoForge_Loaded();
         BtnNeoForgeClear.MouseLeftButtonUp += NeoForge_Clear;
         CardCleanroom.PreviewSwap += CardCleanroom_PreviewSwap;
-        LoadCleanroom.stateChanged += (_, _, _) => Cleanroom_Loaded();
+        LoadCleanroom.StateChanged += (_, _, _) => Cleanroom_Loaded();
         BtnCleanroomClear.MouseLeftButtonUp += Cleanroom_Clear;
         CardFabric.PreviewSwap += CardFabric_PreviewSwap;
-        LoadFabric.stateChanged += (_, _, _) => Fabric_Loaded();
+        LoadFabric.StateChanged += (_, _, _) => Fabric_Loaded();
         BtnFabricClear.MouseLeftButtonUp += Fabric_Clear;
         CardFabricApi.PreviewSwap += CardFabricApi_PreviewSwap;
-        LoadFabricApi.stateChanged += (_, _, _) => FabricApi_Loaded();
+        LoadFabricApi.StateChanged += (_, _, _) => FabricApi_Loaded();
         BtnFabricApiClear.MouseLeftButtonUp += FabricApi_Clear;
         CardLegacyFabric.PreviewSwap += CardLegacyFabric_PreviewSwap;
-        LoadLegacyFabric.stateChanged += (_, _, _) => LegacyFabric_Loaded();
+        LoadLegacyFabric.StateChanged += (_, _, _) => LegacyFabric_Loaded();
         BtnLegacyFabricClear.MouseLeftButtonUp += LegacyFabric_Clear;
         CardLegacyFabricApi.PreviewSwap += CardLegacyFabricApi_PreviewSwap;
-        LoadLegacyFabricApi.stateChanged += (_, _, _) => LegacyFabricApi_Loaded();
+        LoadLegacyFabricApi.StateChanged += (_, _, _) => LegacyFabricApi_Loaded();
         BtnLegacyFabricApiClear.MouseLeftButtonUp += LegacyFabricApi_Clear;
         CardQuilt.PreviewSwap += CardQuilt_PreviewSwap;
-        LoadQuilt.stateChanged += (_, _, _) => Quilt_Loaded();
+        LoadQuilt.StateChanged += (_, _, _) => Quilt_Loaded();
         BtnQuiltClear.MouseLeftButtonUp += Quilt_Clear;
         CardQSL.PreviewSwap += CardQSL_PreviewSwap;
-        LoadQSL.stateChanged += (_, _, _) => QSL_Loaded();
+        LoadQSL.StateChanged += (_, _, _) => QSL_Loaded();
         BtnQSLClear.MouseLeftButtonUp += QSL_Clear;
         CardOptiFabric.PreviewSwap += CardOptiFabric_PreviewSwap;
-        LoadOptiFabric.stateChanged += (_, _, _) => OptiFabric_Loaded();
+        LoadOptiFabric.StateChanged += (_, _, _) => OptiFabric_Loaded();
         BtnOptiFabricClear.MouseLeftButtonUp += OptiFabric_Clear;
         CardLabyMod.PreviewSwap += CardLabyMod_PreviewSwap;
-        LoadLabyMod.stateChanged += (_, _, _) => LabyMod_Loaded();
+        LoadLabyMod.StateChanged += (_, _, _) => LabyMod_Loaded();
         BtnLabyModClear.MouseLeftButtonUp += LabyMod_Clear;
         TextSelectName.KeyDown += TextSelectName_KeyDown;
         BtnStart.Click += (_, _) => BtnStart_Click();
@@ -1108,7 +1108,7 @@ public partial class PageDownloadInstall
             var stack = _CreateVersionStack(versions);
 
             card.Children.Add(stack);
-            card.swapControl = stack;
+            card.SwapControl = stack;
 
             // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
             card.InstallMethod = _StackInstall;
@@ -1122,7 +1122,7 @@ public partial class PageDownloadInstall
     {
         return new StackPanel
         {
-            Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+            Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
             VerticalAlignment = VerticalAlignment.Top,
             RenderTransform = new TranslateTransform(0d, 0d),
             Tag = versions
@@ -1679,7 +1679,7 @@ public partial class PageDownloadInstall
             // 可视化
             PanFabric.Children.Clear();
             PanFabric.Tag = versions;
-            CardFabric.swapControl = PanFabric;
+            CardFabric.SwapControl = PanFabric;
             CardFabric.InstallMethod = stack =>
             {
                 foreach (var item in (IEnumerable)stack.Tag)
@@ -1890,7 +1890,7 @@ public partial class PageDownloadInstall
             // 可视化
             PanLegacyFabric.Children.Clear();
             PanLegacyFabric.Tag = versions;
-            CardLegacyFabric.swapControl = PanLegacyFabric;
+            CardLegacyFabric.SwapControl = PanLegacyFabric;
             CardLegacyFabric.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
@@ -2103,7 +2103,7 @@ public partial class PageDownloadInstall
             // 可视化
             PanQuilt.Children.Clear();
             PanQuilt.Tag = versions;
-            CardQuilt.swapControl = PanQuilt;
+            CardQuilt.SwapControl = PanQuilt;
             CardQuilt.InstallMethod = Stack =>
             {
                 foreach (var item in (IEnumerable)Stack.Tag)
@@ -2475,7 +2475,7 @@ public partial class PageDownloadInstall
             // MyMsgBox(If(ProcessedVersions.ToString, "Nothing"))
             PanLabyMod.Children.Clear();
             PanLabyMod.Tag = processedVersions;
-            CardLabyMod.swapControl = PanLabyMod;
+            CardLabyMod.SwapControl = PanLabyMod;
             CardLabyMod.InstallMethod = Stack =>
             {
                 foreach (JsonObject item in (IEnumerable)Stack.Tag)
@@ -2559,7 +2559,7 @@ public partial class PageDownloadInstall
             fabricVersion = selectedFabric,
             fabricApi = selectedFabricApi,
             quiltVersion = selectedQuilt,
-            qSL = selectedQSL,
+            qsl = selectedQSL,
             optiFabric = selectedOptiFabric,
             liteLoaderEntry = selectedLiteLoader,
             labyModChannel = selectedLabyModChannel,

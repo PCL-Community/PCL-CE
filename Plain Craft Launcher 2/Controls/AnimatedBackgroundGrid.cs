@@ -6,7 +6,7 @@ namespace PCL;
 
 public class AnimatedBackgroundGrid : Grid
 {
-    public static readonly DependencyProperty backgroundBrushProperty = DependencyProperty.Register("BackgroundBrush",
+    public static readonly DependencyProperty BackgroundBrushProperty = DependencyProperty.Register("BackgroundBrush",
         typeof(SolidColorBrush), typeof(AnimatedBackgroundGrid),
         new PropertyMetadata(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), _BackgroundBrushChanged));
 
@@ -42,8 +42,8 @@ public class AnimatedBackgroundGrid : Grid
 
     public SolidColorBrush BackgroundBrush
     {
-        get => (SolidColorBrush)GetValue(backgroundBrushProperty);
-        set => SetValue(backgroundBrushProperty, value);
+        get => (SolidColorBrush)GetValue(BackgroundBrushProperty);
+        set => SetValue(BackgroundBrushProperty, value);
     }
 
     private static void _BackgroundBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

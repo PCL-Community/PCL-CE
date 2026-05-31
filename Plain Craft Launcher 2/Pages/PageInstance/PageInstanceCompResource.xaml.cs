@@ -31,7 +31,7 @@ public partial class PageInstanceCompResource : IRefreshable
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         Initialized += (_, _) => LoaderInit();
-        pageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectedAllWithAnimation;
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
         BtnHintBack.Click += BtnHintBack_Click;
@@ -45,7 +45,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
         BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
-        Load.stateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -126,7 +126,7 @@ public partial class PageInstanceCompResource : IRefreshable
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
-        pageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectedAllWithAnimation;
         // Handles
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
@@ -141,7 +141,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
         BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
-        Load.stateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -578,7 +578,7 @@ public partial class PageInstanceCompResource : IRefreshable
             };
             newItem.CurrentSwipe = currentSwipSelect;
             newItem.Tags = Entry.Tags;
-            Entry.onCompUpdate += _ => newItem.Refresh();
+            Entry.OnCompUpdate += _ => newItem.Refresh();
             // AddHandler Entry.OnCompUpdate, Sub() RunInUi(Sub() DoSort())
             newItem.Refresh();
             ModAnimation.AniControlEnabled -= 1;
@@ -595,7 +595,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private void BuildLocalCompItemBtnHandler(MyLocalCompItem sender, EventArgs e)
     {
         // 点击事件
-        sender.changed += (ss, ee) => CheckChanged((MyLocalCompItem)ss, ee);
+        sender.Changed += (ss, ee) => CheckChanged((MyLocalCompItem)ss, ee);
         if (sender.Entry.IsFolder)
         {
             // 文件夹项的点击事件：双击进入文件夹，单击切换选中状态

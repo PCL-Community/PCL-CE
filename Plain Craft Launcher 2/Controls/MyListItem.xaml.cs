@@ -23,10 +23,10 @@ public partial class MyListItem : IMyRadio
 
     public object tag { get; set; }
     public event IMyRadio.CheckEventHandler? Check;
-    public event IMyRadio.ChangedEventHandler? changed;
+    public event IMyRadio.ChangedEventHandler? Changed;
 
     public event ClickEventHandler? Click;
-    public event LogoClickEventHandler? logoClick;
+    public event LogoClickEventHandler? LogoClick;
 
     public void RefreshColor(object sender, EventArgs e)
     {
@@ -167,9 +167,9 @@ public partial class MyListItem : IMyRadio
     private void MyListItem_Loaded(object sender, RoutedEventArgs e)
     {
         if (Checked)
-            SetResourceReference(foregroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+            SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
         else
-            SetResourceReference(foregroundProperty, "ColorBrush1");
+            SetResourceReference(ForegroundProperty, "ColorBrush1");
         ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
         if (CustomEventService.GetEventType(this) == CustomEvent.EventType.打开帮助 && !(Title != "" && Info != "")) // #3266
         {
@@ -451,37 +451,37 @@ public partial class MyListItem : IMyRadio
 
     public string Title
     {
-        get => (string)GetValue(titleProperty);
-        set => SetValue(titleProperty, value.Replace("\r", "").Replace("\n", ""));
+        get => (string)GetValue(TitleProperty);
+        set => SetValue(TitleProperty, value.Replace("\r", "").Replace("\n", ""));
     }
 
-    public static readonly DependencyProperty titleProperty =
+    public static readonly DependencyProperty TitleProperty =
         DependencyProperty.Register("Title", typeof(string), typeof(MyListItem));
 
     // 字号
     public double FontSize
     {
-        get => (double)GetValue(fontSizeProperty);
-        set => SetValue(fontSizeProperty, value);
+        get => (double)GetValue(FontSizeProperty);
+        set => SetValue(FontSizeProperty, value);
     }
 
-    public static readonly DependencyProperty fontSizeProperty =
+    public static readonly DependencyProperty FontSizeProperty =
         DependencyProperty.Register("FontSize", typeof(double), typeof(MyListItem), new PropertyMetadata(14d));
 
     // 信息
     public string Info
     {
-        get => (string)GetValue(infoProperty);
+        get => (string)GetValue(InfoProperty);
         set
         {
             if (Info == value)
                 return;
             value = value?.Replace("\r", "").Replace("\n", "");
-            SetValue(infoProperty, value);
+            SetValue(InfoProperty, value);
         }
     }
 
-    public static readonly DependencyProperty infoProperty = DependencyProperty.Register("Info", typeof(string),
+    public static readonly DependencyProperty InfoProperty = DependencyProperty.Register("Info", typeof(string),
         typeof(MyListItem), new PropertyMetadata("", OnInfoChanged));
 
     public MyListItem()
@@ -511,16 +511,16 @@ public partial class MyListItem : IMyRadio
     // 图片
     public string Logo
     {
-        get => (string)GetValue(logoProperty);
+        get => (string)GetValue(LogoProperty);
         set
         {
             if (Logo == value)
                 return;
-            SetValue(logoProperty, value);
+            SetValue(LogoProperty, value);
         }
     }
 
-    public static readonly DependencyProperty logoProperty = DependencyProperty.Register("Logo", typeof(string),
+    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register("Logo", typeof(string),
         typeof(MyListItem), new PropertyMetadata("", OnLogoChanged));
 
     private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -607,7 +607,7 @@ public partial class MyListItem : IMyRadio
                     if (isLogoDown)
                     {
                         isLogoDown = false;
-                        logoClick?.Invoke(((FrameworkElement)sender).Tag, e);
+                        LogoClick?.Invoke(((FrameworkElement)sender).Tag, e);
                     }
                 };
             }
@@ -732,15 +732,15 @@ public partial class MyListItem : IMyRadio
         {
             // 自定义属性基础
 
-            var changedEventArgs = new ModBase.RouteEventArgs(user);
+            var ChangedEventArgs = new ModBase.RouteEventArgs(user);
             var rawValue = _Checked;
             if (Type == CheckType.RadioBox)
             {
                 if (IsInitialized && value != _Checked)
                 {
                     _Checked = value;
-                    changed?.Invoke(this, changedEventArgs);
-                    if (changedEventArgs.handled)
+                    Changed?.Invoke(this, ChangedEventArgs);
+                    if (ChangedEventArgs.handled)
                     {
                         _Checked = rawValue;
                         return;
@@ -756,8 +756,8 @@ public partial class MyListItem : IMyRadio
                 _Checked = value;
                 if (IsInitialized)
                 {
-                    changed?.Invoke(this, changedEventArgs);
-                    if (changedEventArgs.handled)
+                    Changed?.Invoke(this, ChangedEventArgs);
+                    if (ChangedEventArgs.handled)
                     {
                         _Checked = rawValue;
                         return;
@@ -861,7 +861,7 @@ public partial class MyListItem : IMyRadio
                         ));
                     }
 
-                    anim.Add(ModAnimation.AaColor(this, foregroundProperty,
+                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty,
                         Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
                 }
                 else
@@ -887,7 +887,7 @@ public partial class MyListItem : IMyRadio
                         anim.Add(ModAnimation.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
                     }
 
-                    anim.Add(ModAnimation.AaColor(this, foregroundProperty, "ColorBrush1", 120));
+                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
                 }
 
                 ModAnimation.AniStart(anim, "MyListItem Checked " + uuid);
@@ -907,7 +907,7 @@ public partial class MyListItem : IMyRadio
                         rectCheck.RenderTransform = null; // 清除缩放
                     }
 
-                    SetResourceReference(foregroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+                    SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
                 }
                 else
                 {
@@ -920,7 +920,7 @@ public partial class MyListItem : IMyRadio
                         rectCheck.RenderTransform = null;
                     }
 
-                    SetResourceReference(foregroundProperty, "ColorBrush1");
+                    SetResourceReference(ForegroundProperty, "ColorBrush1");
                 }
             }
         }
@@ -933,11 +933,11 @@ public partial class MyListItem : IMyRadio
     // 前景色绑定
     public Brush Foreground
     {
-        get => (Brush)GetValue(foregroundProperty);
-        set => SetValue(foregroundProperty, value);
+        get => (Brush)GetValue(ForegroundProperty);
+        set => SetValue(ForegroundProperty, value);
     }
 
-    public static readonly DependencyProperty foregroundProperty = DependencyProperty.Register("Foreground",
+    public static readonly DependencyProperty ForegroundProperty = DependencyProperty.Register("Foreground",
         typeof(Brush), typeof(MyListItem), new PropertyMetadata(ThemeManager.AppResources["ColorBrush1"]));
 
     // 菜单与按钮绑定

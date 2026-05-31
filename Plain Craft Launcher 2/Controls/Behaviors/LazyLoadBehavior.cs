@@ -17,13 +17,13 @@ internal static class LazyLoader
 
 public class LazyLoadBehavior : Behavior<FrameworkElement>
 {
-    public static readonly DependencyProperty actionProperty = DependencyProperty.Register(nameof(Action),
+    public static readonly DependencyProperty ActionProperty = DependencyProperty.Register(nameof(Action),
         typeof(Action), typeof(LazyLoadBehavior), new PropertyMetadata(null));
 
     public Action Action
     {
-        get => (Action)GetValue(actionProperty);
-        set => SetValue(actionProperty, value);
+        get => (Action)GetValue(ActionProperty);
+        set => SetValue(ActionProperty, value);
     }
 
     protected override void OnAttached()

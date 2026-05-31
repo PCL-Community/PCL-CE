@@ -16,7 +16,7 @@ public partial class MyExtraTextButton
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyExtraTextButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
@@ -75,11 +75,11 @@ public partial class MyExtraTextButton
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
+        get => (string)GetValue(TextProperty);
         set
         {
             if (value is null) return;
-            SetValue(textProperty, value);
+            SetValue(TextProperty, value);
         }
     }
 

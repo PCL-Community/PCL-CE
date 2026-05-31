@@ -25,7 +25,7 @@ namespace PCL.Controls.Behaviors;
 
 public sealed class ClipboardInterceptor
 {
-    public static readonly DependencyProperty enableSafeClipboardProperty =
+    public static readonly DependencyProperty EnableSafeClipboardProperty =
         DependencyProperty.RegisterAttached("EnableSafeClipboard", typeof(bool), typeof(ClipboardInterceptor),
             new PropertyMetadata(false, OnEnableSafeClipboardChanged));
 
@@ -35,12 +35,12 @@ public sealed class ClipboardInterceptor
 
     public static void SetEnableSafeClipboard(DependencyObject element, bool value)
     {
-        element.SetValue(enableSafeClipboardProperty, value);
+        element.SetValue(EnableSafeClipboardProperty, value);
     }
 
     public static bool GetEnableSafeClipboard(DependencyObject element)
     {
-        return (bool)element.GetValue(enableSafeClipboardProperty);
+        return (bool)element.GetValue(EnableSafeClipboardProperty);
     }
 
     private static void OnEnableSafeClipboardChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

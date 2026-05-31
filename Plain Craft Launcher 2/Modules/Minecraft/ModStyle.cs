@@ -18,7 +18,7 @@ internal static class ModStyle
         public delegate void TimerTickDelegate(TimerRun sender);
 
         // 定义依赖属性
-        public static readonly DependencyProperty updateIntervalProperty =
+        public static readonly DependencyProperty UpdateIntervalProperty =
             DependencyProperty.Register(nameof(UpdateInterval), typeof(TimeSpan), typeof(TimerRun),
                 new PropertyMetadata(TimeSpan.FromSeconds(1d)));
 
@@ -29,7 +29,7 @@ internal static class ModStyle
         public TimerRun(TimeSpan interval = default, bool autoStart = false)
         {
             _timer = new DispatcherTimer();
-            _timer.Tick += _timerTick;
+            _timer.Tick += _TimerTick;
             UpdateInterval = interval == default ? TimeSpan.FromSeconds(1d) : interval;
             AutoStart = autoStart;
             Loaded += OnLoaded;
@@ -41,10 +41,10 @@ internal static class ModStyle
         // UpdateInterval 属性
         public TimeSpan UpdateInterval
         {
-            get => (TimeSpan)GetValue(updateIntervalProperty);
+            get => (TimeSpan)GetValue(UpdateIntervalProperty);
             set
             {
-                if (value > TimeSpan.Zero) SetValue(updateIntervalProperty, value);
+                if (value > TimeSpan.Zero) SetValue(UpdateIntervalProperty, value);
             }
         }
 
@@ -56,7 +56,7 @@ internal static class ModStyle
                 return;
             _isDisposed = true;
             // 资源释放
-            _timer.Tick -= _timerTick;
+            _timer.Tick -= _TimerTick;
             _timer?.Stop();
             _timer = null;
         }
@@ -65,15 +65,15 @@ internal static class ModStyle
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            if (ReferenceEquals(e.Property, updateIntervalProperty) && _timer is not null)
+            if (ReferenceEquals(e.Property, UpdateIntervalProperty) && _timer is not null)
                 _timer.Interval = UpdateInterval;
         }
 
-        public event TimerTickDelegate? timerTick;
+        public event TimerTickDelegate? TimerTick;
 
-        private void _timerTick(object sender, EventArgs e)
+        private void _TimerTick(object sender, EventArgs e)
         {
-            timerTick?.Invoke(this);
+            TimerTick?.Invoke(this);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -280,7 +280,7 @@ internal static class ModStyle
                 foreach (var run in randomTextRuns)
                 {
                     run.UpdateInterval = TimeSpan.FromMilliseconds(20d);
-                    run.timerTick += sender =>
+                    run.TimerTick += sender =>
                     {
                         if (!string.IsNullOrEmpty(sender.Text))
                         {

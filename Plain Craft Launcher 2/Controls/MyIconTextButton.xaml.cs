@@ -27,13 +27,13 @@ public partial class MyIconTextButton
     private const int animationTimeOfMouseIn = 100; // 鼠标指向动画长度
     private const int animationTimeOfMouseOut = 150; // 鼠标移出动画长度
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyIconTextButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyIconTextButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
-    public static readonly DependencyProperty colorTypeProperty = DependencyProperty.Register("ColorType",
+    public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
     private double _LogoScale = 1d;
@@ -82,18 +82,18 @@ public partial class MyIconTextButton
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     } // 内容
 
     public ColorState ColorType
     {
-        get => (ColorState)GetValue(colorTypeProperty);
+        get => (ColorState)GetValue(ColorTypeProperty);
         set
         {
             if (ColorType == value)
                 return;
-            SetValue(colorTypeProperty, value);
+            SetValue(ColorTypeProperty, value);
             RefreshColor();
         }
     } // 颜色类别

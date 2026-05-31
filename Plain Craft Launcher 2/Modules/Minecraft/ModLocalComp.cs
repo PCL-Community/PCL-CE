@@ -1673,7 +1673,7 @@ public static class ModLocalComp
         /// <summary>
         ///     当任何网络信息更新时触发。
         /// </summary>
-        public event OnCompUpdateEventHandler? onCompUpdate;
+        public event OnCompUpdateEventHandler? OnCompUpdate;
 
         public delegate void OnCompUpdateEventHandler(LocalCompFile sender);
 
@@ -1686,7 +1686,7 @@ public static class ModLocalComp
             set
             {
                 _Comp = value;
-                onCompUpdate?.Invoke(this);
+                OnCompUpdate?.Invoke(this);
             }
         }
 
@@ -1706,7 +1706,7 @@ public static class ModLocalComp
             set
             {
                 _UpdateFile = value;
-                onCompUpdate?.Invoke(this);
+                OnCompUpdate?.Invoke(this);
             }
         }
 

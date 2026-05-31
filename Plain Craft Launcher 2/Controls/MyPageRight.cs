@@ -23,7 +23,7 @@ public class MyPageRight : AdornerDecorator
         PageExit // 切换页面导致的全部退出动画
     }
 
-    private static readonly DependencyProperty panScrollProperty =
+    private static readonly DependencyProperty PanScrollProperty =
     DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
 
     private PageStates _PageState = PageStates.Empty;
@@ -37,7 +37,7 @@ public class MyPageRight : AdornerDecorator
     {
         get
         {
-            var res = GetValue((DependencyProperty)panScrollProperty);
+            var res = GetValue((DependencyProperty)PanScrollProperty);
             if (res is null && !_panScrollNullWarned)
             {
                 _panScrollNullWarned = true;
@@ -46,7 +46,7 @@ public class MyPageRight : AdornerDecorator
 
             return (MyScrollViewer)res;
         }
-        set => SetValue(panScrollProperty, value);
+        set => SetValue(PanScrollProperty, value);
     }
 
     public PageStates PageState
@@ -96,14 +96,14 @@ public class MyPageRight : AdornerDecorator
         pageLoaderAutoRun = AutoRun;
         // 添加结束 Invoke
         if (FinishedInvoke is not null)
-            RealLoader.previewFinish += _ =>
+            RealLoader.PreviewFinish += _ =>
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
                 ModBase.RunInUiWait(() => FinishedInvoke(RealLoader));
                 Thread.Sleep(20); // 由于大量初始化控件会导致掉帧，延迟触发 State 改变事件
             };
-        RealLoader.onStateChangedUi += (Loader, NewState, OldState) =>
+        RealLoader.OnStateChangedUi += (Loader, NewState, OldState) =>
             ModBase.RunInUi(() => PageLoaderState(Loader, NewState, OldState));
         // 隐藏 UI
         PanLoader.Visibility = Visibility.Collapsed;
@@ -165,7 +165,7 @@ public class MyPageRight : AdornerDecorator
     {
         if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnEnter");
-        pageEnter?.Invoke();
+        PageEnter?.Invoke();
         switch (PageState)
         {
             case PageStates.Empty:
@@ -226,7 +226,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageEnterEventHandler? pageEnter;
+    public event PageEnterEventHandler? PageEnter;
 
     public delegate void PageEnterEventHandler();
 
@@ -238,7 +238,7 @@ public class MyPageRight : AdornerDecorator
     {
         if (ModBase.modeDebug)
             ModBase.Log("[UI] 已触发 PageOnExit");
-        pageExit?.Invoke();
+        PageExit?.Invoke();
         switch (PageState)
         {
             case PageStates.ContentEnter:
@@ -278,7 +278,7 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    public event PageExitEventHandler? pageExit;
+    public event PageExitEventHandler? PageExit;
 
     public delegate void PageExitEventHandler();
 

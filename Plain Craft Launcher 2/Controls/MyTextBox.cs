@@ -14,18 +14,18 @@ public class MyTextBox : TextBox
     public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register("CornerRadius",
         typeof(CornerRadius), typeof(MyTextBox), new PropertyMetadata(new CornerRadius(3d)));
 
-    public static readonly DependencyProperty validateResultProperty = DependencyProperty.Register("ValidateResult",
+    public static readonly DependencyProperty ValidateResultProperty = DependencyProperty.Register("ValidateResult",
         typeof(string), typeof(MyTextBox),
         new PropertyMetadata("",
-            (d, e) => d.SetValue(isValidatedPropertyKey,
+            (d, e) => d.SetValue(IsValidatedPropertyKey,
                 string.IsNullOrEmpty((string)e.NewValue))));
 
-    private static readonly DependencyPropertyKey isValidatedPropertyKey =
+    private static readonly DependencyPropertyKey IsValidatedPropertyKey =
         DependencyProperty.RegisterReadOnly("IsValidated", typeof(bool), typeof(MyTextBox), new PropertyMetadata(true));
 
-    public static readonly DependencyProperty isValidatedProperty = isValidatedPropertyKey.DependencyProperty;
+    public static readonly DependencyProperty IsValidatedProperty = IsValidatedPropertyKey.DependencyProperty;
 
-    public static readonly DependencyProperty hintTextProperty = DependencyProperty.Register("HintText", typeof(string),
+    public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
             var textBox = (MyTextBox)t;
@@ -100,14 +100,14 @@ public class MyTextBox : TextBox
     /// </summary>
     public string ValidateResult
     {
-        get => (string)GetValue(validateResultProperty);
-        set => SetValue(validateResultProperty, value);
+        get => (string)GetValue(ValidateResultProperty);
+        set => SetValue(ValidateResultProperty, value);
     }
 
     /// <summary>
     ///     是否通过了输入验证。
     /// </summary>
-    public bool IsValidated => (bool)GetValue(isValidatedProperty);
+    public bool IsValidated => (bool)GetValue(IsValidatedProperty);
 
     /// <summary>
     ///     输入验证的规则。
@@ -124,8 +124,8 @@ public class MyTextBox : TextBox
 
     public string HintText
     {
-        get => (string)GetValue(hintTextProperty);
-        set => SetValue(hintTextProperty, value);
+        get => (string)GetValue(HintTextProperty);
+        set => SetValue(HintTextProperty, value);
     }
 
     public override void OnApplyTemplate()
@@ -136,7 +136,7 @@ public class MyTextBox : TextBox
         UpdateHintText();
     }
 
-    public event ValidateChangedEventHandler? validateChanged;
+    public event ValidateChangedEventHandler? ValidateChanged;
 
     public event RoutedEventHandler ValidatedTextChanged
     {
@@ -251,7 +251,7 @@ public class MyTextBox : TextBox
         }
 
         RefreshColor();
-        validateChanged?.Invoke(this, new EventArgs());
+        ValidateChanged?.Invoke(this, new EventArgs());
     }
 
     private void MyTextBox_TextChanged(MyTextBox sender, TextChangedEventArgs e)

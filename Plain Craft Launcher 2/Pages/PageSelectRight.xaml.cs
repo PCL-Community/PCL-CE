@@ -259,12 +259,12 @@ public partial class PageSelectRight
                 var newCard = new MyCard { Title = cardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = filteredInstances
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 PanMain.Children.Add(newCard);
 
                 // 确定卡片是否展开

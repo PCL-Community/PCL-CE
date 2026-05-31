@@ -37,7 +37,7 @@ namespace PCL
     /// </summary>
     public static class CustomEventService
     {
-        public static readonly DependencyProperty eventsProperty =
+        public static readonly DependencyProperty EventsProperty =
             DependencyProperty.RegisterAttached(
                 "Events",
                 typeof(CustomEventCollection),
@@ -46,17 +46,17 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEvents(DependencyObject d, CustomEventCollection value) =>
-            d.SetValue(eventsProperty, value);
+            d.SetValue(EventsProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEventCollection GetEvents(DependencyObject d)
         {
-            if (d.GetValue(eventsProperty) is null)
-                d.SetValue(eventsProperty, new CustomEventCollection());
-            return (CustomEventCollection)d.GetValue(eventsProperty);
+            if (d.GetValue(EventsProperty) is null)
+                d.SetValue(EventsProperty, new CustomEventCollection());
+            return (CustomEventCollection)d.GetValue(EventsProperty);
         }
 
-        public static readonly DependencyProperty eventTypeProperty =
+        public static readonly DependencyProperty EventTypeProperty =
             DependencyProperty.RegisterAttached(
                 "EventType",
                 typeof(CustomEvent.EventType),
@@ -65,13 +65,13 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventType(DependencyObject d, CustomEvent.EventType value) =>
-            d.SetValue(eventTypeProperty, value);
+            d.SetValue(EventTypeProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static CustomEvent.EventType GetEventType(DependencyObject d) =>
-            (CustomEvent.EventType)d.GetValue(eventTypeProperty);
+            (CustomEvent.EventType)d.GetValue(EventTypeProperty);
 
-        public static readonly DependencyProperty eventDataProperty =
+        public static readonly DependencyProperty EventDataProperty =
             DependencyProperty.RegisterAttached(
                 "EventData",
                 typeof(string),
@@ -80,11 +80,11 @@ namespace PCL
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static void SetEventData(DependencyObject d, string value) =>
-            d.SetValue(eventDataProperty, value);
+            d.SetValue(EventDataProperty, value);
 
         [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
         public static string GetEventData(DependencyObject d) =>
-            (string)d.GetValue(eventDataProperty);
+            (string)d.GetValue(EventDataProperty);
     }
 
     /// <summary>

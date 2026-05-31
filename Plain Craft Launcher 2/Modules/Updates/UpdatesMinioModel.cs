@@ -148,7 +148,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         {
             versionName = deJsonData.version.name,
             versionCode = deJsonData.version.code,
-            sHA256 = deJsonData.sha256,
+            sha256 = deJsonData.sha256,
             source = SourceName,
             changelog = deJsonData.changelog
         };

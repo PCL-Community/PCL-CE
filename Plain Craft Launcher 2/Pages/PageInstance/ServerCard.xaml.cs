@@ -36,8 +36,8 @@ public partial class ServerCard
             "<Viewbox xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Width=\"20\" Height=\"20\"><Canvas UseLayoutRounding=\"False\" Width=\"1024.0\" Height=\"1024.0\"><Canvas.Clip><RectangleGeometry Rect=\"0.0,0.0,1024.0,1024.0\"/></Canvas.Clip><Path Fill=\"#ff000000\"><Path.Data><PathGeometry Figures=\"M 256 490.667 a 64 64 0 1 1 -128 0 a 64 64 0 0 1 128 0 z m -42.6667 0 a 21.3333 21.3333 0 1 0 -42.6667 0 a 21.3333 21.3333 0 0 0 42.6667 0 z m 384 0 a 106.667 106.667 0 1 1 -213.376 -0.042667 A 106.667 106.667 0 0 1 597.333 490.667 z m -42.6667 0 a 64 64 0 1 0 -128.043 0.042666 A 64 64 0 0 0 554.667 490.667 z m 298.667 0 a 64 64 0 1 1 -128 0 a 64 64 0 0 1 128 0 z m -42.6667 0 a 21.3333 21.3333 0 1 0 -42.6667 0 a 21.3333 21.3333 0 0 0 42.6667 0 z\" FillRule=\"Nonzero\"/></Path.Data></Path></Canvas></Viewbox>");
     }
 
-    public event EventHandler? removeServer;
-    public event EventHandler? editServer;
+    public event EventHandler? RemoveServer;
+    public event EventHandler? EditServer;
 
     private void BtnSkin_Click(object sender, EventArgs eventArgs)
     {
@@ -198,7 +198,7 @@ public partial class ServerCard
             var result = PageInstanceServer.GetServerInfo(server);
             if (!result.Success) return;
 
-            editServer?.Invoke(this, new ResultEventArgs(result.Name, result.Address));
+            EditServer?.Invoke(this, new ResultEventArgs(result.Name, result.Address));
         }
 
         // Update server object
@@ -217,7 +217,7 @@ public partial class ServerCard
                 Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
                 Lang.Text("Instance.Server.Card.RemoveConfirmTitle"), Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Common.Action.Cancel")
-            ) == 1) removeServer?.Invoke(this, EventArgs.Empty);
+            ) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
     }
 
     public class ResultEventArgs : EventArgs

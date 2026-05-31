@@ -71,8 +71,8 @@ public partial class PageLaunchLeft
         ModAnimation.AniControlEnabled += 1;
 
         // 开始按钮
-        ModMinecraft.mcInstanceListLoader.loadingStateChanged += (_, _) => RefreshButtonsUI();
-        ModMinecraft.mcFolderListLoader.loadingStateChanged += (_, _) => RefreshButtonsUI();
+        ModMinecraft.mcInstanceListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
+        ModMinecraft.mcFolderListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
         RefreshButtonsUI();
 
         // 初始化档案

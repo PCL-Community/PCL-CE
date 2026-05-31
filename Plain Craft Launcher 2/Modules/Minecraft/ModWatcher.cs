@@ -179,7 +179,7 @@ public static class ModWatcher
             Canceled
         }
 
-        private readonly int pID;
+        private readonly int pid;
 
         /// <summary>
         ///     是否处理实时日志。
@@ -236,7 +236,7 @@ public static class ModWatcher
             this.version = Version;
             this.windowTitle = WindowTitle;
             realTime = OutputRealTime;
-            pID = Loader.input.Id;
+            pid = Loader.input.Id;
             this.jStackPath = JStackPath;
 
             WatcherLog("开始 Minecraft 日志监控");
@@ -299,7 +299,7 @@ public static class ModWatcher
                     ModBase.Log(ex, "Minecraft 日志监控主循环出错", ModBase.LogLevel.Feedback);
                     State = MinecraftState.Ended;
                 }
-            }, "Minecraft Watcher PID " + pID);
+            }, "Minecraft Watcher PID " + pid);
         }
 
         public MinecraftState State
@@ -323,7 +323,7 @@ public static class ModWatcher
         /// <summary>
         ///     游戏退出时触发。
         /// </summary>
-        public event GameExitEventHandler? gameExit;
+        public event GameExitEventHandler? GameExit;
 
         private void LogReceived(object sender, DataReceivedEventArgs e)
         {
@@ -382,13 +382,13 @@ public static class ModWatcher
                 }
             }
 
-            logOutput?.Invoke(this, new LogOutputEventArgs(line, color));
+            LogOutput?.Invoke(this, new LogOutputEventArgs(line, color));
         }
 
         /// <summary>
         ///     有新的日志输出，日志计数器发生改变时触发。
         /// </summary>
-        public event LogOutputEventHandler? logOutput;
+        public event LogOutputEventHandler? LogOutput;
 
         private void TimerLog()
         {
@@ -419,7 +419,7 @@ public static class ModWatcher
                         LogRealTime($"Minecraft 已退出，返回值：{gameProcess.ExitCode}", ref arglevel);
                     }
 
-                    gameExit?.Invoke();
+                    GameExit?.Invoke();
                     // If Process.ExitCode = 1 Then
                     // '返回值为 1，考虑是任务管理器结束
                     // WatcherLog("Minecraft 返回值为 1，考虑为任务管理器结束") '并不，崩了照样是 1
@@ -534,7 +534,7 @@ public static class ModWatcher
 
         private void WatcherLog(string Text)
         {
-            ModLaunch.McLaunchLog("[" + pID + "] " + Text);
+            ModLaunch.McLaunchLog("[" + pid + "] " + Text);
         }
 
         private void ProgressUpdate()
@@ -703,7 +703,7 @@ public static class ModWatcher
                     Thread.Sleep(2000);
                     WatcherLog("崩溃分析开始");
                     ;
-                    var analyzer = new CrashAnalyzer(pID);
+                    var analyzer = new CrashAnalyzer(pid);
                     analyzer.Collect(version.PathIndie, latestLog.ToList());
                     analyzer.Prepare();
                     analyzer.Analyze(version);
@@ -771,7 +771,7 @@ public static class ModWatcher
                         LogRealTime($"Minecraft 已退出，返回值：{gameProcess.ExitCode}", ref arglevel);
                     }
 
-                    gameExit?.Invoke();
+                    GameExit?.Invoke();
                 }
                 catch (Exception ex)
                 {

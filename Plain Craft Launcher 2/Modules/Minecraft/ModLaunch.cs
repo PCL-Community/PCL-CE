@@ -1151,8 +1151,8 @@ public static class ModLaunch
 
         var resultJson = (JsonObject)ModBase.GetJson(result);
         var xSTSToken = resultJson["Token"].ToString();
-        var uHS = resultJson["DisplayClaims"]["xui"][0]["uhs"].ToString();
-        return new[] { xSTSToken, uHS };
+        var uhs = resultJson["DisplayClaims"]["xui"][0]["uhs"].ToString();
+        return new[] { xSTSToken, uhs };
     }
 
     /// <summary>
@@ -1341,9 +1341,9 @@ public static class ModLaunch
         }
 
         var resultJson = (JsonObject)ModBase.GetJson(result);
-        var uUID = resultJson["id"].ToString();
+        var uuid = resultJson["id"].ToString();
         var userName = resultJson["name"].ToString();
-        return new[] { uUID, userName, result };
+        return new[] { uuid, userName, result };
     }
 
     #endregion
@@ -1631,11 +1631,11 @@ public static class ModLaunch
                 // 要求选择档案；优先从缓存读取
                 needRefresh = true;
                 var cacheId = ModProfile.selectedProfile is not null ? ModProfile.selectedProfile.uuid : "";
-                foreach (var Profile in loginJson["availableProfiles"].AsArray())
-                    if ((Profile["id"].ToString() ?? "") == (cacheId ?? ""))
+                foreach (var profile in loginJson["availableProfiles"].AsArray())
+                    if ((profile["id"].ToString() ?? "") == (cacheId ?? ""))
                     {
-                        selectedName = Profile["name"].ToString();
-                        selectedId = Profile["id"].ToString();
+                        selectedName = profile["name"].ToString();
+                        selectedId = profile["id"].ToString();
                         ModProfile.ProfileLog("根据缓存选择的角色：" + selectedName);
                     }
 
@@ -1647,10 +1647,10 @@ public static class ModLaunch
                     {
                         var selectionControl = new List<IMyRadio>();
                         var selectionJson = new List<JsonNode>();
-                        foreach (var Profile in loginJson["availableProfiles"].AsArray())
+                        foreach (var profile in loginJson["availableProfiles"].AsArray())
                         {
-                            selectionControl.Add(new MyRadioBox { Text = Profile["name"].ToString() });
-                            selectionJson.Add(Profile);
+                            selectionControl.Add(new MyRadioBox { Text = profile["name"].ToString() });
+                            selectionJson.Add(profile);
                         }
 
                         var selectedIndex = (int)ModMain.MyMsgBoxSelect(selectionControl, Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"));
@@ -2337,8 +2337,8 @@ public static class ModLaunch
         if (Config.Launch.GameWindowMode == 0)
             arguments += " --fullscreen";
         // 由 Option 传入的额外参数
-        foreach (var Arg in currentLaunchOptions.extraArgs)
-            arguments += " " + Arg.Trim();
+        foreach (var arg in currentLaunchOptions.extraArgs)
+            arguments += " " + arg.Trim();
         // 自定义参数
         var argumentGame = Config.Instance.GameArgs[ModMinecraft.McInstanceSelected?.PathInstance];
         arguments = arguments + " " + (string.IsNullOrEmpty(argumentGame) ? Config.Launch.GameArgs : argumentGame);
@@ -2352,11 +2352,11 @@ public static class ModLaunch
         }
 
         var finalArguments = "";
-        foreach (var ArgumentRaw in arguments.Split(" "))
+        foreach (var argumentRaw in arguments.Split(" "))
         {
-            var argument = ArgumentRaw;
-            foreach (var Entry in replaceArguments)
-                argument = argument.Replace(Entry.Key, Entry.Value);
+            var argument = argumentRaw;
+            foreach (var entry in replaceArguments)
+                argument = argument.Replace(entry.Key, entry.Value);
             if ((argument.Contains(" ") || argument.Contains(@":\")) && !argument.EndsWithF("\""))
                 argument = $"\"{argument}\"";
             finalArguments += argument + " ";
@@ -2514,20 +2514,20 @@ public static class ModLaunch
         {
             if (currentInstance.JsonObject["arguments"] is not null &&
                 currentInstance.JsonObject["arguments"]["jvm"] is not null)
-                foreach (var SubJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
-                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                foreach (var subJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
+                    if (subJson.GetValueKind() == JsonValueKind.String)
                     {
                         // 字符串类型
-                        dataList.Add(SubJson.ToString());
+                        dataList.Add(subJson.ToString());
                     }
                     // 非字符串类型
-                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    else if (ModMinecraft.McJsonRuleCheck(subJson["rules"]))
                     {
                         // 满足准则
-                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
-                            dataList.Add(SubJson["value"].ToString());
+                        if (subJson["value"].GetValueKind() == JsonValueKind.String)
+                            dataList.Add(subJson["value"].ToString());
                         else
-                            foreach (var value in SubJson["value"].AsArray())
+                            foreach (var value in subJson["value"].AsArray())
                                 dataList.Add(value.ToString());
                     }
 
@@ -2715,20 +2715,20 @@ public static class ModLaunch
         {
             if (currentInstance.JsonObject["arguments"] is not null &&
                 currentInstance.JsonObject["arguments"]["game"] is not null)
-                foreach (var SubJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
-                    if (SubJson.GetValueKind() == JsonValueKind.String)
+                foreach (var subJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
+                    if (subJson.GetValueKind() == JsonValueKind.String)
                     {
                         // 字符串类型
-                        dataList.Add(SubJson.ToString());
+                        dataList.Add(subJson.ToString());
                     }
                     // 非字符串类型
-                    else if (ModMinecraft.McJsonRuleCheck(SubJson["rules"]))
+                    else if (ModMinecraft.McJsonRuleCheck(subJson["rules"]))
                     {
                         // 满足准则
-                        if (SubJson["value"].GetValueKind() == JsonValueKind.String)
-                            dataList.Add(SubJson["value"].ToString());
+                        if (subJson["value"].GetValueKind() == JsonValueKind.String)
+                            dataList.Add(subJson["value"].ToString());
                         else
-                            foreach (var value in SubJson["value"].AsArray())
+                            foreach (var value in subJson["value"].AsArray())
                                 dataList.Add(value.ToString());
                     }
 
@@ -2835,7 +2835,7 @@ public static class ModLaunch
                 ModBase.RunInUiWait(() => result = new Size(ModBase.GetPixelSize(ModMain.frmMain.PanForm.ActualWidth),
                     ModBase.GetPixelSize(ModMain.frmMain.PanForm.ActualHeight)));
                 gameSize = result;
-                gameSize.Height -= 29.5d * ModBase.dPI / 96d; // 标题栏高度
+                gameSize.Height -= 29.5d * ModBase.dpi / 96d; // 标题栏高度
                 break;
             }
             case GameWindowSizeMode.Custom: // 自定义
@@ -2859,8 +2859,8 @@ public static class ModLaunch
         {
             // 修复 #3463：1.12.2-，JRE 8u200~321 下窗口大小为设置大小的 DPI% 倍
             McLaunchLog($"已应用窗口大小过大修复（{mcLaunchJavaSelected.Installation.Version.Revision}）");
-            gameSize.Width /= ModBase.dPI / 96d;
-            gameSize.Height /= ModBase.dPI / 96d;
+            gameSize.Width /= ModBase.dpi / 96d;
+            gameSize.Height /= ModBase.dpi / 96d;
         }
 
         gameArguments.Add("${resolution_width}", Math.Round(gameSize.Width).ToString(CultureInfo.InvariantCulture));
@@ -2908,20 +2908,20 @@ public static class ModLaunch
             }
         }
 
-        foreach (var Library in libList)
+        foreach (var library in libList)
         {
-            if (Library.isNatives)
+            if (library.isNatives)
                 continue;
             if (ModMinecraft.McInstanceSelected.Info.hasCleanroom 
-                && Library.originalName is not null 
-                && (Library.originalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
-                    || Library.originalName.Contains("net.java.dev.jna:platform:3.4.0")
-                    || Library.originalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
+                && library.originalName is not null 
+                && (library.originalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
+                    || library.originalName.Contains("net.java.dev.jna:platform:3.4.0")
+                    || library.originalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
                 continue;
-            if (Library.Name is not null && Library.Name == "optifine:OptiFine")
-                optiFineCp = Library.localPath;
+            if (library.Name is not null && library.Name == "optifine:OptiFine")
+                optiFineCp = library.localPath;
             else
-                cpStrings.Add(Library.localPath);
+                cpStrings.Add(library.localPath);
         }
 
         foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
@@ -2951,25 +2951,25 @@ public static class ModLaunch
         // 解压文件
         McLaunchLog("正在解压 Natives 文件");
         var existFiles = new List<string>();
-        foreach (var Native in Loader.input)
+        foreach (var native in Loader.input)
         {
-            if (!Native.isNatives)
+            if (!native.isNatives)
                 continue;
             ZipArchive zip;
             try
             {
-                zip = new ZipArchive(new FileStream(Native.localPath, FileMode.Open));
+                zip = new ZipArchive(new FileStream(native.localPath, FileMode.Open));
             }
             catch (InvalidDataException ex)
             {
-                ModBase.Log(ex, "打开 Natives 文件失败（" + Native.localPath + "）");
-                File.Delete(Native.localPath);
-                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", Native.localPath));
+                ModBase.Log(ex, "打开 Natives 文件失败（" + native.localPath + "）");
+                File.Delete(native.localPath);
+                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", native.localPath));
             }
 
-            foreach (var Entry in zip.Entries)
+            foreach (var entry in zip.Entries)
             {
-                var fileName = Entry.FullName;
+                var fileName = entry.FullName;
                 if (fileName.EndsWithF(".dll", true))
                 {
                     // 实际解压文件的步骤
@@ -2978,7 +2978,7 @@ public static class ModLaunch
                     var originalFile = new FileInfo(filePath);
                     if (originalFile.Exists)
                     {
-                        if (originalFile.Length == Entry.Length)
+                        if (originalFile.Length == entry.Length)
                         {
                             if (ModBase.modeDebug)
                                 McLaunchLog("无需解压：" + filePath);
@@ -2999,7 +2999,7 @@ public static class ModLaunch
                     }
 
                     // 解压新文件
-                    ModBase.WriteFile(filePath, Entry.Open());
+                    ModBase.WriteFile(filePath, entry.Open());
                     McLaunchLog("已解压：" + filePath);
                 }
             }
@@ -3009,14 +3009,14 @@ public static class ModLaunch
         }
 
         // 删除多余文件
-        foreach (var FileName in Directory.GetFiles(target))
+        foreach (var fileName in Directory.GetFiles(target))
         {
-            if (existFiles.Contains(FileName))
+            if (existFiles.Contains(fileName))
                 continue;
             try
             {
-                McLaunchLog("删除：" + FileName);
-                File.Delete(FileName);
+                McLaunchLog("删除：" + fileName);
+                File.Delete(fileName);
             }
             catch (UnauthorizedAccessException ex)
             {

@@ -178,11 +178,11 @@ public class MyImage : Image
 
     public bool EnableCache
     {
-        get => (bool)GetValue(enableCacheProperty);
-        set => SetValue(enableCacheProperty, value);
+        get => (bool)GetValue(EnableCacheProperty);
+        set => SetValue(EnableCacheProperty, value);
     }
 
-    public new static readonly DependencyProperty enableCacheProperty =
+    public new static readonly DependencyProperty EnableCacheProperty =
         DependencyProperty.Register("EnableCache", typeof(bool), typeof(MyImage), new PropertyMetadata(true));
 
     /// <summary>
@@ -208,7 +208,7 @@ public class MyImage : Image
 
     private string _Source = "";
 
-    public new static readonly DependencyProperty sourceProperty = DependencyProperty.Register("Source", typeof(string),
+    public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyImage)sender).Source = e.NewValue.ToString();

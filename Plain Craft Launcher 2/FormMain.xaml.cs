@@ -222,7 +222,7 @@ public partial class FormMain
                 RenderTransform = null;
                 isWindowLoadFinished = true;
                 ModBase.Log(
-                    $"[System] DPI：{ModBase.dPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
+                    $"[System] DPI：{ModBase.dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
             }, After: true)
         }, "Form Show");
         // Timer 启动
@@ -397,23 +397,23 @@ public partial class FormMain
     private nint _SizeWndProc(nint hWnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
         // 窗口活动常量
-        const int wM_NCHITTEST = 0x84;
-        const int hTCLIENT = 1;
-        const int hTLEFT = 10;
-        const int hTRIGHT = 11;
-        const int hTTOP = 12;
-        const int hTTOPLEFT = 13;
-        const int hTTOPRIGHT = 14;
-        const int hTBOTTOM = 15;
-        const int hTBOTTOMLEFT = 16;
-        const int hTBOTTOMRIGHT = 17;
+        const int WM_NCHITTEST = 0x84;
+        const int HTCLIENT = 1;
+        const int HTLEFT = 10;
+        const int HTRIGHT = 11;
+        const int HTTOP = 12;
+        const int HTTOPLEFT = 13;
+        const int HTTOPRIGHT = 14;
+        const int HTBOTTOM = 15;
+        const int HTBOTTOMLEFT = 16;
+        const int HTBOTTOMRIGHT = 17;
 
         // WPF 尺寸的 offset
         const int offsetWpf = 6;
         const int hitWidthWpf = 5;
 
         // 过滤非 WM_NCHITTEST 事件
-        if (msg != wM_NCHITTEST)
+        if (msg != WM_NCHITTEST)
             return nint.Zero;
 
         // 提取鼠标坐标
@@ -436,7 +436,7 @@ public partial class FormMain
 
         // 如果 CanResize 为 False，直接返回 HTCLIENT
         if (!canResize)
-            return new nint(hTCLIENT);
+            return new nint(HTCLIENT);
 
         // 真实像素尺寸的 offset
         var dpi = VisualTreeHelper.GetDpi(this);
@@ -461,24 +461,24 @@ public partial class FormMain
 
         // 返回结果
         if (inTop && inLeft)
-            return new nint(hTTOPLEFT);
+            return new nint(HTTOPLEFT);
         if (inTop && inRight)
-            return new nint(hTTOPRIGHT);
+            return new nint(HTTOPRIGHT);
         if (inBottom && inLeft)
-            return new nint(hTBOTTOMLEFT);
+            return new nint(HTBOTTOMLEFT);
         if (inBottom && inRight)
-            return new nint(hTBOTTOMRIGHT);
+            return new nint(HTBOTTOMRIGHT);
         if (inLeft)
-            return new nint(hTLEFT);
+            return new nint(HTLEFT);
         if (inRight)
-            return new nint(hTRIGHT);
+            return new nint(HTRIGHT);
         if (inTop)
-            return new nint(hTTOP);
+            return new nint(HTTOP);
         if (inBottom)
-            return new nint(hTBOTTOM);
+            return new nint(HTBOTTOM);
 
         // 如果在 0-offset 范围内，返回 HTCLIENT 杀掉默认缩放
-        return new nint(hTCLIENT);
+        return new nint(HTCLIENT);
     }
 
     protected override void OnSourceInitialized(EventArgs e)

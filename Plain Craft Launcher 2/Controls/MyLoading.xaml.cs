@@ -19,26 +19,26 @@ public partial class MyLoading
 
     public bool AutoRun { get; set; } = true;
 
-    public event IsErrorChangedEventHandler? isErrorChanged;
-    public event StateChangedEventHandler? stateChanged;
+    public event IsErrorChangedEventHandler? IsErrorChanged;
+    public event StateChangedEventHandler? StateChanged;
     public event ClickEventHandler? Click;
 
     #region 颜色
 
     public SolidColorBrush Foreground
     {
-        get => (SolidColorBrush)GetValue(foregroundProperty);
-        set => SetValue(foregroundProperty, value);
+        get => (SolidColorBrush)GetValue(ForegroundProperty);
+        set => SetValue(ForegroundProperty, value);
     }
 
-    public static readonly DependencyProperty foregroundProperty =
+    public static readonly DependencyProperty ForegroundProperty =
         DependencyProperty.Register("Foreground", typeof(SolidColorBrush), typeof(MyLoading));
 
     public MyLoading()
     {
         InitializeComponent();
-        SetResourceReference(foregroundProperty, "ColorBrush3");
-        isErrorChanged += (_, _) => RefreshText();
+        SetResourceReference(ForegroundProperty, "ColorBrush3");
+        IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();
         Loaded += (_, _) => InitState();
         Loaded += (_, _) => RefreshState();
@@ -69,21 +69,21 @@ public partial class MyLoading
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
-    public static readonly DependencyProperty textProperty =
+    public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register("Text", typeof(string), typeof(MyLoading),
             new PropertyMetadata("", (d, e) => ((MyLoading)d).RefreshText()));
 
     public string TextError
     {
-        get => (string)GetValue(textErrorProperty);
-        set => SetValue(textErrorProperty, value);
+        get => (string)GetValue(TextErrorProperty);
+        set => SetValue(TextErrorProperty, value);
     }
 
-    public static readonly DependencyProperty textErrorProperty =
+    public static readonly DependencyProperty TextErrorProperty =
         DependencyProperty.Register("TextError", typeof(string), typeof(MyLoading),
             new PropertyMetadata("加载失败", (d, e) => ((MyLoading)d).RefreshText()));
 
@@ -157,15 +157,15 @@ public partial class MyLoading
         {
             if (__State is not null)
             {
-                __State.progressChanged -= (_, _) => RefreshText();
-                __State.loadingStateChanged -= (_, _) => RefreshState();
+                __State.ProgressChanged -= (_, _) => RefreshText();
+                __State.LoadingStateChanged -= (_, _) => RefreshState();
             }
 
             __State = value;
             if (__State is not null)
             {
-                __State.progressChanged += (_, _) => RefreshText();
-                __State.loadingStateChanged += (_, _) => RefreshState();
+                __State.ProgressChanged += (_, _) => RefreshText();
+                __State.LoadingStateChanged += (_, _) => RefreshState();
             }
         }
     }
@@ -216,9 +216,9 @@ public partial class MyLoading
             var oldValue = _OuterState;
             _OuterState = value;
             // 引发事件
-            stateChanged?.Invoke(this, value, oldValue);
+            StateChanged?.Invoke(this, value, oldValue);
             if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
-                isErrorChanged?.Invoke(this, value == MyLoadingState.Error);
+                IsErrorChanged?.Invoke(this, value == MyLoadingState.Error);
         }
     }
 
@@ -308,7 +308,7 @@ public partial class MyLoading
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(PanBack, foregroundProperty, "ColorBrushRedLight", 300),
+                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
                     ModAnimation.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + wait),
                     ModAnimation.AaScaleTransform(PathError, 1d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
                         400, 300 + wait, new ModAnimation.AniEaseOutBack())
@@ -323,7 +323,7 @@ public partial class MyLoading
                     ModAnimation.AaOpacity(PathError, -PathError.Opacity, 100),
                     ModAnimation.AaScaleTransform(PathError, 0.5d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
                         200),
-                    ModAnimation.AaColor(PanBack, foregroundProperty, "ColorBrush3", 300)
+                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrush3", 300)
                 }, "MyLoader Error " + uuid);
         }
     }
@@ -365,8 +365,8 @@ public interface ILoadingTrigger
     Exception? Error { get; }
 
     MyLoadingState LoadingState { get; set; }
-    event LoadingStateChangedEventHandler? loadingStateChanged;
-    event ProgressChangedEventHandler? progressChanged;
+    event LoadingStateChangedEventHandler? LoadingStateChanged;
+    event ProgressChangedEventHandler? ProgressChanged;
 }
 
 public class MyLoadingStateSimulator : ILoadingTrigger
@@ -382,7 +382,7 @@ public class MyLoadingStateSimulator : ILoadingTrigger
                 return;
             var oldState = _LoadingState;
             _LoadingState = value;
-            loadingStateChanged?.Invoke(value, oldState);
+            LoadingStateChanged?.Invoke(value, oldState);
         }
     }
 
@@ -391,6 +391,6 @@ public class MyLoadingStateSimulator : ILoadingTrigger
     public double Progress => 0;
     public Exception? Error => null;
 
-    public event ILoadingTrigger.LoadingStateChangedEventHandler? loadingStateChanged;
-    public event ILoadingTrigger.ProgressChangedEventHandler? progressChanged;
+    public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
+    public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 }
