@@ -1,32 +1,19 @@
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using fNbt;
 
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
 /// 26.1-snapshot-6 及之后的存档编辑器（2026 新版本号体系）。
+/// 仅操作内存中的 NbtCompound，文件 IO 由 <see cref="SaveManager"/> 统一处理。
 /// </summary>
 internal sealed class Version261PlusSaveEditor : ISaveEditor
 {
     public bool CanHandle(int? dataVersion)
         => dataVersion >= DataVersionBoundaries._261snapshot6;
 
-    public async Task<bool> ApplyChangesAsync(string levelDatPath, SaveChanges changes, CancellationToken ct)
+    public bool ApplyChanges(NbtCompound data, SaveChanges changes)
     {
         if (changes.IsEmpty)
-            return false;
-
-        var nbtFile = new NbtFile();
-        await Task.Run(() =>
-        {
-            using var fs = new FileStream(levelDatPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true);
-            nbtFile.LoadFromStream(fs, NbtCompression.AutoDetect);
-        }, ct);
-
-        var data = nbtFile.RootTag.Get<NbtCompound>("Data");
-        if (data is null)
             return false;
 
         // 确保 difficulty_settings 复合标签存在
@@ -41,16 +28,7 @@ internal sealed class Version261PlusSaveEditor : ISaveEditor
         changed |= WriteDifficulty(ds!, changes);
         changed |= WriteLocked(ds!, changes);
 
-        if (!changed)
-            return false;
-
-        await Task.Run(() =>
-        {
-            using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-            nbtFile.SaveToStream(fs, NbtCompression.GZip);
-        }, ct);
-
-        return true;
+        return changed;
     }
 
     /// <summary>写入 difficulty_settings.difficulty（字符串型）。</summary>

@@ -154,22 +154,51 @@ public class SaveManager
         var levelDatPath = ResolveLevelDatPath(folderPath)
             ?? throw new SaveNotFoundException(folderPath);
 
-        // 解析 DataVersion 以选择正确的编辑器
-        var dataVersion = ReadDataVersion(levelDatPath);
+        // 一次解析 level.dat，提取 Data 复合标签和 DataVersion
+        NbtFile nbtFile;
+        NbtCompound data;
+        try
+        {
+            nbtFile = new NbtFile();
+            await Task.Run(() =>
+            {
+                using var fs = new FileStream(levelDatPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true);
+                nbtFile.LoadFromStream(fs, NbtCompression.AutoDetect);
+            }, ct).ConfigureAwait(false);
 
+            data = nbtFile.RootTag.Get<NbtCompound>("Data")
+                ?? throw new InvalidDataException("level.dat 中缺少 Data 复合标签");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new SaveCorruptedException(folderPath, $"解析 level.dat 失败：'{levelDatPath}'", ex);
+        }
+
+        var dataVersion = ReadDataVersionFromCompound(data);
+
+        // 匹配编辑器，执行内存修改
         foreach (var editor in _editors)
         {
             if (editor.CanHandle(dataVersion))
             {
                 try
                 {
-                    return await editor.ApplyChangesAsync(levelDatPath, changes, ct).ConfigureAwait(false);
+                    if (!editor.ApplyChanges(data, changes))
+                        return false;
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     throw new SaveCorruptedException(folderPath,
                         $"应用修改失败：'{folderPath}'", ex);
                 }
+
+                // 修改成功，写回文件
+                await Task.Run(() =>
+                {
+                    using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+                    nbtFile.SaveToStream(fs, NbtCompression.GZip);
+                }, ct).ConfigureAwait(false);
+                return true;
             }
         }
 
@@ -244,20 +273,4 @@ public class SaveManager
         return null;
     }
 
-    /// <summary>
-    /// 快速读取 level.dat 的 DataVersion（用于选择编辑器），解析失败返回 null。
-    /// </summary>
-    private static int? ReadDataVersion(string levelDatPath)
-    {
-        try
-        {
-            var nbtFile = new NbtFile(levelDatPath);
-            var data = nbtFile.RootTag.Get<NbtCompound>("Data");
-            return ReadDataVersionFromCompound(data!);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }

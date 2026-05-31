@@ -1,32 +1,19 @@
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using fNbt;
 
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
 /// 26.1 之前的存档编辑器（含整个 1.x 版本体系）。
+/// 仅操作内存中的 NbtCompound，文件 IO 由 <see cref="SaveManager"/> 统一处理。
 /// </summary>
 internal sealed class Pre261SaveEditor : ISaveEditor
 {
     public bool CanHandle(int? dataVersion)
         => dataVersion is null || dataVersion < DataVersionBoundaries._261snapshot6;
 
-    public async Task<bool> ApplyChangesAsync(string levelDatPath, SaveChanges changes, CancellationToken ct)
+    public bool ApplyChanges(NbtCompound data, SaveChanges changes)
     {
         if (changes.IsEmpty)
-            return false;
-
-        var nbtFile = new NbtFile();
-        await Task.Run(() =>
-        {
-            using var fs = new FileStream(levelDatPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true);
-            nbtFile.LoadFromStream(fs, NbtCompression.AutoDetect);
-        }, ct);
-
-        var data = nbtFile.RootTag.Get<NbtCompound>("Data");
-        if (data is null)
             return false;
 
         var changed = false;
@@ -34,16 +21,7 @@ internal sealed class Pre261SaveEditor : ISaveEditor
         changed |= WriteDifficulty(data, changes);
         changed |= WriteDifficultyLocked(data, changes);
 
-        if (!changed)
-            return false;
-
-        await Task.Run(() =>
-        {
-            using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-            nbtFile.SaveToStream(fs, NbtCompression.GZip);
-        }, ct);
-
-        return true;
+        return changed;
     }
 
     /// <summary>写入 Data.allowCommands（字节型：0/1）。仅当该字段原本存在时才写入，避免向 pre-1.3.1 存档添加新字段。</summary>
