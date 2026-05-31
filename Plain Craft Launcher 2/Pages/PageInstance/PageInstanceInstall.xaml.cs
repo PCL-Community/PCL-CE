@@ -38,6 +38,20 @@ public partial class PageInstanceInstall
         disabledPageAnimControls.Add(BtnSelectStart);
         // PageLoaderInit(LoadMinecraft, PanLoad, PanBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, null, ModDownload.dlClientListLoader, _ => GetCurrentInfo());
+        LoadOptiFine.StateChanged += (_, _, _) => { OptiFine_Loaded(); ReloadSelected(); };
+        LoadLiteLoader.StateChanged += (_, _, _) => { LiteLoader_Loaded(); ReloadSelected(); };
+        LoadForge.StateChanged += (_, _, _) => { Forge_Loaded(); ReloadSelected(); };
+        LoadNeoForge.StateChanged += (_, _, _) => { NeoForge_Loaded(); ReloadSelected(); };
+        LoadCleanroom.StateChanged += (_, _, _) => { Cleanroom_Loaded(); ReloadSelected(); };
+        LoadFabric.StateChanged += (_, _, _) => { Fabric_Loaded(); ReloadSelected(); };
+        LoadFabricApi.StateChanged += (_, _, _) => { FabricApi_Loaded(); ReloadSelected(); };
+        LoadLegacyFabric.StateChanged += (_, _, _) => { LegacyFabric_Loaded(); ReloadSelected(); };
+        LoadLegacyFabricApi.StateChanged += (_, _, _) => { LegacyFabricApi_Loaded(); ReloadSelected(); };
+        LoadQuilt.StateChanged += (_, _, _) => { Quilt_Loaded(); ReloadSelected(); };
+        LoadQSL.StateChanged += (_, _, _) => { QSL_Loaded(); ReloadSelected(); };
+        LoadOptiFabric.StateChanged += (_, _, _) => { OptiFabric_Loaded(); ReloadSelected(); };
+        LoadLabyMod.StateChanged += (_, _, _) => { LabyMod_Loaded(); ReloadSelected(); };
+        PageExit += () => isInSelectPage = false;
     }
 
     private void Init()
@@ -62,12 +76,12 @@ public partial class PageInstanceInstall
         ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlOptiFabricLoader.Start(isForceRestart: needRefresh);
 
-        // 重载预览
-        ReloadSelected();
-
         // 非重复加载部分
         if (isLoad)
+        {
+            ReloadSelected();
             return;
+        }
         isLoad = true;
 
         ModDownloadLib.McDownloadForgeRecommendedRefresh();
