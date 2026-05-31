@@ -20,7 +20,7 @@ public partial class MyHint
         Yellow = 2
     }
 
-    public static readonly DependencyProperty isWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
+    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
         typeof(MyHint),
         new PropertyMetadata(true,
             (d, e) =>
@@ -29,7 +29,7 @@ public partial class MyHint
                 f.Theme = e.NewValue is not null ? Themes.Red : Themes.Blue;
             }));
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyHint), new PropertyMetadata("", (d, e) =>
         {
             var f = (MyHint)d;
@@ -90,8 +90,8 @@ public partial class MyHint
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
     // 关闭按钮

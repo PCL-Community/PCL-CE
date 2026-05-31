@@ -149,22 +149,22 @@ public partial class PageComp
     /// </summary>
     public ItemCollection SearchTags => ComboSearchTag.Items;
 
-    public static readonly DependencyProperty supportCurseForgeProperty =
+    public static readonly DependencyProperty SupportCurseForgeProperty =
         DependencyProperty.Register("SupportCurseForge", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
 
     public bool SupportCurseForge
     {
-        get => (bool)GetValue(supportCurseForgeProperty);
-        set => SetValue(supportCurseForgeProperty, value);
+        get => (bool)GetValue(SupportCurseForgeProperty);
+        set => SetValue(SupportCurseForgeProperty, value);
     }
 
-    public static readonly DependencyProperty supportModrinthProperty =
+    public static readonly DependencyProperty SupportModrinthProperty =
         DependencyProperty.Register("SupportModrinth", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
 
     public bool SupportModrinth
     {
-        get => (bool)GetValue(supportModrinthProperty);
-        set => SetValue(supportModrinthProperty, value);
+        get => (bool)GetValue(SupportModrinthProperty);
+        set => SetValue(SupportModrinthProperty, value);
     }
 
     /// <summary>
@@ -219,11 +219,11 @@ public partial class PageComp
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
-        Load.stateChanged += Load_State;
+        Load.StateChanged += Load_State;
         BtnPageFirst.Click += BtnPageFirst_Click;
         BtnPageLeft.Click += BtnPageLeft_Click;
         BtnPageRight.Click += BtnPageRight_Click;
-        PanSearchBox.search += (_, _) => StartNewSearch();
+        PanSearchBox.Search += (_, _) => StartNewSearch();
         PanSearchBox.KeyDown += EnterTrigger;
         TextSearchVersion.KeyDown += EnterTrigger;
         BtnSearchReset.Click += (_, _) => ResetFilter();

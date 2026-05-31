@@ -2052,7 +2052,7 @@ public static class ModDownloadLib
                             originalName = originalName,
                             Url = (string)clientMappings["url"],
                             size = (long)clientMappings["size"],
-                            sHA1 = (string)clientMappings["sha1"]
+                            sha1 = (string)clientMappings["sha1"]
                         });
                         ModBase.Log(
                             $"[Download] 需要下载 Mappings：{clientMappings["url"]} (SHA1: {clientMappings["sha1"]})");
@@ -3663,7 +3663,7 @@ public static class ModDownloadLib
         /// <summary>
         ///     若 MMC 整合包安装包含特殊参数，则填写此项。
         /// </summary>
-        public ModModpack.MMCPackInfo mMCPackInfo = null;
+        public ModModpack.MMCPackInfo mmcPackInfo = null;
 
         /// <summary>
         ///     欲下载的 NeoForge。
@@ -3695,7 +3695,7 @@ public static class ModDownloadLib
         /// <summary>
         ///     欲下载的 Quilted Fabric API (QFAPI) / Quilt Standard Libraries (QSL) 信息。
         /// </summary>
-        public ModComp.CompFile qSL = null;
+        public ModComp.CompFile qsl = null;
 
         /// <summary>
         ///     欲下载的 Quilt Loader 版本名。
@@ -3994,10 +3994,10 @@ public static class ModDownloadLib
                     new List<DownloadFile> { request.legacyFabricApi.ToNetFile(modsTempFolder) })
                 { ProgressWeight = 3d, block = false });
         // Quilted Fabric API (QFAPI) / Quilt Standard Libraries (QSL)
-        if (request.qSL is not null)
+        if (request.qsl is not null)
             loaderList.Add(
                 new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadQfapiQsl"),
-                        new List<DownloadFile> { request.qSL.ToNetFile(modsTempFolder) })
+                        new List<DownloadFile> { request.qsl.ToNetFile(modsTempFolder) })
                     { ProgressWeight = 3d, block = false });
         // OptiFabric
         if (request.optiFabric is not null)
@@ -4142,7 +4142,7 @@ public static class ModDownloadLib
             // 合并 JSON
             MergeJson(instanceFolder, instanceFolder, optiFineFolder, optiFineAsMod, forgeFolder, request.forgeVersion,
                 neoForgeFolder, request.neoForgeVersion, cleanroomFolder, request.cleanroomVersion, fabricFolder,
-                quiltFolder, labyModFolder, request.labyModChannel, liteLoaderFolder, request.mMCPackInfo,
+                quiltFolder, labyModFolder, request.labyModChannel, liteLoaderFolder, request.mmcPackInfo,
                 legacyFabricFolder);
             task.Progress = 0.2d;
             // 迁移文件

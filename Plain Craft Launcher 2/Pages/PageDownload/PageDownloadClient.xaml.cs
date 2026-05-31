@@ -73,7 +73,7 @@ public partial class PageDownloadClient
 
             var panInfo = new StackPanel
             {
-                Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
                 RenderTransform = new TranslateTransform(0d, 0d), Tag = topestVersions
             };
 
@@ -98,12 +98,12 @@ public partial class PageDownloadClient
                     { Title = McVersionClassifier.GetCategoryDisplayName(Pair.Key) + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.InstallMethod = PutMethod;
                 newCard.IsSwapped = true;
                 PanMain.Children.Add(newCard);

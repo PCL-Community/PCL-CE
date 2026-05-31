@@ -88,12 +88,11 @@ public class MyBitmap
 
     public MyBitmap(ImageSource image)
     {
-        using (var mS = new MemoryStream())
+        using (var ms = new MemoryStream())
         {
             var encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image));
-            encoder.Save(mS);
-            pic = new Bitmap(mS);
+            encoder.Save(ms);
         }
     }
 
@@ -109,12 +108,11 @@ public class MyBitmap
 
     public MyBitmap(ImageBrush image)
     {
-        using (var mS = new MemoryStream())
+        using (var ms = new MemoryStream())
         {
             var encoder = new BmpBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.ImageSource));
-            encoder.Save(mS);
-            pic = new Bitmap(mS);
+            encoder.Save(ms);
         }
     }
 

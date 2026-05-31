@@ -22,7 +22,7 @@ public partial class MyCheckBox
     private const int animationTimeOfMouseOut = 200;
 
     // 在使用 XAML 设置 Checked 属性时，不会触发 Checked_Set 方法，所以需要在这里手动触发 UI 改变
-    public static readonly DependencyProperty checkedProperty = DependencyProperty.Register("Checked", typeof(bool?),
+    public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool?),
         typeof(MyCheckBox), new PropertyMetadata(false, (d, e) =>
         {
             var obj = (MyCheckBox)d;
@@ -32,10 +32,10 @@ public partial class MyCheckBox
     /// <summary>
     ///     是否为三态复选框。
     /// </summary>
-    public static readonly DependencyProperty isThreeStateProperty =
+    public static readonly DependencyProperty IsThreeStateProperty =
         DependencyProperty.Register("IsThreeState", typeof(bool), typeof(MyCheckBox), new PropertyMetadata(false));
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyCheckBox), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyCheckBox)sender).LabText.Text = (string)e.NewValue;
@@ -67,22 +67,22 @@ public partial class MyCheckBox
     // 自定义属性
     public bool? Checked
     {
-        get => (bool?)GetValue(checkedProperty);
+        get => (bool?)GetValue(CheckedProperty);
         set => SetChecked(value, false);
     }
 
     public bool IsThreeState
     {
-        get => (bool)GetValue(isThreeStateProperty);
-        set => SetValue(isThreeStateProperty, value);
+        get => (bool)GetValue(IsThreeStateProperty);
+        set => SetValue(IsThreeStateProperty, value);
     } // 是否为三态复选框
 
     public InlineCollection Inlines => LabText.Inlines;
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     } // 内容
 
     /// <summary>
@@ -123,7 +123,7 @@ public partial class MyCheckBox
             var isChecked = GetFinalState(value, IsThreeState);
 
             _previousState = Checked; // 记录上一次的勾选状态
-            SetValue(checkedProperty, isChecked);
+            SetValue(CheckedProperty, isChecked);
             if (IsLoaded)
                 Change?.Invoke(this, user);
 

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App;
+namespace PCL.Core.App;
 
 /// <summary>
 /// 联机协议偏好

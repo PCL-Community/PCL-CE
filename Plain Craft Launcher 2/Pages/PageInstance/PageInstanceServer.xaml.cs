@@ -42,8 +42,8 @@ public partial class PageInstanceServer : MyPageRight
         foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.removeServer += RemoveServerEvent;
-            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += RemoveServerEvent;
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -215,8 +215,8 @@ public partial class PageInstanceServer : MyPageRight
             RefreshTip();
 
             var serverCard = new ServerCard();
-            serverCard.removeServer += RemoveServerEvent;
-            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += RemoveServerEvent;
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(newServer);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -338,8 +338,8 @@ public partial class PageInstanceServer : MyPageRight
         foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.removeServer += RemoveServerEvent;
-            serverCard.editServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += RemoveServerEvent;
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);

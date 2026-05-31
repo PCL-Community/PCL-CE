@@ -22,14 +22,14 @@ public partial class MyButton
     private const int animationColorIn = 100;
     private const int animationColorOut = 200;
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
     // 属性穿透
-    public new static readonly DependencyProperty paddingProperty = DependencyProperty.Register("Padding",
+    public new static readonly DependencyProperty PaddingProperty = DependencyProperty.Register("Padding",
         typeof(Thickness), typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyButton)sender).PanFore.Padding = (Thickness)e.NewValue;
@@ -62,8 +62,8 @@ public partial class MyButton
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     } // 显示文本
 
     public Thickness TextPadding

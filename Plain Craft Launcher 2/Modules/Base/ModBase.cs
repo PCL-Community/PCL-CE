@@ -531,9 +531,9 @@ public static class ModBase
         // 转换为十进制
         var realNum = 0L;
         var scale = 1L;
-        foreach (var Digit in input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
+        foreach (var digit in input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
         {
-            realNum += Digit * scale;
+            realNum += digit * scale;
             scale *= fromRadix;
         }
 
@@ -667,12 +667,12 @@ public static class ModBase
             if (!File.Exists(fileName))
                 return null;
             var ini = new ConcurrentDictionary<string, string>();
-            foreach (var Line in ReadFile(fileName)
+            foreach (var line in ReadFile(fileName)
                          .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
             {
-                var index = Line.IndexOfF(":");
+                var index = line.IndexOfF(":");
                 if (index > 0)
-                    ini[Line.Substring(0, index)] = Line.Substring(index + 1); // 可能会有重复键，见 #3616
+                    ini[line.Substring(0, index)] = line.Substring(index + 1); // 可能会有重复键，见 #3616
             }
 
             iniCache[fileName] = ini;
@@ -756,11 +756,11 @@ public static class ModBase
 
                 // 写入文件
                 var fileContent = new StringBuilder();
-                foreach (var Pair in content)
+                foreach (var pair in content)
                 {
-                    fileContent.Append(Pair.Key);
+                    fileContent.Append(pair.Key);
                     fileContent.Append(":");
-                    fileContent.Append(Pair.Value);
+                    fileContent.Append(pair.Value);
                     fileContent.Append("\r\n");
                 }
 
@@ -1403,21 +1403,21 @@ public static class ModBase
                        encode ?? Encoding.GetEncoding("GB18030")))
             {
                 var totalCount = archive.Entries.Count;
-                foreach (var Entry in archive.Entries)
+                foreach (var entry in archive.Entries)
                 {
                     if (progressIncrementHandler is not null)
                         progressIncrementHandler(1d / totalCount);
-                    var destinationPath = Path.GetFullPath(Path.Combine(destDirectory, Entry.FullName));
+                    var destinationPath = Path.GetFullPath(Path.Combine(destDirectory, entry.FullName));
                     if (!destinationPath.StartsWithF(destDirectory))
                         throw new Exception(
-                            $"解压文件 {Entry.FullName} 错误：解压文件路径 {destinationPath} 不在目标目录 {destDirectory} 内");
+                            $"解压文件 {entry.FullName} 错误：解压文件路径 {destinationPath} 不在目标目录 {destDirectory} 内");
                     if (destinationPath.EndsWithF(@"\") || destinationPath.EndsWithF("/"))
                     {
                     }
                     else
                     {
                         Directory.CreateDirectory(GetPathFromFullPath(destinationPath));
-                        Entry.ExtractToFile(destinationPath, true);
+                        entry.ExtractToFile(destinationPath, true);
                     }
                 }
             }
@@ -1443,14 +1443,14 @@ public static class ModBase
             return 0;
         }
 
-        foreach (var FilePath in files)
+        foreach (var filePath in files)
         {
             var retriedFile = false;
             RetryFile: ;
 
             try
             {
-                File.Delete(FilePath);
+                File.Delete(filePath);
                 deletedCount += 1;
             }
             catch (Exception ex)
@@ -1458,7 +1458,7 @@ public static class ModBase
                 if (!retriedFile)
                 {
                     retriedFile = true;
-                    Log(ex, $"删除文件失败，将在 0.3s 后重试（{FilePath}）");
+                    Log(ex, $"删除文件失败，将在 0.3s 后重试（{filePath}）");
                     Thread.Sleep(300);
                     goto RetryFile;
                 }
@@ -1511,9 +1511,9 @@ public static class ModBase
             toPath += @"\";
         var allFiles = EnumerateFiles(fromPath).ToList();
         var fileCount = allFiles.Count;
-        foreach (var File in allFiles)
+        foreach (var file in allFiles)
         {
-            CopyFile(File.FullName, File.FullName.Replace(fromPath, toPath));
+            CopyFile(file.FullName, file.FullName.Replace(fromPath, toPath));
             if (progressIncrementHandler is not null)
                 progressIncrementHandler(1d / fileCount);
         }
@@ -1546,16 +1546,16 @@ public static class ModBase
     {
         if (!Directory.Exists(targetDir))
             Directory.CreateDirectory(targetDir);
-        foreach (var FilePath in Directory.GetFiles(sourceDir))
+        foreach (var filePath in Directory.GetFiles(sourceDir))
         {
-            var fileName = GetFileNameFromPath(FilePath);
-            File.Move(FilePath, Path.Combine(targetDir, fileName));
+            var fileName = GetFileNameFromPath(filePath);
+            File.Move(filePath, Path.Combine(targetDir, fileName));
         }
 
-        foreach (var DirPath in Directory.GetDirectories(sourceDir))
+        foreach (var dirPath in Directory.GetDirectories(sourceDir))
         {
-            var dirName = GetFolderNameFromPath(DirPath);
-            MoveDirectory(DirPath, Path.Combine(targetDir, dirName));
+            var dirName = GetFolderNameFromPath(dirPath);
+            MoveDirectory(dirPath, Path.Combine(targetDir, dirName));
         }
     }
 
@@ -1670,14 +1670,14 @@ public static class ModBase
     {
         var builder = new StringBuilder();
         var isFirst = true;
-        foreach (var Element in list)
+        foreach (var element in list)
         {
             if (isFirst)
                 isFirst = false;
             else
                 builder.Append(split);
-            if (Element is not null)
-                builder.Append(Element);
+            if (element is not null)
+                builder.Append(element);
         }
 
         return builder.ToString();
@@ -2097,11 +2097,11 @@ public static class ModBase
     {
         var totalWeight = 0d;
         var sum = 0d;
-        foreach (var Pair in source)
+        foreach (var pair in source)
         {
-            if (Pair.aliases.Any())
-                sum += Pair.aliases.Max(a => SearchSimilarity(a, query)) * Pair.weight;
-            totalWeight += Pair.weight;
+            if (pair.aliases.Any())
+                sum += pair.aliases.Max(a => SearchSimilarity(a, query)) * pair.weight;
+            totalWeight += pair.weight;
         }
 
         return sum / totalWeight;
@@ -2179,12 +2179,12 @@ public static class ModBase
         var queryPartsLower = queryParts.Select(q => q.ToLower()).ToArray();
 
         // Process each entry to compute similarity and absolute match status
-        foreach (var Entry in entries)
+        foreach (var entry in entries)
         {
-            Entry.similarity = SearchSimilarityWeighted(Entry.searchSource, query);
+            entry.similarity = SearchSimilarityWeighted(entry.searchSource, query);
 
             // Preprocess search source keys: remove spaces and convert to lowercase
-            var processedSources = Entry.searchSource.Select(s =>
+            var processedSources = entry.searchSource.Select(s =>
             {
                 for (var i = 0; i < s.aliases.Length; i++)
                     s.aliases[i] = s.aliases[i].Replace(" ", "").ToLower();
@@ -2210,7 +2210,7 @@ public static class ModBase
                 }
             }
 
-            Entry.absoluteRight = isAbsoluteRight;
+            entry.absoluteRight = isAbsoluteRight;
         }
 
         // Sort by absolute match (descending), then by similarity (descending)
@@ -2219,15 +2219,15 @@ public static class ModBase
 
         // Build the final result list
         var blurCount = 0;
-        foreach (var Entry in sortedEntries)
-            if (Entry.absoluteRight)
+        foreach (var entry in sortedEntries)
+            if (entry.absoluteRight)
             {
-                resultList.Add(Entry);
+                resultList.Add(entry);
             }
             else
             {
-                if (Entry.similarity < minBlurSimilarity || blurCount >= maxBlurCount) break;
-                resultList.Add(Entry);
+                if (entry.similarity < minBlurSimilarity || blurCount >= maxBlurCount) break;
+                resultList.Add(entry);
                 blurCount += 1;
             }
 
@@ -2481,8 +2481,8 @@ public static class ModBase
     /// </summary>
     public static IEnumerable<T> ForEach<T>(this IEnumerable<T> collection, Action<T> action)
     {
-        foreach (var Item in collection)
-            action(Item);
+        foreach (var item in collection)
+            action(item);
         return collection;
     }
 
@@ -3127,14 +3127,14 @@ public static class ModBase
     }
 
     // DPI 转换
-    public static readonly int dPI = (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
+    public static readonly int dpi = (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
 
     /// <summary>
     ///     将经过 DPI 缩放的 WPF 尺寸转化为实际的像素尺寸。
     /// </summary>
     public static double GetPixelSize(double wPFSize)
     {
-        return wPFSize / 96d * dPI;
+        return wPFSize / 96d * dpi;
     }
 
     /// <summary>
@@ -3142,7 +3142,7 @@ public static class ModBase
     /// </summary>
     public static double GetWPFSize(double pixelSize)
     {
-        return pixelSize * 96d / dPI;
+        return pixelSize * 96d / dpi;
     }
 
     // UI 截图
@@ -3156,7 +3156,7 @@ public static class ModBase
         if (width < 1d || height < 1d)
             return new ImageBrush();
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
-            dPI, dPI, PixelFormats.Pbgra32);
+            dpi, dpi, PixelFormats.Pbgra32);
         bmp.Render(uI);
         return new ImageBrush(bmp);
     }
@@ -3170,7 +3170,7 @@ public static class ModBase
         uI.Measure(new Size(width, height));
         uI.Arrange(new Rect(0d, 0d, width, height));
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
-            dPI, dPI, PixelFormats.Default);
+            dpi, dpi, PixelFormats.Default);
         bmp.Render(uI);
         if (left != 0d || top != 0d)
             uI.Arrange(new Rect(left, top, width, height));
@@ -3220,21 +3220,21 @@ public static class ModBase
             {
                 while (reader.Read())
                 {
-                    foreach (var BlackListType in new[]
+                    foreach (var blackListType in new[]
                              {
                                  typeof(WebBrowser), typeof(Frame), typeof(MediaElement), typeof(ObjectDataProvider),
                                  typeof(XamlReader), typeof(Window), typeof(XmlDataProvider)
                              })
                     {
-                        if (reader.Type is not null && BlackListType.IsAssignableFrom(reader.Type.UnderlyingType))
-                            throw new UnauthorizedAccessException($"不允许使用 {BlackListType.Name} 类型。");
-                        if (reader.Value is not null && Equals(reader.Value, BlackListType.Name))
-                            throw new UnauthorizedAccessException($"不允许使用 {BlackListType.Name} 值。");
+                        if (reader.Type is not null && blackListType.IsAssignableFrom(reader.Type.UnderlyingType))
+                            throw new UnauthorizedAccessException($"不允许使用 {blackListType.Name} 类型。");
+                        if (reader.Value is not null && Equals(reader.Value, blackListType.Name))
+                            throw new UnauthorizedAccessException($"不允许使用 {blackListType.Name} 值。");
                     }
 
-                    foreach (var BlackListMember in new[] { "Code", "FactoryMethod", "Static" })
-                        if (reader.Member is not null && (reader.Member.Name ?? "") == (BlackListMember ?? ""))
-                            throw new UnauthorizedAccessException($"不允许使用 {BlackListMember} 成员。");
+                    foreach (var blackListMember in new[] { "Code", "FactoryMethod", "Static" })
+                        if (reader.Member is not null && (reader.Member.Name ?? "") == (blackListMember ?? ""))
+                            throw new UnauthorizedAccessException($"不允许使用 {blackListMember} 成员。");
                 }
             }
 
@@ -3577,14 +3577,14 @@ public static class ModBase
             // Calculate memory and DPI scale
             var availableMb = phyRam.Available / 1024 / 1024;
             var totalMb = phyRam.Total / 1024 / 1024;
-            var dpiScale = Math.Round(dPI / 96.0, 2);
+            var dpiScale = Math.Round(dpi / 96.0, 2);
 
             // Build diagnostic information string
             var info = $"""
                 [System] Diagnostic Information:
                 OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
                 Memory: {availableMb} MB / {totalMb} MB
-                DPI: {dPI} ({dpiScale * 100}%)
+                DPI: {dpi} ({dpiScale * 100}%)
                 MC Folder: {ModMinecraft.mcFolderSelected ?? "Nothing"}
                 Executable Path: {exePath}
                 """;

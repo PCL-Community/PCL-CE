@@ -1704,7 +1704,7 @@ public static class ModModpack
             }
 
         if (packInfo is not null)
-            request.mMCPackInfo = packInfo;
+            request.mmcPackInfo = packInfo;
         // 构造加载器
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器

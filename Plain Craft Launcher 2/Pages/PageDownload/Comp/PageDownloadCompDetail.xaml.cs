@@ -480,9 +480,9 @@ public partial class PageDownloadCompDetail
         });
         Initialized += PageDownloadCompDetail_Inited;
         Loaded += (_, _) => LoadTargetFromAdditional();
-        pageEnter += Init;
+        PageEnter += Init;
         InitializeComponent();
-        Load.stateChanged += Load_State;
+        Load.StateChanged += Load_State;
         BtnIntroWeb.Click += BtnIntroWeb_Click;
         BtnIntroWiki.Click += BtnIntroWiki_Click;
         BtnIntroCopy.Click += BtnIntroCopy_Click;
@@ -892,13 +892,13 @@ public partial class PageDownloadCompDetail
 
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top,
                     Tag = files
                 };
 
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
 
                 // 延迟加载安装项的逻辑
                 newCard.InstallMethod = stack =>

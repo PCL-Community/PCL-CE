@@ -103,8 +103,8 @@ public static class UpdateManager
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
                     var curHash = ModBase.GetFileSHA256(dlTargetPath);
-                    if ((curHash ?? "") != (version.sHA256 ?? ""))
-                        throw new Exception($"更新文件 SHA256 不正确，应该为 {version.sHA256}，实际为 {curHash}");
+                    if ((curHash ?? "") != (version.sha256 ?? ""))
+                        throw new Exception($"更新文件 SHA256 不正确，应该为 {version.sha256}，实际为 {curHash}");
                 }));
                 if (type == UpdateEnums.UpdateType.UpdateNow)
                     loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", _ => UpdateRestart(true)));
@@ -201,13 +201,13 @@ public static class UpdateManager
             SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception("无法获取更新");
-        if (File.Exists(latestPCLPath) && (ModBase.GetFileSHA256(latestPCLPath) ?? "") == (target.sHA256 ?? ""))
+        if (File.Exists(latestPCLPath) && (ModBase.GetFileSHA256(latestPCLPath) ?? "") == (target.sha256 ?? ""))
         {
             ModBase.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((ModBase.GetFileSHA256(Basics.ExecutablePath) ?? "") == (target.sHA256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((ModBase.GetFileSHA256(Basics.ExecutablePath) ?? "") == (target.sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
             ModBase.CopyFile(Basics.ExecutablePath, latestPCLPath);
             return;

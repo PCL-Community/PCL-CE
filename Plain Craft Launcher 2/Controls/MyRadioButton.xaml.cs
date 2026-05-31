@@ -31,7 +31,7 @@ public partial class MyRadioButton
     private const int animationTimeOfMouseOut = 150; // 鼠标移出动画长度
     private const int animationTimeOfCheck = 120; // 勾选状态变更动画长度
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioButton), new PropertyMetadata((sender, e) =>
         {
             if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Text = (string)e.NewValue;
@@ -53,7 +53,7 @@ public partial class MyRadioButton
         Loaded += (_, _) =>
         {
             if (LabText is not null)
-                LabText.Text = (string)GetValue(textProperty);
+                LabText.Text = (string)GetValue(TextProperty);
             
             ThemeService.ColorModeChanged += OnColorModeChanged;
             ThemeService.ColorThemeChanged += OnColorThemeChanged;
@@ -115,8 +115,8 @@ public partial class MyRadioButton
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     } // 内容
 
     public ColorState ColorType
@@ -221,7 +221,7 @@ public partial class MyRadioButton
 
     // 点击事件
 
-    public event PreviewClickEventHandler? previewClick;
+    public event PreviewClickEventHandler? PreviewClick;
 
     private void Radiobox_MouseUp()
     {
@@ -232,7 +232,7 @@ public partial class MyRadioButton
         ModBase.Log("[Control] 按下单选按钮：" + Text);
         isMouseDown = false;
         var e = new ModBase.RouteEventArgs(true);
-        previewClick?.Invoke(this, e);
+        PreviewClick?.Invoke(this, e);
         if (e.handled)
             return;
         SetChecked(true, true, true);

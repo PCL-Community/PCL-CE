@@ -14,24 +14,24 @@ namespace PCL;
 
 public class ExportOption : DependencyObject
 {
-    public static readonly DependencyProperty titleProperty = DependencyProperty.Register(
+    public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
         nameof(Title), typeof(string), typeof(ExportOption)
     );
 
-    public static readonly DependencyProperty descriptionProperty = DependencyProperty.Register(
+    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(
         nameof(Description), typeof(string), typeof(ExportOption)
     );
 
     public string Title
     {
-        get => (string)GetValue(titleProperty);
-        set => SetValue(titleProperty, value);
+        get => (string)GetValue(TitleProperty);
+        set => SetValue(TitleProperty, value);
     }
 
     public string Description
     {
-        get => (string)GetValue(descriptionProperty);
-        set => SetValue(descriptionProperty, value);
+        get => (string)GetValue(DescriptionProperty);
+        set => SetValue(DescriptionProperty, value);
     }
 
     public string Rules { get; set; }

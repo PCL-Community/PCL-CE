@@ -182,7 +182,7 @@ public partial class MyCompItem
         var typeface = new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight,
             textBlock.FontStretch);
         var formattedText = new FormattedText(textBlock.Text, Thread.CurrentThread.CurrentCulture,
-            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, ModBase.dPI);
+            textBlock.FlowDirection, typeface, textBlock.FontSize, textBlock.Foreground, ModBase.dpi);
         return formattedText.Width > textBlock.ActualWidth;
     }
 

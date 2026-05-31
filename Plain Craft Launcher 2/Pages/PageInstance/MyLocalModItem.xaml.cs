@@ -554,7 +554,7 @@ public partial class MyLocalCompItem
         MouseLeave += RefreshColor;
         MouseLeftButtonDown += RefreshColor;
         MouseLeftButtonUp += RefreshColor;
-        changed += RefreshColor;
+        Changed += RefreshColor;
         // Handles
         BtnUpdate.PreviewMouseRightButtonUp += BtnUpdate_PreviewMouseRightButtonUp;
         BtnUpdate.Click += BtnUpdate_Click;
@@ -668,7 +668,7 @@ public partial class MyLocalCompItem
 
     public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
 
-    public event ChangedEventHandler? changed;
+    public event ChangedEventHandler? Changed;
 
     public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
 
@@ -686,11 +686,11 @@ public partial class MyLocalCompItem
                 if (value == _Checked)
                     return;
                 _Checked = value;
-                var changedEventArgs = new ModBase.RouteEventArgs();
+                var ChangedEventArgs = new ModBase.RouteEventArgs();
                 if (IsInitialized)
                 {
-                    changed?.Invoke(this, changedEventArgs);
-                    if (changedEventArgs.handled)
+                    Changed?.Invoke(this, ChangedEventArgs);
+                    if (ChangedEventArgs.handled)
                     {
                         _Checked = rawValue;
                         return;

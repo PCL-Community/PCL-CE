@@ -189,7 +189,7 @@ public partial class MySlider
         TextHint.Text = getHintText.DynamicInvoke(Value)?.ToString() ?? "";
         var typeface = new Typeface(TextHint.FontFamily, TextHint.FontStyle, TextHint.FontWeight, TextHint.FontStretch);
         var formattedText = new FormattedText(TextHint.Text, Thread.CurrentThread.CurrentCulture,
-            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.dPI);
+            TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.dpi);
         TextHint.Width = formattedText.Width; // 使用手动测量的宽度修复 #1057
     }
 
