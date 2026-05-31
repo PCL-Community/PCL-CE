@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Hash;
 using static PCL.ModComp;
 using static PCL.ModLoader;
 
@@ -13,6 +14,9 @@ namespace PCL;
 public static class ModLocalComp
 {
     private const int localModCacheVersion = 7;
+
+    private static readonly Lazy<HashCache> _hashCache = new(() =>
+        new HashCache(ModBase.pathTemp + @"Cache\HashCache.db"));
 
     public class LocalCompFile
     {
@@ -1769,71 +1773,8 @@ public static class ModLocalComp
             {
                 if (_CurseForgeHash is null)
                 {
-                    // 读取缓存
-                    var info = new FileInfo(path);
-                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-C")
-                        .ToString();
-                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
-                    if (!string.IsNullOrEmpty(cached) && cached.RegexCheck(@"^\d+$")) // #5062
-                    {
-                        _CurseForgeHash = uint.Parse(cached);
-                        return (uint)_CurseForgeHash;
-                    }
-
-                    // 读取文件
-                    var data = new List<byte>();
-                    foreach (var b in ModBase.ReadFileBytes(path))
-                    {
-                        if (b == 9 || b == 10 || b == 13 || b == 32)
-                            continue;
-                        data.Add(b);
-                    }
-
-                    // 计算 MurmurHash2
-                    var length = data.Count;
-                    var h = (uint)(1 ^ length); // 1 是种子
-                    int i;
-                    var loopTo = length - 4;
-                    for (i = 0; i <= loopTo; i += 4)
-                    {
-                        var k = data[i] | ((uint)data[i + 1] << 8) | ((uint)data[i + 2] << 16) |
-                                ((uint)data[i + 3] << 24);
-                        k = (uint)((k * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        k = k ^ (k >> 24);
-                        k = (uint)((k * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        h = h ^ k;
-                    }
-
-                    switch (length - i)
-                    {
-                        case 3:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = h ^ ((uint)data[i + 2] << 16);
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                        case 2:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                        case 1:
-                        {
-                            h = h ^ data[i];
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                    }
-
-                    h = h ^ (h >> 13);
-                    h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                    h = h ^ (h >> 15);
-                    _CurseForgeHash = h;
-                    // 写入缓存
-                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, h.ToString());
+                    var hex = _hashCache.Value.GetMurmurHash2Async(path).GetAwaiter().GetResult();
+                    _CurseForgeHash = uint.Parse(hex, System.Globalization.NumberStyles.HexNumber);
                 }
 
                 return (uint)_CurseForgeHash;
@@ -1850,23 +1791,7 @@ public static class ModLocalComp
             get
             {
                 if (_ModrinthHash is null)
-                {
-                    // 读取缓存
-                    var info = new FileInfo(path);
-                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-M")
-                        .ToString();
-                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
-                    if (!string.IsNullOrEmpty(cached))
-                    {
-                        _ModrinthHash = cached;
-                        return _ModrinthHash;
-                    }
-
-                    // 计算 SHA1
-                    _ModrinthHash = ModBase.GetFileSHA1(path);
-                    // 写入缓存
-                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, _ModrinthHash);
-                }
+                    _ModrinthHash = _hashCache.Value.GetSHA1Async(path).GetAwaiter().GetResult();
 
                 return _ModrinthHash;
             }
