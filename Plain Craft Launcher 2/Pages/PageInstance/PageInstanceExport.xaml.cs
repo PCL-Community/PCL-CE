@@ -821,7 +821,7 @@ public partial class PageInstanceExport : IRefreshable
 
                     if (!shouldKeep)
                         continue;
-                    var targetPath = overridesFolder + relativePath;
+                    var targetPath = Path.Combine(overridesFolder, relativePath);
                     ModBase.CopyFile(Entry.FullName, targetPath);
                     // 若为压缩包，考虑联网获取路径
                     if (checkHostedAssets &&
@@ -858,7 +858,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 else if (File.Exists(Line))
                 {
-                    ModBase.CopyFile(Line, baseFolder + ModBase.GetFileNameFromPath(Line));
+                    ModBase.CopyFile(Line, Path.Combine(baseFolder, ModBase.GetFileNameFromPath(Line)));
                 }
                 else
                 {
@@ -1037,7 +1037,7 @@ public partial class PageInstanceExport : IRefreshable
                     var modFile = Pair.Key;
                     files.Add(new JsonObject
                     {
-                        { "path", modFile.path.AfterFirst(overridesFolder).Replace(@"\", "/") },
+                        { "path", Path.GetRelativePath(overridesFolder, modFile.path).Replace(@"\", "/") },
                         {
                             "hashes",
                             new JsonObject
