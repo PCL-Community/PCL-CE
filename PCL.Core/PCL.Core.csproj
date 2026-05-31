@@ -77,6 +77,8 @@
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
         <!-- 验证 -->
         <PackageReference Include="FluentValidation" Version="12.1.1" />
+        <!-- 生命周期 -->
+        <PackageReference Include="FlowNet.Core" Version="0.1.4" />
     </ItemGroup>
     <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
     <PropertyGroup>
