@@ -16,10 +16,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private Dictionary<string, string> _remoteCache;
 
-    public UpdatesMinioModel(string BaseUrl, string Name = "Minio")
+    public UpdatesMinioModel(string baseUrl, string name = "Minio")
     {
-        _baseUrl = BaseUrl;
-        SourceName = Name;
+        _baseUrl = baseUrl;
+        SourceName = name;
     }
 
     public string SourceName { get; set; }

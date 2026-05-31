@@ -168,8 +168,8 @@ public partial class MyButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanFore, 0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
-                    Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                ModAnimation.AaScaleTransform(PanFore, -0.01d, 700, Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                ModAnimation.AaScaleTransform(PanFore, -0.01d, 700, ease: new ModAnimation.AniEaseOutFluent())
             }, "MyButton Scale " + uuid);
     }
 
@@ -204,6 +204,6 @@ public partial class MyButton
         isMouseDown = false;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + uuid);
     }
 }

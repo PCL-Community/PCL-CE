@@ -123,7 +123,7 @@ public static class ModLink
     {
         [DllImport("iphlpapi.dll", SetLastError = true)]
         public static extern int GetExtendedTcpTable(nint pTcpTable, ref int dwOutBufLen, bool bOrder, int ulAf,
-            int TableClass, int reserved);
+            int tableClass, int reserved);
 
         public static List<int> GetProcessPort(int dwProcessId)
         {

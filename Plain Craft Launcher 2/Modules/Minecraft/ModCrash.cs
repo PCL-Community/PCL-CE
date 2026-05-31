@@ -40,7 +40,7 @@ public class CrashAnalyzer
     private string logMc;
     private string logMcDebug;
 
-    public CrashAnalyzer(int UUID)
+    public CrashAnalyzer(int uUID)
     {
         // 构建文件结构
         tempFolder = ModMain.RequestTaskTempFolder();
@@ -52,8 +52,8 @@ public class CrashAnalyzer
     /// <summary>
     ///     将可用于分析的日志存储到 AnalyzeRawFiles。
     /// </summary>
-    /// <param name="LatestLog">从 PCL 捕获到的最后 200 行程序输出。</param>
-    public void Collect(string VersionPathIndie, IList<string> LatestLog = null)
+    /// <param name="latestLog">从 PCL 捕获到的最后 200 行程序输出。</param>
+    public void Collect(string versionPathIndie, IList<string> latestLog = null)
     {
         ModBase.Log("[Crash] 步骤 1：收集日志文件");
 
@@ -61,7 +61,7 @@ public class CrashAnalyzer
         var possibleLogs = new List<string>();
         try
         {
-            var dirInfo = new DirectoryInfo(VersionPathIndie + @"crash-reports\");
+            var dirInfo = new DirectoryInfo(versionPathIndie + @"crash-reports\");
             if (dirInfo.Exists)
                 foreach (var File in dirInfo.EnumerateFiles())
                     possibleLogs.Add(File.FullName);
@@ -73,7 +73,7 @@ public class CrashAnalyzer
 
         try
         {
-            foreach (var File in new DirectoryInfo(VersionPathIndie).Parent.Parent.EnumerateFiles())
+            foreach (var File in new DirectoryInfo(versionPathIndie).Parent.Parent.EnumerateFiles())
             {
                 if ((File.Extension ?? "") != ".log")
                     continue;
@@ -87,7 +87,7 @@ public class CrashAnalyzer
 
         try
         {
-            foreach (var File in new DirectoryInfo(VersionPathIndie).EnumerateFiles())
+            foreach (var File in new DirectoryInfo(versionPathIndie).EnumerateFiles())
             {
                 if ((File.Extension ?? "") != ".log")
                     continue;
@@ -99,10 +99,10 @@ public class CrashAnalyzer
             ModBase.Log(ex, "收集 Minecraft 隔离文件夹下的日志失败");
         }
 
-        possibleLogs.Add(VersionPathIndie + @"logs\latest.log"); // Minecraft 日志
+        possibleLogs.Add(versionPathIndie + @"logs\latest.log"); // Minecraft 日志
         var launchScript = ModBase.ReadFile(ModBase.exePath + @"PCL\LatestLaunch.bat");
         if (launchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false"))
-            possibleLogs.Add(VersionPathIndie + @"logs\debug.log"); // Minecraft Debug 日志
+            possibleLogs.Add(versionPathIndie + @"logs\debug.log"); // Minecraft Debug 日志
         possibleLogs = possibleLogs.Distinct().ToList();
 
         // 确定最新的日志文件
@@ -140,13 +140,13 @@ public class CrashAnalyzer
                 ModBase.Log(ex, "读取可能的崩溃日志文件失败（" + FilePath + "）");
             }
 
-        if (LatestLog is not null && LatestLog.Any())
+        if (latestLog is not null && latestLog.Any())
         {
-            var rawOutput = LatestLog.Join("\r\n");
+            var rawOutput = latestLog.Join("\r\n");
             ModBase.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + rawOutput);
             ModBase.WriteFile(tempFolder + "RawOutput.log", rawOutput);
-            analyzeRawFiles.Add(new KeyValuePair<string, string[]>(tempFolder + "RawOutput.log", LatestLog.ToArray()));
-            LatestLog.Clear();
+            analyzeRawFiles.Add(new KeyValuePair<string, string[]>(tempFolder + "RawOutput.log", latestLog.ToArray()));
+            latestLog.Clear();
         }
 
         ModBase.Log("[Crash] 步骤 1：收集日志文件完成，收集到 " + analyzeRawFiles.Count + " 个文件");
@@ -155,18 +155,18 @@ public class CrashAnalyzer
     /// <summary>
     ///     从文件路径直接导入日志文件或崩溃报告压缩包。
     /// </summary>
-    public void Import(string FilePath)
+    public void Import(string filePath)
     {
         ModBase.Log("[Crash] 步骤 1：自主导入日志文件");
 
         // 尝试视作压缩包解压
         try
         {
-            var info = new FileInfo(FilePath);
-            if (info.Exists && info.Length > 0L && !FilePath.EndsWithF(".jar", true))
+            var info = new FileInfo(filePath);
+            if (info.Exists && info.Length > 0L && !filePath.EndsWithF(".jar", true))
             {
-                ModBase.ExtractFile(FilePath, Path.Combine(tempFolder, "Temp"));
-                ModBase.Log("[Crash] 已解压导入的日志文件：" + FilePath);
+                ModBase.ExtractFile(filePath, Path.Combine(tempFolder, "Temp"));
+                ModBase.Log("[Crash] 已解压导入的日志文件：" + filePath);
                 goto Extracted;
             }
         }
@@ -175,8 +175,8 @@ public class CrashAnalyzer
         }
 
         // 并非压缩包
-        ModBase.CopyFile(FilePath, Path.Combine(tempFolder, "Temp", ModBase.GetFileNameFromPath(FilePath)));
-        ModBase.Log("[Crash] 已复制导入的日志文件：" + FilePath);
+        ModBase.CopyFile(filePath, Path.Combine(tempFolder, "Temp", ModBase.GetFileNameFromPath(filePath)));
+        ModBase.Log("[Crash] 已复制导入的日志文件：" + filePath);
         Extracted: ;
 
 
@@ -460,32 +460,32 @@ public class CrashAnalyzer
     /// <summary>
     ///     输出字符串的前后某些行，并统一行尾为 vbLf (正则 \n)、删除空行和重复行。
     /// </summary>
-    private string GetHeadTailLines(string[] Raw, int HeadLines, int TailLines)
+    private string GetHeadTailLines(string[] raw, int headLines, int tailLines)
     {
-        if (Raw.Length <= HeadLines + TailLines)
-            return Raw.Distinct().Join("\n");
+        if (raw.Length <= headLines + tailLines)
+            return raw.Distinct().Join("\n");
         var lines = new List<string>();
         var realHeadLines = 0;
         int viewedLines;
-        var loopTo = Raw.Length - 1;
+        var loopTo = raw.Length - 1;
         for (viewedLines = 0; viewedLines <= loopTo; viewedLines++)
         {
-            if (lines.Contains(Raw[viewedLines]))
+            if (lines.Contains(raw[viewedLines]))
                 continue;
             realHeadLines += 1;
-            lines.Add(Raw[viewedLines]);
-            if (realHeadLines >= HeadLines)
+            lines.Add(raw[viewedLines]);
+            if (realHeadLines >= headLines)
                 break;
         }
 
         var realTailLines = 0;
-        for (int i = Raw.Length - 1, loopTo1 = viewedLines; i >= loopTo1; i -= 1)
+        for (int i = raw.Length - 1, loopTo1 = viewedLines; i >= loopTo1; i -= 1)
         {
-            if (lines.Contains(Raw[i]))
+            if (lines.Contains(raw[i]))
                 continue;
             realTailLines += 1;
-            lines.Insert(realHeadLines, Raw[i]);
-            if (realTailLines >= TailLines)
+            lines.Insert(realHeadLines, raw[i]);
+            if (realTailLines >= tailLines)
                 break;
         }
 
@@ -596,28 +596,28 @@ public class CrashAnalyzer
     /// <summary>
     ///     增加一个可能的崩溃原因。
     /// </summary>
-    private void AppendReason(CrashReason Reason, ICollection<string> Additional = null)
+    private void AppendReason(CrashReason reason, ICollection<string> additional = null)
     {
-        if (crashReasons.ContainsKey(Reason))
+        if (crashReasons.ContainsKey(reason))
         {
-            if (Additional is not null)
+            if (additional is not null)
             {
-                crashReasons[Reason].AddRange(Additional);
-                crashReasons[Reason] = crashReasons[Reason].Distinct().ToList();
+                crashReasons[reason].AddRange(additional);
+                crashReasons[reason] = crashReasons[reason].Distinct().ToList();
             }
         }
         else
         {
-            crashReasons.Add(Reason, new List<string>(Additional ?? Array.Empty<string>()));
+            crashReasons.Add(reason, new List<string>(additional ?? Array.Empty<string>()));
         }
 
-        ModBase.Log("[Crash] 可能的崩溃原因：" + ModBase.GetStringFromEnum(Reason) +
-                    (Additional is not null && Additional.Any() ? "（" + Additional.Join("；") + "）" : ""));
+        ModBase.Log("[Crash] 可能的崩溃原因：" + ModBase.GetStringFromEnum(reason) +
+                    (additional is not null && additional.Any() ? "（" + additional.Join("；") + "）" : ""));
     }
 
-    private void AppendReason(CrashReason Reason, string Additional)
+    private void AppendReason(CrashReason reason, string additional)
     {
-        AppendReason(Reason, string.IsNullOrEmpty(Additional) ? null : new List<string> { Additional });
+        AppendReason(reason, string.IsNullOrEmpty(additional) ? null : new List<string> { additional });
     }
 
     // 具体的分析代码
@@ -843,17 +843,17 @@ public class CrashAnalyzer
     private void AnalyzeCrit2()
     {
         // Mixin 分析
-        bool MixinAnalyze(string LogText)
+        bool MixinAnalyze(string logText)
         {
-            var isMixin = LogText.Contains("Mixin prepare failed ") || LogText.Contains("Mixin apply failed ") ||
-                          LogText.Contains("MixinApplyError") || LogText.Contains("MixinTransformerError") ||
-                          LogText.Contains("mixin.injection.throwables.") || LogText.Contains(".json] FAILED during )");
+            var isMixin = logText.Contains("Mixin prepare failed ") || logText.Contains("Mixin apply failed ") ||
+                          logText.Contains("MixinApplyError") || logText.Contains("MixinTransformerError") ||
+                          logText.Contains("mixin.injection.throwables.") || logText.Contains(".json] FAILED during )");
             if (!isMixin)
                 return false;
             // Mod 名称匹配
-            var modName = LogText.RegexSeek(@"(?<=from mod )[^.\/ ]+(?=\] from)");
+            var modName = logText.RegexSeek(@"(?<=from mod )[^.\/ ]+(?=\] from)");
             if (modName is null)
-                modName = LogText.RegexSeek(@"(?<=for mod )[^.\/ ]+(?= failed)");
+                modName = logText.RegexSeek(@"(?<=for mod )[^.\/ ]+(?= failed)");
             if (modName is not null)
             {
                 AppendReason(CrashReason.ModMixin失败,
@@ -862,7 +862,7 @@ public class CrashAnalyzer
             }
 
             // JSON 名称匹配
-            foreach (var JsonName in LogText.RegexSearch(@"(?<=^[^\t]+[ \[{(]{1})[^ \[{(]+\.[^ ]+(?=\.json)",
+            foreach (var JsonName in logText.RegexSearch(@"(?<=^[^\t]+[ \[{(]{1})[^ \[{(]+\.[^ ]+(?=\.json)",
                          RegexOptions.Multiline))
             {
                 AppendReason(CrashReason.ModMixin失败,
@@ -969,15 +969,15 @@ public class CrashAnalyzer
     /// <summary>
     ///     从堆栈中提取 Mod ID 关键字。若失败则返回空列表。
     /// </summary>
-    private List<string> AnalyzeStackKeyword(string ErrorStack)
+    private List<string> AnalyzeStackKeyword(string errorStack)
     {
-        ErrorStack = "\n" + (ErrorStack ?? "") + "\n";
+        errorStack = "\n" + (errorStack ?? "") + "\n";
 
         // 进行正则匹配
         var stackSearchResults = new List<string>();
         stackSearchResults.AddRange(
-            ErrorStack.RegexSearch(@"(?<=\n[^{]+)[a-zA-Z_]+\w+\.[a-zA-Z_]+[\w\.]+(?=\.[\w\.$]+\.)"));
-        stackSearchResults.AddRange(ErrorStack.RegexSearch(@"(?<=at [^(]+?\.\w+\$\w+\$)[\w\$]+?(?=\$\w+\()")
+            errorStack.RegexSearch(@"(?<=\n[^{]+)[a-zA-Z_]+\w+\.[a-zA-Z_]+[\w\.]+(?=\.[\w\.$]+\.)"));
+        stackSearchResults.AddRange(errorStack.RegexSearch(@"(?<=at [^(]+?\.\w+\$\w+\$)[\w\$]+?(?=\$\w+\()")
             .Select(s => s.Replace("$", "."))); // Mixin 堆栈：xxx.xxx.xxxx$xxxx$xxx
         stackSearchResults = stackSearchResults.Distinct().ToList();
 
@@ -1053,16 +1053,16 @@ public class CrashAnalyzer
     ///     根据 Mod 关键词尝试获取实际的 Mod 名称。
     ///     若失败则返回 Nothing。
     /// </summary>
-    private List<string> AnalyzeModName(List<string> Keywords)
+    private List<string> AnalyzeModName(List<string> keywords)
     {
         var modFileNames = new List<string>();
 
         // 预处理关键词（分割括号）
         var realKeywords = new List<string>();
-        foreach (var Keyword in Keywords)
+        foreach (var Keyword in keywords)
         foreach (var SubKeyword in Keyword.Split("("))
             realKeywords.Add(SubKeyword.Trim(" )".ToCharArray()));
-        Keywords = realKeywords;
+        keywords = realKeywords;
 
         // 从崩溃报告获取 Mod 信息
         if (logCrash is not null && logCrash.Contains("A detailed walkthrough of the error"))
@@ -1096,7 +1096,7 @@ public class CrashAnalyzer
 
             // 获取 Mod ID 与关键词的匹配行
             var hintLines = new List<string>();
-            foreach (var KeyWord in Keywords)
+            foreach (var KeyWord in keywords)
             foreach (var ModString in modNameLines)
             {
                 var realModString = ModString.ToLower().Replace("_", "");
@@ -1137,7 +1137,7 @@ public class CrashAnalyzer
 
             // 获取 Mod ID 与关键词的匹配行
             var hintLines = new List<string>();
-            foreach (var KeyWord in Keywords)
+            foreach (var KeyWord in keywords)
             foreach (var ModString in modNameLines)
                 if (ModString.Contains($"{{{KeyWord}}}"))
                     hintLines.Add(ModString);
@@ -1170,10 +1170,10 @@ public class CrashAnalyzer
     /// <summary>
     ///     尝试从关键字获取 Mod 名称，若失败则返回原关键字。
     /// </summary>
-    private List<string> TryAnalyzeModName(string Keyword)
+    private List<string> TryAnalyzeModName(string keyword)
     {
-        var rawList = new List<string> { Keyword ?? "" };
-        if (string.IsNullOrEmpty(Keyword))
+        var rawList = new List<string> { keyword ?? "" };
+        if (string.IsNullOrEmpty(keyword))
             return rawList;
         return AnalyzeModName(rawList) ?? rawList;
     }
@@ -1181,28 +1181,28 @@ public class CrashAnalyzer
     /// <summary>
     ///     尝试从关键字获取 Mod 名称，若失败则返回原关键字。
     /// </summary>
-    private List<string> TryAnalyzeModName(List<string> Keywords)
+    private List<string> TryAnalyzeModName(List<string> keywords)
     {
-        if (!Keywords.Any())
-            return Keywords;
-        return AnalyzeModName(Keywords) ?? Keywords;
+        if (!keywords.Any())
+            return keywords;
+        return AnalyzeModName(keywords) ?? keywords;
     }
 
     /// <summary>
     ///     弹出崩溃弹窗，并指导导出崩溃报告。
     /// </summary>
-    public void Output(bool IsHandAnalyze, List<string> ExtraFiles = null)
+    public void Output(bool isHandAnalyze, List<string> extraFiles = null)
     {
         // 弹窗提示
         ModMain.frmMain.ShowWindowToTop();
-        var resultText = GetAnalyzeResult(IsHandAnalyze);
+        var resultText = GetAnalyzeResult(isHandAnalyze);
         // 确定是否是加载器版本不兼容问题
         var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
         // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, IsHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
-                    IsHandAnalyze || directFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
-                    IsHandAnalyze ? "" : "导出错误报告",
-                    Button2Action: IsHandAnalyze || directFile is null || isModLoaderIncompatible
+        switch (ModMain.MyMsgBox(resultText, isHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
+                    isHandAnalyze || directFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
+                    isHandAnalyze ? "" : "导出错误报告",
+                    button2Action: isHandAnalyze || directFile is null || isModLoaderIncompatible
                         ? null
                         : new Action(() =>
                         {
@@ -1244,8 +1244,8 @@ public class CrashAnalyzer
                     // 输出诊断信息
                     ModBase.FeedbackInfo();
                     // 复制文件
-                    if (ExtraFiles is not null)
-                        outputFiles.AddRange(ExtraFiles);
+                    if (extraFiles is not null)
+                        outputFiles.AddRange(extraFiles);
                     foreach (var OutputFile in outputFiles)
                     {
                         var fileName = ModBase.GetFileNameFromPath(OutputFile);
@@ -1279,7 +1279,7 @@ public class CrashAnalyzer
                             fileContent = ModMinecraft.FilterAccessToken(fileContent,
                                 fileName == "启动脚本.bat" ? 'F' : '*');
                             fileContent = ModMinecraft.FilterUserName(fileContent, '*');
-                            ModBase.WriteFile(Path.Combine(tempFolder, "Report", fileName), fileContent, Encoding: fileEncoding);
+                            ModBase.WriteFile(Path.Combine(tempFolder, "Report", fileName), fileContent, encoding: fileEncoding);
                             ModBase.Log($"[Crash] 导出文件：{fileName}，编码：{fileEncoding.HeaderName}");
                         }
                     }
@@ -1315,7 +1315,7 @@ public class CrashAnalyzer
                     }
 
                     File.CreateText(Path.Combine(tempFolder, "Report", "环境与启动信息.txt")).Close();
-                    ModBase.WriteFile(Path.Combine(tempFolder, "Report", "环境与启动信息.txt"), envInfo.ToString(), Encoding: Encoding.UTF8);
+                    ModBase.WriteFile(Path.Combine(tempFolder, "Report", "环境与启动信息.txt"), envInfo.ToString(), encoding: Encoding.UTF8);
                     // 导出报告
                     ZipFile.CreateFromDirectory(Path.Combine(tempFolder, "Report"), fileAddress);
                     ModBase.DeleteDirectory(Path.Combine(tempFolder, "Report"));
@@ -1336,12 +1336,12 @@ public class CrashAnalyzer
     /// <summary>
     ///     获取崩溃分析的结果描述。
     /// </summary>
-    private string GetAnalyzeResult(bool IsHandAnalyze)
+    private string GetAnalyzeResult(bool isHandAnalyze)
     {
         // 没有结果的处理
         if (!crashReasons.Any())
         {
-            if (IsHandAnalyze) return "很抱歉，PCL 无法确定错误原因。";
+            if (isHandAnalyze) return "很抱歉，PCL 无法确定错误原因。";
 
             return $"很抱歉，你的游戏出现了一些问题……{"\r\n"}如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。";
         }
@@ -1700,10 +1700,10 @@ public class CrashAnalyzer
         }
 
         return results.Join(@"\n\n此外，").Replace(@"\n", "\r\n").Replace(@"\h", "")
-                   .Replace(@"\e", IsHandAnalyze ? "" : "\r\n" + "你可以查看错误报告了解错误具体是如何发生的。")
+                   .Replace(@"\e", isHandAnalyze ? "" : "\r\n" + "你可以查看错误报告了解错误具体是如何发生的。")
                    .Replace("\r\n", "\r").Replace("\n", "\r")
                    .Replace("\r", "\r\n").Trim("\r\n".ToCharArray()) +
-               (!results.Any(r => r.EndsWithF(@"\h")) || IsHandAnalyze
+               (!results.Any(r => r.EndsWithF(@"\h")) || isHandAnalyze
                    ? ""
                    : "\r\n" + "如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。" + (isLauncherLatest
                        ? ""

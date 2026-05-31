@@ -77,10 +77,10 @@ public partial class PageDownloadClient
                 RenderTransform = new TranslateTransform(0d, 0d), Tag = topestVersions
             };
 
-            void PutMethod(StackPanel Stack)
+            void PutMethod(StackPanel stack)
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                         ModDownloadLib.McDownloadMenuSave, true));
             }
 

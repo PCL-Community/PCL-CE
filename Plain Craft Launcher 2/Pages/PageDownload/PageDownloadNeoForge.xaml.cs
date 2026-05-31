@@ -51,10 +51,10 @@ public partial class PageDownloadNeoForge
                 newCard.Children.Add(newStack);
                 newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.NeoForgeDownloadListItem(
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.NeoForgeDownloadListItem(
                             (ModDownload.DlNeoForgeListEntry)item, ModDownloadLib.NeoForgeSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);

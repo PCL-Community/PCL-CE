@@ -114,7 +114,7 @@ public partial class MyExtraTextButton
                         {
                             ModAnimation.AaOpacity(this, -Opacity, 50, 50),
                             ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
-                                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
+                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
                         }, "MyExtraTextButton MainScale " + uuid);
                 }
 
@@ -132,9 +132,9 @@ public partial class MyExtraTextButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                    800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                    800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                 ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + uuid);
     }
 
@@ -144,7 +144,7 @@ public partial class MyExtraTextButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                    Ease: new ModAnimation.AniEaseOutBack())
+                    ease: new ModAnimation.AniEaseOutBack())
             }, "MyExtraTextButton Scale " + uuid);
     }
 
@@ -188,7 +188,7 @@ public partial class MyExtraTextButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }

@@ -39,7 +39,7 @@ public partial class PageToolsGameLink
     // 加载器初始化
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, AutoRun: false);
+        PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, autoRun: false);
         // 注册自定义的 OnStateChanged
         initLoader.OnStateChangedUi += OnLoadStateChanged;
 
@@ -114,7 +114,7 @@ public partial class PageToolsGameLink
 
     private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+        if (ModMain.MyMsgBox("你确定要撤销联机协议授权吗？", "撤销授权确认", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
             States.Link.LinkEulaConfig.Reset();
@@ -744,7 +744,7 @@ public partial class PageToolsGameLink
             BtnInputPort.IsEnabled = false;
             if (!ModLink.LobbyPrecheck()) return;
             var input = ModMain.MyMsgBoxInput("请输入端口",
-                ValidateRules: [new IntValidator(65535,1024)]);
+                validateRules: [new IntValidator(65535,1024)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -890,7 +890,7 @@ public partial class PageToolsGameLink
     {
         if (initLoader.State != ModBase.LoadState.Failed)
             return;
-        initLoader.Start(IsForceRestart: true);
+        initLoader.Start(isForceRestart: true);
     }
 
     // 取消加载
@@ -928,9 +928,9 @@ public partial class PageToolsGameLink
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnProgressA, newProgress - ColumnProgressA.Width.Value, 300,
-                        Ease: new ModAnimation.AniEaseOutFluent()),
+                        ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaGridLengthWidth(ColumnProgressB, 1d - newProgress - ColumnProgressB.Width.Value, 300,
-                        Ease: new ModAnimation.AniEaseOutFluent())
+                        ease: new ModAnimation.AniEaseOutFluent())
                 }, "LobbyController Progress");
         }
     }
@@ -948,7 +948,7 @@ public partial class PageToolsGameLink
     private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var creatorHint = LobbyService.IsHost ? "\r\n由于你是大厅创建者，退出后此大厅将会自动解散。" : "";
-        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+        if (ModMain.MyMsgBox($"你确定要退出大厅吗？{creatorHint}", "确认退出", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             CurrentSubpage = Subpages.PanSelect;
             BtnFinishExit.Text = "退出大厅";
@@ -968,7 +968,7 @@ public partial class PageToolsGameLink
         var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
-            Lang.Text("Common.Action.Copy"), "返回", Button1Action: () => ModBase.ClipboardSet(ip));
+            Lang.Text("Common.Action.Copy"), "返回", button1Action: () => ModBase.ClipboardSet(ip));
     }
 
     #endregion

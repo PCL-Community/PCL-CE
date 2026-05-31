@@ -26,12 +26,12 @@ public static class ModLoader
     // 文件夹刷新类委托
     private static readonly Dictionary<LoaderBase, LoaderFolderDictionaryEntry> loaderFolderDictionary = new();
 
-    public static void LoaderTaskbarAdd<T>(LoaderCombo<T> Loader)
+    public static void LoaderTaskbarAdd<T>(LoaderCombo<T> loader)
     {
         if (ModMain.frmSpeedLeft is not null)
-            ModMain.frmSpeedLeft.TaskRemove(Loader);
-        loaderTaskbar.Add(Loader);
-        ModBase.Log($"[Taskbar] {Loader.name} 已加入任务列表");
+            ModMain.frmSpeedLeft.TaskRemove(loader);
+        loaderTaskbar.Add(loader);
+        ModBase.Log($"[Taskbar] {loader.name} 已加入任务列表");
     }
 
     public static void LoaderTaskbarProgressRefresh()
@@ -108,28 +108,28 @@ public static class ModLoader
     ///     执行以文件夹检测作为输入的加载器。加载器需以文件夹路径为输入值。
     ///     返回是否执行了加载器。
     /// </summary>
-    /// <param name="ExtraPath">用于检查文件夹修改的额外路径。该路径不会传入加载器。</param>
-    /// <param name="LoaderInput">如果不想要文件夹路径为输入值，则传入期望数据</param>
-    public static bool LoaderFolderRun(LoaderBase Loader, string FolderPath, LoaderFolderRunType Type, int MaxDepth = 0,
-        string ExtraPath = "", bool WaitForExit = false, object LoaderInput = null)
+    /// <param name="extraPath">用于检查文件夹修改的额外路径。该路径不会传入加载器。</param>
+    /// <param name="loaderInput">如果不想要文件夹路径为输入值，则传入期望数据</param>
+    public static bool LoaderFolderRun(LoaderBase loader, string folderPath, LoaderFolderRunType type, int maxDepth = 0,
+        string extraPath = "", bool waitForExit = false, object loaderInput = null)
     {
         DirectoryInfo folderInfo;
-        var value = new LoaderFolderDictionaryEntry { folderPath = FolderPath + ExtraPath, lastCheckTime = default };
+        var value = new LoaderFolderDictionaryEntry { folderPath = folderPath + extraPath, lastCheckTime = default };
         try
         {
             // 获取数据
-            folderInfo = new DirectoryInfo(FolderPath + ExtraPath);
-            value.lastCheckTime = folderInfo.Exists ? GetActualLastWriteTimeUtc(folderInfo, MaxDepth) : null;
+            folderInfo = new DirectoryInfo(folderPath + extraPath);
+            value.lastCheckTime = folderInfo.Exists ? GetActualLastWriteTimeUtc(folderInfo, maxDepth) : null;
             // 如果已经检查过，则跳过
-            if (Type == LoaderFolderRunType.RunOnUpdated && loaderFolderDictionary.ContainsKey(Loader))
+            if (type == LoaderFolderRunType.RunOnUpdated && loaderFolderDictionary.ContainsKey(loader))
             {
                 if (folderInfo.Exists)
                 {
-                    if (loaderFolderDictionary[Loader].lastCheckTime is not null &&
-                        value.Equals(loaderFolderDictionary[Loader]))
+                    if (loaderFolderDictionary[loader].lastCheckTime is not null &&
+                        value.Equals(loaderFolderDictionary[loader]))
                         return false;
                 }
-                else if (loaderFolderDictionary[Loader].lastCheckTime is null)
+                else if (loaderFolderDictionary[loader].lastCheckTime is null)
                 {
                     return false;
                 }
@@ -141,24 +141,24 @@ public static class ModLoader
         }
 
         // 写入检查数据
-        loaderFolderDictionary[Loader] = value;
+        loaderFolderDictionary[loader] = value;
         // 开始检查
-        if (Type == LoaderFolderRunType.UpdateOnly)
+        if (type == LoaderFolderRunType.UpdateOnly)
             return false;
-        if (WaitForExit)
-            Loader.WaitForExit(LoaderInput ?? FolderPath, IsForceRestart: true);
+        if (waitForExit)
+            loader.WaitForExit(loaderInput ?? folderPath, isForceRestart: true);
         else
-            Loader.Start(LoaderInput ?? FolderPath, true);
+            loader.Start(loaderInput ?? folderPath, true);
         return true;
     }
 
-    private static DateTime GetActualLastWriteTimeUtc(DirectoryInfo FolderInfo, int MaxDepth)
+    private static DateTime GetActualLastWriteTimeUtc(DirectoryInfo folderInfo, int maxDepth)
     {
-        var time = FolderInfo.LastWriteTimeUtc;
-        if (MaxDepth > 0)
-            foreach (var Folder in FolderInfo.EnumerateDirectories())
+        var time = folderInfo.LastWriteTimeUtc;
+        if (maxDepth > 0)
+            foreach (var Folder in folderInfo.EnumerateDirectories())
             {
-                var folderTime = GetActualLastWriteTimeUtc(Folder, MaxDepth - 1);
+                var folderTime = GetActualLastWriteTimeUtc(Folder, maxDepth - 1);
                 if (folderTime > time)
                     time = folderTime;
             }
@@ -172,13 +172,13 @@ public static class ModLoader
     /// </summary>
     public abstract class LoaderBase : ILoadingTrigger
     {
-        public delegate void OnStateChangedThreadEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedThreadEventHandler(LoaderBase loader, ModBase.LoadState newState,
+            ModBase.LoadState oldState);
 
-        public delegate void OnStateChangedUiEventHandler(LoaderBase Loader, ModBase.LoadState NewState,
-            ModBase.LoadState OldState);
+        public delegate void OnStateChangedUiEventHandler(LoaderBase loader, ModBase.LoadState newState,
+            ModBase.LoadState oldState);
 
-        public delegate void PreviewFinishEventHandler(LoaderBase Loader);
+        public delegate void PreviewFinishEventHandler(LoaderBase loader);
 
         // 等待结束
         public const string waitForExitTimeoutMessage = "等待加载器执行超时。";
@@ -260,7 +260,7 @@ public static class ModLoader
         /// </summary>
         public Action<LoaderBase> OnStateChanged
         {
-            set { OnStateChangedUi += (Loader, NewState, OldState) => value(Loader); }
+            set { OnStateChangedUi += (loader, newState, oldState) => value(loader); }
         }
 
         // 状态监控
@@ -372,9 +372,9 @@ public static class ModLoader
         public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
         public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 
-        public virtual void InitParent(LoaderBase Parent)
+        public virtual void InitParent(LoaderBase parent)
         {
-            this.parent = Parent;
+            this.parent = parent;
         }
 
         // 事件
@@ -400,20 +400,20 @@ public static class ModLoader
         }
 
         // 状态变化
-        public abstract void Start(object? Input = null, bool IsForceRestart = false);
+        public abstract void Start(object? input = null, bool isForceRestart = false);
         public abstract void Abort();
 
         /// <summary>
         ///     无限期地等待加载器完成，直到结束或抛出异常。若加载器尚未开始，则会开始执行。
         /// </summary>
-        public void WaitForExit(object Input = null, LoaderBase LoaderToSyncProgress = null,
-            bool IsForceRestart = false)
+        public void WaitForExit(object input = null, LoaderBase loaderToSyncProgress = null,
+            bool isForceRestart = false)
         {
-            Start(Input, IsForceRestart);
+            Start(input, isForceRestart);
             while (State == ModBase.LoadState.Loading)
             {
-                if (LoaderToSyncProgress is not null)
-                    LoaderToSyncProgress.Progress = Progress;
+                if (loaderToSyncProgress is not null)
+                    loaderToSyncProgress.Progress = Progress;
                 Thread.Sleep(10);
             }
 
@@ -437,20 +437,20 @@ public static class ModLoader
         /// <summary>
         ///     等待加载器完成，直到结束、抛出异常或超时。若加载器尚未开始，则会开始执行。
         /// </summary>
-        /// <param name="Timeout">等待的超时时间，以毫秒为单位。</param>
-        /// <param name="TimeoutMessage">若执行超时，将会抛出的异常信息。</param>
-        public void WaitForExitTime(int Timeout, object Input = null, string TimeoutMessage = waitForExitTimeoutMessage,
-            object LoaderToSyncProgress = null, bool IsForceRestart = false)
+        /// <param name="timeout">等待的超时时间，以毫秒为单位。</param>
+        /// <param name="timeoutMessage">若执行超时，将会抛出的异常信息。</param>
+        public void WaitForExitTime(int timeout, object input = null, string timeoutMessage = waitForExitTimeoutMessage,
+            object loaderToSyncProgress = null, bool isForceRestart = false)
         {
-            Start(Input, IsForceRestart);
+            Start(input, isForceRestart);
             while (State == ModBase.LoadState.Loading)
             {
-                if (LoaderToSyncProgress is not null)
-                    ((dynamic)LoaderToSyncProgress).Progress = Progress;
+                if (loaderToSyncProgress is not null)
+                    ((dynamic)loaderToSyncProgress).Progress = Progress;
                 Thread.Sleep(10);
-                Timeout -= 10;
-                if (Timeout < 0)
-                    throw new TimeoutException(TimeoutMessage);
+                timeout -= 10;
+                if (timeout < 0)
+                    throw new TimeoutException(timeoutMessage);
             }
 
             if (State == ModBase.LoadState.Finished)
@@ -536,37 +536,37 @@ public static class ModLoader
         // 线程设定
         protected internal ThreadPriority threadPriority;
 
-        public LoaderTask(string Name, Action<LoaderTask<InputType, OutputType>> LoadDelegate,
-            Func<InputType?>? InputDelegate = null, ThreadPriority Priority = ThreadPriority.Normal)
+        public LoaderTask(string name, Action<LoaderTask<InputType, OutputType>> loadDelegate,
+            Func<InputType?>? inputDelegate = null, ThreadPriority priority = ThreadPriority.Normal)
         {
-            this.name = Name;
-            this.loadDelegate = LoadDelegate;
-            this.inputDelegate = InputDelegate;
+            this.name = name;
+            this.loadDelegate = loadDelegate;
+            this.inputDelegate = inputDelegate;
         }
 
         // 获取输入
-        public InputType? StartGetInput(InputType? Input = default, Func<InputType?>? InputDelegate = null) // InputDelegate 参数存在匿名调用
+        public InputType? StartGetInput(InputType? input = default, Func<InputType?>? inputDelegate = null) // InputDelegate 参数存在匿名调用
         {
-            InputDelegate ??= this.inputDelegate;
+            inputDelegate ??= this.inputDelegate;
             // 按照龙猫的逻辑，此处将 input 与默认值直接进行等价比较，若相等则认为 input 未传入具体值，而调用 inputDelegate 获取
             // 这种逻辑未考虑值类型恰好传入 default 值 (如 double 传了 0.0) 的情况，这是一个陷阱，可能会产生 undefined behavior
-            if (EqualityComparer<InputType>.Default.Equals(Input, default) && InputDelegate is not null)
-                ModBase.RunInUiWait(() => Input = InputDelegate());
-            return Input;
+            if (EqualityComparer<InputType>.Default.Equals(input, default) && inputDelegate is not null)
+                ModBase.RunInUiWait(() => input = inputDelegate());
+            return input;
         }
 
-        public override object? StartGetInputNoType(object? Input = null, Func<object?>? InputDelegate = null)
+        public override object? StartGetInputNoType(object? input = null, Func<object?>? inputDelegate = null)
         {
-            return StartGetInput(Input is null ? default : (InputType?)Input, InputDelegate is null ? null : () => (InputType?)InputDelegate());
+            return StartGetInput(input is null ? default : (InputType?)input, inputDelegate is null ? null : () => (InputType?)inputDelegate());
         }
 
         // 代码执行
-        public override bool ShouldStart(ref object? Input, bool IsForceRestart = false, bool IgnoreReloadTimeout = false)
+        public override bool ShouldStart(ref object? input, bool isForceRestart = false, bool ignoreReloadTimeout = false)
         {
             // 获取输入
             try
             {
-                Input = StartGetInput(Conversions.ToGenericParameter<InputType>(Input));
+                input = StartGetInput(Conversions.ToGenericParameter<InputType>(input));
             }
             catch (Exception ex)
             {
@@ -579,11 +579,11 @@ public static class ModLoader
             }
 
             // 检验输入以确定情况
-            if (IsForceRestart)
+            if (isForceRestart)
                 return true; // 强制要求重启
-            if (Input is null != this.input is null || (Input is not null && !Input.Equals(this.input)))
+            if (input is null != this.input is null || (input is not null && !input.Equals(this.input)))
                 return true; // 输入不同
-            if ((State == ModBase.LoadState.Loading || State == ModBase.LoadState.Finished) && (IgnoreReloadTimeout ||
+            if ((State == ModBase.LoadState.Loading || State == ModBase.LoadState.Finished) && (ignoreReloadTimeout ||
                     reloadTimeout == -1 || lastFinishedTime == 0L ||
                     TimeUtils.GetTimeTick() - lastFinishedTime < reloadTimeout)) // 正在加载或已结束
                 // 没有超时
@@ -593,15 +593,15 @@ public static class ModLoader
             // 需要开始
         }
 
-        public override void Start(object Input = null, bool IsForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
             // 确认是否开始加载
-            if (ShouldStart(ref Input, IsForceRestart))
+            if (ShouldStart(ref input, isForceRestart))
             {
                 // 输入不同或失败，开始加载
                 if (State == ModBase.LoadState.Loading)
                     TriggerThreadAbort();
-                this.input = Conversions.ToGenericParameter<InputType>(Input);
+                this.input = Conversions.ToGenericParameter<InputType>(input);
                 lock (lockState)
                 {
                     State = ModBase.LoadState.Loading;
@@ -616,7 +616,7 @@ public static class ModLoader
             {
                 try
                 {
-                    isForceRestarting = IsForceRestart;
+                    isForceRestarting = isForceRestart;
                     if (ModBase.modeDebug)
                         ModBase.Log(
                             $"[Loader] 加载线程 {name} ({Task.CurrentId}) 已{(isForceRestarting ? "强制" : "")}启动");
@@ -693,10 +693,10 @@ public static class ModLoader
 
         public List<LoaderBase> loaders = new();
 
-        public LoaderCombo(string Name, IEnumerable<LoaderBase> Loaders)
+        public LoaderCombo(string name, IEnumerable<LoaderBase> loaders)
         {
             this.loaders.Clear();
-            foreach (var Loader in Loaders)
+            foreach (var Loader in loaders)
                 if (Loader is not null)
                 {
                     this.loaders.Add(Loader);
@@ -705,7 +705,7 @@ public static class ModLoader
                 }
 
             InitParent(null);
-            this.name = Name;
+            this.name = name;
         }
 
         public override double Progress
@@ -742,16 +742,16 @@ public static class ModLoader
             set => throw new Exception("多重加载器不支持设置进度");
         }
 
-        public override void InitParent(LoaderBase Parent)
+        public override void InitParent(LoaderBase parent)
         {
-            this.parent = Parent;
+            this.parent = parent;
             foreach (var Loader in loaders)
                 Loader.InitParent(this);
         }
 
-        public override void Start(object Input = null, bool IsForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
-            isForceRestarting = IsForceRestart;
+            isForceRestarting = isForceRestart;
             lock (lockState)
             {
                 if (State == ModBase.LoadState.Loading) return;
@@ -760,8 +760,8 @@ public static class ModLoader
             }
 
             // 启动加载
-            this.input = Input;
-            if (IsForceRestart)
+            this.input = input;
+            if (isForceRestart)
                 foreach (var Loader in loaders)
                     Loader.State = ModBase.LoadState.Waiting;
             ModBase.RunInThread(Update);
@@ -786,9 +786,9 @@ public static class ModLoader
         /// <summary>
         ///     子任务状态变更。
         /// </summary>
-        private void SubTaskStateChanged(LoaderBase Loader, ModBase.LoadState NewState, ModBase.LoadState OldState)
+        private void SubTaskStateChanged(LoaderBase loader, ModBase.LoadState newState, ModBase.LoadState oldState)
         {
-            switch (NewState)
+            switch (newState)
             {
                 case ModBase.LoadState.Loading:
                 {
@@ -821,14 +821,14 @@ public static class ModLoader
                     {
                         if (State >= ModBase.LoadState.Finished)
                             return;
-                        Error = new Exception(Loader.name + "失败", Loader.Error);
-                        State = Loader.State;
+                        Error = new Exception(loader.name + "失败", loader.Error);
+                        State = loader.State;
                     }
 
                     foreach (var currentLoader in loaders)
                     {
-                        Loader = currentLoader;
-                        Loader.Abort();
+                        loader = currentLoader;
+                        loader.Abort();
                     }
 
                     ModMain.frmMain.BtnExtraDownload.ShowRefresh();
@@ -931,7 +931,7 @@ public static class ModLoader
                         }
                         else
                         {
-                            loader.Start(IsForceRestart: isForceRestarting);
+                            loader.Start(isForceRestart: isForceRestarting);
                         }
 
                         if (loader.block)
@@ -951,32 +951,32 @@ public static class ModLoader
         /// <summary>
         ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。
         /// </summary>
-        public static void GetLoaderList(LoaderCombo Loader, ref List<LoaderBase> List, bool RequireShow = true)
+        public static void GetLoaderList(LoaderCombo loader, ref List<LoaderBase> list, bool requireShow = true)
         {
-            foreach (var SubLoader in Loader.loaders)
+            foreach (var SubLoader in loader.loaders)
             {
-                if (SubLoader.show || !RequireShow)
-                    List.Add(SubLoader);
+                if (SubLoader.show || !requireShow)
+                    list.Add(SubLoader);
                 if (SubLoader is LoaderCombo combo)
-                    GetLoaderList(combo, ref List);
+                    GetLoaderList(combo, ref list);
             }
         }
 
         /// <summary>
         ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。
         /// </summary>
-        public void GetLoaderList(ref List<LoaderBase> List, bool RequireShow = true)
+        public void GetLoaderList(ref List<LoaderBase> list, bool requireShow = true)
         {
-            GetLoaderList(this, ref List, RequireShow);
+            GetLoaderList(this, ref list, requireShow);
         }
 
         /// <summary>
         ///     获得最底层的，应被显示给用户的加载器列表。
         /// </summary>
-        public List<LoaderBase> GetLoaderList(bool RequireShow = true)
+        public List<LoaderBase> GetLoaderList(bool requireShow = true)
         {
             var list = new List<LoaderBase>();
-            GetLoaderList(ref list, RequireShow);
+            GetLoaderList(ref list, requireShow);
             return list;
         }
     }
@@ -988,12 +988,12 @@ public static class ModLoader
     {
         public new InputType typedInput;
 
-        public LoaderCombo(string Name, IEnumerable<LoaderBase> Loaders) : base(Name, Loaders) { }
+        public LoaderCombo(string name, IEnumerable<LoaderBase> loaders) : base(name, loaders) { }
 
-        public override void Start(object Input = null, bool IsForceRestart = false)
+        public override void Start(object input = null, bool isForceRestart = false)
         {
-            this.typedInput = Conversions.ToGenericParameter<InputType>(Input);
-            base.Start(this.typedInput, IsForceRestart);
+            this.typedInput = Conversions.ToGenericParameter<InputType>(input);
+            base.Start(this.typedInput, isForceRestart);
         }
     }
 

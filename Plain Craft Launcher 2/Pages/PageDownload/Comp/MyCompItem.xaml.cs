@@ -58,16 +58,16 @@ public partial class MyCompItem
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                         isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
                     ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        Ease: new ModAnimation.AniEaseOutFluent())
+                        ease: new ModAnimation.AniEaseOutFluent())
                 });
                 if (isMouseDown)
                     ani.Add(ModAnimation.AaScaleTransform(RectBack,
                         0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        Ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new ModAnimation.AniEaseOutFluent()));
                 else
                     ani.Add(ModAnimation.AaScaleTransform(RectBack,
                         1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        Ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new ModAnimation.AniEaseOutFluent()));
             }
             else
             {
@@ -79,8 +79,8 @@ public partial class MyCompItem
                     ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
                         isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
                     ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                        time, Ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, After: true)
+                        time, ease: new ModAnimation.AniEaseOutFluent()),
+                    ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
                 });
             }
 

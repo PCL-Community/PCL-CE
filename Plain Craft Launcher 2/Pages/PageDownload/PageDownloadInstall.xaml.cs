@@ -262,7 +262,7 @@ public partial class PageDownloadInstall
                 LabyMod_Loaded();
                 ReloadSelected();
                 PanMinecraft.Visibility = Visibility.Collapsed;
-            }, After: true),
+            }, after: true),
             ModAnimation.AaOpacity(PanSelect, 1d - PanSelect.Opacity, 70, 100),
             ModAnimation.AaTranslateX(PanSelect, -((TranslateTransform)PanSelect.RenderTransform).X, 160, 100,
                 new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
@@ -300,7 +300,7 @@ public partial class PageDownloadInstall
                     new Binding("Foreground") { Source = CardLabyMod.MainTextBlock, Mode = BindingMode.OneWay });
                 BtnOptiFabricClearInner.SetBinding(Shape.FillProperty,
                     new Binding("Foreground") { Source = CardOptiFabric.MainTextBlock, Mode = BindingMode.OneWay });
-            }, After: true)
+            }, after: true)
         }, "FrmDownloadInstall SelectPageSwitch", true);
     }
 
@@ -325,7 +325,7 @@ public partial class PageDownloadInstall
         {
             ModAnimation.AaOpacity(PanSelect, -PanSelect.Opacity, 70, 10),
             ModAnimation.AaTranslateX(PanSelect, 50d - ((TranslateTransform)PanSelect.RenderTransform).X, 90, 10),
-            ModAnimation.AaCode(() => PanBack.ScrollToHome(), After: true),
+            ModAnimation.AaCode(() => PanBack.ScrollToHome(), after: true),
             ModAnimation.AaOpacity(PanMinecraft, 1d - PanMinecraft.Opacity, 70, 100),
             ModAnimation.AaTranslateX(PanMinecraft, -((TranslateTransform)PanMinecraft.RenderTransform).X, 160, 100,
                 new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
@@ -333,7 +333,7 @@ public partial class PageDownloadInstall
             {
                 PanSelect.Visibility = Visibility.Collapsed;
                 PanBack.IsHitTestVisible = true;
-            }, After: true)
+            }, after: true)
         }, "FrmDownloadInstall SelectPageSwitch");
     }
 
@@ -897,7 +897,7 @@ public partial class PageDownloadInstall
                 new[]
                 {
                     ModAnimation.AaTranslateY(panel, -((TranslateTransform)panel.RenderTransform).Y, 150,
-                        Ease: new ModAnimation.AniEaseOutFluent()),
+                        ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaOpacity(panel, 1d - panel.Opacity, 60)
                 }, "PageDownloadInstall Visibility " + panel.Name);
         else
@@ -1197,20 +1197,20 @@ public partial class PageDownloadInstall
     }
 
     // 检查某个 OptiFine 是否与某个 Forge 兼容
-    private object IsOptiFineSuitForForge(ModDownload.DlOptiFineListEntry OptiFine,
-        ModDownload.DlForgeVersionEntry Forge)
+    private object IsOptiFineSuitForForge(ModDownload.DlOptiFineListEntry optiFine,
+        ModDownload.DlForgeVersionEntry forge)
     {
-        if ((Forge.inherit ?? "") != (OptiFine.Inherit ?? ""))
+        if ((forge.inherit ?? "") != (optiFine.Inherit ?? ""))
             return false; // 不是同一个大版本
-        if (OptiFine.requiredForgeVersion is null)
+        if (optiFine.requiredForgeVersion is null)
             return false; // 不兼容 Forge
-        if (string.IsNullOrWhiteSpace(OptiFine.requiredForgeVersion))
+        if (string.IsNullOrWhiteSpace(optiFine.requiredForgeVersion))
             return true; // #4183
-        if (OptiFine.requiredForgeVersion.Contains(".")) // XX.X.XXX
-            return ModMinecraft.CompareVersion(Forge.version.ToString(), OptiFine.requiredForgeVersion) == 0;
+        if (optiFine.requiredForgeVersion.Contains(".")) // XX.X.XXX
+            return ModMinecraft.CompareVersion(forge.version.ToString(), optiFine.requiredForgeVersion) == 0;
 
         // XXXX
-        return Forge.version.Revision == Convert.ToDouble(OptiFine.requiredForgeVersion);
+        return forge.version.Revision == Convert.ToDouble(optiFine.requiredForgeVersion);
     }
 
     // 限制展开
@@ -1244,13 +1244,13 @@ public partial class PageDownloadInstall
             if (!versions.Any())
                 return;
             // 排序
-            versions.Sort((Left, Right) =>
+            versions.Sort((left, right) =>
             {
-                if (!Left.isPreview && Right.isPreview)
+                if (!left.isPreview && right.isPreview)
                     return true;
-                if (Left.isPreview && !Right.isPreview)
+                if (left.isPreview && !right.isPreview)
                     return false;
-                return ModMinecraft.CompareVersionGe(Left.displayName, Right.displayName);
+                return ModMinecraft.CompareVersionGe(left.displayName, right.displayName);
             });
             // 可视化
             PanOptiFine.Children.Clear();
@@ -1891,10 +1891,10 @@ public partial class PageDownloadInstall
             PanLegacyFabric.Children.Clear();
             PanLegacyFabric.Tag = versions;
             CardLegacyFabric.SwapControl = PanLegacyFabric;
-            CardLegacyFabric.InstallMethod = Stack =>
+            CardLegacyFabric.InstallMethod = stack =>
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
                         (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             };
         }
@@ -1933,17 +1933,17 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     从显示名判断该 API 是否与某版本适配。
     /// </summary>
-    public static bool IsSuitableLegacyFabricApi(List<string> SupportVersions, string MinecraftVersion)
+    public static bool IsSuitableLegacyFabricApi(List<string> supportVersions, string minecraftVersion)
     {
         try
         {
-            if (SupportVersions.Contains(MinecraftVersion)) return true;
+            if (supportVersions.Contains(minecraftVersion)) return true;
 
             return false;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "判断 Legacy Fabric API 版本适配性出错（" + SupportVersions + ", " + MinecraftVersion + "）");
+            ModBase.Log(ex, "判断 Legacy Fabric API 版本适配性出错（" + supportVersions + ", " + minecraftVersion + "）");
             return false;
         }
     }
@@ -2104,10 +2104,10 @@ public partial class PageDownloadInstall
             PanQuilt.Children.Clear();
             PanQuilt.Tag = versions;
             CardQuilt.SwapControl = PanQuilt;
-            CardQuilt.InstallMethod = Stack =>
+            CardQuilt.InstallMethod = stack =>
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(
                         ModDownloadLib.QuiltDownloadListItem((JsonObject)item,
                             (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
@@ -2148,17 +2148,17 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     从显示名判断该 API 是否与某版本适配。
     /// </summary>
-    public static bool IsSuitableQSL(List<string> SupportVersions, string MinecraftVersion)
+    public static bool IsSuitableQSL(List<string> supportVersions, string minecraftVersion)
     {
         try
         {
-            if (SupportVersions.Contains(MinecraftVersion)) return true;
+            if (supportVersions.Contains(minecraftVersion)) return true;
 
             return false;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "判断 QSL 版本适配性出错（" + SupportVersions + ", " + MinecraftVersion + "）");
+            ModBase.Log(ex, "判断 QSL 版本适配性出错（" + supportVersions + ", " + minecraftVersion + "）");
             return false;
         }
     }
@@ -2476,10 +2476,10 @@ public partial class PageDownloadInstall
             PanLabyMod.Children.Clear();
             PanLabyMod.Tag = processedVersions;
             CardLabyMod.SwapControl = PanLabyMod;
-            CardLabyMod.InstallMethod = Stack =>
+            CardLabyMod.InstallMethod = stack =>
             {
-                foreach (JsonObject item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(
+                foreach (JsonObject item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(
                         ModDownloadLib.LabyModDownloadListItem(item, (a, b) => this.LabyMod_Selected((dynamic)a, b)));
             };
         }

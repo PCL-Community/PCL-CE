@@ -27,7 +27,7 @@ namespace PCL
             loader.Start();
         }
 
-        private void HomepageMarketGet(ModLoader.LoaderTask<bool, string> Task)
+        private void HomepageMarketGet(ModLoader.LoaderTask<bool, string> task)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace PCL
                     }
                 });
 
-                Task.output = content;
+                task.output = content;
             }
             catch (Exception ex)
             {

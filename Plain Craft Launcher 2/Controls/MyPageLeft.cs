@@ -46,7 +46,7 @@ public class MyPageLeft : Grid
                 new[]
                 {
                     ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                        Ease: new ModAnimation.AniEaseOutBack((ModAnimation.AniEasePower)2)),
+                        ease: new ModAnimation.AniEaseOutBack((ModAnimation.AniEasePower)2)),
                     ModAnimation.AaOpacity(this, 1d, 100)
                 }, "PageLeft PageChange " + uuid);
         }
@@ -109,7 +109,7 @@ public class MyPageLeft : Grid
                 new[]
                 {
                     ModAnimation.AaScaleTransform(this, 0.95d - ((ScaleTransform)RenderTransform).ScaleX, 110,
-                        Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                        ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaOpacity(this, -Opacity, 80, 30)
                 }, "PageLeft PageChange " + uuid);
         }
@@ -132,30 +132,30 @@ public class MyPageLeft : Grid
     }
 
     // 遍历获取所有需要生成动画的控件
-    private List<FrameworkElement> GetAllAnimControls(bool IgnoreInvisibility = false)
+    private List<FrameworkElement> GetAllAnimControls(bool ignoreInvisibility = false)
     {
         var allControls = new List<FrameworkElement>();
-        GetAllAnimControls(AnimatedControl, ref allControls, IgnoreInvisibility);
+        GetAllAnimControls(AnimatedControl, ref allControls, ignoreInvisibility);
         return allControls;
     }
 
-    private void GetAllAnimControls(FrameworkElement Element, ref List<FrameworkElement> AllControls,
-        bool IgnoreInvisibility)
+    private void GetAllAnimControls(FrameworkElement element, ref List<FrameworkElement> allControls,
+        bool ignoreInvisibility)
     {
-        if (!IgnoreInvisibility && Element.Visibility == Visibility.Collapsed)
+        if (!ignoreInvisibility && element.Visibility == Visibility.Collapsed)
             return;
-        if (Element is MyTextButton)
-            AllControls.Add(Element);
-        else if (Element is MyListItem)
-            AllControls.Add(Element);
-        else if (Element is ContentControl)
-            GetAllAnimControls((FrameworkElement)((ContentControl)Element).Content, ref AllControls,
-                IgnoreInvisibility);
-        else if (Element is Panel)
-            foreach (FrameworkElement Element2 in ((Panel)Element).Children)
-                GetAllAnimControls(Element2, ref AllControls, IgnoreInvisibility);
+        if (element is MyTextButton)
+            allControls.Add(element);
+        else if (element is MyListItem)
+            allControls.Add(element);
+        else if (element is ContentControl)
+            GetAllAnimControls((FrameworkElement)((ContentControl)element).Content, ref allControls,
+                ignoreInvisibility);
+        else if (element is Panel)
+            foreach (FrameworkElement Element2 in ((Panel)element).Children)
+                GetAllAnimControls(Element2, ref allControls, ignoreInvisibility);
         else
-            AllControls.Add(Element);
+            allControls.Add(element);
     }
 }
 

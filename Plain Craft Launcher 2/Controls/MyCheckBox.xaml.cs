@@ -263,12 +263,12 @@ public partial class MyCheckBox
         var scaleAnims = new List<ModAnimation.AniData>
         {
             ModAnimation.AaScale(ShapeBorder, 16.5d - ShapeBorder.Width, 1000,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), Absolute: true)
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true)
         };
         if (Checked == true)
             scaleAnims.Add(ModAnimation.AaScaleTransform(ShapeCheck,
                 0.9d - ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX, 1000,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
         ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + uuid);
     }
 
@@ -282,11 +282,11 @@ public partial class MyCheckBox
         var scaleAnims = new List<ModAnimation.AniData>
         {
             ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), Absolute: true)
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true)
         };
         if (Checked == true)
             scaleAnims.Add(ModAnimation.AaScaleTransform(ShapeCheck, 1d - ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX,
-                500, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
+                500, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
         ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + uuid);
     }
 
@@ -356,9 +356,9 @@ public partial class MyCheckBox
             new[]
             {
                 ModAnimation.AaScale(ShapeBorder, 12d - ShapeBorder.Width, animationTimeOfCheck,
-                    Ease: new ModAnimation.AniEaseOutFluent(), Absolute: true),
+                    ease: new ModAnimation.AniEaseOutFluent(), absolute: true),
                 ModAnimation.AaScale(ShapeBorder, 6d, animationTimeOfCheck * 2,
-                    (int)Math.Round(animationTimeOfCheck * 0.7d), new ModAnimation.AniEaseOutBack(), Absolute: true)
+                    (int)Math.Round(animationTimeOfCheck * 0.7d), new ModAnimation.AniEaseOutBack(), absolute: true)
             }, "MyCheckBox Background Scale " + uuid);
     }
 
@@ -376,7 +376,7 @@ public partial class MyCheckBox
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(ShapeCheck, -((ScaleTransform)ShapeCheck.RenderTransform).ScaleX,
                 (int)Math.Round(animationTimeOfCheck * 0.9d),
-                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             "MyCheckBox Check Scale Hide" + uuid);
     }
 
@@ -396,7 +396,7 @@ public partial class MyCheckBox
             ModAnimation.AaScaleTransform(ShapeIndeterminate,
                 -((ScaleTransform)ShapeIndeterminate.RenderTransform).ScaleX,
                 (int)Math.Round(animationTimeOfCheck * 0.9d),
-                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             "MyCheckBox Indeterminate Scale Hide" + uuid);
     }
 

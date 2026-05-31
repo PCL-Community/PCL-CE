@@ -209,21 +209,21 @@ public class MyTextBox : TextBox
         ChangeValidateResult(IsValidated, true);
     }
 
-    private void ChangeValidateResult(bool IsSuccessful, bool IsLoaded)
+    private void ChangeValidateResult(bool isSuccessful, bool isLoaded)
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0 && labWrong is not null)
+        if (isLoaded && ModAnimation.AniControlEnabled == 0 && labWrong is not null)
         {
-            if (IsSuccessful || !isTextChanged)
+            if (isSuccessful || !isTextChanged)
             {
                 // 变为正确
-                shownValidateResult = IsSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
+                shownValidateResult = isSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
                 ModAnimation.AniStart(
                     new[]
                     {
                         ModAnimation.AaOpacity(labWrong, -labWrong.Opacity, 150),
                         ModAnimation.AaHeight(labWrong, -labWrong.Height, 150,
-                            Ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, After: true)
+                            ease: new ModAnimation.AniEaseOutFluent()),
+                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, after: true)
                     }, "MyTextBox Validate " + uuid);
             }
             else if (ShowValidateResult)
@@ -236,7 +236,7 @@ public class MyTextBox : TextBox
                     {
                         ModAnimation.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
                         ModAnimation.AaHeight(labWrong, 21d - labWrong.Height, 150,
-                            Ease: new ModAnimation.AniEaseOutFluent())
+                            ease: new ModAnimation.AniEaseOutFluent())
                     }, "MyTextBox Validate " + uuid);
             }
             else

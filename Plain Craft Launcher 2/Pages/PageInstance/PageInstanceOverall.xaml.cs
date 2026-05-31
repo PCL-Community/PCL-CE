@@ -260,7 +260,7 @@ public partial class PageInstanceOverall
                 if (!States.Hint.HideGameInstance)
                 {
                 if (ModMain.MyMsgBox(
-                        Lang.Text("Instance.Overall.Hide.ConfirmMessage"), Lang.Text("Instance.Overall.Hide.ConfirmTitle"), Button2: Lang.Text("Common.Action.Cancel")) != 1)
+                        Lang.Text("Instance.Overall.Hide.ConfirmMessage"), Lang.Text("Instance.Overall.Hide.ConfirmTitle"), button2: Lang.Text("Common.Action.Cancel")) != 1)
                     {
                         ComboDisplayType.SelectedIndex = 0;
                         return;
@@ -479,9 +479,9 @@ public partial class PageInstanceOverall
         OpenVersionFolder(PageInstanceLeft.instance);
     }
 
-    public static void OpenVersionFolder(ModMinecraft.McInstance Version)
+    public static void OpenVersionFolder(ModMinecraft.McInstance version)
     {
-        ModBase.OpenExplorer(Version.PathInstance);
+        ModBase.OpenExplorer(version.PathInstance);
     }
 
     // 存档文件夹
@@ -700,8 +700,8 @@ public partial class PageInstanceOverall
             var confirmResult = ModMain.MyMsgBox(
                 Lang.Text(confirmMessageKey, PageInstanceLeft.instance.Name),
                 Lang.Text("Instance.Overall.Delete.ConfirmTitle"),
-                Button2: Lang.Text("Common.Action.Cancel"),
-                IsWarn: isIsolatedInstance || isShiftPressed
+                button2: Lang.Text("Common.Action.Cancel"),
+                isWarn: isIsolatedInstance || isShiftPressed
             );
 
             switch (confirmResult)
@@ -754,7 +754,7 @@ public partial class PageInstanceOverall
     {
         switch (ModMain.MyMsgBox(
                     Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.instance.Name),
-                    Lang.Text("Instance.Overall.Patch.ConfirmTitle"), Button2: Lang.Text("Common.Action.Cancel")))
+                    Lang.Text("Instance.Overall.Patch.ConfirmTitle"), button2: Lang.Text("Common.Action.Cancel")))
         {
             case 1:
             {

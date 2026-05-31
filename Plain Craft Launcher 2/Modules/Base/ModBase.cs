@@ -148,9 +148,9 @@ public static class ModBase
             b = col.B;
         }
 
-        public MyColor(string HexString)
+        public MyColor(string hexString)
         {
-            var stringColor = (Color)ColorConverter.ConvertFromString(HexString);
+            var stringColor = (Color)ColorConverter.ConvertFromString(hexString);
             a = stringColor.A;
             r = stringColor.R;
             g = stringColor.G;
@@ -519,30 +519,30 @@ public static class ModBase
     /// <summary>
     ///     2~65 进制的转换。
     /// </summary>
-    public static string RadixConvert(string Input, int FromRadix, int ToRadix)
+    public static string RadixConvert(string input, int fromRadix, int toRadix)
     {
         const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=";
         // 零与负数的处理
-        if (string.IsNullOrEmpty(Input))
+        if (string.IsNullOrEmpty(input))
             return "0";
-        var isNegative = Input.StartsWithF("-");
+        var isNegative = input.StartsWithF("-");
         if (isNegative)
-            Input = Input.TrimStart('-');
+            input = input.TrimStart('-');
         // 转换为十进制
         var realNum = 0L;
         var scale = 1L;
-        foreach (var digit in Input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
+        foreach (var digit in input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
         {
             realNum += digit * scale;
-            scale *= FromRadix;
+            scale *= fromRadix;
         }
 
         // 转换为指定进制
         var result = "";
         while (realNum > 0L)
         {
-            var newNum = (int)(realNum % ToRadix);
-            realNum = (long)Math.Round((realNum - newNum) / (double)ToRadix);
+            var newNum = (int)(realNum % toRadix);
+            realNum = (long)Math.Round((realNum - newNum) / (double)toRadix);
             result = digits[newNum] + result;
         }
 
@@ -593,17 +593,17 @@ public static class ModBase
     ///     获取两数间的百分比。小数点精确到 6 位。
     /// </summary>
     /// <returns></returns>
-    public static double MathPercent(double ValueA, double ValueB, double Percent)
+    public static double MathPercent(double valueA, double valueB, double percent)
     {
-        return Math.Round(ValueA * (1d - Percent) + ValueB * Percent, 6); // 解决 Double 计算错误
+        return Math.Round(valueA * (1d - percent) + valueB * percent, 6); // 解决 Double 计算错误
     }
 
     /// <summary>
     ///     获取两颜色间的百分比，根据 RGB 计算。小数点精确到 6 位。
     /// </summary>
-    public static MyColor MathPercent(MyColor ValueA, MyColor ValueB, double Percent)
+    public static MyColor MathPercent(MyColor valueA, MyColor valueB, double percent)
     {
-        return MathRound(ValueA * (1d - Percent) + ValueB * Percent, 6); // 解决Double计算错误
+        return MathRound(valueA * (1d - percent) + valueB * percent, 6); // 解决Double计算错误
     }
 
     /// <summary>
@@ -617,11 +617,11 @@ public static class ModBase
     /// <summary>
     ///     符号函数。
     /// </summary>
-    public static int MathSgn(double Value)
+    public static int MathSgn(double value)
     {
-        if (Value == 0d) return 0;
+        if (value == 0d) return 0;
 
-        if (Value > 0d) return 1;
+        if (value > 0d) return 1;
 
         return -1;
     }
@@ -639,35 +639,35 @@ public static class ModBase
     /// <summary>
     ///     清除某 ini 文件的运行时缓存。
     /// </summary>
-    /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    public static void IniClearCache(string FileName)
+    /// <param name="fileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
+    public static void IniClearCache(string fileName)
     {
-        if (!FileName.Contains(@":\"))
-            FileName = $@"{exePath}PCL\{FileName}.ini";
-        if (iniCache.ContainsKey(FileName))
-            iniCache.Remove(FileName, out _);
+        if (!fileName.Contains(@":\"))
+            fileName = $@"{exePath}PCL\{fileName}.ini";
+        if (iniCache.ContainsKey(fileName))
+            iniCache.Remove(fileName, out _);
     }
 
     /// <summary>
     ///     获取 ini 文件缓存。如果没有，则新读取 ini 文件内容。
     ///     在文件不存在或读取失败时返回 Nothing。
     /// </summary>
-    /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    private static ConcurrentDictionary<string, string> IniGetContent(string FileName)
+    /// <param name="fileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
+    private static ConcurrentDictionary<string, string> IniGetContent(string fileName)
     {
         try
         {
             // 还原文件路径
-            if (!FileName.Contains(@":\"))
-                FileName = $@"{exePath}PCL\{FileName}.ini";
+            if (!fileName.Contains(@":\"))
+                fileName = $@"{exePath}PCL\{fileName}.ini";
             // 检索缓存
-            if (iniCache.ContainsKey(FileName))
-                return iniCache[FileName];
+            if (iniCache.ContainsKey(fileName))
+                return iniCache[fileName];
             // 读取文件
-            if (!File.Exists(FileName))
+            if (!File.Exists(fileName))
                 return null;
             var ini = new ConcurrentDictionary<string, string>();
-            foreach (var line in ReadFile(FileName)
+            foreach (var line in ReadFile(fileName)
                          .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
             {
                 var index = line.IndexOfF(":");
@@ -675,12 +675,12 @@ public static class ModBase
                     ini[line.Substring(0, index)] = line.Substring(index + 1); // 可能会有重复键，见 #3616
             }
 
-            iniCache[FileName] = ini;
+            iniCache[fileName] = ini;
             return ini;
         }
         catch (Exception ex)
         {
-            Log(ex, $"生成 ini 文件缓存失败（{FileName}）", LogLevel.Hint);
+            Log(ex, $"生成 ini 文件缓存失败（{fileName}）", LogLevel.Hint);
             return null;
         }
     }
@@ -688,70 +688,70 @@ public static class ModBase
     /// <summary>
     ///     读取 ini 文件。这可能会使用到缓存。
     /// </summary>
-    /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    /// <param name="Key">键。</param>
-    /// <param name="DefaultValue">没有找到键时返回的默认值。</param>
-    public static string ReadIni(string FileName, string Key, string DefaultValue = "")
+    /// <param name="fileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
+    /// <param name="key">键。</param>
+    /// <param name="defaultValue">没有找到键时返回的默认值。</param>
+    public static string ReadIni(string fileName, string key, string defaultValue = "")
     {
-        var content = IniGetContent(FileName);
-        if (content is null || !content.ContainsKey(Key))
-            return DefaultValue;
-        return content[Key];
+        var content = IniGetContent(fileName);
+        if (content is null || !content.ContainsKey(key))
+            return defaultValue;
+        return content[key];
     }
 
     /// <summary>
     ///     判断 ini 文件中是否包含某个键。这可能会使用到缓存。
     /// </summary>
-    public static bool HasIniKey(string FileName, string Key)
+    public static bool HasIniKey(string fileName, string key)
     {
-        var content = IniGetContent(FileName);
-        return content is not null && content.ContainsKey(Key);
+        var content = IniGetContent(fileName);
+        return content is not null && content.ContainsKey(key);
     }
 
     /// <summary>
     ///     从 ini 文件中移除某个键。这会更新缓存。
     /// </summary>
-    public static void DeleteIniKey(string FileName, string Key)
+    public static void DeleteIniKey(string fileName, string key)
     {
-        WriteIni(FileName, Key, null);
+        WriteIni(fileName, key, null);
     }
 
     /// <summary>
     ///     写入 ini 文件，这会更新缓存。
     ///     若 Value 为 Nothing，则删除该键。
     /// </summary>
-    /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    /// <param name="Key">键。</param>
-    /// <param name="Value">值。</param>
+    /// <param name="fileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
+    /// <param name="key">键。</param>
+    /// <param name="value">值。</param>
     /// <remarks></remarks>
-    public static void WriteIni(string FileName, string Key, string Value)
+    public static void WriteIni(string fileName, string key, string value)
     {
         try
         {
             // 预处理
-            if (Key.Contains(":"))
-                throw new Exception($"尝试写入 ini 文件 {FileName} 的键名中包含了冒号：{Key}");
-            Key = Key.Replace("\r", "").Replace("\n", "");
-            Value = Value?.Replace("\r", "").Replace("\n", "");
+            if (key.Contains(":"))
+                throw new Exception($"尝试写入 ini 文件 {fileName} 的键名中包含了冒号：{key}");
+            key = key.Replace("\r", "").Replace("\n", "");
+            value = value?.Replace("\r", "").Replace("\n", "");
             // 防止争用
             lock (writeIniLock)
             {
                 // 获取目前文件
-                var content = IniGetContent(FileName);
+                var content = IniGetContent(fileName);
                 if (content is null)
                     content = new ConcurrentDictionary<string, string>();
                 // 更新值
-                if (Value is null)
+                if (value is null)
                 {
-                    if (!content.ContainsKey(Key))
+                    if (!content.ContainsKey(key))
                         return; // 无需处理
-                    content.Remove(Key, out _);
+                    content.Remove(key, out _);
                 }
                 else
                 {
-                    if (content.ContainsKey(Key) && (content[Key] ?? "") == (Value ?? ""))
+                    if (content.ContainsKey(key) && (content[key] ?? "") == (value ?? ""))
                         return; // 无需处理
-                    content[Key] = Value;
+                    content[key] = value;
                 }
 
                 // 写入文件
@@ -764,14 +764,14 @@ public static class ModBase
                     fileContent.Append("\r\n");
                 }
 
-                if (!FileName.Contains(@":\"))
-                    FileName = $@"{exePath}PCL\{FileName}.ini";
-                WriteFile(FileName, fileContent.ToString());
+                if (!fileName.Contains(@":\"))
+                    fileName = $@"{exePath}PCL\{fileName}.ini";
+                WriteFile(fileName, fileContent.ToString());
             }
         }
         catch (Exception ex)
         {
-            Log(ex, $"写入文件失败（{FileName} → {Key}:{Value}）", LogLevel.Hint);
+            Log(ex, $"写入文件失败（{fileName} → {key}:{value}）", LogLevel.Hint);
         }
     }
 
@@ -783,25 +783,25 @@ public static class ModBase
     ///     取决于原路径格式，路径以 / 或 \ 结尾。
     ///     不包含路径将会抛出异常。
     /// </summary>
-    public static string GetPathFromFullPath(string FilePath)
+    public static string GetPathFromFullPath(string filePath)
     {
         string getPathFromFullPathRet = default;
-        if (!(FilePath.Contains(@"\") || FilePath.Contains("/")))
-            throw new Exception("不包含路径：" + FilePath);
-        if (FilePath.EndsWithF(@"\") || FilePath.EndsWithF("/"))
+        if (!(filePath.Contains(@"\") || filePath.Contains("/")))
+            throw new Exception("不包含路径：" + filePath);
+        if (filePath.EndsWithF(@"\") || filePath.EndsWithF("/"))
         {
             // 是文件夹路径
-            var isRight = FilePath.EndsWithF(@"\");
-            FilePath = FilePath.Substring(0, FilePath.Length - 1);
-            getPathFromFullPathRet = FilePath.Substring(0, FilePath.LastIndexOfAny(new[] { '\\', '/' })) +
+            var isRight = filePath.EndsWithF(@"\");
+            filePath = filePath.Substring(0, filePath.Length - 1);
+            getPathFromFullPathRet = filePath.Substring(0, filePath.LastIndexOfAny(new[] { '\\', '/' })) +
                                      (isRight ? @"\" : "/");
         }
         else
         {
             // 是文件路径
-            getPathFromFullPathRet = FilePath.Substring(0, FilePath.LastIndexOfAny(new[] { '\\', '/' }) + 1);
+            getPathFromFullPathRet = filePath.Substring(0, filePath.LastIndexOfAny(new[] { '\\', '/' }) + 1);
             if (string.IsNullOrEmpty(getPathFromFullPathRet))
-                throw new Exception("不包含路径：" + FilePath);
+                throw new Exception("不包含路径：" + filePath);
         }
 
         return getPathFromFullPathRet;
@@ -810,83 +810,83 @@ public static class ModBase
     /// <summary>
     ///     从文件路径或者 Url 获取不包含路径的文件名。不包含文件名将会抛出异常。
     /// </summary>
-    public static string GetFileNameFromPath(string FilePath)
+    public static string GetFileNameFromPath(string filePath)
     {
-        FilePath = FilePath.Replace("/", @"\");
-        if (FilePath.EndsWithF(@"\"))
-            throw new Exception("不包含文件名：" + FilePath);
-        if (FilePath.Contains("?"))
-            FilePath = FilePath.Substring(0, FilePath.IndexOfF("?")); // 去掉网络参数后的 ?
-        if (FilePath.Contains(@"\"))
-            FilePath = FilePath.Substring(FilePath.LastIndexOfF(@"\") + 1);
-        var length = FilePath.Length;
+        filePath = filePath.Replace("/", @"\");
+        if (filePath.EndsWithF(@"\"))
+            throw new Exception("不包含文件名：" + filePath);
+        if (filePath.Contains("?"))
+            filePath = filePath.Substring(0, filePath.IndexOfF("?")); // 去掉网络参数后的 ?
+        if (filePath.Contains(@"\"))
+            filePath = filePath.Substring(filePath.LastIndexOfF(@"\") + 1);
+        var length = filePath.Length;
         if (length == 0)
-            throw new Exception("不包含文件名：" + FilePath);
+            throw new Exception("不包含文件名：" + filePath);
         if (length > 250)
-            throw new PathTooLongException("文件名过长：" + FilePath);
-        return FilePath;
+            throw new PathTooLongException("文件名过长：" + filePath);
+        return filePath;
     }
 
     /// <summary>
     ///     从文件路径或者 Url 获取不包含路径与扩展名的文件名。不包含文件名将会抛出异常。
     /// </summary>
-    public static string GetFileNameWithoutExtentionFromPath(string FilePath)
+    public static string GetFileNameWithoutExtentionFromPath(string filePath)
     {
-        return Path.GetFileNameWithoutExtension(FilePath);
+        return Path.GetFileNameWithoutExtension(filePath);
     }
 
     /// <summary>
     ///     从文件夹路径获取文件夹名。
     /// </summary>
-    public static string GetFolderNameFromPath(string FolderPath)
+    public static string GetFolderNameFromPath(string folderPath)
     {
-        if (FolderPath.EndsWithF(@":\") || FolderPath.EndsWithF(@":\\"))
-            return FolderPath.Substring(0, 1);
-        if (FolderPath.EndsWithF(@"\") || FolderPath.EndsWithF("/"))
-            FolderPath = FolderPath.Substring(0, FolderPath.Length - 1);
-        return GetFileNameFromPath(FolderPath);
+        if (folderPath.EndsWithF(@":\") || folderPath.EndsWithF(@":\\"))
+            return folderPath.Substring(0, 1);
+        if (folderPath.EndsWithF(@"\") || folderPath.EndsWithF("/"))
+            folderPath = folderPath.Substring(0, folderPath.Length - 1);
+        return GetFileNameFromPath(folderPath);
     }
 
     // 读取、写入、复制文件
     /// <summary>
     ///     复制文件。会自动创建文件夹、会覆盖已有的文件。
     /// </summary>
-    public static void CopyFile(string FromPath, string ToPath)
+    public static void CopyFile(string fromPath, string toPath)
     {
         try
         {
             // 还原文件路径
-            if (!FromPath.Contains(@":\"))
-                FromPath = exePath + FromPath;
-            if (!ToPath.Contains(@":\"))
-                ToPath = exePath + ToPath;
+            if (!fromPath.Contains(@":\"))
+                fromPath = exePath + fromPath;
+            if (!toPath.Contains(@":\"))
+                toPath = exePath + toPath;
             // 如果复制同一个文件则跳过
-            if ((FromPath ?? "") == (ToPath ?? ""))
+            if ((fromPath ?? "") == (toPath ?? ""))
                 return;
             // 确保目录存在
-            Directory.CreateDirectory(GetPathFromFullPath(ToPath));
+            Directory.CreateDirectory(GetPathFromFullPath(toPath));
             // 复制文件
-            File.Copy(FromPath, ToPath, true);
+            File.Copy(fromPath, toPath, true);
         }
         catch (Exception ex)
         {
-            throw new Exception("复制文件出错：" + FromPath + " → " + ToPath, ex);
+            throw new Exception("复制文件出错：" + fromPath + " → " + toPath, ex);
         }
     }
 
     /// <summary>
     ///     读取文件，如果失败则返回空数组。
     /// </summary>
-    public static byte[] ReadFileBytes(string FilePath, Encoding Encoding = null)
+    public static byte[] ReadFileBytes(string filePath, Encoding encoding = null)
     {
         try
         {
             // 还原文件路径
-            if (!FilePath.Contains(@":\"))
-                FilePath = exePath + FilePath;
-            if (File.Exists(FilePath))
+            if (!filePath.Contains(@":\"))
+                filePath = exePath + filePath;
+            if (File.Exists(filePath))
                 using (var readStream =
-                       new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                       new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     using (var ms = new MemoryStream())
                     {
@@ -895,12 +895,12 @@ public static class ModBase
                     }
                 }
 
-            Log("[System] 欲读取的文件不存在，已返回空内容：" + FilePath);
+            Log("[System] 欲读取的文件不存在，已返回空内容：" + filePath);
             return Array.Empty<byte>();
         }
         catch (Exception ex)
         {
-            Log(ex, "读取文件出错：" + FilePath);
+            Log(ex, "读取文件出错：" + filePath);
             return Array.Empty<byte>();
         }
     }
@@ -908,26 +908,26 @@ public static class ModBase
     /// <summary>
     ///     读取文件，如果失败则返回空字符串。
     /// </summary>
-    /// <param name="FilePath">文件完整或相对路径。</param>
-    public static string ReadFile(string FilePath, Encoding Encoding = null)
+    /// <param name="filePath">文件完整或相对路径。</param>
+    public static string ReadFile(string filePath, Encoding encoding = null)
     {
         string readFileRet = default;
-        var fileBytes = ReadFileBytes(FilePath);
-        readFileRet = Encoding is null ? DecodeBytes(fileBytes) : Encoding.GetString(fileBytes);
+        var fileBytes = ReadFileBytes(filePath);
+        readFileRet = encoding is null ? DecodeBytes(fileBytes) : encoding.GetString(fileBytes);
         return readFileRet;
     }
 
     /// <summary>
     ///     读取流中的所有文本。
     /// </summary>
-    public static string ReadFile(Stream Stream, Encoding Encoding = null)
+    public static string ReadFile(Stream stream, Encoding encoding = null)
     {
         try
         {
             var readedContent = new MemoryStream();
-            Stream.CopyTo(readedContent);
+            stream.CopyTo(readedContent);
             var bts = readedContent.ToArray();
-            return (Encoding ?? EncodingDetector.DetectEncoding(bts)).GetString(bts);
+            return (encoding ?? EncodingDetector.DetectEncoding(bts)).GetString(bts);
         }
         catch (Exception ex)
         {
@@ -939,31 +939,31 @@ public static class ModBase
     /// <summary>
     ///     写入文件。
     /// </summary>
-    /// <param name="FilePath">文件完整或相对路径。</param>
-    /// <param name="Text">文件内容。</param>
-    /// <param name="Append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
-    public static void WriteFile(string FilePath, string Text, bool Append = false, Encoding? Encoding = null)
+    /// <param name="filePath">文件完整或相对路径。</param>
+    /// <param name="text">文件内容。</param>
+    /// <param name="append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
+    public static void WriteFile(string filePath, string text, bool append = false, Encoding? encoding = null)
     {
         // 处理相对路径
-        if (!FilePath.Contains(@":\"))
-            FilePath = exePath + FilePath;
+        if (!filePath.Contains(@":\"))
+            filePath = exePath + filePath;
         // 确保目录存在
-        Directory.CreateDirectory(GetPathFromFullPath(FilePath));
+        Directory.CreateDirectory(GetPathFromFullPath(filePath));
         // 写入文件
-        if (Append)
+        if (append)
             // 追加目前文件
-            using (var writer = new StreamWriter(FilePath, true,
-                       Encoding ?? EncodingDetector.DetectEncoding(ReadFileBytes(FilePath))))
+            using (var writer = new StreamWriter(filePath, true,
+                       encoding ?? EncodingDetector.DetectEncoding(ReadFileBytes(filePath))))
             {
-                writer.Write(Text);
+                writer.Write(text);
             }
             else
             {
                 // 直接写入字节
-                var bytes = Encoding is null ? new UTF8Encoding(false).GetBytes(Text) : Encoding.GetBytes(Text);
-                var tempPath = FilePath + ".pcltmp." + Guid.NewGuid().ToString("N");
+                var bytes = encoding is null ? new UTF8Encoding(false).GetBytes(text) : encoding.GetBytes(text);
+                var tempPath = filePath + ".pcltmp." + Guid.NewGuid().ToString("N");
                 File.WriteAllBytes(tempPath, bytes);
-                File.Move(tempPath, FilePath, true);
+                File.Move(tempPath, filePath, true);
             }
     }
 
@@ -971,38 +971,38 @@ public static class ModBase
     ///     写入文件。
     ///     如果 CanThrow 设置为 False，返回是否写入成功。
     /// </summary>
-    /// <param name="FilePath">文件完整或相对路径。</param>
-    /// <param name="Content">文件内容。</param>
-    /// <param name="Append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
-    public static void WriteFile(string FilePath, byte[] Content, bool Append = false)
+    /// <param name="filePath">文件完整或相对路径。</param>
+    /// <param name="content">文件内容。</param>
+    /// <param name="append">是否将文件内容追加到当前文件，而不是覆盖它。</param>
+    public static void WriteFile(string filePath, byte[] content, bool append = false)
     {
         // 处理相对路径
-        if (!FilePath.Contains(@":\"))
-            FilePath = exePath + FilePath;
+        if (!filePath.Contains(@":\"))
+            filePath = exePath + filePath;
         // 确保目录存在
-        Directory.CreateDirectory(GetPathFromFullPath(FilePath));
+        Directory.CreateDirectory(GetPathFromFullPath(filePath));
         // 写入文件
-        File.WriteAllBytes(FilePath, Content);
+        File.WriteAllBytes(filePath, content);
     }
 
     /// <summary>
     ///     将流写入文件。
     /// </summary>
-    /// <param name="FilePath">文件完整或相对路径。</param>
-    public static bool WriteFile(string FilePath, Stream Stream)
+    /// <param name="filePath">文件完整或相对路径。</param>
+    public static bool WriteFile(string filePath, Stream stream)
     {
         try
         {
             // 还原文件路径
-            if (!FilePath.Contains(@":\"))
-                FilePath = exePath + FilePath;
+            if (!filePath.Contains(@":\"))
+                filePath = exePath + filePath;
             // 确保目录存在
-            Directory.CreateDirectory(GetPathFromFullPath(FilePath));
+            Directory.CreateDirectory(GetPathFromFullPath(filePath));
             // 读取流
-            using (var fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
                 fs.SetLength(0L);
-                Stream.CopyTo(fs);
+                stream.CopyTo(fs);
             }
 
             return true;
@@ -1017,28 +1017,28 @@ public static class ModBase
     /// <summary>
     ///     解码 Bytes。
     /// </summary>
-    public static string DecodeBytes(byte[] Bytes)
+    public static string DecodeBytes(byte[] bytes)
     {
-        var length = Bytes.Length;
+        var length = bytes.Length;
         if (length < 3)
-            return Encoding.UTF8.GetString(Bytes);
+            return Encoding.UTF8.GetString(bytes);
         // 根据 BOM 判断编码
-        if (Bytes[0] >= 0xEF)
+        if (bytes[0] >= 0xEF)
         {
             // 有 BOM 类型
-            if (Bytes[0] == 0xEF && Bytes[1] == 0xBB) return Encoding.UTF8.GetString(Bytes, 3, length - 3);
+            if (bytes[0] == 0xEF && bytes[1] == 0xBB) return Encoding.UTF8.GetString(bytes, 3, length - 3);
 
-            if (Bytes[0] == 0xFE && Bytes[1] == 0xFF) return Encoding.BigEndianUnicode.GetString(Bytes, 3, length - 3);
+            if (bytes[0] == 0xFE && bytes[1] == 0xFF) return Encoding.BigEndianUnicode.GetString(bytes, 3, length - 3);
 
-            if (Bytes[0] == 0xFF && Bytes[1] == 0xFE) return Encoding.Unicode.GetString(Bytes, 3, length - 3);
+            if (bytes[0] == 0xFF && bytes[1] == 0xFE) return Encoding.Unicode.GetString(bytes, 3, length - 3);
 
-            return Encoding.GetEncoding("GB18030").GetString(Bytes, 3, length - 3);
+            return Encoding.GetEncoding("GB18030").GetString(bytes, 3, length - 3);
         }
 
         // 无 BOM 文件：GB18030（ANSI）或 UTF8
-        var uTF8 = Encoding.UTF8.GetString(Bytes);
+        var uTF8 = Encoding.UTF8.GetString(bytes);
         var errorChar = Encoding.UTF8.GetString(new[] { (byte)239, (byte)191, (byte)189 }).ToCharArray()[0];
-        if (uTF8.Contains(errorChar)) return Encoding.GetEncoding("GB18030").GetString(Bytes);
+        if (uTF8.Contains(errorChar)) return Encoding.GetEncoding("GB18030").GetString(bytes);
 
         return uTF8;
     }
@@ -1056,7 +1056,7 @@ public static class ModBase
     /// <summary>
     ///     获取文件 MD5，若失败则返回空字符串。
     /// </summary>
-    public static string GetFileMD5(string FilePath)
+    public static string GetFileMD5(string filePath)
     {
         var retry = false;
         Re: ;
@@ -1064,7 +1064,7 @@ public static class ModBase
         try
         {
             // 获取 MD5
-            using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return (string)GetHexString(MD5Provider.Instance.ComputeHash(fs));
             }
@@ -1073,12 +1073,12 @@ public static class ModBase
         {
             if (retry || ex is FileNotFoundException)
             {
-                Log(ex, "获取文件 MD5 失败：" + FilePath);
+                Log(ex, "获取文件 MD5 失败：" + filePath);
                 return "";
             }
 
             retry = true;
-            Log(ex, "获取文件 MD5 可重试失败：" + FilePath, LogLevel.Normal);
+            Log(ex, "获取文件 MD5 可重试失败：" + filePath, LogLevel.Normal);
             Thread.Sleep(RandomUtils.NextInt(200, 500));
             goto Re;
         }
@@ -1087,7 +1087,7 @@ public static class ModBase
     /// <summary>
     ///     获取文件 SHA512，若失败则返回空字符串。
     /// </summary>
-    public static string GetFileSHA512(string FilePath)
+    public static string GetFileSHA512(string filePath)
     {
         var retry = false;
         Re: ;
@@ -1097,7 +1097,7 @@ public static class ModBase
             // '检测该文件是否在下载中，若在下载则放弃检测
             // If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             // 获取 SHA512
-            using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return (string)GetHexString(SHA512Provider.Instance.ComputeHash(fs));
             }
@@ -1106,12 +1106,12 @@ public static class ModBase
         {
             if (retry || ex is FileNotFoundException)
             {
-                Log(ex, "获取文件 SHA512 失败：" + FilePath);
+                Log(ex, "获取文件 SHA512 失败：" + filePath);
                 return "";
             }
 
             retry = true;
-            Log(ex, "获取文件 SHA512 可重试失败：" + FilePath, LogLevel.Normal);
+            Log(ex, "获取文件 SHA512 可重试失败：" + filePath, LogLevel.Normal);
             Thread.Sleep(RandomUtils.NextInt(200, 500));
             goto Re;
         }
@@ -1120,7 +1120,7 @@ public static class ModBase
     /// <summary>
     ///     获取文件 SHA256，若失败则返回空字符串。
     /// </summary>
-    public static string GetFileSHA256(string FilePath)
+    public static string GetFileSHA256(string filePath)
     {
         var retry = false;
         Re: ;
@@ -1130,7 +1130,7 @@ public static class ModBase
             // '检测该文件是否在下载中，若在下载则放弃检测
             // If IgnoreOnDownloading AndAlso NetManage.Files.ContainsKey(FilePath) AndAlso NetManage.Files(FilePath).State <= NetState.Merge Then Return ""
             // 获取 SHA256
-            using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return (string)GetHexString(SHA256Provider.Instance.ComputeHash(fs));
             }
@@ -1139,12 +1139,12 @@ public static class ModBase
         {
             if (retry || ex is FileNotFoundException)
             {
-                Log(ex, "获取文件 SHA256 失败：" + FilePath);
+                Log(ex, "获取文件 SHA256 失败：" + filePath);
                 return "";
             }
 
             retry = true;
-            Log(ex, "获取文件 SHA256 可重试失败：" + FilePath, LogLevel.Normal);
+            Log(ex, "获取文件 SHA256 可重试失败：" + filePath, LogLevel.Normal);
             Thread.Sleep(RandomUtils.NextInt(200, 500));
             goto Re;
         }
@@ -1153,7 +1153,7 @@ public static class ModBase
     /// <summary>
     ///     获取文件 SHA1，若失败则返回空字符串。
     /// </summary>
-    public static string GetFileSHA1(string FilePath)
+    public static string GetFileSHA1(string filePath)
     {
         var retry = false;
         Re: ;
@@ -1161,7 +1161,7 @@ public static class ModBase
         try
         {
             // 获取 SHA1
-            using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return (string)GetHexString(SHA1Provider.Instance.ComputeHash(fs));
             }
@@ -1170,12 +1170,12 @@ public static class ModBase
         {
             if (retry || ex is FileNotFoundException)
             {
-                Log(ex, "获取文件 SHA1 失败：" + FilePath);
+                Log(ex, "获取文件 SHA1 失败：" + filePath);
                 return "";
             }
 
             retry = true;
-            Log(ex, "获取文件 SHA1 可重试失败：" + FilePath, LogLevel.Normal);
+            Log(ex, "获取文件 SHA1 可重试失败：" + filePath, LogLevel.Normal);
             Thread.Sleep(RandomUtils.NextInt(200, 500));
             goto Re;
         }
@@ -1231,27 +1231,27 @@ public static class ModBase
         /// </summary>
         public long minSize = -1;
 
-        public FileChecker(long MinSize = -1, long ActualSize = -1, string Hash = null, bool CanUseExistsFile = true,
-            bool IsJson = false)
+        public FileChecker(long minSize = -1, long actualSize = -1, string hash = null, bool canUseExistsFile = true,
+            bool isJson = false)
         {
-            this.actualSize = ActualSize;
-            this.minSize = MinSize;
-            this.hash = Hash;
-            this.canUseExistsFile = CanUseExistsFile;
-            this.isJson = IsJson;
+            this.actualSize = actualSize;
+            this.minSize = minSize;
+            this.hash = hash;
+            this.canUseExistsFile = canUseExistsFile;
+            this.isJson = isJson;
         }
 
         /// <summary>
         ///     检查文件。若成功则返回 Nothing，失败则返回错误的描述文本，描述文本不以句号结尾。不会抛出错误。
         /// </summary>
-        public string Check(string LocalPath)
+        public string Check(string localPath)
         {
             try
             {
-                Log($"[Checker] 开始校验文件 {LocalPath}", LogLevel.Developer);
-                var info = new FileInfo(LocalPath);
+                Log($"[Checker] 开始校验文件 {localPath}", LogLevel.Developer);
+                var info = new FileInfo(localPath);
                 if (!info.Exists)
-                    return "文件不存在：" + LocalPath;
+                    return "文件不存在：" + localPath;
                 var fileSize = info.Length;
                 var errorMessage = new List<string>();
                 var allowIgnore = false; // 允许相信哈希正确但是大小不正确
@@ -1259,19 +1259,19 @@ public static class ModBase
                 {
                     if (hash.Length < 35) // MD5
                     {
-                        var computedHash = GetFileMD5(LocalPath);
+                        var computedHash = GetFileMD5(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add("文件 MD5 应为 " + hash + "，实际为 " + computedHash);
                     }
                     else if (hash.Length == 64) // SHA256
                     {
-                        var computedHash = GetFileSHA256(LocalPath);
+                        var computedHash = GetFileSHA256(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add("文件 SHA256 应为 " + hash + "，实际为 " + computedHash);
                     }
                     else // SHA1 (40)
                     {
-                        var computedHash = GetFileSHA1(LocalPath);
+                        var computedHash = GetFileSHA1(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add("文件 SHA1 应为 " + hash + "，实际为 " + computedHash);
                     }
@@ -1281,15 +1281,15 @@ public static class ModBase
 
                 if (actualSize >= 0L && actualSize != fileSize && !allowIgnore) // 不允许忽略大小不正确的情况
                     errorMessage.Add($"文件大小应为 {actualSize} B，实际为 {fileSize} B" +
-                                     (fileSize < 2000L ? "，内容为" + ReadFile(LocalPath) : ""));
+                                     (fileSize < 2000L ? "，内容为" + ReadFile(localPath) : ""));
 
                 if (minSize >= 0L && minSize > fileSize)
                     errorMessage.Add($"文件大小应大于 {minSize} B，实际为 {fileSize} B" +
-                                     (fileSize < 2000L ? "，内容为：" + ReadFile(LocalPath) : ""));
+                                     (fileSize < 2000L ? "，内容为：" + ReadFile(localPath) : ""));
 
                 if (isJson)
                 {
-                    var content = ReadFile(LocalPath);
+                    var content = ReadFile(localPath);
                     if (string.IsNullOrEmpty(content))
                         throw new Exception("读取到的文件为空");
                     try
@@ -1304,7 +1304,7 @@ public static class ModBase
 
                 if (errorMessage.Count != 0)
                 {
-                    errorMessage.Insert(0, $"实际校验地址：{LocalPath}");
+                    errorMessage.Insert(0, $"实际校验地址：{localPath}");
                     return errorMessage.Join(";");
                 }
 
@@ -1374,23 +1374,23 @@ public static class ModBase
     ///     尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 Jar 以 zip 方式解压。
     ///     会尝试创建，但不会清空目标文件夹。
     /// </summary>
-    public static void ExtractFile(string CompressFilePath, string DestDirectory, Encoding Encode = null,
-        Action<double> ProgressIncrementHandler = null)
+    public static void ExtractFile(string compressFilePath, string destDirectory, Encoding encode = null,
+        Action<double> progressIncrementHandler = null)
     {
-        Directory.CreateDirectory(DestDirectory);
-        DestDirectory = Path.GetFullPath(DestDirectory);
-        if (!DestDirectory.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            DestDirectory += Path.DirectorySeparatorChar.ToString();
-        if (CompressFilePath.EndsWithF(".gz", true))
+        Directory.CreateDirectory(destDirectory);
+        destDirectory = Path.GetFullPath(destDirectory);
+        if (!destDirectory.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            destDirectory += Path.DirectorySeparatorChar.ToString();
+        if (compressFilePath.EndsWithF(".gz", true))
             // 以 gz 方式解压
-            using (var compressedFile = new FileStream(CompressFilePath, FileMode.Open, FileAccess.Read))
+            using (var compressedFile = new FileStream(compressFilePath, FileMode.Open, FileAccess.Read))
             {
                 using (var decompressStream = new GZipStream(compressedFile, CompressionMode.Decompress))
                 {
                     using (var extractFileStream =
                            new FileStream(
-                               Path.Combine(DestDirectory,
-                                   GetFileNameFromPath(CompressFilePath).ToLower().Replace(".tar", "")
+                               Path.Combine(destDirectory,
+                                   GetFileNameFromPath(compressFilePath).ToLower().Replace(".tar", "")
                                        .Replace(".gz", "")), FileMode.OpenOrCreate, FileAccess.Write))
                     {
                         decompressStream.CopyTo(extractFileStream);
@@ -1399,18 +1399,18 @@ public static class ModBase
             }
         else
             // 以 zip 方式解压
-            using (var archive = ZipFile.Open(CompressFilePath, ZipArchiveMode.Read,
-                       Encode ?? Encoding.GetEncoding("GB18030")))
+            using (var archive = ZipFile.Open(compressFilePath, ZipArchiveMode.Read,
+                       encode ?? Encoding.GetEncoding("GB18030")))
             {
                 var totalCount = archive.Entries.Count;
                 foreach (var entry in archive.Entries)
                 {
-                    if (ProgressIncrementHandler is not null)
-                        ProgressIncrementHandler(1d / totalCount);
-                    var destinationPath = Path.GetFullPath(Path.Combine(DestDirectory, entry.FullName));
-                    if (!destinationPath.StartsWithF(DestDirectory))
+                    if (progressIncrementHandler is not null)
+                        progressIncrementHandler(1d / totalCount);
+                    var destinationPath = Path.GetFullPath(Path.Combine(destDirectory, entry.FullName));
+                    if (!destinationPath.StartsWithF(destDirectory))
                         throw new Exception(
-                            $"解压文件 {entry.FullName} 错误：解压文件路径 {destinationPath} 不在目标目录 {DestDirectory} 内");
+                            $"解压文件 {entry.FullName} 错误：解压文件路径 {destinationPath} 不在目标目录 {destDirectory} 内");
                     if (destinationPath.EndsWithF(@"\") || destinationPath.EndsWithF("/"))
                     {
                     }
@@ -1426,20 +1426,20 @@ public static class ModBase
     /// <summary>
     ///     删除文件夹，返回删除的文件个数。通过参数选择是否抛出异常。
     /// </summary>
-    public static int DeleteDirectory(string Path, bool IgnoreIssue = false)
+    public static int DeleteDirectory(string path, bool ignoreIssue = false)
     {
-        if (!Directory.Exists(Path))
+        if (!Directory.Exists(path))
             return 0;
         var deletedCount = 0;
         string[] files;
         try
         {
-            files = Directory.GetFiles(Path);
+            files = Directory.GetFiles(path);
         }
         catch (DirectoryNotFoundException ex) // #4549
         {
-            Log(ex, $"疑似为孤立符号链接，尝试直接删除（{Path}）", LogLevel.Developer);
-            Directory.Delete(Path);
+            Log(ex, $"疑似为孤立符号链接，尝试直接删除（{path}）", LogLevel.Developer);
+            Directory.Delete(path);
             return 0;
         }
 
@@ -1463,33 +1463,33 @@ public static class ModBase
                     goto RetryFile;
                 }
 
-                if (IgnoreIssue)
+                if (ignoreIssue)
                     Log(ex, "删除单个文件可忽略地失败");
                 else
                     throw;
             }
         }
 
-        foreach (var str in Directory.GetDirectories(Path))
-            DeleteDirectory(str, IgnoreIssue);
+        foreach (var str in Directory.GetDirectories(path))
+            DeleteDirectory(str, ignoreIssue);
         var retriedDir = false;
         RetryDir: ;
 
         try
         {
-            Directory.Delete(Path, true);
+            Directory.Delete(path, true);
         }
         catch (Exception ex)
         {
             if (!retriedDir && !RunInUi())
             {
                 retriedDir = true;
-                Log(ex, $"删除文件夹失败，将在 0.3s 后重试（{Path}）");
+                Log(ex, $"删除文件夹失败，将在 0.3s 后重试（{path}）");
                 Thread.Sleep(300);
                 goto RetryDir;
             }
 
-            if (IgnoreIssue)
+            if (ignoreIssue)
                 Log(ex, "删除单个文件夹可忽略地失败");
             else
                 throw;
@@ -1501,30 +1501,30 @@ public static class ModBase
     /// <summary>
     ///     复制文件夹，失败会抛出异常。
     /// </summary>
-    public static void CopyDirectory(string FromPath, string ToPath, Action<double> ProgressIncrementHandler = null)
+    public static void CopyDirectory(string fromPath, string toPath, Action<double> progressIncrementHandler = null)
     {
-        FromPath = FromPath.Replace("/", @"\");
-        if (!FromPath.EndsWithF(@"\"))
-            FromPath += @"\";
-        ToPath = ToPath.Replace("/", @"\");
-        if (!ToPath.EndsWithF(@"\"))
-            ToPath += @"\";
-        var allFiles = EnumerateFiles(FromPath).ToList();
+        fromPath = fromPath.Replace("/", @"\");
+        if (!fromPath.EndsWithF(@"\"))
+            fromPath += @"\";
+        toPath = toPath.Replace("/", @"\");
+        if (!toPath.EndsWithF(@"\"))
+            toPath += @"\";
+        var allFiles = EnumerateFiles(fromPath).ToList();
         var fileCount = allFiles.Count;
         foreach (var file in allFiles)
         {
-            CopyFile(file.FullName, file.FullName.Replace(FromPath, ToPath));
-            if (ProgressIncrementHandler is not null)
-                ProgressIncrementHandler(1d / fileCount);
+            CopyFile(file.FullName, file.FullName.Replace(fromPath, toPath));
+            if (progressIncrementHandler is not null)
+                progressIncrementHandler(1d / fileCount);
         }
     }
 
     /// <summary>
     ///     遍历文件夹中的所有文件。
     /// </summary>
-    public static IEnumerable<FileInfo> EnumerateFiles(string Directory)
+    public static IEnumerable<FileInfo> EnumerateFiles(string directory)
     {
-        var info = new DirectoryInfo(ShortenPath(Directory));
+        var info = new DirectoryInfo(ShortenPath(directory));
         if (!info.Exists)
             return new List<FileInfo>();
         return info.EnumerateFiles("*", SearchOption.AllDirectories);
@@ -1533,43 +1533,43 @@ public static class ModBase
     /// <summary>
     ///     若路径长度大于指定值，则将长路径转换为短路径。
     /// </summary>
-    public static string ShortenPath(string LongPath, int ShortenThreshold = 247)
+    public static string ShortenPath(string longPath, int shortenThreshold = 247)
     {
-        if (LongPath.Length <= ShortenThreshold)
-            return LongPath;
+        if (longPath.Length <= shortenThreshold)
+            return longPath;
         var shortPath = new StringBuilder(260);
-        GetShortPathName(LongPath, shortPath, 260);
+        GetShortPathName(longPath, shortPath, 260);
         return shortPath.ToString();
     }
 
-    public static void MoveDirectory(string SourceDir, string TargetDir)
+    public static void MoveDirectory(string sourceDir, string targetDir)
     {
-        if (!Directory.Exists(TargetDir))
-            Directory.CreateDirectory(TargetDir);
-        foreach (var filePath in Directory.GetFiles(SourceDir))
+        if (!Directory.Exists(targetDir))
+            Directory.CreateDirectory(targetDir);
+        foreach (var filePath in Directory.GetFiles(sourceDir))
         {
             var fileName = GetFileNameFromPath(filePath);
-            File.Move(filePath, Path.Combine(TargetDir, fileName));
+            File.Move(filePath, Path.Combine(targetDir, fileName));
         }
 
-        foreach (var dirPath in Directory.GetDirectories(SourceDir))
+        foreach (var dirPath in Directory.GetDirectories(sourceDir))
         {
             var dirName = GetFolderNameFromPath(dirPath);
-            MoveDirectory(dirPath, Path.Combine(TargetDir, dirName));
+            MoveDirectory(dirPath, Path.Combine(targetDir, dirName));
         }
     }
 
     [DllImport("kernel32", EntryPoint = "GetShortPathNameA")]
     private static extern int GetShortPathName(string lpszLongPath, StringBuilder lpszShortPath, int cchBuffer);
 
-    public static void CreateSymbolicLink(string LinkPath, string TargetPath, int Flags)
+    public static void CreateSymbolicLink(string linkPath, string targetPath, int flags)
     {
         var cMDProcess = new Process();
         var linkDPath = ModLaunch.ExtractLinkD();
         {
             var withBlock = cMDProcess.StartInfo;
             withBlock.FileName = linkDPath;
-            withBlock.Arguments = $"\"{LinkPath}\" \"{TargetPath}\"";
+            withBlock.Arguments = $"\"{linkPath}\" \"{targetPath}\"";
             withBlock.CreateNoWindow = true;
             withBlock.UseShellExecute = false;
         }
@@ -1589,33 +1589,33 @@ public static class ModBase
     /// <summary>
     ///     返回一个枚举对应的字符串。
     /// </summary>
-    /// <param name="EnumData">一个已经实例化的枚举类型。</param>
-    public static string GetStringFromEnum(Enum EnumData)
+    /// <param name="enumData">一个已经实例化的枚举类型。</param>
+    public static string GetStringFromEnum(Enum enumData)
     {
-        return Enum.GetName(EnumData.GetType(), EnumData);
+        return Enum.GetName(enumData.GetType(), enumData);
     }
 
     /// <summary>
     ///     将文件大小转化为适合的文本形式，如“1.28 M”。
     /// </summary>
-    /// <param name="FileSize">以字节为单位的大小表示。</param>
-    public static string GetString(long FileSize)
+    /// <param name="fileSize">以字节为单位的大小表示。</param>
+    public static string GetString(long fileSize)
     {
-        return ByteStream.GetReadableLength(FileSize, provider: Lang.Culture);
+        return ByteStream.GetReadableLength(fileSize, provider: Lang.Culture);
     }
 
     /// <summary>
     ///     获取 JSON 对象。
     /// </summary>
-    public static JsonNode GetJson(string Data)
+    public static JsonNode GetJson(string data)
     {
         try
         {
-            return JsonCompat.ParseNode(Data);
+            return JsonCompat.ParseNode(data);
         }
         catch (Exception ex)
         {
-            var dataText = Data ?? "";
+            var dataText = data ?? "";
             var length = dataText.Length;
             throw new Exception("格式化 JSON 失败：" + (length > 2000
                 ? dataText.Substring(0, 500) + $"...(全长 {length} 个字符)..." + dataText.Substring(length - 500)
@@ -1636,46 +1636,46 @@ public static class ModBase
     /// <summary>
     ///     将字符串统一至某个长度，过短则以 Code 将其右侧填充，过长则截取靠左的指定长度。
     /// </summary>
-    public static string StrFill(string Str, string Code, byte Length)
+    public static string StrFill(string str, string code, byte length)
     {
-        if (Str.Length > Length)
-            return Str.Substring(0, Length);
-        return Str.PadRight(Length, Code[0]).Substring(Str.Length) + Str;
+        if (str.Length > length)
+            return str.Substring(0, length);
+        return str.PadRight(length, code[0]).Substring(str.Length) + str;
     }
 
     /// <summary>
     ///     将一个小数显示为固定的小数点后位数形式，将向零取整。
     ///     如 12 保留 2 位则输出 12.00，而 95.678 保留 2 位则输出 95.67。
     /// </summary>
-    public static string StrFillNum(double Num, int Length)
+    public static string StrFillNum(double num, int length)
     {
-        return Lang.Number(Num, $"F{Length}");
+        return Lang.Number(num, $"F{length}");
     }
 
     /// <summary>
     ///     移除字符串首尾的标点符号、回车，以及括号中、冒号后的补充说明内容。
     /// </summary>
-    public static object StrTrim(string Str, bool RemoveQuote = true)
+    public static object StrTrim(string str, bool removeQuote = true)
     {
-        if (RemoveQuote)
-            Str = Str.Split("（")[0].Split("：")[0].Split("(")[0].Split(":")[0];
-        return Str.Trim('.', '。', '！', ' ', '!', '?', '？', '\r',
+        if (removeQuote)
+            str = str.Split("（")[0].Split("：")[0].Split("(")[0].Split(":")[0];
+        return str.Trim('.', '。', '！', ' ', '!', '?', '？', '\r',
             '\n');
     }
 
     /// <summary>
     ///     连接字符串。
     /// </summary>
-    public static string Join(this IEnumerable List, string Split)
+    public static string Join(this IEnumerable list, string split)
     {
         var builder = new StringBuilder();
         var isFirst = true;
-        foreach (var element in List)
+        foreach (var element in list)
         {
             if (isFirst)
                 isFirst = false;
             else
-                builder.Append(Split);
+                builder.Append(split);
             if (element is not null)
                 builder.Append(element);
         }
@@ -1686,87 +1686,87 @@ public static class ModBase
     /// <summary>
     ///     分割字符串。
     /// </summary>
-    public static string[] Split(this string FullStr, string SplitStr)
+    public static string[] Split(this string fullStr, string splitStr)
     {
-        if (SplitStr.Length == 1) return FullStr.Split(SplitStr[0]);
+        if (splitStr.Length == 1) return fullStr.Split(splitStr[0]);
 
-        return FullStr.Split(new[] { SplitStr }, StringSplitOptions.None);
+        return fullStr.Split(new[] { splitStr }, StringSplitOptions.None);
     }
 
     /// <summary>
     ///     获取字符串哈希值。
     /// </summary>
-    public static ulong GetHash(string Str)
+    public static ulong GetHash(string str)
     {
         ulong getHashRet = default;
         getHashRet = 5381UL;
-        for (int i = 0, loopTo = Str.Length - 1; i <= loopTo; i++)
-            getHashRet = (getHashRet << 5) ^ getHashRet ^ Str[i];
+        for (int i = 0, loopTo = str.Length - 1; i <= loopTo; i++)
+            getHashRet = (getHashRet << 5) ^ getHashRet ^ str[i];
         return getHashRet ^ 0xA98F501BC684032FUL;
     }
 
     /// <summary>
     ///     获取字符串 MD5。
     /// </summary>
-    public static string GetStringMD5(string Str)
+    public static string GetStringMD5(string str)
     {
-        return (string)GetHexString(MD5Provider.Instance.ComputeHash(Str));
+        return (string)GetHexString(MD5Provider.Instance.ComputeHash(str));
     }
 
     /// <summary>
     ///     检查字符串中的字符是否均为 ASCII 字符。
     /// </summary>
-    public static bool IsASCII(this string Input)
+    public static bool IsASCII(this string input)
     {
-        return Input.All(c => c < 128);
+        return input.All(c => c < 128);
     }
 
     /// <summary>
     ///     获取在子字符串第一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024。
     ///     如果未找到子字符串则不裁切。
     /// </summary>
-    public static string BeforeFirst(this string Str, string Text, bool IgnoreCase = false)
+    public static string BeforeFirst(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(Text) ? -1 : Str.IndexOfF(Text, IgnoreCase);
-        if (pos >= 0) return Str.Substring(0, pos);
+        var pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+        if (pos >= 0) return str.Substring(0, pos);
 
-        return Str;
+        return str;
     }
 
     /// <summary>
     ///     获取在子字符串最后一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024/11。
     ///     如果未找到子字符串则不裁切。
     /// </summary>
-    public static string BeforeLast(this string Str, string Text, bool IgnoreCase = false)
+    public static string BeforeLast(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(Text) ? -1 : Str.LastIndexOfF(Text, IgnoreCase);
-        if (pos >= 0) return Str.Substring(0, pos);
+        var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+        if (pos >= 0) return str.Substring(0, pos);
 
-        return Str;
+        return str;
     }
 
     /// <summary>
     ///     获取在子字符串第一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 11/08。
     ///     如果未找到子字符串则不裁切。
     /// </summary>
-    public static string AfterFirst(this string Str, string Text, bool IgnoreCase = false)
+    public static string AfterFirst(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(Text) ? -1 : Str.IndexOfF(Text, IgnoreCase);
-        if (pos >= 0) return Str.Substring(pos + Text.Length);
+        var pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+        if (pos >= 0) return str.Substring(pos + text.Length);
 
-        return Str;
+        return str;
     }
 
     /// <summary>
     ///     获取在子字符串最后一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 08。
     ///     如果未找到子字符串则不裁切。
     /// </summary>
-    public static string AfterLast(this string Str, string Text, bool IgnoreCase = false)
+    public static string AfterLast(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(Text) ? -1 : Str.LastIndexOfF(Text, IgnoreCase);
-        if (pos >= 0) return Str.Substring(pos + Text.Length);
+        var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+        if (pos >= 0) return str.Substring(pos + text.Length);
 
-        return Str;
+        return str;
     }
 
     /// <summary>
@@ -1774,95 +1774,95 @@ public static class ModBase
     ///     等效于 AfterLast 后接 BeforeFirst。
     ///     如果未找到子字符串则不裁切。
     /// </summary>
-    public static string Between(this string Str, string After, string Before, bool IgnoreCase = false)
+    public static string Between(this string str, string after, string before, bool ignoreCase = false)
     {
-        var startPos = string.IsNullOrEmpty(After) ? -1 : Str.LastIndexOfF(After, IgnoreCase);
+        var startPos = string.IsNullOrEmpty(after) ? -1 : str.LastIndexOfF(after, ignoreCase);
         if (startPos >= 0)
-            startPos += After.Length;
+            startPos += after.Length;
         else
             startPos = 0;
-        var endPos = string.IsNullOrEmpty(Before) ? -1 : Str.IndexOfF(Before, startPos, IgnoreCase);
-        if (endPos >= 0) return Str.Substring(startPos, endPos - startPos);
+        var endPos = string.IsNullOrEmpty(before) ? -1 : str.IndexOfF(before, startPos, ignoreCase);
+        if (endPos >= 0) return str.Substring(startPos, endPos - startPos);
 
-        if (startPos > 0) return Str.Substring(startPos);
+        if (startPos > 0) return str.Substring(startPos);
 
-        return Str;
+        return str;
     }
 
     /// <summary>
     ///     高速的 StartsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool StartsWithF(this string Str, string Prefix, bool IgnoreCase = false)
+    public static bool StartsWithF(this string str, string prefix, bool ignoreCase = false)
     {
-        return Str.StartsWith(Prefix, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.StartsWith(prefix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     高速的 EndsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EndsWithF(this string Str, string Suffix, bool IgnoreCase = false)
+    public static bool EndsWithF(this string str, string suffix, bool ignoreCase = false)
     {
-        return Str.EndsWith(Suffix, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.EndsWith(suffix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     支持可变大小写判断的 Contains。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool ContainsF(this string Str, string SubStr, bool IgnoreCase = false)
+    public static bool ContainsF(this string str, string subStr, bool ignoreCase = false)
     {
-        return Str.IndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) >= 0;
+        return str.IndexOf(subStr, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) >= 0;
     }
 
     /// <summary>
     ///     高速的 IndexOf。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexOfF(this string Str, string SubStr, bool IgnoreCase = false)
+    public static int IndexOfF(this string str, string subStr, bool ignoreCase = false)
     {
-        return Str.IndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.IndexOf(subStr, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     高速的 IndexOf。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int IndexOfF(this string Str, string SubStr, int StartIndex, bool IgnoreCase = false)
+    public static int IndexOfF(this string str, string subStr, int startIndex, bool ignoreCase = false)
     {
-        return Str.IndexOf(SubStr, StartIndex,
-            IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.IndexOf(subStr, startIndex,
+            ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     高速的 LastIndexOf。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int LastIndexOfF(this string Str, string SubStr, bool IgnoreCase = false)
+    public static int LastIndexOfF(this string str, string subStr, bool ignoreCase = false)
     {
-        return Str.LastIndexOf(SubStr, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.LastIndexOf(subStr, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     高速的 LastIndexOf。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int LastIndexOfF(this string Str, string SubStr, int StartIndex, bool IgnoreCase = false)
+    public static int LastIndexOfF(this string str, string subStr, int startIndex, bool ignoreCase = false)
     {
-        return Str.LastIndexOf(SubStr, StartIndex,
-            IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        return str.LastIndexOf(subStr, startIndex,
+            ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     /// <summary>
     ///     不会报错的 Val。
     ///     如果输入有误，返回 0。
     /// </summary>
-    public static double Val(object Str)
+    public static double Val(object str)
     {
         try
         {
-            return Str is "&" ? 0d : Conversion.Val(Str);
+            return str is "&" ? 0d : Conversion.Val(str);
         }
         catch
         {
@@ -1874,11 +1874,11 @@ public static class ModBase
     /// <summary>
     ///     为字符串进行 XML 转义。
     /// </summary>
-    public static string EscapeXML(string Str)
+    public static string EscapeXML(string str)
     {
-        if (Str.StartsWithF("{"))
-            Str = "{}" + Str; // #4187
-        return Str.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;")
+        if (str.StartsWithF("{"))
+            str = "{}" + str; // #4187
+        return str.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;")
             .Replace("\"", "&quot;").Replace("\r\n", "&#xa;");
     }
 
@@ -2013,19 +2013,19 @@ public static class ModBase
     /// <summary>
     ///     进行正则替换，会抛出错误。
     /// </summary>
-    public static string RegexReplace(this string AllContents, string SearchRegex, string ReplaceTo,
+    public static string RegexReplace(this string allContents, string searchRegex, string replaceTo,
         RegexOptions options = RegexOptions.None)
     {
-        return Regex.Replace(AllContents, SearchRegex, ReplaceTo, options);
+        return Regex.Replace(allContents, searchRegex, replaceTo, options);
     }
 
     /// <summary>
     ///     对每个正则匹配分别进行替换，会抛出错误。
     /// </summary>
-    public static string RegexReplaceEach(this string AllContents, string SearchRegex, MatchEvaluator ReplaceTo,
+    public static string RegexReplaceEach(this string allContents, string searchRegex, MatchEvaluator replaceTo,
         RegexOptions options = RegexOptions.None)
     {
-        return Regex.Replace(AllContents, SearchRegex, ReplaceTo, options);
+        return Regex.Replace(allContents, searchRegex, replaceTo, options);
     }
 
     #endregion
@@ -2035,16 +2035,16 @@ public static class ModBase
     /// <summary>
     ///     获取搜索文本的相似度。
     /// </summary>
-    /// <param name="Source">被搜索的长内容。</param>
-    /// <param name="Query">用户输入的搜索文本。</param>
-    private static double SearchSimilarity(string Source, string Query)
+    /// <param name="source">被搜索的长内容。</param>
+    /// <param name="query">用户输入的搜索文本。</param>
+    private static double SearchSimilarity(string source, string query)
     {
         var qp = 0;
         var lenSum = 0d;
-        Source = Source.ToLower().Replace(" ", "");
-        Query = Query.ToLower().Replace(" ", "");
-        var sourceLength = Source.Length;
-        var queryLength = Query.Length; // 用于计算最后因数的长度缓存
+        source = source.ToLower().Replace(" ", "");
+        query = query.ToLower().Replace(" ", "");
+        var sourceLength = source.Length;
+        var queryLength = query.Length; // 用于计算最后因数的长度缓存
         while (qp < queryLength)
         {
             // 对 qp 作为开始位置计算
@@ -2052,11 +2052,11 @@ public static class ModBase
             var lenMax = 0;
             var spMax = 0;
             // 查找以 qp 为头的最大子串
-            while (sp < Source.Length)
+            while (sp < source.Length)
             {
                 // 对每个 sp 作为开始位置计算最大子串
                 var len = 0;
-                while (qp + len < queryLength && sp + len < Source.Length && Source[sp + len] == Query[qp + len])
+                while (qp + len < queryLength && sp + len < source.Length && source[sp + len] == query[qp + len])
                     len += 1;
                 // 存储 len
                 if (len > lenMax)
@@ -2071,9 +2071,9 @@ public static class ModBase
 
             if (lenMax > 0)
             {
-                Source = Source.Substring(0, spMax) +
-                         (Source.Count() > spMax + lenMax
-                             ? Source.Substring(spMax + lenMax)
+                source = source.Substring(0, spMax) +
+                         (source.Count() > spMax + lenMax
+                             ? source.Substring(spMax + lenMax)
                              : string.Empty); // 将源中的对应字段替换空
                 // 存储 lenSum
                 var incWeight = Math.Pow(1.4d, 3 + lenMax) - 3.6d; // 根据长度加成
@@ -2158,20 +2158,20 @@ public static class ModBase
     /// <summary>
     ///     进行多段文本加权搜索，获取相似度较高的数项结果。
     /// </summary>
-    /// <param name="MaxBlurCount">返回的最大模糊结果数。</param>
-    /// <param name="MinBlurSimilarity">返回结果要求的最低相似度。</param>
-    public static List<SearchEntry<T>> Search<T>(List<SearchEntry<T>> Entries, string Query, int MaxBlurCount = 5,
-        double MinBlurSimilarity = 0.1d)
+    /// <param name="maxBlurCount">返回的最大模糊结果数。</param>
+    /// <param name="minBlurSimilarity">返回结果要求的最低相似度。</param>
+    public static List<SearchEntry<T>> Search<T>(List<SearchEntry<T>> entries, string query, int maxBlurCount = 5,
+        double minBlurSimilarity = 0.1d)
     {
         var resultList = new List<SearchEntry<T>>();
 
-        if (Entries is null || !Entries.Any()) return resultList;
+        if (entries is null || !entries.Any()) return resultList;
 
         // Preprocess query into parts
-        var queryParts = Query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var queryParts = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (queryParts.Length == 0)
         {
-            resultList.AddRange(Entries);
+            resultList.AddRange(entries);
             return resultList;
         }
 
@@ -2179,9 +2179,9 @@ public static class ModBase
         var queryPartsLower = queryParts.Select(q => q.ToLower()).ToArray();
 
         // Process each entry to compute similarity and absolute match status
-        foreach (var entry in Entries)
+        foreach (var entry in entries)
         {
-            entry.similarity = SearchSimilarityWeighted(entry.searchSource, Query);
+            entry.similarity = SearchSimilarityWeighted(entry.searchSource, query);
 
             // Preprocess search source keys: remove spaces and convert to lowercase
             var processedSources = entry.searchSource.Select(s =>
@@ -2214,7 +2214,7 @@ public static class ModBase
         }
 
         // Sort by absolute match (descending), then by similarity (descending)
-        var sortedEntries = Entries.OrderByDescending(e => e.absoluteRight).ThenByDescending(e => e.similarity)
+        var sortedEntries = entries.OrderByDescending(e => e.absoluteRight).ThenByDescending(e => e.similarity)
             .ToList();
 
         // Build the final result list
@@ -2226,7 +2226,7 @@ public static class ModBase
             }
             else
             {
-                if (entry.similarity < MinBlurSimilarity || blurCount >= MaxBlurCount) break;
+                if (entry.similarity < minBlurSimilarity || blurCount >= maxBlurCount) break;
                 resultList.Add(entry);
                 blurCount += 1;
             }
@@ -2461,15 +2461,15 @@ public static class ModBase
     /// <summary>
     ///     数组去重。
     /// </summary>
-    public static List<T> Distinct<T>(this ICollection<T> Arr, ComparisonBoolean<T> IsEqual)
+    public static List<T> Distinct<T>(this ICollection<T> arr, ComparisonBoolean<T> isEqual)
     {
         var resultArray = new List<T>();
-        for (int i = 0, loopTo = Arr.Count - 1; i <= loopTo; i++)
+        for (int i = 0, loopTo = arr.Count - 1; i <= loopTo; i++)
         {
-            for (int ii = i + 1, loopTo1 = Arr.Count - 1; ii <= loopTo1; ii++)
-                if (IsEqual(Arr.ElementAtOrDefault(i), Arr.ElementAtOrDefault(ii)))
+            for (int ii = i + 1, loopTo1 = arr.Count - 1; ii <= loopTo1; ii++)
+                if (isEqual(arr.ElementAtOrDefault(i), arr.ElementAtOrDefault(ii)))
                     goto NextElement;
-            resultArray.Add(Arr.ElementAtOrDefault(i));
+            resultArray.Add(arr.ElementAtOrDefault(i));
             NextElement: ;
         }
 
@@ -2479,11 +2479,11 @@ public static class ModBase
     /// <summary>
     ///     对集合的每个元素执行指定操作。
     /// </summary>
-    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> Collection, Action<T> Action)
+    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> collection, Action<T> action)
     {
-        foreach (var item in Collection)
-            Action(item);
-        return Collection;
+        foreach (var item in collection)
+            action(item);
+        return collection;
     }
 
     /// <summary>
@@ -2494,61 +2494,61 @@ public static class ModBase
         public bool handled = false;
         public bool raiseByMouse;
 
-        public RouteEventArgs(bool RaiseByMouse = false)
+        public RouteEventArgs(bool raiseByMouse = false)
         {
-            this.raiseByMouse = RaiseByMouse;
+            this.raiseByMouse = raiseByMouse;
         }
     }
 
     /// <summary>
     ///     前台运行文件。
     /// </summary>
-    /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
-    /// <param name="Arguments">运行参数。</param>
-    public static void ShellOnly(string FileName, string Arguments = "")
+    /// <param name="fileName">文件名。可以为“notepad”等缩写。</param>
+    /// <param name="arguments">运行参数。</param>
+    public static void ShellOnly(string fileName, string arguments = "")
     {
         try
         {
-            FileName = ShortenPath(FileName);
+            fileName = ShortenPath(fileName);
             using (var program = new Process())
             {
-                program.StartInfo.Arguments = Arguments;
-                program.StartInfo.FileName = FileName;
+                program.StartInfo.Arguments = arguments;
+                program.StartInfo.FileName = fileName;
                 program.StartInfo.UseShellExecute = true;
-                Log("[System] 执行外部命令：" + FileName + " " + Arguments);
+                Log("[System] 执行外部命令：" + fileName + " " + arguments);
                 program.Start();
             }
         }
         catch (Exception ex)
         {
-            Log(ex, "打开文件或程序失败：" + FileName, LogLevel.Msgbox);
+            Log(ex, "打开文件或程序失败：" + fileName, LogLevel.Msgbox);
         }
     }
 
     /// <summary>
     ///     前台运行文件并返回返回值。
     /// </summary>
-    /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
-    /// <param name="Arguments">运行参数。</param>
-    /// <param name="Timeout">等待该程序结束的最长时间（毫秒）。超时会返回 Result.Timeout。</param>
-    public static ProcessReturnValues ShellAndGetExitCode(string FileName, string Arguments = "", int Timeout = 1000000)
+    /// <param name="fileName">文件名。可以为“notepad”等缩写。</param>
+    /// <param name="arguments">运行参数。</param>
+    /// <param name="timeout">等待该程序结束的最长时间（毫秒）。超时会返回 Result.Timeout。</param>
+    public static ProcessReturnValues ShellAndGetExitCode(string fileName, string arguments = "", int timeout = 1000000)
     {
         try
         {
             using (var program = new Process())
             {
-                program.StartInfo.Arguments = Arguments;
-                program.StartInfo.FileName = FileName;
-                Log("[System] 执行外部命令并等待返回码：" + FileName + " " + Arguments);
+                program.StartInfo.Arguments = arguments;
+                program.StartInfo.FileName = fileName;
+                Log("[System] 执行外部命令并等待返回码：" + fileName + " " + arguments);
                 program.Start();
-                if (program.WaitForExit(Timeout)) return (ProcessReturnValues)program.ExitCode;
+                if (program.WaitForExit(timeout)) return (ProcessReturnValues)program.ExitCode;
 
                 return ProcessReturnValues.Timeout;
             }
         }
         catch (Exception ex)
         {
-            Log(ex, "执行命令失败：" + FileName, LogLevel.Msgbox);
+            Log(ex, "执行命令失败：" + fileName, LogLevel.Msgbox);
             return ProcessReturnValues.Fail;
         }
     }
@@ -2556,16 +2556,16 @@ public static class ModBase
     /// <summary>
     ///     静默运行文件并返回输出流字符串。执行失败会抛出异常。
     /// </summary>
-    /// <param name="FileName">文件名。可以为“notepad”等缩写。</param>
-    /// <param name="Arguments">运行参数。</param>
-    /// <param name="Timeout">等待该程序结束的最长时间（毫秒）。超时会抛出错误。</param>
-    public static string ShellAndGetOutput(string FileName, string Arguments = "", int Timeout = 1000000,
-        string WorkingDirectory = null)
+    /// <param name="fileName">文件名。可以为“notepad”等缩写。</param>
+    /// <param name="arguments">运行参数。</param>
+    /// <param name="timeout">等待该程序结束的最长时间（毫秒）。超时会抛出错误。</param>
+    public static string ShellAndGetOutput(string fileName, string arguments = "", int timeout = 1000000,
+        string workingDirectory = null)
     {
         var info = new ProcessStartInfo
         {
-            FileName = FileName,
-            Arguments = Arguments,
+            FileName = fileName,
+            Arguments = arguments,
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
@@ -2573,9 +2573,9 @@ public static class ModBase
         };
 
         // 设置工作目录（如果提供）
-        if (!string.IsNullOrEmpty(WorkingDirectory)) info.WorkingDirectory = WorkingDirectory.TrimEnd('\\');
+        if (!string.IsNullOrEmpty(workingDirectory)) info.WorkingDirectory = workingDirectory.TrimEnd('\\');
 
-        Log("[System] 执行外部命令并等待返回结果：" + FileName + " " + Arguments);
+        Log("[System] 执行外部命令并等待返回结果：" + fileName + " " + arguments);
 
         using (var program = new Process { StartInfo = info })
         {
@@ -2586,7 +2586,7 @@ public static class ModBase
             var errorTask = program.StandardError.ReadToEndAsync();
 
             // 等待进程退出或超时
-            if (program.WaitForExit(Timeout))
+            if (program.WaitForExit(timeout))
             {
                 // 确保异步读取完成
                 Task.WaitAll(outputTask, errorTask);
@@ -2607,24 +2607,24 @@ public static class ModBase
     /// <summary>
     ///     在新的工作线程中执行代码。
     /// </summary>
-    public static Thread RunInNewThread(Action Action, string Name = null,
-        ThreadPriority Priority = ThreadPriority.Normal)
+    public static Thread RunInNewThread(Action action, string name = null,
+        ThreadPriority priority = ThreadPriority.Normal)
     {
         var th = new Thread(() =>
         {
             try
             {
-                Action();
+                action();
             }
             catch (ThreadInterruptedException ex)
             {
-                Log(Name + "：线程已中止");
+                Log(name + "：线程已中止");
             }
             catch (Exception ex)
             {
-                Log(ex, Name + "：线程执行失败", LogLevel.Feedback);
+                Log(ex, name + "：线程执行失败", LogLevel.Feedback);
             }
-        }) { Name = Name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = Priority };
+        }) { Name = name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = priority };
         th.Start();
         return th;
     }
@@ -2634,11 +2634,11 @@ public static class ModBase
     ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
     ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
     /// </summary>
-    public static Output RunInUiWait<Output>(Func<Output> Action)
+    public static Output RunInUiWait<Output>(Func<Output> action)
     {
-        if (RunInUi()) return Action();
+        if (RunInUi()) return action();
 
-        return System.Windows.Application.Current.Dispatcher.Invoke(Action);
+        return System.Windows.Application.Current.Dispatcher.Invoke(action);
     }
 
     /// <summary>
@@ -2646,55 +2646,55 @@ public static class ModBase
     ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
     ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
     /// </summary>
-    public static void RunInUiWait(Action Action)
+    public static void RunInUiWait(Action action)
     {
         if (System.Windows.Application.Current is null)
             return;
         if (RunInUi())
-            Action();
+            action();
         else
-            System.Windows.Application.Current.Dispatcher.Invoke(Action);
+            System.Windows.Application.Current.Dispatcher.Invoke(action);
     }
 
     /// <summary>
     ///     确保在 UI 线程中执行代码，代码按触发顺序执行。
     ///     如果当前并非 UI 线程，也不阻断当前线程的执行。
     /// </summary>
-    public static void RunInUi(Action Action, bool ForceWaitUntilLoaded = false)
+    public static void RunInUi(Action action, bool forceWaitUntilLoaded = false)
     {
         if (System.Windows.Application.Current is null)
             return;
         if (RunInUi())
-            Action();
+            action();
         else
-            System.Windows.Application.Current.Dispatcher.InvokeAsync(Action,
-                ForceWaitUntilLoaded ? DispatcherPriority.Loaded : DispatcherPriority.Normal);
+            System.Windows.Application.Current.Dispatcher.InvokeAsync(action,
+                forceWaitUntilLoaded ? DispatcherPriority.Loaded : DispatcherPriority.Normal);
     }
 
     /// <summary>
     ///     确保在工作线程中执行代码。
     /// </summary>
-    public static void RunInThread(Action Action)
+    public static void RunInThread(Action action)
     {
         if (RunInUi())
-            RunInNewThread(Action, "Runtime Invoke " + GetUuid() + "#");
+            RunInNewThread(action, "Runtime Invoke " + GetUuid() + "#");
         else
-            Action();
+            action();
     }
 
     /// <summary>
     ///     使用优化的归并排序算法进行稳定排序。
     /// </summary>
-    /// <param name="SortRule">传入两个对象，若第一个对象应该排在前面，则返回 True。</param>
-    public static List<T> Sort<T>(this IList<T> List, ComparisonBoolean<T> SortRule)
+    /// <param name="sortRule">传入两个对象，若第一个对象应该排在前面，则返回 True。</param>
+    public static List<T> Sort<T>(this IList<T> list, ComparisonBoolean<T> sortRule)
     {
         // 创建原列表的副本以避免修改原始列表
-        var tempList = new List<T>(List);
+        var tempList = new List<T>(list);
         if (tempList.Count <= 1)
             return tempList;
 
         // 使用归并排序核心算法
-        MergeSort_Sort(ref tempList, 0, tempList.Count - 1, SortRule);
+        MergeSort_Sort(ref tempList, 0, tempList.Count - 1, sortRule);
         return tempList;
     }
 
@@ -2757,7 +2757,7 @@ public static class ModBase
         }
     }
 
-    public delegate bool ComparisonBoolean<T>(T Left, T Right);
+    public delegate bool ComparisonBoolean<T>(T left, T right);
 
     /// <summary>
     ///     返回列表的浅表副本。
@@ -2770,55 +2770,55 @@ public static class ModBase
     /// <summary>
     ///     尝试从字典中获取某项，如果该项不存在，则返回默认值。
     /// </summary>
-    public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> Dict, TKey Key,
-        TValue DefaultValue = default)
+    public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key,
+        TValue defaultValue = default)
     {
-        if (Dict.ContainsKey(Key)) return Dict[Key];
+        if (dict.ContainsKey(key)) return dict[key];
 
-        return DefaultValue;
+        return defaultValue;
     }
 
     /// <summary>
     ///     将某项添加到以列表作为值的字典中。
     /// </summary>
-    public static void AddToList<TKey, TValue>(this Dictionary<TKey, List<TValue>> Dict, TKey Key, TValue Value)
+    public static void AddToList<TKey, TValue>(this Dictionary<TKey, List<TValue>> dict, TKey key, TValue value)
     {
-        if (Dict.ContainsKey(Key))
-            Dict[Key].Add(Value);
+        if (dict.ContainsKey(key))
+            dict[key].Add(value);
         else
-            Dict.Add(Key, new List<TValue> { Value });
+            dict.Add(key, new List<TValue> { value });
     }
 
     /// <summary>
     ///     获取程序启动参数。
     /// </summary>
-    /// <param name="Name">参数名。</param>
-    /// <param name="DefaultValue">默认值。</param>
-    public static object GetProgramArgument(string Name, object DefaultValue = null)
+    /// <param name="name">参数名。</param>
+    /// <param name="defaultValue">默认值。</param>
+    public static object GetProgramArgument(string name, object defaultValue = null)
     {
         var allArguments = Interaction.Command().Split(" ");
         for (int i = 0, loopTo = allArguments.Length - 1; i <= loopTo; i++)
-            if ((allArguments[i] ?? "") == ("-" + Name ?? ""))
+            if ((allArguments[i] ?? "") == ("-" + name ?? ""))
             {
                 if (allArguments.Length == i + 1 || allArguments[i + 1].StartsWithF("-"))
                     return true;
                 return allArguments[i + 1];
             }
 
-        return DefaultValue;
+        return defaultValue;
     }
 
     /// <summary>
     ///     打开网页。
     /// </summary>
-    public static void OpenWebsite(string Url)
+    public static void OpenWebsite(string url)
     {
         try
         {
-            if (!Url.StartsWithF("http", true) && !Url.StartsWithF("minecraft://", true))
-                throw new Exception(Url + " 不是一个有效的网址，它必须以 http 开头！");
-            Log("[System] 正在打开网页：" + Url);
-            var psi = new ProcessStartInfo(Url)
+            if (!url.StartsWithF("http", true) && !url.StartsWithF("minecraft://", true))
+                throw new Exception(url + " 不是一个有效的网址，它必须以 http 开头！");
+            Log("[System] 正在打开网页：" + url);
+            var psi = new ProcessStartInfo(url)
             {
                 UseShellExecute = true,
             };
@@ -2826,11 +2826,11 @@ public static class ModBase
         }
         catch (Exception ex)
         {
-            Log(ex, "无法打开网页（" + Url + "）");
-            ClipboardSet(Url, false);
+            Log(ex, "无法打开网页（" + url + "）");
+            ClipboardSet(url, false);
             ModMain.MyMsgBox(
                 "可能由于浏览器未正确配置，PCL 无法为你打开网页。" + "\r\n" + "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" + "\r\n" +
-                $"网址：{Url}", "无法打开网页");
+                $"网址：{url}", "无法打开网页");
         }
     }
 
@@ -2838,16 +2838,16 @@ public static class ModBase
     ///     打开 explorer。
     ///     若不以 \ 结尾，则将视作文件路径，打开并选中此文件。
     /// </summary>
-    public static void OpenExplorer(string Location)
+    public static void OpenExplorer(string location)
     {
         try
         {
-            Location = ShortenPath(Location.Replace("/", @"\").Trim(' ', '"'));
-            Log("[System] 正在打开资源管理器：" + Location);
-            if (Location.EndsWithF(@"\"))
-                ShellOnly(Location);
+            location = ShortenPath(location.Replace("/", @"\").Trim(' ', '"'));
+            Log("[System] 正在打开资源管理器：" + location);
+            if (location.EndsWithF(@"\"))
+                ShellOnly(location);
             else
-                ShellOnly("explorer", $"/select,\"{Location}\"");
+                ShellOnly("explorer", $"/select,\"{location}\"");
         }
         catch (Exception ex)
         {
@@ -2858,7 +2858,7 @@ public static class ModBase
     /// <summary>
     ///     设置剪贴板。将在另一线程运行，且不会抛出异常。
     /// </summary>
-    public static void ClipboardSet(string Text, bool ShowSuccessHint = true)
+    public static void ClipboardSet(string text, bool showSuccessHint = true)
     {
         RunInThread(() =>
         {
@@ -2867,7 +2867,7 @@ public static class ModBase
             for (var attempt = 0; attempt <= 5; attempt++)
                 try
                 {
-                    RunInUi(() => Clipboard.SetText(Text));
+                    RunInUi(() => Clipboard.SetText(text));
                     success = true;
                     break;
                 }
@@ -2880,7 +2880,7 @@ public static class ModBase
                     Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
                 }
 
-            if (success && ShowSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
+            if (success && showSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
         });
     }
 
@@ -2973,28 +2973,28 @@ public static class ModBase
     /// <summary>
     ///     检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
     /// </summary>
-    public static bool CheckPermission(string Path)
+    public static bool CheckPermission(string path)
     {
         try
         {
-            if (string.IsNullOrEmpty(Path))
+            if (string.IsNullOrEmpty(path))
                 return false;
-            if (!Path.EndsWithF(@"\"))
-                Path += @"\";
-            if (Path.EndsWithF(@":\System Volume Information\") || Path.EndsWithF(@":\$RECYCLE.BIN\"))
+            if (!path.EndsWithF(@"\"))
+                path += @"\";
+            if (path.EndsWithF(@":\System Volume Information\") || path.EndsWithF(@":\$RECYCLE.BIN\"))
                 return false;
-            if (!Directory.Exists(Path))
+            if (!Directory.Exists(path))
                 return false;
             var fileName = "CheckPermission" + GetUuid();
-            if (File.Exists(Path + fileName))
-                File.Delete(Path + fileName);
-            File.Create(Path + fileName).Dispose();
-            File.Delete(Path + fileName);
+            if (File.Exists(path + fileName))
+                File.Delete(path + fileName);
+            File.Create(path + fileName).Dispose();
+            File.Delete(path + fileName);
             return true;
         }
         catch (Exception ex)
         {
-            Log(ex, "没有对文件夹 " + Path + " 的权限，请尝试以管理员权限运行 PCL");
+            Log(ex, "没有对文件夹 " + path + " 的权限，请尝试以管理员权限运行 PCL");
             return false;
         }
     }
@@ -3002,27 +3002,27 @@ public static class ModBase
     /// <summary>
     ///     检查是否拥有某一文件夹的 I/O 权限。如果出错，则抛出异常。
     /// </summary>
-    public static void CheckPermissionWithException(string Path)
+    public static void CheckPermissionWithException(string path)
     {
-        if (string.IsNullOrWhiteSpace(Path))
+        if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentNullException("文件夹名不能为空！");
-        if (!Path.EndsWithF(@"\"))
-            Path += @"\";
-        if (!Directory.Exists(Path))
+        if (!path.EndsWithF(@"\"))
+            path += @"\";
+        if (!Directory.Exists(path))
             throw new DirectoryNotFoundException("文件夹不存在！");
-        if (File.Exists(Path + "CheckPermission"))
-            File.Delete(Path + "CheckPermission");
-        File.Create(Path + "CheckPermission").Dispose();
-        File.Delete(Path + "CheckPermission");
+        if (File.Exists(path + "CheckPermission"))
+            File.Delete(path + "CheckPermission");
+        File.Create(path + "CheckPermission").Dispose();
+        File.Delete(path + "CheckPermission");
     }
 
     #region UI
 
-    public static void SetLaunchFont(string FontName = null)
+    public static void SetLaunchFont(string fontName = null)
     {
         try
         {
-            LocalizationFontService.ApplyLaunchFont(FontName, LocalizationService.CurrentLanguage);
+            LocalizationFontService.ApplyLaunchFont(fontName, LocalizationService.CurrentLanguage);
         }
         catch (Exception ex)
         {
@@ -3132,88 +3132,88 @@ public static class ModBase
     /// <summary>
     ///     将经过 DPI 缩放的 WPF 尺寸转化为实际的像素尺寸。
     /// </summary>
-    public static double GetPixelSize(double WPFSize)
+    public static double GetPixelSize(double wPFSize)
     {
-        return WPFSize / 96d * dpi;
+        return wPFSize / 96d * dpi;
     }
 
     /// <summary>
     ///     将实际的像素尺寸转化为经过 DPI 缩放的 WPF 尺寸。
     /// </summary>
-    public static double GetWPFSize(double PixelSize)
+    public static double GetWPFSize(double pixelSize)
     {
-        return PixelSize * 96d / dpi;
+        return pixelSize * 96d / dpi;
     }
 
     // UI 截图
     /// <summary>
     ///     将某个控件的呈现转换为图片。
     /// </summary>
-    public static ImageBrush ControlBrush(FrameworkElement UI)
+    public static ImageBrush ControlBrush(FrameworkElement uI)
     {
-        var width = UI.ActualWidth;
-        var height = UI.ActualHeight;
+        var width = uI.ActualWidth;
+        var height = uI.ActualHeight;
         if (width < 1d || height < 1d)
             return new ImageBrush();
         var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
             dpi, dpi, PixelFormats.Pbgra32);
-        bmp.Render(UI);
+        bmp.Render(uI);
         return new ImageBrush(bmp);
     }
 
     /// <summary>
     ///     将某个控件的模拟呈现转换为图片。
     /// </summary>
-    public static ImageBrush ControlBrush(FrameworkElement UI, double Width, double Height, double Left = 0d,
-        double Top = 0d)
+    public static ImageBrush ControlBrush(FrameworkElement uI, double width, double height, double left = 0d,
+        double top = 0d)
     {
-        UI.Measure(new Size(Width, Height));
-        UI.Arrange(new Rect(0d, 0d, Width, Height));
-        var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(Width)), (int)Math.Round(GetPixelSize(Height)),
+        uI.Measure(new Size(width, height));
+        uI.Arrange(new Rect(0d, 0d, width, height));
+        var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
             dpi, dpi, PixelFormats.Default);
-        bmp.Render(UI);
-        if (Left != 0d || Top != 0d)
-            UI.Arrange(new Rect(Left, Top, Width, Height));
+        bmp.Render(uI);
+        if (left != 0d || top != 0d)
+            uI.Arrange(new Rect(left, top, width, height));
         return new ImageBrush(bmp);
     }
 
     /// <summary>
     ///     将 UI 内容固定为图片并进行 Clear。
     /// </summary>
-    public static void ControlFreeze(Panel UI)
+    public static void ControlFreeze(Panel uI)
     {
-        UI.Background = ControlBrush(UI);
-        UI.Children.Clear();
+        uI.Background = ControlBrush(uI);
+        uI.Children.Clear();
     }
 
     /// <summary>
     ///     将 UI 内容固定为图片并进行 Clear。
     /// </summary>
-    public static void ControlFreeze(Border UI)
+    public static void ControlFreeze(Border uI)
     {
-        UI.Background = ControlBrush(UI);
-        UI.Child = null;
+        uI.Background = ControlBrush(uI);
+        uI.Child = null;
     }
 
     /// <summary>
     ///     将 XML 转换为对应 UI 对象。
     /// </summary>
-    public static object GetObjectFromXML(XElement Str)
+    public static object GetObjectFromXML(XElement str)
     {
-        return GetObjectFromXML(Str.ToString());
+        return GetObjectFromXML(str.ToString());
     }
 
     /// <summary>
     ///     将 XML 转换为对应 UI 对象。
     /// </summary>
-    public static object GetObjectFromXML(string Str)
+    public static object GetObjectFromXML(string str)
     {
-        Str = Str. // 兼容旧版自定义事件写法
+        str = str. // 兼容旧版自定义事件写法
             Replace("EventType=\"", "local:CustomEventService.EventType=\"").
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
-        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(Str)))
+        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {
             // 类型检查
             using (var reader = new XamlXmlReader(stream))
@@ -3242,7 +3242,7 @@ public static class ModBase
             stream.Position = 0L;
             using (var writer = new StreamWriter(stream))
             {
-                writer.Write(Str);
+                writer.Write(str);
                 writer.Flush();
                 stream.Position = 0L;
                 return System.Windows.Markup.XamlReader.Load(stream);
@@ -3311,35 +3311,35 @@ public static class ModBase
     /// <summary>
     ///     输出 Log。
     /// </summary>
-    /// <param name="Title">如果要求弹窗，指定弹窗的标题。</param>
-    public static void Log(string Text, LogLevel Level = LogLevel.Normal, string Title = "出现错误")
+    /// <param name="title">如果要求弹窗，指定弹窗的标题。</param>
+    public static void Log(string text, LogLevel level = LogLevel.Normal, string title = "出现错误")
     {
         // On Error Resume Next
         // 放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
         // 处理错误会导致再次调用 Log() 导致无限循环
 
         // 输出日志
-        if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(Level))
-            LogWrapper.Warn(Text);
-        else if (LogLevel.Feedback == Level)
-            LogWrapper.Error(Text);
-        else if (LogLevel.Critical == Level)
-            LogWrapper.Fatal(Text);
-        else if (LogLevel.Debug == Level)
-            LogWrapper.Debug(Text);
-        else if (LogLevel.Developer == Level)
-            LogWrapper.Trace(Text);
+        if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(level))
+            LogWrapper.Warn(text);
+        else if (LogLevel.Feedback == level)
+            LogWrapper.Error(text);
+        else if (LogLevel.Critical == level)
+            LogWrapper.Fatal(text);
+        else if (LogLevel.Debug == level)
+            LogWrapper.Debug(text);
+        else if (LogLevel.Developer == level)
+            LogWrapper.Trace(text);
         else
-            LogWrapper.Info(Text);
+            LogWrapper.Info(text);
 
-        if (isProgramEnded || Level == LogLevel.Normal)
+        if (isProgramEnded || level == LogLevel.Normal)
             return;
 
         // 去除前缀
-        Text = Text.RegexReplace(@"\[[^\]]+?\] ", "");
+        text = text.RegexReplace(@"\[[^\]]+?\] ", "");
 
         // 输出提示
-        switch (Level)
+        switch (level)
         {
             case LogLevel.Developer:
             {
@@ -3348,31 +3348,31 @@ public static class ModBase
             case LogLevel.Debug:
             {
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + Text, ModMain.HintType.Info, false);
+                    ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
-                ModMain.Hint(Text, ModMain.HintType.Critical, false);
+                ModMain.Hint(text, ModMain.HintType.Critical, false);
                 break;
             }
             case LogLevel.Msgbox:
             {
-                ModMain.MyMsgBox(Text, Title, IsWarn: true);
+                ModMain.MyMsgBox(text, title, isWarn: true);
                 break;
             }
             case LogLevel.Feedback:
             {
                 if (CanFeedback(false))
                 {
-                    if (ModMain.MyMsgBox(Text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            Title, "反馈", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                    if (ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
                 {
-                    ModMain.MyMsgBox(Text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", Title,
-                        IsWarn: true);
+                    ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                        isWarn: true);
                 }
 
                 break;
@@ -3388,15 +3388,15 @@ public static class ModBase
                 isCriticalErrorTriggered = true;
                 if (CanFeedback(false))
                 {
-                    if (Interaction.MsgBox(Text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), Title) ==
+                    if (Interaction.MsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
                         MsgBoxResult.Yes)
                         Feedback(false, true);
                 }
                 else
                 {
-                    Interaction.MsgBox(Text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, Title);
+                    Interaction.MsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
+                        MsgBoxStyle.Critical, title);
                 }
 
                 break;
@@ -3407,38 +3407,38 @@ public static class ModBase
     /// <summary>
     ///     输出错误信息。
     /// </summary>
-    /// <param name="Desc">错误描述。会在处理时在末尾加入冒号。</param>
-    public static void Log(Exception Ex, string Desc, LogLevel Level = LogLevel.Debug, string Title = "出现错误")
+    /// <param name="desc">错误描述。会在处理时在末尾加入冒号。</param>
+    public static void Log(Exception ex, string desc, LogLevel level = LogLevel.Debug, string title = "出现错误")
     {
         // On Error Resume Next
-        if (Ex is ThreadInterruptedException)
+        if (ex is ThreadInterruptedException)
             return;
 
         // 获取错误信息
-        var exFull = Desc + "：" + Ex.Message;
+        var exFull = desc + "：" + ex.Message;
 
         // 输出日志
-        if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(Level))
-            LogWrapper.Warn(Ex, Desc);
-        else if (LogLevel.Feedback == Level)
-            LogWrapper.Error(Ex, Desc);
-        else if (LogLevel.Critical == Level)
-            LogWrapper.Fatal(Ex, Desc);
-        else if (LogLevel.Debug == Level)
-            LogWrapper.Debug($"{Desc}:{Ex}");
-        else if (LogLevel.Developer == Level)
-            LogWrapper.Trace($"{Desc}:{Ex}");
+        if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(level))
+            LogWrapper.Warn(ex, desc);
+        else if (LogLevel.Feedback == level)
+            LogWrapper.Error(ex, desc);
+        else if (LogLevel.Critical == level)
+            LogWrapper.Fatal(ex, desc);
+        else if (LogLevel.Debug == level)
+            LogWrapper.Debug($"{desc}:{ex}");
+        else if (LogLevel.Developer == level)
+            LogWrapper.Trace($"{desc}:{ex}");
         else
-            LogWrapper.Error(Ex, Desc);
+            LogWrapper.Error(ex, desc);
 
         if (isProgramEnded)
             return;
 
-        if (Ex.GetType() == typeof(Win32Exception))
+        if (ex.GetType() == typeof(Win32Exception))
             exFull += "\r\n" + "与系统底层交互失败，请尝试重新安装 .NET 8 解决此问题";
 
         // 输出提示
-        switch (Level)
+        switch (level)
         {
             case LogLevel.Normal:
             {
@@ -3450,20 +3450,20 @@ public static class ModBase
             }
             case LogLevel.Debug:
             {
-                var exLine = Desc + "：" + Ex;
+                var exLine = desc + "：" + ex;
                 if (modeDebug)
                     ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
-                var exLine = Desc + "：" + Ex;
+                var exLine = desc + "：" + ex;
                 ModMain.Hint(exLine, ModMain.HintType.Critical, false);
                 break;
             }
             case LogLevel.Msgbox:
             {
-                ModMain.MyMsgBox(exFull, Title, IsWarn: true);
+                ModMain.MyMsgBox(exFull, title, isWarn: true);
                 break;
             }
             case LogLevel.Feedback:
@@ -3471,13 +3471,13 @@ public static class ModBase
                 if (CanFeedback(false))
                 {
                     if (ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            Title, "反馈", Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
                 {
-                    ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", Title,
-                        IsWarn: true);
+                    ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                        isWarn: true);
                 }
 
                 break;
@@ -3495,14 +3495,14 @@ public static class ModBase
                 {
                     if (Interaction.MsgBox(
                             exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), Title) ==
+                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
                         MsgBoxResult.Yes)
                         Feedback(false, true);
                 }
                 else
                 {
                     Interaction.MsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, Title);
+                        MsgBoxStyle.Critical, title);
                 }
 
                 break;
@@ -3510,17 +3510,17 @@ public static class ModBase
         }
     }
 
-    public static string Base64Decode(string Text)
+    public static string Base64Decode(string text)
     {
-        if (string.IsNullOrWhiteSpace(Text))
+        if (string.IsNullOrWhiteSpace(text))
             return "";
-        var decodedBytes = Convert.FromBase64String(Text);
+        var decodedBytes = Convert.FromBase64String(text);
         return Encoding.UTF8.GetString(decodedBytes);
     }
 
-    public static string Base64Encode(string Text)
+    public static string Base64Encode(string text)
     {
-        var bytes = Encoding.UTF8.GetBytes(Text);
+        var bytes = Encoding.UTF8.GetBytes(text);
         return Convert.ToBase64String(bytes);
     }
 
@@ -3530,14 +3530,14 @@ public static class ModBase
     }
 
     // 反馈
-    public static void Feedback(bool ShowMsgbox = true, bool ForceOpenLog = false)
+    public static void Feedback(bool showMsgbox = true, bool forceOpenLog = false)
     {
         // On Error Resume Next
         FeedbackInfo();
         string currentDate;
         currentDate = DateTime.Now.ToString("yyyy-M-dd", CultureInfo.InvariantCulture);
 
-        if (ForceOpenLog || (ShowMsgbox &&
+        if (forceOpenLog || (showMsgbox &&
                              ModMain.MyMsgBox(
                                  "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
                                  "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", Lang.Text("Common.Action.OpenFolder"), "不需要") ==
@@ -3545,12 +3545,12 @@ public static class ModBase
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
     }
 
-    public static bool CanFeedback(bool ShowHint)
+    public static bool CanFeedback(bool showHint)
     {
         var stat = UpdateManager.GetVersionStatus();
         if (stat != UpdateEnums.VersionStatus.Latest)
         {
-            if (ShowHint)
+            if (showHint)
                 if (ModMain.MyMsgBox(
                         stat == UpdateEnums.VersionStatus.NotLatest
                             ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
@@ -3599,9 +3599,9 @@ public static class ModBase
     }
 
     // 断言
-    public static void DebugAssert(bool Exp)
+    public static void DebugAssert(bool exp)
     {
-        if (!Exp)
+        if (!exp)
             throw new Exception("断言命中");
     }
 

@@ -208,11 +208,11 @@ public partial class PageSetupLaunch
 
     #region 游戏内存
 
-    public void RamType(int Type)
+    public void RamType(int type)
     {
         if (SliderRamCustom is null)
             return;
-        SliderRamCustom.IsEnabled = Type == 1;
+        SliderRamCustom.IsEnabled = type == 1;
     }
 
     /// <summary>
@@ -256,11 +256,11 @@ public partial class PageSetupLaunch
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                     ModAnimation.AaGridLengthWidth(ColumnRamGame, ramGameActual - ColumnRamGame.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                     ModAnimation.AaGridLengthWidth(ColumnRamEmpty, ramEmpty - ColumnRamEmpty.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
                 }, "SetupLaunch Ram Grid");
         }
         else
@@ -363,9 +363,9 @@ public partial class PageSetupLaunch
                     new[]
                     {
                         ModAnimation.AaX(LabRamGame, totalWidth - labGameWidth - LabRamGame.Margin.Left, 100,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                         ModAnimation.AaX(LabRamGameTitle, totalWidth - labGameTitleWidth - LabRamGameTitle.Margin.Left,
-                            100, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                            100, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                     }, "SetupLaunch Ram TextRight");
             }
             else
@@ -384,9 +384,9 @@ public partial class PageSetupLaunch
                 new[]
                 {
                     ModAnimation.AaX(LabRamGame, 2d + rectUsedWidth - LabRamGame.Margin.Left, 100,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaX(LabRamGameTitle, 2d + rectUsedWidth - LabRamGameTitle.Margin.Left, 100,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "SetupLaunch Ram TextRight");
         }
         else
@@ -403,7 +403,7 @@ public partial class PageSetupLaunch
     /// <summary>
     ///     获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
-    public static double GetRam(ModMinecraft.McInstance Version, bool UseVersionJavaSetup, bool? Is32BitJava = default)
+    public static double GetRam(ModMinecraft.McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
         // ------------------------------------------
         // 修改下方代码时需要一并修改 PageInstanceSetup
@@ -420,19 +420,19 @@ public partial class PageSetupLaunch
             double ramTarget1; // 估计能勉强带动了的内存
             double ramTarget2; // 估计没啥问题了的内存
             double ramTarget3; // 放一百万个材质和 Mod 和光影需要的内存
-            if (Version is not null && !Version.isLoaded)
-                Version.Load();
-            if (Version is not null && Version.Modable)
+            if (version is not null && !version.isLoaded)
+                version.Load();
+            if (version is not null && version.Modable)
             {
                 // 可安装 Mod 的实例
-                var modDir = new DirectoryInfo(Version.PathIndie + @"mods\");
+                var modDir = new DirectoryInfo(version.PathIndie + @"mods\");
                 var modCount = modDir.Exists ? modDir.GetFiles().Length : 0;
                 ramMininum = 0.5d + modCount / 150d;
                 ramTarget1 = 1.5d + modCount / 90d;
                 ramTarget2 = 2.7d + modCount / 50d;
                 ramTarget3 = 4.5d + modCount / 25d;
             }
-            else if (Version is not null && Version.Info.hasOptiFine)
+            else if (version is not null && version.Info.hasOptiFine)
             {
                 // OptiFine 实例
                 ramMininum = 0.5d;
@@ -481,7 +481,7 @@ public partial class PageSetupLaunch
         }
 
         // 若使用 32 位 Java，则限制为 1G
-        if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(UseVersionJavaSetup ? Version : null))
+        if (is32BitJava ?? !ModJava.IsGameSet64BitJava(useVersionJavaSetup ? version : null))
             ramGive = Math.Min(1d, ramGive);
         return ramGive;
     }
@@ -567,7 +567,7 @@ public partial class PageSetupLaunch
             if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
                     Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                    Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                    Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
             }

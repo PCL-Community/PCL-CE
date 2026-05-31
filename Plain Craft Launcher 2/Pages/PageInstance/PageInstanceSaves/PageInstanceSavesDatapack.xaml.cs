@@ -128,9 +128,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// <summary>
     ///     刷新数据包列表。
     /// </summary>
-    public void ReloadDatapackFileList(bool ForceReload = false)
+    public void ReloadDatapackFileList(bool forceReload = false)
     {
-        if (LoaderRun(ForceReload
+        if (LoaderRun(forceReload
                 ? ModLoader.LoaderFolderRunType.ForceRun
                 : ModLoader.LoaderFolderRunType.RunOnUpdated))
         {
@@ -175,11 +175,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             LoaderRun(ModLoader.LoaderFolderRunType.ForceRun);
     }
 
-    public bool LoaderRun(ModLoader.LoaderFolderRunType Type)
+    public bool LoaderRun(ModLoader.LoaderFolderRunType type)
     {
         var loadPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        return ModLoader.LoaderFolderRun(ModLocalComp.compResourceListLoader, loadPath, Type,
-            LoaderInput: GetRequireLoaderData());
+        return ModLoader.LoaderFolderRun(ModLocalComp.compResourceListLoader, loadPath, type,
+            loaderInput: GetRequireLoaderData());
     }
 
     #endregion
@@ -237,7 +237,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
     }
 
-    private MyLocalCompItem BuildLocalCompItem(ModLocalComp.LocalCompFile Entry)
+    private MyLocalCompItem BuildLocalCompItem(ModLocalComp.LocalCompFile entry)
     {
         try
         {
@@ -245,13 +245,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var newItem = new MyLocalCompItem
             {
                 SnapsToDevicePixels = true,
-                Entry = Entry,
+                Entry = entry,
                 buttonHandler = BuildLocalCompItemBtnHandler,
-                Checked = selectedDatapacks.Contains(Entry.RawPath)
+                Checked = selectedDatapacks.Contains(entry.RawPath)
             };
             newItem.CurrentSwipe = currentSwipSelect;
-            newItem.Tags = Entry.Tags;
-            Entry.OnCompUpdate += _ => newItem.Refresh();
+            newItem.Tags = entry.Tags;
+            entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
             ModAnimation.AniControlEnabled -= 1;
             return newItem;
@@ -259,7 +259,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         catch (Exception ex)
         {
             ModAnimation.AniControlEnabled -= 1;
-            ModBase.Log(ex, $"创建 UI 项失败：{Entry.RawPath}");
+            ModBase.Log(ex, $"创建 UI 项失败：{entry.RawPath}");
             throw;
         }
     }
@@ -488,7 +488,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                         {
                             ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
                             ModAnimation.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaTranslateY(CardSelect, 3d, 150, 120,
                                 new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaTranslateY(CardSelect, -1, 90, 270,
@@ -507,8 +507,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                         {
                             ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
                             ModAnimation.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                            ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, After: true)
+                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                            ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
                         }, "Datapack Sidebar");
                 }
             }
@@ -578,12 +578,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// <summary>
     ///     安装数据包文件。
     /// </summary>
-    public static void InstallDatapackFiles(IEnumerable<string> FilePathList)
+    public static void InstallDatapackFiles(IEnumerable<string> filePathList)
     {
-        if (!FilePathList.Any())
+        if (!filePathList.Any())
             return;
 
-        var extension = FilePathList.First().AfterLast(".").ToLower();
+        var extension = filePathList.First().AfterLast(".").ToLower();
 
         // 检查文件扩展名
         if (extension != "zip")
@@ -593,7 +593,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
 
         // 检查回收站
-        if (FilePathList.First().Contains(@":\$RECYCLE.BIN\"))
+        if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
             ModMain.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), ModMain.HintType.Critical);
             return;
@@ -615,7 +615,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var datapackFolder = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
             Directory.CreateDirectory(datapackFolder);
 
-            foreach (var FilePath in FilePathList)
+            foreach (var FilePath in filePathList)
             {
                 var newFileName = ModBase.GetFileNameFromPath(FilePath);
                 var destFile = datapackFolder + newFileName;
@@ -627,10 +627,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 ModBase.CopyFile(FilePath, destFile);
             }
 
-            if (FilePathList.Count() == 1)
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(FilePathList.First())), ModMain.HintType.Finish);
+            if (filePathList.Count() == 1)
+                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), ModMain.HintType.Finish);
             else
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", FilePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), ModMain.HintType.Finish);
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -664,14 +664,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
                 Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"), Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
 
-        void ExportText(string Content, string FileName)
+        void ExportText(string content, string fileName)
         {
             try
             {
                 var savePath =
-                    SystemDialogs.SelectSaveFile(Lang.Text("Instance.Resource.Export.SelectSaveLocation"), FileName, Lang.Text("Instance.Resource.Export.FilesFilter"));
+                    SystemDialogs.SelectSaveFile(Lang.Text("Instance.Resource.Export.SelectSaveLocation"), fileName, Lang.Text("Instance.Resource.Export.FilesFilter"));
                 if (string.IsNullOrWhiteSpace(savePath)) return;
-                File.WriteAllText(savePath, Content, Encoding.UTF8);
+                File.WriteAllText(savePath, content, Encoding.UTF8);
                 ModBase.OpenExplorer(savePath);
             }
             catch (Exception ex)
@@ -731,13 +731,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 切换所有项的选择状态
-    private void ChangeAllSelected(bool Value)
+    private void ChangeAllSelected(bool value)
     {
         ModAnimation.AniControlEnabled += 1;
         selectedDatapacks.Clear();
         foreach (var Item in datapackItems.Values)
         {
-            var shouldSelected = Value && PanList.Children.Contains(Item);
+            var shouldSelected = value && PanList.Children.Contains(Item);
             Item.Checked = shouldSelected;
             if (shouldSelected)
                 selectedDatapacks.Add(Item.Entry.RawPath);
@@ -832,7 +832,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// <summary>
     ///     检查该数据包项是否符合当前筛选的类别。
     /// </summary>
-    private bool CanPassFilter(ModLocalComp.LocalCompFile CheckingDatapack)
+    private bool CanPassFilter(ModLocalComp.LocalCompFile checkingDatapack)
     {
         switch (Filter)
         {
@@ -842,19 +842,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             case FilterType.Enabled:
             {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
+                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
             }
             case FilterType.Disabled:
             {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
+                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
             }
             case FilterType.CanUpdate:
             {
-                return CheckingDatapack.CanUpdate;
+                return checkingDatapack.CanUpdate;
             }
             case FilterType.Unavailable:
             {
-                return CheckingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
             }
 
             default:
@@ -878,10 +878,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     private SortMethod currentSortMethod = SortMethod.CompName;
 
-    private void SetSortMethod(SortMethod Target)
+    private void SetSortMethod(SortMethod target)
     {
-        currentSortMethod = Target;
-        BtnSort.Text = Lang.Text("Instance.Resource.Sort.Text", GetSortName(Target));
+        currentSortMethod = target;
+        BtnSort.Text = Lang.Text("Instance.Resource.Sort.Text", GetSortName(target));
         DoSort();
     }
 
@@ -893,9 +893,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         DatapackFileSize
     }
 
-    private string GetSortName(SortMethod Method)
+    private string GetSortName(SortMethod method)
     {
-        switch (Method)
+        switch (method)
         {
             case SortMethod.FileName:
             {
@@ -974,9 +974,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
     }
 
-    private Func<ModLocalComp.LocalCompFile, ModLocalComp.LocalCompFile, int> GetSortMethod(SortMethod Method)
+    private Func<ModLocalComp.LocalCompFile, ModLocalComp.LocalCompFile, int> GetSortMethod(SortMethod method)
     {
-        switch (Method)
+        switch (method)
         {
             case SortMethod.FileName:
             {
@@ -1049,18 +1049,18 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// <summary>
     ///     启用/禁用数据包（通过重命名文件夹为 .disabled）
     /// </summary>
-    private void ToggleDatapacks(IEnumerable<ModLocalComp.LocalCompFile> DatapackList, bool IsEnable)
+    private void ToggleDatapacks(IEnumerable<ModLocalComp.LocalCompFile> datapackList, bool isEnable)
     {
         var isSuccessful = true;
-        foreach (var DatapackE in DatapackList)
+        foreach (var DatapackE in datapackList)
         {
             var datapackEntity = DatapackE;
             string newPath = null;
 
-            if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine && !IsEnable)
+            if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
                 // 禁用 - 添加 .disabled 后缀
                 newPath = datapackEntity.path + ".disabled";
-            else if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled && IsEnable)
+            else if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled && isEnable)
                 // 启用 - 移除 .disabled 后缀
                 newPath = datapackEntity.RawPath;
             else
@@ -1155,14 +1155,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     public static List<string> updatingVersions = new();
 
-    public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> DatapackList)
+    public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> datapackList)
     {
         // 更新前警告
-        if (!States.Hint.FunctionDatapackUpdate || DatapackList.Count() >= 15)
+        if (!States.Hint.FunctionDatapackUpdate || datapackList.Count() >= 15)
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
-                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"), Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"), Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 States.Hint.FunctionDatapackUpdate = true;
             else
                 return;
@@ -1171,10 +1171,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         try
         {
             // 构造下载信息
-            DatapackList = DatapackList.ToList(); // 防止刷新影响迭代器
+            datapackList = datapackList.ToList(); // 防止刷新影响迭代器
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
-            foreach (var Entry in DatapackList)
+            foreach (var Entry in datapackList)
             {
                 var file = Entry.UpdateFile;
                 if (!file.Available)
@@ -1190,13 +1190,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
-                { ProgressWeight = DatapackList.Count() * 1.5d });
+                { ProgressWeight = datapackList.Count() * 1.5d });
 
             installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
             {
                 try
                 {
-                    foreach (var Entry in DatapackList)
+                    foreach (var Entry in datapackList)
                         if (File.Exists(Entry.path))
                             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
                                 RecycleOption.SendToRecycleBin);
@@ -1299,7 +1299,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             };
 
             // 启动加载器
-            ModBase.Log($"[DatapackUpdate] 开始更新 {DatapackList.Count()} 个数据包：{pathDatapacks}");
+            ModBase.Log($"[DatapackUpdate] 开始更新 {datapackList.Count()} 个数据包：{pathDatapacks}");
             updatingVersions.Add(pathDatapacks);
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
@@ -1320,7 +1320,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         ChangeAllSelected(false);
     }
 
-    private void DeleteDatapacks(IEnumerable<ModLocalComp.LocalCompFile> DatapackList)
+    private void DeleteDatapacks(IEnumerable<ModLocalComp.LocalCompFile> datapackList)
     {
         try
         {
@@ -1328,16 +1328,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
             // 确认需要删除的文件
-            DatapackList = DatapackList.SelectMany(Target =>
+            datapackList = datapackList.SelectMany(target =>
             {
-                if (Target.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
-                    return new[] { Target.path, Target.path + ".disabled" };
+                if (target.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+                    return new[] { target.path, target.path + ".disabled" };
 
-                return new[] { Target.path, Target.RawPath };
+                return new[] { target.path, target.RawPath };
             }).Distinct().Where(m => File.Exists(m)).Select(m => new ModLocalComp.LocalCompFile(m)).ToList();
 
             // 实际删除文件
-            foreach (var DatapackEntity in DatapackList)
+            foreach (var DatapackEntity in datapackList)
             {
                 try
                 {
@@ -1390,18 +1390,18 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 return;
             if (isShiftPressed)
             {
-                if (DatapackList.Count() == 1)
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", DatapackList.Single().FileName), ModMain.HintType.Finish);
+                if (datapackList.Count() == 1)
+                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
                 else
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", DatapackList.Count()), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), ModMain.HintType.Finish);
             }
-            else if (DatapackList.Count() == 1)
+            else if (datapackList.Count() == 1)
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", DatapackList.Single().FileName), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
             }
             else
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", DatapackList.Count()), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), ModMain.HintType.Finish);
             }
         }
         catch (OperationCanceledException ex)

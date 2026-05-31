@@ -48,7 +48,7 @@ public static class ModWatcher
         ModMain.frmMain.BtnExtraShutdown.ShowRefresh();
     }
 
-    private static void MinecraftStop(bool TriggerLauncherShutdown)
+    private static void MinecraftStop(bool triggerLauncherShutdown)
     {
         ModLaunch.McLaunchLog("[全局] 已无运行中的 Minecraft");
         hasRunningMinecraft = false;
@@ -72,7 +72,7 @@ public static class ModWatcher
         {
             case LauncherVisibility.HideAndExit:
                 // 直接关闭
-                if (TriggerLauncherShutdown)
+                if (triggerLauncherShutdown)
                     ModBase.RunInUi(() => ModMain.frmMain.EndProgram(false));
                 else
                     ModBase.RunInUi(() => ModMain.frmMain.Hidden = false);
@@ -147,10 +147,10 @@ public static class ModWatcher
         public SolidColorBrush color;
         public string logText;
 
-        public LogOutputEventArgs(string LogText, SolidColorBrush Color)
+        public LogOutputEventArgs(string logText, SolidColorBrush color)
         {
-            this.logText = LogText;
-            this.color = Color;
+            this.logText = logText;
+            this.color = color;
         }
     }
 
@@ -229,19 +229,19 @@ public static class ModWatcher
         private nint windowHandle;
         private string windowTitle = "";
 
-        public Watcher(ModLoader.LoaderTask<Process, int> Loader, ModMinecraft.McInstance Version, string WindowTitle,
-            string JStackPath, bool OutputRealTime = false)
+        public Watcher(ModLoader.LoaderTask<Process, int> loader, ModMinecraft.McInstance version, string windowTitle,
+            string jStackPath, bool outputRealTime = false)
         {
-            this.loader = Loader;
-            this.version = Version;
-            this.windowTitle = WindowTitle;
-            realTime = OutputRealTime;
-            pid = Loader.input.Id;
-            this.jStackPath = JStackPath;
+            this.loader = loader;
+            this.version = version;
+            this.windowTitle = windowTitle;
+            realTime = outputRealTime;
+            pid = loader.input.Id;
+            this.jStackPath = jStackPath;
 
             WatcherLog("开始 Minecraft 日志监控");
-            if (string.IsNullOrWhiteSpace(WindowTitle))
-                WatcherLog("要求窗口标题：" + WindowTitle);
+            if (string.IsNullOrWhiteSpace(windowTitle))
+                WatcherLog("要求窗口标题：" + windowTitle);
 
             // 更改列表
             var newWatcherList = new List<Watcher>();
@@ -258,7 +258,7 @@ public static class ModWatcher
             WatcherStateChanged();
 
             // 初始化进程与日志读取
-            gameProcess = Loader.input;
+            gameProcess = loader.input;
             gameProcess.BeginOutputReadLine();
             gameProcess.BeginErrorReadLine();
             gameProcess.OutputDataReceived += LogReceived;
@@ -272,16 +272,16 @@ public static class ModWatcher
                 try
                 {
                     while (State != MinecraftState.Ended && State != MinecraftState.Crashed &&
-                           State != MinecraftState.Canceled && Loader.State != ModBase.LoadState.Aborted)
+                           State != MinecraftState.Canceled && loader.State != ModBase.LoadState.Aborted)
                     {
                         TimerWindow();
                         TimerLog();
-                        if (!string.IsNullOrWhiteSpace(WindowTitle))
+                        if (!string.IsNullOrWhiteSpace(windowTitle))
                             for (var i = 1; i <= 3; i++)
                             {
                                 if (State == MinecraftState.Running && !gameProcess.HasExited)
                                 {
-                                    var realTitle = WindowTitle.Replace("{date}", Lang.Date(DateTime.Now, "d"))
+                                    var realTitle = windowTitle.Replace("{date}", Lang.Date(DateTime.Now, "d"))
                                         .Replace("{time}", Lang.Date(DateTime.Now, "T"));
                                     SetWindowText(windowHandle, realTitle);
                                 }
@@ -451,16 +451,16 @@ public static class ModWatcher
             }
         }
 
-        private void GameLog(string Text)
+        private void GameLog(string text)
         {
             // 预处理
-            if (Text is null)
+            if (text is null)
                 return;
-            Text = Text.Replace("\r\n", "\r").Replace("\n", "\r")
+            text = text.Replace("\r\n", "\r").Replace("\n", "\r")
                 .Replace("\r", "\r\n");
             // If Text.Contains("�����") Then Hint("检测到错误的日志编码：" & Text)
             // 加入预存储
-            latestLog.Enqueue(Text);
+            latestLog.Enqueue(text);
             if (latestLog.Count >= 501)
                 latestLog.Dequeue();
             // 进度处理
@@ -470,25 +470,25 @@ public static class ModWatcher
                 logProgress = 1;
             } // 可能第一句就是后面需要判断的 Log（重现：启动 1.15.2 原版）
 
-            if (logProgress < 2 && Text.Contains("Setting user:"))
+            if (logProgress < 2 && text.Contains("Setting user:"))
             {
                 WatcherLog("日志 2/5：游戏用户已设置"); // 仅确保支持 Minecraft 1.7+
                 logProgress = 2;
             }
-            else if (logProgress < 3 && Text.ContainsF("lwjgl version", true))
+            else if (logProgress < 3 && text.ContainsF("lwjgl version", true))
             {
                 WatcherLog("日志 3/5：LWJGL 版本已确认");
                 logProgress = 3;
             }
             else if (logProgress < 4 &&
-                     (Text.Contains("OpenAL initialized") || Text.Contains("Starting up SoundSystem")))
+                     (text.Contains("OpenAL initialized") || text.Contains("Starting up SoundSystem")))
             {
                 WatcherLog("日志 4/5：OpenAL 已加载"); // 仅确保支持 Minecraft 1.7+
                 logProgress = 4;
             }
             else if (logProgress < 5 &&
-                     ((Text.Contains("Created") && Text.Contains("textures") && Text.Contains("-atlas")) ||
-                      Text.Contains("Found animation info")))
+                     ((text.Contains("Created") && text.Contains("textures") && text.Contains("-atlas")) ||
+                      text.Contains("Found animation info")))
             {
                 WatcherLog("日志 5/5：材质已加载"); // 仅确保支持 Minecraft 1.7+
                 logProgress = 5;
@@ -497,33 +497,33 @@ public static class ModWatcher
             // 输出日志
             // Log(Text)
             // 关闭与崩溃检测
-            if (!Text.Contains("[CHAT]"))
+            if (!text.Contains("[CHAT]"))
             {
-                if (Text.Contains("Someone is closing me!") ||
-                    Text.Contains("Restarting Minecraft with command")) // #1258
+                if (text.Contains("Someone is closing me!") ||
+                    text.Contains("Restarting Minecraft with command")) // #1258
                 {
-                    WatcherLog("识别为关闭的 Log：" + Text);
+                    WatcherLog("识别为关闭的 Log：" + text);
                     State = MinecraftState.Ended;
                 }
-                else if (Text.Contains("Crash report saved to") ||
-                         Text.Contains("This crash report has been saved to:"))
+                else if (text.Contains("Crash report saved to") ||
+                         text.Contains("This crash report has been saved to:"))
                 {
                     // Text.Contains("Minecraft ran into a problem! Report saved to:") Then
                     // Minecraft 崩溃，忽略 VanillaFix
-                    WatcherLog("识别为崩溃的 Log：" + Text);
+                    WatcherLog("识别为崩溃的 Log：" + text);
                     Crashed();
                 }
-                else if (Text.Contains("Could not save crash report to"))
+                else if (text.Contains("Could not save crash report to"))
                 {
                     // Minecraft 崩溃，无法保存崩溃日志
-                    WatcherLog("识别为崩溃的 Log：" + Text);
+                    WatcherLog("识别为崩溃的 Log：" + text);
                     Crashed();
                 }
-                else if (Text.Contains("/ERROR]: Unable to launch") ||
-                         Text.Contains("An exception was thrown, the game will display an error screen and halt."))
+                else if (text.Contains("/ERROR]: Unable to launch") ||
+                         text.Contains("An exception was thrown, the game will display an error screen and halt."))
                 {
                     // Forge 崩溃
-                    WatcherLog("识别为崩溃的 Log：" + Text);
+                    WatcherLog("识别为崩溃的 Log：" + text);
                     Crashed();
                     // ElseIf Text.Contains("Shutdown failure!") Then
                     // 'Minecraft 强行崩溃，由于点 X 强行关闭也会触发这句话，所以不可用
@@ -532,9 +532,9 @@ public static class ModWatcher
             }
         }
 
-        private void WatcherLog(string Text)
+        private void WatcherLog(string text)
         {
-            ModLaunch.McLaunchLog("[" + pid + "] " + Text);
+            ModLaunch.McLaunchLog("[" + pid + "] " + text);
         }
 
         private void ProgressUpdate()
@@ -781,7 +781,7 @@ public static class ModWatcher
         }
 
         // 导出运行栈
-        public List<string> ExportStackDump(string SavePath)
+        public List<string> ExportStackDump(string savePath)
         {
             var dump = new List<string>();
             for (var i = 1; i <= 3; i++)

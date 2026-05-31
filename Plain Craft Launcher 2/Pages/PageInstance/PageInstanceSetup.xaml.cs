@@ -265,17 +265,17 @@ public partial class PageInstanceSetup
     }
 
     #region 游戏内存
-    public void RamType(int Type)
+    public void RamType(int type)
     {
         if (SliderRamCustom is null)
             return;
-        SliderRamCustom.IsEnabled = Type == 1;
+        SliderRamCustom.IsEnabled = type == 1;
     }
 
     /// <summary>
     ///     刷新 UI 上的 RAM 显示。
     /// </summary>
-    public void RefreshRam(bool ShowAnim)
+    public void RefreshRam(bool showAnim)
     {
         if (LabRamGame is null || LabRamUsed is null ||
             ModMain.frmMain.pageCurrent != FormMain.PageType.InstanceSetup ||
@@ -308,18 +308,18 @@ public partial class PageInstanceSetup
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
-        if (ShowAnim)
+        if (showAnim)
         {
             // 宽度动画
             ModAnimation.AniStart(
                 new[]
                 {
                     ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                     ModAnimation.AaGridLengthWidth(ColumnRamGame, ramGameActual - ColumnRamGame.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                     ModAnimation.AaGridLengthWidth(ColumnRamEmpty, ramEmpty - ColumnRamEmpty.Width.Value, 800,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
                 }, "VersionSetup Ram Grid");
         }
         else
@@ -422,9 +422,9 @@ public partial class PageInstanceSetup
                     new[]
                     {
                         ModAnimation.AaX(LabRamGame, totalWidth - labGameWidth - LabRamGame.Margin.Left, 100,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                         ModAnimation.AaX(LabRamGameTitle, totalWidth - labGameTitleWidth - LabRamGameTitle.Margin.Left,
-                            100, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                            100, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                     }, "VersionSetup Ram TextRight");
             }
             else
@@ -442,9 +442,9 @@ public partial class PageInstanceSetup
                 new[]
                 {
                     ModAnimation.AaX(LabRamGame, 2d + rectUsedWidth - LabRamGame.Margin.Left, 100,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaX(LabRamGameTitle, 2d + rectUsedWidth - LabRamGameTitle.Margin.Left, 100,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "VersionSetup Ram TextRight");
         }
         else
@@ -460,12 +460,12 @@ public partial class PageInstanceSetup
     /// <summary>
     ///     获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
-    public static double GetRam(ModMinecraft.McInstance Version, bool? Is32BitJava = default)
+    public static double GetRam(ModMinecraft.McInstance version, bool? is32BitJava = default)
     {
-        var instancePath = Version?.PathInstance;
+        var instancePath = version?.PathInstance;
         // 跟随全局设置
         if (Config.Instance.MemorySolution[instancePath] == 2)
-            return PageSetupLaunch.GetRam(Version, true, Is32BitJava);
+            return PageSetupLaunch.GetRam(version, true, is32BitJava);
 
         // ------------------------------------------
         // 修改下方代码时需要一并修改 PageSetupLaunch
@@ -483,19 +483,19 @@ public partial class PageInstanceSetup
             double ramTarget1; // 估计能勉强带动了的内存
             double ramTarget2; // 估计没啥问题了的内存
             double ramTarget3; // 安装过多附加组件需要的内存
-            if (Version is not null && !Version.isLoaded)
-                Version.Load();
-            if (Version is not null && Version.Modable)
+            if (version is not null && !version.isLoaded)
+                version.Load();
+            if (version is not null && version.Modable)
             {
                 // 可安装 Mod 的实例
-                var modDir = new DirectoryInfo(Version.PathIndie + @"mods\");
+                var modDir = new DirectoryInfo(version.PathIndie + @"mods\");
                 var modCount = modDir.Exists ? modDir.GetFiles().Length : 0;
                 ramMininum = 0.5d + modCount / 150d;
                 ramTarget1 = 1.5d + modCount / 90d;
                 ramTarget2 = 2.7d + modCount / 50d;
                 ramTarget3 = 4.5d + modCount / 25d;
             }
-            else if (Version is not null && Version.Info.hasOptiFine)
+            else if (version is not null && version.Info.hasOptiFine)
             {
                 // OptiFine 实例
                 ramMininum = 0.5d;
@@ -557,7 +557,7 @@ public partial class PageInstanceSetup
         }
 
         // 若使用 32 位 Java，则限制为 1G
-        if (Is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.instance))
+        if (is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.instance))
             ramGive = Math.Min(1d, ramGive);
         return ramGive;
     }
@@ -616,17 +616,17 @@ public partial class PageInstanceSetup
         ComboChange(ComboServerLoginRequire, null);
     }
 
-    public void ServerLogin(int Type)
+    public void ServerLogin(int type)
     {
-        LabServerAuthName.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthName.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        LabServerAuthRegister.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthRegister.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        LabServerAuthServer.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthServer.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        BtnServerAuthLittle.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        BtnServerNewProfile.Visibility = Type == 2 || Type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        if (Type == 0 || Type == 1)
+        LabServerAuthName.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        TextServerAuthName.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        LabServerAuthRegister.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        TextServerAuthRegister.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        LabServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        TextServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        BtnServerAuthLittle.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        BtnServerNewProfile.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        if (type == 0 || type == 1)
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
             BtnServerAuthLock.Visibility = Visibility.Visible;
@@ -651,7 +651,7 @@ public partial class PageInstanceSetup
 
         CardServer.TriggerForceResize();
         // 避免正版验证和离线验证出现此提示
-        if (Type != 2 && Type != 3)
+        if (type != 2 && type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
@@ -696,7 +696,7 @@ public partial class PageInstanceSetup
     {
         if (ModMain.MyMsgBox(
                 Lang.Text("Instance.Setup.LockLoginMethod.Message"),
-                Lang.Text("Instance.Setup.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                Lang.Text("Instance.Setup.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             Config.InstanceAuth.AuthLocked[PageInstanceLeft.instance.PathInstance] = true;
             Reload();
@@ -977,7 +977,7 @@ public partial class PageInstanceSetup
             return;
         if (ModMain.MyMsgBox(
                 Lang.Text("Instance.Setup.IsolationWarning.Message"),
-                Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
         {
             isReverting = true;
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -1024,7 +1024,7 @@ public partial class PageInstanceSetup
         {
             if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
                     Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
             {
                 ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
             }
@@ -1051,7 +1051,7 @@ public partial class PageInstanceSetup
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Instance.Setup.Log4jWarning.Message"),
-                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
             {
                 checkBox.Checked = false;
             }

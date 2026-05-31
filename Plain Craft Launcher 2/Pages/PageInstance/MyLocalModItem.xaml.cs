@@ -227,15 +227,15 @@ public partial class MyLocalCompItem
             {
                 ModAnimation.AaColor(RectBack, Border.BackgroundProperty, isMouseDown ? "ColorBrush6" : "ColorBrushBg1",
                     time),
-                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, Ease: new ModAnimation.AniEaseOutFluent())
+                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, ease: new ModAnimation.AniEaseOutFluent())
             });
             if (isMouseDown)
                 ani.Add(ModAnimation.AaScaleTransform(RectBack,
                     0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                    Ease: new ModAnimation.AniEaseOutFluent()));
+                    ease: new ModAnimation.AniEaseOutFluent()));
             else
                 ani.Add(ModAnimation.AaScaleTransform(RectBack, 1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    (int)Math.Round(time * 1.2d), Ease: new ModAnimation.AniEaseOutFluent()));
+                    (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
         }
         else
         {
@@ -243,8 +243,8 @@ public partial class MyLocalCompItem
             {
                 ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time),
                 ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    time, Ease: new ModAnimation.AniEaseOutFluent()),
-                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, After: true)
+                    time, ease: new ModAnimation.AniEaseOutFluent()),
+                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
             });
         }
 
@@ -714,9 +714,9 @@ public partial class MyLocalCompItem
                         // 由无变有
                         var delta = 32d - RectCheck.ActualHeight;
                         anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.4d, 200,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.6d, 300,
-                            Ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
@@ -729,7 +729,7 @@ public partial class MyLocalCompItem
                     {
                         // 由有变无
                         anim.Add(ModAnimation.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
+                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
                         anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,

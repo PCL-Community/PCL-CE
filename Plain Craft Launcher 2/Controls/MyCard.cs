@@ -250,36 +250,36 @@ public class MyCard : AnimatedBackgroundGrid
     ///     启动卡片高度变化的动画效果
     ///     根据变化距离的大小采用不同的动画策略：短距离使用简单缓动，长距离使用分段动画
     /// </summary>
-    /// <param name="Delta">高度变化量</param>
-    /// <param name="PreviousHeight">之前的高度</param>
-    /// <param name="IsLoadAnimation">是否为加载动画</param>
-    private void StartHeightAnimation(double Delta, double PreviousHeight, bool IsLoadAnimation)
+    /// <param name="delta">高度变化量</param>
+    /// <param name="previousHeight">之前的高度</param>
+    /// <param name="isLoadAnimation">是否为加载动画</param>
+    private void StartHeightAnimation(double delta, double previousHeight, bool isLoadAnimation)
     {
         if (isHeightAnimating || ModMain.frmMain is null)
             return; // 避免 XAML 设计器出错
 
         var animList = new List<ModAnimation.AniData>();
-        var absDelta = Math.Abs(Delta);
+        var absDelta = Math.Abs(delta);
 
         if (absDelta <= 800d)
         {
             // 短距离，直接使用 150ms 的缓动动画
-            animList.Add(ModAnimation.AaHeight(this, Delta, 150,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
+            animList.Add(ModAnimation.AaHeight(this, delta, 150,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
         }
         else
         {
             var easeLength = default(int);
             int easeTime;
             int initSpeed; // 到达缓动区前的初速度
-            if (Delta < 0d && absDelta - easeLength > 5000d * 0.1d)
+            if (delta < 0d && absDelta - easeLength > 5000d * 0.1d)
             {
                 // 收回距离过长 (>0.1s)，强制以 100ms 完成匀速段，然后让减速段更长
                 easeLength = 200;
                 easeTime = 150;
                 initSpeed = (int)Math.Round((absDelta - easeLength) / 0.1d);
             }
-            else if (Delta > 0d && absDelta - easeLength > 5000d * 0.6d)
+            else if (delta > 0d && absDelta - easeLength > 5000d * 0.6d)
             {
                 // 展开距离过长 (>0.6s)，以 5000 速度展示 300ms 匀速段，剩下的距离全部归入减速段
                 initSpeed = 5000;
@@ -295,12 +295,12 @@ public class MyCard : AnimatedBackgroundGrid
             }
 
             // 匀速段
-            animList.Add(ModAnimation.AaHeight(this, (absDelta - easeLength) * Math.Sign(Delta),
+            animList.Add(ModAnimation.AaHeight(this, (absDelta - easeLength) * Math.Sign(delta),
                 (int)Math.Round((absDelta - easeLength) / initSpeed * 1000d)));
             // 减速段
-            animList.Add(ModAnimation.AaHeight(this, easeLength * Math.Sign(Delta), easeTime,
-                Ease: new ModAnimation.AniEaseOutFluentWithInitial(initSpeed, easeTime / 1000d, easeLength),
-                After: true));
+            animList.Add(ModAnimation.AaHeight(this, easeLength * Math.Sign(delta), easeTime,
+                ease: new ModAnimation.AniEaseOutFluentWithInitial(initSpeed, easeTime / 1000d, easeLength),
+                after: true));
         }
 
         animList.Add(ModAnimation.AaCode(() =>
@@ -309,11 +309,11 @@ public class MyCard : AnimatedBackgroundGrid
             Height = actualUsedHeight;
             if (IsSwapped && SwapControl is not null)
                 SwapControl.Visibility = Visibility.Collapsed;
-        }, After: true));
+        }, after: true));
         ModAnimation.AniStart(animList, "MyCard Height " + uuid);
         isHeightAnimating = true;
         actualUsedHeight = IsSwapped ? SwapedHeight : Height;
-        Height = PreviousHeight;
+        Height = previousHeight;
     }
 
     /// <summary>
@@ -377,7 +377,7 @@ public class MyCard : AnimatedBackgroundGrid
             ModAnimation.AniStart(
                 ModAnimation.AaRotateTransform(MainSwap,
                     (_IsSwapped ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
-                    250, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                    250, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
                 "MyCard Swap " + uuid, true);
         }
     }
@@ -454,49 +454,49 @@ public class MyCard : AnimatedBackgroundGrid
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyCard Control, bool RemoveFromChildren, ParameterizedThreadStart CallBack = null)
+    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
     {
-        if (Control.IsHitTestVisible)
+        if (control.IsHitTestVisible)
         {
-            Control.IsHitTestVisible = false;
+            control.IsHitTestVisible = false;
             AniStart(new[]
             {
-                AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
-                AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),
-                AaHeight(Control, -Control.ActualHeight, 150, 100, new AniEaseOutFluent()),
+                AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
+                AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
+                AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
                 AaCode(() =>
                 {
-                    if (RemoveFromChildren)
+                    if (removeFromChildren)
                     {
-                        if (Control.Parent is null)
+                        if (control.Parent is null)
                             return;
-                        ((Panel)Control.Parent).Children.Remove(Control);
+                        ((Panel)control.Parent).Children.Remove(control);
                     }
                     else
                     {
-                        Control.Visibility = Visibility.Collapsed;
+                        control.Visibility = Visibility.Collapsed;
                     }
 
-                    if (CallBack is not null)
-                        CallBack(Control);
-                }, After: true)
-            }, "MyCard Dispose " + Control.uuid);
+                    if (callBack is not null)
+                        callBack(control);
+                }, after: true)
+            }, "MyCard Dispose " + control.uuid);
         }
         else
         {
-            if (RemoveFromChildren)
+            if (removeFromChildren)
             {
-                if (Control.Parent is null)
+                if (control.Parent is null)
                     return;
-                ((Panel)Control.Parent).Children.Remove(Control);
+                ((Panel)control.Parent).Children.Remove(control);
             }
             else
             {
-                Control.Visibility = Visibility.Collapsed;
+                control.Visibility = Visibility.Collapsed;
             }
 
-            if (CallBack is not null)
-                CallBack(Control);
+            if (callBack is not null)
+                callBack(control);
         }
     }
 }
