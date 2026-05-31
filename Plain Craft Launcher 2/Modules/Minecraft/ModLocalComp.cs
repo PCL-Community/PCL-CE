@@ -1190,7 +1190,7 @@ public static class ModLocalComp
                                 }
                             }
 
-                    reqs = (JsonArray)infoObject["dependancies"];
+                    reqs = (JsonArray)infoObject["dependencies"];
                     if (reqs is not null)
                         foreach (string rawToken in reqs)
                             if (!string.IsNullOrEmpty(rawToken))
