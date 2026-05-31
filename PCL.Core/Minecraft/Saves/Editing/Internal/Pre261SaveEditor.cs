@@ -3,8 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using fNbt;
 
-using PCL.Core.Minecraft.Saves.Parsing.Internal;
-
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
