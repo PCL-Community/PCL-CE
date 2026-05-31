@@ -12,7 +12,7 @@ public class IntValidator(int max = int.MaxValue, int min = int.MinValue) : Abst
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x => x.Length < 9).WithMessage("请输入一个大小合理的数字！")
@@ -23,7 +23,7 @@ public class IntValidator(int max = int.MaxValue, int min = int.MinValue) : Abst
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }
