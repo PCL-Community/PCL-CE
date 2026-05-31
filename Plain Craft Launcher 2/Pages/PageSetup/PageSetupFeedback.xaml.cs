@@ -23,18 +23,18 @@ public partial class PageSetupFeedback
 
     private bool _isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
     private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, loader, _ => RefreshList());
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
@@ -89,7 +89,7 @@ public partial class PageSetupFeedback
             res.Add(item);
         }
 
-        task.Output = res;
+        task.output = res;
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
@@ -99,7 +99,7 @@ public partial class PageSetupFeedback
             Title = item.Title,
             Type = MyListItem.CheckType.Clickable,
             Info = $"{item.User} | {Lang.Date(item.Time)}",
-            Logo = ModBase.PathImage + logo,
+            Logo = ModBase.pathImage + logo,
             Tags = item.Type
         };
 
@@ -142,7 +142,7 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in loader.output)
+        foreach (var item in Loader.output)
         {
             if (item.Tags.Contains(((long)TagId.Processing).ToString()))
                 PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));
