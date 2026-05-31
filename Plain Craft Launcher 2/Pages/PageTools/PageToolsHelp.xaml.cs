@@ -23,14 +23,14 @@ public partial class PageToolsHelp : IRefreshable
     /// <summary>
     ///     将帮助列表对象实例化为主页 UI。
     /// </summary>
-    private void HelpListLoad(ModLoader.LoaderTask<int, List<ModMain.HelpEntry>> Loader)
+    private void HelpListLoad(ModLoader.LoaderTask<int, List<ModMain.HelpEntry>> loader)
     {
         try
         {
             // 初始化
             PanList.Children.Clear();
             PanBack.ScrollToHome();
-            var helpItems = Loader.output;
+            var helpItems = loader.output;
             // 获取全部分类
             var types = new List<string>();
             foreach (var Item in helpItems)
@@ -64,10 +64,10 @@ public partial class PageToolsHelp : IRefreshable
                 newCard.Children.Add(newStack);
                 newCard.SwapControl = newStack;
 
-                void PutMethod(StackPanel Stack)
+                void PutMethod(StackPanel stack)
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(((ModMain.HelpEntry)item).ToListItem());
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(((ModMain.HelpEntry)item).ToListItem());
                 }
 
                 ;
@@ -89,14 +89,14 @@ public partial class PageToolsHelp : IRefreshable
     /// <summary>
     ///     帮助项目的点击事件。
     /// </summary>
-    public static void OnItemClick(ModMain.HelpEntry Entry)
+    public static void OnItemClick(ModMain.HelpEntry entry)
     {
         try
         {
-            if (Entry.isEvent)
-                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(Entry.eventType), Entry.eventData);
+            if (entry.isEvent)
+                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(entry.eventType), entry.eventData);
             else
-                EnterHelpPage(Entry);
+                EnterHelpPage(entry);
         }
         catch (Exception ex)
         {
@@ -104,13 +104,13 @@ public partial class PageToolsHelp : IRefreshable
         }
     }
 
-    public static void EnterHelpPage(string Location)
+    public static void EnterHelpPage(string location)
     {
         ModBase.RunInThread(() =>
         {
             if (ModMain.helpLoader.State != ModBase.LoadState.Finished)
                 ModMain.helpLoader.WaitForExit(ModBase.GetUuid());
-            var entry = new ModMain.HelpEntry(Location);
+            var entry = new ModMain.HelpEntry(location);
             ModBase.RunInUi(() =>
             {
                 var frmHelpDetail = new PageOtherHelpDetail();
@@ -123,7 +123,7 @@ public partial class PageToolsHelp : IRefreshable
         });
     }
 
-    public static void EnterHelpPage(ModMain.HelpEntry Entry)
+    public static void EnterHelpPage(ModMain.HelpEntry entry)
     {
         ModBase.RunInThread(() =>
         {
@@ -132,21 +132,21 @@ public partial class PageToolsHelp : IRefreshable
             ModBase.RunInUi(() =>
             {
                 var frmHelpDetail = new PageOtherHelpDetail();
-                if (frmHelpDetail.Init(Entry))
+                if (frmHelpDetail.Init(entry))
                     ModMain.frmMain.PageChange(new FormMain.PageStackData
-                        { page = FormMain.PageType.HelpDetail, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, frmHelpDetail, null) });
+                        { page = FormMain.PageType.HelpDetail, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, entry, frmHelpDetail, null) });
                 else
                     ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
             });
         });
     }
 
-    public static PageOtherHelpDetail GetHelpPage(string Location)
+    public static PageOtherHelpDetail GetHelpPage(string location)
     {
         if (ModMain.helpLoader.State != ModBase.LoadState.Finished)
             ModMain.helpLoader.WaitForExit(ModBase.GetUuid());
         var frmHelpDetail = new PageOtherHelpDetail();
-        if (frmHelpDetail.Init(new ModMain.HelpEntry(Location))) return frmHelpDetail;
+        if (frmHelpDetail.Init(new ModMain.HelpEntry(location))) return frmHelpDetail;
 
         throw new Exception("已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃");
     }
@@ -167,7 +167,7 @@ public partial class PageToolsHelp : IRefreshable
                     PanSearch.Height = 0d;
                     PanSearch.Visibility = Visibility.Collapsed;
                     PanList.Visibility = Visibility.Visible;
-                }, After: true),
+                }, after: true),
                 ModAnimation.AaOpacity(PanList, 1d - PanList.Opacity, 150, 30)
             }, "FrmOtherHelp Search Switch");
         }
@@ -222,7 +222,7 @@ public partial class PageToolsHelp : IRefreshable
                     PanList.Visibility = Visibility.Collapsed;
                     PanSearch.Visibility = Visibility.Visible;
                     PanSearch.TriggerForceResize();
-                }, After: true),
+                }, after: true),
                 ModAnimation.AaOpacity(PanSearch, 1d - PanSearch.Opacity, 150, 30)
             }, "FrmOtherHelp Search Switch");
         }

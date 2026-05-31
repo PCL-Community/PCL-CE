@@ -105,10 +105,10 @@ public partial class PageComp
         ChangePage(page + 1);
     }
 
-    private void ChangePage(int NewPage)
+    private void ChangePage(int newPage)
     {
         CardPages.IsEnabled = false;
-        page = NewPage;
+        page = newPage;
         ModMain.frmMain.BackToTop();
         ModBase.Log($"[Download] {TypeName}：切换到第 {page + 1} 页");
         ModBase.RunInThread(() =>
@@ -239,10 +239,10 @@ public partial class PageComp
             ResetFilter(); // 重置筛选器
             TextSearchVersion.Text = targetVersion.Info.vanillaName;
 
-            MyComboBoxItem GetTargetItemByName(string Name)
+            MyComboBoxItem GetTargetItemByName(string name)
             {
                 foreach (MyComboBoxItem Item in ComboSearchLoader.Items)
-                    if (string.Equals(Item.Content?.ToString(), Name, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(Item.Content?.ToString(), name, StringComparison.OrdinalIgnoreCase))
                         return Item;
                 return (MyComboBoxItem)ComboSearchLoader.Items[0];
             }

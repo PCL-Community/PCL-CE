@@ -101,9 +101,9 @@ public partial class PageInstanceLeft : IRefreshable
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
 
-    public void Refresh(FormMain.PageSubType SubType)
+    public void Refresh(FormMain.PageSubType subType)
     {
-        switch (SubType)
+        switch (subType)
         {
             case FormMain.PageSubType.VersionMod:
             {
@@ -137,17 +137,17 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionInstall:
             {
-                ModDownload.dlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.dlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.dlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.dlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.dlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.dlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.dlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.dlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.dlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.dlLabyModListLoader.Start(IsForceRestart: true);
+                ModDownload.dlClientListLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
+                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
+                ModDownload.dlQSLLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
+                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
                 ModMain.frmInstanceInstall.GetCurrentInfo();
                 break;
@@ -173,8 +173,8 @@ public partial class PageInstanceLeft : IRefreshable
     {
         if (ModMain.MyMsgBox(Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
                 Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
-                Button2: Lang.Text("Common.Action.Cancel"),
-                IsWarn: true)
+                button2: Lang.Text("Common.Action.Cancel"),
+                isWarn: true)
             == 1)
         {
             if (ModMain.frmInstanceSetup is null)
@@ -200,11 +200,11 @@ public partial class PageInstanceLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID)
+    public object PageGet(FormMain.PageSubType id)
     {
-        if ((int)ID == -1)
-            ID = pageID;
-        switch (ID)
+        if ((int)id == -1)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.VersionOverall:
             {
@@ -281,7 +281,7 @@ public partial class PageInstanceLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的实例设置子页面种类：" + (int)ID);
+                throw new Exception("未知的实例设置子页面种类：" + (int)id);
             }
         }
     }
@@ -289,19 +289,19 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            pageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -309,12 +309,12 @@ public partial class PageInstanceLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = Target;
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {

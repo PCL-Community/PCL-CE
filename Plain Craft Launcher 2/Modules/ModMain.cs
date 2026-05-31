@@ -259,9 +259,9 @@ public static class ModMain
     /// <summary>
     ///     在窗口左下角弹出提示文本。
     /// </summary>
-    public static void Hint(string? Text, HintType Type = HintType.Info, bool Log = true)
+    public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
     {
-        HintWaiting.Add(new HintMessage { text = Text ?? "", type = Type, log = Log });
+        HintWaiting.Add(new HintMessage { text = text ?? "", type = type, log = log });
     }
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
@@ -340,7 +340,7 @@ public static class ModMain
                         ModAnimation.AniStart(new[]
                             {
                                 ModAnimation.AaX(doubleStack, -12 - doubleStack.Margin.Left, 50,
-                                    Ease: new ModAnimation.AniEaseOutFluent()),
+                                    ease: new ModAnimation.AniEaseOutFluent()),
                                 ModAnimation.AaX(doubleStack, -8, 50, 50, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaX(doubleStack, 8d, 50, 100, new ModAnimation.AniEaseOutFluent()),
                                 ModAnimation.AaX(doubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
@@ -360,9 +360,9 @@ public static class ModMain
                                 ModAnimation.AaOpacity(doubleStack, -1, 150, (int)Math.Round(delay)),
                                 ModAnimation.AaCode(() => doubleStackTag[0] = false,
                                     (int)Math.Round(delay)),
-                                ModAnimation.AaHeight(doubleStack, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(),
-                                    After: true),
-                                ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(doubleStack), After: true)
+                                ModAnimation.AaHeight(doubleStack, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
+                                    after: true),
+                                ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(doubleStack), after: true)
                             },
                             $"Hint Hide {doubleStackTag[1]}");
                     }
@@ -397,15 +397,15 @@ public static class ModMain
                     if (frmMain.PanHint.Children.Count > 1)
                         // 已有提示
                         animations.Add(ModAnimation.AaHeight(newHintControl, 26d, 150,
-                            Ease: new ModAnimation.AniEaseOutFluent()));
+                            ease: new ModAnimation.AniEaseOutFluent()));
                     else
                         // 是唯一提示
                         newHintControl.Height = 26d;
                     // 开始动画
                     animations.AddRange([
                         ModAnimation.AaX(newHintControl, 30d,
-                            Ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(newHintControl, 20d, 200, Ease: new ModAnimation.AniEaseOutFluent()),
+                            ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
+                        ModAnimation.AaX(newHintControl, 20d, 200, ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaOpacity(newHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
@@ -428,9 +428,9 @@ public static class ModMain
                                 new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaOpacity(newHintControl, -1, 150, (int)Math.Round(delay)),
                             ModAnimation.AaCode(() => newHintTag[0] = false, (int)Math.Round(delay)),
-                            ModAnimation.AaHeight(newHintControl, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(),
-                                After: true),
-                            ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(newHintControl), After: true)
+                            ModAnimation.AaHeight(newHintControl, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
+                                after: true),
+                            ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(newHintControl), after: true)
                         }, $"Hint Hide {newHintTag[1]}");
                 }
 
@@ -457,11 +457,11 @@ public static class ModMain
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaX(control, -50, 200, Ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaOpacity(control, -1, 150, Ease: new ModAnimation.AniEaseInFluent()),
+                    ModAnimation.AaX(control, -50, 200, ease: new ModAnimation.AniEaseInFluent()),
+                    ModAnimation.AaOpacity(control, -1, 150, ease: new ModAnimation.AniEaseInFluent()),
                     ModAnimation.AaCode(() => controlTag[0] = false),
-                    ModAnimation.AaHeight(control, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(), After: true),
-                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(control), After: true)
+                    ModAnimation.AaHeight(control, -26, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
+                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(control), after: true)
                 }, $"Hint Hide {controlTag[1]}");
         }
     }
@@ -561,46 +561,46 @@ public static class ModMain
     /// <summary>
     ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
-    /// <param name="Title">弹窗的标题。</param>
-    /// <param name="Caption">弹窗的内容。</param>
-    /// <param name="Button1">显示的第一个按钮，默认为“确定”。</param>
-    /// <param name="Button2">显示的第二个按钮，默认为空。</param>
-    /// <param name="Button3">显示的第三个按钮，默认为空。</param>
-    /// <param name="Button1Action">点击第一个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBox(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
-        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
-        Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="caption">弹窗的内容。</param>
+    /// <param name="button1">显示的第一个按钮，默认为“确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为空。</param>
+    /// <param name="button3">显示的第三个按钮，默认为空。</param>
+    /// <param name="button1Action">点击第一个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
+        string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
+        Action button1Action = null, Action button2Action = null, Action button3Action = null)
     {
-        Title ??= GetDefaultDialogTitle();
-        Button1 ??= GetDefaultConfirmText();
-        Button2 ??= "";
-        Button3 ??= "";
+        title ??= GetDefaultDialogTitle();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= "";
+        button3 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Text, button1 = Button1, button2 = Button2, button3 = Button3, text = Caption,
-            isWarn = IsWarn, title = Title, highLight = HighLight, forceWait = true, button1Action = Button1Action,
-            button2Action = Button2Action, button3Action = Button3Action
+            type = MyMsgBoxType.Text, button1 = button1, button2 = button2, button3 = button3, text = caption,
+            isWarn = isWarn, title = title, highLight = highLight, forceWait = true, button1Action = button1Action,
+            button2Action = button2Action, button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
-        if (Button2.Length > 0 || ForceWait)
+        if (button2.Length > 0 || forceWait)
         {
             // 若有多个按钮则开始等待
             if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(converter);
-                if (Button2.Length > 0)
+                if (button2.Length > 0)
                 {
-                    var rawResult = Interaction.MsgBox(Caption,
-                        (MsgBoxStyle)((int)(Button3.Length > 0 ? MsgBoxStyle.YesNoCancel : MsgBoxStyle.YesNo) +
-                                      (int)(IsWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), Title);
+                    var rawResult = Interaction.MsgBox(caption,
+                        (MsgBoxStyle)((int)(button3.Length > 0 ? MsgBoxStyle.YesNoCancel : MsgBoxStyle.YesNo) +
+                                      (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
                     switch (rawResult)
                     {
                         case MsgBoxResult.Yes:
@@ -622,13 +622,13 @@ public static class ModMain
                 }
                 else
                 {
-                    Interaction.MsgBox(Caption,
+                    Interaction.MsgBox(caption,
                         (MsgBoxStyle)((int)MsgBoxStyle.OkOnly +
-                                      (int)(IsWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), Title);
+                                      (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
                     converter.result = 1;
                 }
 
-                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + Button1 + "," + Button2 + "," + Button3,
+                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
                     ModBase.LogLevel.Debug);
             }
             else
@@ -656,46 +656,46 @@ public static class ModMain
     /// <summary>
     ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
-    /// <param name="Title">弹窗的标题。</param>
-    /// <param name="Caption">弹窗的内容。</param>
-    /// <param name="Button1">显示的第一个按钮，默认为“确定”。</param>
-    /// <param name="Button2">显示的第二个按钮，默认为空。</param>
-    /// <param name="Button3">显示的第三个按钮，默认为空。</param>
-    /// <param name="Button1Action">点击第一个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="Button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="Button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
-    /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBoxMarkdown(string Caption, string? Title = null, string? Button1 = null, string? Button2 = "",
-        string? Button3 = "", bool IsWarn = false, bool HighLight = true, bool ForceWait = false,
-        Action Button1Action = null, Action Button2Action = null, Action Button3Action = null)
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="caption">弹窗的内容。</param>
+    /// <param name="button1">显示的第一个按钮，默认为“确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为空。</param>
+    /// <param name="button3">显示的第三个按钮，默认为空。</param>
+    /// <param name="button1Action">点击第一个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static int MyMsgBoxMarkdown(string caption, string? title = null, string? button1 = null, string? button2 = "",
+        string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
+        Action button1Action = null, Action button2Action = null, Action button3Action = null)
     {
-        Title ??= GetDefaultDialogTitle();
-        Button1 ??= GetDefaultConfirmText();
-        Button2 ??= "";
-        Button3 ??= "";
+        title ??= GetDefaultDialogTitle();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= "";
+        button3 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Markdown, button1 = Button1, button2 = Button2, button3 = Button3, text = Caption,
-            isWarn = IsWarn, title = Title, highLight = HighLight, forceWait = true, button1Action = Button1Action,
-            button2Action = Button2Action, button3Action = Button3Action
+            type = MyMsgBoxType.Markdown, button1 = button1, button2 = button2, button3 = button3, text = caption,
+            isWarn = isWarn, title = title, highLight = highLight, forceWait = true, button1Action = button1Action,
+            button2Action = button2Action, button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
-        if (Button2.Length > 0 || ForceWait)
+        if (button2.Length > 0 || forceWait)
         {
             // 若有多个按钮则开始等待
             if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(converter);
-                if (Button2.Length > 0)
+                if (button2.Length > 0)
                 {
-                    var rawResult = Interaction.MsgBox(Caption,
-                        (MsgBoxStyle)((int)(Button3.Length > 0 ? MsgBoxStyle.YesNoCancel : MsgBoxStyle.YesNo) +
-                                      (int)(IsWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), Title);
+                    var rawResult = Interaction.MsgBox(caption,
+                        (MsgBoxStyle)((int)(button3.Length > 0 ? MsgBoxStyle.YesNoCancel : MsgBoxStyle.YesNo) +
+                                      (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
                     switch (rawResult)
                     {
                         case MsgBoxResult.Yes:
@@ -717,13 +717,13 @@ public static class ModMain
                 }
                 else
                 {
-                    Interaction.MsgBox(Caption,
+                    Interaction.MsgBox(caption,
                         (MsgBoxStyle)((int)MsgBoxStyle.OkOnly +
-                                      (int)(IsWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), Title);
+                                      (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
                     converter.result = 1;
                 }
 
-                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + Button1 + "," + Button2 + "," + Button3,
+                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
                     ModBase.LogLevel.Debug);
             }
             else
@@ -751,26 +751,26 @@ public static class ModMain
     /// <summary>
     ///     显示输入框并返回输入的文本。若点击第二个按钮，则返回 Nothing。
     /// </summary>
-    /// <param name="Title">弹窗的标题。</param>
-    /// <param name="ValidateRules">文本框的输入检测。</param>
-    /// <param name="Text">弹窗的介绍文本。</param>
-    /// <param name="DefaultInput">文本框的默认内容。</param>
-    /// <param name="HintText">文本框的提示内容。</param>
-    /// <param name="Button1">显示的第一个按钮，默认为“确定”。</param>
-    /// <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
-    /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static string MyMsgBoxInput(string Title, string Text = "", string DefaultInput = "",
-        Collection<IValidator<string>>? ValidateRules = null, string HintText = "", string? Button1 = null,
-        string? Button2 = null, bool IsWarn = false)
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="validateRules">文本框的输入检测。</param>
+    /// <param name="text">弹窗的介绍文本。</param>
+    /// <param name="defaultInput">文本框的默认内容。</param>
+    /// <param name="hintText">文本框的提示内容。</param>
+    /// <param name="button1">显示的第一个按钮，默认为“确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为“取消”。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static string MyMsgBoxInput(string title, string text = "", string defaultInput = "",
+        Collection<IValidator<string>>? validateRules = null, string hintText = "", string? button1 = null,
+        string? button2 = null, bool isWarn = false)
     {
-        Button1 ??= GetDefaultConfirmText();
-        Button2 ??= GetDefaultCancelText();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= GetDefaultCancelText();
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            text = Text, hintText = HintText, type = MyMsgBoxType.Input,
-            validateRules = ValidateRules ?? [], button1 = Button1, button2 = Button2,
-            content = DefaultInput, isWarn = IsWarn, title = Title
+            text = text, hintText = hintText, type = MyMsgBoxType.Input,
+            validateRules = validateRules ?? [], button1 = button1, button2 = button2,
+            content = defaultInput, isWarn = isWarn, title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
@@ -792,21 +792,21 @@ public static class ModMain
     /// <summary>
     ///     显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
     /// </summary>
-    /// <param name="Title">弹窗的标题。</param>
-    /// <param name="Button1">显示的第一个按钮，默认为 “确定”。</param>
-    /// <param name="Button2">显示的第二个按钮，默认为空。</param>
-    /// <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int? MyMsgBoxSelect(List<IMyRadio> Selections, string? Title = null, string? Button1 = null,
-        string? Button2 = "", bool IsWarn = false)
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="button1">显示的第一个按钮，默认为 “确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为空。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static int? MyMsgBoxSelect(List<IMyRadio> selections, string? title = null, string? button1 = null,
+        string? button2 = "", bool isWarn = false)
     {
-        Title ??= GetDefaultDialogTitle();
-        Button1 ??= GetDefaultConfirmText();
-        Button2 ??= "";
+        title ??= GetDefaultDialogTitle();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Select, button1 = Button1, button2 = Button2, content = Selections, isWarn = IsWarn,
-            title = Title
+            type = MyMsgBoxType.Select, button1 = button1, button2 = button2, content = selections, isWarn = isWarn,
+            title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
@@ -897,8 +897,8 @@ public static class ModMain
 
         var isWarn = theme == MsgBoxTheme.Warning || theme == MsgBoxTheme.Error;
 
-        result = MyMsgBox(message, caption, btnText1, btnText2, btnText3, isWarn, ForceWait: block,
-            Button1Action: btnAct1, Button2Action: btnAct2, Button3Action: btnAct3);
+        result = MyMsgBox(message, caption, btnText1, btnText2, btnText3, isWarn, forceWait: block,
+            button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3);
     }
 
     #endregion
@@ -1008,12 +1008,12 @@ public static class ModMain
         /// <summary>
         ///     从文件初始化 HelpEntry 对象，失败会抛出异常。
         /// </summary>
-        public HelpEntry(string FilePath)
+        public HelpEntry(string filePath)
         {
-            rawPath = FilePath;
-            var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
+            rawPath = filePath;
+            var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(filePath)));
             if (jsonData is null)
-                throw new FileNotFoundException("未找到帮助文件：" + FilePath, FilePath);
+                throw new FileNotFoundException("未找到帮助文件：" + filePath, filePath);
             // 加载常规信息
             if (jsonData["Title"] is not null)
                 title = (string)jsonData["Title"];
@@ -1037,7 +1037,7 @@ public static class ModMain
             }
             else
             {
-                var xamlAddress = FilePath.ToLower().Replace(".json", ".xaml");
+                var xamlAddress = filePath.ToLower().Replace(".json", ".xaml");
                 if (File.Exists(xamlAddress))
                 {
                     xamlContent = ModBase.ReadFile(xamlAddress);
@@ -1061,7 +1061,7 @@ public static class ModMain
         /// <summary>
         ///     将属性设置入一个现有的 ListItem。
         /// </summary>
-        public MyListItem SetToListItem(MyListItem Item)
+        public MyListItem SetToListItem(MyListItem item)
         {
             string logoPath;
             if (isEvent)
@@ -1077,18 +1077,18 @@ public static class ModMain
             }
 
             // 设置属性
-            Item.SnapsToDevicePixels = true;
-            Item.Title = title;
-            Item.Info = desc;
-            Item.Logo = this.logo ?? logoPath;
-            Item.Height = 42d;
-            Item.Type = MyListItem.CheckType.Clickable;
-            Item.Tag = this;
-            CustomEventService.SetEventType(Item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
-            CustomEventService.SetEventData(Item, null);
+            item.SnapsToDevicePixels = true;
+            item.Title = title;
+            item.Info = desc;
+            item.Logo = this.logo ?? logoPath;
+            item.Height = 42d;
+            item.Type = MyListItem.CheckType.Clickable;
+            item.Tag = this;
+            CustomEventService.SetEventType(item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
+            CustomEventService.SetEventData(item, null);
             // 项目的点击事件
-            Item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
-            return Item;
+            item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
+            return item;
         }
     }
 
@@ -1098,7 +1098,7 @@ public static class ModMain
     /// <summary>
     ///     初始化帮助列表对象。
     /// </summary>
-    private static void HelpLoad(ModLoader.LoaderTask<int, List<HelpEntry>> Loader)
+    private static void HelpLoad(ModLoader.LoaderTask<int, List<HelpEntry>> loader)
     {
         lock (helpLoadLock) // 避免重复解压文件导致出错
         {
@@ -1170,7 +1170,7 @@ public static class ModMain
                     ModBase.Log(ex, "检查帮助文件夹失败", ModBase.LogLevel.Msgbox);
                 }
 
-                if (Loader.IsAborted)
+                if (loader.IsAborted)
                     return;
 
                 // 将文件实例化
@@ -1191,9 +1191,9 @@ public static class ModMain
                 // 回设
                 if (!dict.Any())
                     throw new Exception("未找到可用的帮助；若不需要帮助页面，可以在 设置 → 个性化 → 功能隐藏 中将其隐藏");
-                if (Loader.IsAborted)
+                if (loader.IsAborted)
                     return;
-                Loader.output = dict;
+                loader.output = dict;
             }
 
             catch (Exception ex)
@@ -1220,9 +1220,9 @@ public static class ModMain
     /// <summary>
     ///     对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
     /// </summary>
-    public static string HelpArgumentReplace(string Xaml)
+    public static string HelpArgumentReplace(string xaml)
     {
-        var result = Xaml.Replace("{path}", ModBase.EscapeXML(ModBase.exePath));
+        var result = xaml.Replace("{path}", ModBase.EscapeXML(ModBase.exePath));
         result = result.RegexReplaceEach(@"\{hint\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomHint()));
         result = result.RegexReplaceEach(@"\{cave\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomCave()));
         return result;
@@ -1388,12 +1388,12 @@ public static class ModMain
     /// <summary>
     ///     把某个 PCL 窗口拖到最前面。
     /// </summary>
-    public static void ShowWindowToTop(nint Handle)
+    public static void ShowWindowToTop(nint handle)
     {
         try
         {
-            PostMessage(Handle, 400 * 16 + 2, 0L, 0L);
-            SetForegroundWindow(Handle); // 不在这里放不行，神秘 WinAPI，建议别动
+            PostMessage(handle, 400 * 16 + 2, 0L, 0L);
+            SetForegroundWindow(handle); // 不在这里放不行，神秘 WinAPI，建议别动
         }
         catch (Exception ex)
         {
@@ -1402,7 +1402,7 @@ public static class ModMain
     }
 
     [DllImport("user32", EntryPoint = "FindWindowA")]
-    public static extern nint FindWindow(string ClassName, string WindowName);
+    public static extern nint FindWindow(string className, string windowName);
 
     [DllImport("user32")]
     public static extern int SetForegroundWindow(nint hWnd);
@@ -1414,7 +1414,7 @@ public static class ModMain
     ///     将特定程序设置为使用高性能显卡启动。
     ///     如果失败，则抛出异常。
     /// </summary>
-    public static void SetGPUPreference(string Executeable, bool WantHighPerformance = true)
+    public static void SetGPUPreference(string executeable, bool wantHighPerformance = true)
     {
         const string GPU_PERFERENCE_REG_KEY = @"Software\Microsoft\DirectX\UserGpuPreferences";
         const string GPU_PERFERENCE_REG_VALUE_HIGH = "GpuPreference=2;";
@@ -1428,7 +1428,7 @@ public static class ModMain
         {
             if (readOnlyKey is not null)
             {
-                var currentValue = readOnlyKey.GetValue(Executeable);
+                var currentValue = readOnlyKey.GetValue(executeable);
                 if (GPU_PERFERENCE_REG_VALUE_HIGH == (currentValue?.ToString() ?? "")) isCurrentHighPerformance = true;
             }
             else
@@ -1439,14 +1439,14 @@ public static class ModMain
             }
         }
 
-        ModBase.Log($"[System] 当前程序 ({Executeable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
-        if (isCurrentHighPerformance ^ WantHighPerformance)
+        ModBase.Log($"[System] 当前程序 ({executeable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
+        if (isCurrentHighPerformance ^ wantHighPerformance)
             // 写入新设置
             using (var writeKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, true))
             {
-                writeKey.SetValue(Executeable,
-                    WantHighPerformance ? GPU_PERFERENCE_REG_VALUE_HIGH : GPU_PERFERENCE_REG_VALUE_DEFAULT);
-                ModBase.Log($"[System] 已调整程序 ({Executeable}) 显卡设置: {WantHighPerformance}");
+                writeKey.SetValue(executeable,
+                    wantHighPerformance ? GPU_PERFERENCE_REG_VALUE_HIGH : GPU_PERFERENCE_REG_VALUE_DEFAULT);
+                ModBase.Log($"[System] 已调整程序 ({executeable}) 显卡设置: {wantHighPerformance}");
             }
     }
 
@@ -1599,8 +1599,8 @@ public static class ModMain
     ///     申请一个可用于任务缓存的临时文件夹，以 \ 结尾。这些文件夹无需进行后续清理。
     ///     若所有缓存位置均没有权限，会抛出异常。
     /// </summary>
-    /// <param name="RequireNonSpace">是否要求路径不包含空格。</param>
-    public static string RequestTaskTempFolder(bool RequireNonSpace = false)
+    /// <param name="requireNonSpace">是否要求路径不包含空格。</param>
+    public static string RequestTaskTempFolder(bool requireNonSpace = false)
     {
         TryClearTaskTemp();
         string resultFolder;
@@ -1609,7 +1609,7 @@ public static class ModMain
             try
             {
                 resultFolder = $@"{ModBase.pathTemp}TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
-                if (RequireNonSpace && resultFolder.Contains(" "))
+                if (requireNonSpace && resultFolder.Contains(" "))
                     break; // 带空格
                 Directory.CreateDirectory(resultFolder);
                 ModBase.CheckPermissionWithException(resultFolder);

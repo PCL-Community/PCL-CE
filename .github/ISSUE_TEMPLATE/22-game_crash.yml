@@ -1,7 +1,15 @@
-name: "[旧版] Minecraft 崩溃"
-description: "PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃"
+name: "[新版] Minecraft 崩溃"
+description: "新版 PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃"
+title: "[C#]: "
 type: "崩溃"
 body:
+- type: markdown
+  id: "desc"
+  attributes:
+    value: |
+      ## 感谢参与 PCL CE 新版本测试！
+      请注意您目前正在提交和新版本有关的 Minecraft 崩溃反馈
+      如果您使用的不是新版本 (2.15.x)，请到 [旧版 Minecraft 崩溃反馈区](https://github.com/PCL-Community/PCL-CE/issues/new?template=2-game_crash.yml) 提交反馈
 - type: checkboxes
   id: "yml-1"
   attributes:

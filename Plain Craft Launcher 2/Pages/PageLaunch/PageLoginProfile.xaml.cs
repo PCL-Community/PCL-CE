@@ -173,8 +173,8 @@ public partial class PageLoginProfile
     // 删除档案
     private void DeleteProfile(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true,
-                ForceWait: true) == 2)
+        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true,
+                forceWait: true) == 2)
             return;
         ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);
         ModBase.RunInUi(() => RefreshProfileList());

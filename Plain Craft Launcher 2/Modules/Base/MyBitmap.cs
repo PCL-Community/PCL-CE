@@ -27,31 +27,31 @@ public class MyBitmap
     {
     }
 
-    public MyBitmap(string FilePathOrResourceName)
+    public MyBitmap(string filePathOrResourceName)
     {
         do
         {
             try
             {
-                FilePathOrResourceName =
-                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.pathImage);
-                if (FilePathOrResourceName.StartsWithF(ModBase.pathImage))
+                filePathOrResourceName =
+                    filePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.pathImage);
+                if (filePathOrResourceName.StartsWithF(ModBase.pathImage))
                 {
-                    if (_Cache.ContainsKey(FilePathOrResourceName))
+                    if (_Cache.ContainsKey(filePathOrResourceName))
                     {
-                        pic = _Cache[FilePathOrResourceName].pic;
+                        pic = _Cache[filePathOrResourceName].pic;
                     }
                     else
                     {
                         pic = new MyBitmap(
-                            (ImageSource)new ImageSourceConverter().ConvertFromString(FilePathOrResourceName));
-                        _Cache.TryAdd(FilePathOrResourceName, pic);
+                            (ImageSource)new ImageSourceConverter().ConvertFromString(filePathOrResourceName));
+                        _Cache.TryAdd(filePathOrResourceName, pic);
                     }
                 }
                 else
                 {
                     // 使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                    using (var picStream = new FileStream(FilePathOrResourceName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var picStream = new FileStream(filePathOrResourceName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         if (picStream.Length > 2L && picStream.ReadByte() == 82 && picStream.ReadByte() == 73)
                         {
@@ -71,81 +71,79 @@ public class MyBitmap
             }
             catch (Exception ex)
             {
-                pic = (Bitmap)System.Windows.Application.Current.TryFindResource(FilePathOrResourceName);
+                pic = (Bitmap)System.Windows.Application.Current.TryFindResource(filePathOrResourceName);
                 if (pic is null)
                 {
                     pic = new Bitmap(1, 1);
-                    if (ex is ArgumentException) throw new Exception($"图片格式不支持，或图片文件损坏（{FilePathOrResourceName}）", ex);
+                    if (ex is ArgumentException) throw new Exception($"图片格式不支持，或图片文件损坏（{filePathOrResourceName}）", ex);
 
-                    throw new Exception($"加载 MyBitmap 意外失败（{FilePathOrResourceName}）", ex);
+                    throw new Exception($"加载 MyBitmap 意外失败（{filePathOrResourceName}）", ex);
                 }
 
-                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", ModBase.LogLevel.Developer);
+                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{filePathOrResourceName}）", ModBase.LogLevel.Developer);
                 break;
             }
         } while (false);
     }
 
-    public MyBitmap(ImageSource Image)
+    public MyBitmap(ImageSource image)
     {
         using (var ms = new MemoryStream())
         {
             var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image));
+            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image));
             encoder.Save(ms);
-            pic = new Bitmap(ms);
         }
     }
 
-    public MyBitmap(Image Image)
+    public MyBitmap(Image image)
     {
-        pic = (Bitmap)Image;
+        pic = (Bitmap)image;
     }
 
-    public MyBitmap(Bitmap Image)
+    public MyBitmap(Bitmap image)
     {
-        pic = Image;
+        pic = image;
     }
 
-    public MyBitmap(ImageBrush Image)
+    public MyBitmap(ImageBrush image)
     {
         using (var ms = new MemoryStream())
         {
             var encoder = new BmpBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image.ImageSource));
+            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.ImageSource));
             encoder.Save(ms);
-            pic = new Bitmap(ms);
         }
     }
 
     // 自动类型转换
     // 支持的类：Image，ImageSource，Bitmap，ImageBrush，BitmapSource
-    public static implicit operator MyBitmap(Image Image)
+    public static implicit operator MyBitmap(Image image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return new MyBitmap(Image);
+        return new MyBitmap(image);
     }
 
-    public static implicit operator Image(MyBitmap Image)
+    public static implicit operator Image(MyBitmap image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return Image.pic;
+        return image.pic;
     }
 
-    public static implicit operator MyBitmap(ImageSource Image)
+    public static implicit operator MyBitmap(ImageSource image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return new MyBitmap(Image);
+        return new MyBitmap(image);
     }
 
-    public static implicit operator ImageSource(MyBitmap Image)
+    public static implicit operator ImageSource(MyBitmap image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        var bitmapPic = Image.pic;
+        var bitmapPic = image.pic;
         var rect = new Rectangle(0, 0, bitmapPic.Width, bitmapPic.Height);
         var bitmapData = bitmapPic.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         try
@@ -162,45 +160,45 @@ public class MyBitmap
         }
     }
 
-    public static implicit operator MyBitmap(Bitmap Image)
+    public static implicit operator MyBitmap(Bitmap image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return new MyBitmap(Image);
+        return new MyBitmap(image);
     }
 
-    public static implicit operator Bitmap(MyBitmap Image)
+    public static implicit operator Bitmap(MyBitmap image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return Image.pic;
+        return image.pic;
     }
 
-    public static implicit operator MyBitmap(ImageBrush Image)
+    public static implicit operator MyBitmap(ImageBrush image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return new MyBitmap(Image);
+        return new MyBitmap(image);
     }
 
-    public static implicit operator ImageBrush(MyBitmap Image)
+    public static implicit operator ImageBrush(MyBitmap image)
     {
-        if (Image is null)
+        if (image is null)
             return null;
-        return new ImageBrush(new MyBitmap(Image.pic));
+        return new ImageBrush(new MyBitmap(image.pic));
     }
 
     /// <summary>
     ///     获取裁切的图片，这个方法不会导致原对象改变且会返回一个新的对象。
     /// </summary>
-    public MyBitmap Clip(int X, int Y, int Width, int Height)
+    public MyBitmap Clip(int x, int y, int width, int height)
     {
-        var bmp = new Bitmap(Width, Height, pic.PixelFormat);
+        var bmp = new Bitmap(width, height, pic.PixelFormat);
         bmp.SetResolution(pic.HorizontalResolution, pic.VerticalResolution);
         using (var g = Graphics.FromImage(bmp))
         {
             g.InterpolationMode = InterpolationMode.NearestNeighbor;
-            g.TranslateTransform(-X, -Y);
+            g.TranslateTransform(-x, -y);
             g.DrawImage(pic, new Rectangle(0, 0, pic.Width, pic.Height));
         }
 
@@ -210,22 +208,22 @@ public class MyBitmap
     /// <summary>
     ///     获取旋转或翻转后的图片，这个方法不会导致原对象改变且会返回一个新的对象。
     /// </summary>
-    public MyBitmap RotateFlip(RotateFlipType Type)
+    public MyBitmap RotateFlip(RotateFlipType type)
     {
         var bmp = new Bitmap(pic);
         bmp.SetResolution(pic.HorizontalResolution, pic.VerticalResolution);
-        bmp.RotateFlip(Type);
+        bmp.RotateFlip(type);
         return bmp;
     }
 
     /// <summary>
     ///     将图像保存到文件。
     /// </summary>
-    public void Save(string FilePath)
+    public void Save(string filePath)
     {
         BitmapEncoder encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create((BitmapSource)this));
-        using (var fileStream = new FileStream(FilePath, FileMode.Create))
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
             encoder.Save(fileStream);
         }

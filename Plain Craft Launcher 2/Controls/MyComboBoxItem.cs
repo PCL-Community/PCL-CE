@@ -88,9 +88,9 @@ public class MyComboBoxItem : ComboBoxItem
         return Content?.ToString() ?? "";
     }
 
-    public static implicit operator string(MyComboBoxItem Value)
+    public static implicit operator string(MyComboBoxItem value)
     {
-        return Value.Content?.ToString() ?? "";
+        return value.Content?.ToString() ?? "";
     }
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

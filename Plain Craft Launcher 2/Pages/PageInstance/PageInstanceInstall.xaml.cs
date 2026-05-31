@@ -49,18 +49,18 @@ public partial class PageInstanceInstall
         var needRefresh = lastVersionName is null || (lastVersionName ?? "") != (_vanillaName ?? "");
         lastVersionName = _vanillaName;
 
-        ModDownload.dlOptiFineListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlLiteLoaderListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlFabricListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlQuiltListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlNeoForgeListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlCleanroomListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlLabyModListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlLegacyFabricListLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlFabricApiLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlQSLLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlLegacyFabricApiLoader.Start(IsForceRestart: needRefresh);
-        ModDownload.dlOptiFabricLoader.Start(IsForceRestart: needRefresh);
+        ModDownload.dlOptiFineListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlFabricListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlQuiltListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlNeoForgeListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlCleanroomListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlLabyModListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlFabricApiLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlQSLLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
+        ModDownload.dlOptiFabricLoader.Start(isForceRestart: needRefresh);
 
         // 重载预览
         ReloadSelected();
@@ -283,7 +283,7 @@ public partial class PageInstanceInstall
                 LabyMod_Loaded();
                 OptiFabric_Loaded();
                 ReloadSelected();
-            }, After: true),
+            }, after: true),
             ModAnimation.AaOpacity(PanSelect, 1d - PanSelect.Opacity, 250, 150),
             ModAnimation.AaCode(() =>
             {
@@ -320,7 +320,7 @@ public partial class PageInstanceInstall
                     new Binding("Foreground") { Source = CardLabyMod.MainTextBlock, Mode = BindingMode.OneWay });
                 BtnOptiFabricClearInner.SetBinding(Shape.FillProperty,
                     new Binding("Foreground") { Source = CardOptiFabric.MainTextBlock, Mode = BindingMode.OneWay });
-            }, After: true)
+            }, after: true)
         }, "FrmInstanceInstall SelectPageSwitch", true);
     }
 
@@ -345,13 +345,13 @@ public partial class PageInstanceInstall
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaOpacity(PanSelect, -PanSelect.Opacity, 90, 10),
-            ModAnimation.AaCode(() => PanBack.ScrollToHome(), After: true),
+            ModAnimation.AaCode(() => PanBack.ScrollToHome(), after: true),
             ModAnimation.AaOpacity(PanMinecraft, 1d - PanMinecraft.Opacity, 150, 100),
             ModAnimation.AaCode(() =>
             {
                 PanSelect.Visibility = Visibility.Collapsed;
                 PanBack.IsHitTestVisible = true;
-            }, After: true)
+            }, after: true)
         }, "FrmInstanceInstall SelectPageSwitch");
     }
 
@@ -945,7 +945,7 @@ public partial class PageInstanceInstall
                 new[]
                 {
                     ModAnimation.AaTranslateY(panel, -((TranslateTransform)panel.RenderTransform).Y, 150,
-                        Ease: new ModAnimation.AniEaseOutFluent()),
+                        ease: new ModAnimation.AniEaseOutFluent()),
                     ModAnimation.AaOpacity(panel, 1d - panel.Opacity, 60)
                 }, "PageDownloadInstall Visibility " + panel.Name);
         else
@@ -1353,10 +1353,10 @@ public partial class PageInstanceInstall
                     Tag = topestVersions
                 };
 
-                void StackInstall(StackPanel Stack)
+                void StackInstall(StackPanel stack)
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                             (sender, e) => MinecraftSelected((MyListItem)sender, e), false));
                 }
 
@@ -1461,20 +1461,20 @@ public partial class PageInstanceInstall
     }
 
     // 检查某个 OptiFine 是否与某个 Forge 兼容
-    private object IsOptiFineSuitForForge(ModDownload.DlOptiFineListEntry OptiFine,
-        ModDownload.DlForgeVersionEntry Forge)
+    private object IsOptiFineSuitForForge(ModDownload.DlOptiFineListEntry optiFine,
+        ModDownload.DlForgeVersionEntry forge)
     {
-        if ((Forge.inherit ?? "") != (OptiFine.Inherit ?? ""))
+        if ((forge.inherit ?? "") != (optiFine.Inherit ?? ""))
             return false; // 不是同一个大版本
-        if (OptiFine.requiredForgeVersion is null)
+        if (optiFine.requiredForgeVersion is null)
             return false; // 不兼容 Forge
-        if (string.IsNullOrWhiteSpace(OptiFine.requiredForgeVersion))
+        if (string.IsNullOrWhiteSpace(optiFine.requiredForgeVersion))
             return true; // #4183
-        if (OptiFine.requiredForgeVersion.Contains(".")) // XX.X.XXX
-            return ModMinecraft.CompareVersion(Forge.version.ToString(), OptiFine.requiredForgeVersion) == 0;
+        if (optiFine.requiredForgeVersion.Contains(".")) // XX.X.XXX
+            return ModMinecraft.CompareVersion(forge.version.ToString(), optiFine.requiredForgeVersion) == 0;
 
         // XXXX
-        return Forge.version.Revision == Convert.ToDouble(OptiFine.requiredForgeVersion);
+        return forge.version.Revision == Convert.ToDouble(optiFine.requiredForgeVersion);
     }
 
     // 限制展开
@@ -1508,13 +1508,13 @@ public partial class PageInstanceInstall
             if (!versions.Any())
                 return;
             // 排序
-            versions.Sort((Left, Right) =>
+            versions.Sort((left, right) =>
             {
-                if (!Left.isPreview && Right.isPreview)
+                if (!left.isPreview && right.isPreview)
                     return true;
-                if (Left.isPreview && !Right.isPreview)
+                if (left.isPreview && !right.isPreview)
                     return false;
-                return ModMinecraft.CompareVersion(Left.displayName, Right.displayName) != 0;
+                return ModMinecraft.CompareVersion(left.displayName, right.displayName) != 0;
             });
             // 可视化
             PanOptiFine.Children.Clear();
@@ -2193,10 +2193,10 @@ public partial class PageInstanceInstall
             PanLegacyFabric.Children.Clear();
             PanLegacyFabric.Tag = versions;
             CardLegacyFabric.SwapControl = PanLegacyFabric;
-            CardLegacyFabric.InstallMethod = Stack =>
+            CardLegacyFabric.InstallMethod = stack =>
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)item,
                         (a, b) => this.LegacyFabric_Selected((dynamic)a, b)));
             };
         }
@@ -2235,17 +2235,17 @@ public partial class PageInstanceInstall
     /// <summary>
     ///     从显示名判断该 API 是否与某版本适配。
     /// </summary>
-    public static bool IsSuitableLegacyFabricApi(List<string> SupportVersions, string MinecraftVersion)
+    public static bool IsSuitableLegacyFabricApi(List<string> supportVersions, string minecraftVersion)
     {
         try
         {
-            if (SupportVersions.Contains(MinecraftVersion)) return true;
+            if (supportVersions.Contains(minecraftVersion)) return true;
 
             return false;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "判断 Legacy Fabric API 版本适配性出错（" + SupportVersions + ", " + MinecraftVersion + "）");
+            ModBase.Log(ex, "判断 Legacy Fabric API 版本适配性出错（" + supportVersions + ", " + minecraftVersion + "）");
             return false;
         }
     }
@@ -2406,10 +2406,10 @@ public partial class PageInstanceInstall
             PanQuilt.Children.Clear();
             PanQuilt.Tag = versions;
             CardQuilt.SwapControl = PanQuilt;
-            CardQuilt.InstallMethod = Stack =>
+            CardQuilt.InstallMethod = stack =>
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(
                         ModDownloadLib.QuiltDownloadListItem((JsonObject)item,
                             (a, b) => this.Quilt_Selected((dynamic)a, b)));
             };
@@ -2450,17 +2450,17 @@ public partial class PageInstanceInstall
     /// <summary>
     ///     从显示名判断该 API 是否与某版本适配。
     /// </summary>
-    public static bool IsSuitableQSL(List<string> SupportVersions, string MinecraftVersion)
+    public static bool IsSuitableQSL(List<string> supportVersions, string minecraftVersion)
     {
         try
         {
-            if (SupportVersions.Contains(MinecraftVersion)) return true;
+            if (supportVersions.Contains(minecraftVersion)) return true;
 
             return false;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "判断 QSL 版本适配性出错（" + SupportVersions + ", " + MinecraftVersion + "）");
+            ModBase.Log(ex, "判断 QSL 版本适配性出错（" + supportVersions + ", " + minecraftVersion + "）");
             return false;
         }
     }
@@ -2778,10 +2778,10 @@ public partial class PageInstanceInstall
             PanLabyMod.Children.Clear();
             PanLabyMod.Tag = processedVersions;
             CardLabyMod.SwapControl = PanLabyMod;
-            CardLabyMod.InstallMethod = Stack =>
+            CardLabyMod.InstallMethod = stack =>
             {
-                foreach (JsonObject item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(
+                foreach (JsonObject item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(
                         ModDownloadLib.LabyModDownloadListItem(item, (a, b) => this.LabyMod_Selected((dynamic)a, b)));
             };
         }

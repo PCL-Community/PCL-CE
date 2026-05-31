@@ -93,9 +93,9 @@ public partial class PageDownloadCompFavorites
         return (List<string>)targetList.Clone(); // 复制而不是直接引用！
     }
 
-    private void CompFavoritesGet(ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> Task)
+    private void CompFavoritesGet(ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> task)
     {
-        Task.output = ModComp.CompRequest.GetCompProjectsByIds(Task.input);
+        task.output = ModComp.CompRequest.GetCompProjectsByIds(task.input);
     }
 
     #endregion
@@ -134,11 +134,11 @@ public partial class PageDownloadCompFavorites
     /// <summary>
     ///     返回适合当前工程项目的卡片记录
     /// </summary>
-    /// <param name="Type">工程项目类型</param>
+    /// <param name="type">工程项目类型</param>
     /// <returns></returns>
-    private CompListItemContainer GetSuitListContainer(int Type)
+    private CompListItemContainer GetSuitListContainer(int type)
     {
-        if (itemList.Any(e => e.CompType.Equals(Type))) return itemList.First(e => e.CompType.Equals(Type));
+        if (itemList.Any(e => e.CompType.Equals(type))) return itemList.First(e => e.CompType.Equals(type));
 
         var newItem = new CompListItemContainer
         {
@@ -152,9 +152,9 @@ public partial class PageDownloadCompFavorites
                 Orientation = Orientation.Vertical,
                 Margin = new Thickness(12d, 38d, 12d, 12d)
             },
-            CompType = Type
+            CompType = type
         };
-        switch (Type)
+        switch (type)
         {
             case -1:
             {
@@ -286,16 +286,16 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void ListItemBuild(MyListItem CompItem)
+    private void ListItemBuild(MyListItem compItem)
     {
-        CompItem.Type = MyListItem.CheckType.CheckBox;
-        var compId = ((ModComp.CompProject)CompItem.Tag).id;
+        compItem.Type = MyListItem.CheckType.CheckBox;
+        var compId = ((ModComp.CompProject)compItem.Tag).id;
         // ----备注----
         var notes = "";
         CurrentFavTarget.Notes.TryGetValue(compId, out notes);
         var noteItem = new Run { Foreground = new SolidColorBrush(Color.FromRgb(0, 184, 148)) };
         if (!string.IsNullOrWhiteSpace(notes)) noteItem.Text = $" ({notes})";
-        CompItem.LabTitle.Inlines.Add(noteItem);
+        compItem.LabTitle.Inlines.Add(noteItem);
         // ----添加按钮----
         // 修改备注按钮
         var btn_EditNote = new MyIconButton();
@@ -307,7 +307,7 @@ public partial class PageDownloadCompFavorites
         btn_EditNote.Click += (sender, e) =>
         {
             CurrentFavTarget.Notes.TryGetValue(compId, out notes);
-            var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), DefaultInput: notes);
+            var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes);
             // 只有在用户确认时才更新备注，避免取消时清空原有备注
             if (desiredNote is not null)
             {
@@ -325,24 +325,24 @@ public partial class PageDownloadCompFavorites
         ToolTipService.SetHorizontalOffset(btn_Delete, 2d);
         btn_Delete.Click += (sender, e) =>
         {
-            Items_CancelFavorites(CompItem);
+            Items_CancelFavorites(compItem);
             RefreshContent();
             RefreshCardTitle();
             RefreshBar();
         };
-        CompItem.Buttons = new[] { btn_EditNote, btn_Delete };
+        compItem.Buttons = new[] { btn_EditNote, btn_Delete };
         // ---操作逻辑---
         // 右键查看详细信息界面
-        if (CompItem.Tag is ModComp.CompProject)
-            CompItem.MouseRightButtonUp += (_, _) => ModMain.frmMain.PageChange(
+        if (compItem.Tag is ModComp.CompProject)
+            compItem.MouseRightButtonUp += (_, _) => ModMain.frmMain.PageChange(
                 new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = ((ModComp.CompProject)CompItem.Tag, new List<string>(), string.Empty, ModComp.CompLoaderType.Any,
-                        ((ModComp.CompProject)CompItem.Tag).type, null, null, null)
+                    additional = ((ModComp.CompProject)compItem.Tag, new List<string>(), string.Empty, ModComp.CompLoaderType.Any,
+                        ((ModComp.CompProject)compItem.Tag).type, null, null, null)
                 });
         // ---其它事件---
-        CompItem.Changed += ItemCheckStatusChanged;
+        compItem.Changed += ItemCheckStatusChanged;
     }
 
     #endregion
@@ -378,7 +378,7 @@ public partial class PageDownloadCompFavorites
                     {
                         ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
                         ModAnimation.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                            Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
                         ModAnimation.AaTranslateY(CardSelect, 3d, 150, 120,
                             new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
                         ModAnimation.AaTranslateY(CardSelect, -1, 90, 270,
@@ -397,8 +397,8 @@ public partial class PageDownloadCompFavorites
                     {
                         ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
                         ModAnimation.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                            Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, After: true)
+                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+                        ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
                     }, "CompFavorites Sidebar");
             }
         }
@@ -502,7 +502,7 @@ public partial class PageDownloadCompFavorites
                     Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
                     Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
                     Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"), IsWarn: true
+                    Lang.Text("Common.Action.Cancel"), isWarn: true
                 )) return;
             var supportedModLoader = new List<ModComp.CompLoaderType>();
             var loaderFirstSet = true;
@@ -540,7 +540,7 @@ public partial class PageDownloadCompFavorites
                     var mSelection = new List<IMyRadio>();
                     foreach (var i in supportedModLoader)
                         mSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var selectedModLoaderStr = ModMain.MyMsgBoxSelect(mSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), Button2: Lang.Text("Common.Action.Cancel"));
+                    var selectedModLoaderStr = ModMain.MyMsgBoxSelect(mSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), button2: Lang.Text("Common.Action.Cancel"));
                     if (selectedModLoaderStr is null)
                         return;
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
@@ -550,7 +550,7 @@ public partial class PageDownloadCompFavorites
             // 输入 Ids，输出合适版本
             var getInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
             getInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>(
-                Lang.Text("Download.Comp.Favorites.LoaderName.QueryInfo"), Ts =>
+                Lang.Text("Download.Comp.Favorites.LoaderName.QueryInfo"), ts =>
             {
                 List<List<ModComp.CompFile>> allFiles = [];
                 List<string> suitVersion = [];
@@ -565,7 +565,7 @@ public partial class PageDownloadCompFavorites
                 };
                 // 获取多个工程之间支持的版本的交集
                 var finishedTasks = 0;
-                foreach (var Item in Ts.input)
+                foreach (var Item in ts.input)
                     ModBase.RunInNewThread(() =>
                     {
                         try
@@ -583,7 +583,7 @@ public partial class PageDownloadCompFavorites
                             finishedTasks += 1;
                         }
                     });
-                while (finishedTasks != Ts.input.Count)
+                while (finishedTasks != ts.input.Count)
                     Thread.Sleep(200);
                 // 求取共同的版本
                 foreach (var Item in allFiles)
@@ -603,7 +603,7 @@ public partial class PageDownloadCompFavorites
                     if (suitVersion.Count == 0)
                     {
                         ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), ModMain.HintType.Critical);
-                        Ts.Abort();
+                        ts.Abort();
                         return;
                     }
                     // 要求用户选择希望下载的版本
@@ -615,15 +615,15 @@ public partial class PageDownloadCompFavorites
                     List<IMyRadio> selection = [];
                     foreach (var i in suitVersion)
                         selection.Add(new MyRadioBox { Text = i });
-                    selectedVersion = ModMain.MyMsgBoxSelect(selection, Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"), Button2: Lang.Text("Common.Action.Cancel"));
-                    if (selectedVersion is null) Ts.Abort();
+                    selectedVersion = ModMain.MyMsgBoxSelect(selection, Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"), button2: Lang.Text("Common.Action.Cancel"));
+                    if (selectedVersion is null) ts.Abort();
                 });
                 string selectedVersionStr = suitVersion[(int)selectedVersion];
                 ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", selectedVersionStr));
                 var saveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(saveFolder))
                 {
-                    Ts.Abort();
+                    ts.Abort();
                     return;
                 }
 
@@ -642,7 +642,7 @@ public partial class PageDownloadCompFavorites
                     res.Add(finalChoices.First().ToNetFile(System.IO.Path.Combine(saveFolder, fileName)));
                 }
 
-                Ts.output = res;
+                ts.output = res;
             })
             {
                 ProgressWeight = 2d
@@ -677,27 +677,27 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void Items_SetSelectAll(bool TargetStatus)
+    private void Items_SetSelectAll(bool targetStatus)
     {
         if (IsSearching)
             foreach (var Item in searchResult)
-                Item.Checked = TargetStatus;
+                Item.Checked = targetStatus;
         else
             foreach (var Item in compItemList)
-                Item.Checked = TargetStatus;
+                Item.Checked = targetStatus;
         selectedItemList = compItemList.Where(e => e.Checked).ToList();
     }
 
-    private void Items_CancelFavorites(MyListItem Item)
+    private void Items_CancelFavorites(MyListItem item)
     {
         try
         {
-            compItemList.Remove(Item);
-            if (selectedItemList.Contains(Item))
-                selectedItemList.Remove(Item);
-            if (searchResult.Contains(Item))
-                searchResult.Remove(Item);
-            CurrentFavTarget.Favs.Remove(((ModComp.CompProject)Item.Tag).id);
+            compItemList.Remove(item);
+            if (selectedItemList.Contains(item))
+                selectedItemList.Remove(item);
+            if (searchResult.Contains(item))
+                searchResult.Remove(item);
+            CurrentFavTarget.Favs.Remove(((ModComp.CompProject)item.Tag).id);
             ModComp.CompFavorites.Save();
             if (!compItemList.Any())
                 ModMain.frmDownloadCompFavorites.PageLoaderRestart();
@@ -749,7 +749,7 @@ public partial class PageDownloadCompFavorites
         {
             try
             {
-                var clipData = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), HintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
+                var clipData = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
                 if (string.IsNullOrWhiteSpace(clipData)) return;
                 var newFavs = ModComp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
@@ -758,7 +758,7 @@ public partial class PageDownloadCompFavorites
                     return;
                 }
 
-                var userWant = ModMain.MyMsgBox(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), Button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), Button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
+                var userWant = ModMain.MyMsgBox(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
                 switch (userWant)
                 {
                     case 1:
@@ -775,7 +775,7 @@ public partial class PageDownloadCompFavorites
                     {
                         newFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
                         ModComp.CompFavorites.Save();
-                        loader.Start(IsForceRestart: true);
+                        loader.Start(isForceRestart: true);
                         break;
                     }
                 }
@@ -809,7 +809,7 @@ public partial class PageDownloadCompFavorites
         };
         newItem.Click += (_, _) =>
         {
-            var newName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), DefaultInput: CurrentFavTarget.Name);
+            var newName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), defaultInput: CurrentFavTarget.Name);
             if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
                 return;
             CurrentFavTarget.Name = newName;
@@ -831,7 +831,7 @@ public partial class PageDownloadCompFavorites
             }
 
             var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), IsWarn: true, Button1: Lang.Text("Common.Option.No"), Button2: Lang.Text("Common.Option.Yes"), Button3: Lang.Text("Common.Option.No"));
+            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), isWarn: true, button1: Lang.Text("Common.Option.No"), button2: Lang.Text("Common.Option.Yes"), button3: Lang.Text("Common.Option.No"));
             if (res == 2)
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
@@ -852,7 +852,7 @@ public partial class PageDownloadCompFavorites
         if (ComboTargetFav.SelectedItem is null)
             return;
         Items_SetSelectAll(false);
-        loader.Start(IsForceRestart: true);
+        loader.Start(isForceRestart: true);
     }
 
     private void HintGetFail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -861,8 +861,8 @@ public partial class PageDownloadCompFavorites
         var failIds = loader.input.Except(loader.output.Select(i => i.id).ToList()).ToList();
         foreach (var Id in failIds)
             content += $" - {Id}" + "\r\n";
-        ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"), Button2: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"), Button3: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
-            Button2Action: () => ModBase.ClipboardSet(failIds.Join("\r\n")), Button3Action: () =>
+        ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"), button2: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"), button3: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
+            button2Action: () => ModBase.ClipboardSet(failIds.Join("\r\n")), button3Action: () =>
             {
                 foreach (var Id in failIds)
                     CurrentFavTarget.Favs.Remove(Id);

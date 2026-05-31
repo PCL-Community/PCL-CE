@@ -44,7 +44,7 @@ public partial class PageLoginOffline
         if (!usernameValidateResult.IsValid)
                 if (ModMain.MyMsgBox(
                         Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
-                        Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true, ForceWait: true) == 2)
+                        Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true, forceWait: true) == 2)
                 return;
         // UUID
         string userUuid = null;

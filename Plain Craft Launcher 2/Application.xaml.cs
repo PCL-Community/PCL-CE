@@ -144,7 +144,7 @@ public partial class Application
             Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
             Lang.Text("Application.EnvironmentWarning.Title"),
             Lang.Text("Application.EnvironmentWarning.IKnow"),
-            IsWarn: true);
+            isWarn: true);
     }
 
     // 结束

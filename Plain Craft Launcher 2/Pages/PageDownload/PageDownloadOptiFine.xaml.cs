@@ -73,12 +73,12 @@ public partial class PageDownloadOptiFine
                 newCard.Children.Add(newStack);
                 newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
+                    stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
                         ModMinecraft.CompareVersion(a.displayName, b.displayName) == 1);
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
                             (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);
