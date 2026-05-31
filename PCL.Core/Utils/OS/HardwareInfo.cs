@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Management;
-using System.Runtime.InteropServices;
 using PCL.Core.Logging;
 
 namespace PCL.Core.Utils.OS;

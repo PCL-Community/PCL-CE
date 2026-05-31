@@ -4,7 +4,6 @@ using System.IO;
 using System.Management;
 using System.Security;
 using System.Security.Principal;
-using System.Threading.Tasks;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 
