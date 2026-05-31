@@ -205,7 +205,7 @@ public partial class PageComp
     /// <summary>
     ///     在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     /// </summary>
-    public static ModMinecraft.McInstance targetVersion;
+    public static ModMinecraft.Instance targetVersion;
 
     // 在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     public ModLoader.LoaderTask<ModComp.CompProjectRequest, int> loader;
@@ -237,7 +237,7 @@ public partial class PageComp
         {
             // 设置目标
             ResetFilter(); // 重置筛选器
-            TextSearchVersion.Text = targetVersion.Info.vanillaName;
+            TextSearchVersion.Text = targetVersion.Info.VanillaName;
 
             MyComboBoxItem GetTargetItemByName(string name)
             {
@@ -248,13 +248,13 @@ public partial class PageComp
             }
 
             ;
-            if (targetVersion.Info.hasForge)
+            if (targetVersion.Info.HasForge)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Forge");
-            else if (targetVersion.Info.hasFabric)
+            else if (targetVersion.Info.HasFabric)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Fabric");
-            else if (targetVersion.Info.hasNeoForge)
+            else if (targetVersion.Info.HasNeoForge)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("NeoForge");
-            else if (targetVersion.Info.hasQuilt) ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt");
+            else if (targetVersion.Info.HasQuilt) ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt");
             targetVersion = null;
             // 如果已经完成请求，则重新开始
             if (isLoaderInited)

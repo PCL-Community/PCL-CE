@@ -30,7 +30,7 @@ public class CrashAnalyzer
 
     // 暂存分析的实例供特殊用途
     // 龙猫味石山代码小记: CrashAnalyze 猛一顿分析不知道自己在分析啥实例
-    private ModMinecraft.McInstance _version;
+    private ModMinecraft.Instance _version;
     private KeyValuePair<string, string[]>? directFile; // 在弹窗中选择直接打开的文件
     private string logAll;
     private string logCrash;
@@ -504,7 +504,7 @@ public class CrashAnalyzer
     /// <summary>
     ///     根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
     /// </summary>
-    public void Analyze(ModMinecraft.McInstance version = null)
+    public void Analyze(ModMinecraft.Instance version = null)
     {
         _version = version;
         ModBase.Log("[Crash] 步骤 3：分析崩溃原因");

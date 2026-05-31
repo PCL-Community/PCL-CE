@@ -84,12 +84,12 @@ public partial class MyCompItem
                 });
             }
 
-            ModAnimation.AniStart(ani, "CompItem Color " + uuid);
+            ModAnimation.AniStart(ani, "CompItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("CompItem Color " + uuid);
+            ModAnimation.AniStop("CompItem Color " + Uuid);
             if (_RectBack is not null)
                 RectBack.Opacity = 0d;
             if (PanButtons is not null)
@@ -99,7 +99,7 @@ public partial class MyCompItem
 
     #region 基础属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     // Logo
     public string Logo
@@ -231,7 +231,7 @@ public partial class MyCompItem
         if (Tag is ModComp.CompProject)
         {
             var project = (ModComp.CompProject)Tag;
-            ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.id);
+             ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.Id);
         }
     }
 

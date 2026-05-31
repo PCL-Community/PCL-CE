@@ -41,7 +41,7 @@ public partial class MyIconTextButton
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyIconTextButton()
     {
@@ -101,8 +101,8 @@ public partial class MyIconTextButton
     public event CheckEventHandler? Check;
     public event ChangeEventHandler? Change;
 
-    private string CheckedAnimationKey => "MyIconTextButton Checked " + uuid;
-    private string ColorAnimationKey => "MyIconTextButton Color " + uuid;
+    private string CheckedAnimationKey => "MyIconTextButton Checked " + Uuid;
+    private string ColorAnimationKey => "MyIconTextButton Color " + Uuid;
 
     // 点击事件
 

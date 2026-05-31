@@ -50,7 +50,7 @@ public partial class MyCheckBox
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyCheckBox()
     {
@@ -196,13 +196,13 @@ public partial class MyCheckBox
         else
         {
             // 不使用动画
-            ModAnimation.AniStop("MyCheckBox Background Scale " + uuid);
-            ModAnimation.AniStop("MyCheckBox Check Scale Show" + uuid);
-            ModAnimation.AniStop("MyCheckBox Check Scale Hide" + uuid);
-            ModAnimation.AniStop("MyCheckBox Indeterminate Scale Show" + uuid);
-            ModAnimation.AniStop("MyCheckBox Indeterminate Scale Hide" + uuid);
-            ModAnimation.AniStop("MyCheckBox BorderColor " + uuid);
-            ModAnimation.AniStop("MyCheckBox AllowMouseDown " + uuid);
+            ModAnimation.AniStop("MyCheckBox Background Scale " + Uuid);
+            ModAnimation.AniStop("MyCheckBox Check Scale Show" + Uuid);
+            ModAnimation.AniStop("MyCheckBox Check Scale Hide" + Uuid);
+            ModAnimation.AniStop("MyCheckBox Indeterminate Scale Show" + Uuid);
+            ModAnimation.AniStop("MyCheckBox Indeterminate Scale Hide" + Uuid);
+            ModAnimation.AniStop("MyCheckBox BorderColor " + Uuid);
+            ModAnimation.AniStop("MyCheckBox AllowMouseDown " + Uuid);
             if (Checked == true)
             {
                 ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX = 1d;
@@ -243,13 +243,13 @@ public partial class MyCheckBox
 
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100),
-                "MyCheckBox Background " + uuid);
+                "MyCheckBox Background " + Uuid);
             return;
         }
 
         SetChecked(!Checked, true);
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100),
-            "MyCheckBox Background " + uuid);
+            "MyCheckBox Background " + Uuid);
     }
 
     private void Checkbox_MouseDown()
@@ -259,7 +259,7 @@ public partial class MyCheckBox
         mouseDowned = true;
         Focus();
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushBg1", 100),
-            "MyCheckBox Background " + uuid);
+            "MyCheckBox Background " + Uuid);
         var scaleAnims = new List<ModAnimation.AniData>
         {
             ModAnimation.AaScale(ShapeBorder, 16.5d - ShapeBorder.Width, 1000,
@@ -269,7 +269,7 @@ public partial class MyCheckBox
             scaleAnims.Add(ModAnimation.AaScaleTransform(ShapeCheck,
                 0.9d - ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX, 1000,
                 ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
-        ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + uuid);
+        ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + Uuid);
     }
 
     private void Checkbox_MouseLeave()
@@ -278,7 +278,7 @@ public partial class MyCheckBox
             return;
         mouseDowned = false;
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Border.BackgroundProperty, "ColorBrushHalfWhite", 100),
-            "MyCheckBox Background " + uuid);
+            "MyCheckBox Background " + Uuid);
         var scaleAnims = new List<ModAnimation.AniData>
         {
             ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width,
@@ -287,7 +287,7 @@ public partial class MyCheckBox
         if (Checked == true)
             scaleAnims.Add(ModAnimation.AaScaleTransform(ShapeCheck, 1d - ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX,
                 500, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)));
-        ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + uuid);
+        ModAnimation.AniStart(scaleAnims.ToArray(), "MyCheckBox Scale " + Uuid);
     }
 
     private void Checkbox_IsEnabledChanged()
@@ -306,18 +306,18 @@ public partial class MyCheckBox
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty,
                         ThemeManager.colorGray4 - ShapeBorder.BorderBrush, animationTimeOfMouseOut),
-                    "MyCheckBox BorderColor " + uuid);
+                    "MyCheckBox BorderColor " + Uuid);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                         ThemeManager.colorGray4 - LabText.Foreground, animationTimeOfMouseOut),
-                    "MyCheckBox TextColor " + uuid);
+                    "MyCheckBox TextColor " + Uuid);
             }
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyCheckBox TextColor " + uuid);
-            ModAnimation.AniStop("MyCheckBox BorderColor " + uuid);
+            ModAnimation.AniStop("MyCheckBox TextColor " + Uuid);
+            ModAnimation.AniStop("MyCheckBox BorderColor " + Uuid);
             LabText.SetResourceReference(TextBlock.ForegroundProperty, IsEnabled ? "ColorBrush1" : "ColorBrushGray4");
             ShapeBorder.SetResourceReference(Border.BorderBrushProperty,
                 IsEnabled ? Checked == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4");
@@ -328,10 +328,10 @@ public partial class MyCheckBox
     {
         ModAnimation.AniStart(
             ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3", animationTimeOfMouseIn),
-            "MyCheckBox TextColor " + uuid);
+            "MyCheckBox TextColor " + Uuid);
         ModAnimation.AniStart(
             ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty, "ColorBrush3", animationTimeOfMouseIn),
-            "MyCheckBox BorderColor " + uuid);
+            "MyCheckBox BorderColor " + Uuid);
     }
 
     private void Checkbox_MouseLeaveAnimation()
@@ -341,12 +341,12 @@ public partial class MyCheckBox
         ModAnimation.AniStart(
             ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                 IsEnabled ? "ColorBrush1" : "ColorBrushGray4", animationTimeOfMouseOut),
-            "MyCheckBox TextColor " + uuid);
+            "MyCheckBox TextColor " + Uuid);
         ModAnimation.AniStart(
             ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty,
                 IsEnabled ? Checked == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4",
                 animationTimeOfMouseOut),
-            "MyCheckBox BorderColor " + uuid);
+            "MyCheckBox BorderColor " + Uuid);
     }
 
     // 动画
@@ -359,7 +359,7 @@ public partial class MyCheckBox
                     ease: new ModAnimation.AniEaseOutFluent(), absolute: true),
                 ModAnimation.AaScale(ShapeBorder, 6d, animationTimeOfCheck * 2,
                     (int)Math.Round(animationTimeOfCheck * 0.7d), new ModAnimation.AniEaseOutBack(), absolute: true)
-            }, "MyCheckBox Background Scale " + uuid);
+            }, "MyCheckBox Background Scale " + Uuid);
     }
 
     private void AniCheckShow()
@@ -368,7 +368,7 @@ public partial class MyCheckBox
             ModAnimation.AaScaleTransform(ShapeCheck, 1d - ((ScaleTransform)ShapeCheck.RenderTransform).ScaleX,
                 animationTimeOfCheck * 2, (int)Math.Round(animationTimeOfCheck * 0.7d),
                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            "MyCheckBox Check Scale Show" + uuid);
+            "MyCheckBox Check Scale Show" + Uuid);
     }
 
     private void AniCheckHide()
@@ -377,7 +377,7 @@ public partial class MyCheckBox
             ModAnimation.AaScaleTransform(ShapeCheck, -((ScaleTransform)ShapeCheck.RenderTransform).ScaleX,
                 (int)Math.Round(animationTimeOfCheck * 0.9d),
                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            "MyCheckBox Check Scale Hide" + uuid);
+            "MyCheckBox Check Scale Hide" + Uuid);
     }
 
     private void AniIndeterminateShow()
@@ -387,7 +387,7 @@ public partial class MyCheckBox
                 1d - ((ScaleTransform)ShapeIndeterminate.RenderTransform).ScaleX, animationTimeOfCheck * 2,
                 (int)Math.Round(animationTimeOfCheck * 0.7d),
                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            "MyCheckBox Indeterminate Scale Show" + uuid);
+            "MyCheckBox Indeterminate Scale Show" + Uuid);
     }
 
     private void AniIndeterminateHide()
@@ -397,13 +397,13 @@ public partial class MyCheckBox
                 -((ScaleTransform)ShapeIndeterminate.RenderTransform).ScaleX,
                 (int)Math.Round(animationTimeOfCheck * 0.9d),
                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            "MyCheckBox Indeterminate Scale Hide" + uuid);
+            "MyCheckBox Indeterminate Scale Hide" + Uuid);
     }
 
     private void AniAllowMouseDown()
     {
         ModAnimation.AniStart(ModAnimation.AaCode(() => allowMouseDown = true, animationTimeOfCheck * 2),
-            "MyCheckBox AllowMouseDown " + uuid);
+            "MyCheckBox AllowMouseDown " + Uuid);
     }
 
     private void AniColorChecked()
@@ -411,7 +411,7 @@ public partial class MyCheckBox
         ModAnimation.AniStart(
             ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty,
                 IsEnabled ? IsMouseOver ? "ColorBrush3" : "ColorBrush2" : "ColorBrushGray4", animationTimeOfCheck),
-            "MyCheckBox BorderColor " + uuid);
+            "MyCheckBox BorderColor " + Uuid);
     }
 
     private void AniColorUnchecked()
@@ -419,7 +419,7 @@ public partial class MyCheckBox
         ModAnimation.AniStart(
             ModAnimation.AaColor(ShapeBorder, Border.BorderBrushProperty,
                 IsEnabled ? IsMouseOver ? "ColorBrush3" : "ColorBrush1" : "ColorBrushGray4", animationTimeOfCheck),
-            "MyCheckBox BorderColor " + uuid);
+            "MyCheckBox BorderColor " + Uuid);
     }
 
     private static bool? GetFinalState(bool? value, bool isThreeState)

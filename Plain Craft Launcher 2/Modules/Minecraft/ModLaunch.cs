@@ -54,7 +54,7 @@ public static class ModLaunch
             throw new Exception(Lang.Text("Minecraft.Launch.Precheck.NoInstance"));
         ModMinecraft.McInstanceSelected.Load();
         if (ModMinecraft.McInstanceSelected.state == ModMinecraft.McInstanceState.Error)
-            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.InstanceError", ModMinecraft.McInstanceSelected.desc));
+            throw new Exception(Lang.Text("Minecraft.Launch.Precheck.InstanceError", ModMinecraft.McInstanceSelected.Desc));
         // 检查输入信息
         var checkResult = "";
         ModBase.RunInUiWait(() => checkResult = ModProfile.IsProfileValid());
@@ -62,25 +62,25 @@ public static class ModLaunch
         {
             checkResult = Lang.Text("Minecraft.Launch.Precheck.NoProfile");
         }
-        else if (ModMinecraft.McInstanceSelected.Info.hasLabyMod ||
+        else if (ModMinecraft.McInstanceSelected.Info.HasLabyMod ||
                  Config.InstanceAuth.LoginRequirementSolution[ModMinecraft.McInstanceSelected?.PathInstance] == 1) // 要求正版验证
         {
-            if (ModProfile.selectedProfile.type != McLoginType.Ms) checkResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoft");
+            if (ModProfile.selectedProfile.Type != McLoginType.Ms) checkResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoft");
         }
         else if (Config.InstanceAuth.LoginRequirementSolution[ModMinecraft.McInstanceSelected?.PathInstance] == 2) // 要求第三方验证
         {
-            if (ModProfile.selectedProfile.type != McLoginType.Auth)
+            if (ModProfile.selectedProfile.Type != McLoginType.Auth)
                 checkResult = Lang.Text("Minecraft.Launch.Precheck.RequireThirdParty");
-            else if (ModProfile.selectedProfile.server.BeforeLast("/authserver") !=
+            else if (ModProfile.selectedProfile.Server.BeforeLast("/authserver") !=
                      Config.InstanceAuth.AuthServerAddress[ModMinecraft.McInstanceSelected?.PathInstance])
                 checkResult = Lang.Text("Minecraft.Launch.Precheck.AuthServerMismatch");
         }
         else if (Config.InstanceAuth.LoginRequirementSolution[ModMinecraft.McInstanceSelected?.PathInstance] == 3) // 要求正版验证或第三方验证
         {
-            if (ModProfile.selectedProfile.type == McLoginType.Legacy)
+            if (ModProfile.selectedProfile.Type == McLoginType.Legacy)
                 checkResult = Lang.Text("Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty");
-            else if (ModProfile.selectedProfile.type == McLoginType.Auth &&
-                     ModProfile.selectedProfile.server.BeforeLast("/authserver") !=
+            else if (ModProfile.selectedProfile.Type == McLoginType.Auth &&
+                     ModProfile.selectedProfile.Server.BeforeLast("/authserver") !=
                      Config.InstanceAuth.AuthServerAddress[ModMinecraft.McInstanceSelected?.PathInstance])
                 checkResult = Lang.Text("Minecraft.Launch.Precheck.AuthServerMismatch");
         }
@@ -89,7 +89,7 @@ public static class ModLaunch
             throw new ArgumentException(checkResult);
 
 #if BETA
-        if (currentLaunchOptions?.saveBatch is null) // 保存脚本时不提示
+        if (currentLaunchOptions?.SaveBatch is null) // 保存脚本时不提示
         {
             ModBase.RunInNewThread(() =>
             {
@@ -138,7 +138,7 @@ public static class ModLaunch
         #endif
 
         // 正版购买提示
-        if (!ModProfile.profileList.Any(x => x.type == McLoginType.Ms))
+        if (!ModProfile.profileList.Any(x => x.Type == McLoginType.Ms))
         {
             if (RegionUtils.IsRestrictedFeatAllowed)
             {
@@ -163,7 +163,7 @@ public static class ModLaunch
                     case 2:
                     {
                         ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), ModMain.HintType.Critical);
-                        currentLaunchOptions.extraArgs.Add("--demo");
+                        currentLaunchOptions.ExtraArgs.Add("--demo");
                         break;
                     }
                     case 3:
@@ -189,37 +189,37 @@ public static class ModLaunch
         /// <summary>
         ///     额外的启动参数。
         /// </summary>
-        public List<string> extraArgs = new();
+        public List<string> ExtraArgs = new();
 
         /// <summary>
         ///     强行指定启动的 MC 实例。
         ///     默认值：Nothing。使用 McInstanceCurrent。
         /// </summary>
-        public ModMinecraft.McInstance instance = null;
+        public ModMinecraft.Instance instance = null;
 
         /// <summary>
         ///     是否为 “测试游戏” 按钮启动的游戏。
         ///     如果是，则显示游戏实时日志。
         /// </summary>
-        public bool isTest = false;
+        public bool IsTest = false;
 
         /// <summary>
         ///     将启动脚本保存到该地址，然后取消启动。这同时会改变启动时的提示等。
         ///     默认值：Nothing。不保存。
         /// </summary>
-        public string saveBatch = null;
+        public string SaveBatch = null;
 
         /// <summary>
         ///     强制指定在启动后进入的服务器 IP。
         ///     默认值：Nothing。使用实例设置的值。
         /// </summary>
-        public string serverIp = null;
+        public string ServerIp = null;
 
         /// <summary>
         ///     指定在启动之后进入的存档名称。
         ///     默认值：Nothing。使用实例设置的值。
         /// </summary>
-        public string worldName = null;
+        public string WorldName = null;
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ public static class ModLaunch
             currentLaunchOptions.instance.Load();
             if (currentLaunchOptions.instance.state == ModMinecraft.McInstanceState.Error)
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.desc), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), ModMain.HintType.Critical);
                 isLaunching = false;
                 return false;
             }
@@ -383,7 +383,7 @@ public static class ModLaunch
                 case ModBase.LoadState.Aborted:
                 {
                     if (abortHint is null)
-                        ModMain.Hint(currentLaunchOptions?.saveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
+                        ModMain.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
                     else
                         ModMain.Hint(abortHint, ModMain.HintType.Finish);
 
@@ -413,7 +413,7 @@ public static class ModLaunch
                     // 若错误信息为 $$，则不提示
                     if (currentEx.Message != "$$")
                         ModMain.MyMsgBox(currentEx.Message.TrimStart('$'),
-                            currentLaunchOptions?.saveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+                            currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
                     throw;
                 }
 
@@ -426,8 +426,8 @@ public static class ModLaunch
 
             // 没有特殊处理过的错误信息
             McLaunchLog("错误：" + ex);
-            ModBase.Log(ex, currentLaunchOptions?.saveBatch is null ? "Minecraft launch failed" : "Export script failed",
-                ModBase.LogLevel.Msgbox, currentLaunchOptions?.saveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+            ModBase.Log(ex, currentLaunchOptions?.SaveBatch is null ? "Minecraft launch failed" : "Export script failed",
+                ModBase.LogLevel.Msgbox, currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
             throw;
         }
     }
@@ -452,7 +452,7 @@ public static class ModLaunch
         /// <summary>
         ///     登录方式。
         /// </summary>
-        public McLoginType type;
+        public McLoginType LoginType;
 
         public override bool Equals(object obj)
         {
@@ -467,41 +467,41 @@ public static class ModLaunch
         /// <summary>
         ///     登录服务器基础地址。
         /// </summary>
-        public string baseUrl;
+        public string BaseUrl;
 
         /// <summary>
         ///     登录方式的描述字符串，如 “正版”、“统一通行证”。
         /// </summary>
-        public string description;
+        public string Description;
 
         /// <summary>
         ///     是否在本次登录中强制要求玩家重新选择角色，目前仅对 Authlib-Injector 生效。
         /// </summary>
-        public bool forceReselectProfile = false;
+        public bool ForceReselectProfile = false;
 
         /// <summary>
         ///     是否已经存在该验证信息，用于判断是否为新增档案。
         /// </summary>
-        public bool isExist = false;
+        public bool IsExist = false;
 
         /// <summary>
         ///     登录密码。
         /// </summary>
-        public string password;
+        public string Password;
 
         /// <summary>
         ///     登录用户名。
         /// </summary>
-        public string userName;
+        public string UserName;
 
         public McLoginServer(McLoginType type)
         {
-            this.type = type;
+            this.LoginType = type;
         }
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(userName + password + baseUrl + (int)type) %
+            return (int)Math.Round(ModBase.GetHash(UserName + Password + BaseUrl + (int)LoginType) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -512,25 +512,25 @@ public static class ModLaunch
 
     public class McLoginMs : McLoginData
     {
-        public string accessToken = "";
+        public string AccessToken = "";
 
         /// <summary>
         ///     缓存的 OAuth RefreshToken。若没有则为空字符串。
         /// </summary>
-        public string oAuthRefreshToken = "";
+        public string OAuthRefreshToken = "";
 
-        public string profileJson = "";
-        public string userName = "";
-        public string uuid = "";
+        public string ProfileJson = "";
+        public string UserName = "";
+        public string Uuid = "";
 
         public McLoginMs()
         {
-            type = McLoginType.Ms;
+            LoginType = McLoginType.Ms;
         }
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(oAuthRefreshToken + accessToken + uuid + userName + profileJson) %
+            return (int)Math.Round(ModBase.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -544,32 +544,32 @@ public static class ModLaunch
         /// <summary>
         ///     若采用正版皮肤，则为该皮肤名。
         /// </summary>
-        public string skinName;
+        public string SkinName;
 
         /// <summary>
         ///     皮肤种类。
         /// </summary>
-        public int skinType;
+        public int SkinType;
 
         /// <summary>
         ///     登录用户名。
         /// </summary>
-        public string userName;
+        public string UserName;
 
         /// <summary>
         ///     UUID。
         /// </summary>
-        public string uuid;
+        public string Uuid;
 
         public McLoginLegacy()
         {
-            type = McLoginType.Legacy;
+            LoginType = McLoginType.Legacy;
         }
 
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                ModBase.GetHash(userName + skinType + skinName + (int)type) % (decimal)int.MaxValue);
+                ModBase.GetHash(UserName + SkinType + SkinName + (int)LoginType) % (decimal)int.MaxValue);
         }
     }
 
@@ -578,16 +578,16 @@ public static class ModLaunch
     // 登录返回结果
     public struct McLoginResult
     {
-        public string name;
-        public string uuid;
-        public string accessToken;
-        public string type;
-        public string clientToken;
+        public string Name;
+        public string Uuid;
+        public string AccessToken;
+        public string Type;
+        public string ClientToken;
 
         /// <summary>
         ///     进行微软登录时返回的 profile 信息。
         /// </summary>
-        public string profileJson;
+        public string ProfileJson;
     }
 
     // 登录主模块加载器
@@ -619,7 +619,7 @@ public static class ModLaunch
             throw new ArgumentException(checkResult);
         // 获取对应加载器
         ModLoader.LoaderBase loader = null;
-        switch (data.input.type)
+        switch (data.input.LoginType)
         {
             case McLoginType.Ms:
             {
@@ -665,25 +665,25 @@ public static class ModLaunch
     private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
         var input = data.input;
-        var logUsername = input.userName;
+        var logUsername = input.UserName;
         var isNewProfile = true;
 
         ModProfile.ProfileLog($"验证方式：正版（{(string.IsNullOrEmpty(logUsername) ? "尚未登录" : logUsername)}）");
         data.Progress = 0.05d;
 
         // 已登录且不需要强制重启且登录未过期
-        if (!data.isForceRestarting && !string.IsNullOrEmpty(input.accessToken) &&
+        if (!data.isForceRestarting && !string.IsNullOrEmpty(input.AccessToken) &&
             mcLoginMsRefreshTime > 0L &&
             TimeUtils.GetTimeTick() - mcLoginMsRefreshTime < 1000 * 60 * 10)
         {
             data.output = new McLoginResult
             {
-                accessToken = input.accessToken,
-                name = input.userName,
-                uuid = input.uuid,
-                type = "Microsoft",
-                clientToken = input.uuid,
-                profileJson = input.profileJson
+                AccessToken = input.AccessToken,
+                Name = input.UserName,
+                Uuid = input.Uuid,
+                Type = "Microsoft",
+                ClientToken = input.Uuid,
+                ProfileJson = input.ProfileJson
             };
 
             mcLoginMsRefreshTime = TimeUtils.GetTimeTick();
@@ -701,10 +701,10 @@ public static class ModLaunch
             var profile = ModProfile.selectedProfile;
             data.output = new McLoginResult
             {
-                accessToken = profile.accessToken,
-                name = profile.username,
-                uuid = profile.uuid,
-                type = "Microsoft"
+                AccessToken = profile.AccessToken,
+                Name = profile.Username,
+                Uuid = profile.Uuid,
+                Type = "Microsoft"
             };
             return;
         }
@@ -753,17 +753,17 @@ public static class ModLaunch
 
         // 检查是否已有相同档案
         foreach (var profile in ModProfile.profileList)
-            if (profile.type == McLoginType.Ms &&
-                string.Equals(profile.username, result[1], StringComparison.Ordinal) &&
-                string.Equals(profile.uuid, result[0], StringComparison.Ordinal))
+            if (profile.Type == McLoginType.Ms &&
+                string.Equals(profile.Username, result[1], StringComparison.Ordinal) &&
+                string.Equals(profile.Uuid, result[0], StringComparison.Ordinal))
             {
                 isNewProfile = false;
                 if (ModProfile.isCreatingProfile)
                 {
                     var index = ModProfile.profileList.IndexOf(profile);
-                    ModProfile.profileList[index].username = result[1];
-                    ModProfile.profileList[index].accessToken = accessToken;
-                    ModProfile.profileList[index].refreshToken = oauthRefreshToken;
+                    ModProfile.profileList[index].Username = result[1];
+                    ModProfile.profileList[index].AccessToken = accessToken;
+                    ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
                     ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
                     goto SkipLogin;
                 }
@@ -774,14 +774,14 @@ public static class ModLaunch
         {
             var newProfile = new ModProfile.McProfile
             {
-                type = McLoginType.Ms,
-                uuid = result[0],
-                username = result[1],
-                accessToken = accessToken,
-                refreshToken = oauthRefreshToken,
-                expires = 1743779140286L,
-                desc = "",
-                rawJson = result[2]
+                Type = McLoginType.Ms,
+                Uuid = result[0],
+                Username = result[1],
+                AccessToken = accessToken,
+                RefreshToken = oauthRefreshToken,
+                Expires = 1743779140286L,
+                Desc = "",
+                RawJson = result[2]
             };
             ModProfile.profileList.Add(newProfile);
             ModProfile.selectedProfile = newProfile;
@@ -790,21 +790,21 @@ public static class ModLaunch
         else
         {
             var index = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-            ModProfile.profileList[index].username = result[1];
-            ModProfile.profileList[index].accessToken = accessToken;
-            ModProfile.profileList[index].refreshToken = oauthRefreshToken;
+            ModProfile.profileList[index].Username = result[1];
+            ModProfile.profileList[index].AccessToken = accessToken;
+            ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
         }
 
         ModProfile.SaveProfile();
 
         data.output = new McLoginResult
         {
-            accessToken = accessToken,
-            name = result[1],
-            uuid = result[0],
-            type = "Microsoft",
-            clientToken = result[0],
-            profileJson = result[2]
+            AccessToken = accessToken,
+            Name = result[1],
+            Uuid = result[0],
+            Type = "Microsoft",
+            ClientToken = result[0],
+            ProfileJson = result[2]
         };
 
         SkipLogin:
@@ -823,13 +823,13 @@ public static class ModLaunch
 
         while (true)
         {
-            if (string.IsNullOrEmpty(input.oAuthRefreshToken))
+            if (string.IsNullOrEmpty(input.OAuthRefreshToken))
             {
                 tokens = MsLoginStep1New(data);
             }
             else
             {
-                tokens = MsLoginStep1Refresh(input.oAuthRefreshToken);
+                tokens = MsLoginStep1Refresh(input.OAuthRefreshToken);
                 if (tokens.Length > 0 && tokens[0] == "Relogin")
                     continue; // 重新登录
             }
@@ -888,11 +888,11 @@ public static class ModLaunch
 
         // 弹窗
         var converter = new ModMain.MyMsgBoxConverter
-            { content = prepareJson, forceWait = true, type = ModMain.MyMsgBoxType.Login };
+            { Content = prepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
         ModMain.WaitingMyMsgBox.Add(converter);
-        while (converter.result is null)
+        while (converter.Result is null)
             Thread.Sleep(100);
-        if (converter.result is ModBase.RestartException)
+        if (converter.Result is ModBase.RestartException)
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLQ, ModBase.vbRQ),
@@ -903,9 +903,9 @@ public static class ModLaunch
             throw new Exception("$$");
         }
 
-        if (converter.result is Exception) throw (Exception)converter.result;
+        if (converter.Result is Exception) throw (Exception)converter.Result;
 
-        return (string[])converter.result;
+        return (string[])converter.Result;
     }
 
     /// <summary>
@@ -1141,7 +1141,7 @@ public static class ModLaunch
                 });
                 if (isIgnore)
                 {
-                    return new[] { ModProfile.selectedProfile.accessToken, "Ignore" };
+                    return new[] { ModProfile.selectedProfile.AccessToken, "Ignore" };
                     return default;
                 }
 
@@ -1333,7 +1333,7 @@ public static class ModLaunch
             });
             if (isIgnore)
             {
-                return new[] { ModProfile.selectedProfile.uuid, ModProfile.selectedProfile.username, "Ignore" };
+                return new[] { ModProfile.selectedProfile.Uuid, ModProfile.selectedProfile.Username, "Ignore" };
                 return default;
             }
 
@@ -1356,11 +1356,11 @@ public static class ModLaunch
         var needRefresh = false;
         var wasRefreshed = false;
 
-        ModProfile.ProfileLog("验证方式：" + input.description);
+        ModProfile.ProfileLog("验证方式：" + input.Description);
         data.Progress = 0.05d;
 
         // 尝试验证登录（如果不需要重新选择档案且不是创建档案）
-        if (!input.forceReselectProfile && !ModProfile.isCreatingProfile)
+        if (!input.ForceReselectProfile && !ModProfile.isCreatingProfile)
         {
             try
             {
@@ -1516,15 +1516,15 @@ public static class ModLaunch
         var name = "";
         if (ModProfile.selectedProfile is not null)
         {
-            accessToken = ModProfile.selectedProfile.accessToken;
-            clientToken = ModProfile.selectedProfile.clientToken;
-            uuid = ModProfile.selectedProfile.uuid;
-            name = ModProfile.selectedProfile.username;
+            accessToken = ModProfile.selectedProfile.AccessToken;
+            clientToken = ModProfile.selectedProfile.ClientToken;
+            uuid = ModProfile.selectedProfile.Uuid;
+            name = ModProfile.selectedProfile.Username;
         }
 
         // 发送登录请求
         var requestData = new JsonObject { ["accessToken"] = accessToken, ["clientToken"] = clientToken };
-        Requester.Fetch(data.input.baseUrl + "/validate",
+        Requester.Fetch(data.input.BaseUrl + "/validate",
             new FetchParam
             {
                 Method = "POST",
@@ -1533,11 +1533,11 @@ public static class ModLaunch
                 ContentType = "application/json"
             }); // 没有返回值的
         // 将登录结果输出
-        data.output.accessToken = accessToken;
-        data.output.clientToken = clientToken;
-        data.output.uuid = uuid;
-        data.output.name = name;
-        data.output.type = "Auth";
+        data.output.AccessToken = accessToken;
+        data.output.ClientToken = clientToken;
+        data.output.Uuid = uuid;
+        data.output.Name = name;
+        data.output.Type = "Auth";
         // 不更改缓存，直接结束
         ModProfile.ProfileLog("验证登录成功（Validate, Authlib");
     }
@@ -1550,12 +1550,12 @@ public static class ModLaunch
 
             var refreshInfo = new JsonObject();
             var selectProfile = new JsonObject
-                { { "name", ModProfile.selectedProfile.username }, { "id", ModProfile.selectedProfile.uuid } };
+                { { "name", ModProfile.selectedProfile.Username }, { "id", ModProfile.selectedProfile.Uuid } };
             refreshInfo.Add("selectedProfile", selectProfile);
-            refreshInfo.Add("accessToken", ModProfile.selectedProfile.accessToken);
+            refreshInfo.Add("accessToken", ModProfile.selectedProfile.AccessToken);
             refreshInfo.Add("requestUser", true);
             ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-            var loginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(data.input.baseUrl + "/refresh",
+            var loginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(data.input.BaseUrl + "/refresh",
                 new FetchParam
                 {
                     Method = "POST",
@@ -1567,20 +1567,20 @@ public static class ModLaunch
             ));
             // 将登录结果输出
             if (loginJson["selectedProfile"] is null)
-                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.InvalidProfile", ModProfile.selectedProfile.username));
-            data.output.accessToken = loginJson["accessToken"].ToString();
-            data.output.clientToken = loginJson["clientToken"].ToString();
-            data.output.uuid = loginJson["selectedProfile"]["id"].ToString();
-            data.output.name = loginJson["selectedProfile"]["name"].ToString();
-            data.output.type = "Auth";
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.InvalidProfile", ModProfile.selectedProfile.Username));
+            data.output.AccessToken = loginJson["accessToken"].ToString();
+            data.output.ClientToken = loginJson["clientToken"].ToString();
+            data.output.Uuid = loginJson["selectedProfile"]["id"].ToString();
+            data.output.Name = loginJson["selectedProfile"]["name"].ToString();
+            data.output.Type = "Auth";
             // 保存缓存
             var profileIndex = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-            ModProfile.profileList[profileIndex].username = data.output.name;
-            ModProfile.profileList[profileIndex].accessToken = data.output.accessToken;
-            ModProfile.profileList[profileIndex].clientToken = data.output.clientToken;
-            ModProfile.profileList[profileIndex].uuid = data.output.uuid;
-            ModProfile.profileList[profileIndex].name = data.input.userName;
-            ModProfile.profileList[profileIndex].password = data.input.password;
+            ModProfile.profileList[profileIndex].Username = data.output.Name;
+            ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
+            ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
+            ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
+            ModProfile.profileList[profileIndex].Name = data.input.UserName;
+            ModProfile.profileList[profileIndex].Password = data.input.Password;
             ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
         }
         catch (HttpResponseException ex)
@@ -1600,11 +1600,11 @@ public static class ModLaunch
             var requestData = new JsonObject
             {
                 ["agent"] = new JsonObject { ["name"] = "Minecraft", ["version"] = 1 },
-                ["username"] = data.input.userName,
-                ["password"] = data.input.password,
+                ["username"] = data.input.UserName,
+                ["password"] = data.input.Password,
                 ["requestUser"] = true
             };
-            var loginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(data.input.baseUrl + "/authenticate",
+            var loginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(data.input.BaseUrl + "/authenticate",
                 new FetchParam
                 {
                     Method = "POST",
@@ -1616,21 +1616,21 @@ public static class ModLaunch
             // 检查登录结果
             if (loginJson["availableProfiles"].AsArray().Count == 0)
             {
-                if (data.input.forceReselectProfile)
+                if (data.input.ForceReselectProfile)
                     ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
-            if (data.input.forceReselectProfile && loginJson["availableProfiles"].AsArray().Count == 1)
+            if (data.input.ForceReselectProfile && loginJson["availableProfiles"].AsArray().Count == 1)
                 ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
             string selectedName = null;
             string selectedId = null;
-            if ((loginJson["selectedProfile"] is null || data.input.forceReselectProfile) &&
+            if ((loginJson["selectedProfile"] is null || data.input.ForceReselectProfile) &&
                 loginJson["availableProfiles"].AsArray().Count > 1)
             {
                 // 要求选择档案；优先从缓存读取
                 needRefresh = true;
-                var cacheId = ModProfile.selectedProfile is not null ? ModProfile.selectedProfile.uuid : "";
+                var cacheId = ModProfile.selectedProfile is not null ? ModProfile.selectedProfile.Uuid : "";
                 foreach (var profile in loginJson["availableProfiles"].AsArray())
                     if ((profile["id"].ToString() ?? "") == (cacheId ?? ""))
                     {
@@ -1668,40 +1668,40 @@ public static class ModLaunch
             }
 
             // 将登录结果输出
-            data.output.accessToken = loginJson["accessToken"].ToString();
-            data.output.clientToken = loginJson["clientToken"].ToString();
-            data.output.name = selectedName;
-            data.output.uuid = selectedId;
-            data.output.type = "Auth";
+            data.output.AccessToken = loginJson["accessToken"].ToString();
+            data.output.ClientToken = loginJson["clientToken"].ToString();
+            data.output.Name = selectedName;
+            data.output.Uuid = selectedId;
+            data.output.Type = "Auth";
             // 获取服务器信息
             var response =
-                Requester.FetchString(data.input.baseUrl.Replace("/authserver", ""));
-            var serverName = ModBase.GetJson(response)["meta"]?["serverName"]?.ToString() ?? data.input.baseUrl.Replace("/authserver", "");
+                Requester.FetchString(data.input.BaseUrl.Replace("/authserver", ""));
+            var serverName = ModBase.GetJson(response)["meta"]?["serverName"]?.ToString() ?? data.input.BaseUrl.Replace("/authserver", "");
             // 保存缓存
-            if (data.input.isExist)
+            if (data.input.IsExist)
             {
                 var profileIndex = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-                ModProfile.profileList[profileIndex].username = data.output.name;
-                ModProfile.profileList[profileIndex].uuid = data.output.uuid;
-                ModProfile.profileList[profileIndex].serverName = serverName;
-                ModProfile.profileList[profileIndex].accessToken = data.output.accessToken;
-                ModProfile.profileList[profileIndex].clientToken = data.output.clientToken;
+                ModProfile.profileList[profileIndex].Username = data.output.Name;
+                ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
+                ModProfile.profileList[profileIndex].ServerName = serverName;
+                ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
+                ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
             }
             else
             {
                 var newProfile = new ModProfile.McProfile
                 {
-                    type = McLoginType.Auth,
-                    uuid = data.output.uuid,
-                    username = data.output.name,
-                    server = data.input.baseUrl,
-                    serverName = serverName,
-                    name = data.input.userName,
-                    password = data.input.password,
-                    accessToken = data.output.accessToken,
-                    clientToken = data.output.clientToken,
-                    expires = 1743779140286L,
-                    desc = ""
+                    Type = McLoginType.Auth,
+                    Uuid = data.output.Uuid,
+                    Username = data.output.Name,
+                    Server = data.input.BaseUrl,
+                    ServerName = serverName,
+                    Name = data.input.UserName,
+                    Password = data.input.Password,
+                    AccessToken = data.output.AccessToken,
+                    ClientToken = data.output.ClientToken,
+                    Expires = 1743779140286L,
+                    Desc = ""
                 };
                 ModProfile.profileList.Add(newProfile);
                 ModProfile.selectedProfile = newProfile;
@@ -1756,17 +1756,17 @@ public static class ModLaunch
     private static void McLoginLegacyStart(ModLoader.LoaderTask<McLoginLegacy, McLoginResult> data)
     {
         var input = data.input;
-        ModProfile.ProfileLog($"验证方式：离线（{input.userName}, {input.uuid}）");
+        ModProfile.ProfileLog($"验证方式：离线（{input.UserName}, {input.Uuid}）");
         data.Progress = 0.1d;
         {
             ref var withBlock = ref data.output;
-            withBlock.name = input.userName;
-            withBlock.uuid = ModProfile.selectedProfile.uuid;
-            withBlock.type = "Legacy";
+            withBlock.Name = input.UserName;
+            withBlock.Uuid = ModProfile.selectedProfile.Uuid;
+            withBlock.Type = "Legacy";
         }
         // 将结果扩展到所有项目中
-        data.output.accessToken = data.output.uuid;
-        data.output.clientToken = data.output.uuid;
+        data.output.AccessToken = data.output.Uuid;
+        data.output.ClientToken = data.output.Uuid;
     }
 
     #endregion
@@ -1846,7 +1846,7 @@ public static class ModLaunch
         }
 
         // OptiFine 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasOptiFine && ModMinecraft.McInstanceSelected.Info.Valid) // 不管非标准版本
+        if (ModMinecraft.McInstanceSelected.Info.HasOptiFine && ModMinecraft.McInstanceSelected.Info.Valid) // 不管非标准版本
         {
             if (ModMinecraft.McInstanceSelected.Info.vanilla.Major < 7)
             {
@@ -1868,7 +1868,7 @@ public static class ModLaunch
         }
 
         // Forge 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasForge)
+        if (ModMinecraft.McInstanceSelected.Info.HasForge)
         {
             if (ModMinecraft.McInstanceSelected.Info.vanilla >= new Version(6, 0, 1) &&
                 ModMinecraft.McInstanceSelected.Info.vanilla <= new Version(7, 0, 2))
@@ -1895,15 +1895,15 @@ public static class ModLaunch
                 minVer = new Version(1, 8, 0, 0) > minVer ? new Version(1, 8, 0, 0) : minVer;
                 maxVer = new Version(1, 15, 999, 999) < maxVer ? new Version(1, 15, 999, 999) : maxVer;
             }
-            else if (ModMinecraft.CompareVersionGe(ModMinecraft.McInstanceSelected.Info.forge, "34.0.0") &&
-                     ModMinecraft.CompareVersionGe("36.2.25", ModMinecraft.McInstanceSelected.Info.forge))
+            else if (ModMinecraft.CompareVersionGe(ModMinecraft.McInstanceSelected.Info.Forge, "34.0.0") &&
+                     ModMinecraft.CompareVersionGe("36.2.25", ModMinecraft.McInstanceSelected.Info.Forge))
             {
                 // 1.16，Forge 34.X ~ 36.2.25：最高 Java 8u321
                 maxVer = new Version(1, 8, 0, 320) < maxVer ? new Version(1, 8, 0, 321) : maxVer;
             }
             else if (ModMinecraft.McInstanceSelected.Info.vanilla.Major >= 18 &&
                      ModMinecraft.McInstanceSelected.Info.vanilla.Major < 19 &&
-                     ModMinecraft.McInstanceSelected.Info.hasOptiFine) // #305
+                     ModMinecraft.McInstanceSelected.Info.HasOptiFine) // #305
             {
                 // 1.18：若安装了 OptiFine，最高 Java 18
                 maxVer = new Version(1, 18, 999, 999) < maxVer ? new Version(1, 18, 999, 999) : maxVer;
@@ -1911,10 +1911,10 @@ public static class ModLaunch
         }
 
         // Cleanroom 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasCleanroom)
+        if (ModMinecraft.McInstanceSelected.Info.HasCleanroom)
         {
-            if (!Version.TryParse(ModMinecraft.McInstanceSelected.Info.cleanroom.Split('-')[0], out Version cleanroomVersion))
-                throw new FormatException("无法解析 Cleanroom 版本号：" + ModMinecraft.McInstanceSelected.Info.cleanroom);
+            if (!Version.TryParse(ModMinecraft.McInstanceSelected.Info.Cleanroom.Split('-')[0], out Version cleanroomVersion))
+                throw new FormatException("无法解析 Cleanroom 版本号：" + ModMinecraft.McInstanceSelected.Info.Cleanroom);
             if (cleanroomVersion < new Version(0, 5, 0, 0))
             {
                 if (ModBase.modeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");
@@ -1928,7 +1928,7 @@ public static class ModLaunch
         }
 
         // Fabric 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasFabric && ModMinecraft.McInstanceSelected.Info.Valid) // 不管非标准版本
+        if (ModMinecraft.McInstanceSelected.Info.HasFabric && ModMinecraft.McInstanceSelected.Info.Valid) // 不管非标准版本
         {
             if (ModMinecraft.McInstanceSelected.Info.vanilla.Major >= 15 &&
                 ModMinecraft.McInstanceSelected.Info.vanilla.Major <= 16)
@@ -1940,7 +1940,7 @@ public static class ModLaunch
         }
 
         // LiteLoader 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasLiteLoader && ModMinecraft.McInstanceSelected.Info.Valid)
+        if (ModMinecraft.McInstanceSelected.Info.HasLiteLoader && ModMinecraft.McInstanceSelected.Info.Valid)
         {
             // 最高 Java 8
             if (ModBase.modeDebug)
@@ -1949,7 +1949,7 @@ public static class ModLaunch
         }
 
         // LabyMod 检测
-        if (ModMinecraft.McInstanceSelected.Info.hasLabyMod)
+        if (ModMinecraft.McInstanceSelected.Info.HasLabyMod)
         {
             if (ModBase.modeDebug)
                 ModBase.Log("[Launch] [Debug] LabyMod 要求至少 Java 21");
@@ -2000,7 +2000,7 @@ public static class ModLaunch
             }
             else if (maxVer < new Version(1, 8))
             {
-                if (ModMinecraft.McInstanceSelected.Info.hasForge)
+                if (ModMinecraft.McInstanceSelected.Info.HasForge)
                     ModMain.MyMsgBox(
                         Lang.Text("Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7"),
                         Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
@@ -2103,7 +2103,7 @@ public static class ModLaunch
     {
         private readonly List<string> _features = new();
 
-        public LaunchArgument(ModMinecraft.McInstance minecraft)
+        public LaunchArgument(ModMinecraft.Instance minecraft)
         {
             var curArgu = string.Empty;
             if (minecraft.IsOldJson)
@@ -2233,7 +2233,7 @@ public static class ModLaunch
     ///     判断是否使用 RetroWrapper。
     ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
     /// </summary>
-    private static bool McLaunchNeedsRetroWrapper(ModMinecraft.McInstance mc)
+    private static bool McLaunchNeedsRetroWrapper(ModMinecraft.Instance mc)
     {
         return (mc.releaseTime >= new DateTime(2013, 6, 25) && mc.Info.Drop == 99) ||
                (mc.Info.Drop < 60 && mc.Info.Drop != 99 &&
@@ -2244,14 +2244,14 @@ public static class ModLaunch
     /// <summary>
     /// 获取实例所依赖的 LWJGL 版本
     /// </summary>
-    private static string McLaunchGetLwjglVersion(ModMinecraft.McInstance mc)
+    private static string McLaunchGetLwjglVersion(ModMinecraft.Instance mc)
     {
         foreach (ModMinecraft.McLibToken library in ModMinecraft.McLibListGet(mc, false))
         {
-            if (string.IsNullOrWhiteSpace(library.originalName))
+            if (string.IsNullOrWhiteSpace(library.OriginalName))
                 continue;
 
-            string[] parts = library.originalName.Split(':');
+            string[] parts = library.OriginalName.Split(':');
             if (parts.Length >= 3 &&
                 parts[0].Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) &&
                 parts[1].Equals("lwjgl", StringComparison.OrdinalIgnoreCase))
@@ -2266,7 +2266,7 @@ public static class ModLaunch
     /// <summary>
     /// 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
     /// </summary>
-    private static bool McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstance mc)
+    private static bool McLaunchUsesLwjglUnsafeAgent(ModMinecraft.Instance mc)
     {
         if (McLaunchGetLwjglVersion(mc) == "3.4.1")
         {
@@ -2337,7 +2337,7 @@ public static class ModLaunch
         if (Config.Launch.GameWindowMode == 0)
             arguments += " --fullscreen";
         // 由 Option 传入的额外参数
-        foreach (var arg in currentLaunchOptions.extraArgs)
+        foreach (var arg in currentLaunchOptions.ExtraArgs)
             arguments += " " + arg.Trim();
         // 自定义参数
         var argumentGame = Config.Instance.GameArgs[ModMinecraft.McInstanceSelected?.PathInstance];
@@ -2364,12 +2364,12 @@ public static class ModLaunch
 
         finalArguments = finalArguments.TrimEnd();
         // 进存档
-        var worldName = currentLaunchOptions.worldName;
+        var worldName = currentLaunchOptions.WorldName;
         if (worldName is not null) finalArguments += $" --quickPlaySingleplayer \"{worldName}\"";
         // 进服
-        var server = string.IsNullOrEmpty(currentLaunchOptions.serverIp)
+        var server = string.IsNullOrEmpty(currentLaunchOptions.ServerIp)
             ? Config.Instance.ServerToEnter[ModMinecraft.McInstanceSelected?.PathInstance]
-            : currentLaunchOptions.serverIp;
+            : currentLaunchOptions.ServerIp;
         if (string.IsNullOrWhiteSpace(worldName) && !string.IsNullOrWhiteSpace(server))
         {
             if (ModMinecraft.McInstanceSelected.releaseTime > new DateTime(2023, 4, 4))
@@ -2386,7 +2386,7 @@ public static class ModLaunch
                 else
                     // 不包含端口号
                     finalArguments += " --server " + server + " --port 25565";
-                if (ModMinecraft.McInstanceSelected.Info.hasOptiFine)
+                if (ModMinecraft.McInstanceSelected.Info.HasOptiFine)
                     ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
             }
         }
@@ -2398,7 +2398,7 @@ public static class ModLaunch
     }
 
     // Jvm 部分（第一段）
-    private static string McLaunchArgumentsJvmOld(ModMinecraft.McInstance instance)
+    private static string McLaunchArgumentsJvmOld(ModMinecraft.Instance instance)
     {
         // 存储以空格为间隔的启动参数列表
         var dataList = new List<string>();
@@ -2422,11 +2422,11 @@ public static class ModLaunch
         dataList.Add("-cp ${classpath}"); // 把支持库添加进启动参数表
 
         // Authlib-Injector
-        if (mcLoginLoader.output.type == "Auth")
+        if (mcLoginLoader.output.Type == "Auth")
         {
             if (mcLaunchJavaSelected.Installation.MajorVersion >= 6)
                 dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书（Meloong-Git/#5252）
-            var server = mcLoginAuthLoader.input.baseUrl.Replace("/authserver", "");
+            var server = mcLoginAuthLoader.input.BaseUrl.Replace("/authserver", "");
             try
             {
                 var response = Requester.FetchString(server);
@@ -2504,7 +2504,7 @@ public static class ModLaunch
         return dataList.Join(" ");
     }
 
-    private static string McLaunchArgumentsJvmNew(ModMinecraft.McInstance instance)
+    private static string McLaunchArgumentsJvmNew(ModMinecraft.Instance instance)
     {
         var dataList = new List<string>();
 
@@ -2534,18 +2534,18 @@ public static class ModLaunch
             if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
                 break;
 
-            currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
+            currentInstance = new ModMinecraft.Instance(currentInstance.InheritInstanceName);
         }
 
         // 内存、Log4j 防御参数等
         SecretLaunchJvmArgs(ref dataList);
 
         // Authlib-Injector
-        if (mcLoginLoader.output.type == "Auth")
+        if (mcLoginLoader.output.Type == "Auth")
         {
             if (mcLaunchJavaSelected.Installation.MajorVersion >= 6)
                 dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书（Meloong-Git/#5252）
-            var server = mcLoginAuthLoader.input.baseUrl.Replace("/authserver", "");
+            var server = mcLoginAuthLoader.input.BaseUrl.Replace("/authserver", "");
             try
             {
                 var response = ModNet.NetGetCodeByRequestRetry(server, Encoding.UTF8)?.ToString();
@@ -2655,7 +2655,7 @@ public static class ModLaunch
     }
 
     // Game 部分（第二段）
-    private static string McLaunchArgumentsGameOld(ModMinecraft.McInstance version)
+    private static string McLaunchArgumentsGameOld(ModMinecraft.Instance version)
     {
         var dataList = new List<string>();
 
@@ -2671,7 +2671,7 @@ public static class ModLaunch
         var result = dataList.Join(" ");
 
         // 特别改变 OptiFineTweaker
-        if ((version.Info.hasForge || version.Info.hasLiteLoader) && version.Info.hasOptiFine)
+        if ((version.Info.HasForge || version.Info.HasLiteLoader) && version.Info.HasOptiFine)
         {
             // 把 OptiFineForgeTweaker 放在最后，不然会导致崩溃！
             if (result.Contains("--tweakClass optifine.OptiFineForgeTweaker"))
@@ -2704,7 +2704,7 @@ public static class ModLaunch
         return result;
     }
 
-    private static string McLaunchArgumentsGameNew(ModMinecraft.McInstance instance)
+    private static string McLaunchArgumentsGameNew(ModMinecraft.Instance instance)
     {
         string mcLaunchArgumentsGameNewRet = default;
         var dataList = new List<string>();
@@ -2735,7 +2735,7 @@ public static class ModLaunch
             if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
                 break;
 
-            currentInstance = new ModMinecraft.McInstance(currentInstance.InheritInstanceName);
+            currentInstance = new ModMinecraft.Instance(currentInstance.InheritInstanceName);
         }
 
         // 将 "-XXX" 与后面 "XXX" 合并到一起
@@ -2760,7 +2760,7 @@ public static class ModLaunch
         mcLaunchArgumentsGameNewRet = deDuplicateDataList.Distinct().ToList().Join(" ");
 
         // 特别改变 OptiFineTweaker
-        if ((instance.Info.hasForge || instance.Info.hasLiteLoader) && instance.Info.hasOptiFine)
+        if ((instance.Info.HasForge || instance.Info.HasLiteLoader) && instance.Info.HasOptiFine)
         {
             // 把 OptiFineForgeTweaker 放在最后，不然会导致崩溃！
             if (mcLaunchArgumentsGameNewRet.Contains("--tweakClass optifine.OptiFineForgeTweaker"))
@@ -2796,7 +2796,7 @@ public static class ModLaunch
     }
 
     // 替换 Arguments
-    private static Dictionary<string, string> McLaunchArgumentsReplace(ModMinecraft.McInstance instance,
+    private static Dictionary<string, string> McLaunchArgumentsReplace(ModMinecraft.Instance instance,
         ref ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>> loader)
     {
         var gameArguments = new Dictionary<string, string>();
@@ -2818,11 +2818,11 @@ public static class ModLaunch
             ModBase.ShortenPath(ModMinecraft.McInstanceSelected.PathIndie[..^1]));
         gameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.mcFolderSelected + "assets"));
         gameArguments.Add("${user_properties}", "{}");
-        gameArguments.Add("${auth_player_name}", mcLoginLoader.output.name);
-        gameArguments.Add("${auth_uuid}", mcLoginLoader.output.uuid);
-        gameArguments.Add("${auth_access_token}", mcLoginLoader.output.accessToken);
-        gameArguments.Add("${access_token}", mcLoginLoader.output.accessToken);
-        gameArguments.Add("${auth_session}", mcLoginLoader.output.accessToken);
+        gameArguments.Add("${auth_player_name}", mcLoginLoader.output.Name);
+        gameArguments.Add("${auth_uuid}", mcLoginLoader.output.Uuid);
+        gameArguments.Add("${auth_access_token}", mcLoginLoader.output.AccessToken);
+        gameArguments.Add("${access_token}", mcLoginLoader.output.AccessToken);
+        gameArguments.Add("${auth_session}", mcLoginLoader.output.AccessToken);
         gameArguments.Add("${user_type}", "msa"); // #1221
 
         // 窗口尺寸参数
@@ -2855,7 +2855,7 @@ public static class ModLaunch
         if (ModMinecraft.McInstanceSelected.Info.Drop <= 120 && mcLaunchJavaSelected.Installation.MajorVersion <= 8 &&
             mcLaunchJavaSelected.Installation.Version.Revision >= 200 &&
             mcLaunchJavaSelected.Installation.Version.Revision <= 321 &&
-            !ModMinecraft.McInstanceSelected.Info.hasOptiFine && !ModMinecraft.McInstanceSelected.Info.hasForge)
+            !ModMinecraft.McInstanceSelected.Info.HasOptiFine && !ModMinecraft.McInstanceSelected.Info.HasForge)
         {
             // 修复 #3463：1.12.2-，JRE 8u200~321 下窗口大小为设置大小的 DPI% 倍
             McLaunchLog($"已应用窗口大小过大修复（{mcLaunchJavaSelected.Installation.Version.Revision}）");
@@ -2910,18 +2910,18 @@ public static class ModLaunch
 
         foreach (var library in libList)
         {
-            if (library.isNatives)
+            if (library.IsNatives)
                 continue;
-            if (ModMinecraft.McInstanceSelected.Info.hasCleanroom 
-                && library.originalName is not null 
-                && (library.originalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
-                    || library.originalName.Contains("net.java.dev.jna:platform:3.4.0")
-                    || library.originalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
+            if (ModMinecraft.McInstanceSelected.Info.HasCleanroom 
+                && library.OriginalName is not null 
+                && (library.OriginalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
+                    || library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0")
+                    || library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
                 continue;
             if (library.Name is not null && library.Name == "optifine:OptiFine")
-                optiFineCp = library.localPath;
+                optiFineCp = library.LocalPath;
             else
-                cpStrings.Add(library.localPath);
+                cpStrings.Add(library.LocalPath);
         }
 
         foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
@@ -2953,18 +2953,18 @@ public static class ModLaunch
         var existFiles = new List<string>();
         foreach (var native in loader.input)
         {
-            if (!native.isNatives)
+            if (!native.IsNatives)
                 continue;
             ZipArchive zip;
             try
             {
-                zip = new ZipArchive(new FileStream(native.localPath, FileMode.Open));
+                zip = new ZipArchive(new FileStream(native.LocalPath, FileMode.Open));
             }
             catch (InvalidDataException ex)
             {
-                ModBase.Log(ex, "打开 Natives 文件失败（" + native.localPath + "）");
-                File.Delete(native.localPath);
-                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", native.localPath));
+                ModBase.Log(ex, "打开 Natives 文件失败（" + native.LocalPath + "）");
+                File.Delete(native.LocalPath);
+                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", native.LocalPath));
             }
 
             foreach (var entry in zip.Entries)
@@ -3084,7 +3084,7 @@ public static class ModLaunch
             try
             {
                 // 确保可用
-                if (mcLoginLoader.output.type != "Microsoft")
+                if (mcLoginLoader.output.Type != "Microsoft")
                     break;
                 ModMinecraft.McFolderLauncherProfilesJsonCreate(ModMinecraft.mcFolderSelected);
                 // 构建需要替换的 Json 对象
@@ -3092,15 +3092,15 @@ public static class ModLaunch
             {
               ""authenticationDatabase"": {
                 ""00000111112222233333444445555566"": {
-                  ""username"": """ + mcLoginLoader.output.name.Replace("\"", "-") + @""",
+                  ""username"": """ + mcLoginLoader.output.Name.Replace("\"", "-") + @""",
                   ""profiles"": {
                     ""66666555554444433333222221111100"": {
-                        ""displayName"": """ + mcLoginLoader.output.name + @"""
+                        ""displayName"": """ + mcLoginLoader.output.Name + @"""
                     }
                   }
                 }
               },
-              ""clientToken"": """ + mcLoginLoader.output.clientToken + @""",
+              ""clientToken"": """ + mcLoginLoader.output.ClientToken + @""",
               ""selectedUser"": {
                 ""account"": ""00000111112222233333444445555566"", 
                 ""profile"": ""66666555554444433333222221111100""
@@ -3128,15 +3128,15 @@ public static class ModLaunch
                     {
                       ""authenticationDatabase"": {
                         ""00000111112222233333444445555566"": {
-                          ""username"": """ + mcLoginLoader.output.name.Replace("\"", "-") + @""",
+                          ""username"": """ + mcLoginLoader.output.Name.Replace("\"", "-") + @""",
                           ""profiles"": {
                             ""66666555554444433333222221111100"": {
-                                ""displayName"": """ + mcLoginLoader.output.name + @"""
+                                ""displayName"": """ + mcLoginLoader.output.Name + @"""
                             }
                           }
                         }
                       },
-                      ""clientToken"": """ + mcLoginLoader.output.clientToken + @""",
+                      ""clientToken"": """ + mcLoginLoader.output.ClientToken + @""",
                       ""selectedUser"": {
                         ""account"": ""00000111112222233333444445555566"", 
                         ""profile"": ""66666555554444433333222221111100""
@@ -3308,14 +3308,14 @@ public static class ModLaunch
                 customCommandGlobal + "\r\n" + customCommandVersion + "\r\n" +
                 $"\"{mcLaunchJavaSelected.Installation.JavaExePath}\" {mcLaunchArgument}" + "\r\n" +
                 "echo 游戏已退出。" + "\r\n" + "pause";
-            ModBase.WriteFile(currentLaunchOptions.saveBatch ?? ModBase.exePath + @"PCL\LatestLaunch.bat",
+            ModBase.WriteFile(currentLaunchOptions.SaveBatch ?? ModBase.exePath + @"PCL\LatestLaunch.bat",
                 ModMinecraft.FilterAccessToken(cmdString, 'F'),
                 encoding: mcLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default);
-            if (currentLaunchOptions.saveBatch is not null)
+            if (currentLaunchOptions.SaveBatch is not null)
             {
                 McLaunchLog("导出启动脚本完成，强制结束启动过程");
                 abortHint = Lang.Text("Minecraft.Launch.ExportScript.Success");
-                ModBase.OpenExplorer(currentLaunchOptions.saveBatch);
+                ModBase.OpenExplorer(currentLaunchOptions.SaveBatch);
                 loader.parent.Abort();
                 return; // 导出脚本完成
             }
@@ -3323,7 +3323,7 @@ public static class ModLaunch
         catch (Exception ex)
         {
             ModBase.Log(ex, "输出启动脚本失败");
-            if (currentLaunchOptions.saveBatch is not null)
+            if (currentLaunchOptions.SaveBatch is not null)
                 throw; // 直接触发启动失败
         }
 
@@ -3468,7 +3468,7 @@ public static class ModLaunch
         McLaunchLog("~ 基础参数 ~");
         McLaunchLog("PCL 版本：" + ModBase.versionBaseName + " (" + ModBase.versionCode + ")");
         McLaunchLog(
-            $"游戏版本：{ModMinecraft.McInstanceSelected.Info.vanillaName}（{ModMinecraft.McInstanceSelected.Info.vanilla}，Drop {ModMinecraft.McInstanceSelected.Info.Drop}{(ModMinecraft.McInstanceSelected.Info.reliable ? "" : "，无法完全确定")}）");
+            $"游戏版本：{ModMinecraft.McInstanceSelected.Info.VanillaName}（{ModMinecraft.McInstanceSelected.Info.vanilla}，Drop {ModMinecraft.McInstanceSelected.Info.Drop}{(ModMinecraft.McInstanceSelected.Info.Reliable ? "" : "，无法完全确定")}）");
         McLaunchLog("资源版本：" + ModMinecraft.McAssetsGetIndexName(ModMinecraft.McInstanceSelected));
         McLaunchLog("实例继承：" + (string.IsNullOrEmpty(ModMinecraft.McInstanceSelected.InheritInstanceName)
             ? "无"
@@ -3488,11 +3488,11 @@ public static class ModLaunch
         McLaunchLog("Natives 文件夹：" + GetNativesFolder());
         McLaunchLog("");
         McLaunchLog("~ 档案参数 ~");
-        McLaunchLog("玩家用户名：" + mcLoginLoader.output.name);
-        McLaunchLog("AccessToken：" + mcLoginLoader.output.accessToken);
-        McLaunchLog("ClientToken：" + mcLoginLoader.output.clientToken);
-        McLaunchLog("UUID：" + mcLoginLoader.output.uuid);
-        McLaunchLog("验证方式：" + mcLoginLoader.output.type);
+        McLaunchLog("玩家用户名：" + mcLoginLoader.output.Name);
+        McLaunchLog("AccessToken：" + mcLoginLoader.output.AccessToken);
+        McLaunchLog("ClientToken：" + mcLoginLoader.output.ClientToken);
+        McLaunchLog("UUID：" + mcLoginLoader.output.Uuid);
+        McLaunchLog("验证方式：" + mcLoginLoader.output.Type);
         McLaunchLog("");
 
         // 获取窗口标题
@@ -3507,11 +3507,11 @@ public static class ModLaunch
 
         // 初始化等待
         var watcher = new ModWatcher.Watcher(loader, ModMinecraft.McInstanceSelected, windowTitle,
-            File.Exists(jStackPath) ? jStackPath : "", currentLaunchOptions.isTest);
+            File.Exists(jStackPath) ? jStackPath : "", currentLaunchOptions.IsTest);
         mcLaunchWatcher = watcher;
 
         // 显示实时日志
-        if (currentLaunchOptions.isTest)
+        if (currentLaunchOptions.IsTest)
         {
             if (ModMain.frmLogLeft is null)
                 ModBase.RunInUiWait(() => ModMain.frmLogLeft = new PageLogLeft());
@@ -3630,7 +3630,7 @@ public static class ModLaunch
         // Minecraft
         text = text.Replace("{java}", replacer(mcLaunchJavaSelected?.Installation.JavaFolder));
         text = text.Replace("{minecraft}", replacer(ModMinecraft.mcFolderSelected));
-        if (ModMinecraft.McInstanceSelected?.isLoaded == true)
+        if (ModMinecraft.McInstanceSelected?.IsLoaded == true)
         {
             text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
             text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
@@ -3638,10 +3638,10 @@ public static class ModLaunch
             text = text.Replace("{verindie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
             text = text.Replace("{name}", replacer(ModMinecraft.McInstanceSelected.Name));
             if (new[] { "unknown", "old", "pending" }.Contains(
-                    ModMinecraft.McInstanceSelected.Info.vanillaName.ToLower()))
+                    ModMinecraft.McInstanceSelected.Info.VanillaName.ToLower()))
                 text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Name));
             else
-                text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.vanillaName));
+                text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.VanillaName));
         }
         else
         {
@@ -3656,9 +3656,9 @@ public static class ModLaunch
         // 登录信息
         if (mcLoginLoader.State == ModBase.LoadState.Finished)
         {
-            text = text.Replace("{user}", replacer(mcLoginLoader.output.name));
-            text = text.Replace("{uuid}", replacer(mcLoginLoader.output.uuid?.ToLower()));
-            switch (mcLoginLoader.input.type)
+            text = text.Replace("{user}", replacer(mcLoginLoader.output.Name));
+            text = text.Replace("{uuid}", replacer(mcLoginLoader.output.Uuid?.ToLower()));
+            switch (mcLoginLoader.input.LoginType)
             {
                 case McLoginType.Legacy:
                 {

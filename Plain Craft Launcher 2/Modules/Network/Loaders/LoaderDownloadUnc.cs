@@ -32,7 +32,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{uuid}");
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)

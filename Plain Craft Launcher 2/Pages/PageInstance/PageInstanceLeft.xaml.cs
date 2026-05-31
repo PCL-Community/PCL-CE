@@ -10,7 +10,7 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     当前显示设置的 MC 实例。
     /// </summary>
-    public static ModMinecraft.McInstance instance = null;
+    public static ModMinecraft.Instance instance = null;
 
     public PageInstanceLeft()
     {

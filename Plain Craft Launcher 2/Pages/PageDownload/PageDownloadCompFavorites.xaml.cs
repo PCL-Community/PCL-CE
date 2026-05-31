@@ -217,7 +217,7 @@ public partial class PageDownloadCompFavorites
         PanContentList.Children.Clear();
         var dataSource = IsSearching ? searchResult : compItemList;
         foreach (var item in dataSource)
-            GetSuitListContainer(IsSearching ? -1 : (int)((ModComp.CompProject)item.Tag).type).ContentList.Children
+            GetSuitListContainer(IsSearching ? -1 : (int)((ModComp.CompProject)item.Tag).Type).ContentList.Children
                 .Add(item);
         foreach (var item in itemList)
         {
@@ -231,7 +231,7 @@ public partial class PageDownloadCompFavorites
     {
         foreach (var item in itemList)
             item.Card.Title = string.Format(item.Title,
-                compItemList.Where(e => (int)((ModComp.CompProject)e.Tag).type == item.CompType).Count());
+                compItemList.Where(e => (int)((ModComp.CompProject)e.Tag).Type == item.CompType).Count());
         if (!itemList.Any(e => e.CompType.Equals(-1)))
             return;
         var searchItem = itemList.First(e => e.CompType.Equals(-1));
@@ -289,7 +289,7 @@ public partial class PageDownloadCompFavorites
     private void ListItemBuild(MyListItem compItem)
     {
         compItem.Type = MyListItem.CheckType.CheckBox;
-        var compId = ((ModComp.CompProject)compItem.Tag).id;
+        var compId = ((ModComp.CompProject)compItem.Tag).Id;
         // ----备注----
         var notes = "";
         CurrentFavTarget.Notes.TryGetValue(compId, out notes);
@@ -339,7 +339,7 @@ public partial class PageDownloadCompFavorites
                 {
                     page = FormMain.PageType.CompDetail,
                     additional = ((ModComp.CompProject)compItem.Tag, new List<string>(), string.Empty, ModComp.CompLoaderType.Any,
-                        ((ModComp.CompProject)compItem.Tag).type, null, null, null)
+                        ((ModComp.CompProject)compItem.Tag).Type, null, null, null)
                 });
         // ---其它事件---
         compItem.Changed += ItemCheckStatusChanged;
@@ -484,7 +484,7 @@ public partial class PageDownloadCompFavorites
         try
         {
             ModBase.ClipboardSet(
-                ModComp.CompFavorites.GetShareCode(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).id)
+                ModComp.CompFavorites.GetShareCode(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id)
                     .ToHashSet()));
             Items_SetSelectAll(false);
         }
@@ -510,17 +510,17 @@ public partial class PageDownloadCompFavorites
             foreach (var Item in selectedItemList) // 获取共同支持的 ModLoader
             {
                 var proj = (ModComp.CompProject)Item.Tag;
-                if (proj.type == ModComp.CompType.Mod)
+                if (proj.Type == ModComp.CompType.Mod)
                 {
                     hasMod = true;
                     if (loaderFirstSet)
                     {
                         loaderFirstSet = false;
-                        supportedModLoader = proj.modLoaders;
+                        supportedModLoader = proj.ModLoaders;
                     }
                     else
                     {
-                        supportedModLoader = supportedModLoader.Intersect(proj.modLoaders).ToList();
+                        supportedModLoader = supportedModLoader.Intersect(proj.ModLoaders).ToList();
                     }
                 }
             }
@@ -571,7 +571,7 @@ public partial class PageDownloadCompFavorites
                         try
                         {
                             allFiles.Add(ModComp.CompFilesGet(Item, ModComp.CompRequest.IsFromCurseForge(Item))
-                                .Where(i => i.type != ModComp.CompType.Mod || i.modLoaders.Contains(desiredModLoader))
+                                .Where(i => i.Type != ModComp.CompType.Mod || i.ModLoaders.Contains(desiredModLoader))
                                 .ToList());
                         }
                         catch (Exception ex)
@@ -588,7 +588,7 @@ public partial class PageDownloadCompFavorites
                 // 求取共同的版本
                 foreach (var Item in allFiles)
                 {
-                    var current = getAllVersionList(Item.Select(i => i.gameVersions).ToList());
+                    var current = getAllVersionList(Item.Select(i => i.GameVersions).ToList());
                     if (versionFirstSet)
                     {
                         versionFirstSet = false;
@@ -633,10 +633,10 @@ public partial class PageDownloadCompFavorites
                 foreach (var Target in allFiles)
                 {
                     // 按照发布日期排序
-                    var finalChoices = Target.Where(i => i.gameVersions.Contains(selectedVersionStr)).ToList();
-                    finalChoices.Sort((a, b) => a.releaseDate > b.releaseDate);
+                    var finalChoices = Target.Where(i => i.GameVersions.Contains(selectedVersionStr)).ToList();
+                    finalChoices.Sort((a, b) => a.ReleaseDate > b.ReleaseDate);
                     // 获取文件名
-                    var targetProject = ModComp.compProjectCache[finalChoices.First().projectId];
+                    var targetProject = ModComp.compProjectCache[finalChoices.First().ProjectId];
                     var fileName = ModComp.CompFileNameGet(targetProject, finalChoices.First());
                     // 选择最新版本进行下载
                     res.Add(finalChoices.First().ToNetFile(System.IO.Path.Combine(saveFolder, fileName)));
@@ -665,7 +665,7 @@ public partial class PageDownloadCompFavorites
                 OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
             };
 
-            checkLoader.Start(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).id).ToList());
+            checkLoader.Start(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(checkLoader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
             ModMain.frmMain.BtnExtraDownload.Ribble();
@@ -697,7 +697,7 @@ public partial class PageDownloadCompFavorites
                 selectedItemList.Remove(item);
             if (searchResult.Contains(item))
                 searchResult.Remove(item);
-            CurrentFavTarget.Favs.Remove(((ModComp.CompProject)item.Tag).id);
+            CurrentFavTarget.Favs.Remove(((ModComp.CompProject)item.Tag).Id);
             ModComp.CompFavorites.Save();
             if (!compItemList.Any())
                 ModMain.frmDownloadCompFavorites.PageLoaderRestart();
@@ -858,7 +858,7 @@ public partial class PageDownloadCompFavorites
     private void HintGetFail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         var content = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Content") + "\r\n" + "\r\n";
-        var failIds = loader.input.Except(loader.output.Select(i => i.id).ToList()).ToList();
+        var failIds = loader.input.Except(loader.output.Select(i => i.Id).ToList()).ToList();
         foreach (var Id in failIds)
             content += $" - {Id}" + "\r\n";
         ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"), button2: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"), button3: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
@@ -894,12 +894,12 @@ public partial class PageDownloadCompFavorites
                     continue;
                 var entry = (ModComp.CompProject)Item.Tag;
                 var searchSource = new List<ModBase.SearchSource>();
-                searchSource.Add(new ModBase.SearchSource(entry.rawName, 1d));
-                if (entry.description is not null && !string.IsNullOrEmpty(entry.description))
-                    searchSource.Add(new ModBase.SearchSource(entry.description, 0.4d));
-                if ((entry.TranslatedName ?? "") != (entry.rawName ?? ""))
+                searchSource.Add(new ModBase.SearchSource(entry.RawName, 1d));
+                if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
+                    searchSource.Add(new ModBase.SearchSource(entry.Description, 0.4d));
+                if ((entry.TranslatedName ?? "") != (entry.RawName ?? ""))
                     searchSource.Add(new ModBase.SearchSource(entry.TranslatedName, 1d));
-                searchSource.Add(new ModBase.SearchSource(string.Join("", entry.tags), 0.2d));
+                searchSource.Add(new ModBase.SearchSource(string.Join("", entry.Tags), 0.2d));
                 queryList.Add(new ModBase.SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
             }
 

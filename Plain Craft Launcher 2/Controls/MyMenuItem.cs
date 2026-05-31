@@ -16,7 +16,7 @@ public class MyMenuItem : MenuItem
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyMenuItem()
     {
@@ -65,12 +65,12 @@ public class MyMenuItem : MenuItem
                 {
                     ModAnimation.AaColor(this, BackgroundProperty, BackName, Time),
                     ModAnimation.AaColor(this, ForegroundProperty, ForeName, Time)
-                }, "MyMenuItem Color " + uuid);
+                }, "MyMenuItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyMenuItem Color " + uuid);
+            ModAnimation.AniStop("MyMenuItem Color " + Uuid);
             SetResourceReference(BackgroundProperty, BackName);
             SetResourceReference(ForegroundProperty, ForeName);
         }

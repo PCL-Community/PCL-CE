@@ -82,8 +82,8 @@ public static class ModLocalComp
         /// </summary>
         public string GetLogo()
         {
-            if (Comp is not null && Comp.logoUrl is not null)
-                return Comp.logoUrl;
+            if (Comp is not null && Comp.LogoUrl is not null)
+                return Comp.LogoUrl;
             if (Logo is not null)
                 return Logo;
 
@@ -1917,7 +1917,7 @@ public static class ModLocalComp
 
         public KeyValuePair<List<LocalCompFile>, JsonObject> detailInfo;
         public PageInstanceCompResource frm;
-        public ModMinecraft.McInstance gameVersion;
+        public ModMinecraft.Instance gameVersion;
         public List<CompLoaderType> loaders;
     }
 
@@ -2007,9 +2007,9 @@ public static class ModLocalComp
                             {
                                 if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
                                     if (!(PageInstanceLeft.instance is not null &&
-                                          PageInstanceLeft.instance.Info.hasForge &&
+                                          PageInstanceLeft.instance.Info.HasForge &&
                                           PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
-                                          (PageInstanceLeft.instance.Info.vanillaName ?? "")))
+                                          (PageInstanceLeft.instance.Info.VanillaName ?? "")))
                                         continue;
 
                                 if (LocalCompFile.IsCompFile(File.FullName, loader.input.compType))
@@ -2079,7 +2079,7 @@ public static class ModLocalComp
                 // 读取 Comp 缓存
                 if (ModEntry.State == LocalCompFile.LocalFileStatus.Unavailable)
                     continue;
-                var cacheKey = ModEntry.ModrinthHash + loader.input.gameVersion.Info.vanillaName +
+                var cacheKey = ModEntry.ModrinthHash + loader.input.gameVersion.Info.VanillaName +
                                loader.input.loaders.Join("");
                 if (cache.ContainsKey(cacheKey))
                 {
@@ -2140,7 +2140,7 @@ public static class ModLocalComp
         // 获取作为检查目标的加载器和版本
         var modLoaders = loader.input.loaders;
         var compType = loader.input.compType;
-        var mcInstance = loader.input.gameVersion.Info.vanillaName;
+        var mcInstance = loader.input.gameVersion.Info.VanillaName;
 
         // 开始网络获取
         ModBase.Log($"[Mod] 目标加载器：{string.Join("/", modLoaders)}，版本：{mcInstance}");
@@ -2180,7 +2180,7 @@ public static class ModLocalComp
 
                     // 记录对应的 CompFile
                     var fileInfo = new CompFile((JsonObject)modrinthVersion[Entry.ModrinthHash], CompType.Mod);
-                    if (Entry.compFile is null || Entry.compFile.releaseDate < fileInfo.releaseDate)
+                    if (Entry.compFile is null || Entry.compFile.ReleaseDate < fileInfo.ReleaseDate)
                         Entry.compFile = fileInfo;
                 }
 
@@ -2196,7 +2196,7 @@ public static class ModLocalComp
                 foreach (var ProjectJson in modrinthProject)
                 {
                     var project = new CompProject((JsonObject)ProjectJson);
-                    foreach (var Entry in modrinthMapping[project.id]) Entry.Comp = project;
+                    foreach (var Entry in modrinthMapping[project.Id]) Entry.Comp = project;
                 }
 
                 ModBase.Log("[Mod] 已从 Modrinth 获取本地 Mod 信息，继续获取更新信息");
@@ -2217,19 +2217,19 @@ public static class ModLocalComp
                     if (!updateFile.Available) continue;
 
                     if (ModBase.modeDebug)
-                        ModBase.Log($"[Mod] 本地文件 {Entry.compFile.fileName} 在 Modrinth 上的最新版为 {updateFile.fileName}");
-                    if (Entry.compFile.releaseDate >= updateFile.releaseDate ||
-                        Entry.compFile.hash == updateFile.hash) continue;
+                        ModBase.Log($"[Mod] 本地文件 {Entry.compFile.FileName} 在 Modrinth 上的最新版为 {updateFile.FileName}");
+                    if (Entry.compFile.ReleaseDate >= updateFile.ReleaseDate ||
+                        Entry.compFile.Hash == updateFile.Hash) continue;
 
                     // 设置更新日志与更新文件
-                    if (Entry.UpdateFile is not null && updateFile.hash == Entry.UpdateFile.hash)
+                    if (Entry.UpdateFile is not null && updateFile.Hash == Entry.UpdateFile.Hash)
                     {
                         Entry.changelogUrls.Add(
                             $"https://modrinth.com/mod/{modrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={mcInstance}");
-                        Entry.UpdateFile.downloadUrls.AddRange(updateFile.downloadUrls);
+                        Entry.UpdateFile.DownloadUrls.AddRange(updateFile.DownloadUrls);
                         Entry.UpdateFile = updateFile;
                     }
-                    else if (Entry.UpdateFile is null || updateFile.releaseDate >= Entry.UpdateFile.releaseDate)
+                    else if (Entry.UpdateFile is null || updateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate)
                     {
                         Entry.changelogUrls = new List<string>
                         {
@@ -2316,15 +2316,15 @@ public static class ModLocalComp
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
         var modLoaders = new List<CompLoaderType>();
-        if (PageInstanceLeft.instance.Info.hasForge)
+        if (PageInstanceLeft.instance.Info.HasForge)
             modLoaders.Add(CompLoaderType.Forge);
-        if (PageInstanceLeft.instance.Info.hasNeoForge)
+        if (PageInstanceLeft.instance.Info.HasNeoForge)
             modLoaders.Add(CompLoaderType.NeoForge);
-        if (PageInstanceLeft.instance.Info.hasFabric)
+        if (PageInstanceLeft.instance.Info.HasFabric)
             modLoaders.Add(CompLoaderType.Fabric);
-        if (PageInstanceLeft.instance.Info.hasQuilt)
+        if (PageInstanceLeft.instance.Info.HasQuilt)
             modLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
-        if (PageInstanceLeft.instance.Info.hasLiteLoader)
+        if (PageInstanceLeft.instance.Info.HasLiteLoader)
             modLoaders.Add(CompLoaderType.LiteLoader);
         if (!modLoaders.Any())
             modLoaders.AddRange(new[]
@@ -2375,7 +2375,7 @@ public static class ModLocalComp
     /// <returns>
     ///     如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
     /// </returns>
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.McInstance instance, string modId,
+    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string modId,
         string mainKeyword, params string[] keywords)
     {
         if (modId is null)
@@ -2383,7 +2383,7 @@ public static class ModLocalComp
         return GetModLocalCompByKeywords(instance, new[] { modId }, mainKeyword, keywords);
     }
 
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.McInstance instance, string[] modIds,
+    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string[] modIds,
         string mainKeyword, params string[] keywords)
     {
         if (!instance.Modable)

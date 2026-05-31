@@ -44,7 +44,7 @@ public partial class PageDownloadCompDetail
         PanIntro.Children.Insert(0, _compItem);
 
         // 决定按钮显示
-        BtnIntroWeb.Text = _project.fromCurseForge ? "CurseForge" : "Modrinth";
+        BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
         BtnIntroWiki.Visibility = _project.WikiId == 0 ? Visibility.Collapsed : Visibility.Visible;
 
         ModAnimation.AniControlEnabled -= 1;
@@ -58,7 +58,7 @@ public partial class PageDownloadCompDetail
             // 获取基本信息
             var file = (ModComp.CompFile)sender.Tag;
             var loaderName =
-                $"{(_project.fromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.ModpackDownload")}：{_project.TranslatedName} ";
+                $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.ModpackDownload")}：{_project.TranslatedName} ";
 
             // 获取实例名
             var packName = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "")
@@ -74,13 +74,13 @@ public partial class PageDownloadCompDetail
             // 构造步骤加载器
             var loaders = new List<ModLoader.LoaderBase>();
             var target =
-                $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.fromCurseForge ? "zip" : "mrpack")}";
+                $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"), new List<DownloadFile> { file.ToNetFile(target) })
                 { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
                 _ => ModModpack.ModpackInstall(target, instanceName,
-                    System.IO.File.Exists(logoFileAddress) ? logoFileAddress : null, file.projectId,
+                    System.IO.File.Exists(logoFileAddress) ? logoFileAddress : null, file.ProjectId,
                     true)) { ProgressWeight = 0.1d });
 
             // 启动
@@ -128,27 +128,27 @@ public partial class PageDownloadCompDetail
         {
             // 获取基本信息
             var file = (ModComp.CompFile)sender.Tag;
-            var loaderName = $"{(_project.fromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project.TranslatedName} ";
+            var loaderName = $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project.TranslatedName} ";
 
             // 确认默认保存位置
             string defaultFolder = null;
             var subFolder = @"saves\";
-            Func<ModMinecraft.McInstance, bool> isVersionSuitable = null;
+            Func<ModMinecraft.Instance, bool> isVersionSuitable = null;
             // 获取资源所需的加载器
             var allowedLoaders = new List<ModComp.CompLoaderType>();
-            if (file.modLoaders.Any())
-                allowedLoaders = file.modLoaders;
-            else if (_project.modLoaders.Any()) allowedLoaders = _project.modLoaders;
+            if (file.ModLoaders.Any())
+                allowedLoaders = file.ModLoaders;
+            else if (_project.ModLoaders.Any()) allowedLoaders = _project.ModLoaders;
             ModBase.Log("[Comp] 世界要求的加载器种类：" + (allowedLoaders.Any() ? allowedLoaders.Join(" / ") : "无要求"));
             // 判断某个版本是否符合资源要求
             isVersionSuitable = version =>
             {
                 if (version is null)
                     return false;
-                if (!version.isLoaded)
+                if (!version.IsLoaded)
                     version.Load();
-                if (file.gameVersions.Any(v => v.Contains(".")) && !file.gameVersions.Any(v =>
-                        v.Contains(".") && (v ?? "") == (version.Info.vanillaName ?? "")))
+                if (file.GameVersions.Any(v => v.Contains(".")) && !file.GameVersions.Any(v =>
+                        v.Contains(".") && (v ?? "") == (version.Info.VanillaName ?? "")))
                     return false;
                 // 加载器
                 if (!allowedLoaders.Any())
@@ -156,9 +156,9 @@ public partial class PageDownloadCompDetail
                 return false;
             };
             // 获取常规资源默认下载位置
-            if (cachedFolder.ContainsKey(file.type) && !string.IsNullOrEmpty(cachedFolder[file.type]))
+            if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
             {
-                defaultFolder = cachedFolder.GetOrDefault(file.type,
+                defaultFolder = cachedFolder.GetOrDefault(file.Type,
                     ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.exePath);
                 ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
             }
@@ -201,7 +201,7 @@ public partial class PageDownloadCompDetail
                 }
             }
 
-            var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Comp.Detail.SelectWorldInstallLocation"), file.fileName, Lang.Text("Download.Comp.Detail.WorldFile.Filter"),
+            var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Comp.Detail.SelectWorldInstallLocation"), file.FileName, Lang.Text("Download.Comp.Detail.WorldFile.Filter"),
                 defaultFolder);
             if (string.IsNullOrEmpty(target))
                 return;
@@ -247,7 +247,7 @@ public partial class PageDownloadCompDetail
         {
             try
             {
-                var desc = file.type switch
+                var desc = file.Type switch
                 {
                     ModComp.CompType.ModPack => Lang.Text("Download.Comp.Type.Modpack"),
                     ModComp.CompType.Mod => Lang.Text("Download.Comp.Type.Mod"),
@@ -260,10 +260,10 @@ public partial class PageDownloadCompDetail
 
                 // 确认默认保存位置
                 string defaultFolder = null;
-                if (file.type != ModComp.CompType.ModPack)
+                if (file.Type != ModComp.CompType.ModPack)
                 {
                     var subFolder = "";
-                    switch (file.type)
+                    switch (file.Type)
                     {
                         case ModComp.CompType.Mod: subFolder = "mods\\"; break;
                         case ModComp.CompType.ResourcePack: subFolder = "resourcepacks\\"; break;
@@ -274,40 +274,40 @@ public partial class PageDownloadCompDetail
 
                     // 获取资源所需的加载器
                     var allowedLoaders = new List<ModComp.CompLoaderType>();
-                    if (file.modLoaders.Any())
-                        allowedLoaders = file.modLoaders;
-                    else if (_project.modLoaders.Any()) allowedLoaders = _project.modLoaders;
+                    if (file.ModLoaders.Any())
+                        allowedLoaders = file.ModLoaders;
+                    else if (_project.ModLoaders.Any()) allowedLoaders = _project.ModLoaders;
                     ModBase.Log(
                         $"[Comp] {desc}要求的加载器种类：{(allowedLoaders.Any() ? string.Join(" / ", allowedLoaders) : "无要求")}");
 
                     // 判断某个版本是否符合资源要求 (局部函数)
-                    Func<ModMinecraft.McInstance, bool> isVersionSuitable = version =>
+                    Func<ModMinecraft.Instance, bool> isVersionSuitable = version =>
                     {
                         if (version is null) return false;
-                        if (!version.isLoaded) version.Load();
+                        if (!version.IsLoaded) version.Load();
 
                         // 只对 Mod 和数据包进行版本检测
-                        if (file.type == ModComp.CompType.Mod || file.type == ModComp.CompType.DataPack)
-                            if (file.gameVersions.Any(v => v.Contains(".")) &&
-                                !file.gameVersions.Any(v => v.Contains(".") && v == version.Info.vanillaName))
+                        if (file.Type == ModComp.CompType.Mod || file.Type == ModComp.CompType.DataPack)
+                            if (file.GameVersions.Any(v => v.Contains(".")) &&
+                                !file.GameVersions.Any(v => v.Contains(".") && v == version.Info.VanillaName))
                                 return false;
 
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.hasForge) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasForge) return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
-                            (version.Info.hasFabric || version.Info.hasLegacyFabric)) return true;
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.hasNeoForge)
+                            (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.HasNeoForge)
                             return true;
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && version.Info.hasLiteLoader)
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.LiteLoader) && version.Info.HasLiteLoader)
                             return true;
                         return false;
                     };
 
                     // 获取常规资源默认下载位置逻辑
-                    if (cachedFolder.ContainsKey(file.type) && !string.IsNullOrEmpty(cachedFolder[file.type]))
+                    if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
                     {
-                        defaultFolder = cachedFolder.GetOrDefault(file.type,
+                        defaultFolder = cachedFolder.GetOrDefault(file.Type,
                             ModMinecraft.McInstanceSelected?.PathIndie ?? ModBase.exePath);
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
                     }
@@ -360,9 +360,9 @@ public partial class PageDownloadCompDetail
                 {
                     var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Comp.Detail.SelectSaveLocation"),
                         fileName, Lang.Text("Download.Comp.Detail.ResourceFile.Filter", desc) + "|" +
-                                  (file.type == ModComp.CompType.Mod
-                                      ? file.fileName.EndsWith(".litemod") ? "*.litemod" : "*.jar"
-                                      : file.fileName.EndsWith(".mrpack")
+                                  (file.Type == ModComp.CompType.Mod
+                                      ? file.FileName.EndsWith(".litemod") ? "*.litemod" : "*.jar"
+                                      : file.FileName.EndsWith(".mrpack")
                                           ? "*.mrpack"
                                           : "*.zip"),
                         defaultFolder);
@@ -373,10 +373,10 @@ public partial class PageDownloadCompDetail
                     var targetDir = ModBase.GetPathFromFullPath(target);
                     if (target != defaultFolder)
                     {
-                        if (cachedFolder.ContainsKey(file.type))
-                            cachedFolder[file.type] = targetDir;
+                        if (cachedFolder.ContainsKey(file.Type))
+                            cachedFolder[file.Type] = targetDir;
                         else
-                            cachedFolder.Add(file.type, targetDir);
+                            cachedFolder.Add(file.Type, targetDir);
                     }
 
                     // 构造下载任务
@@ -411,7 +411,7 @@ public partial class PageDownloadCompDetail
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite(_project.website);
+        ModBase.OpenWebsite(_project.Website);
     }
 
     private void BtnIntroWiki_Click(object sender, EventArgs e)
@@ -431,8 +431,8 @@ public partial class PageDownloadCompDetail
 
     private void BtnIntroLinkCopy_Click(object sender, EventArgs e)
     {
-        ModComp.CompClipboard.currentText = _project.website;
-        ModBase.ClipboardSet(_project.website);
+        ModComp.CompClipboard.currentText = _project.Website;
+        ModBase.ClipboardSet(_project.Website);
     }
 
     // 翻译简介
@@ -442,7 +442,7 @@ public partial class PageDownloadCompDetail
         var chineseDescription = await _project.ChineseDescription;
         if (chineseDescription is null)
             return;
-        ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionTranslationResult", _project.description,
+        ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionTranslationResult", _project.Description,
             chineseDescription));
     }
 
@@ -473,7 +473,7 @@ public partial class PageDownloadCompDetail
         _compFileLoader = new ModLoader.LoaderTask<int, List<ModComp.CompFile>>("Comp File", task =>
         {
             LoadTargetFromAdditional();
-            var result = ModComp.CompFilesGet(_project.id, _project.fromCurseForge);
+            var result = ModComp.CompFilesGet(_project.Id, _project.FromCurseForge);
             if (task.IsAborted)
                 return;
             task.output = result;
@@ -588,7 +588,7 @@ public partial class PageDownloadCompDetail
         var results = _compFileLoader.output;
         if (_pageType == ModComp.CompType.Any)
         {
-            results = results.Where(r => r.type != ModComp.CompType.Plugin).ToList();
+            results = results.Where(r => r.Type != ModComp.CompType.Plugin).ToList();
         }
         else if (_pageType == ModComp.CompType.Shader || _pageType == ModComp.CompType.ResourcePack)
         {
@@ -596,7 +596,7 @@ public partial class PageDownloadCompDetail
         // 不筛选光影和资源包，否则原版光影会因为是资源包格式而被过滤（Meloong-Git/#6473）
         else
         {
-            results = results.Where(r => r.type == _pageType).ToList();
+            results = results.Where(r => r.Type == _pageType).ToList();
         }
 
         return results;
@@ -612,10 +612,10 @@ public partial class PageDownloadCompDetail
 
         void updateFilters()
         {
-            instanceFilters = results.SelectMany(v => v.gameVersions)
+            instanceFilters = results.SelectMany(v => v.GameVersions)
                 .Select(v => GetGroupedVersionName(v, groupedDrop, groupedOld)).Distinct()
                 .OrderByDescending(s => s, new ModMinecraft.VersionComparer()).ToList();
-            modLoaderFilters = results.SelectMany(v => v.modLoaders).Select(l => l.ToString()).Distinct()
+            modLoaderFilters = results.SelectMany(v => v.ModLoaders).Select(l => l.ToString()).Distinct()
                 .OrderByDescending(s => s).ToList();
         }
 
@@ -728,7 +728,7 @@ public partial class PageDownloadCompDetail
             MyRadioButton modLoaderToCheck = null;
             if (!string.IsNullOrEmpty(_targetInstance))
             {
-                var targetFile = results.FirstOrDefault(v => v.gameVersions.Contains(_targetInstance));
+                var targetFile = results.FirstOrDefault(v => v.GameVersions.Contains(_targetInstance));
                 if (targetFile is not null)
                 {
                     var targetGroup = GetGroupedVersionName(_targetInstance, groupedDrop, groupedOld);
@@ -748,7 +748,7 @@ public partial class PageDownloadCompDetail
             if (_pageType == ModComp.CompType.Mod)
                 if (_targetLoader != ModComp.CompLoaderType.Any)
                 {
-                    var targetFile = results.FirstOrDefault(v => v.modLoaders.Contains(_targetLoader));
+                    var targetFile = results.FirstOrDefault(v => v.ModLoaders.Contains(_targetLoader));
                     if (targetFile is not null)
                     {
                         var children = _pageType == ModComp.CompType.Mod
@@ -796,7 +796,7 @@ public partial class PageDownloadCompDetail
             new HashSet<ModComp.CompLoaderType>(Enum.GetValues(typeof(ModComp.CompLoaderType))
                 .Cast<ModComp.CompLoaderType>());
         var ignoreQuilt = Config.Download.Comp.IgnoreQuilt;
-        var hasMultipleLoaders = _project.modLoaders.Count > 1;
+        var hasMultipleLoaders = _project.ModLoaders.Count > 1;
 
         // 2. 核心数据归类 (使用 Dictionary 配合 HashSet 去重)
         var dict = new SortedDictionary<string, List<ModComp.CompFile>>(new CardSorter(targetCardName));
@@ -808,7 +808,7 @@ public partial class PageDownloadCompDetail
         foreach (var version in results)
         {
             // 处理普通卡片归类
-            foreach (var gameVersion in version.gameVersions)
+            foreach (var gameVersion in version.GameVersions)
             {
                 // 筛选器预检查
                 var currentGroupedName = GetGroupedVersionName(gameVersion, groupedDrop, groupedOld);
@@ -818,10 +818,10 @@ public partial class PageDownloadCompDetail
                 var loaders = new List<string>();
 
                 // 判定 Loader 逻辑
-                if (hasMultipleLoaders && version.type == ModComp.CompType.Mod &&
+                if (hasMultipleLoaders && version.Type == ModComp.CompType.Mod &&
                     ModMinecraft.McInstanceInfo.IsFormatFit(verName))
                 {
-                    foreach (var loader in version.modLoaders)
+                    foreach (var loader in version.ModLoaders)
                     {
                         if (loader == ModComp.CompLoaderType.Quilt && ignoreQuilt)
                             continue;
@@ -856,10 +856,10 @@ public partial class PageDownloadCompDetail
                                     GetGroupedVersionName(_targetInstance, groupedDrop, groupedOld)
                                         .StartsWithF(_instanceFilter);
 
-                if (isMatchFilter && version.gameVersions.Contains(_targetInstance))
-                    if (_targetLoader == ModComp.CompLoaderType.Any || version.modLoaders.Contains(_targetLoader))
+                if (isMatchFilter && version.GameVersions.Contains(_targetInstance))
+                    if (_targetLoader == ModComp.CompLoaderType.Any || version.ModLoaders.Contains(_targetLoader))
                         // 再次检查 version 是否符合筛选器（针对该文件的所有游戏版本）
-                        if (_instanceFilter is null || version.gameVersions.Any(v =>
+                        if (_instanceFilter is null || version.GameVersions.Any(v =>
                                 (GetGroupedVersionName(v, groupedDrop, groupedOld) ?? "") == (_instanceFilter ?? "")))
                             AddVersionToDict(dict, versionDuplicateChecker, targetCardName, version);
             }
@@ -905,12 +905,12 @@ public partial class PageDownloadCompDetail
                 {
                     var list = (List<ModComp.CompFile>)stack.Tag;
                     // 排序和去重检查
-                    list.Sort((a, b) => b.releaseDate.CompareTo(a.releaseDate));
-                    var distinctCount = list.Select(f => f.displayName).Distinct().Count();
+                    list.Sort((a, b) => b.ReleaseDate.CompareTo(a.ReleaseDate));
+                    var distinctCount = list.Select(f => f.DisplayName).Distinct().Count();
                     var badDisplayName = distinctCount != list.Count;
 
                     // 批量添加子项
-                    switch (_project.type)
+                    switch (_project.Type)
                     {
                         case ModComp.CompType.ModPack:
                         {

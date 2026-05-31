@@ -28,7 +28,7 @@ public partial class PageDownloadLegacyFabric
         // 结果数据化
         try
         {
-            var versions = (JsonArray)ModDownload.dlLegacyFabricListLoader.output.value["installer"];
+            var versions = (JsonArray)ModDownload.dlLegacyFabricListLoader.output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in versions)
                 PanVersions.Children.Add(ModDownloadLib.LegacyFabricDownloadListItem((JsonObject)Version,

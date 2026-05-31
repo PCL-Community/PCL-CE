@@ -16,7 +16,7 @@ public partial class PageLaunchLeft
     private double actualUsedHeight;
     private double actualUsedWidth;
     private int btnLaunchState;
-    private ModMinecraft.McInstance btnLaunchVersion;
+    private ModMinecraft.Instance btnLaunchVersion;
     private bool isHeightAnimating;
     public interface ILoginPage { void Reload(); }
 
@@ -118,7 +118,7 @@ public partial class PageLaunchLeft
                     ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModMinecraft.mcFolderSelected,
                         ModBase.LogLevel.Debug);
                 ModMinecraft.mcFolderListLoader.WaitForExit(isForceRestart: true);
-                States.Game.SelectedFolder = ModMinecraft.mcFolderList[0].location.Replace(ModBase.exePath, "$");
+                States.Game.SelectedFolder = ModMinecraft.mcFolderList[0].Location.Replace(ModBase.exePath, "$");
             }
 
             ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.mcFolderSelected);
@@ -149,7 +149,7 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 版本实例
             var selection = States.Game.SelectedInstance;
-            var instance = selection == "" ? null : new ModMinecraft.McInstance(selection);
+            var instance = selection == "" ? null : new ModMinecraft.Instance(selection);
             if (instance is null || !instance.PathInstance.StartsWithF(ModMinecraft.mcFolderSelected) ||
                 !instance.Check())
             {
@@ -160,7 +160,7 @@ public partial class PageLaunchLeft
                     ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (ModMinecraft.mcInstanceList.Count == 0 ||
-                    ModMinecraft.mcInstanceList.First().Value[0].logo.Contains("RedstoneBlock"))
+                    ModMinecraft.mcInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
                 {
                     instance = null;
                     States.Game.SelectedInstance = "";
@@ -415,7 +415,7 @@ public partial class PageLaunchLeft
                 showProgress = 1d; // 如果已经完成了，就不卖关子了
             // 文本
             LabLaunchingTitle.Text = isLaunched ? Lang.Text("Launch.Status.Title.Launched") :
-                ModLaunch.currentLaunchOptions.saveBatch is null ? Lang.Text("Launch.Status.Title.Launching") : Lang.Text("Launch.Status.Title.ExportingScript");
+                ModLaunch.currentLaunchOptions.SaveBatch is null ? Lang.Text("Launch.Status.Title.Launching") : Lang.Text("Launch.Status.Title.ExportingScript");
             LabLaunchingProgress.Text = Lang.Number(showProgress, "P2");
             var hasLaunchDownloader = false;
             try
@@ -545,7 +545,7 @@ public partial class PageLaunchLeft
     public void PageChangeToLaunching()
     {
         // 修改验证方式
-        switch (ModProfile.selectedProfile.type)
+        switch (ModProfile.selectedProfile.Type)
         {
             case ModLaunch.McLoginType.Legacy:
             {
@@ -559,8 +559,8 @@ public partial class PageLaunchLeft
             }
             case ModLaunch.McLoginType.Auth:
             {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ModProfile.selectedProfile.serverName)
-                    ? " / " + ModProfile.selectedProfile.serverName
+                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ModProfile.selectedProfile.ServerName)
+                    ? " / " + ModProfile.selectedProfile.ServerName
                     : "");
                 break;
             }
@@ -569,7 +569,7 @@ public partial class PageLaunchLeft
         // 初始化页面
         LabLaunchingName.Text = ModMinecraft.McInstanceSelected.Name;
         LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
-        LabLaunchingTitle.Text = ModLaunch.currentLaunchOptions?.saveBatch is null
+        LabLaunchingTitle.Text = ModLaunch.currentLaunchOptions?.SaveBatch is null
             ? Lang.Text("Launch.Status.Title.Launching")
             : Lang.Text("Launch.Status.Title.ExportingScript");
         LabLaunchingProgress.Text = Lang.Number(0d, "P2");
@@ -811,7 +811,7 @@ public partial class PageLaunchLeft
     {
         // 获取名称
         return new ModBase.EqualableList<string>
-            { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
+            { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
     private static void SkinMsLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
@@ -828,8 +828,8 @@ public partial class PageLaunchLeft
         var uuid = data.input[1];
         if (ModProfile.selectedProfile is not null)
         {
-            userName = ModProfile.selectedProfile.username;
-            uuid = ModProfile.selectedProfile.uuid;
+            userName = ModProfile.selectedProfile.Username;
+            uuid = ModProfile.selectedProfile.Uuid;
         }
 
         if (string.IsNullOrEmpty(userName))
@@ -895,7 +895,7 @@ public partial class PageLaunchLeft
     private static ModBase.EqualableList<string> SkinLegacyInput()
     {
         return new ModBase.EqualableList<string>
-            { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
+            { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
     private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
@@ -922,7 +922,7 @@ public partial class PageLaunchLeft
     {
         // 获取名称
         return new ModBase.EqualableList<string>
-            { ModProfile.selectedProfile.username, ModProfile.selectedProfile.uuid };
+            { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
     private static void SkinAuthLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)

@@ -148,7 +148,7 @@ public partial class PageSelectRight
                     if (string.IsNullOrEmpty(searchText))
                         return true;
                     return v.Name.ToLower().Contains(searchText) ||
-                           (v.desc is not null && v.desc.ToLower().Contains(searchText)) || v.GetDefaultDescription()
+                           (v.Desc is not null && v.Desc.ToLower().Contains(searchText)) || v.GetDefaultDescription()
                                .Replace(",", "").ToLower().Trim().Contains(searchText);
                 }).ToList();
                 if (filteredInstances.Count == 0)
@@ -181,21 +181,21 @@ public partial class PageSelectRight
                         var isLabyModExists = false;
                         foreach (var instance in Card.Value)
                         {
-                            if (!instance.isLoaded)
+                            if (!instance.IsLoaded)
                                 instance.Load();
-                            if (instance.Info.hasFabric)
+                            if (instance.Info.HasFabric)
                                 isFabricExists = true;
-                            if (instance.Info.hasQuilt)
+                            if (instance.Info.HasQuilt)
                                 isQuiltExists = true;
-                            if (instance.Info.hasLiteLoader)
+                            if (instance.Info.HasLiteLoader)
                                 isLiteExists = true;
-                            if (instance.Info.hasForge)
+                            if (instance.Info.HasForge)
                                 isForgeExists = true;
-                            if (instance.Info.hasNeoForge)
+                            if (instance.Info.HasNeoForge)
                                 isNeoForgeExists = true;
-                            if (instance.Info.hasCleanroom)
+                            if (instance.Info.HasCleanroom)
                                 isCleanroomExists = true;
-                            if (instance.Info.hasLabyMod)
+                            if (instance.Info.HasLabyMod)
                                 isLabyModExists = true;
                         }
 
@@ -271,7 +271,7 @@ public partial class PageSelectRight
                 void PutMethod(StackPanel stack)
                 {
                     foreach (var item in (IEnumerable)stack.Tag)
-                        stack.Children.Add(McVersionListItem((ModMinecraft.McInstance)item));
+                        stack.Children.Add(McVersionListItem((ModMinecraft.Instance)item));
                 }
 
                 ;
@@ -370,38 +370,38 @@ public partial class PageSelectRight
         }
     }
 
-    public static MyListItem McVersionListItem(ModMinecraft.McInstance instance)
+    public static MyListItem McVersionListItem(ModMinecraft.Instance instance)
     {
         var newItem = new MyListItem
         {
-            Title = instance.Name, Info = instance.desc, Height = 42d, Tag = instance, SnapsToDevicePixels = true,
+            Title = instance.Name, Info = instance.Desc, Height = 42d, Tag = instance, SnapsToDevicePixels = true,
             Type = MyListItem.CheckType.Clickable
         };
         var instanceInfo = instance.Info;
         var tags = new List<string>();
-        tags.Add(instanceInfo.vanillaName);
-        if (instanceInfo.hasForge)
-            tags.Add("Forge " + instanceInfo.forge);
-        else if (instanceInfo.hasNeoForge)
-            tags.Add("NeoForge " + instanceInfo.neoForge);
-        else if (instanceInfo.hasCleanroom)
-            tags.Add("Cleanroom " + instanceInfo.cleanroom);
-        else if (instanceInfo.hasLabyMod)
-            tags.Add("LabyMod " + instanceInfo.labyMod);
-        else if (instanceInfo.hasQuilt)
-            tags.Add("Quilt " + instanceInfo.quilt);
-        else if (instanceInfo.hasFabric) tags.Add("Fabric " + instanceInfo.fabric);
-        if (instanceInfo.hasLiteLoader)
+        tags.Add(instanceInfo.VanillaName);
+        if (instanceInfo.HasForge)
+            tags.Add("Forge " + instanceInfo.Forge);
+        else if (instanceInfo.HasNeoForge)
+            tags.Add("NeoForge " + instanceInfo.NeoForge);
+        else if (instanceInfo.HasCleanroom)
+            tags.Add("Cleanroom " + instanceInfo.Cleanroom);
+        else if (instanceInfo.HasLabyMod)
+            tags.Add("LabyMod " + instanceInfo.LabyMod);
+        else if (instanceInfo.HasQuilt)
+            tags.Add("Quilt " + instanceInfo.Quilt);
+        else if (instanceInfo.HasFabric) tags.Add("Fabric " + instanceInfo.Fabric);
+        if (instanceInfo.HasLiteLoader)
             tags.Add("LiteLoader");
-        if (instanceInfo.hasOptiFine)
-            tags.Add("OptiFine " + instanceInfo.optiFine);
+        if (instanceInfo.HasOptiFine)
+            tags.Add("OptiFine " + instanceInfo.OptiFine);
         newItem.Tags = tags;
         try
         {
-            if (instance.logo.EndsWith(@"PCL\Logo.png"))
+            if (instance.Logo.EndsWith(@"PCL\Logo.png"))
                 newItem.Logo = instance.PathInstance + @"PCL\Logo.png"; // 修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
             else
-                newItem.Logo = instance.logo;
+                newItem.Logo = instance.Logo;
         }
         catch (Exception ex)
         {
@@ -415,12 +415,12 @@ public partial class PageSelectRight
 
     private static void McVersionListContent(MyListItem sender, EventArgs e)
     {
-        var version = (ModMinecraft.McInstance)sender.Tag;
+        var version = (ModMinecraft.Instance)sender.Tag;
         // 注册点击事件
         sender.Click += (a, b) => Item_Click((MyListItem)a, b);
         // 图标按钮
         var btnStar = new MyIconButton();
-        if (version.isStar)
+        if (version.IsStar)
         {
             btnStar.ToolTip = Lang.Text("Select.Instance.Unfavorite");
             ToolTipService.SetPlacement(btnStar, PlacementMode.Center);
@@ -441,7 +441,7 @@ public partial class PageSelectRight
 
         btnStar.Click += (_, _) =>
         {
-            States.Instance.Starred[version.PathInstance] = !version.isStar;
+            States.Instance.Starred[version.PathInstance] = !version.IsStar;
             ModMinecraft.mcInstanceListForceRefresh = true;
             ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
@@ -497,8 +497,8 @@ public partial class PageSelectRight
     // 点击选项
     public static void Item_Click(MyListItem sender, EventArgs e)
     {
-        var instance = (ModMinecraft.McInstance)sender.Tag;
-        if (new ModMinecraft.McInstance(instance.PathInstance).Check())
+        var instance = (ModMinecraft.Instance)sender.Tag;
+        if (new ModMinecraft.Instance(instance.PathInstance).Check())
         {
             // 正常实例
             ModMinecraft.McInstanceSelected = instance;
@@ -518,7 +518,7 @@ public partial class PageSelectRight
     }
 
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码
-    public static void DeleteVersion(MyListItem item, ModMinecraft.McInstance instance)
+    public static void DeleteVersion(MyListItem item, ModMinecraft.Instance instance)
     {
         try
         {
@@ -561,7 +561,7 @@ public partial class PageSelectRight
             }
 
             // 从 UI 中移除
-            if (instance.displayType == ModMinecraft.McInstanceCardType.Hidden || !instance.isStar)
+            if (instance.displayType == ModMinecraft.McInstanceCardType.Hidden || !instance.IsStar)
             {
                 // 仅出现在当前卡片
                 var parent = (StackPanel)item.Parent;
@@ -575,7 +575,7 @@ public partial class PageSelectRight
                     if (ModMinecraft.McInstanceSelected is not null && (instance.PathInstance ?? "") ==
                         (ModMinecraft.McInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        ModMinecraft.McInstanceSelected = (ModMinecraft.McInstance)((MyListItem)parent.Children[0]).Tag;
+                        ModMinecraft.McInstanceSelected = (ModMinecraft.Instance)((MyListItem)parent.Children[0]).Tag;
                     ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }

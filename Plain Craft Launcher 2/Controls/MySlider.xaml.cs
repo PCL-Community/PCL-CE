@@ -23,7 +23,7 @@ public partial class MySlider
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MySlider()
     {
@@ -104,7 +104,7 @@ public partial class MySlider
                                 ease: time > 50d
                                     ? new ModAnimation.AniEaseOutFluent()
                                     : new ModAnimation.AniEaseLinear())
-                        }, "MySlider Progress " + uuid);
+                        }, "MySlider Progress " + Uuid);
                 }
                 else
                 {
@@ -132,7 +132,7 @@ public partial class MySlider
     {
         if (e is not null)
             PanMain.Width = e.NewSize.Width;
-        ModAnimation.AniStop("MySlider Progress " + uuid);
+        ModAnimation.AniStop("MySlider Progress " + Uuid);
         var newWidth = _Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
         LineFore.Width = Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d));
         LineBack.Width = Math.Max(0d,
@@ -150,9 +150,9 @@ public partial class MySlider
         ModMain.frmMain.DragDoing();
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(ShapeDot, 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
-                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + Uuid);
         RefreshPopup();
-        ModAnimation.AniStop("MySlider KeyPopup " + uuid);
+        ModAnimation.AniStop("MySlider KeyPopup " + Uuid);
     }
 
     public void DragDoing()
@@ -177,7 +177,7 @@ public partial class MySlider
         RefreshColor();
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(ShapeDot, 1d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 200,
-                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + uuid);
+                ease: new ModAnimation.AniEaseOutFluent()), "MySlider Scale " + Uuid);
         Popup.IsOpen = false;
     }
 
@@ -234,12 +234,12 @@ public partial class MySlider
                     {
                         ModAnimation.AaColor(this, BorderBrushProperty, foregroundName, animationTime),
                         ModAnimation.AaColor(ShapeDot, Shape.FillProperty, dotFillName, animationTime)
-                    }, "MySlider Color " + uuid);
+                    }, "MySlider Color " + Uuid);
             }
             else
             {
                 // 无动画
-                ModAnimation.AniStop("MySlider Color " + uuid);
+                ModAnimation.AniStop("MySlider Color " + Uuid);
                 SetResourceReference(BorderBrushProperty, foregroundName);
                 ShapeDot.SetResourceReference(Shape.FillProperty, dotFillName);
             }
@@ -285,10 +285,10 @@ public partial class MySlider
         if (getHintText is not null)
         {
             RefreshPopup();
-            ModAnimation.AniStop("MySlider KeyPopup " + uuid);
+            ModAnimation.AniStop("MySlider KeyPopup " + Uuid);
             ModAnimation.AniStart(
                 ModAnimation.AaCode(() => Popup.IsOpen = false, (int)Math.Round(700d * ModAnimation.aniSpeed)),
-                "MySlider KeyPopup " + uuid);
+                "MySlider KeyPopup " + Uuid);
         }
     }
 }

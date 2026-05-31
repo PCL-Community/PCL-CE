@@ -14,8 +14,8 @@ public partial class MyLocalCompItem
 {
     private string GetUpdateCompareDescription()
     {
-        var currentName = Entry.compFile.fileName.Replace(".jar", "");
-        var newestName = Entry.UpdateFile.fileName.Replace(".jar", "");
+        var currentName = Entry.compFile.FileName.Replace(".jar", "");
+        var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
         // 简化名称对比
         var currentSegs = currentName.Split('-').ToList();
         var newestSegs = newestName.Split('-').ToList();
@@ -37,7 +37,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.compFile.releaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.releaseDate - DateTime.Now));
+            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.compFile.ReleaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
     }
 
     public void Refresh()
@@ -133,7 +133,7 @@ public partial class MyLocalCompItem
             }
 
             if (Entry.Comp is not null)
-                newDescription += ": " + Entry.Comp.description.Replace("\r", "").Replace("\n", "");
+                newDescription += ": " + Entry.Comp.Description.Replace("\r", "").Replace("\n", "");
             else if (Entry.Description is not null)
                 newDescription += ": " + Entry.Description.Replace("\r", "").Replace("\n", "");
             else if (!Entry.IsFileAvailable) newDescription += ": " + Lang.Text("Instance.Resource.Item.InfoUnavailable");
@@ -187,7 +187,7 @@ public partial class MyLocalCompItem
             if (Entry.IsFolder)
                 // 为文件夹添加标签
                 Tags = new List<string> { Lang.Text("Instance.Resource.Item.FolderTag") };
-            else if (Entry.Comp is not null) Tags = Entry.Comp.tags;
+            else if (Entry.Comp is not null) Tags = Entry.Comp.Tags;
         }));
     }
 
@@ -248,7 +248,7 @@ public partial class MyLocalCompItem
             });
         }
 
-        ModAnimation.AniStart(ani, "LocalModItem Color " + uuid);
+        ModAnimation.AniStart(ani, "LocalModItem Color " + Uuid);
     }
 
     // 触发虚拟化内容
@@ -272,7 +272,7 @@ public partial class MyLocalCompItem
     {
         if (Entry.Comp is not null)
         {
-            if (!Information.IsNumeric(Entry.Comp.id))
+            if (!Information.IsNumeric(Entry.Comp.Id))
             {
                 var modrinthUrl = Entry.changelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
                 if (modrinthUrl is not null)
@@ -305,7 +305,7 @@ public partial class MyLocalCompItem
         {
             case 1: // 更新
             {
-                switch (Entry.Comp.type)
+                switch (Entry.Comp.Type)
                 {
                     case ModComp.CompType.Mod:
                     {
@@ -420,7 +420,7 @@ public partial class MyLocalCompItem
 
     #region 基础属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     // Logo
     public string Logo
@@ -736,7 +736,7 @@ public partial class MyLocalCompItem
                             LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
                     }
 
-                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + uuid);
+                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
                 }
                 else
                 {
@@ -762,7 +762,7 @@ public partial class MyLocalCompItem
                                 : "ColorBrushGray4");
                     }
 
-                    ModAnimation.AniStop("MyLocalCompItem Checked " + uuid);
+                    ModAnimation.AniStop("MyLocalCompItem Checked " + Uuid);
                 }
             }
             catch (Exception ex)

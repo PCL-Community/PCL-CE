@@ -43,7 +43,7 @@ public partial class MyRadioBox : IMyRadio
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyRadioBox()
     {
@@ -191,7 +191,7 @@ public partial class MyRadioBox : IMyRadio
                         ModAnimation.AaScale(ShapeBorder, 8d, animationTimeOfCheck * 2,
                             (int)Math.Round(animationTimeOfCheck * 0.6d), new ModAnimation.AniEaseOutBack(),
                             absolute: true)
-                    }, "MyRadioBox Border " + uuid);
+                    }, "MyRadioBox Border " + Uuid);
                 ModAnimation.AniStart(
                     new[]
                     {
@@ -200,12 +200,12 @@ public partial class MyRadioBox : IMyRadio
                             ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak), absolute: true),
                         ModAnimation.AaOpacity(ShapeDot, 1d - ShapeDot.Opacity,
                             (int)Math.Round(animationTimeOfCheck * 0.5d), (int)Math.Round(animationTimeOfCheck * 0.6d))
-                    }, "MyRadioBox Dot " + uuid);
+                    }, "MyRadioBox Dot " + Uuid);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
                         IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush2" : "ColorBrushGray4",
                         animationTimeOfCheck),
-                    "MyRadioBox BorderColor " + uuid);
+                    "MyRadioBox BorderColor " + Uuid);
             }
             else
             {
@@ -215,7 +215,7 @@ public partial class MyRadioBox : IMyRadio
                     {
                         ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width, animationTimeOfCheck,
                             ease: new ModAnimation.AniEaseOutFluent(), absolute: true)
-                    }, "MyRadioBox Border " + uuid);
+                    }, "MyRadioBox Border " + Uuid);
                 ModAnimation.AniStart(
                     new[]
                     {
@@ -223,20 +223,20 @@ public partial class MyRadioBox : IMyRadio
                             ease: new ModAnimation.AniEaseInFluent(), absolute: true),
                         ModAnimation.AaOpacity(ShapeDot, -ShapeDot.Opacity,
                             (int)Math.Round(animationTimeOfCheck * 0.5d), (int)Math.Round(animationTimeOfCheck * 0.2d))
-                    }, "MyRadioBox Dot " + uuid);
+                    }, "MyRadioBox Dot " + Uuid);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
                         IsMouseOver ? "ColorBrush3" : IsEnabled ? "ColorBrush1" : "ColorBrushGray4",
                         animationTimeOfCheck),
-                    "MyRadioBox BorderColor " + uuid);
+                    "MyRadioBox BorderColor " + Uuid);
             }
         }
         else
         {
             // 不使用动画
-            ModAnimation.AniStop("MyRadioBox Border " + uuid);
-            ModAnimation.AniStop("MyRadioBox Dot " + uuid);
-            ModAnimation.AniStop("MyRadioBox BorderColor " + uuid);
+            ModAnimation.AniStop("MyRadioBox Border " + Uuid);
+            ModAnimation.AniStop("MyRadioBox Dot " + Uuid);
+            ModAnimation.AniStop("MyRadioBox BorderColor " + Uuid);
             if (Checked)
             {
                 ShapeDot.Width = 9d;
@@ -264,7 +264,7 @@ public partial class MyRadioBox : IMyRadio
         SetChecked(true, true);
         mouseDowned = false;
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Shape.FillProperty, "ColorBrushHalfWhite", 100),
-            "MyRadioBox Background " + uuid);
+            "MyRadioBox Background " + Uuid);
     }
 
     private void Radiobox_MouseDown()
@@ -272,12 +272,12 @@ public partial class MyRadioBox : IMyRadio
         mouseDowned = true;
         Focus();
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Shape.FillProperty, "ColorBrushBg1", 100),
-            "MyRadioBox Background " + uuid);
+            "MyRadioBox Background " + Uuid);
         if (!Checked)
             ModAnimation.AniStart(
                 ModAnimation.AaScale(ShapeBorder, 16.5d - ShapeBorder.Width, 1000,
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true),
-                "MyRadioBox Border " + uuid);
+                "MyRadioBox Border " + Uuid);
     }
 
     private void Radiobox_MouseLeave()
@@ -286,12 +286,12 @@ public partial class MyRadioBox : IMyRadio
             return;
         mouseDowned = false;
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Shape.FillProperty, "ColorBrushHalfWhite", 100),
-            "MyRadioBox Background " + uuid);
+            "MyRadioBox Background " + Uuid);
         if (!Checked)
             ModAnimation.AniStart(
                 ModAnimation.AaScale(ShapeBorder, 18d - ShapeBorder.Width,
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong), absolute: true),
-                "MyRadioBox Border " + uuid);
+                "MyRadioBox Border " + Uuid);
     }
 
     private void Radiobox_IsEnabledChanged()
@@ -309,18 +309,18 @@ public partial class MyRadioBox : IMyRadio
                 // 不可用
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty, ThemeManager.colorGray4 - ShapeBorder.Stroke,
-                        animationTimeOfMouseOut), "MyRadioBox BorderColor " + uuid);
+                        animationTimeOfMouseOut), "MyRadioBox BorderColor " + Uuid);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                         ThemeManager.colorGray4 - LabText.Foreground, animationTimeOfMouseOut),
-                    "MyRadioBox TextColor " + uuid);
+                    "MyRadioBox TextColor " + Uuid);
             }
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyRadioBox BorderColor " + uuid);
-            ModAnimation.AniStop("MyRadioBox TextColor " + uuid);
+            ModAnimation.AniStop("MyRadioBox BorderColor " + Uuid);
+            ModAnimation.AniStop("MyRadioBox TextColor " + Uuid);
             LabText.SetResourceReference(TextBlock.ForegroundProperty, IsEnabled ? "ColorBrush1" : "ColorBrushGray4");
             ShapeBorder.SetResourceReference(Shape.StrokeProperty,
                 IsEnabled ? Checked ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4");
@@ -331,10 +331,10 @@ public partial class MyRadioBox : IMyRadio
     {
         ModAnimation.AniStart(
             ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty, "ColorBrush3", animationTimeOfMouseIn),
-            "MyRadioBox BorderColor " + uuid);
+            "MyRadioBox BorderColor " + Uuid);
         ModAnimation.AniStart(
             ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, "ColorBrush3", animationTimeOfMouseIn),
-            "MyRadioBox TextColor " + uuid);
+            "MyRadioBox TextColor " + Uuid);
     }
 
     private void Radiobox_MouseLeaveAnimation()
@@ -346,16 +346,16 @@ public partial class MyRadioBox : IMyRadio
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ShapeBorder, Shape.StrokeProperty,
                     IsEnabled ? Checked ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4", animationTimeOfMouseOut),
-                "MyRadioBox BorderColor " + uuid);
+                "MyRadioBox BorderColor " + Uuid);
             ModAnimation.AniStart(
                 ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty,
                     IsEnabled ? "ColorBrush1" : "ColorBrushGray4", animationTimeOfMouseOut),
-                "MyRadioBox TextColor " + uuid);
+                "MyRadioBox TextColor " + Uuid);
         }
         else
         {
-            ModAnimation.AniStop("MyRadioBox BorderColor " + uuid);
-            ModAnimation.AniStop("MyRadioBox TextColor " + uuid);
+            ModAnimation.AniStop("MyRadioBox BorderColor " + Uuid);
+            ModAnimation.AniStop("MyRadioBox TextColor " + Uuid);
             ShapeBorder.SetResourceReference(Shape.StrokeProperty,
                 IsEnabled ? Checked ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4");
             LabText.SetResourceReference(TextBlock.ForegroundProperty, IsEnabled ? "ColorBrush1" : "ColorBrushGray4");
