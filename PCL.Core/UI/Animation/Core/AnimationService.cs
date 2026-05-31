@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Clock;
