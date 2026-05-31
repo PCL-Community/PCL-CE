@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Text.Json.Serialization;
 using PCL.Network;
 using PCL.Core.App.Localization;
 
@@ -61,15 +62,9 @@ public partial class PageSetupFeedback
             var pullRequestToken = issue["pull_request"];
             if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
 
-            var item = new Feedback
-            {
-                Title = issue["title"]!.ToString(),
-                Url = issue["html_url"]!.ToString(),
-                Content = issue["body"]?.ToString() ?? "",
-                Time = DateTime.Parse(issue["created_at"]!.ToString()),
-                User = issue["user"]!["login"]!.ToString(),
-                Id = issue["number"]!.ToString(),
-            };
+            var item = issue.Deserialize<Feedback>()!;
+            item.User = issue["user"]!["login"]!.ToString();
+            item.Id = issue["number"]!.ToString();
 
             var issueType = Lang.Text("Setup.Feedback.Uncategorized");
             var typeToken = issue["type"];
@@ -142,34 +137,27 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
+        var tagMap = new Dictionary<string, (StackPanel Panel, string Icon)>
+        {
+            [((long)TagId.Processing).ToString()] = (PanListProcessing, "Blocks/CommandBlock.png"),
+            [((long)TagId.WaitingProcess).ToString()] = (PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
+            [((long)TagId.Wait).ToString()] = (PanListWait, "Blocks/Anvil.png"),
+            [((long)TagId.Pause).ToString()] = (PanListPause, "Blocks/RedstoneLampOff.png"),
+            [((long)TagId.Upnext).ToString()] = (PanListUpnext, "Blocks/RedstoneLampOn.png"),
+            [((long)TagId.Completed).ToString()] = (PanListCompleted, "Blocks/Grass.png"),
+            [((long)TagId.Decline).ToString()] = (PanListDecline, "Blocks/CobbleStone.png"),
+            [((long)TagId.Ignored).ToString()] = (PanListIgnored, "Blocks/CobbleStone.png"),
+            [((long)TagId.Duplicate).ToString()] = (PanListDuplicate, "Blocks/CobbleStone.png"),
+        };
+
         foreach (var item in Loader.output)
         {
-            if (item.Tags.Contains(((long)TagId.Processing).ToString()))
-                PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));
-
-            if (item.Tags.Contains(((long)TagId.WaitingProcess).ToString()))
-                PanListWaitingProcess.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneBlock.png"));
-
-            if (item.Tags.Contains(((long)TagId.Wait).ToString()))
-                PanListWait.Children.Add(CreateFeedbackItem(item, "Blocks/Anvil.png"));
-
-            if (item.Tags.Contains(((long)TagId.Pause).ToString()))
-                PanListPause.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOff.png"));
-
-            if (item.Tags.Contains(((long)TagId.Upnext).ToString()))
-                PanListUpnext.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOn.png"));
-
-            if (item.Tags.Contains(((long)TagId.Completed).ToString()))
-                PanListCompleted.Children.Add(CreateFeedbackItem(item, "Blocks/Grass.png"));
-
-            if (item.Tags.Contains(((long)TagId.Decline).ToString()))
-                PanListDecline.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
-
-            if (item.Tags.Contains(((long)TagId.Ignored).ToString()))
-                PanListIgnored.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
-
-            if (item.Tags.Contains(((long)TagId.Duplicate).ToString()))
-                PanListDuplicate.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
+            var tag = item.Tags.Find(tagMap.ContainsKey);
+            if (tag is not null)
+            {
+                var (panel, icon) = tagMap[tag];
+                panel.Children.Add(CreateFeedbackItem(item, icon));
+            }
         }
 
         SetPanelVisibility(PanListProcessing, PanContentProcessing);
@@ -190,12 +178,18 @@ public partial class PageSetupFeedback
 
     public class Feedback
     {
-        public string User { get; init; } = string.Empty;
+        [JsonIgnore]
+        public string User { get; set; } = string.Empty;
+        [JsonPropertyName("title")]
         public string Title { get; init; } = string.Empty;
+        [JsonPropertyName("created_at")]
         public DateTime Time { get; init; }
+        [JsonPropertyName("body")]
         public string Content { get; init; } = string.Empty;
+        [JsonPropertyName("html_url")]
         public string Url { get; init; } = string.Empty;
-        public string Id { get; init; } = string.Empty;
+        [JsonIgnore]
+        public string Id { get; set; } = string.Empty;
         public List<string> Tags { get; } = new();
         public string Type { get; set; } = string.Empty;
     }
