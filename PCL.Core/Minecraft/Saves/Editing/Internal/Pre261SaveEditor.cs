@@ -46,28 +46,28 @@ internal sealed class Pre261SaveEditor : ISaveEditor
         return true;
     }
 
-    /// <summary>写入 Data.allowCommands（字节型：0/1）。</summary>
+    /// <summary>写入 Data.allowCommands（字节型：0/1）。仅当该字段原本存在时才写入，避免向 pre-1.3.1 存档添加新字段。</summary>
     internal static bool WriteAllowCommands(NbtCompound data, SaveChanges changes)
     {
-        if (!changes.AllowCommands.HasValue)
+        if (!changes.AllowCommands.HasValue || !data.Contains("allowCommands"))
             return false;
         data["allowCommands"] = new NbtByte("allowCommands", (byte)(changes.AllowCommands.Value ? 1 : 0));
         return true;
     }
 
-    /// <summary>写入 Data.Difficulty（字节型：0=和平, 1=简单, 2=普通, 3=困难）。</summary>
+    /// <summary>写入 Data.Difficulty（字节型：0=和平, 1=简单, 2=普通, 3=困难）。仅当该字段原本存在时才写入。</summary>
     internal static bool WriteDifficulty(NbtCompound data, SaveChanges changes)
     {
-        if (!changes.Difficulty.HasValue)
+        if (!changes.Difficulty.HasValue || !data.Contains("Difficulty"))
             return false;
         data["Difficulty"] = new NbtByte("Difficulty", (byte)changes.Difficulty.Value);
         return true;
     }
 
-    /// <summary>写入 Data.DifficultyLocked（字节型：0/1）。</summary>
+    /// <summary>写入 Data.DifficultyLocked（字节型：0/1）。仅当该字段原本存在时才写入。</summary>
     internal static bool WriteDifficultyLocked(NbtCompound data, SaveChanges changes)
     {
-        if (!changes.LockDifficulty.HasValue)
+        if (!changes.LockDifficulty.HasValue || !data.Contains("DifficultyLocked"))
             return false;
         data["DifficultyLocked"] = new NbtByte("DifficultyLocked", (byte)(changes.LockDifficulty.Value ? 1 : 0));
         return true;
