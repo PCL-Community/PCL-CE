@@ -1,5 +1,6 @@
-name: "新功能提案"
-description: "对已有功能的大幅度修改，或添加一个新内容或选项。"
+name: "[新版] 新功能提案"
+description: "对新版本 PCL CE 已有功能的大幅度修改，或添加一个新内容或选项。"
+title: "[C#]: "
 type: "新功能"
 body:
 - type: checkboxes

@@ -52,13 +52,13 @@ public class MyScrollViewer : ScrollViewer
                 ModAnimation.AniStart(ModAnimation.AaOpacity(TooltipBorder, -1, 100), tooltipHideId);
     }
 
-    public void PerformVerticalOffsetDelta(double Delta)
+    public void PerformVerticalOffsetDelta(double delta)
     {
-        ModAnimation.AniStart(ModAnimation.AaDouble(AnimDelta =>
+        ModAnimation.AniStart(ModAnimation.AaDouble(animDelta =>
         {
-            realOffset = ModBase.MathClamp(realOffset + (double)AnimDelta, 0d, ExtentHeight - ActualHeight);
+            realOffset = ModBase.MathClamp(realOffset + (double)animDelta, 0d, ExtentHeight - ActualHeight);
             ScrollToVerticalOffset(realOffset);
-        }, Delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
+        }, delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
     }
 
     private void MyScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)

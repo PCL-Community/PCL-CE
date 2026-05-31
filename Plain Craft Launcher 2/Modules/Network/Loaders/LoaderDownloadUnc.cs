@@ -16,12 +16,12 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         savePath = file.Item2;
     }
 
-    public override void Start(object Input = null, bool IsForceRestart = false)
+    public override void Start(object input = null, bool isForceRestart = false)
     {
-        if (Input is Tuple<string, string> input)
+        if (input is Tuple<string, string> tuple)
         {
-            unc = input.Item1;
-            savePath = input.Item2;
+            unc = tuple.Item1;
+            savePath = tuple.Item2;
         }
 
         lock (lockState)
@@ -32,7 +32,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{uuid}");
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)

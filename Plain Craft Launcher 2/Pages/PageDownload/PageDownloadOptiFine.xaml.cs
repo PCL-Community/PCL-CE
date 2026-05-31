@@ -37,10 +37,10 @@ public partial class PageDownloadOptiFine
             dict.Add(snapshotKey, new List<ModDownload.DlOptiFineListEntry>());
             for (var versionCode = 50; versionCode >= 0; versionCode -= 1)
                 dict.Add("1." + versionCode, new List<ModDownload.DlOptiFineListEntry>());
-            foreach (var Version in ModDownload.dlOptiFineListLoader.output.value)
+            foreach (var Version in ModDownload.dlOptiFineListLoader.output.Value)
                 if (Version.Inherit.StartsWith("1."))
                 {
-                    var mainVersion = "1." + Version.displayName.Split(".")[1].Split(" ")[0];
+                    var mainVersion = "1." + Version.DisplayName.Split(".")[1].Split(" ")[0];
                     if (dict.ContainsKey(mainVersion))
                         dict[mainVersion].Add(Version);
                     else
@@ -66,19 +66,19 @@ public partial class PageDownloadOptiFine
                     { Title = title + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.displayName, b.displayName) == 1);
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
+                    stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName) == 1);
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
                             (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);

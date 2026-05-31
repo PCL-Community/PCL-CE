@@ -46,7 +46,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         if (ModMain.frmInstanceScreenshot is not null)
             await ModMain.frmInstanceScreenshot.Reload();
         ModMain.frmInstanceLeft.ItemScreenshot.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
+        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -120,24 +120,24 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
     }
 
-    private async Task ListAppend(int Count = 20, int Offset = -1)
+    private async Task ListAppend(int count = 20, int offset = -1)
     {
         _AppendLock = true;
-        if (Offset == -1)
+        if (offset == -1)
         {
-            if (_Offset * Count > fileList.Count)
+            if (_Offset * count > fileList.Count)
                 return;
-            Offset = _Offset + 1;
+            offset = _Offset + 1;
             _Offset += 1;
         }
         else
         {
-            _Offset = Offset;
+            _Offset = offset;
         }
 
-        if (Count * Offset > fileList.Count)
+        if (count * offset > fileList.Count)
             return;
-        for (int j = Count * Offset, loopTo = Count * (Offset + 1) - 1; j <= loopTo; j++)
+        for (int j = count * offset, loopTo = count * (offset + 1) - 1; j <= loopTo; j++)
         {
             if (j >= fileList.Count)
                 break;
@@ -249,18 +249,18 @@ public partial class PageInstanceScreenshot : IRefreshable
         _AppendLock = false;
     }
 
-    private void RemoveItem(string Path)
+    private void RemoveItem(string path)
     {
         try
         {
             foreach (var i in PanList.Children)
-                if (((MyCard)i).Tag.Equals(Path))
+                if (((MyCard)i).Tag.Equals(path))
                 {
                     PanList.Children.Remove((UIElement)i);
                     break;
                 }
 
-            fileList.Remove(Path);
+            fileList.Remove(path);
         }
         catch (Exception ex)
         {

@@ -71,7 +71,7 @@ public partial class MySkin
         isSkinMouseDown = false;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
     }
 
     private void PanSkin_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -79,14 +79,14 @@ public partial class MySkin
         isSkinMouseDown = true;
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
     }
 
     private void PanSkin_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                Ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
         if (!isSkinMouseDown) return;
         isSkinMouseDown = false;
         Click?.Invoke(sender, e);
@@ -98,14 +98,14 @@ public partial class MySkin
         Save(loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> Loader)
+    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader)
     {
-        var address = Loader.output;
-        if (Loader.State != ModBase.LoadState.Finished)
+        var address = loader.output;
+        if (loader.State != ModBase.LoadState.Finished)
         {
             ModMain.Hint(Lang.Text("Launch.Skin.Fetching"), ModMain.HintType.Critical);
-            if (Loader.State != ModBase.LoadState.Loading)
-                Loader.Start();
+            if (loader.State != ModBase.LoadState.Loading)
+                loader.Start();
             return;
         }
 
@@ -208,7 +208,7 @@ public partial class MySkin
             var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
             var cachePath = ModBase.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
-            ModProfile.selectedProfile.skinHeadId = skinHeadId;
+            ModProfile.selectedProfile.SkinHeadId = skinHeadId;
             ModProfile.SaveProfile();
             var completeHead = new Bitmap(56, 56);
             using (var g = Graphics.FromImage(completeHead))
@@ -238,13 +238,13 @@ public partial class MySkin
         }
     }
 
-    private object ScaleToSize(Bitmap Bitmap, int Width, int Height)
+    private object ScaleToSize(Bitmap bitmap, int width, int height)
     {
-        var scaledBitmap = new Bitmap(Width, Height);
+        var scaledBitmap = new Bitmap(width, height);
         using var g = Graphics.FromImage(scaledBitmap);
         g.InterpolationMode = InterpolationMode.NearestNeighbor;
         g.PixelOffsetMode = PixelOffsetMode.Half;
-        g.DrawImage(Bitmap, 0, 0, Width, Height);
+        g.DrawImage(bitmap, 0, 0, width, height);
 
         return scaledBitmap;
     }
@@ -271,7 +271,7 @@ public partial class MySkin
     public static void RefreshCache(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> sender = null)
     {
         var hasLoaderRunning =
-            PageLaunchLeft.skinLoaders.Any(SkinLoader => SkinLoader.State == ModBase.LoadState.Loading);
+            PageLaunchLeft.skinLoaders.Any(skinLoader => skinLoader.State == ModBase.LoadState.Loading);
 
         if (ModMain.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
@@ -295,7 +295,7 @@ public partial class MySkin
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
-                        SkinLoader.WaitForExit(IsForceRestart: true);
+                        SkinLoader.WaitForExit(isForceRestart: true);
                     ModMain.Hint(Lang.Text("Launch.Skin.RefreshSuccess"), ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
@@ -308,8 +308,8 @@ public partial class MySkin
     /// <summary>
     ///     在更换正版皮肤后，刷新正版皮肤。
     /// </summary>
-    /// <param name="SkinAddress">新的正版皮肤完整地址。</param>
-    public static void ReloadCache(string SkinAddress)
+    /// <param name="skinAddress">新的正版皮肤完整地址。</param>
+    public static void ReloadCache(string skinAddress)
     {
         // 更新缓存
         // 刷新控件
@@ -318,11 +318,11 @@ public partial class MySkin
         {
             try
             {
-                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.uuid,
-                    SkinAddress);
-                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.uuid} -> {SkinAddress}");
+                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
+                    skinAddress);
+                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
                 foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
-                    SkinLoader.WaitForExit(IsForceRestart: true);
+                    SkinLoader.WaitForExit(isForceRestart: true);
                 ModMain.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), ModMain.HintType.Finish);
             }
             catch (Exception ex)
@@ -363,9 +363,9 @@ public partial class MySkin
                     return;
                 }
 
-                var accessToken = ModLaunch.mcLoginMsLoader.output.accessToken;
-                var uuid = ModLaunch.mcLoginMsLoader.output.uuid;
-                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.profileJson);
+                var accessToken = ModLaunch.mcLoginMsLoader.output.AccessToken;
+                var uuid = ModLaunch.mcLoginMsLoader.output.Uuid;
+                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.ProfileJson);
                 foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)

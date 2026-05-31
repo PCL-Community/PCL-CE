@@ -44,7 +44,7 @@ public partial class PageDownloadClient
                 _ => new List<JsonObject>()
             );
 
-            var versions = (JsonArray)ModDownload.dlClientListLoader.output.value["versions"];
+            var versions = (JsonArray)ModDownload.dlClientListLoader.output.Value["versions"];
             foreach (JsonObject Version in versions)
             {
                 var cat = McVersionClassifier.ClassifyVersion(Version);
@@ -73,14 +73,14 @@ public partial class PageDownloadClient
 
             var panInfo = new StackPanel
             {
-                Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
                 RenderTransform = new TranslateTransform(0d, 0d), Tag = topestVersions
             };
 
-            void PutMethod(StackPanel Stack)
+            void PutMethod(StackPanel stack)
             {
-                foreach (var item in (IEnumerable)Stack.Tag)
-                    Stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
+                foreach (var item in (IEnumerable)stack.Tag)
+                    stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
                         ModDownloadLib.McDownloadMenuSave, true));
             }
 
@@ -98,12 +98,12 @@ public partial class PageDownloadClient
                     { Title = McVersionClassifier.GetCategoryDisplayName(Pair.Key) + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.InstallMethod = PutMethod;
                 newCard.IsSwapped = true;
                 PanMain.Children.Add(newCard);

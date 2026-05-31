@@ -14,7 +14,7 @@ public partial class MinecraftServer : Grid
     private const string fallbackImageUri =
         "pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/DefaultServer.png";
 
-    private static readonly DependencyProperty addressProperty = DependencyProperty.Register(nameof(Address),
+    private static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address),
         typeof(string), typeof(MinecraftServer), new PropertyMetadata(string.Empty, OnAddressChanged));
 
     public MinecraftServer()
@@ -24,8 +24,8 @@ public partial class MinecraftServer : Grid
 
     public string Address
     {
-        get => (string)(GetValue(addressProperty));
-        set => SetValue(addressProperty, value);
+        get => (string)(GetValue(AddressProperty));
+        set => SetValue(AddressProperty, value);
     }
 
     private static void OnAddressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

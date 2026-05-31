@@ -50,11 +50,11 @@ public partial class PageInstanceSavesLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID = FormMain.PageSubType.Default)
+    public object PageGet(FormMain.PageSubType id = FormMain.PageSubType.Default)
     {
-        if ((int)ID == -1)
-            ID = pageID;
-        switch (ID)
+        if ((int)id == -1)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.VersionSavesInfo:
             {
@@ -71,7 +71,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)ID));
+                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)id));
             }
         }
     }
@@ -79,19 +79,19 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            pageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)ID), ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id), ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -99,12 +99,12 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = Target;
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {
@@ -133,9 +133,9 @@ public partial class PageInstanceSavesLeft : IRefreshable
         Refresh(ModMain.frmMain.PageCurrentSub);
     }
 
-    public void Refresh(FormMain.PageSubType SubType)
+    public void Refresh(FormMain.PageSubType subType)
     {
-        switch (SubType)
+        switch (subType)
         {
             case FormMain.PageSubType.VersionSavesDatapack:
             {

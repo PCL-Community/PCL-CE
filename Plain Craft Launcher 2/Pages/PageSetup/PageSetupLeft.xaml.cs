@@ -76,7 +76,7 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupLaunch:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Launch.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Launch.Message"), Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupLaunch is null)
                         ModMain.frmSetupLaunch = new PageSetupLaunch();
@@ -89,7 +89,7 @@ public partial class PageSetupLeft
             case (double)FormMain.PageSubType.SetupUI:
             {
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Ui.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                        Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupUI is null)
                         ModMain.frmSetupUI = new PageSetupUI();
@@ -101,7 +101,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupGameManage:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameManage.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameManage.Message"), Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupGameManage is null)
                         ModMain.frmSetupGameManage = new PageSetupGameManage();
@@ -113,7 +113,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupGameLink:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameLink.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.GameLink.Message"), Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupGameLink is null)
                         ModMain.frmSetupGameLink = new PageSetupGameLink();
@@ -125,7 +125,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupLauncherLanguage:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Language.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Language.Message"), Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupLauncherLanguage is null)
                         ModMain.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
@@ -137,7 +137,7 @@ public partial class PageSetupLeft
             }
             case (double)FormMain.PageSubType.SetupLauncherMisc:
             {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Misc.Message"), Lang.Text("Setup.Left.Reset.Title"), Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true) == 1)
+                if (ModMain.MyMsgBox(Lang.Text("Setup.Left.Reset.Misc.Message"), Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
                 {
                     if (ModMain.frmSetupLauncherMisc is null)
                         ModMain.frmSetupLauncherMisc = new PageSetupLauncherMisc();
@@ -179,19 +179,19 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
-                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.loader.Start(IsForceRestart: true);
+                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.loader.Start(isForceRestart: true);
                 ItemFeedback.Checked = true;
                 break;
             }
             case (double)FormMain.PageSubType.SetupJava:
             {
-                if (ModMain.frmSetupJava is not null) ModMain.frmSetupJava.loader.Start(IsForceRestart: true);
+                if (ModMain.frmSetupJava is not null) ModMain.frmSetupJava.loader.Start(isForceRestart: true);
                 ItemJava.Checked = true;
                 break;
             }
         }
 
-        ModMain.Hint(Lang.Text("Setup.Left.Refreshing"), Log: false);
+        ModMain.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
     }
 
     #region 页面切换
@@ -250,10 +250,10 @@ public partial class PageSetupLeft
     /// <summary>
     ///     获取当前导航指定的右页面。
     /// </summary>
-    public object PageGet(FormMain.PageSubType? ID = null)
+    public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = ID ?? pageID;
-        switch (ID)
+        var targetID = id ?? pageID;
+        switch (id)
         {
             case FormMain.PageSubType.SetupLaunch:
             {
@@ -324,7 +324,7 @@ public partial class PageSetupLeft
 
             default:
             {
-                throw new Exception("未知的设置子页面种类：" + (int)ID);
+                throw new Exception("未知的设置子页面种类：" + (int)id);
             }
         }
     }
@@ -332,20 +332,20 @@ public partial class PageSetupLeft
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         isPageSwitched = true;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            pageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"切换分页面失败（ID {(int)ID}）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, $"切换分页面失败（ID {(int)id}）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -353,12 +353,12 @@ public partial class PageSetupLeft
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = Target;
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {

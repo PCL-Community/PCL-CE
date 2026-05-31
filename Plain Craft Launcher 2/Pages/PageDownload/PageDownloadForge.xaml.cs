@@ -35,31 +35,31 @@ public partial class PageDownloadForge
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Version in ModDownload.dlForgeListLoader.output.value.Sort(ModMinecraft.CompareVersionGe))
+            foreach (var Version in ModDownload.dlForgeListLoader.output.Value.Sort(ModMinecraft.CompareVersionGe))
             {
                 // 增加卡片
                 var newCard = new MyCard
                     { Title = Version.Replace("_p", " P"), Margin = new Thickness(0d, 0d, 0d, 15d) };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Version
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
-                newCard.InstallMethod = Stack =>
+                newCard.SwapControl = newStack;
+                newCard.InstallMethod = stack =>
                 {
                     var loadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
                     var loader =
                         new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>("DlForgeVersion Main",
                             ModDownload.DlForgeVersionMain);
                     loadingPickaxe.State = loader;
-                    loader.Start(Stack.Tag);
-                    loadingPickaxe.stateChanged += (a, b, c) =>
+                    loader.Start(stack.Tag);
+                    loadingPickaxe.StateChanged += (a, b, c) =>
                         ModMain.frmDownloadForge.Forge_StateChanged((MyLoading)a, b, c);
                     loadingPickaxe.Click += (a, b) => ModMain.frmDownloadForge.Forge_Click((MyLoading)a, b);
-                    Stack.Children.Add(loadingPickaxe);
+                    stack.Children.Add(loadingPickaxe);
                 };
                 newCard.IsSwapped = true;
                 PanMain.Children.Add(newCard);
@@ -76,7 +76,7 @@ public partial class PageDownloadForge
     {
         if (sender.State.LoadingState == MyLoading.MyLoadingState.Error)
             ((ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State).Start(
-                IsForceRestart: true);
+                isForceRestart: true);
     }
 
     public void Forge_StateChanged(MyLoading sender, MyLoading.MyLoadingState newState,
@@ -88,15 +88,15 @@ public partial class PageDownloadForge
         var card = (MyCard)((FrameworkElement)sender.Parent).Parent;
         var loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State;
         // 载入列表
-        ((StackPanel)card.swapControl).Children.Clear();
-        ((StackPanel)card.swapControl).Tag = loader.output;
-        card.InstallMethod = Stack =>
+        ((StackPanel)card.SwapControl).Children.Clear();
+        ((StackPanel)card.SwapControl).Tag = loader.output;
+        card.InstallMethod = stack =>
         {
-            Stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.version > b.version);
-            ModDownloadLib.ForgeDownloadListItemPreload(Stack, (List<ModDownload.DlForgeVersionEntry>)Stack.Tag,
+            stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)stack.Tag).Sort((a, b) => a.version > b.version);
+            ModDownloadLib.ForgeDownloadListItemPreload(stack, (List<ModDownload.DlForgeVersionEntry>)stack.Tag,
                 ModDownloadLib.ForgeSave_Click, true);
-            foreach (var item in (IEnumerable)Stack.Tag)
-                Stack.Children.Add(ModDownloadLib.ForgeDownloadListItem((ModDownload.DlForgeVersionEntry)item,
+            foreach (var item in (IEnumerable)stack.Tag)
+                stack.Children.Add(ModDownloadLib.ForgeDownloadListItem((ModDownload.DlForgeVersionEntry)item,
                     ModDownloadLib.ForgeSave_Click, true));
         };
         card.StackInstall();

@@ -14,7 +14,7 @@ public static class ModVideoBack
             if (_isGaming != value)
             {
                 _isGaming = value;
-                gamingStateChanged?.Invoke(null, new BooleanEventArgs(value));
+                GamingStateChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }
     }
@@ -27,13 +27,13 @@ public static class ModVideoBack
             if (_forcePlay != value)
             {
                 _forcePlay = value;
-                forcePlayChanged?.Invoke(null, new BooleanEventArgs(value));
+                ForcePlayChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }
     }
 
-    public static event EventHandler<BooleanEventArgs>? gamingStateChanged;
-    public static event EventHandler<BooleanEventArgs>? forcePlayChanged;
+    public static event EventHandler<BooleanEventArgs>? GamingStateChanged;
+    public static event EventHandler<BooleanEventArgs>? ForcePlayChanged;
 
     public static void OnGamingStateChanged(object sender, BooleanEventArgs e) // 用户是否在游戏中 事件
     {

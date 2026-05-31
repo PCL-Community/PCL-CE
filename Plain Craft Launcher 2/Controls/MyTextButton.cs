@@ -13,7 +13,7 @@ public class MyTextButton : Label
     private const int animationTimeIn = 100;
     private const int animationTimeOut = 200;
 
-    public static readonly DependencyProperty textProperty = DependencyProperty.Register("Text", typeof(string),
+    public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyTextButton), new PropertyMetadata("", (sender, e) =>
         {
             if (Equals(e.OldValue, e.NewValue)) return;
@@ -22,9 +22,9 @@ public class MyTextButton : Label
                 new[]
                 {
                     ModAnimation.AaOpacity(button, -button.Opacity, 50),
-                    ModAnimation.AaCode(() => button.Content = e.NewValue, After: true),
+                    ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
                     ModAnimation.AaOpacity(button, 1d, 170)
-                }, "MyTextButton Text " + button.uuid);
+                }, "MyTextButton Text " + button.Uuid);
         }));
     
     private string colorName;
@@ -35,7 +35,7 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyTextButton()
     {
@@ -55,8 +55,8 @@ public class MyTextButton : Label
 
     public string Text
     {
-        get => (string)GetValue(textProperty);
-        set => SetValue(textProperty, value);
+        get => (string)GetValue(TextProperty);
+        set => SetValue(TextProperty, value);
     }
 
     public event ClickEventHandler? Click;
@@ -101,6 +101,6 @@ public class MyTextButton : Label
         colorName = ForeName;
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
-            "MyTextButton Color " + uuid, ControlVisualHelpers.ShouldAnimate(this));
+            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
     }
 }

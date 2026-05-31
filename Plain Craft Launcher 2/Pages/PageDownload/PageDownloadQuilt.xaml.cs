@@ -27,7 +27,7 @@ public partial class PageDownloadQuilt
         // 结果数据化
         try
         {
-            var versions = (JsonArray)ModDownload.dlQuiltListLoader.output.value["installer"];
+            var versions = (JsonArray)ModDownload.dlQuiltListLoader.output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in versions)
                 PanVersions.Children.Add(

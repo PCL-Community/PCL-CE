@@ -63,7 +63,7 @@ public partial class PageLogLeft
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
                     Title = version.Name, Info = $"{version.Info} - {Lang.Date(proc.StartTime, "T")}", Height = 40d, Tag = uuid
                 };
-                newItem.changed += ModMain.frmLogLeft.Version_Change;
+                newItem.Changed += ModMain.frmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 var removeButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
@@ -141,18 +141,18 @@ public partial class PageLogLeft
     {
         var uuid = ModBase.GetUuid();
         shownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
-        watcher.logOutput += OnLogOutput;
+        watcher.LogOutput += OnLogOutput;
         ModBase.RunInUi(() => flowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
         SelectionChange(uuid);
         ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
-    public void SelectionChange(int Uuid)
+    public void SelectionChange(int uuid)
     {
         if (isLoading > 0)
             return;
         // If CurrentUuid > 0 Then FlowDocuments(CurrentUuid) = FrmLogRight.PanLog.Document
-        if (Uuid <= 0)
+        if (uuid <= 0)
         {
             currentUuid = -1;
             currentLog = null;
@@ -160,9 +160,9 @@ public partial class PageLogLeft
         else
         {
             foreach (var item in shownLogs)
-                if (item.Key == Uuid)
+                if (item.Key == uuid)
                 {
-                    currentUuid = Uuid;
+                    currentUuid = uuid;
                     currentLog = item.Value;
                     break;
                 }
@@ -175,12 +175,12 @@ public partial class PageLogLeft
         });
     }
 
-    public void RemoveItem(int Uuid)
+    public void RemoveItem(int uuid)
     {
         for (int i = 0, loopTo = shownLogs.Count - 1; i <= loopTo; i++)
         {
             var item = shownLogs[i];
-            if (item.Key != Uuid)
+            if (item.Key != uuid)
                 continue;
             shownLogs.RemoveAt(i);
             if (currentUuid == item.Key)

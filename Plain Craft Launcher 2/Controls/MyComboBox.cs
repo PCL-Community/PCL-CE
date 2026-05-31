@@ -9,7 +9,7 @@ public class MyComboBox : ComboBox
 {
     public delegate void TextChangedEventHandler(object sender, TextChangedEventArgs e);
 
-    public static readonly DependencyProperty hintTextProperty = DependencyProperty.Register("HintText", typeof(string),
+    public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyComboBox), new PropertyMetadata("", (d, e) =>
         {
             var c = (MyComboBox)d;
@@ -28,7 +28,7 @@ public class MyComboBox : ComboBox
     private MyTextBox textBox;
 
     // 基础
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyComboBox()
     {
@@ -49,8 +49,8 @@ public class MyComboBox : ComboBox
 
     public string HintText
     {
-        get => (string)GetValue(hintTextProperty);
-        set => SetValue(hintTextProperty, value);
+        get => (string)GetValue(HintTextProperty);
+        set => SetValue(HintTextProperty, value);
     }
 
     public new string Text
@@ -166,12 +166,12 @@ public class MyComboBox : ComboBox
                 {
                     ModAnimation.AaColor(this, ForegroundProperty, foreColorName, time),
                     ModAnimation.AaColor(this, BackgroundProperty, backColorName, time)
-                }, "MyComboBox Color " + uuid);
+                }, "MyComboBox Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyComboBox Color " + uuid);
+            ModAnimation.AniStop("MyComboBox Color " + Uuid);
             SetResourceReference(ForegroundProperty, foreColorName);
             SetResourceReference(BackgroundProperty, backColorName);
         }

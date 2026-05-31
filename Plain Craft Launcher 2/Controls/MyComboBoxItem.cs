@@ -15,7 +15,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyComboBoxItem()
     {
@@ -72,12 +72,12 @@ public class MyComboBoxItem : ComboBoxItem
                 {
                     ModAnimation.AaColor(this, BackgroundProperty, backColorName, time),
                     ModAnimation.AaOpacity(this, fontOpacity - Opacity, time)
-                }, "ComboBoxItem Color " + uuid);
+                }, "ComboBoxItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("ComboBoxItem Color " + uuid);
+            ModAnimation.AniStop("ComboBoxItem Color " + Uuid);
             SetResourceReference(BackgroundProperty, backColorName);
             Opacity = fontOpacity;
         }
@@ -88,9 +88,9 @@ public class MyComboBoxItem : ComboBoxItem
         return Content?.ToString() ?? "";
     }
 
-    public static implicit operator string(MyComboBoxItem Value)
+    public static implicit operator string(MyComboBoxItem value)
     {
-        return Value.Content?.ToString() ?? "";
+        return value.Content?.ToString() ?? "";
     }
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

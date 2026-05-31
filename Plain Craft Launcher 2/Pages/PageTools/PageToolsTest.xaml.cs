@@ -83,27 +83,27 @@ public partial class PageToolsTest
         States.Tool.DownloadUserAgent = TextUserAgent.Text;
     }
 
-    private static void DownloadState(ModLoader.LoaderCombo<int> Loader)
+    private static void DownloadState(ModLoader.LoaderCombo<int> loader)
     {
         try
         {
-            switch (Loader.State)
+            switch (loader.State)
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint($"{Loader.name}完成！", ModMain.HintType.Finish);
+                    ModMain.Hint($"{loader.name}完成！", ModMain.HintType.Finish);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Failed:
                 {
-                    ModBase.Log(Loader.Error, $"{Loader.name}失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(loader.Error, $"{loader.name}失败", ModBase.LogLevel.Msgbox);
                     Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
-                    ModMain.Hint($"{Loader.name}已取消！");
+                    ModMain.Hint($"{loader.name}已取消！");
                     break;
                 }
             }
@@ -113,39 +113,39 @@ public partial class PageToolsTest
         }
     }
 
-    public static void StartCustomDownload(string Url, string FileName, string Folder = null, string UserAgent = "")
+    public static void StartCustomDownload(string url, string fileName, string folder = null, string userAgent = "")
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(Folder))
+            if (string.IsNullOrWhiteSpace(folder))
             {
-                Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName);
-                if (!Folder.Contains(@"\")) return;
-                if (Folder.EndsWith(FileName)) Folder = Folder[..^FileName.Length];
+                folder = SystemDialogs.SelectSaveFile("选择文件保存位置", fileName);
+                if (!folder.Contains(@"\")) return;
+                if (folder.EndsWith(fileName)) folder = folder[..^fileName.Length];
             }
 
-            Folder = Folder.Replace("/", @"\").TrimEnd(new[] { '\\' }) + @"\";
+            folder = folder.Replace("/", @"\").TrimEnd(new[] { '\\' }) + @"\";
             try
             {
-                Directory.CreateDirectory(Folder);
-                ModBase.CheckPermissionWithException(Folder);
+                Directory.CreateDirectory(folder);
+                ModBase.CheckPermissionWithException(folder);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"访问文件夹失败（{Folder}）", ModBase.LogLevel.Hint);
+                ModBase.Log(ex, $"访问文件夹失败（{folder}）", ModBase.LogLevel.Hint);
                 return;
             }
 
-            ModBase.Log("[Download] 自定义下载文件名：" + FileName);
-            ModBase.Log("[Download] 自定义下载文件目标：" + Folder);
+            ModBase.Log("[Download] 自定义下载文件名：" + fileName);
+            ModBase.Log("[Download] 自定义下载文件目标：" + folder);
             var uuid = ModBase.GetUuid();
             ModLoader.LoaderBase loaderdownload;
-            if (new HttpValidator().Validate(Url).IsValid)
-                loaderdownload = new LoaderDownload($"自定义下载文件：{FileName} ",
-                    new List<DownloadFile> { new(new[] { Url }, Folder + FileName, null, true, UserAgent) });
+            if (new HttpValidator().Validate(url).IsValid)
+                loaderdownload = new LoaderDownload($"自定义下载文件：{fileName} ",
+                    new List<DownloadFile> { new(new[] { url }, folder + fileName, null, true, userAgent) });
             else // UNC 路径
-                loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{FileName} ",
-                    new Tuple<string, string>(Url, Folder + FileName));
+                loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{fileName} ",
+                    new Tuple<string, string>(url, folder + fileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>($"自定义下载 ({uuid}) ", new[] { loaderdownload })
                 { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };
             loaderCombo.Start();
@@ -171,7 +171,7 @@ public partial class PageToolsTest
         if (luckValue >= 60)
             ModMain.MyMsgBox($"你今天的人品值是：{luckValue}！{rating}", title);
         else
-            ModMain.MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, IsWarn: luckValue <= 30);
+            ModMain.MyMsgBox($"你今天的人品值是：{luckValue}... {rating}", title, isWarn: luckValue <= 30);
     }
 
     public static void RubbishClear()
@@ -227,8 +227,8 @@ public partial class PageToolsTest
                     if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.WaitForExit();
                     foreach (var mcFolder in ModMinecraft.mcFolderList)
                     {
-                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.location));
-                        var dirInfo = new DirectoryInfo(mcFolder.location + "versions");
+                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.Location));
+                        var dirInfo = new DirectoryInfo(mcFolder.Location + "versions");
                         if (dirInfo.Exists)
                             foreach (var item in dirInfo.EnumerateDirectories())
                                 cleanMcFolderList.Add(item);
@@ -292,8 +292,8 @@ public partial class PageToolsTest
     }
 
     [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
-    private static extern uint NtSetSystemInformation(int SystemInformationClass, nint SystemInformation,
-        int SystemInformationLength);
+    private static extern uint NtSetSystemInformation(int systemInformationClass, nint systemInformation,
+        int systemInformationLength);
     public static bool AskTrulyWantMemoryOptimize()
     {
         var memLoad = KernelInterop.GetMemoryLoadPercent();
@@ -308,8 +308,8 @@ public partial class PageToolsTest
             Lang.Text("Common.Action.Confirm"),
             "了解 Mem Reduct",
             Lang.Text("Common.Action.Cancel"),
-            IsWarn: true,
-            Button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
+            isWarn: true,
+            button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
         );
         return s == 1;
     }
@@ -408,26 +408,26 @@ public partial class PageToolsTest
     // 下载正版玩家皮肤
     private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
-        var iD = TextSkinID.Text;
+        var id = TextSkinID.Text;
         ModMain.Hint("正在获取皮肤...");
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                if (iD.Length < 3)
+                if (id.Length < 3)
                 {
                     ModMain.Hint("这不是一个有效的 ID...");
                 }
                 else
                 {
-                    var result = (string)ModProfile.McLoginMojangUuid(iD, true);
+                    var result = (string)ModProfile.McLoginMojangUuid(id, true);
                     result = ModMinecraft.McSkinGetAddress(result, "Mojang");
                     result = ModMinecraft.McSkinDownload(result);
                     ModBase.RunInUi(() =>
                     {
-                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{iD}.png", "皮肤图片文件(*.png)|*.png");
+                        var path = SystemDialogs.SelectSaveFile("保存皮肤", $"{id}.png", "皮肤图片文件(*.png)|*.png");
                         ModBase.CopyFile(result, path);
-                        ModMain.Hint($"玩家 {iD} 的皮肤已保存！", ModMain.HintType.Finish);
+                        ModMain.Hint($"玩家 {id} 的皮肤已保存！", ModMain.HintType.Finish);
                     });
                 }
             }
@@ -436,11 +436,11 @@ public partial class PageToolsTest
                 if (ex.ToString().Contains("429"))
                 {
                     ModMain.Hint("获取皮肤太过频繁，请 5 分钟之后再试！", ModMain.HintType.Critical);
-                    ModBase.Log($"获取正版皮肤失败（{iD}）：获取皮肤太过频繁，请 5 分钟后再试！");
+                    ModBase.Log($"获取正版皮肤失败（{id}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
                 {
-                    ModBase.Log(ex, $"获取正版皮肤失败（{iD}）");
+                    ModBase.Log(ex, $"获取正版皮肤失败（{id}）");
                 }
             }
         });
@@ -633,7 +633,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), HintText: "\"sURe\".ToUpper()", IsWarn: true) ==
+        if (ModMain.MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", Lang.Text("Common.Action.Confirm"), hintText: "\"sURe\".ToUpper()", isWarn: true) ==
             "SURE") throw new Exception("手动崩溃");
     }
 

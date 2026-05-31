@@ -35,14 +35,14 @@ public partial class PageDownloadLiteLoader
             var dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
             for (var versionCode = 30; versionCode >= 0; versionCode -= 1)
                 dict.Add("1." + versionCode, new List<ModDownload.DlLiteLoaderListEntry>());
-            dict.Add(ModMinecraft.uNKNOWN_VERSION_KEY, []);
-            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.value)
+            dict.Add(ModMinecraft.UNKNOWN_VERSION_KEY, []);
+            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.Value)
             {
-                var mainVersion = "1." + Version.inherit.Split(".")[1];
+                var mainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (dict.ContainsKey(mainVersion))
                     dict[mainVersion].Add(Version);
                 else
-                    dict[ModMinecraft.uNKNOWN_VERSION_KEY].Add(Version);
+                    dict[ModMinecraft.UNKNOWN_VERSION_KEY].Add(Version);
             }
 
             // 清空当前
@@ -55,26 +55,26 @@ public partial class PageDownloadLiteLoader
                 // 增加卡片
                 var newCard = new MyCard
                 {
-                    Title = (Pair.Key == ModMinecraft.uNKNOWN_VERSION_KEY
+                    Title = (Pair.Key == ModMinecraft.UNKNOWN_VERSION_KEY
                         ? Lang.Text("Minecraft.Version.Unknown")
                         : Pair.Key) + " (" + Pair.Value.Count + ")",
                     Margin = new Thickness(0d, 0d, 0d, 15d)
                 };
                 var newStack = new StackPanel
                 {
-                    Margin = new Thickness(20d, MyCard.swapedHeight, 18d, 0d),
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = Pair.Value
                 };
                 newCard.Children.Add(newStack);
-                newCard.swapControl = newStack;
+                newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.inherit, b.inherit) == 1);
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
+                    stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);

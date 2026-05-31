@@ -105,10 +105,10 @@ public partial class PageComp
         ChangePage(page + 1);
     }
 
-    private void ChangePage(int NewPage)
+    private void ChangePage(int newPage)
     {
         CardPages.IsEnabled = false;
-        page = NewPage;
+        page = newPage;
         ModMain.frmMain.BackToTop();
         ModBase.Log($"[Download] {TypeName}：切换到第 {page + 1} 页");
         ModBase.RunInThread(() =>
@@ -149,22 +149,22 @@ public partial class PageComp
     /// </summary>
     public ItemCollection SearchTags => ComboSearchTag.Items;
 
-    public static readonly DependencyProperty supportCurseForgeProperty =
+    public static readonly DependencyProperty SupportCurseForgeProperty =
         DependencyProperty.Register("SupportCurseForge", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
 
     public bool SupportCurseForge
     {
-        get => (bool)GetValue(supportCurseForgeProperty);
-        set => SetValue(supportCurseForgeProperty, value);
+        get => (bool)GetValue(SupportCurseForgeProperty);
+        set => SetValue(SupportCurseForgeProperty, value);
     }
 
-    public static readonly DependencyProperty supportModrinthProperty =
+    public static readonly DependencyProperty SupportModrinthProperty =
         DependencyProperty.Register("SupportModrinth", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
 
     public bool SupportModrinth
     {
-        get => (bool)GetValue(supportModrinthProperty);
-        set => SetValue(supportModrinthProperty, value);
+        get => (bool)GetValue(SupportModrinthProperty);
+        set => SetValue(SupportModrinthProperty, value);
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public partial class PageComp
     /// <summary>
     ///     在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     /// </summary>
-    public static ModMinecraft.McInstance targetVersion;
+    public static ModMinecraft.Instance targetVersion;
 
     // 在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     public ModLoader.LoaderTask<ModComp.CompProjectRequest, int> loader;
@@ -219,11 +219,11 @@ public partial class PageComp
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
-        Load.stateChanged += Load_State;
+        Load.StateChanged += Load_State;
         BtnPageFirst.Click += BtnPageFirst_Click;
         BtnPageLeft.Click += BtnPageLeft_Click;
         BtnPageRight.Click += BtnPageRight_Click;
-        PanSearchBox.search += (_, _) => StartNewSearch();
+        PanSearchBox.Search += (_, _) => StartNewSearch();
         PanSearchBox.KeyDown += EnterTrigger;
         TextSearchVersion.KeyDown += EnterTrigger;
         BtnSearchReset.Click += (_, _) => ResetFilter();
@@ -237,24 +237,24 @@ public partial class PageComp
         {
             // 设置目标
             ResetFilter(); // 重置筛选器
-            TextSearchVersion.Text = targetVersion.Info.vanillaName;
+            TextSearchVersion.Text = targetVersion.Info.VanillaName;
 
-            MyComboBoxItem GetTargetItemByName(string Name)
+            MyComboBoxItem GetTargetItemByName(string name)
             {
                 foreach (MyComboBoxItem Item in ComboSearchLoader.Items)
-                    if (string.Equals(Item.Content?.ToString(), Name, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(Item.Content?.ToString(), name, StringComparison.OrdinalIgnoreCase))
                         return Item;
                 return (MyComboBoxItem)ComboSearchLoader.Items[0];
             }
 
             ;
-            if (targetVersion.Info.hasForge)
+            if (targetVersion.Info.HasForge)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Forge");
-            else if (targetVersion.Info.hasFabric)
+            else if (targetVersion.Info.HasFabric)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("Fabric");
-            else if (targetVersion.Info.hasNeoForge)
+            else if (targetVersion.Info.HasNeoForge)
                 ComboSearchLoader.SelectedItem = GetTargetItemByName("NeoForge");
-            else if (targetVersion.Info.hasQuilt) ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt");
+            else if (targetVersion.Info.HasQuilt) ComboSearchLoader.SelectedItem = GetTargetItemByName("Quilt");
             targetVersion = null;
             // 如果已经完成请求，则重新开始
             if (isLoaderInited)

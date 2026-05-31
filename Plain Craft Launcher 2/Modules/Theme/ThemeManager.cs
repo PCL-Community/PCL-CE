@@ -19,7 +19,7 @@ public static class ThemeManager
     public static ModBase.MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
     public static ModBase.MyColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
 
-    public static void ThemeRefresh(int NewTheme = -1)
+    public static void ThemeRefresh(int newTheme = -1)
     {
         colorGray1 = new ModBase.MyColor(AppResources["ColorObjectGray1"]);
         colorGray4 = new ModBase.MyColor(AppResources["ColorObjectGray4"]);

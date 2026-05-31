@@ -11,22 +11,22 @@ public partial class MyMsgInput
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
 
-    public MyMsgInput(ModMain.MyMsgBoxConverter Converter)
+    public MyMsgInput(ModMain.MyMsgBoxConverter converter)
     {
         try
         {
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
-            myConverter = Converter;
-            LabTitle.Text = Converter.title;
-            LabText.Text = Converter.text;
-            PanText.Visibility = string.IsNullOrEmpty(Converter.text) ? Visibility.Collapsed : Visibility.Visible;
-            TextArea.Text = (string)Converter.content;
-            TextArea.HintText = Converter.hintText;
-            TextArea.ValidateRules = Converter.validateRules;
-            ConfigurePrimaryButton(Converter.button1, Converter.isWarn);
-            ConfigureSecondaryButton(Converter.button2);
+            myConverter = converter;
+            LabTitle.Text = converter.Title;
+            LabText.Text = converter.Text;
+            PanText.Visibility = string.IsNullOrEmpty(converter.Text) ? Visibility.Collapsed : Visibility.Visible;
+            TextArea.Text = (string)converter.Content;
+            TextArea.HintText = converter.HintText;
+            TextArea.ValidateRules = converter.ValidateRules;
+            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigureSecondaryButton(converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -72,7 +72,7 @@ public partial class MyMsgInput
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.isWarn
+                    (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
@@ -99,7 +99,7 @@ public partial class MyMsgInput
     private void Close()
     {
         // 结束线程阻塞
-        myConverter.waitFrame.Continue = false;
+        myConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
@@ -110,33 +110,33 @@ public partial class MyMsgInput
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), After: true)
+            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         TextArea.Validate(); // #5773
-        if (myConverter.isExited || !TextArea.IsValidated)
+        if (myConverter.IsExited || !TextArea.IsValidated)
             return;
-        myConverter.isExited = true;
-        myConverter.result = TextArea.Text;
+        myConverter.IsExited = true;
+        myConverter.Result = TextArea.Text;
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        myConverter.isExited = true;
-        myConverter.result = null;
+        myConverter.IsExited = true;
+        myConverter.Result = null;
         Close();
     }
 

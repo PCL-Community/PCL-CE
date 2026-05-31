@@ -128,9 +128,9 @@ public class MyImage : Image
         });
     }
 
-    public static string GetTempPath(string Url)
+    public static string GetTempPath(string url)
     {
-        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
+        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
@@ -178,11 +178,11 @@ public class MyImage : Image
 
     public bool EnableCache
     {
-        get => (bool)GetValue(enableCacheProperty);
-        set => SetValue(enableCacheProperty, value);
+        get => (bool)GetValue(EnableCacheProperty);
+        set => SetValue(EnableCacheProperty, value);
     }
 
-    public new static readonly DependencyProperty enableCacheProperty =
+    public new static readonly DependencyProperty EnableCacheProperty =
         DependencyProperty.Register("EnableCache", typeof(bool), typeof(MyImage), new PropertyMetadata(true));
 
     /// <summary>
@@ -208,7 +208,7 @@ public class MyImage : Image
 
     private string _Source = "";
 
-    public new static readonly DependencyProperty sourceProperty = DependencyProperty.Register("Source", typeof(string),
+    public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
             if (sender is not null) ((MyImage)sender).Source = e.NewValue.ToString();
