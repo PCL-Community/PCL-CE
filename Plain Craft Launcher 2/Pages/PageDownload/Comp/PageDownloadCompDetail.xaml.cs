@@ -381,13 +381,13 @@ public partial class PageDownloadCompDetail
                     }
 
                     var downloadFiles = new List<DownloadFile> { file.ToNetFile(target) };
-                    if (file.type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
-                        file.dependencies.Any())
+                    if (file.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
+                        file.Dependencies.Any())
                     {
                         try
                         {
-                            ModMinecraft.McInstance? targetInstance = null;
-                            var knownInstances = new List<ModMinecraft.McInstance>();
+                            ModMinecraft.Instance? targetInstance = null;
+                            var knownInstances = new List<ModMinecraft.Instance>();
                             if (ModMinecraft.McInstanceSelected is not null)
                             {
                                 knownInstances.Add(ModMinecraft.McInstanceSelected);
@@ -399,26 +399,26 @@ public partial class PageDownloadCompDetail
                                 .Distinct()
                                 .FirstOrDefault(instance =>
                                     targetDir.StartsWith(instance.PathIndie, StringComparison.OrdinalIgnoreCase));
-                            if (targetInstance is not null && !targetInstance.isLoaded)
+                            if (targetInstance is not null && !targetInstance.IsLoaded)
                             {
                                 targetInstance.Load();
                             }
 
-                            var mcVersion = targetInstance?.Info?.vanillaName
-                                            ?? file.gameVersions.FirstOrDefault(version => version.Contains("."))
+                            var mcVersion = targetInstance?.Info?.VanillaName
+                                            ?? file.GameVersions.FirstOrDefault(version => version.Contains("."))
                                             ?? string.Empty;
                             var targetLoaders = new List<ModComp.CompLoaderType>();
                             if (targetInstance is not null)
                             {
-                                if (targetInstance.Info.hasForge)
+                                if (targetInstance.Info.HasForge)
                                     targetLoaders.Add(ModComp.CompLoaderType.Forge);
-                                if (targetInstance.Info.hasFabric || targetInstance.Info.hasLegacyFabric)
+                                if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
                                     targetLoaders.Add(ModComp.CompLoaderType.Fabric);
-                                if (targetInstance.Info.hasQuilt)
+                                if (targetInstance.Info.HasQuilt)
                                     targetLoaders.Add(ModComp.CompLoaderType.Quilt);
-                                if (targetInstance.Info.hasNeoForge)
+                                if (targetInstance.Info.HasNeoForge)
                                     targetLoaders.Add(ModComp.CompLoaderType.NeoForge);
-                                if (targetInstance.Info.hasLiteLoader)
+                                if (targetInstance.Info.HasLiteLoader)
                                     targetLoaders.Add(ModComp.CompLoaderType.LiteLoader);
                             }
 
@@ -427,7 +427,7 @@ public partial class PageDownloadCompDetail
                                 targetLoaders = allowedLoaders.ToList();
                             }
 
-                            ModBase.Log($"[CompDeps] 开始解析必需前置: {file.dependencies.Count} 个依赖");
+                            ModBase.Log($"[CompDeps] 开始解析必需前置: {file.Dependencies.Count} 个依赖");
                             var request = ModCompDependency.BuildRequest(file, _project, mcVersion, targetLoaders,
                                 targetDir);
                             var resolver = new ModDependencyResolver();
@@ -453,7 +453,7 @@ public partial class PageDownloadCompDetail
                         {
                             ModBase.Log(depEx, "[CompDeps] 依赖解析失败，跳过前置安装");
                             ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
-                                "前置解析失败", Button1: "继续下载", IsWarn: true, ForceWait: true);
+                                "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
                         }
                     }
 

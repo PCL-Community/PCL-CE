@@ -22,8 +22,8 @@ public static class ModCompDependency
         ArgumentNullException.ThrowIfNull(project);
         targetLoaders ??= new List<CompLoaderType>();
 
-        var source = GetSource(project.fromCurseForge);
-        var dependencies = file.dependencies
+        var source = GetSource(project.FromCurseForge);
+        var dependencies = file.Dependencies
             .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
             .Select(dependencyId => new ModDependencyReference
             {
@@ -31,7 +31,7 @@ public static class ModCompDependency
                 Source = source,
                 IsRequired = true,
             })
-            .Concat(file.optionalDependencies
+            .Concat(file.OptionalDependencies
                 .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
                 .Select(dependencyId => new ModDependencyReference
                 {
@@ -69,16 +69,16 @@ public static class ModCompDependency
             var localFile = new LocalCompFile(path);
             localFile.Load();
 
-            var source = localFile.Comp is null ? null : GetSource(localFile.Comp.fromCurseForge);
-            var gameVersions = localFile.compFile?.gameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
+            var source = localFile.Comp is null ? null : GetSource(localFile.Comp.FromCurseForge);
+            var gameVersions = localFile.compFile?.GameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
                                ?? new List<string>();
-            var loaders = ToLoaderNames(localFile.compFile?.modLoaders);
+            var loaders = ToLoaderNames(localFile.compFile?.ModLoaders);
 
-            if (!string.IsNullOrWhiteSpace(localFile.Comp?.id) && !string.IsNullOrWhiteSpace(source))
+            if (!string.IsNullOrWhiteSpace(localFile.Comp?.Id) && !string.IsNullOrWhiteSpace(source))
             {
                 result.Add(new InstalledModIdentity
                 {
-                    SourceProjectId = localFile.Comp.id,
+                    SourceProjectId = localFile.Comp.Id,
                     Source = source,
                     ModId = localFile.ModId,
                     GameVersions = gameVersions,
@@ -87,12 +87,12 @@ public static class ModCompDependency
                 continue;
             }
 
-            if (!string.IsNullOrWhiteSpace(localFile.compFile?.projectId))
+            if (!string.IsNullOrWhiteSpace(localFile.compFile?.ProjectId))
             {
-                var fileSource = GetSource(localFile.compFile.fromCurseForge);
+                var fileSource = GetSource(localFile.compFile.FromCurseForge);
                 result.Add(new InstalledModIdentity
                 {
-                    SourceProjectId = localFile.compFile.projectId,
+                    SourceProjectId = localFile.compFile.ProjectId,
                     Source = fileSource,
                     ModId = localFile.ModId,
                     GameVersions = gameVersions,
@@ -128,27 +128,27 @@ public static class ModCompDependency
             return null;
         }
 
-        if (compProject.fromCurseForge != fromCurseForge)
+        if (compProject.FromCurseForge != fromCurseForge)
         {
             return null;
         }
 
         return new ModDependencyProject
         {
-            ProjectId = compProject.id,
+            ProjectId = compProject.Id,
             Source = source,
-            ProjectName = compProject.TranslatedName ?? compProject.rawName,
+            ProjectName = compProject.TranslatedName ?? compProject.RawName,
             Files = files.Select(compFile => new ModDependencyFile
             {
-                Id = compFile.id,
-                DisplayName = compFile.displayName,
-                Version = compFile.version,
-                GameVersions = compFile.gameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
+                Id = compFile.Id,
+                DisplayName = compFile.DisplayName,
+                Version = compFile.Version,
+                GameVersions = compFile.GameVersions?.Where(static version => !string.IsNullOrWhiteSpace(version)).ToList()
                                ?? new List<string>(),
-                Loaders = ToLoaderNames(compFile.modLoaders),
-                ReleaseType = MapReleaseType(compFile.status),
-                ReleaseDate = compFile.releaseDate,
-                RequiredDependencies = compFile.dependencies
+                Loaders = ToLoaderNames(compFile.ModLoaders),
+                ReleaseType = MapReleaseType(compFile.Status),
+                ReleaseDate = compFile.ReleaseDate,
+                RequiredDependencies = compFile.Dependencies
                     .Where(static dependencyId => !string.IsNullOrWhiteSpace(dependencyId))
                     .Select(dependencyId => new ModDependencyReference
                     {
@@ -190,13 +190,13 @@ public static class ModCompDependency
             }
 
             var fromCurseForge = string.Equals(install.Source, "CurseForge", StringComparison.OrdinalIgnoreCase);
-            if (depProject.fromCurseForge != fromCurseForge)
+            if (depProject.FromCurseForge != fromCurseForge)
             {
                 continue;
             }
 
             var depCompFile = ModComp.CompFilesGet(install.ProjectId, fromCurseForge)
-                .FirstOrDefault(file => string.Equals(file.id, install.File.Id, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(file => string.Equals(file.Id, install.File.Id, StringComparison.OrdinalIgnoreCase));
             if (depCompFile is null)
             {
                 continue;
@@ -223,7 +223,7 @@ public static class ModCompDependency
             var message = "以下必需前置无法解析：\n\n" +
                           string.Join("\n", result.Unresolved
                               .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
-            ModMain.MyMsgBox(message, "无法安装必需前置", Button1: "确定", IsWarn: true, ForceWait: true);
+            ModMain.MyMsgBox(message, "无法安装必需前置", button1: "确定", isWarn: true, forceWait: true);
             return false;
         }
 
@@ -234,7 +234,7 @@ public static class ModCompDependency
                               .Select(install =>
                                   $"- {install.ProjectName} ({install.Source}) - {install.File.DisplayName} v{install.File.Version}"));
             var dialogResult = ModMain.MyMsgBox(message, "安装 Mod 前置确认",
-                Button1: "安装 Mod 与必需前置", Button2: "取消安装", ForceWait: true);
+                button1: "安装 Mod 与必需前置", button2: "取消安装", forceWait: true);
             if (dialogResult != 1)
             {
                 ModBase.Log("[CompDeps] 用户取消，已中止安装");
@@ -250,7 +250,7 @@ public static class ModCompDependency
     /// </summary>
     public static void ShowDependencyAbortMessage(string reason)
     {
-        ModMain.MyMsgBox(reason, "安装已中止", Button1: "确定", IsWarn: false, ForceWait: true);
+        ModMain.MyMsgBox(reason, "安装已中止", button1: "确定", isWarn: false, forceWait: true);
     }
 
     private static string GetSource(bool fromCurseForge)
