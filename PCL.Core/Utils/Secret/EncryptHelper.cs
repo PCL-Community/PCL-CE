@@ -1,19 +1,21 @@
 ﻿using System;
-using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using PCL.Core.App;
-using PCL.Core.IO;
 using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Exts;
+using PlainToolkit.CngProtectedData;
+using DataProtectionScope = System.Security.Cryptography.DataProtectionScope;
+using CngDataProtectionScope = PlainToolkit.CngProtectedData.DataProtectionScope;
+
 
 namespace PCL.Core.Utils.Secret;
 
 public static class EncryptHelper
 {
+    private const string Key = "PCL CE Encryption Key";
     public static (IEncryptionProvider Provider, uint Version) DefaultProvider => _DefaultProvider.Value;
     private static readonly Lazy<(IEncryptionProvider Provider, uint Version)> _DefaultProvider = new(_SelectBestEncryption);
 
@@ -140,8 +142,7 @@ public static class EncryptHelper
     #endregion
 
     #region "密钥存储和获取"
-
-    private static readonly byte[] _IdentifyEntropy = Encoding.UTF8.GetBytes("PCL CE Encryption Key");
+    
     internal static byte[] EncryptionKey { get => _EncryptionKey.Value; }
     private static readonly Lazy<byte[]> _EncryptionKey = new(_GetKey);
 
@@ -152,33 +153,35 @@ public static class EncryptHelper
         {
             var buf = File.ReadAllBytes(keyFile);
             var data = EncryptionData.FromBytes(buf);
+            Span<byte> store = stackalloc byte[22];
+            Key.GetBytes(Encoding.UTF8, store);
+            var space = (ReadOnlySpan<byte>)store;
             return data.Version switch
             {
-                1 => ProtectedData.Unprotect(data.Data, _IdentifyEntropy, DataProtectionScope.CurrentUser),
+                1 => ProtectedData.Unprotect(data.Data.AsSpan(), DataProtectionScope.CurrentUser, space),
+                2 => CngProtectedData.Unprotect(data.Data.AsSpan(), CngDataProtectionScope.CurrentUser, space),
                 _ => throw new NotSupportedException("Unsupported key version")
             };
         }
-        else
+
+        var randomKey = new byte[32];
+        RandomNumberGenerator.Fill(randomKey);
+        var storeData = EncryptionData.ToBytes(new EncryptionData
         {
-            var randomKey = new byte[32];
-            RandomNumberGenerator.Fill(randomKey);
-            var storeData = EncryptionData.ToBytes(new EncryptionData
-            {
-                Version = 1,
-                Data = ProtectedData.Protect(randomKey, _IdentifyEntropy, DataProtectionScope.CurrentUser)
-            });
+            Version = 2,
+            Data = CngProtectedData.Protect(randomKey, CngDataProtectionScope.CurrentUser)
+        });
 
-            var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
-            using (var fs = new FileStream(tmpFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
-            {
-                fs.Write(storeData);
-                fs.Flush(true);
-            }
-
-            File.Move(tmpFile, keyFile, true);
-
-            return randomKey;
+        var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
+        using (var fs = new FileStream(tmpFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+        {
+            fs.Write(storeData);
+            fs.Flush(true);
         }
+
+        File.Move(tmpFile, keyFile, true);
+
+        return randomKey;
     }
 
     #endregion
