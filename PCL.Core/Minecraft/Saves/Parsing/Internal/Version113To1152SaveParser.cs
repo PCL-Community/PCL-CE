@@ -19,8 +19,8 @@ internal sealed class Version113To1152SaveParser : ISaveParser
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
         => dataVersion.HasValue
-        && dataVersion.Value >= DataVersionBoundaries.Flattening
-        && dataVersion.Value < DataVersionBoundaries.WorldGenSettings;
+        && dataVersion.Value >= DataVersionBoundaries._17w47a
+        && dataVersion.Value < DataVersionBoundaries._20w20a;
 
     public SaveInfo Parse(string folderPath, NbtCompound data, DateTime createdAt, DateTime modifiedAt)
         => _baseParser.Parse(folderPath, data, createdAt, modifiedAt);
