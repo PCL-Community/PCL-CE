@@ -11,7 +11,7 @@ namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 internal sealed class Pre261SaveEditor : ISaveEditor
 {
     public bool CanHandle(int? dataVersion)
-        => dataVersion is null || dataVersion < DataVersionBoundaries.DifficultySettings;
+        => dataVersion is null || dataVersion < DataVersionBoundaries._261snapshot6;
 
     public async Task<bool> ApplyChangesAsync(string levelDatPath, SaveChanges changes, CancellationToken ct)
     {

@@ -22,7 +22,7 @@ internal sealed class Version261PlusSaveParser : ISaveParser
     public SaveFormatVersion FormatVersion => SaveFormatVersion.Version261Plus;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
-        => dataVersion >= DataVersionBoundaries.DifficultySettings
+        => dataVersion >= DataVersionBoundaries._261snapshot6
         || data.Contains("difficulty_settings");
 
     public SaveInfo Parse(string folderPath, NbtCompound data, DateTime createdAt, DateTime modifiedAt)
