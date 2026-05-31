@@ -40,7 +40,7 @@ public partial class MyHint
 
     // 触发点击事件
     private bool isMouseDown;
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyHint()
     {
@@ -198,6 +198,6 @@ public static partial class ModAnimation
                 if (callBack is not null)
                     callBack(control);
             }, after: true)
-        }, "MyCard Dispose " + control.uuid);
+        }, "MyCard Dispose " + control.Uuid);
     }
 }

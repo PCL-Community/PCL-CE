@@ -1,23 +1,42 @@
+using System.Text.Json.Serialization;
+
 namespace PCL;
 
 public class VersionAnnouncementDataModel
 {
-    public List<VersionAnnouncementContentModel> content { get; set; }
+    [JsonPropertyName("content")]
+    public List<VersionAnnouncementContentModel> Content { get; set; }
 }
 
 public class VersionAnnouncementContentModel
 {
-    public string title { get; set; }
-    public string detail { get; set; }
-    public string id { get; set; }
-    public string date { get; set; }
-    public AnnouncementBtnInfoModel btn1 { get; set; }
-    public AnnouncementBtnInfoModel btn2 { get; set; }
+    [JsonPropertyName("title")]
+    public string Title { get; set; }
+
+    [JsonPropertyName("detail")]
+    public string Detail { get; set; }
+
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; }
+
+    [JsonPropertyName("btn1")]
+    public AnnouncementBtnInfoModel Btn1 { get; set; }
+
+    [JsonPropertyName("btn2")]
+    public AnnouncementBtnInfoModel Btn2 { get; set; }
 }
 
 public class AnnouncementBtnInfoModel
 {
-    public string text { get; set; }
-    public string command { get; set; }
-    public string command_paramter { get; set; }
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+
+    [JsonPropertyName("command")]
+    public string Command { get; set; }
+
+    [JsonPropertyName("command_paramter")]
+    public string CommandParameter { get; set; }
 }

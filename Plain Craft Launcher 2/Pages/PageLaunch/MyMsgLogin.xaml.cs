@@ -30,10 +30,10 @@ public partial class MyMsgLogin
 
     private void Finished(object result)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        myConverter.isExited = true;
-        myConverter.result = result;
+        myConverter.IsExited = true;
+        myConverter.Result = result;
         ModBase.RunInUi(Close);
         Thread.Sleep(200);
         ModMain.frmMain.ShowWindowToTop();
@@ -66,14 +66,14 @@ public partial class MyMsgLogin
     private void WorkThread()
     {
         Thread.Sleep(2000);
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
         ModBase.OpenWebsite(website);
         ModBase.ClipboardSet(userCode);
         Thread.Sleep((data["interval"].ToObject<int>() - 1) * 1000);
         // 轮询
         var unknownFailureCount = 0;
-        while (!myConverter.isExited)
+        while (!myConverter.IsExited)
         {
             try
             {
@@ -133,8 +133,8 @@ public partial class MyMsgLogin
             Btn3.Name += ModBase.GetUuid();
             myConverter = converter;
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            data = (JsonObject)converter.content;
-            oAuthUrl = converter.authUrl?.ToString() ?? "";
+            data = (JsonObject)converter.Content;
+            oAuthUrl = converter.AuthUrl?.ToString() ?? "";
             Init();
         }
         catch (Exception ex)
@@ -153,7 +153,7 @@ public partial class MyMsgLogin
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.isWarn
+                    (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");

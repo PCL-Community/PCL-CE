@@ -27,7 +27,7 @@ public partial class PageDownloadLabyMod
         // 结果数据化
         try
         {
-            var versions = ModDownload.dlLabyModListLoader.output.value;
+            var versions = ModDownload.dlLabyModListLoader.output.Value;
             if (versions is null)
                 return;
             var productionEntry = new JsonObject();

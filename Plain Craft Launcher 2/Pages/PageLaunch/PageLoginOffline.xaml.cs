@@ -73,10 +73,10 @@ public partial class PageLoginOffline
         // 创建档案
         var newProfile = new ModProfile.McProfile
         {
-            type = ModLaunch.McLoginType.Legacy,
-            uuid = userUuid,
-            username = username,
-            desc = ""
+            Type = ModLaunch.McLoginType.Legacy,
+            Uuid = userUuid,
+            Username = username,
+            Desc = ""
         };
         ModProfile.profileList.Add(newProfile);
         ModProfile.SaveProfile();

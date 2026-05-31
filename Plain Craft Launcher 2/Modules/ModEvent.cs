@@ -198,8 +198,8 @@ namespace PCL
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
-                                serverIp = args.Length >= 2 ? args[1] : null,
-                                instance = new ModMinecraft.McInstance(args[0])
+                                ServerIp = args.Length >= 2 ? args[1] : null,
+                                instance = new ModMinecraft.Instance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {

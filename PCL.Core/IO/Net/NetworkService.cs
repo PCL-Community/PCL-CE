@@ -3,10 +3,10 @@ using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.IO.Net.Http.Cache;
+using PCL.Core.IO.Storage.Cache;
 using PCL.Core.Logging;
 using Polly;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 
@@ -16,20 +16,18 @@ namespace PCL.Core.IO.Net;
 [LifecycleScope("network", "网络服务")]
 public partial class NetworkService
 {
-
-    private const int _lifetime = 15;
-    
-    private static HttpCacheRepository _repo = new(Path.Combine(Paths.Temp, "cache", "cache.db"), Path.Combine(Paths.Temp, "cache"));
-
     private static ServiceProvider? _provider;
     private static IHttpClientFactory? _factory;
+
+    private static ICacheService? _cacheService;
 
     [LifecycleStart]
     private static void _Start()
     {
-        _repo.Initialize();
+        _cacheService = CacheServiceManager.Current;
+        // 重新构建服务提供者，添加带缓存的 HTTP 客户端
         var services = new ServiceCollection();
-        services.AddHttpClient("default").SetHandlerLifetime(TimeSpan.FromMinutes(_lifetime))
+        services.AddHttpClient("default")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 UseProxy = true,
@@ -37,13 +35,14 @@ public partial class NetworkService
                 Proxy = HttpProxyManager.Instance,
                 AllowAutoRedirect = true,
                 MaxAutomaticRedirections = 20,
-                UseCookies = false, //禁止自动 Cookie 管理
+                UseCookies = false,
                 ConnectCallback = Config.Network.EnableDoH
-                    ? PCL.Core.IO.Net.Http.HostConnectionHandler.Instance.GetConnectionAsync
-                    : null
+                        ? HostConnectionHandler.Instance.GetConnectionAsync
+                        : null
             }
-        );
-        services.AddHttpClient("cache").SetHandlerLifetime(TimeSpan.FromMinutes(_lifetime)).ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
+            );
+        services.AddHttpClient("cache")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
             new SocketsHttpHandler
             {
                 UseProxy = true,
@@ -53,14 +52,13 @@ public partial class NetworkService
                 AllowAutoRedirect = true,
                 MaxAutomaticRedirections = 20,
                 ConnectCallback = Config.Network.EnableDoH
-                ? HostConnectionHandler.Instance.GetConnectionAsync
-                : null
-            }, _repo));
+                    ? HostConnectionHandler.Instance.GetConnectionAsync
+                    : null
+            }, _cacheService));
 
-
+        _provider?.Dispose();
         _provider = services.BuildServiceProvider();
         _factory = _provider.GetRequiredService<IHttpClientFactory>();
-
     }
 
     [LifecycleStop]

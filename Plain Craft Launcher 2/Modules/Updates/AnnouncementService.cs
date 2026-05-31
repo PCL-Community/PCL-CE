@@ -14,8 +14,8 @@ public static class AnnouncementService
             .Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
             .ToList();
 
-        var showAnnounce = UpdateManager.remoteServer.GetAnnouncementList().content
-            .Where(x => !showedAnnounced.Contains(x.id))
+        var showAnnounce = UpdateManager.remoteServer.GetAnnouncementList().Content
+            .Where(x => !showedAnnounced.Contains(x.Id))
             .ToList();
 
         ModBase.Log("[System] 需要展示的公告数量：" + showAnnounce.Count);
@@ -24,26 +24,26 @@ public static class AnnouncementService
         {
             foreach (var item in showAnnounce)
             {
-                ModMain.MyMsgBox(item.detail, item.title,
-                    item.btn1 is null ? "" : item.btn1.text,
-                    item.btn2 is null ? "" : item.btn2.text,
+                ModMain.MyMsgBox(item.Detail, item.Title,
+                    item.Btn1 is null ? "" : item.Btn1.Text,
+                    item.Btn2 is null ? "" : item.Btn2.Text,
                     Lang.Text("Common.Action.Close"),
                     button1Action: () =>
                     {
                         if (Enum.TryParse<CustomEvent.EventType>(
-                                item.btn1.command, true, out var eventType))
-                            CustomEvent.Raise(eventType, item.btn1.command_paramter);
+                                item.Btn1.Command, true, out var eventType))
+                            CustomEvent.Raise(eventType, item.Btn1.CommandParameter);
                     },
                     button2Action: () =>
                     {
                         if (Enum.TryParse<CustomEvent.EventType>(
-                                item.btn2.command, true, out var eventType))
-                            CustomEvent.Raise(eventType, item.btn2.command_paramter);
+                                item.Btn2.Command, true, out var eventType))
+                            CustomEvent.Raise(eventType, item.Btn2.CommandParameter);
                     });
             }
         });
 
-        showedAnnounced.AddRange(showAnnounce.Select(x => x.id));
+        showedAnnounced.AddRange(showAnnounce.Select(x => x.Id));
         showedAnnounced = showedAnnounced.Distinct().ToList();
         States.Hint.ShowedAnnouncements = showedAnnounced.Join("|");
     }

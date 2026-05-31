@@ -31,7 +31,7 @@ public partial class PageDownloadCleanroom
         try
         {
             // 归类
-            var dict = ModDownload.dlCleanroomListLoader.output.value.GroupBy(d => d.inherit)
+            var dict = ModDownload.dlCleanroomListLoader.output.Value.GroupBy(d => d.Inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();

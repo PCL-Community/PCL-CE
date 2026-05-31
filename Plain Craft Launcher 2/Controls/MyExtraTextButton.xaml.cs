@@ -32,7 +32,7 @@ public partial class MyExtraTextButton
     private bool isLeftMouseHeld;
 
     // 自定义属性
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyExtraTextButton()
     {
@@ -104,7 +104,7 @@ public partial class MyExtraTextButton
                             ModAnimation.AaScaleTransform(this, 0.15d - ((ScaleTransform)RenderTransform).ScaleX, 400,
                                 50, new ModAnimation.AniEaseOutBack()),
                             ModAnimation.AaScaleTransform(this, 0.85d, 160, 50, new ModAnimation.AniEaseOutFluent())
-                        }, "MyExtraTextButton MainScale " + uuid);
+                        }, "MyExtraTextButton MainScale " + Uuid);
                 }
                 else
                 {
@@ -115,7 +115,7 @@ public partial class MyExtraTextButton
                             ModAnimation.AaOpacity(this, -Opacity, 50, 50),
                             ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
                                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
-                        }, "MyExtraTextButton MainScale " + uuid);
+                        }, "MyExtraTextButton MainScale " + Uuid);
                 }
 
                 IsHitTestVisible = value; // 防止缩放动画中依然可以点进去
@@ -135,7 +135,7 @@ public partial class MyExtraTextButton
                     800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                 ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
                     ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyExtraTextButton Scale " + uuid);
+            }, "MyExtraTextButton Scale " + Uuid);
     }
 
     private void RefreshScaleAfterRelease()
@@ -145,7 +145,7 @@ public partial class MyExtraTextButton
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
                     ease: new ModAnimation.AniEaseOutBack())
-            }, "MyExtraTextButton Scale " + uuid);
+            }, "MyExtraTextButton Scale " + Uuid);
     }
 
     // 触发点击事件
@@ -189,7 +189,7 @@ public partial class MyExtraTextButton
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
                     ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyExtraTextButton Scale " + uuid);
+            }, "MyExtraTextButton Scale " + Uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -203,17 +203,17 @@ public partial class MyExtraTextButton
                     // 禁用
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", animationColorIn),
-                        "MyExtraTextButton Color " + uuid);
+                        "MyExtraTextButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", animationColorIn),
-                        "MyExtraTextButton Color " + uuid);
+                        "MyExtraTextButton Color " + Uuid);
                 else
                     // 普通
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", animationColorOut),
-                        "MyExtraTextButton Color " + uuid);
+                        "MyExtraTextButton Color " + Uuid);
             }
 
             else
@@ -221,7 +221,7 @@ public partial class MyExtraTextButton
                 ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
                     !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
                     !IsEnabled || IsMouseOver ? animationColorIn : animationColorOut,
-                    "MyExtraTextButton Color " + uuid, false);
+                    "MyExtraTextButton Color " + Uuid, false);
             }
         }
         catch (Exception ex)

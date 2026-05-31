@@ -250,9 +250,9 @@ public static class ModMain
 
     private struct HintMessage
     {
-        public string text;
-        public HintType type;
-        public bool log;
+        public string Text;
+        public HintType Type;
+        public bool Log;
     }
 
 
@@ -261,7 +261,7 @@ public static class ModMain
     /// </summary>
     public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
     {
-        HintWaiting.Add(new HintMessage { text = text ?? "", type = type, log = log });
+        HintWaiting.Add(new HintMessage { Text = text ?? "", Type = type, Log = log });
     }
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
@@ -291,7 +291,7 @@ public static class ModMain
                 // End If
                 var currentHint = HintWaiting[0];
                 // 去回车
-                currentHint.text = currentHint.text.Replace("\r\n", " ").Replace("\r", " ")
+                currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
                     .Replace("\n", " ");
                 // 超量提示直接忽略
                 if (frmMain!.PanHint.Children.Count >= 20)
@@ -300,12 +300,12 @@ public static class ModMain
                 Border? doubleStack = null;
                 foreach (Border stack in frmMain.PanHint.Children)
                     if (stack.Tag is object[] tagArray && (bool)tagArray[0] &&
-                                              (((TextBlock)stack.Child).Text ?? "") == (currentHint.text ?? ""))
+                                              (((TextBlock)stack.Child).Text ?? "") == (currentHint.Text ?? ""))
                         doubleStack = stack;
                 // 获取渐变颜色
                 ModBase.MyColor targetColor0, targetColor1;
                 var percent = 0.3d;
-                switch (currentHint.type)
+                switch (currentHint.Type)
                 {
                     case HintType.Info:
                     {
@@ -335,7 +335,7 @@ public static class ModMain
                     if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
                     {
                         ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
-                        var delay = (800d + ModBase.MathClamp(currentHint.text!.Length, 5d, 23d) * 180d) *
+                        var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
                                     ModAnimation.aniSpeed;
                         ModAnimation.AniStart(new[]
                             {
@@ -386,7 +386,7 @@ public static class ModMain
                             }), 90d),
                         Child = new TextBlock
                         {
-                            TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = currentHint.text,
+                            TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = currentHint.Text,
                             Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
                         }
                     };
@@ -419,7 +419,7 @@ public static class ModMain
                     ]);
                     ModAnimation.AniStart(animations, $"Hint Show {newHintTag[1]}");
                     // 结束动画
-                    var delay = (800d + ModBase.MathClamp(currentHint.text!.Length, 5d, 23d) * 180d) *
+                    var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
                                 ModAnimation.aniSpeed;
                     ModAnimation.AniStart(
                         new[]
@@ -437,8 +437,8 @@ public static class ModMain
                 // 结束处理
                 EndHint: ;
 
-                if (currentHint.log)
-                    ModBase.Log("[UI] 弹出提示：" + currentHint.text);
+                if (currentHint.Log)
+                    ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
                 HintWaiting.RemoveAt(0);
             }
         }
@@ -476,71 +476,71 @@ public static class ModMain
     public class MyMsgBoxConverter
     {
         // 设置轮询 Url
-        public object authUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
-        public string button1 = "";
+        public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+        public string Button1 = "";
 
         /// <summary>
         ///     点击第一个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action button1Action;
+        public Action Button1Action;
 
-        public string button2 = "";
+        public string Button2 = "";
 
         /// <summary>
         ///     点击第二个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action button2Action;
+        public Action Button2Action;
 
-        public string button3 = "";
+        public string Button3 = "";
 
         /// <summary>
         ///     点击第三个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action button3Action;
+        public Action Button3Action;
 
         /// <summary>
         ///     输入模式：文本框的文本。
         ///     选择模式：需要放进去的 List(Of MyListItem)。
         ///     登录模式：登录步骤 1 中返回的 JSON。
         /// </summary>
-        public object content;
+        public object Content;
 
-        public bool forceWait;
+        public bool ForceWait;
 
         /// <summary>
         ///     有多个按钮时，是否给第一个按钮加高亮。
         /// </summary>
-        public bool highLight;
+        public bool HighLight;
 
         /// <summary>
         ///     输入模式：提示文本。
         /// </summary>
-        public string hintText = "";
+        public string HintText = "";
 
         /// <summary>
         ///     弹窗是否已经关闭。
         /// </summary>
-        public bool isExited = false;
+        public bool IsExited = false;
 
-        public bool isWarn;
+        public bool IsWarn;
 
         /// <summary>
         ///     输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
         ///     选择模式：点击的按钮编号，从 1 开始。
         ///     登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
         /// </summary>
-        public object result;
+        public object Result;
 
-        public string text;
-        public string title;
-        public MyMsgBoxType type;
+        public string Text;
+        public string Title;
+        public MyMsgBoxType Type;
 
         /// <summary>
         ///     输入模式：输入验证规则。
         /// </summary>
-        public Collection<IValidator<string>> validateRules;
+        public Collection<IValidator<string>> ValidateRules;
 
-        public DispatcherFrame waitFrame = new(true);
+        public DispatcherFrame WaitFrame = new(true);
     }
 
     public enum MyMsgBoxType
@@ -581,9 +581,9 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Text, button1 = button1, button2 = button2, button3 = button3, text = caption,
-            isWarn = isWarn, title = title, highLight = highLight, forceWait = true, button1Action = button1Action,
-            button2Action = button2Action, button3Action = button3Action
+            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
+            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
+            Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -605,17 +605,17 @@ public static class ModMain
                     {
                         case MsgBoxResult.Yes:
                         {
-                            converter.result = 1;
+                            converter.Result = 1;
                             break;
                         }
                         case MsgBoxResult.No:
                         {
-                            converter.result = 2;
+                            converter.Result = 2;
                             break;
                         }
                         case MsgBoxResult.Cancel:
                         {
-                            converter.result = 3;
+                            converter.Result = 3;
                             break;
                         }
                     }
@@ -625,7 +625,7 @@ public static class ModMain
                     Interaction.MsgBox(caption,
                         (MsgBoxStyle)((int)MsgBoxStyle.OkOnly +
                                       (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
-                    converter.result = 1;
+                    converter.Result = 1;
                 }
 
                 ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
@@ -637,7 +637,7 @@ public static class ModMain
                 {
                     frmMain.DragStop();
                     ComponentDispatcher.PushModal();
-                    Dispatcher.PushFrame(converter.waitFrame);
+                    Dispatcher.PushFrame(converter.WaitFrame);
                 }
                 finally
                 {
@@ -645,8 +645,8 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log($"[Control] 普通弹框返回：{converter.result ?? "null"}");
-            return (int)converter.result;
+            ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
+            return (int)converter.Result;
         }
 
         // 不进行等待，直接返回
@@ -676,9 +676,9 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Markdown, button1 = button1, button2 = button2, button3 = button3, text = caption,
-            isWarn = isWarn, title = title, highLight = highLight, forceWait = true, button1Action = button1Action,
-            button2Action = button2Action, button3Action = button3Action
+            Type = MyMsgBoxType.Markdown, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
+            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
+            Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -700,17 +700,17 @@ public static class ModMain
                     {
                         case MsgBoxResult.Yes:
                         {
-                            converter.result = 1;
+                            converter.Result = 1;
                             break;
                         }
                         case MsgBoxResult.No:
                         {
-                            converter.result = 2;
+                            converter.Result = 2;
                             break;
                         }
                         case MsgBoxResult.Cancel:
                         {
-                            converter.result = 3;
+                            converter.Result = 3;
                             break;
                         }
                     }
@@ -720,7 +720,7 @@ public static class ModMain
                     Interaction.MsgBox(caption,
                         (MsgBoxStyle)((int)MsgBoxStyle.OkOnly +
                                       (int)(isWarn ? MsgBoxStyle.Critical : MsgBoxStyle.Question)), title);
-                    converter.result = 1;
+                    converter.Result = 1;
                 }
 
                 ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
@@ -732,7 +732,7 @@ public static class ModMain
                 {
                     frmMain.DragStop();
                     ComponentDispatcher.PushModal();
-                    Dispatcher.PushFrame(converter.waitFrame);
+                    Dispatcher.PushFrame(converter.WaitFrame);
                 }
                 finally
                 {
@@ -740,8 +740,8 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log($"[Control] 普通弹框返回：{converter.result ?? "null"}");
-            return (int)converter.result;
+            ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
+            return (int)converter.Result;
         }
 
         // 不进行等待，直接返回
@@ -768,9 +768,9 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            text = text, hintText = hintText, type = MyMsgBoxType.Input,
-            validateRules = validateRules ?? [], button1 = button1, button2 = button2,
-            content = defaultInput, isWarn = isWarn, title = title
+            Text = text, HintText = hintText, Type = MyMsgBoxType.Input,
+            ValidateRules = validateRules ?? [], Button1 = button1, Button2 = button2,
+            Content = defaultInput, IsWarn = isWarn, Title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
@@ -778,15 +778,15 @@ public static class ModMain
         {
             frmMain?.DragStop();
             ComponentDispatcher.PushModal();
-            Dispatcher.PushFrame(converter.waitFrame);
+            Dispatcher.PushFrame(converter.WaitFrame);
         }
         finally
         {
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log($"[Control] 输入弹框返回：{converter.result}");
-        return converter.result?.ToString();
+        ModBase.Log($"[Control] 输入弹框返回：{converter.Result}");
+        return converter.Result?.ToString();
     }
 
     /// <summary>
@@ -805,8 +805,8 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            type = MyMsgBoxType.Select, button1 = button1, button2 = button2, content = selections, isWarn = isWarn,
-            title = title
+            Type = MyMsgBoxType.Select, Button1 = button1, Button2 = button2, Content = selections, IsWarn = isWarn,
+            Title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
@@ -815,15 +815,15 @@ public static class ModMain
             if (frmMain is not null)
                 frmMain.DragStop();
             ComponentDispatcher.PushModal();
-            Dispatcher.PushFrame(converter.waitFrame);
+            Dispatcher.PushFrame(converter.WaitFrame);
         }
         finally
         {
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log($"[Control] 选择弹框返回：{converter.result ?? "null"}");
-        return (int?)converter.result;
+        ModBase.Log($"[Control] 选择弹框返回：{converter.Result ?? "null"}");
+        return (int?)converter.Result;
     }
 
 
@@ -842,7 +842,7 @@ public static class ModMain
             {
                 // 没有弹窗，显示一个等待的弹窗
                 frmMain.PanMsgBackground.Visibility = Visibility.Visible;
-                switch (WaitingMyMsgBox[0].type)
+                switch (WaitingMyMsgBox[0].Type)
                 {
                     case MyMsgBoxType.Input:
                     {
@@ -942,66 +942,66 @@ public static class ModMain
         /// <summary>
         ///     显示描述。
         /// </summary>
-        public string desc;
+        public string Desc;
 
-        public string eventData;
-        public string eventType;
+        public string EventData;
+        public string EventType;
 
         // 动作
 
         /// <summary>
         ///     是否为 “执行事件”。
         /// </summary>
-        public bool isEvent;
+        public bool IsEvent;
 
         // 显示（可选）
 
         /// <summary>
         ///     帮助项的自定义图标。可能为 Nothing。
         /// </summary>
-        public string logo;
+        public string Logo;
 
         /// <summary>
         ///     原始信息路径。用于刷新。
         /// </summary>
-        public string rawPath;
+        public string RawPath;
 
         /// <summary>
         ///     检索关键字。
         /// </summary>
-        public string search;
+        public string Search;
 
         /// <summary>
         ///     是否在公开版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
         /// </summary>
-        public bool showInPublic = true;
+        public bool ShowInPublic = true;
 
         /// <summary>
         ///     是否显示在搜索结果。默认为 True。
         /// </summary>
-        public bool showInSearch = true;
+        public bool ShowInSearch = true;
 
         /// <summary>
         ///     是否在快照版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
         /// </summary>
-        public bool showInSnapshot = true;
+        public bool ShowInSnapshot = true;
 
         // 基础
 
         /// <summary>
         ///     显示标题。
         /// </summary>
-        public string title;
+        public string Title;
 
         /// <summary>
         ///     用于分类的标签列表。
         /// </summary>
-        public List<string> types;
+        public List<string> Types;
 
         /// <summary>
         ///     若非执行事件，其对应的 .xaml 本地文件内容。
         /// </summary>
-        public string xamlContent;
+        public string XamlContent;
 
         // 转换
 
@@ -1010,38 +1010,38 @@ public static class ModMain
         /// </summary>
         public HelpEntry(string filePath)
         {
-            rawPath = filePath;
+            RawPath = filePath;
             var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(filePath)));
             if (jsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + filePath, filePath);
             // 加载常规信息
             if (jsonData["Title"] is not null)
-                title = (string)jsonData["Title"];
+                Title = (string)jsonData["Title"];
             else
                 throw new ArgumentException("未找到 Title 项");
-            desc = (string)(jsonData["Description"] ?? "");
-            search = (string)(jsonData["Keywords"] ?? "");
-            logo = (string)jsonData["Logo"]; // 为保持 Nothing，不要加 If
-            showInSearch = (bool)(jsonData["ShowInSearch"] ?? showInSearch);
-            showInPublic = (bool)(jsonData["ShowInPublic"] ?? showInPublic);
-            showInSnapshot = (bool)(jsonData["ShowInSnapshot"] ?? showInSnapshot);
-            types = new List<string>();
+            Desc = (string)(jsonData["Description"] ?? "");
+            Search = (string)(jsonData["Keywords"] ?? "");
+            Logo = (string)jsonData["Logo"]; // 为保持 Nothing，不要加 If
+            ShowInSearch = (bool)(jsonData["ShowInSearch"] ?? ShowInSearch);
+            ShowInPublic = (bool)(jsonData["ShowInPublic"] ?? ShowInPublic);
+            ShowInSnapshot = (bool)(jsonData["ShowInSnapshot"] ?? ShowInSnapshot);
+            Types = new List<string>();
             foreach (var nameOfType in (IEnumerable)(jsonData["Types"] ?? ModBase.GetJson("[]")))
-                types.Add(nameOfType.ToString());
+                Types.Add(nameOfType.ToString());
             // 加载事件信息
             if ((bool)(jsonData["IsEvent"] ?? false))
             {
-                eventType = Enum.Parse(typeof(CustomEvent.EventType), jsonData["EventType"].ToString()).ToString();
-                eventData = (jsonData["EventData"] ?? "").ToString();
-                isEvent = true;
+                EventType = Enum.Parse(typeof(CustomEvent.EventType), jsonData["EventType"].ToString()).ToString();
+                EventData = (jsonData["EventData"] ?? "").ToString();
+                IsEvent = true;
             }
             else
             {
                 var xamlAddress = filePath.ToLower().Replace(".json", ".xaml");
                 if (File.Exists(xamlAddress))
                 {
-                    xamlContent = ModBase.ReadFile(xamlAddress);
-                    isEvent = false;
+                    XamlContent = ModBase.ReadFile(xamlAddress);
+                    IsEvent = false;
                 }
                 else
                 {
@@ -1064,9 +1064,9 @@ public static class ModMain
         public MyListItem SetToListItem(MyListItem item)
         {
             string logoPath;
-            if (isEvent)
+            if (IsEvent)
             {
-                if (eventType == "弹出窗口")
+                if (EventType == "弹出窗口")
                     logoPath = ModBase.pathImage + "Blocks/GrassPath.png";
                 else
                     logoPath = ModBase.pathImage + "Blocks/CommandBlock.png";
@@ -1078,9 +1078,9 @@ public static class ModMain
 
             // 设置属性
             item.SnapsToDevicePixels = true;
-            item.Title = title;
-            item.Info = desc;
-            item.Logo = this.logo ?? logoPath;
+            item.Title = Title;
+            item.Info = Desc;
+            item.Logo = this.Logo ?? logoPath;
             item.Height = 42d;
             item.Type = MyListItem.CheckType.Clickable;
             item.Tag = this;
@@ -1181,7 +1181,7 @@ public static class ModMain
                         var entry = new HelpEntry(filePath);
                         dict.Add(entry);
                         if (ModBase.modeDebug)
-                            ModBase.Log("[Help] 已加载的帮助条目：" + entry.title + " ← " + filePath);
+                            ModBase.Log("[Help] 已加载的帮助条目：" + entry.Title + " ← " + filePath);
                     }
                     catch (Exception ex)
                     {
@@ -1495,13 +1495,13 @@ public static class ModMain
         text = text.Replace("{verindie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
         text = text.Replace("{name}", replacer(ModMinecraft.McInstanceSelected.Name));
         
-        if (new[] { "unknown", "old", "pending" }.Contains(ModMinecraft.McInstanceSelected.Info.vanillaName))
+        if (new[] { "unknown", "old", "pending" }.Contains(ModMinecraft.McInstanceSelected.Info.VanillaName))
         {
             text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Name));
         }
         else
         {
-            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.vanillaName));
+            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.VanillaName));
         }
     }
     else
@@ -1517,10 +1517,10 @@ public static class ModMain
     // 验证信息
     if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Finished)
     {
-        text = text.Replace("{user}", replacer(ModLaunch.mcLoginLoader.output.name));
-        text = text.Replace("{uuid}", replacer(ModLaunch.mcLoginLoader.output.uuid.ToLower()));
+        text = text.Replace("{user}", replacer(ModLaunch.mcLoginLoader.output.Name));
+        text = text.Replace("{uuid}", replacer(ModLaunch.mcLoginLoader.output.Uuid.ToLower()));
         
-        switch (ModLaunch.mcLoginLoader.input.type)
+        switch (ModLaunch.mcLoginLoader.input.LoginType)
         {
             case ModLaunch.McLoginType.Legacy:
                 text = text.Replace("{login}", replacer("离线"));

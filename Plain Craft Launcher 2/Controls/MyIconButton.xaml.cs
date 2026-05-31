@@ -29,7 +29,7 @@ public partial class MyIconButton
 
     // 自定义属性
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyIconButton()
     {
@@ -82,7 +82,7 @@ public partial class MyIconButton
     // 自定义事件
     public event ClickEventHandler? Click;
 
-    private string ColorAnimationKey => "MyIconButton Color " + uuid;
+    private string ColorAnimationKey => "MyIconButton Color " + Uuid;
 
     private static ModBase.MyColor GetTransparentBackground()
     {
@@ -225,7 +225,7 @@ public partial class MyIconButton
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(PanBack, 0.8d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
                 ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-            "MyIconButton Scale " + uuid);
+            "MyIconButton Scale " + Uuid);
     }
 
     private void Button_MouseUp()
@@ -240,7 +240,7 @@ public partial class MyIconButton
                         250, ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                     ModAnimation.AaScaleTransform(PanBack, -0.05d, 250,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-                }, "MyIconButton Scale " + uuid);
+                }, "MyIconButton Scale " + Uuid);
         }
 
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
@@ -254,7 +254,7 @@ public partial class MyIconButton
             {
                 ModAnimation.AaScaleTransform(PanBack, 1d - ((ScaleTransform)PanBack.RenderTransform).ScaleX, 250,
                     ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyIconButton Scale " + uuid);
+            }, "MyIconButton Scale " + Uuid);
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -301,6 +301,6 @@ public static partial class ModAnimation
                 if (callBack is not null)
                     callBack(control);
             }, after: true)
-        }, "MyIconButton Dispose " + control.uuid);
+        }, "MyIconButton Dispose " + control.Uuid);
     }
 }

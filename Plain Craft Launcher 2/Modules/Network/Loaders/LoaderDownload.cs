@@ -48,7 +48,7 @@ public class LoaderDownload : ModLoader.LoaderBase
 
         ModNet.NetManager.Start(this);
 
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{uuid}");
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)

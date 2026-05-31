@@ -28,7 +28,7 @@ public static class ModLink
         }
 
         if (ModProfile.selectedProfile is not null)
-            if (ModProfile.selectedProfile.username.Contains("|"))
+            if (ModProfile.selectedProfile.Username.Contains("|"))
             {
                 ModMain.Hint("MC 玩家 ID 不可包含分隔符 (|) ！");
                 return false;

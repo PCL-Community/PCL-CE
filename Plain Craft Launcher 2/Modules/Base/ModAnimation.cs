@@ -171,7 +171,7 @@ public static partial class ModAnimation
                     // 为了避免新添加的动画影响顺序，不能 RemoveAt(i)
                     // 为了允许动画在执行中添加同名动画组，不能按名字移除
                     for (int current = 0, loopTo = aniGroups.Count - 1; current <= loopTo; current++)
-                        if (aniGroups.ElementAt(current).Value.uuid == entry.uuid)
+                        if (aniGroups.ElementAt(current).Value.Uuid == entry.Uuid)
                         {
                             aniGroups.Remove(aniGroups.ElementAt(current).Key, out _);
                             break;
@@ -434,7 +434,7 @@ public static partial class ModAnimation
     {
         public List<AniData> data;
         public long startTick;
-        public int uuid = ModBase.GetUuid();
+        public int Uuid = ModBase.GetUuid();
     }
 
     /// <summary>
@@ -1470,7 +1470,7 @@ public static partial class ModAnimation
         var newEntry = new AniGroupEntry
             { data = ModBase.GetFullList<AniData>(aniGroup), startTick = TimeUtils.GetTimeTick() };
         if (string.IsNullOrEmpty(name))
-            name = newEntry.uuid.ToString();
+            name = newEntry.Uuid.ToString();
         else
             AniStop(name);
         aniGroups.TryAdd(name, newEntry);

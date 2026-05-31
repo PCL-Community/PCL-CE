@@ -25,13 +25,13 @@ public partial class PageLoginProfileSkin
     {
         ModBase.Log("[Profile] 刷新档案界面");
         Skin.Clear();
-        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
             BtnEdit.Visibility = Visibility.Visible;
             ModBase.Log("[Profile] 使用正版皮肤加载器");
             Skin.loader = PageLaunchLeft.skinMs;
         }
-        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
+        else if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             BtnEdit.Visibility = Visibility.Visible;
             ModBase.Log("[Profile] 使用 Authlib 皮肤加载器");
@@ -45,7 +45,7 @@ public partial class PageLoginProfileSkin
         }
 
         Skin.loader.Start(isForceRestart: true);
-        TextName.Text = ModProfile.selectedProfile.username;
+        TextName.Text = ModProfile.selectedProfile.Username;
         TextType.Text = (string)ModProfile.GetProfileInfo(ModProfile.selectedProfile);
     }
 
@@ -86,13 +86,13 @@ public partial class PageLoginProfileSkin
     // 修改密码
     private void BtnEditPassword_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
             ModBase.OpenWebsite("https://account.live.com/password/Change");
         }
-        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
+        else if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
-            var server = ModProfile.selectedProfile.server;
+            var server = ModProfile.selectedProfile.Server;
             ModBase.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
@@ -122,10 +122,10 @@ public partial class PageLoginProfileSkin
     // 修改皮肤
     private void Skin_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Ms)
             ModProfile.ChangeSkinMs();
-        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.selectedProfile.server.BeforeFirst("api/yggdrasil/authserver") +
+        else if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Auth)
+            ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
                 ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
@@ -146,10 +146,10 @@ public partial class PageLoginProfileSkin
     // 修改披风
     private void BtnSkinCape_Click(object sender, RoutedEventArgs e)
     {
-        if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Ms)
+        if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Ms)
             Skin.BtnSkinCape_Click(sender, e);
-        else if (ModProfile.selectedProfile.type == ModLaunch.McLoginType.Auth)
-            ModBase.OpenWebsite(ModProfile.selectedProfile.server.BeforeFirst("api/yggdrasil/authserver") +
+        else if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Auth)
+            ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));

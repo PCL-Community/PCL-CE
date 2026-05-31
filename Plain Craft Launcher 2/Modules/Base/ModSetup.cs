@@ -663,7 +663,7 @@ public class ModSetup
         ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", "");
         if (PageInstanceLeft.instance is null)
             return;
-        PageInstanceLeft.instance = new ModMinecraft.McInstance(PageInstanceLeft.instance.Name).Load();
+        PageInstanceLeft.instance = new ModMinecraft.Instance(PageInstanceLeft.instance.Name).Load();
         ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
