@@ -31,7 +31,7 @@ public class HStringHelper
         return new string(buffer, 0, (int)length);
     }
 
-    public static void Delete(HString value)
+    public static void DeleteHString(HString value)
     {
         if (!value.IsNull)
             WinRTInterop.WindowsDeleteString(value);
