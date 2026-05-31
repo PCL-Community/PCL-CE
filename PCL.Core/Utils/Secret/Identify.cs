@@ -76,7 +76,7 @@ public class Identify
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Identify", "无法获取识别码");
-            return "PCL2-NENE-GOOD-2026";
+            return "PCL-NENE-GOOD-2026";
         }
     }
 }

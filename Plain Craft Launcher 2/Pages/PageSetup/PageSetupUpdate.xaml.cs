@@ -248,7 +248,7 @@ public partial class PageSetupUpdate
 
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL2-N/releases/v" + ModBase.VersionBaseName);
+        ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/releases/v" + ModBase.VersionBaseName);
     }
 
     public string VersionNameFormat(string str)

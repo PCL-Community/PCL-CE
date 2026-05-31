@@ -48,7 +48,7 @@ public partial class PageSetupFeedback
     {
         JsonArray list;
         list = (JsonArray)Requester.FetchJson(
-            "https://api.github.com/repos/MuXue1230-owo/PCL2-N/issues?state=all&sort=created&per_page=200",
+            "https://api.github.com/repos/MuXue1230-owo/PCL-N/issues?state=all&sort=created&per_page=200",
             new RequestParam
             {
                 Retries = 3,
