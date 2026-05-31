@@ -93,6 +93,7 @@ public class MyBitmap
             var encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image));
             encoder.Save(ms);
+            pic = new Bitmap(ms);
         }
     }
 
@@ -113,6 +114,7 @@ public class MyBitmap
             var encoder = new BmpBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.ImageSource));
             encoder.Save(ms);
+            pic = new Bitmap(ms);
         }
     }
 
