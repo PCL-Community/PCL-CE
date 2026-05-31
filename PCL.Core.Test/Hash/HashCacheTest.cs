@@ -30,7 +30,7 @@ public class HashCacheTest
             Directory.Delete(_tempDir, true);
     }
 
-    private sealed record FileItem(string FilePath, string MD5, string SHA1, string SHA256, string SHA512);
+    private sealed record FileItem(string FilePath, string MD5, string SHA1, string SHA256, string SHA512, string MurmurHash2);
 
     private static async Task<FileItem> CreateRandomFile(string dir, int size)
     {
@@ -42,7 +42,8 @@ public class HashCacheTest
             MD5Provider.Instance.ComputeHash(data).ToHexString(),
             SHA1Provider.Instance.ComputeHash(data).ToHexString(),
             SHA256Provider.Instance.ComputeHash(data).ToHexString(),
-            SHA512Provider.Instance.ComputeHash(data).ToHexString()
+            SHA512Provider.Instance.ComputeHash(data).ToHexString(),
+            MurmurHash2Provider.Instance.ComputeHash(data).ToHexString()
         );
     }
 
@@ -79,6 +80,7 @@ public class HashCacheTest
             cache.GetSHA1Async(file.FilePath),
             cache.GetSHA256Async(file.FilePath),
             cache.GetSHA512Async(file.FilePath),
+            cache.GetMurmurHash2Async(file.FilePath),
         };
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -87,18 +89,21 @@ public class HashCacheTest
         Assert.AreEqual(file.SHA1, results[1]);
         Assert.AreEqual(file.SHA256, results[2]);
         Assert.AreEqual(file.SHA512, results[3]);
+        Assert.AreEqual(file.MurmurHash2, results[4]);
 
         var repeat = await Task.WhenAll(
             cache.GetMD5Async(file.FilePath),
             cache.GetSHA1Async(file.FilePath),
             cache.GetSHA256Async(file.FilePath),
-            cache.GetSHA512Async(file.FilePath)
+            cache.GetSHA512Async(file.FilePath),
+            cache.GetMurmurHash2Async(file.FilePath)
         ).ConfigureAwait(false);
 
         Assert.AreEqual(file.MD5, repeat[0]);
         Assert.AreEqual(file.SHA1, repeat[1]);
         Assert.AreEqual(file.SHA256, repeat[2]);
         Assert.AreEqual(file.SHA512, repeat[3]);
+        Assert.AreEqual(file.MurmurHash2, repeat[4]);
     }
 
     [TestMethod]
@@ -152,6 +157,11 @@ public class HashCacheTest
                 var sha512 = await cache.GetSHA512Async(file.FilePath).ConfigureAwait(false);
                 results.Add((file.FilePath, "SHA512", sha512));
             }));
+            tasks.Add(Task.Run(async () =>
+            {
+                var mmh2 = await cache.GetMurmurHash2Async(file.FilePath).ConfigureAwait(false);
+                results.Add((file.FilePath, "MurmurHash2", mmh2));
+            }));
         }
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -166,6 +176,7 @@ public class HashCacheTest
                     "SHA1" => file.SHA1,
                     "SHA256" => file.SHA256,
                     "SHA512" => file.SHA512,
+                    "MurmurHash2" => file.MurmurHash2,
                     _ => throw new InvalidOperationException(),
                 };
                 Assert.AreEqual(expected, r.hash, $"{r.algo} mismatch for {file.FilePath}");

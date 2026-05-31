@@ -34,10 +34,17 @@ public class HashCache
                 MD5 TEXT NULL,
                 SHA1 TEXT NULL,
                 SHA256 TEXT NULL,
-                SHA512 TEXT NULL
+                SHA512 TEXT NULL,
+                MurmurHash2 TEXT NULL
             )
             """;
         cmd.ExecuteNonQuery();
+        try
+        {
+            cmd.CommandText = "ALTER TABLE HashCache ADD COLUMN MurmurHash2 TEXT NULL";
+            cmd.ExecuteNonQuery();
+        }
+        catch (SqliteException) { }
     }
 
     private SqliteConnection _CreateConnection()
@@ -59,6 +66,9 @@ public class HashCache
     public Task<string> GetSHA512Async(string filePath) =>
         _GetHashAsync(filePath, SHA512Provider.Instance, "SHA512");
 
+    public Task<string> GetMurmurHash2Async(string filePath) =>
+        _GetHashAsync(filePath, MurmurHash2Provider.Instance, "MurmurHash2");
+
     public async Task<string> GetHashAsync(string filePath, IHashProvider provider)
     {
         var algoName = provider switch
@@ -67,6 +77,7 @@ public class HashCache
             SHA1Provider => "SHA1",
             SHA256Provider => "SHA256",
             SHA512Provider => "SHA512",
+            MurmurHash2Provider => "MurmurHash2",
             _ => throw new ArgumentException($"不支持的哈希算法: {provider.GetType().Name}")
         };
         return await _GetHashAsync(filePath, provider, algoName).ConfigureAwait(false);
@@ -124,7 +135,7 @@ public class HashCache
     {
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT FilePath, FileSize, LastWriteTime, MD5, SHA1, SHA256, SHA512 FROM HashCache WHERE FilePath = @FilePath";
+        cmd.CommandText = "SELECT FilePath, FileSize, LastWriteTime, MD5, SHA1, SHA256, SHA512, MurmurHash2 FROM HashCache WHERE FilePath = @FilePath";
         cmd.Parameters.AddWithValue("@FilePath", fullPath);
 
         using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
@@ -139,7 +150,8 @@ public class HashCache
             MD5 = reader.IsDBNull(3) ? null : reader.GetString(3),
             SHA1 = reader.IsDBNull(4) ? null : reader.GetString(4),
             SHA256 = reader.IsDBNull(5) ? null : reader.GetString(5),
-            SHA512 = reader.IsDBNull(6) ? null : reader.GetString(6)
+            SHA512 = reader.IsDBNull(6) ? null : reader.GetString(6),
+            MurmurHash2 = reader.IsDBNull(7) ? null : reader.GetString(7)
         };
     }
 
@@ -149,6 +161,7 @@ public class HashCache
         "SHA1" => entry.SHA1,
         "SHA256" => entry.SHA256,
         "SHA512" => entry.SHA512,
+        "MurmurHash2" => entry.MurmurHash2,
         _ => null
     };
 
@@ -157,15 +170,16 @@ public class HashCache
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO HashCache (FilePath, FileSize, LastWriteTime, MD5, SHA1, SHA256, SHA512)
-            VALUES (@FilePath, @FileSize, @LastWriteTime, @MD5, @SHA1, @SHA256, @SHA512)
+            INSERT INTO HashCache (FilePath, FileSize, LastWriteTime, MD5, SHA1, SHA256, SHA512, MurmurHash2)
+            VALUES (@FilePath, @FileSize, @LastWriteTime, @MD5, @SHA1, @SHA256, @SHA512, @MurmurHash2)
             ON CONFLICT(FilePath) DO UPDATE SET
                 FileSize = excluded.FileSize,
                 LastWriteTime = excluded.LastWriteTime,
                 MD5 = COALESCE(excluded.MD5, HashCache.MD5),
                 SHA1 = COALESCE(excluded.SHA1, HashCache.SHA1),
                 SHA256 = COALESCE(excluded.SHA256, HashCache.SHA256),
-                SHA512 = COALESCE(excluded.SHA512, HashCache.SHA512)
+                SHA512 = COALESCE(excluded.SHA512, HashCache.SHA512),
+                MurmurHash2 = COALESCE(excluded.MurmurHash2, HashCache.MurmurHash2)
             """;
         cmd.Parameters.AddWithValue("@FilePath", fullPath);
         cmd.Parameters.AddWithValue("@FileSize", fileSize);
@@ -174,6 +188,7 @@ public class HashCache
         cmd.Parameters.AddWithValue("@SHA1", algoName == "SHA1" ? hash : DBNull.Value);
         cmd.Parameters.AddWithValue("@SHA256", algoName == "SHA256" ? hash : DBNull.Value);
         cmd.Parameters.AddWithValue("@SHA512", algoName == "SHA512" ? hash : DBNull.Value);
+        cmd.Parameters.AddWithValue("@MurmurHash2", algoName == "MurmurHash2" ? hash : DBNull.Value);
         await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
@@ -195,5 +210,6 @@ public class HashCache
         public string? SHA1 { get; init; }
         public string? SHA256 { get; init; }
         public string? SHA512 { get; init; }
+        public string? MurmurHash2 { get; init; }
     }
 }
