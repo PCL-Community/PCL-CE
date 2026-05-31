@@ -7,25 +7,24 @@ namespace PCL.Core.Minecraft.Saves.Parsing;
 
 /// <summary>
 /// 解析器工厂 —— 按优先级遍历已注册的解析器，返回第一个能处理给定数据的解析器。
-/// 默认注册顺序：NextGen → WorldGen → Post113 → Modern → Legacy → PreLegacy。
-/// 可通过 DI 注入自定义解析器列表。
+/// 默认注册顺序从高版本到低版本，确保最特化的解析器优先匹配。
+/// 可通过构造函数注入自定义解析器列表。
 /// </summary>
 public sealed class SaveParserFactory
 {
     private readonly IReadOnlyList<ISaveParser> _parsers;
 
-    /// <summary>使用内置的默认解析器列表初始化。</summary>
+    /// <summary>使用内置的默认解析器列表初始化（从高版本到低版本）。</summary>
     public SaveParserFactory()
     {
         _parsers =
         [
-            // 顺序非常重要：从最高版本到最低版本
-            new NextGenSaveParser(),
-            new WorldGenSaveParser(),
-            new Post113SaveParser(),
-            new ModernSaveParser(),
-            new LegacySaveParser(),
-            new PreLegacySaveParser(),
+            new Version1216PlusSaveParser(),  // >= 26w04a (1.21.6+)
+            new Version116To1215SaveParser(), // 1.16 ~ 1.21.5
+            new Version113To1152SaveParser(), // 1.13 ~ 1.15.2
+            new Version19To1122SaveParser(),  // 1.9 ~ 1.12.2
+            new Version131To189SaveParser(),  // 1.3.1 ~ 1.8.9
+            new Pre113SaveParser(),           // Alpha ~ 1.2.5
         ];
     }
 

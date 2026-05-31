@@ -30,7 +30,7 @@ public sealed record SaveInfo
     /// <summary>游戏模式。Hardcore 通过 IsHardcore 字段表示。</summary>
     public GameMode GameMode { get; init; }
 
-    /// <summary>游戏难度。PreLegacy 版本存档中可能为 null。</summary>
+    /// <summary>游戏难度。1.3.1 之前的存档中可能为 null。</summary>
     public Difficulty? Difficulty { get; init; }
 
     /// <summary>难度是否已锁定。</summary>

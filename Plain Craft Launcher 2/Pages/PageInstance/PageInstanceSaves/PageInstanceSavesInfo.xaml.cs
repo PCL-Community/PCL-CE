@@ -1,17 +1,30 @@
-using System.Diagnostics.Eventing.Reader;
+using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using fNbt;
 using Humanizer;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
+using PCL.Core.Minecraft.Saves;
+using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.UI;
 
 namespace PCL;
 
 public partial class PageInstanceSavesInfo : IRefreshable
 {
-    private bool _loaded;
+    // 存档管理器 —— 在 Init 中创建，后续复用
+    private SaveManager? _saveManager;
+
+    // 当前正在显示的存档路径
+    private string? _currentSavePath;
+
+    // 当前存档的 Info，用于困难度修改时判断格式版本
+    private SaveInfo? _currentSaveInfo;
+
+    // 用于在 SelectionChanged 中抑制重复保存的标记
+    private bool _suppressEvents;
 
     public PageInstanceSavesInfo()
     {
@@ -37,438 +50,105 @@ public partial class PageInstanceSavesInfo : IRefreshable
     private void Init()
     {
         PanBack.ScrollToHome();
-
+        _saveManager ??= new SaveManager();
         RefreshInfo();
-
-        _loaded = true;
-        if (_loaded)
-            return;
     }
 
-    private void RefreshInfo()
+    private async void RefreshInfo()
     {
+        // 确保 _saveManager 已初始化
+        _saveManager ??= new SaveManager();
+
         try
         {
-            var saveDatPath = Path.Combine(PageInstanceSavesLeft.currentSave, "level.dat");
-            using (var fs = new FileStream(saveDatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            var saveFolder = PageInstanceSavesLeft.currentSave;
+            if (string.IsNullOrEmpty(saveFolder) || !Directory.Exists(saveFolder))
+                return;
+
+            _currentSavePath = saveFolder;
+
+            // 使用 SaveManager 加载存档信息
+            var saveInfo = await _saveManager!.LoadSaveAsync(saveFolder);
+            _currentSaveInfo = saveInfo;
+
+            ClearInfoTable();
+            PanSettingsList.Children.Clear();
+            PanSettingsList.RowDefinitions.Clear();
+
+            // 清空所有版本提示
+            Hintversion1_9.Visibility = Visibility.Collapsed;
+            Hintversion1_8.Visibility = Visibility.Collapsed;
+            Hintversion1_3.Visibility = Visibility.Collapsed;
+            PanSettings.Visibility = Visibility.Collapsed;
+
+            // 显示版本提示（仅当无版本名时）
+            if (saveInfo.VersionName is null)
             {
-                var saveInfo = new NbtFile();
-                saveInfo.LoadFromStream(fs, NbtCompression.AutoDetect);
-                ClearInfoTable();
-                PanSettingsList.Children.Clear();
-                PanSettingsList.RowDefinitions.Clear();
-
-                Hintversion1_9.Visibility = Visibility.Collapsed;
-                Hintversion1_8.Visibility = Visibility.Collapsed;
-                Hintversion1_3.Visibility = Visibility.Collapsed;
-                PanSettings.Visibility = Visibility.Collapsed;
-
-                var gameLevel = saveInfo.RootTag.Get<NbtCompound>("Data");
-                AddInfoTable(Lang.Text("Instance.Saves.Info.LevelName"), gameLevel.Get<NbtString>("LevelName").Value);
-                NbtString versionName = null;
-                NbtInt versionId = null;
-                var gameVersion = gameLevel.Get<NbtCompound>("Version");
-                if (gameVersion is not null)
-                {
-                    gameVersion.TryGet("Name", out versionName);
-                    gameVersion.TryGet("Id", out versionId);
-                }
-
-                var currentVersionId = versionId?.Value ?? default(int?);
-                ModMain.frmInstanceSavesLeft.ItemDatapack.Visibility =
-                    !currentVersionId.HasValue || currentVersionId < 1444 ? Visibility.Collapsed : Visibility.Visible;
-
-                var hasDifficulty = gameLevel.Contains("Difficulty") || gameLevel.Contains("difficulty_settings");
-                var hasAllowCommands = gameLevel.Contains("allowCommands");
-
-                if (versionName is null)
-                {
-                    if (hasDifficulty)
-                    {
-                        Hintversion1_9.Visibility = Visibility.Visible;
-                        Hintversion1_9.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
-                    }
-                    else if (hasAllowCommands)
-                    {
-                        Hintversion1_8.Visibility = Visibility.Visible;
-                        Hintversion1_8.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
-                    }
-                    else
-                    {
-                        Hintversion1_3.Visibility = Visibility.Visible;
-                        Hintversion1_3.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
-                    }
-                }
-                else
-                {
-                    AddInfoTable(Lang.Text("Instance.Saves.Info.Version"), $"{versionName.Value} ({versionId.Value})");
-                }
-
-                NbtLong seedNbt = null;
-                string seed;
-                if (gameLevel.TryGet("RandomSeed", out seedNbt))
-                    seed = seedNbt.Value.ToString();
-                else
-                {
-                    if (gameLevel.Contains("WorldGenSettings"))
-                    {
-                        seed = gameLevel.Get<NbtCompound>("WorldGenSettings").Get<NbtLong>("seed").Value.ToString();
-                    }
-                    else
-                    {
-                        string worldGenSettingsDatPath = System.IO.Path.Combine(PageInstanceSavesLeft.currentSave, "data", "minecraft", "world_gen_settings.dat");
-                        NbtFile worldGenSettingsNbt = new NbtFile(worldGenSettingsDatPath);
-                        var worldGenSettings = worldGenSettingsNbt.RootTag.Get<NbtCompound>("data");
-                        seed = worldGenSettings.Get<NbtLong>("seed").Value.ToString();
-                    }
-                }
-
-                AddInfoTable(Lang.Text("Instance.Saves.Info.Seed"), seed, true, versionName?.Value, true);
-
-                if (hasAllowCommands)
-                {
-                    PanSettings.Visibility = Visibility.Visible;
-                    var allowCommandValue = int.Parse(gameLevel.Get<NbtByte>("allowCommands").Value.ToString());
-                    var combo = new MyComboBox
-                    {
-                        Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
-                        ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave")
-                    };
-                    combo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed") });
-                    combo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.AllowCommands.Allowed") });
-                    combo.SelectedValuePath = "Value";
-                    combo.DisplayMemberPath = "Display";
-                    combo.SelectedValue = allowCommandValue;
-
-                    combo.SelectionChanged += (s, e) =>
-                    {
-                        try
-                        {
-                            var newVal = (byte)combo.SelectedValue;
-                            gameLevel.Get<NbtByte>("allowCommands").Value = (byte)newVal;
-                            using (var fileStream = new FileStream(saveDatPath, FileMode.Create, FileAccess.Write,
-                                       FileShare.None))
-                            {
-                                saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
-                            }
-
-                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
-                        }
-                        catch (Exception ex)
-                        {
-                            ModBase.Log(ex, "作弊设置修改失败", ModBase.LogLevel.Hint);
-                        }
-                    };
-                    var rowIndex = PanSettingsList.RowDefinitions.Count;
-                    PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(1d, GridUnitType.Auto) });
-
-                    var headTextBlock = new TextBlock { Text = Lang.Text("Instance.Saves.Info.AllowCommands"), Margin = new Thickness(0d, 3d, 0d, 3d) };
-                    Grid.SetRow(headTextBlock, rowIndex);
-                    Grid.SetColumn(headTextBlock, 0);
-
-                    Grid.SetRow(combo, rowIndex);
-                    Grid.SetColumn(combo, 2);
-
-                    PanSettingsList.Children.Add(headTextBlock);
-                    PanSettingsList.Children.Add(combo);
-                    PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(8d, GridUnitType.Pixel) });
-                }
-
-                if (hasDifficulty)
-                {
-                    PanSettings.Visibility = Visibility.Visible;
-                    NbtByte difficultyElement;
-
-                    if (gameLevel.Contains("difficulty_settings"))
-                    {
-                        var difficultyElementString = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value;
-                        byte value = difficultyElementString switch
-                        {
-                            "peaceful" => 0,
-                            "easy" => 1,
-                            "normal" => 2,
-                            "hard" => 3,
-                            _ => 0
-                        };
-                        difficultyElement = new NbtByte("Difficulty", value);
-                    }
-                    else
-                    {
-                        difficultyElement = gameLevel.Get<NbtByte>("Difficulty");
-                    }
-
-                    var difficultyValue = difficultyElement.Value;
-
-                    var difficultyCombo = new MyComboBox
-                    {
-                        Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
-                        ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave")
-                    };
-                    difficultyCombo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.Difficulty.Peaceful") });
-                    difficultyCombo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.Difficulty.Easy") });
-                    difficultyCombo.Items.Add(new { Value = 2, Display = Lang.Text("Instance.Saves.Info.Difficulty.Normal") });
-                    difficultyCombo.Items.Add(new { Value = 3, Display = Lang.Text("Instance.Saves.Info.Difficulty.Hard") });
-                    difficultyCombo.SelectedValuePath = "Value";
-                    difficultyCombo.DisplayMemberPath = "Display";
-                    difficultyCombo.SelectedValue = difficultyValue;
-
-                    NbtByte isHardcoreCheck = null;
-
-                    if (gameLevel.Contains("difficulty_settings"))
-                        isHardcoreCheck = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("hardcore");
-                    else
-                        isHardcoreCheck = gameLevel.Get<NbtByte>("hardcore");
-                        
-                    var isHardcoreMode = isHardcoreCheck.Value == 1;
-
-                    var lockCheckBox = new MyCheckBox
-                    {
-                        Text = Lang.Text("Instance.Saves.Info.LockDifficulty"), ToolTip = Lang.Text("Instance.Saves.Info.LockDifficulty.ToolTip"),
-                        VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10d, 0d, 0d, 0d)
-                    };
-
-                    if (isHardcoreMode)
-                    {
-                        lockCheckBox.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        NbtByte lockedElement;
-
-                        if (gameLevel.Contains("difficulty_settings"))
-                            lockedElement = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked");
-                        else
-                            lockedElement = gameLevel.Get<NbtByte>("DifficultyLocked");
-                        
-                        var isLocked = lockedElement is not null && lockedElement.Value == 1;
-                        lockCheckBox.Checked = isLocked;
-                    }
-
-                    var difficultyPanel = new StackPanel
-                    {
-                        Orientation = Orientation.Horizontal,
-                        HorizontalAlignment = HorizontalAlignment.Left
-                    };
-                    difficultyPanel.Children.Add(difficultyCombo);
-                    difficultyPanel.Children.Add(lockCheckBox);
-
-
-                    difficultyCombo.SelectionChanged += (s, e) =>
-                    {
-                        try
-                        {
-                            if (difficultyCombo.SelectedValue is null) return;
-                            var newDifficulty = (byte)difficultyCombo.SelectedValue;
-                            if (gameLevel.Contains("difficulty_settings"))
-                            {
-                                var newDifficultyString = GetDifficultyName(newDifficulty);
-                                gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value = newDifficultyString;
-                            }
-                            else
-                            {
-                                gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
-                            }
-                            
-                            if (!isHardcoreMode)
-                            {
-                                var newLocked = lockCheckBox.Checked == true ? 1 : 0;
-                                if (gameLevel.Contains("DifficultyLocked"))
-                                    gameLevel.Get<NbtByte>("DifficultyLocked").Value = (byte)newLocked;
-                                else if (newLocked == 1)
-                                    gameLevel.Add(new NbtByte("DifficultyLocked", (byte)newLocked));
-                            }
-
-                            using (var fileStream = new FileStream(saveDatPath, FileMode.Create, FileAccess.Write,
-                                       FileShare.None))
-                            {
-                                saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
-                            }
-
-                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
-                        }
-                        catch (Exception ex)
-                        {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
-                        }
-                    };
-
-
-                    lockCheckBox.Change += (sender, user) =>
-                    {
-                        try
-                        {
-                            if (difficultyCombo.SelectedValue is null) return;
-                            var newDifficulty = (byte)difficultyCombo.SelectedValue;
-                            if (gameLevel.Contains("difficulty_settings"))
-                            {
-                                var newDifficultyString = GetDifficultyName(newDifficulty);
-                                gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value = newDifficultyString;
-                            }
-                            else
-                            {
-                                gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
-                            }
-                            
-                            if (!isHardcoreMode)
-                            {
-                                var newLocked = lockCheckBox.Checked == true ? 1 : 0;
-                                if (gameLevel.Contains("difficulty_settings"))
-                                    gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked").Value = (byte)newLocked;
-                                else if (gameLevel.Contains("DifficultyLocked"))
-                                    gameLevel.Get<NbtByte>("DifficultyLocked").Value = (byte)newLocked;
-                                else if (newLocked == 1)
-                                    if (gameLevel.Contains("difficulty_settings"))
-                                        gameLevel.Get<NbtCompound>("difficulty_settings").Add(new NbtByte("locked", (byte)newLocked));
-                                    else
-                                        gameLevel.Add(new NbtByte("DifficultyLocked", (byte)newLocked));
-                            }
-
-                            using (var fileStream = new FileStream(saveDatPath, FileMode.Create, FileAccess.Write,
-                                       FileShare.None))
-                            {
-                                saveInfo.SaveToStream(fileStream, NbtCompression.GZip);
-                            }
-
-                            ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
-                        }
-                        catch (Exception ex)
-                        {
-                            ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint);
-                        }
-                    };
-
-                    var rowIndex = PanSettingsList.RowDefinitions.Count;
-                    PanSettingsList.RowDefinitions.Add(new RowDefinition
-                        { Height = new GridLength(1d, GridUnitType.Auto) });
-
-                    var headTextBlock = new TextBlock { Text = Lang.Text("Instance.Saves.Info.GameDifficultyLabel"), Margin = new Thickness(0d, 3d, 0d, 3d) };
-                    Grid.SetRow(headTextBlock, rowIndex);
-                    Grid.SetColumn(headTextBlock, 0);
-
-                    Grid.SetRow(difficultyPanel, rowIndex);
-                    Grid.SetColumn(difficultyPanel, 2);
-
-                    PanSettingsList.Children.Add(headTextBlock);
-                    PanSettingsList.Children.Add(difficultyPanel);
-                }
-
-                var lastPlayed = new DateTime(1970, 1, 1, 0, 0, 0)
-                    .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
-                    .ToLocalTime();
-                AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"), Lang.Date(lastPlayed, "g"));
-
-                NbtInt spawnX = null;
-                if (gameLevel.TryGet("SpawnX", out spawnX))
-                {
-                    var spawnY = gameLevel.Get<NbtInt>("SpawnY");
-                    var spawnZ = gameLevel.Get<NbtInt>("SpawnZ");
-                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}");
-                }
-                else
-                {
-                    var spawnPos = gameLevel.Get<NbtCompound>("spawn").Get<NbtIntArray>("pos");
-                    var spawnXPos = spawnPos[0];
-                    var spawnYPos = spawnPos[1];
-                    var spawnZPos = spawnPos[2];
-                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnXPos} / {spawnYPos} / {spawnZPos}");
-                }
-
-                var gameTypeName = Lang.Text("Instance.Saves.Info.GetFailed");
-
-                NbtByte isHardcore = null;
-
-                if (gameLevel.Contains("difficulty_settings"))
-                {
-                    isHardcore = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("hardcore");
-                }
-                else
-                {
-                    isHardcore = gameLevel.Get<NbtByte>("hardcore");
-                }
-
-                if (isHardcore.Value == 1)
-                {
-                    gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Hardcore");
-                }
-                else
-                {
-                    var gameType = gameLevel.Get<NbtInt>("GameType");
-                    switch (gameType.Value)
-                    {
-                        case 0:
-                        {
-                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Survival");
-                            break;
-                        }
-                        case 1:
-                        {
-                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Creative");
-                            break;
-                        }
-                        case 2:
-                        {
-                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Adventure");
-                            break;
-                        }
-                        case 3:
-                        {
-                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Spectator");
-                            break;
-                        }
-
-                        default:
-                        {
-                            gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Survival");
-                            break;
-                        }
-                    }
-                }
-
-                AddInfoTable(Lang.Text("Instance.Saves.Info.GameMode"), gameTypeName);
-
-                if (hasDifficulty)
-                {
-                    string difficultyRaw = gameLevel.Contains("difficulty_settings")
-                        ? gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value
-                        : gameLevel.Get<NbtByte>("Difficulty").Value.ToString();
-
-                    string difficultyName = difficultyRaw switch
-                    {
-                        "0" or "peaceful" => Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"),
-                        "1" or "easy" => Lang.Text("Instance.Saves.Info.Difficulty.Easy"),
-                        "2" or "normal" => Lang.Text("Instance.Saves.Info.Difficulty.Normal"),
-                        "3" or "hard" => Lang.Text("Instance.Saves.Info.Difficulty.Hard"),
-                        _ => Lang.Text("Instance.Saves.Info.GetFailed")
-                    };
-
-                    NbtByte lockedElement = gameLevel.Contains("difficulty_settings")
-                        ? gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked")
-                        : gameLevel.Get<NbtByte>("DifficultyLocked");
-                    var isDifficultyLocked =
-                        (lockedElement is not null && lockedElement.Value == 1) ||
-                        isHardcore.Value == 1 ? Lang.Text("Common.Option.Yes") :
-                        lockedElement is not null ? Lang.Text("Common.Option.No") : Lang.Text("Instance.Saves.Info.GetFailed");
-                    if (Hintversion1_8.Visibility != Visibility.Visible)
-                        AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"), $"{difficultyName}  |  {Lang.Text("Instance.Saves.Info.DifficultyLocked", isDifficultyLocked)}");
-                }
-
-                var totalTicks = long.Parse(gameLevel.Get<NbtLong>("Time").Value.ToString());
-                var formattedPlayTime = Lang.TimeSpan(
-                    TimeSpan.FromSeconds(totalTicks / 20.0d),
-                    precision: 3,
-                    addAffixes: false,
-                    maxUnit: TimeUnit.Day,
-                    minUnit: TimeUnit.Second);
-
-                AddInfoTable(Lang.Text("Instance.Saves.Info.PlayTime"), formattedPlayTime);
-                PanContent.Visibility = Visibility.Visible;
+                ShowVersionHint();
             }
+            else
+            {
+                AddInfoTable(Lang.Text("Instance.Saves.Info.Version"),
+                    $"{saveInfo.VersionName} ({saveInfo.VersionId})");
+            }
+
+            // 控制数据包按钮可见性（1.9 = DataVersion 1444 起）
+            if (ModMain.frmInstanceSavesLeft?.ItemDatapack is not null)
+                ModMain.frmInstanceSavesLeft.ItemDatapack.Visibility =
+                    !saveInfo.VersionId.HasValue || saveInfo.VersionId < 1444
+                        ? Visibility.Collapsed
+                        : Visibility.Visible;
+
+            // 显示种子
+            var seedText = saveInfo.Seed?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed");
+            AddInfoTable(Lang.Text("Instance.Saves.Info.Seed"), seedText, true, saveInfo.VersionName, true);
+
+            // 构建设置面板
+            BuildSettingsPanel();
+
+            // 最后游玩时间
+            AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"),
+                Lang.Date(saveInfo.LastPlayedUtc.ToLocalTime(), "g"));
+
+            // 出生点
+            if (saveInfo.Spawn.HasValue)
+            {
+                var s = saveInfo.Spawn.Value;
+                AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{s.X} / {s.Y} / {s.Z}");
+            }
+
+            // 游戏模式
+            var gameTypeName = ResolveGameModeName(saveInfo);
+            AddInfoTable(Lang.Text("Instance.Saves.Info.GameMode"), gameTypeName);
+
+            // 难度信息（仅当存档有难度时才显示）
+            if (saveInfo.Difficulty.HasValue)
+            {
+                var difficultyName = ResolveDifficultyName(saveInfo.Difficulty.Value);
+                var lockText = saveInfo.IsHardcore
+                    ? Lang.Text("Common.Option.Yes")
+                    : saveInfo.IsDifficultyLocked
+                        ? Lang.Text("Common.Option.Yes")
+                        : Lang.Text("Common.Option.No");
+                if (Hintversion1_8.Visibility != Visibility.Visible)
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"),
+                        $"{difficultyName}  |  {Lang.Text("Instance.Saves.Info.DifficultyLocked", lockText)}");
+            }
+
+            // 游玩时长
+            var formattedPlayTime = Lang.TimeSpan(
+                saveInfo.PlayTime,
+                precision: 3,
+                addAffixes: false,
+                maxUnit: TimeUnit.Day,
+                minUnit: TimeUnit.Second);
+            AddInfoTable(Lang.Text("Instance.Saves.Info.PlayTime"), formattedPlayTime);
+
+            PanContent.Visibility = Visibility.Visible;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取存档信息失败", ModBase.LogLevel.Msgbox);
+            LogWrapper.Error(ex, "获取存档信息失败");
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
             Hintversion1_9.Visibility = Visibility.Collapsed;
@@ -477,13 +157,213 @@ public partial class PageInstanceSavesInfo : IRefreshable
         }
     }
 
+    /// <summary>
+    /// 根据存档字段特征显示大致的版本范围提示。
+    /// </summary>
+    private void ShowVersionHint()
+    {
+        if (_currentSaveInfo!.Difficulty.HasValue)
+        {
+            Hintversion1_9.Visibility = Visibility.Visible;
+            Hintversion1_9.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
+        }
+        else if (_currentSaveInfo.AllowCommands)
+        {
+            Hintversion1_8.Visibility = Visibility.Visible;
+            Hintversion1_8.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
+        }
+        else
+        {
+            Hintversion1_3.Visibility = Visibility.Visible;
+            Hintversion1_3.Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
+        }
+    }
+
+    /// <summary>
+    /// 构建允许作弊和难度修改 UI 控件，并挂接事件处理。
+    /// 事件处理中调用 SaveManager.ApplyChangesAsync 以写入 NBT。
+    /// </summary>
+    private void BuildSettingsPanel()
+    {
+        var hasAllowCommands = _currentSaveInfo!.AllowCommands || _currentSaveInfo.VersionId.HasValue
+            || _currentSaveInfo.Difficulty.HasValue;
+
+        if (!hasAllowCommands && !_currentSaveInfo.Difficulty.HasValue)
+            return;
+
+        // ─── 允许作弊 ───
+        if (hasAllowCommands)
+        {
+            PanSettings.Visibility = Visibility.Visible;
+
+            var combo = new MyComboBox
+            {
+                Width = 100d,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave"),
+            };
+            combo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed") });
+            combo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.AllowCommands.Allowed") });
+            combo.SelectedValuePath = "Value";
+            combo.DisplayMemberPath = "Display";
+            combo.SelectedValue = _currentSaveInfo.AllowCommands ? 1 : 0;
+
+            combo.SelectionChanged += async (_, _) =>
+            {
+                if (_suppressEvents || combo.SelectedValue is null) return;
+                var newVal = (int)combo.SelectedValue == 1;
+                await ApplyEditAsync(new SaveChanges { AllowCommands = new Editable<bool>(newVal) },
+                    Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"));
+            };
+
+            AddControlToSettings(Lang.Text("Instance.Saves.Info.AllowCommands"), combo);
+        }
+
+        // ─── 难度设置 ───
+        if (_currentSaveInfo.Difficulty.HasValue)
+        {
+            PanSettings.Visibility = Visibility.Visible;
+
+            var difficultyCombo = new MyComboBox
+            {
+                Width = 100d,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                ToolTip = Lang.Text("Instance.Saves.Info.Modify.BeforeSave"),
+            };
+            difficultyCombo.Items.Add(new { Value = 0, Display = Lang.Text("Instance.Saves.Info.Difficulty.Peaceful") });
+            difficultyCombo.Items.Add(new { Value = 1, Display = Lang.Text("Instance.Saves.Info.Difficulty.Easy") });
+            difficultyCombo.Items.Add(new { Value = 2, Display = Lang.Text("Instance.Saves.Info.Difficulty.Normal") });
+            difficultyCombo.Items.Add(new { Value = 3, Display = Lang.Text("Instance.Saves.Info.Difficulty.Hard") });
+            difficultyCombo.SelectedValuePath = "Value";
+            difficultyCombo.DisplayMemberPath = "Display";
+            difficultyCombo.SelectedValue = (byte)_currentSaveInfo.Difficulty.Value;
+
+            var lockCheckBox = new MyCheckBox
+            {
+                Text = Lang.Text("Instance.Saves.Info.LockDifficulty"),
+                ToolTip = Lang.Text("Instance.Saves.Info.LockDifficulty.ToolTip"),
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10d, 0d, 0d, 0d),
+            };
+
+            if (_currentSaveInfo.IsHardcore)
+            {
+                // 极限模式下锁定难度不可见（始终锁定）
+                lockCheckBox.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                lockCheckBox.Checked = _currentSaveInfo.IsDifficultyLocked;
+            }
+
+            difficultyCombo.SelectionChanged += async (_, _) =>
+            {
+                if (_suppressEvents || difficultyCombo.SelectedValue is null) return;
+                var newDifficulty = (Difficulty)(byte)difficultyCombo.SelectedValue;
+                var isHardcore = _currentSaveInfo.IsHardcore;
+
+                var changes = new SaveChanges { Difficulty = new Editable<Difficulty>(newDifficulty) };
+                if (!isHardcore)
+                    changes.LockDifficulty = new Editable<bool>(lockCheckBox.Checked == true);
+
+                await ApplyEditAsync(changes, Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"));
+            };
+
+            lockCheckBox.Change += async (_, user) =>
+            {
+                if (_suppressEvents || !user || difficultyCombo.SelectedValue is null) return;
+                var newDifficulty = (Difficulty)(byte)difficultyCombo.SelectedValue;
+                var isHardcore = _currentSaveInfo.IsHardcore;
+
+                var changes = new SaveChanges { Difficulty = new Editable<Difficulty>(newDifficulty) };
+                if (!isHardcore)
+                    changes.LockDifficulty = new Editable<bool>(lockCheckBox.Checked == true);
+
+                await ApplyEditAsync(changes, Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"));
+            };
+
+            var difficultyPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            difficultyPanel.Children.Add(difficultyCombo);
+            difficultyPanel.Children.Add(lockCheckBox);
+
+            AddControlToSettings(Lang.Text("Instance.Saves.Info.GameDifficultyLabel"), difficultyPanel);
+        }
+    }
+
+    /// <summary>
+    /// 将修改写入 level.dat 并刷新 UI。
+    /// </summary>
+    private async Task ApplyEditAsync(SaveChanges changes, string successMessage)
+    {
+        try
+        {
+            _suppressEvents = true;
+            await _saveManager!.ApplyChangesAsync(_currentSavePath!, changes);
+            ModMain.Hint(successMessage, ModMain.HintType.Finish);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, "存档设置修改失败");
+        }
+        finally
+        {
+            _suppressEvents = false;
+        }
+    }
+
+    /// <summary>
+    /// 将控件添加到设置面板指定行。
+    /// </summary>
+    private void AddControlToSettings(string label, UIElement control)
+    {
+        var rowIndex = PanSettingsList.RowDefinitions.Count;
+        PanSettingsList.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1d, GridUnitType.Auto) });
+
+        var headTextBlock = new TextBlock { Text = label, Margin = new Thickness(0d, 3d, 0d, 3d) };
+        Grid.SetRow(headTextBlock, rowIndex);
+        Grid.SetColumn(headTextBlock, 0);
+
+        Grid.SetRow(control, rowIndex);
+        Grid.SetColumn(control, 2);
+
+        PanSettingsList.Children.Add(headTextBlock);
+        PanSettingsList.Children.Add(control);
+
+        PanSettingsList.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8d, GridUnitType.Pixel) });
+    }
+
+    private static string ResolveGameModeName(SaveInfo info) => info.GameMode switch
+    {
+        GameMode.Survival => Lang.Text("Instance.Saves.Info.GameMode.Survival"),
+        GameMode.Creative => Lang.Text("Instance.Saves.Info.GameMode.Creative"),
+        GameMode.Adventure => Lang.Text("Instance.Saves.Info.GameMode.Adventure"),
+        GameMode.Spectator => Lang.Text("Instance.Saves.Info.GameMode.Spectator"),
+        GameMode.Hardcore => Lang.Text("Instance.Saves.Info.GameMode.Hardcore"),
+        _ => Lang.Text("Instance.Saves.Info.GetFailed"),
+    };
+
+    private static string ResolveDifficultyName(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Peaceful => Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"),
+        Difficulty.Easy => Lang.Text("Instance.Saves.Info.Difficulty.Easy"),
+        Difficulty.Normal => Lang.Text("Instance.Saves.Info.Difficulty.Normal"),
+        Difficulty.Hard => Lang.Text("Instance.Saves.Info.Difficulty.Hard"),
+        _ => Lang.Text("Instance.Saves.Info.GetFailed"),
+    };
+
+    #region 表格工具方法
+
     private void ClearInfoTable()
     {
         PanList.Children.Clear();
         PanList.RowDefinitions.Clear();
     }
 
-    private void AddInfoTable(string head, string content, bool isSeed = false, string versionName = null,
+    private void AddInfoTable(string head, string content, bool isSeed = false, string? versionName = null,
         bool allowCopy = false)
     {
         var headTextBlock = new TextBlock { Text = head, Margin = new Thickness(0d, 3d, 0d, 3d) };
@@ -519,10 +399,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 Logo = Icon.IconButtonlink,
                 ToolTip = Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"),
                 Width = 22d,
-                Height = 22d
+                Height = 22d,
             };
             contentStack.Children.Add(btnChunkbase);
-
 
             btnChunkbase.Click += (_, _) =>
             {
@@ -530,13 +409,16 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 {
                     if (versionName is null)
                     {
-                        ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"), ModBase.LogLevel.Hint);
+                        ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"),
+                            ModBase.LogLevel.Hint);
                         return;
                     }
 
                     if (versionName.Any(c => char.IsLetter(c)))
                     {
-                        ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName), ModBase.LogLevel.Hint);
+                        ModBase.Log(
+                            Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
+                            ModBase.LogLevel.Hint);
                         return;
                     }
 
@@ -571,16 +453,6 @@ public partial class PageInstanceSavesInfo : IRefreshable
         Grid.SetRow(contentStack, rowIndex);
         Grid.SetColumn(contentStack, 2);
     }
-    
-    public string GetDifficultyName(int newDifficulty)
-    {
-        return newDifficulty switch
-        {
-            0 => "peaceful",
-            1 => "easy",
-            2 => "normal",
-            3 => "hard",
-            _ => throw new ArgumentOutOfRangeException(nameof(newDifficulty), "Invalid difficulty value")
-        };
-    }
+
+    #endregion
 }

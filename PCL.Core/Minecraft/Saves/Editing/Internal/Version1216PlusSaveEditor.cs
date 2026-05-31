@@ -6,11 +6,11 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
-/// NextGen 存档编辑器 —— 适用于 26.1+ 的存档格式。
-/// 写入 difficulty_settings 复合标签（字符串型难度 + 布尔型锁定/极限标志）。
-/// allowCommands 路径与旧版一致，仍然直接写入 Data.allowCommands。
+/// 26w04a(1.21.6) 及之后的存档编辑器。
+/// 写入 difficulty_settings 复合标签（字符串型难度 + 字节型锁定）。
+/// allowCommands 路径与旧版一致。
 /// </summary>
-internal sealed class NextGenSaveEditor : ISaveEditor
+internal sealed class Version1216PlusSaveEditor : ISaveEditor
 {
     /// <summary>处理 DataVersion >= 4189 的存档。</summary>
     public bool CanHandle(int? dataVersion)
@@ -21,7 +21,6 @@ internal sealed class NextGenSaveEditor : ISaveEditor
         if (changes.IsEmpty)
             return false;
 
-        // 加载 NBT 文件（GZip 压缩）
         var nbtFile = new NbtFile();
         await Task.Run(() =>
         {
@@ -33,7 +32,7 @@ internal sealed class NextGenSaveEditor : ISaveEditor
         if (data is null)
             return false;
 
-        // 确保 difficulty_settings 复合标签存在（不存在则创建）
+        // 确保 difficulty_settings 复合标签存在
         if (!data.TryGet<NbtCompound>("difficulty_settings", out var ds) || ds is null)
         {
             ds = new NbtCompound("difficulty_settings");
@@ -41,16 +40,13 @@ internal sealed class NextGenSaveEditor : ISaveEditor
         }
 
         var changed = false;
-
-        // allowCommands 在 26.1+ 中路径不变，复用 Legacy 写入方法
-        changed |= LegacySaveEditor.WriteAllowCommands(data, changes);
-        changed |= WriteNextGenDifficulty(ds!, changes);
-        changed |= WriteNextGenLocked(ds!, changes);
+        changed |= Pre1216SaveEditor.WriteAllowCommands(data, changes);
+        changed |= WriteDifficulty(ds!, changes);
+        changed |= WriteLocked(ds!, changes);
 
         if (!changed)
             return false;
 
-        // 以 GZip 格式写回
         await Task.Run(() =>
         {
             using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
@@ -60,15 +56,11 @@ internal sealed class NextGenSaveEditor : ISaveEditor
         return true;
     }
 
-    /// <summary>
-    /// 写入 difficulty_settings.difficulty（字符串型）。
-    /// 值："peaceful" / "easy" / "normal" / "hard"。
-    /// </summary>
-    internal static bool WriteNextGenDifficulty(NbtCompound difficultySettings, SaveChanges changes)
+    /// <summary>写入 difficulty_settings.difficulty（字符串型）。</summary>
+    internal static bool WriteDifficulty(NbtCompound difficultySettings, SaveChanges changes)
     {
         if (!changes.Difficulty.HasValue)
             return false;
-
         var val = changes.Difficulty.Value switch
         {
             Difficulty.Peaceful => "peaceful",
@@ -82,11 +74,10 @@ internal sealed class NextGenSaveEditor : ISaveEditor
     }
 
     /// <summary>写入 difficulty_settings.locked（字节型：0/1）。</summary>
-    internal static bool WriteNextGenLocked(NbtCompound difficultySettings, SaveChanges changes)
+    internal static bool WriteLocked(NbtCompound difficultySettings, SaveChanges changes)
     {
         if (!changes.LockDifficulty.HasValue)
             return false;
-
         difficultySettings["locked"] = new NbtByte("locked", (byte)(changes.LockDifficulty.Value ? 1 : 0));
         return true;
     }

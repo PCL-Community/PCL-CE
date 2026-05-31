@@ -6,10 +6,10 @@ using fNbt;
 namespace PCL.Core.Minecraft.Saves.Editing.Internal;
 
 /// <summary>
-/// Legacy 存档编辑器 —— 适用于 26.1 之前的存档格式。
+/// 1.21.5 及之前的存档编辑器。
 /// 写入字节型 NBT 标签：allowCommands、Difficulty、DifficultyLocked。
 /// </summary>
-internal sealed class LegacySaveEditor : ISaveEditor
+internal sealed class Pre1216SaveEditor : ISaveEditor
 {
     /// <summary>处理所有 DataVersion 为 null 或 &lt; 4189 的存档。</summary>
     public bool CanHandle(int? dataVersion)
@@ -20,7 +20,6 @@ internal sealed class LegacySaveEditor : ISaveEditor
         if (changes.IsEmpty)
             return false;
 
-        // 加载 NBT 文件（GZip 压缩）
         var nbtFile = new NbtFile();
         await Task.Run(() =>
         {
@@ -32,7 +31,6 @@ internal sealed class LegacySaveEditor : ISaveEditor
         if (data is null)
             return false;
 
-        // 依次写入各项修改
         var changed = false;
         changed |= WriteAllowCommands(data, changes);
         changed |= WriteDifficulty(data, changes);
@@ -41,7 +39,6 @@ internal sealed class LegacySaveEditor : ISaveEditor
         if (!changed)
             return false;
 
-        // 以 GZip 格式写回
         await Task.Run(() =>
         {
             using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
@@ -56,9 +53,7 @@ internal sealed class LegacySaveEditor : ISaveEditor
     {
         if (!changes.AllowCommands.HasValue)
             return false;
-
-        var val = changes.AllowCommands.Value;
-        data["allowCommands"] = new NbtByte("allowCommands", (byte)(val ? 1 : 0));
+        data["allowCommands"] = new NbtByte("allowCommands", (byte)(changes.AllowCommands.Value ? 1 : 0));
         return true;
     }
 
@@ -67,9 +62,7 @@ internal sealed class LegacySaveEditor : ISaveEditor
     {
         if (!changes.Difficulty.HasValue)
             return false;
-
-        var val = (byte)changes.Difficulty.Value;
-        data["Difficulty"] = new NbtByte("Difficulty", val);
+        data["Difficulty"] = new NbtByte("Difficulty", (byte)changes.Difficulty.Value);
         return true;
     }
 
@@ -78,9 +71,7 @@ internal sealed class LegacySaveEditor : ISaveEditor
     {
         if (!changes.LockDifficulty.HasValue)
             return false;
-
-        var val = changes.LockDifficulty.Value;
-        data["DifficultyLocked"] = new NbtByte("DifficultyLocked", (byte)(val ? 1 : 0));
+        data["DifficultyLocked"] = new NbtByte("DifficultyLocked", (byte)(changes.LockDifficulty.Value ? 1 : 0));
         return true;
     }
 }
