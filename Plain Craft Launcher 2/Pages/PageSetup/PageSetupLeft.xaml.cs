@@ -179,7 +179,7 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
-                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.Loader.Start(IsForceRestart: true);
+                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.Loader.Start(isForceRestart: true);
                 ItemFeedback.Checked = true;
                 break;
             }

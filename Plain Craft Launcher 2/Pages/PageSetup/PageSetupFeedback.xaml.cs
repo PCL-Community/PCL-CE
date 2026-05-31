@@ -110,7 +110,7 @@ public partial class PageSetupFeedback
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
-                    $"#{item.ID} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+                    $"#{item.Id} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {
