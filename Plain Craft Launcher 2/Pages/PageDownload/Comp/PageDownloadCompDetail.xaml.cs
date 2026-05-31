@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -260,6 +261,7 @@ public partial class PageDownloadCompDetail
 
                 // 确认默认保存位置
                 string defaultFolder = null;
+                var allowedLoaders = new List<ModComp.CompLoaderType>();
                 if (file.Type != ModComp.CompType.ModPack)
                 {
                     var subFolder = "";
@@ -273,7 +275,6 @@ public partial class PageDownloadCompDetail
                     }
 
                     // 获取资源所需的加载器
-                    var allowedLoaders = new List<ModComp.CompLoaderType>();
                     if (file.ModLoaders.Any())
                         allowedLoaders = file.ModLoaders;
                     else if (_project.ModLoaders.Any()) allowedLoaders = _project.ModLoaders;
@@ -379,13 +380,90 @@ public partial class PageDownloadCompDetail
                             cachedFolder.Add(file.Type, targetDir);
                     }
 
+                    var downloadFiles = new List<DownloadFile> { file.ToNetFile(target) };
+                    if (file.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
+                        file.Dependencies.Any())
+                    {
+                        try
+                        {
+                            ModMinecraft.Instance? targetInstance = null;
+                            var knownInstances = new List<ModMinecraft.Instance>();
+                            if (ModMinecraft.McInstanceSelected is not null)
+                            {
+                                knownInstances.Add(ModMinecraft.McInstanceSelected);
+                            }
+
+                            knownInstances.AddRange(ModMinecraft.mcInstanceList.Values.SelectMany(list => list)
+                                .Where(instance => instance is not null));
+                            targetInstance = knownInstances
+                                .Distinct()
+                                .FirstOrDefault(instance =>
+                                    targetDir.StartsWith(instance.PathIndie, StringComparison.OrdinalIgnoreCase));
+                            if (targetInstance is not null && !targetInstance.IsLoaded)
+                            {
+                                targetInstance.Load();
+                            }
+
+                            var mcVersion = targetInstance?.Info?.VanillaName
+                                            ?? file.GameVersions.FirstOrDefault(version => version.Contains("."))
+                                            ?? string.Empty;
+                            var targetLoaders = new List<ModComp.CompLoaderType>();
+                            if (targetInstance is not null)
+                            {
+                                if (targetInstance.Info.HasForge)
+                                    targetLoaders.Add(ModComp.CompLoaderType.Forge);
+                                if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
+                                    targetLoaders.Add(ModComp.CompLoaderType.Fabric);
+                                if (targetInstance.Info.HasQuilt)
+                                    targetLoaders.Add(ModComp.CompLoaderType.Quilt);
+                                if (targetInstance.Info.HasNeoForge)
+                                    targetLoaders.Add(ModComp.CompLoaderType.NeoForge);
+                                if (targetInstance.Info.HasLiteLoader)
+                                    targetLoaders.Add(ModComp.CompLoaderType.LiteLoader);
+                            }
+
+                            if (!targetLoaders.Any())
+                            {
+                                targetLoaders = allowedLoaders.ToList();
+                            }
+
+                            ModBase.Log($"[CompDeps] 开始解析必需前置: {file.Dependencies.Count} 个依赖");
+                            var request = ModCompDependency.BuildRequest(file, _project, mcVersion, targetLoaders,
+                                targetDir);
+                            var resolver = new ModDependencyResolver();
+                            var result = resolver.Resolve(request);
+
+                            if (result.Unresolved.Any() || result.ToInstall.Any())
+                            {
+                                if (!ModCompDependency.ConfirmDependencyInstall(result))
+                                {
+                                    return;
+                                }
+
+                                ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
+                                var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                            }
+                            else
+                            {
+                                ModBase.Log("[CompDeps] 已满足: 所有必需前置已安装");
+                            }
+                        }
+                        catch (Exception depEx)
+                        {
+                            ModBase.Log(depEx, "[CompDeps] 依赖解析失败，跳过前置安装");
+                            ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
+                                "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
+                        }
+                    }
+
                     // 构造下载任务
                     var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
                         ModBase.GetFileNameWithoutExtentionFromPath(target));
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            new List<DownloadFile> { file.ToNetFile(target) })
+                            downloadFiles)
                         {
                             ProgressWeight = 6,
                             block = true
