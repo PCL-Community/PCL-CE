@@ -201,7 +201,7 @@ public sealed class AnimationService : GeneralService
         }
     }
 
-    private static void HandleNamedAnimationConflict(IAnimation animation)
+    private static void _HandleNamedAnimationConflict(IAnimation animation)
     {
         if (string.IsNullOrEmpty(animation.Name)) return;
 
@@ -219,7 +219,7 @@ public sealed class AnimationService : GeneralService
     
     internal static Task PushAnimationAsync(IAnimation animation, IAnimatable target)
     {
-        HandleNamedAnimationConflict(animation);
+        _HandleNamedAnimationConflict(animation);
         
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         
@@ -231,7 +231,7 @@ public sealed class AnimationService : GeneralService
     
     internal static void PushAnimationFireAndForget(IAnimation animation, IAnimatable target)
     {
-        HandleNamedAnimationConflict(animation);
+        _HandleNamedAnimationConflict(animation);
         
         _animationChannel.Writer.TryWrite((animation, target));
     }

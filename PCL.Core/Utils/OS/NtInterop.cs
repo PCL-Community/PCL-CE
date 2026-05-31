@@ -7,13 +7,13 @@ namespace PCL.Core.Utils.OS;
 public static partial class NtInterop
 {
     [LibraryImport("ntdll.dll")]
-    private static partial void RtlGetNtVersionNumbers(
+    private static partial void _RtlGetNtVersionNumbers(
         out int major,
         out int minor,
         out int build);
     
     [LibraryImport("ntdll.dll")]
-    private static partial uint RtlAdjustPrivilege(
+    private static partial uint _RtlAdjustPrivilege(
         SePrivilege privilege,
         [MarshalAs(UnmanagedType.U1)] bool enable,
         [MarshalAs(UnmanagedType.U1)] bool currentThread,
@@ -50,7 +50,7 @@ public static partial class NtInterop
     /// <returns>A <see cref="Version"/> instance, used to represent the current operating system kernel version number.</returns>
     public static Version GetCurrentOsVersion()
     {
-        RtlGetNtVersionNumbers(out var major, out var minor, out var build);
+        _RtlGetNtVersionNumbers(out var major, out var minor, out var build);
         build &= 0xFFFF;
         return new Version(major, minor, build);
     }
@@ -64,7 +64,7 @@ public static partial class NtInterop
     /// <returns>返回原来相应特权的状态。</returns>
     public static bool SetPrivilege(SePrivilege privilege, bool state, bool currentThread = true)
     {
-        var result = RtlAdjustPrivilege(privilege, state, currentThread, out var enabled);
+        var result = _RtlAdjustPrivilege(privilege, state, currentThread, out var enabled);
         if (result != 0) _ThrowLastWin32Error((int)RtlNtStatusToDosError(result));
         return enabled;
     }
