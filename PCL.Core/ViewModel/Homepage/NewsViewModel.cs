@@ -27,7 +27,7 @@ public partial class NewsViewModel : ObservableObject
 
     public NewsViewModel()
     {
-        LoadDataCommand.Execute(null);
+        _LoadDataCommand.Execute(null);
     }
 
     [RelayCommand]
