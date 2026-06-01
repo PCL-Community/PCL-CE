@@ -2,6 +2,12 @@ using System;
 
 namespace PCL.Core.Utils.WinRT.Interface.Windows.Data.Xml.Dom;
 
+public static class IXmlDocumentIOInfo
+{
+    public static readonly string ActivatableClassId = "Windows.Data.Xml.Dom.XmlDocument";
+    public static readonly Guid Iid = new("50ac103f-d235-4598-bbef-98fe4d1a3ad4");
+}
+
 internal unsafe struct IXmlDocumentIO
 {
     public IXmlDocumentIOVtbl* lpVtbl;
