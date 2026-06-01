@@ -10,6 +10,57 @@ public static partial class WinRTInterop
     private static unsafe partial int RoGetActivationFactory(IntPtr activatableClassId, Guid* iid, IntPtr* factory);
     [LibraryImport("combase.dll")]
     private static unsafe partial int RoActiveInstance(IntPtr activatableClassId, IntPtr* instance);
+
+    public static unsafe IntPtr ActiveInstance(ReadOnlySpan<char> activatableClassId)
+    {
+        var instance = IntPtr.Zero;
+
+        fixed (char* pName = activatableClassId)
+        {
+            HStringHeader header;
+            IntPtr hstring;
+
+            Marshal.ThrowExceptionForHR(
+                WindowsCreateStringReference(
+                    (ushort*)pName,
+                    activatableClassId.Length,
+                    (IntPtr*)&header,
+                    &hstring));
+
+            Marshal.ThrowExceptionForHR(
+                RoActiveInstance(
+                    hstring,
+                    &instance));
+        }
+
+        return instance;
+    }
+
+    public static unsafe IntPtr GetActivationFactory(ReadOnlySpan<char> activatableClassId, Guid iid)
+    {
+        var factory = IntPtr.Zero;
+
+        fixed (char* pName = activatableClassId)
+        {
+            HStringHeader header;
+            IntPtr hstring;
+
+            Marshal.ThrowExceptionForHR(
+                WindowsCreateStringReference(
+                    (ushort*)pName,
+                    activatableClassId.Length,
+                    (IntPtr*)&header,
+                    &hstring));
+
+            Marshal.ThrowExceptionForHR(
+                RoGetActivationFactory(
+                    hstring,
+                    &iid,
+                    &factory));
+        }
+
+        return factory;
+    }
     
     // winstring.h
     [LibraryImport("combase.dll")]
