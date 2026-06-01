@@ -36,11 +36,11 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 throw new Exception("无效 CDK");
             return new VersionDataModel
             {
-                source = SourceName,
-                versionCode = (int)data["version_number"],
-                versionName = (string)data["version_name"],
-                sha256 = (string)data["sha256"],
-                changelog = (string)data["release_note"]
+                Source = SourceName,
+                VersionCode = (int)data["version_number"],
+                VersionName = (string)data["version_name"],
+                Sha256 = (string)data["sha256"],
+                Changelog = (string)data["release_note"]
             };
         }
     }
@@ -53,7 +53,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     public bool IsLatest(UpdateChannel channel, UpdateArch arch, SemVer currentVersion, int currentVersionCode)
     {
         var latest = GetLatestVersion(channel, arch);
-        return currentVersion >= SemVer.Parse(latest.versionName);
+        return currentVersion >= SemVer.Parse(latest.VersionName);
     }
 
     public VersionAnnouncementDataModel GetAnnouncementList()

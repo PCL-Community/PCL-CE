@@ -14,18 +14,18 @@ public static class ModWorld
     /// </summary>
     /// <exception cref="ModBase.CancelledException">确定这是一个存档文件（夹），但存档文件损坏时抛出的异常。</exception>
     /// <exception cref="Exception"></exception>
-    public static void ReadWorld(string SavePath)
+    public static void ReadWorld(string savePath)
     {
-        if (File.Exists(SavePath))
+        if (File.Exists(savePath))
         {
             var extractPath = $@"{ModBase.pathTemp}Cache\{RandomUtils.NextInt(0, 1000_0000)}\";
             if (Directory.Exists(extractPath))
                 ModBase.DeleteDirectory(extractPath);
-            ModBase.ExtractFile(SavePath, extractPath);
-            SavePath = extractPath;
+            ModBase.ExtractFile(savePath, extractPath);
+            savePath = extractPath;
         }
 
-        var world = new McWorld(SavePath);
+        var world = new McWorld(savePath);
         if (!File.Exists(world.LevelDatPath))
             throw new Exception("无效的 Minecraft 存档");
         if (!world.Read())
@@ -71,12 +71,12 @@ public static class ModWorld
         /// <summary>
         ///     存档。
         /// </summary>
-        /// <param name="SavePath">存档路径。文件夹，以 “\” 结尾。</param>
-        public McWorld(string SavePath)
+        /// <param name="savePath">存档路径。文件夹，以 “\” 结尾。</param>
+        public McWorld(string savePath)
         {
-            if (!SavePath.EndsWithF(@"\"))
-                SavePath = SavePath + @"\";
-            this.savePath = SavePath;
+            if (!savePath.EndsWithF(@"\"))
+                savePath = savePath + @"\";
+            this.savePath = savePath;
         }
 
         public string LevelDatPath =>

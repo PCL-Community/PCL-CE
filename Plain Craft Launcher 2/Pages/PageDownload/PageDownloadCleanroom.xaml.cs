@@ -31,7 +31,7 @@ public partial class PageDownloadCleanroom
         try
         {
             // 归类
-            var dict = ModDownload.dlCleanroomListLoader.output.value.GroupBy(d => d.inherit)
+            var dict = ModDownload.dlCleanroomListLoader.output.Value.GroupBy(d => d.Inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();
@@ -52,10 +52,10 @@ public partial class PageDownloadCleanroom
                 newCard.Children.Add(newStack);
                 newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.CleanroomDownloadListItem(
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.CleanroomDownloadListItem(
                             (ModDownload.DlCleanroomListEntry)item, ModDownloadLib.CleanroomSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);

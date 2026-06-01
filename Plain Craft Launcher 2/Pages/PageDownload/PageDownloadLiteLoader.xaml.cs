@@ -36,9 +36,9 @@ public partial class PageDownloadLiteLoader
             for (var versionCode = 30; versionCode >= 0; versionCode -= 1)
                 dict.Add("1." + versionCode, new List<ModDownload.DlLiteLoaderListEntry>());
             dict.Add(ModMinecraft.UNKNOWN_VERSION_KEY, []);
-            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.value)
+            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.Value)
             {
-                var mainVersion = "1." + Version.inherit.Split(".")[1];
+                var mainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (dict.ContainsKey(mainVersion))
                     dict[mainVersion].Add(Version);
                 else
@@ -69,12 +69,12 @@ public partial class PageDownloadLiteLoader
                 newCard.Children.Add(newStack);
                 newCard.SwapControl = newStack;
                 newCard.IsSwapped = true;
-                newCard.InstallMethod = Stack =>
+                newCard.InstallMethod = stack =>
                 {
-                    Stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)Stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.inherit, b.inherit) == 1);
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
+                    stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)stack.Tag).Sort((a, b) =>
+                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);

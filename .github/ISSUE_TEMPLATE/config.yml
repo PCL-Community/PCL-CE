@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: "旧版本优化反馈、新功能请求暂不受理"
+    url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
+    about: "由于开发重心已经转移到 C# 新版本，所以目前不计划再对旧版做优化和新功能了。你可以在晚一些时候向新版本提交新功能请求。"
+  - name: "新版本新功能请求暂不受理"
+    url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
+    about: "由于 C# 新版本还不稳定，我们暂时不受理对新版本提出的新功能请求，请在晚一些时候再来"
   - name: 主页预设反馈
     url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈

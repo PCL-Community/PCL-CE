@@ -152,7 +152,7 @@ public sealed class Logger : IAsyncDisposable
         catch (Exception e)
         {
             // 出错了先干到标准输出流中吧 Orz
-            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occured while processing log queue: {e.Message}");
+            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while processing log queue: {e.Message}");
             throw;
         }
     }
@@ -170,7 +170,7 @@ public sealed class Logger : IAsyncDisposable
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occured while writing log file: {e.Message}");
+            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while writing log file: {e.Message}");
             await File.AppendAllTextAsync(Path.Combine(Configuration.StoreFolder, "Error.log"), $"[{_GetTimeFormatted}] LogCycle Error: {e}\n");
             throw;
         }

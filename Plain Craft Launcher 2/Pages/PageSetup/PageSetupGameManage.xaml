@@ -119,9 +119,16 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.HideQuilt}" ToolTip="{DynamicResource Setup.GameManage.Community.HideQuilt.ToolTip}"
                                           Grid.Row="0" Height="22" Grid.Column="0" Change="CheckBoxChange"
                                           x:Name="CheckDownloadIgnoreQuilt" Tag="ToolDownloadIgnoreQuilt" />
+                        <local:MyCheckBox Margin="0,2,0,4" Text="下载 Mod 时自动检查并安装必需前置" ToolTip="安装 Mod 时，若检测到缺少必需前置，将列出前置列表供确认后自动下载安装（可在确认时取消）"
+                                          Grid.Row="1" Height="22" Grid.Column="0" Change="CheckBoxChange"
+                                          x:Name="CheckDownloadAutoInstallDependencies" Tag="ToolDownloadAutoInstallDependencies" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

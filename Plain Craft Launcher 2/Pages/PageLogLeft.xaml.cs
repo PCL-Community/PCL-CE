@@ -147,12 +147,12 @@ public partial class PageLogLeft
         ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
 
-    public void SelectionChange(int Uuid)
+    public void SelectionChange(int uuid)
     {
         if (isLoading > 0)
             return;
         // If CurrentUuid > 0 Then FlowDocuments(CurrentUuid) = FrmLogRight.PanLog.Document
-        if (Uuid <= 0)
+        if (uuid <= 0)
         {
             currentUuid = -1;
             currentLog = null;
@@ -160,9 +160,9 @@ public partial class PageLogLeft
         else
         {
             foreach (var item in shownLogs)
-                if (item.Key == Uuid)
+                if (item.Key == uuid)
                 {
-                    currentUuid = Uuid;
+                    currentUuid = uuid;
                     currentLog = item.Value;
                     break;
                 }
@@ -175,12 +175,12 @@ public partial class PageLogLeft
         });
     }
 
-    public void RemoveItem(int Uuid)
+    public void RemoveItem(int uuid)
     {
         for (int i = 0, loopTo = shownLogs.Count - 1; i <= loopTo; i++)
         {
             var item = shownLogs[i];
-            if (item.Key != Uuid)
+            if (item.Key != uuid)
                 continue;
             shownLogs.RemoveAt(i);
             if (currentUuid == item.Key)

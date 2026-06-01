@@ -11,7 +11,7 @@ public class RegexValidator(string pattern = "", string errorMessage = "正则�
 
     public RegexValidator() : this(string.Empty) {}
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x => Regex.IsMatch(x, Pattern)).WithMessage(ErrorMessage);
@@ -19,7 +19,7 @@ public class RegexValidator(string pattern = "", string errorMessage = "正则�
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }

@@ -48,7 +48,7 @@ public class MyTextBox : TextBox
 
     // 事件
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyTextBox()
     {
@@ -209,22 +209,22 @@ public class MyTextBox : TextBox
         ChangeValidateResult(IsValidated, true);
     }
 
-    private void ChangeValidateResult(bool IsSuccessful, bool IsLoaded)
+    private void ChangeValidateResult(bool isSuccessful, bool isLoaded)
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0 && labWrong is not null)
+        if (isLoaded && ModAnimation.AniControlEnabled == 0 && labWrong is not null)
         {
-            if (IsSuccessful || !isTextChanged)
+            if (isSuccessful || !isTextChanged)
             {
                 // 变为正确
-                shownValidateResult = IsSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
+                shownValidateResult = isSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
                 ModAnimation.AniStart(
                     new[]
                     {
                         ModAnimation.AaOpacity(labWrong, -labWrong.Opacity, 150),
                         ModAnimation.AaHeight(labWrong, -labWrong.Height, 150,
-                            Ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, After: true)
-                    }, "MyTextBox Validate " + uuid);
+                            ease: new ModAnimation.AniEaseOutFluent()),
+                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, after: true)
+                    }, "MyTextBox Validate " + Uuid);
             }
             else if (ShowValidateResult)
             {
@@ -236,8 +236,8 @@ public class MyTextBox : TextBox
                     {
                         ModAnimation.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
                         ModAnimation.AaHeight(labWrong, 21d - labWrong.Height, 150,
-                            Ease: new ModAnimation.AniEaseOutFluent())
-                    }, "MyTextBox Validate " + uuid);
+                            ease: new ModAnimation.AniEaseOutFluent())
+                    }, "MyTextBox Validate " + Uuid);
             }
             else
             {
@@ -355,12 +355,12 @@ public class MyTextBox : TextBox
                     {
                         ModAnimation.AaColor(this, BorderBrushProperty, foreColorName, animationTime),
                         ModAnimation.AaColor(this, BackgroundProperty, backColorName, animationTime)
-                    }, "MyTextBox Color " + uuid);
+                    }, "MyTextBox Color " + Uuid);
             }
             else
             {
                 // 无动画
-                ModAnimation.AniStop("MyTextBox Color " + uuid);
+                ModAnimation.AniStop("MyTextBox Color " + Uuid);
                 SetResourceReference(BorderBrushProperty, foreColorName);
                 SetResourceReference(BackgroundProperty, backColorName);
             }
@@ -385,12 +385,12 @@ public class MyTextBox : TextBox
                 {
                     ModAnimation.AaColor(this, ForegroundProperty, IsEnabled ? "ColorBrushGray1" : "ColorBrushGray4",
                         200)
-                }, "MyTextBox TextColor " + uuid);
+                }, "MyTextBox TextColor " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyTextBox TextColor " + uuid);
+            ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
             Foreground = newColor;
         }
     }

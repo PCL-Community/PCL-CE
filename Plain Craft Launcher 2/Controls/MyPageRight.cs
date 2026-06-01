@@ -76,39 +76,39 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     ///     表明页面存在需要在后台执行的加载器。
     /// </summary>
-    /// <param name="LoaderUi">MyLoading 控件。</param>
-    /// <param name="PanLoader">MyLoading 控件对应的卡片。</param>
-    /// <param name="PanContent">加载结束后出现的内容容器。</param>
-    /// <param name="PanAlways">无论是否在加载总是要显示的容器。可以为 Nothing。</param>
-    /// <param name="RealLoader">在工作线程执行的加载器。</param>
-    /// <param name="FinishedInvoke">当加载器执行完成，在 UI 线程触发的 UI 初始化事件。</param>
-    public void PageLoaderInit(MyLoading LoaderUi, FrameworkElement PanLoader, FrameworkElement PanContent,
-        FrameworkElement? PanAlways, ModLoader.LoaderBase RealLoader, Action<ModLoader.LoaderBase>? FinishedInvoke = null,
-        Func<object>? InputInvoke = null, bool AutoRun = true)
+    /// <param name="loaderUi">MyLoading 控件。</param>
+    /// <param name="panLoader">MyLoading 控件对应的卡片。</param>
+    /// <param name="panContent">加载结束后出现的内容容器。</param>
+    /// <param name="panAlways">无论是否在加载总是要显示的容器。可以为 Nothing。</param>
+    /// <param name="realLoader">在工作线程执行的加载器。</param>
+    /// <param name="finishedInvoke">当加载器执行完成，在 UI 线程触发的 UI 初始化事件。</param>
+    public void PageLoaderInit(MyLoading loaderUi, FrameworkElement panLoader, FrameworkElement panContent,
+        FrameworkElement? panAlways, ModLoader.LoaderBase realLoader, Action<ModLoader.LoaderBase>? finishedInvoke = null,
+        Func<object>? inputInvoke = null, bool autoRun = true)
     {
         // 初始化参数
-        this.panLoader = PanLoader;
-        this.panContent = PanContent;
-        this.panAlways = PanAlways;
-        pageLoader = RealLoader;
-        pageLoaderUi = LoaderUi;
-        pageLoaderInputInvoke = InputInvoke;
-        pageLoaderAutoRun = AutoRun;
+        this.panLoader = panLoader;
+        this.panContent = panContent;
+        this.panAlways = panAlways;
+        pageLoader = realLoader;
+        pageLoaderUi = loaderUi;
+        pageLoaderInputInvoke = inputInvoke;
+        pageLoaderAutoRun = autoRun;
         // 添加结束 Invoke
-        if (FinishedInvoke is not null)
-            RealLoader.PreviewFinish += _ =>
+        if (finishedInvoke is not null)
+            realLoader.PreviewFinish += _ =>
             {
                 while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
                     Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
-                ModBase.RunInUiWait(() => FinishedInvoke(RealLoader));
+                ModBase.RunInUiWait(() => finishedInvoke(realLoader));
                 Thread.Sleep(20); // 由于大量初始化控件会导致掉帧，延迟触发 State 改变事件
             };
-        RealLoader.OnStateChangedUi += (Loader, NewState, OldState) =>
-            ModBase.RunInUi(() => PageLoaderState(Loader, NewState, OldState));
+        realLoader.OnStateChangedUi += (loader, newState, oldState) =>
+            ModBase.RunInUi(() => PageLoaderState(loader, newState, oldState));
         // 隐藏 UI
-        PanLoader.Visibility = Visibility.Collapsed;
-        PanContent.Visibility = Visibility.Collapsed;
-        PanAlways?.Visibility = Visibility.Collapsed;
+        panLoader.Visibility = Visibility.Collapsed;
+        panContent.Visibility = Visibility.Collapsed;
+        panAlways?.Visibility = Visibility.Collapsed;
         // 初次运行加载器
         if (pageLoaderAutoRun)
         {
@@ -125,30 +125,30 @@ public class MyPageRight : AdornerDecorator
             }
         }
 
-        if (pageLoader.State == ModBase.LoadState.Finished && FinishedInvoke is not null)
-            ModBase.RunInUiWait(() => FinishedInvoke(RealLoader)); // 加载器已提前完成，直接触发事件
+        if (pageLoader.State == ModBase.LoadState.Finished && finishedInvoke is not null)
+            ModBase.RunInUiWait(() => finishedInvoke(realLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
-        pageLoaderUi.State = RealLoader;
+        pageLoaderUi.State = realLoader;
         pageLoaderUi.Click += (_, _) =>
         {
-            if (RealLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
+            if (realLoader.State == ModBase.LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件
     }
 
     // 重试
-    public void PageLoaderRestart(object Input = null, bool IsForceRestart = true) // 由外部调用的重试
+    public void PageLoaderRestart(object input = null, bool isForceRestart = true) // 由外部调用的重试
     {
         if (!pageLoaderAutoRun)
             return;
         if (pageLoader is LoaderTask task)
         {
-            pageLoader.Start(task.StartGetInputNoType(Input, pageLoaderInputInvoke), IsForceRestart);
+            pageLoader.Start(task.StartGetInputNoType(input, pageLoaderInputInvoke), isForceRestart);
         }
         else
         {
-            if (Input is null && pageLoaderInputInvoke is not null)
-                Input = pageLoaderInputInvoke;
-            pageLoader.Start(Input, IsForceRestart);
+            if (input is null && pageLoaderInputInvoke is not null)
+                input = pageLoaderInputInvoke;
+            pageLoader.Start(input, isForceRestart);
         }
     }
 
@@ -482,14 +482,14 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     ///     全局加载状态已改变。
     /// </summary>
-    private void PageLoaderState(object sender, ModBase.LoadState NewState, ModBase.LoadState OldState)
+    private void PageLoaderState(object sender, ModBase.LoadState newState, ModBase.LoadState oldState)
     {
-        switch (NewState)
+        switch (newState)
         {
             case ModBase.LoadState.Failed:
             case ModBase.LoadState.Loading:
             {
-                if (OldState == ModBase.LoadState.Failed || OldState == ModBase.LoadState.Loading)
+                if (oldState == ModBase.LoadState.Failed || oldState == ModBase.LoadState.Loading)
                     return;
                 if (ModBase.modeDebug)
                     ModBase.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
@@ -517,7 +517,7 @@ public class MyPageRight : AdornerDecorator
             case ModBase.LoadState.Aborted:
             case ModBase.LoadState.Waiting:
             {
-                if (OldState != ModBase.LoadState.Failed && OldState != ModBase.LoadState.Loading)
+                if (oldState != ModBase.LoadState.Failed && oldState != ModBase.LoadState.Loading)
                     return;
                 if (ModBase.modeDebug)
                     ModBase.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
@@ -553,9 +553,9 @@ public class MyPageRight : AdornerDecorator
     #region 动画
 
     // 逐个进入动画
-    public void TriggerEnterAnimation(params FrameworkElement[] Elements)
+    public void TriggerEnterAnimation(params FrameworkElement[] elements)
     {
-        var realElements = Elements.Where(e => e is not null);
+        var realElements = elements.Where(e => e is not null);
         foreach (var Element in realElements)
             Element.Visibility = Visibility.Visible; // 页面均处于默认的隐藏状态
         var aniList = new List<ModAnimation.AniData>();
@@ -600,14 +600,14 @@ public class MyPageRight : AdornerDecorator
         }
 
         // 结束
-        aniList.Add(ModAnimation.AaCode(() => PageOnEnterAnimationFinished(), After: true));
+        aniList.Add(ModAnimation.AaCode(() => PageOnEnterAnimationFinished(), after: true));
         ModAnimation.AniStart(aniList, "PageRight PageChange " + pageUuid, true);
     }
 
     // 逐个退出动画
-    public void TriggerExitAnimation(params FrameworkElement[] Elements)
+    public void TriggerExitAnimation(params FrameworkElement[] elements)
     {
-        var realElements = Elements.Where(e => e is not null);
+        var realElements = elements.Where(e => e is not null);
         var aniList = new List<ModAnimation.AniData>();
         var delay = 0;
         foreach (var Element in realElements)
@@ -640,7 +640,7 @@ public class MyPageRight : AdornerDecorator
             foreach (var Element in realElements)
                 Element.Visibility = Visibility.Collapsed;
             PageOnExitAnimationFinished();
-        }, After: true));
+        }, after: true));
         ModAnimation.AniStart(aniList, "PageRight PageChange " + pageUuid);
     }
 
@@ -652,41 +652,41 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     ///     遍历获取所有需要生成动画的控件。
     /// </summary>
-    internal IEnumerable<FrameworkElement> GetAllAnimControls(FrameworkElement Element, bool IgnoreInvisibility = false)
+    internal IEnumerable<FrameworkElement> GetAllAnimControls(FrameworkElement element, bool ignoreInvisibility = false)
     {
         var allControls = new List<FrameworkElement>();
-        _GetAllAnimControls(Element, ref allControls, IgnoreInvisibility);
+        _GetAllAnimControls(element, ref allControls, ignoreInvisibility);
         return allControls.Except(disabledPageAnimControls);
     }
 
-    private void _GetAllAnimControls(FrameworkElement Element, ref List<FrameworkElement> AllControls,
-        bool IgnoreInvisibility)
+    private void _GetAllAnimControls(FrameworkElement element, ref List<FrameworkElement> allControls,
+        bool ignoreInvisibility)
     {
-        if (!IgnoreInvisibility && Element.Visibility == Visibility.Collapsed)
+        if (!ignoreInvisibility && element.Visibility == Visibility.Collapsed)
             return;
-        if (Element is MyCard || Element is MyHint || Element is MyExtraTextButton || Element is TextBlock ||
-            Element is MyTextButton)
+        if (element is MyCard || element is MyHint || element is MyExtraTextButton || element is TextBlock ||
+            element is MyTextButton)
         {
-            AllControls.Add(Element);
+            allControls.Add(element);
         }
-        else if (Element is ContentControl)
+        else if (element is ContentControl)
         {
-                var content = ((ContentControl)Element).Content;
+                var content = ((ContentControl)element).Content;
                 if (content is FrameworkElement)
-                    _GetAllAnimControls((FrameworkElement)content, ref AllControls, IgnoreInvisibility);
+                    _GetAllAnimControls((FrameworkElement)content, ref allControls, ignoreInvisibility);
         }
-        else if (Element is Panel)
+        else if (element is Panel)
         {
-            foreach (var Element2 in ((Panel)Element).Children)
+            foreach (var Element2 in ((Panel)element).Children)
                 if (Element2 is FrameworkElement)
-                    _GetAllAnimControls((FrameworkElement)Element2, ref AllControls, IgnoreInvisibility);
+                    _GetAllAnimControls((FrameworkElement)Element2, ref allControls, ignoreInvisibility);
         }
     }
 
     // 查找列表中的第一个滚动条
-    private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> Elements)
+    private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
     {
-        foreach (var Element in Elements)
+        foreach (var Element in elements)
         {
             if (Element is MyScrollViewer Viewer)
             {

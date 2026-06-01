@@ -104,10 +104,10 @@ public partial class PageToolsLeft
             PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType? ID = null)
+    public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = ID ?? pageID;
-        switch (ID)
+        var targetID = id ?? pageID;
+        switch (id)
         {
             case FormMain.PageSubType.ToolsGameLink:
             {
@@ -130,7 +130,7 @@ public partial class PageToolsLeft
 
             default:
             {
-                throw new Exception("未知的更多子页面种类：" + (int)ID);
+                throw new Exception("未知的更多子页面种类：" + (int)id);
             }
         }
     }
@@ -138,20 +138,20 @@ public partial class PageToolsLeft
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         isPageSwitched = true;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            pageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -159,12 +159,12 @@ public partial class PageToolsLeft
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = Target;
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {

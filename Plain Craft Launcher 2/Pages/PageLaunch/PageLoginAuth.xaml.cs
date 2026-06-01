@@ -72,9 +72,9 @@ public partial class PageLoginAuth
         BtnBack.IsEnabled = false;
         var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
         {
-            baseUrl = TextServer.Text.EndsWithF("/") ? $"{TextServer.Text}authserver" : $"{TextServer.Text}/authserver",
-            userName = TextName.Text, password = TextPass.Password, description = "Authlib-Injector",
-            type = ModLaunch.McLoginType.Auth
+            BaseUrl = TextServer.Text.EndsWithF("/") ? $"{TextServer.Text}authserver" : $"{TextServer.Text}/authserver",
+            UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
+            LoginType = ModLaunch.McLoginType.Auth
         };
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {

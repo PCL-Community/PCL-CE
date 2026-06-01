@@ -78,16 +78,16 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
                 );
 
-                ModBase.WriteFile($"{ModBase.pathTemp}CEUpdateLog.md", version.changelog);
-                ModBase.Log($"[Update] 远程最新版本: {version.versionName}, 当前版本: {ModBase.versionBaseName}");
-                if (!(SemVer.Parse(version.versionName) > SemVer.Parse(ModBase.versionBaseName)))
+                ModBase.WriteFile($"{ModBase.pathTemp}CEUpdateLog.md", version.Changelog);
+                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.versionBaseName}");
+                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.versionBaseName)))
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
                     ModBase.RunInUi(() =>
                     {
                         if (ModMain.MyMsgBox(
-                                $"启动器有新版本可用（{ModBase.versionBaseName} -> {version.versionName}){"\r\n"}是否立即更新？",
+                                $"启动器有新版本可用（{ModBase.versionBaseName} -> {version.VersionName}){"\r\n"}是否立即更新？",
                                 "启动器更新", "更新", Lang.Text("Common.Action.Cancel")) ==
                             1) ModMain.frmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
                     });
@@ -103,8 +103,8 @@ public static class UpdateManager
                 loaders.Add(new ModLoader.LoaderTask<int, int>("校验更新", _ =>
                 {
                     var curHash = ModBase.GetFileSHA256(dlTargetPath);
-                    if ((curHash ?? "") != (version.sha256 ?? ""))
-                        throw new Exception($"更新文件 SHA256 不正确，应该为 {version.sha256}，实际为 {curHash}");
+                    if ((curHash ?? "") != (version.Sha256 ?? ""))
+                        throw new Exception($"更新文件 SHA256 不正确，应该为 {version.Sha256}，实际为 {curHash}");
                 }));
                 if (type == UpdateEnums.UpdateType.UpdateNow)
                     loaders.Add(new ModLoader.LoaderTask<int, int>("安装更新", _ => UpdateRestart(true)));
@@ -117,7 +117,7 @@ public static class UpdateManager
                         ModBase.RunInUi(() =>
                         {
                             ModMain.frmMain.BtnExtraUpdateRestart.ToolTip =
-                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.versionBaseName, version.versionName);
+                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.versionBaseName, version.VersionName);
                             ModMain.frmMain.BtnExtraUpdateRestart.ShowRefresh();
                             ModMain.frmMain.BtnExtraUpdateRestart.Ribble();
                         });
@@ -193,7 +193,7 @@ public static class UpdateManager
     ///     确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
     ///     如果不是，则下载一个。
     /// </summary>
-    internal static void DownloadLatestPCL(ModLoader.LoaderBase LoaderToSyncProgress = null)
+    internal static void DownloadLatestPCL(ModLoader.LoaderBase loaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
         var latestPCLPath = Path.Combine(ModBase.pathTemp, "CE-Latest.exe");
@@ -201,13 +201,13 @@ public static class UpdateManager
             SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception("无法获取更新");
-        if (File.Exists(latestPCLPath) && (ModBase.GetFileSHA256(latestPCLPath) ?? "") == (target.sha256 ?? ""))
+        if (File.Exists(latestPCLPath) && (ModBase.GetFileSHA256(latestPCLPath) ?? "") == (target.Sha256 ?? ""))
         {
             ModBase.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((ModBase.GetFileSHA256(Basics.ExecutablePath) ?? "") == (target.sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((ModBase.GetFileSHA256(Basics.ExecutablePath) ?? "") == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
             ModBase.CopyFile(Basics.ExecutablePath, latestPCLPath);
             return;
@@ -221,7 +221,7 @@ public static class UpdateManager
     }
     
     public static ModLoader.LoaderTask<int, int> serverLoader = new("PCL CE 服务", _ => LoadOnlineInfo(),
-        Priority: ThreadPriority.BelowNormal);
+        priority: ThreadPriority.BelowNormal);
 
     private static void LoadOnlineInfo()
     {

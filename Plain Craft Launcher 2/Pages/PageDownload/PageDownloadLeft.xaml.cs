@@ -17,26 +17,26 @@ public partial class PageDownloadLeft : IRefreshable
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
 
-    public void Refresh(FormMain.PageSubType SubType)
+    public void Refresh(FormMain.PageSubType subType)
     {
-        switch (SubType)
+        switch (subType)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                ModDownload.dlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.dlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.dlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.dlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.dlCleanroomListLoader.Start(IsForceRestart: true);
-                ModDownload.dlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.dlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.dlLegacyFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.dlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.dlLegacyFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.dlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.dlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.dlLabyModListLoader.Start(IsForceRestart: true);
+                ModDownload.dlClientListLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
+                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
+                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
+                ModDownload.dlQSLLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
+                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
                 break;
             }
@@ -126,61 +126,61 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadClient:
             {
-                ModDownload.dlClientListLoader.Start(IsForceRestart: true);
+                ModDownload.dlClientListLoader.Start(isForceRestart: true);
                 ItemClient.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadOptiFine:
             {
-                ModDownload.dlOptiFineListLoader.Start(IsForceRestart: true);
+                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
                 ItemOptiFine.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadForge:
             {
-                ModDownload.dlForgeListLoader.Start(IsForceRestart: true);
+                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
                 ItemForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadNeoForge:
             {
-                ModDownload.dlNeoForgeListLoader.Start(IsForceRestart: true);
+                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
                 ItemNeoForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadCleanroom:
             {
-                ModDownload.dlCleanroomListLoader.Start(IsForceRestart: true);
+                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
                 ItemCleanroom.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLiteLoader:
             {
-                ModDownload.dlLiteLoaderListLoader.Start(IsForceRestart: true);
+                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ItemLiteLoader.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadFabric:
             {
-                ModDownload.dlFabricListLoader.Start(IsForceRestart: true);
+                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ItemFabric.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadQuilt:
             {
-                ModDownload.dlQuiltListLoader.Start(IsForceRestart: true);
+                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
                 ItemQuilt.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLabyMod:
             {
-                ModDownload.dlLabyModListLoader.Start(IsForceRestart: true);
+                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemLabyMod.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLegacyFabric:
             {
-                ModDownload.dlLegacyFabricListLoader.Start(IsForceRestart: true);
+                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
                 ItemLegacyFabric.Checked = true;
                 break;
             }
@@ -193,7 +193,7 @@ public partial class PageDownloadLeft : IRefreshable
             }
         }
 
-        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), Log: false);
+        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), log: false);
     }
 
     // 点击返回
@@ -243,11 +243,11 @@ public partial class PageDownloadLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID)
+    public object PageGet(FormMain.PageSubType id)
     {
-        if (ID == default)
-            ID = pageID;
-        switch (ID)
+        if (id == default)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
@@ -360,7 +360,7 @@ public partial class PageDownloadLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)ID));
+                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)id));
             }
         }
     }
@@ -368,19 +368,19 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            pageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -388,12 +388,12 @@ public partial class PageDownloadLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = Target;
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {

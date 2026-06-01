@@ -1,10 +1,8 @@
 using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.App.Essentials;
 

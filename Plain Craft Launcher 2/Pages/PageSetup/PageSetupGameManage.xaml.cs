@@ -46,6 +46,7 @@ public partial class PageSetupGameManage
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
+        CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
@@ -148,7 +149,7 @@ public partial class PageSetupGameManage
             ModMain.MyMsgBox(
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), IsWarn: true);
+                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), isWarn: true);
         }
     }
 }

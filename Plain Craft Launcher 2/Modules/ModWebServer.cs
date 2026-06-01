@@ -242,11 +242,11 @@ public static class ModWebServer
     private static readonly object changeLock = new();
     private static string picAddress;
 
-    public static object BackgroundPicChangeCallback(string Pic)
+    public static object BackgroundPicChangeCallback(string pic)
     {
         lock (changeLock)
         {
-            picAddress = Pic;
+            picAddress = pic;
             return true;
         }
     }
@@ -316,7 +316,7 @@ public static class ModWebServer
                 OAuthCompleteStatus? status;
                 if (!success)
                 {
-                    ModMain.MyMsgBox(content, IsWarn: true);
+                    ModMain.MyMsgBox(content, isWarn: true);
                     completeCallback?.Invoke();
                     return null;
                 }
