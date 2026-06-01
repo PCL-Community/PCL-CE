@@ -5,6 +5,13 @@ using System.Linq;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>将原始日志集合分类、选择、截断为规则系统可消费的 PreparedCrashLogs。</p>
+///     <p>
+///         该类是日志 I/O 与规则分析之间的边界。它知道旧报告文件名兼容规则和日志选择优先级，
+///         但不知道任何崩溃原因，也不生成用户文案。
+///     </p>
+/// </summary>
 public sealed class CrashLogPreparer
 {
     private const int GameLogHeadLines = 1500;
@@ -16,6 +23,9 @@ public sealed class CrashLogPreparer
     private const int DebugLogHeadLines = 1000;
     private const int CapturedOutputTailLines = 500;
 
+    /// <summary>
+    ///     准备日志文本：分类、补充额外报告文件、选择优先日志，并对大日志进行 head/tail 截断。
+    /// </summary>
     public PreparedCrashLogs Prepare(IReadOnlyList<CrashLogFile> rawLogs, CrashAnalysisRequest request)
     {
         var classified = rawLogs
@@ -24,9 +34,9 @@ public sealed class CrashLogPreparer
 
         classified
             .AddRange(request.ExtraReportFiles
-            .Select(extraFile => CrashLogCollector.TryReadFile(extraFile, CrashLogOrigin.FileSystem))
-            .OfType<CrashLogFile>()
-            .Select(extra => extra with { Kind = Classify(extra) }));
+                .Select(extraFile => CrashLogCollector.TryReadFile(extraFile, CrashLogOrigin.FileSystem))
+                .OfType<CrashLogFile>()
+                .Select(extra => extra with { Kind = Classify(extra) }));
 
         var capturedOutput = _Newest(classified, CrashLogKind.CapturedGameOutput);
         var latestLog = _ByName(classified, "latest.log") ?? _ByName(classified, "latest log.txt");
@@ -59,6 +69,10 @@ public sealed class CrashLogPreparer
         };
     }
 
+    /// <summary>
+    ///     <p>根据文件名识别日志类型。</p>
+    ///     <p>这里保留旧版导出报告的中文文件名兼容性，但新报告导出的标准文件名由 i18n key 控制。</p>
+    /// </summary>
     public static CrashLogKind Classify(CrashLogFile file)
     {
         var fileName = Path.GetFileName(file.DisplayName).ToLowerInvariant();
@@ -86,6 +100,9 @@ public sealed class CrashLogPreparer
         };
     }
 
+    /// <summary>
+    ///     为主游戏日志生成用于匹配的文本段。捕获输出优先保留最后一段，普通日志使用 head/tail。
+    /// </summary>
     private static CrashTextSection _CreateGameText(CrashLogFile? gameLog)
     {
         if (gameLog is null) return CrashTextSection.Empty;

@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>Core 层统一处理的日志文件模型。</p>
+///     <p>
+///         日志可以来自文件系统、压缩包、PCL 捕获的虚拟输出或后续生成内容。
+///         规则系统不关心日志来源，只读取 <see cref="PreparedCrashLogs" /> 中准备好的文本段。
+///     </p>
+/// </summary>
 public sealed record CrashLogFile
 {
     public required string DisplayName { get; init; }
@@ -14,6 +21,9 @@ public sealed record CrashLogFile
     public required string Content { get; init; }
 }
 
+/// <summary>
+///     日志来源，用于报告导出和调试，不参与用户文案生成。
+/// </summary>
 public enum CrashLogOrigin
 {
     FileSystem,
@@ -23,6 +33,9 @@ public enum CrashLogOrigin
     Generated
 }
 
+/// <summary>
+///     日志类型，由 <see cref="CrashLogPreparer.Classify" /> 根据文件名和兼容规则识别。
+/// </summary>
 public enum CrashLogKind
 {
     Unknown,
@@ -36,6 +49,13 @@ public enum CrashLogKind
     ExtraReport
 }
 
+/// <summary>
+///     <p>经过分类、选择和截断后的日志集合。</p>
+///     <p>
+///         这是规则系统唯一应该读取的日志入口。它保留了原始文件引用用于导出，
+///         同时提供适合匹配的 <see cref="CrashTextSection" />，避免规则直接读取磁盘或重复处理巨型日志。
+///     </p>
+/// </summary>
 public sealed record PreparedCrashLogs
 {
     public CrashLogFile? GameLog { get; init; }
@@ -58,6 +78,13 @@ public sealed record PreparedCrashLogs
         !JavaErrorText.IsEmpty;
 }
 
+/// <summary>
+///     <p>面向规则匹配的文本段，负责统一换行并缓存常用派生文本。</p>
+///     <p>
+///         不要在规则中自行构造大字符串或反复 <c>ToLowerInvariant()</c>。
+///         如果必须跨日志搜索，请使用 <see cref="CrashRuleContext.Combined" />，它会延迟构造并缓存。
+///     </p>
+/// </summary>
 public sealed class CrashTextSection(string text)
 {
     public static CrashTextSection Empty { get; } = new("");
@@ -72,6 +99,13 @@ public sealed class CrashTextSection(string text)
     }
 }
 
+/// <summary>
+///     <p> 单次规则执行的只读上下文。</p>
+///     <p>
+///         它把准备后的日志按 section 暴露给规则，并提供延迟构造的 Combined 文本和 Mod 环境判断。
+///         规则不应该越过该上下文访问文件系统或 UI 状态。
+///     </p>
+/// </summary>
 public sealed class CrashRuleContext(PreparedCrashLogs logs, CrashAnalysisRequest request)
 {
     public PreparedCrashLogs Logs { get; } = logs;
@@ -101,6 +135,9 @@ public sealed class CrashRuleContext(PreparedCrashLogs logs, CrashAnalysisReques
         Combined.Contains("Fabric Mods") ||
         Combined.Contains("Forge Mod Loader");
 
+    /// <summary>
+    ///     根据规则声明的日志区域返回对应文本段。
+    /// </summary>
     public CrashTextSection GetSection(CrashLogSection section)
     {
         return section switch
@@ -115,6 +152,9 @@ public sealed class CrashRuleContext(PreparedCrashLogs logs, CrashAnalysisReques
     }
 }
 
+/// <summary>
+///     规则匹配时可以选择的日志区域。
+/// </summary>
 public enum CrashLogSection
 {
     Combined,

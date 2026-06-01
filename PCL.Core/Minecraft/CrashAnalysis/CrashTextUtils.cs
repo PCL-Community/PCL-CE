@@ -6,6 +6,13 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>崩溃分析专用的文本工具集合。</p>
+///     <p>
+///         这里集中处理换行归一化、head/tail 截断和安全的子串提取，避免规则或准备流程
+///         再次出现旧版按字符拆分换行、O(n²) 去重等问题。
+///     </p>
+/// </summary>
 public static class CrashTextUtils
 {
     public static string NormalizeNewLines(string text)

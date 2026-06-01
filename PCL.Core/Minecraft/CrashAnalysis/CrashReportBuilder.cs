@@ -7,8 +7,18 @@ using PCL.Core.App.Localization;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>构建错误报告压缩包内容。</p>
+///     <p>
+///         该类只返回内存中的 <see cref="CrashReportPackage" />，不选择保存路径、不写 zip、
+///         不打开资源管理器，也不弹出提示。UI 层负责把 Entries 写入真正的 zip 文件。
+///     </p>
+/// </summary>
 public sealed class CrashReportBuilder
 {
+    /// <summary>
+    ///     根据分析报告生成导出文件条目，并对敏感信息进行脱敏。
+    /// </summary>
     public static CrashReportPackage Build(CrashAnalysisReport report, CrashReportBuildOptions options)
     {
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -66,6 +76,9 @@ public sealed class CrashReportBuilder
         }
     }
 
+    /// <summary>
+    ///     对导出日志中的用户名和 access token 进行脱敏。
+    /// </summary>
     private static string _Sanitize(string content, CrashReportBuildOptions options)
     {
         var result = options.AccessTokens
@@ -128,6 +141,9 @@ public sealed class CrashReportBuilder
     }
 }
 
+/// <summary>
+///     构建错误报告时使用的脱敏选项。
+/// </summary>
 public sealed record CrashReportBuildOptions
 {
     public IReadOnlyList<string> UserNames { get; init; } = [];
@@ -135,8 +151,14 @@ public sealed record CrashReportBuildOptions
     public char AccessTokenMask { get; init; } = '*';
 }
 
+/// <summary>
+///     错误报告包的内存表示，包含将要写入 zip 的全部条目。
+/// </summary>
 public sealed record CrashReportPackage(IReadOnlyList<CrashReportEntry> Entries);
 
+/// <summary>
+///     错误报告 zip 中的单个文件条目。
+/// </summary>
 public sealed record CrashReportEntry
 {
     public required string FileName { get; init; }

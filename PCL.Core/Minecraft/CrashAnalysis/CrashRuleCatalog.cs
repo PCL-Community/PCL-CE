@@ -5,8 +5,23 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>内置崩溃规则目录。</p>
+///     <p>
+///         本文件集中声明规则，但规则执行顺序由 <see cref="CrashRuleEngine" /> 根据优先级控制。
+///         新增规则时优先使用 <see cref="Rules.Text" /> 或 <see cref="Rules.Regex" />，并为稳定的 rule id 添加测试。
+///         这里可以包含日志匹配字符串，因为它们属于规则数据；但不能包含用户可见的完整分析文案。
+///     </p>
+/// </summary>
 internal static class CrashRuleCatalog
 {
+    /// <summary>
+    ///     <p>创建全部内置规则。</p>
+    ///     <p>
+    ///         返回顺序不直接等同于执行顺序，真正执行时会由 <see cref="CrashRuleEngine" /> 按优先级分组。
+    ///         这里的分组主要服务于维护：让 Java、内存、显卡、加载器、Mod 和世界内容规则各自集中。
+    ///     </p>
+    /// </summary>
     public static IReadOnlyList<ICrashRule> Create()
     {
         return
@@ -26,7 +41,10 @@ internal static class CrashRuleCatalog
     }
 
     #region Rules Creator
-    
+
+    /// <summary>
+    ///     Java 运行时相关规则：JDK/JRE 错用、OpenJ9、Java 版本过高或过低等。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateJavaRules()
     {
         return
@@ -88,6 +106,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     内存相关规则：堆内存不足、物理内存不足和 32 位 Java 堆大小限制。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateMemoryRules()
     {
         return
@@ -126,6 +147,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     显卡和 OpenGL 相关规则：驱动不支持、像素格式异常、厂商驱动访问冲突等。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateGraphicsRules()
     {
         return
@@ -183,6 +207,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     Mod 文件层面的规则：jar 被解压、文件名非法、重复安装、文件损坏等。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateModFileRules()
     {
         return
@@ -210,6 +237,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     加载器层面的规则：Fabric/Forge/Quilt 错误、缺失依赖、版本不匹配和安装不完整。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateModLoaderRules()
     {
         return
@@ -256,6 +286,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     Mod 初始化、Mixin 和配置相关规则。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateModCrashRules()
     {
         return
@@ -268,6 +301,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     OptiFine 相关规则，尤其是与 Forge、光影或世界加载的兼容问题。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateOptiFineRules()
     {
         return
@@ -311,6 +347,9 @@ internal static class CrashRuleCatalog
         ];
     }
 
+    /// <summary>
+    ///     世界内容相关规则，用于提取导致崩溃的方块或实体。
+    /// </summary>
     private static IReadOnlyList<ICrashRule> _CreateWorldRules()
     {
         return
@@ -347,11 +386,11 @@ internal static class CrashRuleCatalog
             RegexOptions.Multiline | RegexOptions.IgnoreCase).Match(text);
         return match.Success ? match.Groups["name"].Value : null;
     }
-    
+
     #endregion
 
     #region CrashRuleBase Implementations
-    
+
     private sealed class NoAnalyzableLogRule : CrashRuleBase
     {
         public override string Id => "log.none";
@@ -627,12 +666,12 @@ internal static class CrashRuleCatalog
         public override bool IsMatch(CrashRuleContext context)
         {
             if (!context.CrashReport.Contains("Suspected Mod")) return false;
-            
+
             var suspectsRaw = CrashTextUtils.Between(context.CrashReport.Text,
-                "Suspected Mod", 
+                "Suspected Mod",
                 "Stacktrace");
             if (suspectsRaw.StartsWith("s: None", StringComparison.OrdinalIgnoreCase)) return false;
-            
+
             var matches = Rules
                 .Pattern(@"\n\t[^\(\t]+\((?<name>[^)\n]+)", RegexOptions.IgnoreCase)
                 .Matches(suspectsRaw)
@@ -664,7 +703,7 @@ internal static class CrashRuleCatalog
             if (!context.CrashReport.Contains("Failed loading config file ")) return false;
 
             var modMatch = Rules
-                .Pattern(@"Failed loading config file .+ for modid (?<mod>[^\n]+)",RegexOptions.IgnoreCase)
+                .Pattern(@"Failed loading config file .+ for modid (?<mod>[^\n]+)", RegexOptions.IgnoreCase)
                 .Match(context.CrashReport.Text);
             var configMatch = Rules
                 .Pattern("Failed loading config file (?<config>.+?)(?= of type)", RegexOptions.IgnoreCase)
@@ -758,6 +797,6 @@ internal static class CrashRuleCatalog
                 CrashFindingConfidence.Low);
         }
     }
-    
+
     #endregion
 }

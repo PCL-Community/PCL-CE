@@ -6,8 +6,18 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL;
 
+/// <summary>
+///     <p>从启动器运行环境采集错误报告需要的环境信息。</p>
+///     <p>
+///         这些信息依赖启动器全局状态和硬件检测，所以留在 WPF 项目中。Core 只消费 DTO，
+///         不直接读取 <c>SystemInfo</c>、<c>HardwareInfo</c>、<c>Identify</c> 或日志文件。
+///     </p>
+/// </summary>
 public sealed class MinecraftCrashEnvironmentProvider
 {
+    /// <summary>
+    ///     创建错误报告环境信息 DTO。
+    /// </summary>
     public static CrashEnvironmentInfo Create(ModMinecraft.Instance? instance, string launchScript)
     {
         return new CrashEnvironmentInfo

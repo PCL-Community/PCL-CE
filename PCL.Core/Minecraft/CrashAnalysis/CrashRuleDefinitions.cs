@@ -5,6 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>崩溃规则的最小接口。</p>
+///     <p>
+///         规则只负责判断日志是否命中并产出结构化 <see cref="CrashFinding" />。
+///         不允许在规则里拼接用户可见文本，也不允许执行 UI 操作。
+///     </p>
+/// </summary>
 internal interface ICrashRule
 {
     string Id { get; }
@@ -15,6 +22,13 @@ internal interface ICrashRule
     CrashFinding CreateFinding(CrashRuleContext context);
 }
 
+/// <summary>
+///     <p>规则执行优先级。数值越小越先执行。</p>
+///     <p>
+///         高优先级规则用于确定性强的问题，例如 Java 版本、内存、显卡驱动。
+///         低优先级规则用于补充猜测，例如世界实体、方块或堆栈关键词。
+///     </p>
+/// </summary>
 internal enum CrashRulePriority
 {
     Critical = 0,
@@ -24,6 +38,9 @@ internal enum CrashRulePriority
     Low = 400
 }
 
+/// <summary>
+///     规则命中后对后续规则执行的影响。
+/// </summary>
 internal enum CrashRuleBehavior
 {
     Continue,
@@ -31,6 +48,9 @@ internal enum CrashRuleBehavior
     StopAll
 }
 
+/// <summary>
+///     声明式文本规则定义。适用于“大量 pattern → 一个原因”的简单规则。
+/// </summary>
 internal sealed record TextCrashRuleDefinition
 {
     public required string Id { get; init; }
@@ -45,6 +65,9 @@ internal sealed record TextCrashRuleDefinition
 
 internal sealed record CrashParameterMapping(string ParameterName, string GroupName);
 
+/// <summary>
+///     声明式正则规则定义。适用于需要从日志中提取 Mod 名称、方块 ID、详细错误等参数的规则。
+/// </summary>
 internal sealed record RegexCrashRuleDefinition
 {
     public required string Id { get; init; }
@@ -57,6 +80,9 @@ internal sealed record RegexCrashRuleDefinition
     public CrashFindingConfidence Confidence { get; init; } = CrashFindingConfidence.High;
 }
 
+/// <summary>
+///     文本规则的执行实现。
+/// </summary>
 internal sealed class TextCrashRule(TextCrashRuleDefinition definition) : ICrashRule
 {
     public string Id => definition.Id;
@@ -90,6 +116,10 @@ internal sealed class TextCrashRule(TextCrashRuleDefinition definition) : ICrash
     }
 }
 
+/// <summary>
+///     <p>正则规则的执行实现。</p>
+///     <p>Regex 实例必须带有 timeout，推荐通过 <see cref="Rules.Pattern" /> 创建，避免异常日志导致灾难性回溯。</p>
+/// </summary>
 internal sealed class RegexCrashRule(RegexCrashRuleDefinition definition) : ICrashRule
 {
     private Match? _lastMatch;
@@ -130,6 +160,13 @@ internal sealed class RegexCrashRule(RegexCrashRuleDefinition definition) : ICra
     }
 }
 
+/// <summary>
+///     <p>少量复杂规则的基类。</p>
+///     <p>
+///         能用 <see cref="TextCrashRule" /> 或 <see cref="RegexCrashRule" /> 表达的规则不要继承此类；
+///         只有跨多段日志、需要多步解析或需要构造多个参数时才新增复杂规则。
+///     </p>
+/// </summary>
 internal abstract class CrashRuleBase : ICrashRule
 {
     public abstract string Id { get; }
@@ -171,6 +208,9 @@ internal static class CrashRuleDefinitionExtensions
     }
 }
 
+/// <summary>
+///     规则声明辅助工厂，保持新增规则时的写法简洁一致。
+/// </summary>
 internal static class Rules
 {
     public static ICrashRule Text(
@@ -219,6 +259,9 @@ internal static class Rules
         });
     }
 
+    /// <summary>
+    ///     创建带超时的正则表达式。所有用于崩溃日志的正则都应通过该方法创建。
+    /// </summary>
     public static Regex Pattern(string pattern, RegexOptions options = RegexOptions.None)
     {
         return new Regex(pattern, options | RegexOptions.Compiled, TimeSpan.FromMilliseconds(500));

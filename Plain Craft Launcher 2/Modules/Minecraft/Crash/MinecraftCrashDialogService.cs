@@ -4,12 +4,22 @@ using PCL.Core.Minecraft.CrashAnalysis;
 
 namespace PCL;
 
+/// <summary>
+///     <p>崩溃分析结果弹窗服务。</p>
+///     <p>
+///         该类是 Core 结构化结果与旧 WPF 弹窗系统之间的适配层。它只根据
+///         <see cref="CrashSuggestedActionKind" /> 决定按钮和后续操作，绝不能再通过分析文案字符串判断行为。
+///     </p>
+/// </summary>
 public sealed class MinecraftCrashDialogService
 {
     private readonly MinecraftCrashReportExportService _exportService = new();
     private readonly CrashResultLocalizer _localizer = new();
     private readonly CrashReportBuilder _reportBuilder = new();
 
+    /// <summary>
+    ///     展示崩溃分析结果，并根据用户选择执行查看日志、导出报告或前往修改等动作。
+    /// </summary>
     public static void Show(CrashAnalysisReport report, ModMinecraft.Instance? instance)
     {
         ModMain.frmMain?.ShowWindowToTop();

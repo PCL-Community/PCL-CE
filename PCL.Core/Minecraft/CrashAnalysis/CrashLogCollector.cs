@@ -6,12 +6,23 @@ using System.Text;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>自动崩溃场景的日志收集器。</p>
+///     <p>
+///         这里只负责发现和读取候选日志：实例目录、crash-reports、latest.log、debug.log、
+///         Minecraft 根目录近期日志，以及 PCL 捕获的最后输出。它不分类、不截断、不分析。
+///         读取失败会静默跳过，避免因为日志文件被占用或权限异常阻断崩溃弹窗。
+///     </p>
+/// </summary>
 public sealed class CrashLogCollector
 {
     public const long MaxSingleLogBytes = 32L * 1024L * 1024L;
     private const int MaxCandidateFiles = 64;
     private static readonly TimeSpan _RecentLogWindow = TimeSpan.FromMinutes(3);
 
+    /// <summary>
+    ///     收集实时游戏崩溃时可能相关的日志。
+    /// </summary>
     public static IReadOnlyList<CrashLogFile> Collect(CrashAnalysisRequest request)
     {
         var paths = _DiscoverRecentLogs(request)
@@ -97,6 +108,9 @@ public sealed class CrashLogCollector
         }
     }
 
+    /// <summary>
+    ///     读取一个普通日志文件。该方法带有大小限制，并在失败时返回 null。
+    /// </summary>
     internal static CrashLogFile? TryReadFile(string path, CrashLogOrigin origin)
     {
         try

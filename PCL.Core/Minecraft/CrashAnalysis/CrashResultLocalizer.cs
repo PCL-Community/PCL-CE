@@ -5,8 +5,18 @@ using PCL.Core.App.Localization;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>将结构化崩溃分析结果转换为用户可见文本。</p>
+///     <p>
+///         这是 Core 中唯一允许选择用户展示文案 key 的位置。它只负责选择 i18n key 和参数，
+///         不能把完整中文分析段落写在 C# 中。新增 CrashReasonCode 时请同步补齐语言文件和测试。
+///     </p>
+/// </summary>
 public sealed class CrashResultLocalizer
 {
+    /// <summary>
+    ///     根据当前语言生成崩溃分析弹窗正文。
+    /// </summary>
     public static string Localize(CrashAnalysisReport report, CrashResultLocalizeOptions options)
     {
         if (!report.Logs.HasAnalyzableContent ||
@@ -153,6 +163,9 @@ public sealed class CrashResultLocalizer
     }
 }
 
+/// <summary>
+///     本地化崩溃结果时需要的展示上下文。
+/// </summary>
 public sealed record CrashResultLocalizeOptions
 {
     public CrashAnalysisMode Mode { get; init; }

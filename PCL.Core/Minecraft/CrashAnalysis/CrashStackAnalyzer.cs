@@ -5,6 +5,14 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
+/// <summary>
+///     <p>基于异常堆栈推断可能相关的 Mod 或代码包名。</p>
+///     <p>
+///         堆栈分析只作为中低置信度补充：它在明确规则没有命中时尝试从堆栈帧中抽取关键词，
+///         过滤 Java/Minecraft/加载器自身包名，再结合 Mod 列表反查可读 Mod 名称。
+///         结果仍然是结构化参数，不在这里拼接用户文案。
+///     </p>
+/// </summary>
 public sealed class CrashStackAnalyzer
 {
     private const int MaxKeywordCount = 20;

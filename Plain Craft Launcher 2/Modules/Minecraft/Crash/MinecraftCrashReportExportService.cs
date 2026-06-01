@@ -7,8 +7,18 @@ using PCL.Core.UI;
 
 namespace PCL;
 
+/// <summary>
+///     <p>UI 层错误报告导出服务。</p>
+///     <p>
+///         Core 的 <see cref="CrashReportBuilder" /> 只构建内存条目；本类负责让用户选择保存路径、写入 zip、
+///         显示提示并打开资源管理器。这样报告内容生成和用户交互保持解耦。
+///     </p>
+/// </summary>
 public sealed class MinecraftCrashReportExportService
 {
+    /// <summary>
+    ///     将 Core 生成的报告条目写入用户选择的 zip 文件。
+    /// </summary>
     public static void Export(CrashReportPackage package)
     {
         string? filePath = null;
