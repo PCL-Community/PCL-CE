@@ -2202,12 +2202,67 @@ public static class ModComp
     }
 
     /// <summary>
+    ///     若输入文本中恰好含 1 条 CurseForge/Modrinth 资源链接，返回该链接；含 0 条或 ≥2 条时返回 null。
+    /// </summary>
+    public static string? TryExtractSingleResourceLink(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var tokens = text.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        string? found = null;
+        foreach (var token in tokens)
+        {
+            var t = token.Replace("https://", "").Replace("http://", "");
+            if (!t.Contains("curseforge.com/minecraft/") && !t.Contains("modrinth.com/")) continue;
+            if (found is not null) return null; // ≥2 条链接，一条也不识别
+            found = token;
+        }
+        return found; // 恰好 1 条返回该链接；0 条返回 null
+    }
+
+    /// <summary>
     ///     根据搜索请求获取一系列的工程列表。需要基于加载器运行。
     /// </summary>
     public static void CompProjectsGet(ModLoader.LoaderTask<CompProjectRequest, int> task)
     {
         var request = task.input;
         var storage = request.storage;
+
+        // === Issue #2942: 搜索框单条资源链接识别 ===
+        var singleLink = TryExtractSingleResourceLink(request.searchText);
+        if (singleLink is not null)
+        {
+            // 已得到结果则直接结束（幂等，避免重复获取）
+            if (storage.results.Any()) return;
+
+            CompProject? project;
+            try
+            {
+                var projectId = ResolveLinkToProjectId(singleLink);
+                project = string.IsNullOrEmpty(projectId)
+                    ? null
+                    : CompRequest.GetCompProjectsByIds(new List<string> { projectId }).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[Comp] 解析资源链接失败");
+                throw new Exception(Lang.Text("Download.Comp.Link.ResolveFailed"));
+            }
+
+            // 解析或获取失败 → 提示
+            if (project is null)
+                throw new Exception(Lang.Text("Download.Comp.Link.ResolveFailed"));
+
+            // 类型与当前页不符 → 按无结果处理（与既有"无匹配结果"一致）
+            if (request.type != CompType.Any && project.Type != request.type)
+                throw new Exception(Lang.Text("Download.Comp.List.NoMatchingResults"));
+
+            // 命中：单条结果，隐藏分页
+            storage.results.Add(project);
+            storage.curseForgeTotal = 0;
+            storage.modrinthTotal = 0;
+            return;
+        }
+        // === /Issue #2942 ===
 
         #region 状态与版本初步检查
 

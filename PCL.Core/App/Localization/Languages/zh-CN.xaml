@@ -929,6 +929,7 @@
     <sys:String x:Key="Download.Comp.List.NoResults">无搜索结果，请尝试搜索英文名称</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">没有符合条件的结果</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResultsSimple">没有搜索结果</sys:String>
+    <sys:String x:Key="Download.Comp.Link.ResolveFailed">未能识别或获取该资源链接</sys:String>
 
     <!-- Download.Comp.Category -->
 

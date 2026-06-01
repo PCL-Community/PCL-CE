@@ -929,6 +929,7 @@
     <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResultsSimple">No search results</sys:String>
+    <sys:String x:Key="Download.Comp.Link.ResolveFailed">Could not recognize or fetch the resource link</sys:String>
 
     <!-- Download.Comp.Category -->
 
