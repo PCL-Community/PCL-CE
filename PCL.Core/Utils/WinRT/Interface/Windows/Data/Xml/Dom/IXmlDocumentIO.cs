@@ -5,7 +5,7 @@ namespace PCL.Core.Utils.WinRT.Interface.Windows.Data.Xml.Dom;
 public static class IXmlDocumentIOInfo
 {
     public static readonly string ActivatableClassId = "Windows.Data.Xml.Dom.XmlDocument";
-    public static readonly Guid Iid = new("50ac103f-d235-4598-bbef-98fe4d1a3ad4");
+    public static readonly Guid Iid = new("6cd0e74e-ee65-4489-9ebf-ca43e87ba637");
 }
 
 internal unsafe struct IXmlDocumentIO
