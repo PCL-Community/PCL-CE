@@ -28,7 +28,7 @@ public unsafe struct IToastNotificationFactoryVtbl
     // IToastNotificationFactory
 
     /// <summary>
-    /// CreateToastNotification(IXmlDocument content, IToastNotification value)
+    /// CreateToastNotification(XmlDocument content, ToastNotification value)
     /// </summary>
     public delegate* unmanaged<void*, int*, int**> LoadXml;
 }
