@@ -71,7 +71,7 @@ public class SaveManager
             }
             catch (Exception ex)
             {
-                LogWrapper.Warn(ex, $"扫描存档文件夹失败：{folder}");
+                LogWrapper.Warn(ex, "Saves", $"扫描存档文件夹失败：{folder}");
             }
         }
 
@@ -127,7 +127,7 @@ public class SaveManager
             }
             catch (Exception ex)
             {
-                LogWrapper.Warn(ex, $"加载存档失败：{folder}");
+                LogWrapper.Warn(ex, "Saves", $"加载存档失败：{folder}");
             }
 
             if (info is not null)
