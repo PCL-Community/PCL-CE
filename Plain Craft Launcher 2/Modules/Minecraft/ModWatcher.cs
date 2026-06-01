@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -702,17 +702,17 @@ public static class ModWatcher
                 {
                     Thread.Sleep(2000);
                     WatcherLog("崩溃分析开始");
-                    ;
-                    var analyzer = new CrashAnalyzer(pid);
-                    analyzer.Collect(version.PathIndie, latestLog.ToList());
-                    analyzer.Prepare();
-                    analyzer.Analyze(version);
-                    analyzer.Output(false,
-                        new List<string>
+                    new MinecraftCrashController().AnalyzeGameCrash(new MinecraftCrashUiRequest
+                    {
+                        Instance = version,
+                        VersionPath = version.PathIndie,
+                        LatestOutputLines = latestLog.ToList(),
+                        ExtraReportFiles = new List<string>
                         {
                             version.PathInstance + version.Name + ".json",
-                            LogWrapper.CurrentLogger.CurrentLogFiles.Last(), ModBase.exePath + @"PCL\LatestLaunch.bat"
-                        });
+                            LogWrapper.CurrentLogger.CurrentLogFiles.Last()
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {

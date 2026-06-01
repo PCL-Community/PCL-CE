@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -1232,12 +1232,7 @@ public partial class FormMain
                 try
                 {
                     ModBase.Log("[System] 尝试进行错误报告分析");
-                    var analyzer = new CrashAnalyzer(ModBase.GetUuid());
-                    analyzer.Import(filePath);
-                    if (!analyzer.Prepare())
-                        break;
-                    analyzer.Analyze();
-                    analyzer.Output(true, new List<string>());
+                    new MinecraftCrashController().AnalyzeImportedCrashReport(filePath);
                     return;
                 }
                 catch (Exception ex)
