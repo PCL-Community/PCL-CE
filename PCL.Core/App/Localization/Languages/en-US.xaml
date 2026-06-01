@@ -2671,7 +2671,19 @@
 
     <!-- Speed -->
 
-    <!-- ServerQuery -->
+    <!-- Tools.ServerQuery -->
+
+    <sys:String x:Key="Tools.ServerQuery.Address.Hint">Enter server address</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Action.Query">Query</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.Querying">Querying...</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.NoInfo">No server information</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Title.MinecraftServer">Minecraft server</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.UnableToConnect">Unable to connect: {0}</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.Connect">Connection timeout</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.ReadWrite">Read/Write timeout</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">Server returned invalid information</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">Server address too long</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">Server returned empty data packet</sys:String>
 
     <!-- Update -->
     <!-- Update.Task -->

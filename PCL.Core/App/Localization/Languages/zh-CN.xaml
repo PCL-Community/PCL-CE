@@ -2671,7 +2671,19 @@
 
     <!-- Speed -->
 
-    <!-- ServerQuery -->
+    <!-- Tools.ServerQuery -->
+
+    <sys:String x:Key="Tools.ServerQuery.Address.Hint">输入服务器地址</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Action.Query">查询</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.Querying">查询中...</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.NoInfo">未返回服务器信息</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Title.MinecraftServer">Minecraft 服务器</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.UnableToConnect">无法连接: {0}</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.Connect">连接超时</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.ReadWrite">数据读写超时</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">服务器返回了错误的信息</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">服务器地址过长</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">服务器返回了空数据包</sys:String>
 
     <!-- Update -->
     <!-- Update.Task -->
