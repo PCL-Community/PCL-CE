@@ -20,8 +20,9 @@ public static class IconHelper
 
     private static void CreateIcon()
     {
-        var icon = Icon.ExtractAssociatedIcon(Basics.ExecutablePath)!;
-        var bitmap = icon.ToBitmap();
+        using var icon = Icon.ExtractAssociatedIcon(Basics.ExecutablePath) ??
+                         throw new InvalidOperationException("无法提取程序图标。");
+        using var bitmap = icon.ToBitmap();
         bitmap.Save(Path.Combine(Paths.Temp, "icon.png"));
     }
 }
