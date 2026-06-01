@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using PCL.Core.App;
@@ -3203,7 +3204,7 @@ public static class ModComp
 
     /// <summary>
     ///     预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
-    ///     前置列表（必要 / 可选）会被包成可折叠的 MyCard：必要前置默认展开，可选前置默认收起。
+    ///     前置列表（必要 / 可选）会被放入可折叠栏：必要前置默认展开，可选前置默认收起。
     /// </summary>
     public static void CompFilesCardPreload(StackPanel stack, List<CompFile> files)
     {
@@ -3215,10 +3216,10 @@ public static class ModComp
             return;
 
         // 必要前置：默认展开
-        AddDependencyCard(stack, deps,
+        AddDependencyBar(stack, deps,
             Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), collapsed: false);
         // 可选前置：默认收起（库 Mod 可能有大量可选前置，参见 Issue #2873）
-        AddDependencyCard(stack, optionalDeps,
+        AddDependencyBar(stack, optionalDeps,
             Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), collapsed: true);
 
         // 添加结尾间隔（版本列表标题）
@@ -3230,57 +3231,60 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     将一组前置依赖（按工程 ID）渲染为一张可折叠的 MyCard 并加入 <paramref name="stack"/>。
-    ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何卡片。
+    ///     将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack"/>。
+    ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
     /// </summary>
-    /// <param name="collapsed">是否默认折叠。折叠的卡片内容延迟到展开时才创建。</param>
-    private static void AddDependencyCard(StackPanel stack, List<string> depIds, string title, bool collapsed)
+    /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
+    private static void AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
     {
         if (depIds is null || !depIds.Any())
             return;
 
         depIds.Sort();
-        var projects = depIds
-            .Where(dep =>
-            {
-                if (!compProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return compProjectCache.ContainsKey(dep);
-            })
-            .Select(dep => compProjectCache[dep])
-            .ToList();
+        var projects = new List<CompProject>();
+        foreach (var dep in depIds)
+        {
+            if (compProjectCache.TryGetValue(dep, out var project))
+                projects.Add(project);
+            else
+                ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+        }
         if (!projects.Any())
             return;
 
-        // 内层折叠卡片的内容容器
-        // Tag 必须非空，否则 MyCard.StackInstall 不会执行 InstallMethod（见 MyCard.cs:177）
-        var innerStack = new StackPanel
-        {
-            Margin = new Thickness(12d, MyCard.SwapedHeight, 12d, 0d),
-            VerticalAlignment = VerticalAlignment.Top,
-            Tag = projects
-        };
-
-        var card = new MyCard
+        var bar = new MyCollapseBar
         {
             Title = $"{title} ({projects.Count})",
-            Margin = new Thickness(0d, 0d, 0d, 8d)
+            Margin = new Thickness(0d, 0d, 0d, 8d),
+            IsCollapsed = collapsed
         };
-        card.Children.Add(innerStack);
-        card.SwapControl = innerStack;
-        card.InstallMethod = target =>
+        foreach (var project in projects)
+            bar.ContentPanel.Children.Add(project.ToCompItem(false, false));
+
+        bar.Toggled += DependencyBar_Toggled;
+        stack.Children.Add(bar);
+    }
+
+    /// <summary>
+    ///     折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
+    ///     避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
+    /// </summary>
+    private static void DependencyBar_Toggled(object? sender, EventArgs e)
+    {
+        if (sender is not DependencyObject element)
+            return;
+        for (var current = VisualTreeHelper.GetParent(element); current is not null;
+             current = VisualTreeHelper.GetParent(current))
         {
-            foreach (var project in (List<CompProject>)target.Tag)
-                target.Children.Add(project.ToCompItem(false, false));
-        };
-
-        stack.Children.Add(card);
-
-        // 默认展开的立即构建内容；默认折叠的延迟到展开时由 InstallMethod 构建
-        if (collapsed)
-            card.IsSwapped = true;
-        else
-            card.StackInstall();
+            if (current is not MyCard card)
+                continue;
+            var rawUseAnimation = card.UseAnimation;
+            card.UseAnimation = false;
+            card.TriggerForceResize();
+            card.Dispatcher.BeginInvoke(new Action(() => card.UseAnimation = rawUseAnimation),
+                System.Windows.Threading.DispatcherPriority.Loaded);
+            break;
+        }
     }
 
     #endregion
