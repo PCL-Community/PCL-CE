@@ -2698,7 +2698,57 @@
     <!-- Update.CommunityNotice -->
 
     <!-- LogPage -->
-    <!-- LogPage.Action -->
-    <!-- LogPage.Export -->
+
+    <sys:String x:Key="LogPage.Title">Live logs</sys:String>
+    <sys:String x:Key="LogPage.Empty.Title">No live logs</sys:String>
+    <sys:String x:Key="LogPage.Empty.Description">Go to Instance Settings → Overview → Test Game to display live game logs.</sys:String>
+    <sys:String x:Key="LogPage.Left.InstancesTitle">Test instances</sys:String>
+    <sys:String x:Key="LogPage.Action.Scroll">Scroll</sys:String>
+    <sys:String x:Key="LogPage.Action.Export">Export</sys:String>
+    <sys:String x:Key="LogPage.Action.Clear">Clear</sys:String>
+    <sys:String x:Key="LogPage.Action.KillProcess">Kill</sys:String>
+    <sys:String x:Key="LogPage.Action.ExportStack">Dump</sys:String>
+    <sys:String x:Key="LogPage.Action.GameClosed">Game {0} closed!</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Title">Max lines</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.ToolTip">Maximum number of lines displayed; older logs are automatically removed when exceeded.</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Unlimited">Unlimited</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Hint">Logs are limited to {0} lines by default. Adjust this in Max Log Lines settings.</sys:String>
+    <sys:String x:Key="LogPage.Export.SelectLocation">Select export location</sys:String>
+    <sys:String x:Key="LogPage.Export.Success">Log exported!</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.FileName">Game log - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.Filter">Game log(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.FileName">Game stack dump - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Filter">Game stack dump(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Progress">Exporting stack dump, please wait (may take 15s ~ 1min)</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Success">Stack dump exported!</sys:String>
+
+    <!-- Watcher -->
+
+    <sys:String x:Key="Watcher.Start">Started Minecraft log monitoring</sys:String>
+    <sys:String x:Key="Watcher.Exited">Minecraft log monitoring exited</sys:String>
+    <sys:String x:Key="Watcher.ProcessExited">Minecraft exited with code: {0}</sys:String>
+    <sys:String x:Key="Watcher.LoadComplete">Minecraft loading completed</sys:String>
+    <sys:String x:Key="Watcher.WindowLoaded">Minecraft window loaded: {0} ({1})</sys:String>
+    <sys:String x:Key="Watcher.FmlWindowLoaded">FML window loaded: {0} ({1})</sys:String>
+    <sys:String x:Key="Watcher.WindowMaximized">Minecraft window maximized: {0}</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">PCL cannot access the game window due to anti-cheat or security software</sys:String>
+    <sys:String x:Key="Watcher.Progress.LogAppeared">Log 1/5: Log output appeared</sys:String>
+    <sys:String x:Key="Watcher.Progress.UserSet">Log 2/5: Game user set</sys:String>
+    <sys:String x:Key="Watcher.Progress.LwjglConfirmed">Log 3/5: LWJGL version confirmed</sys:String>
+    <sys:String x:Key="Watcher.Progress.OpenAlLoaded">Log 4/5: OpenAL loaded</sys:String>
+    <sys:String x:Key="Watcher.Progress.TexturesLoaded">Log 5/5: Textures loaded</sys:String>
+    <sys:String x:Key="Watcher.Log.CloseDetected">Identified close log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Log.CrashDetected">Identified crash log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading, may have crashed</sys:String>
+    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exit code abnormal, may have crashed</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed, crash analysis will start in 2 seconds</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">Crash analysis started</sys:String>
+    <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected, analysis started...</sys:String>
+    <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force kill Minecraft process</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">Process still alive, trying taskkill.exe</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillResult">taskkill.exe result: {0}</sys:String>
+    <sys:String x:Key="Watcher.Kill.Timeout">Force kill failed: process exit timeout</sys:String>
+    <sys:String x:Key="Watcher.Kill.Success">Minecraft process forcefully killed</sys:String>
+    <sys:String x:Key="Watcher.Kill.Failed">Failed to force kill Minecraft process</sys:String>
 
 </ResourceDictionary>

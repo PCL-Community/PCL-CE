@@ -2698,7 +2698,79 @@
     <!-- Update.CommunityNotice -->
 
     <!-- LogPage -->
+
+    <!-- LogPage.Title -->
+    <sys:String x:Key="LogPage.Title">实时日志</sys:String>
+
+    <!-- LogPage.Empty -->
+    <sys:String x:Key="LogPage.Empty.Title">无实时日志</sys:String>
+    <sys:String x:Key="LogPage.Empty.Description">请点击 实例设置 → 概览 → 测试游戏 以显示游戏的实时日志。</sys:String>
+
+    <!-- LogPage.Left -->
+    <sys:String x:Key="LogPage.Left.InstancesTitle">测试实例列表</sys:String>
+
     <!-- LogPage.Action -->
+    <sys:String x:Key="LogPage.Action.Scroll">滚动</sys:String>
+    <sys:String x:Key="LogPage.Action.Export">导出</sys:String>
+    <sys:String x:Key="LogPage.Action.Clear">清空</sys:String>
+    <sys:String x:Key="LogPage.Action.KillProcess">结束进程</sys:String>
+    <sys:String x:Key="LogPage.Action.ExportStack">导出运行栈</sys:String>
+    <sys:String x:Key="LogPage.Action.GameClosed">已关闭游戏 {0}！</sys:String>
+
+    <!-- LogPage.MaxLines -->
+    <sys:String x:Key="LogPage.MaxLines.Title">最大行数</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Unlimited">无限制</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Hint">实时日志默认只保留 {0} 行，你可以在 实时日志行数 设置中修改！</sys:String>
+
     <!-- LogPage.Export -->
+    <sys:String x:Key="LogPage.Export.SelectLocation">选择导出位置</sys:String>
+    <sys:String x:Key="LogPage.Export.Success">日志已导出！</sys:String>
+
+    <!-- LogPage.Export.GameLog -->
+    <sys:String x:Key="LogPage.Export.GameLog.FileName">游戏日志 - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.Filter">游戏日志(*.log)|*.log</sys:String>
+
+    <!-- LogPage.ExportStack -->
+    <sys:String x:Key="LogPage.ExportStack.FileName">游戏运行栈 - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Filter">游戏运行栈(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Progress">正在导出运行栈，请稍等（可能需要 15 秒 ~ 1 分钟）</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Success">运行栈已导出！</sys:String>
+
+    <!-- Watcher -->
+    <sys:String x:Key="Watcher.Start">开始 Minecraft 日志监控</sys:String>
+    <sys:String x:Key="Watcher.Exited">Minecraft 日志监控已退出</sys:String>
+    <sys:String x:Key="Watcher.ProcessExited">Minecraft 已退出，返回值：{0}</sys:String>
+    <sys:String x:Key="Watcher.LoadComplete">Minecraft 加载已完成</sys:String>
+    <sys:String x:Key="Watcher.WindowLoaded">Minecraft 窗口已加载：{0}（{1}）</sys:String>
+    <sys:String x:Key="Watcher.FmlWindowLoaded">FML 窗口已加载：{0}（{1}）</sys:String>
+    <sys:String x:Key="Watcher.WindowMaximized">已最大化 Minecraft 窗口：{0}</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">由于反作弊或安全软件拦截，PCL 无法操作游戏窗口</sys:String>
+
+    <!-- Watcher.Progress -->
+    <sys:String x:Key="Watcher.Progress.LogAppeared">日志 1/5：已出现日志输出</sys:String>
+    <sys:String x:Key="Watcher.Progress.UserSet">日志 2/5：游戏用户已设置</sys:String>
+    <sys:String x:Key="Watcher.Progress.LwjglConfirmed">日志 3/5：LWJGL 版本已确认</sys:String>
+    <sys:String x:Key="Watcher.Progress.OpenAlLoaded">日志 4/5：OpenAL 已加载</sys:String>
+    <sys:String x:Key="Watcher.Progress.TexturesLoaded">日志 5/5：材质已加载</sys:String>
+
+    <!-- Watcher.Log -->
+    <sys:String x:Key="Watcher.Log.CloseDetected">识别为关闭的 Log：{0}</sys:String>
+    <sys:String x:Key="Watcher.Log.CrashDetected">识别为崩溃的 Log：{0}</sys:String>
+
+    <!-- Watcher.Crash -->
+    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft 尚未加载完成，可能已崩溃</sys:String>
+    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft 返回值异常，可能已崩溃</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft 已崩溃，将在 2 秒后开始崩溃分析</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">崩溃分析开始</sys:String>
+    <sys:String x:Key="Watcher.Crash.Hint">检测到 Minecraft 出现错误，错误分析已开始……</sys:String>
+
+    <!-- Watcher.Kill -->
+    <sys:String x:Key="Watcher.Kill.Attempt">尝试强制结束 Minecraft 进程</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">进程仍未退出，尝试使用 taskkill.exe</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillResult">执行 taskkill.exe 结果：{0}</sys:String>
+    <sys:String x:Key="Watcher.Kill.Timeout">强制结束 Minecraft 进程失败：等待进程退出超时</sys:String>
+    <sys:String x:Key="Watcher.Kill.Success">已强制结束 Minecraft 进程</sys:String>
+    <sys:String x:Key="Watcher.Kill.Failed">强制结束 Minecraft 进程失败</sys:String>
 
 </ResourceDictionary>

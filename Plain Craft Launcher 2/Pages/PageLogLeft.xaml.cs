@@ -49,9 +49,8 @@ public partial class PageLogLeft
             ModMain.frmLogLeft.PanList.Children.Clear();
 
             // 测试实例列表
-            // TODO(i18n): 文本 @ PageLog 左侧 - 列表标题
             ModMain.frmLogLeft.PanList.Children.Add(new TextBlock
-                { Text = "测试实例列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
+                { Text = Lang.Text("LogPage.Left.InstancesTitle"), Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
             foreach (var item in shownLogs)
             {
                 // 添加控件
@@ -75,11 +74,10 @@ public partial class PageLogLeft
             }
 
             // 通知日志保留设置
-            // TODO(i18n): 文本 @ PageLog 左侧 - 日志保留设置通知
             if (!States.Hint.MaxGameLog)
             {
                 States.Hint.MaxGameLog = true;
-                ModMain.Hint("实时日志默认只保留 500 行，你可以在 实时日志行数 设置中修改！");
+                ModMain.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
             }
 
             isLoading -= 1;

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using System.Globalization;
 
@@ -26,8 +27,7 @@ public partial class PageLogRight
     public void Init()
     {
         PanLogCard.Inlines.Clear();
-        // TODO(i18n): 文本 @ 标题栏 - 实时日志卡片标题
-        PanLogCard.Inlines.Add(new Run("实时日志"));
+        PanLogCard.Inlines.Add(new Run(Lang.Text("LogPage.Title")));
         PanLogCard.Inlines.Add(new Run(" | "));
         labDebug = new Run("0 Debug")
             { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"] };
@@ -87,7 +87,7 @@ public partial class PageLogRight
                 _ when (int)v <= 5 => ((int)v * 10 + 50).ToString(),
                 _ when (int)v <= 13 => ((int)v * 50 - 150).ToString(),
                 _ when (int)v <= 28 => ((int)v * 100 - 800).ToString(),
-                _ => "无限制"
+                _ => Lang.Text("LogPage.MaxLines.Unlimited")
             };
         });
         // 绑定日志输出
@@ -143,14 +143,13 @@ public partial class PageLogRight
 
     private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
     {
-        // TODO(i18n): 文本 @ 文件选择弹窗 - 窗口标题 & 类型选择器选项
-        var savePath = SystemDialogs.SelectSaveFile("选择导出位置",
-            $"游戏日志 - {ModMain.frmLogLeft.currentLog.version.Name}.log", "游戏日志(*.log)|*.log");
+        var savePath = SystemDialogs.SelectSaveFile(Lang.Text("LogPage.Export.SelectLocation"),
+            Lang.Text("LogPage.Export.GameLog.FileName", ModMain.frmLogLeft.currentLog.version.Name),
+            Lang.Text("LogPage.Export.GameLog.Filter"));
         if (savePath.Length < 3)
             return;
         File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
-        // TODO(i18n): 文本 @ 左下角提示 - 导出成功提示
-        ModMain.Hint("日志已导出！", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("LogPage.Export.Success"), ModMain.HintType.Finish);
         ModBase.OpenExplorer(savePath);
     }
 
@@ -159,20 +158,23 @@ public partial class PageLogRight
         if (ModMain.frmLogLeft.currentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
         {
             ModMain.frmLogLeft.currentLog.Kill();
-            // TODO(i18n): 文本 @ 左下角提示 - 客户端关闭提示
-            ModMain.Hint($"已关闭游戏 {ModMain.frmLogLeft.currentLog.version.Name}！", ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("LogPage.Action.GameClosed", ModMain.frmLogLeft.currentLog.version.Name),
+                ModMain.HintType.Finish);
         }
     }
 
     private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
     {
-        var savePath = SystemDialogs.SelectSaveFile("选择导出位置",
-            $"游戏运行栈 - {DateTime.Now.ToString("G", CultureInfo.InvariantCulture).Replace("/", "-").Replace(":", ".").Replace(" ", "_")}.log",
-            "游戏运行栈(*.log)|*.log");
+        var formattedDate = DateTime.Now.ToString("G", CultureInfo.InvariantCulture)
+            .Replace("/", "-")
+            .Replace(":", ".")
+            .Replace(" ", "_");
+        var savePath = SystemDialogs.SelectSaveFile(Lang.Text("LogPage.Export.SelectLocation"),
+            Lang.Text("LogPage.ExportStack.FileName", formattedDate),
+            Lang.Text("LogPage.ExportStack.Filter"));
         if (savePath.Length < 3)
             return;
-        // TODO(i18n): 文本 @ 左下角提示 - 导出运行栈提示
-        ModMain.Hint("正在导出运行栈，请稍等（可能需要 15 秒 ~ 1 分钟）");
+        ModMain.Hint(Lang.Text("LogPage.ExportStack.Progress"));
         BtnOperationExportStackDump.IsEnabled = false;
         ModBase.RunInNewThread(() =>
         {
@@ -180,8 +182,7 @@ public partial class PageLogRight
             File.WriteAllLines(savePath, dump);
             ModBase.RunInUi(() =>
             {
-                // TODO(i18n): 文本 @ 左下角提示 - 导出运行栈提示
-                ModMain.Hint("运行栈已导出！", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("LogPage.ExportStack.Success"), ModMain.HintType.Finish);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
             ModBase.OpenExplorer(savePath);
