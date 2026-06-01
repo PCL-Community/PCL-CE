@@ -2628,4 +2628,58 @@
     <sys:String x:Key="Instance.Export.MrpackFilter">Modrinth modpack file (*.mrpack)|*.mrpack</sys:String>
     <sys:String x:Key="Instance.Export.PackPathInvalid.Title">Cannot use the export path specified in config</sys:String>
 
+    <!-- Tools -->
+
+    <sys:String x:Key="Tools.Left.Online">Online</sys:String>
+    <sys:String x:Key="Tools.Left.Lobby">Lobby</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities">Utilities</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities.Title">Toolbox</sys:String>
+    <sys:String x:Key="Tools.Left.Help">Help center</sys:String>
+
+    <!-- Tools.Help -->
+
+    <sys:String x:Key="Tools.Help.Search.Hint">Search help</sys:String>
+    <sys:String x:Key="Tools.Help.Loading">Loading help list</sys:String>
+    <sys:String x:Key="Tools.Help.Category.Guide">Guide</sys:String>
+    <sys:String x:Key="Tools.Help.Search.NoResults">No results</sys:String>
+    <sys:String x:Key="Tools.Help.Search.Results">Search results</sys:String>
+    <sys:String x:Key="Tools.Help.Search.ExactMatch">Exact match  |  Similarity: {0}  |  {1}</sys:String>
+    <sys:String x:Key="Tools.Help.Search.Similarity">Similarity: {0}  |  {1}</sys:String>
+
+    <!-- Tools.Test -->
+    <!-- Tools.Test.CustomDownload -->
+    <!-- Tools.Test.Skin -->
+    <!-- Tools.Test.ServerQuery -->
+    <!-- Tools.Test.Achievement -->
+    <!-- Tools.Test.Avatar -->
+    <!-- Tools.Test.Memory -->
+    <!-- Tools.Test.Clean -->
+    <!-- Tools.Test.Shortcut -->
+    <!-- Tools.Test.Luck -->
+    <!-- Tools.Test.Crash -->
+
+    <!-- Tools.GameLink -->
+    <!-- Tools.GameLink.Agreement -->
+    <!-- Tools.GameLink.Natayark -->
+    <!-- Tools.GameLink.Nat -->
+    <!-- Tools.GameLink.Join -->
+    <!-- Tools.GameLink.Create -->
+    <!-- Tools.GameLink.Finish -->
+    <!-- Tools.GameLink.Player -->
+    <!-- Tools.GameLink.Member -->
+    <!-- Tools.GameLink.Error -->
+
+    <!-- Speed -->
+
+    <!-- ServerQuery -->
+
+    <!-- Update -->
+    <!-- Update.Task -->
+    <!-- Update.Error -->
+    <!-- Update.CommunityNotice -->
+
+    <!-- LogPage -->
+    <!-- LogPage.Action -->
+    <!-- LogPage.Export -->
+
 </ResourceDictionary>
