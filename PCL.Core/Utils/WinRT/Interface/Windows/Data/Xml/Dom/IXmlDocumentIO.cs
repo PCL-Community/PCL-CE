@@ -8,12 +8,12 @@ public static class IXmlDocumentIOInfo
     public static readonly Guid Iid = new("6cd0e74e-ee65-4489-9ebf-ca43e87ba637");
 }
 
-internal unsafe struct IXmlDocumentIO
+public unsafe struct IXmlDocumentIO
 {
     public IXmlDocumentIOVtbl* lpVtbl;
 }
 
-internal unsafe struct IXmlDocumentIOVtbl
+public unsafe struct IXmlDocumentIOVtbl
 {
     // IUnknown
     public delegate* unmanaged<void*, Guid*, void**, int> QueryInterface;

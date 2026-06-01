@@ -9,9 +9,9 @@ public static partial class WinRTInterop
     [LibraryImport("combase.dll")]
     private static unsafe partial int RoGetActivationFactory(IntPtr activatableClassId, Guid* iid, IntPtr* factory);
     [LibraryImport("combase.dll")]
-    private static unsafe partial int RoActiveInstance(IntPtr activatableClassId, IntPtr* instance);
+    private static unsafe partial int RoActivateInstance(IntPtr activatableClassId, IntPtr* instance);
 
-    public static unsafe IntPtr ActiveInstance(ReadOnlySpan<char> activatableClassId)
+    public static unsafe IntPtr ActivateInstance(ReadOnlySpan<char> activatableClassId)
     {
         var instance = IntPtr.Zero;
 
@@ -28,7 +28,7 @@ public static partial class WinRTInterop
                     &hstring));
 
             Marshal.ThrowExceptionForHR(
-                RoActiveInstance(
+                RoActivateInstance(
                     hstring,
                     &instance));
         }

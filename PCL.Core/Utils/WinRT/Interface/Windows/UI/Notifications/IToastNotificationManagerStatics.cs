@@ -35,7 +35,7 @@ public unsafe struct IToastNotificationManagerStaticsVtbl
     /// <summary>
     /// ToastNotifier CreateToastNotifier(string applicationId)
     /// </summary>
-    public delegate* unmanaged<void*, void**, IntPtr, int> CreateToastNotifierWithId;
+    public delegate* unmanaged<void*, IntPtr, void**, int> CreateToastNotifierWithId;
 
     /// <summary>
     /// XmlDocument GetTemplateContent(ToastTemplateType type)
