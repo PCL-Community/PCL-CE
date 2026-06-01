@@ -3203,6 +3203,7 @@ public static class ModComp
 
     /// <summary>
     ///     预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
+    ///     前置列表（必要 / 可选）会被包成可折叠的 MyCard：必要前置默认展开，可选前置默认收起。
     /// </summary>
     public static void CompFilesCardPreload(StackPanel stack, List<CompFile> files)
     {
@@ -3212,60 +3213,74 @@ public static class ModComp
         var optionalDeps = files.SelectMany(f => f.OptionalDependencies).Distinct().ToList();
         if (!deps.Any() && !optionalDeps.Any())
             return;
-        // 必要前置
-        if (deps.Any())
-        {
-            deps.Sort();
-            deps = deps.Where(dep =>
-            {
-                if (!compProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return compProjectCache.ContainsKey(dep);
-            }).ToList();
-            // 添加开头间隔
-            stack.Children.Add(new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 2d, 0d, 5d)
-            });
-            // 添加前置列表
-            foreach (var dep in deps)
-            {
-                 var item = compProjectCache[dep].ToCompItem(false, false);
-                 stack.Children.Add(item);
-            }
-        }
 
-        // 可选前置
-        if (optionalDeps.Any())
-        {
-            optionalDeps.Sort();
-            optionalDeps = optionalDeps.Where(dep =>
-            {
-                if (!compProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return compProjectCache.ContainsKey(dep);
-            }).ToList();
-            // 添加开头间隔
-            stack.Children.Add(new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 2d, 0d, 5d)
-            });
-            // 添加前置列表
-            foreach (var dep in optionalDeps)
-            {
-                var item = compProjectCache[dep].ToCompItem(false, false);
-                stack.Children.Add(item);
-            }
-        }
+        // 必要前置：默认展开
+        AddDependencyCard(stack, deps,
+            Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), collapsed: false);
+        // 可选前置：默认收起（库 Mod 可能有大量可选前置，参见 Issue #2873）
+        AddDependencyCard(stack, optionalDeps,
+            Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), collapsed: true);
 
-        // 添加结尾间隔
+        // 添加结尾间隔（版本列表标题）
         stack.Children.Add(new TextBlock
         {
-            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(6d, 12d, 0d, 5d)
+            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d,
+            HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(6d, 12d, 0d, 5d)
         });
+    }
+
+    /// <summary>
+    ///     将一组前置依赖（按工程 ID）渲染为一张可折叠的 MyCard 并加入 <paramref name="stack"/>。
+    ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何卡片。
+    /// </summary>
+    /// <param name="collapsed">是否默认折叠。折叠的卡片内容延迟到展开时才创建。</param>
+    private static void AddDependencyCard(StackPanel stack, List<string> depIds, string title, bool collapsed)
+    {
+        if (depIds is null || !depIds.Any())
+            return;
+
+        depIds.Sort();
+        var projects = depIds
+            .Where(dep =>
+            {
+                if (!compProjectCache.ContainsKey(dep))
+                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+                return compProjectCache.ContainsKey(dep);
+            })
+            .Select(dep => compProjectCache[dep])
+            .ToList();
+        if (!projects.Any())
+            return;
+
+        // 内层折叠卡片的内容容器
+        // Tag 必须非空，否则 MyCard.StackInstall 不会执行 InstallMethod（见 MyCard.cs:177）
+        var innerStack = new StackPanel
+        {
+            Margin = new Thickness(12d, MyCard.SwapedHeight, 12d, 0d),
+            VerticalAlignment = VerticalAlignment.Top,
+            Tag = projects
+        };
+
+        var card = new MyCard
+        {
+            Title = $"{title} ({projects.Count})",
+            Margin = new Thickness(0d, 0d, 0d, 8d)
+        };
+        card.Children.Add(innerStack);
+        card.SwapControl = innerStack;
+        card.InstallMethod = target =>
+        {
+            foreach (var project in (List<CompProject>)target.Tag)
+                target.Children.Add(project.ToCompItem(false, false));
+        };
+
+        stack.Children.Add(card);
+
+        // 默认展开的立即构建内容；默认折叠的延迟到展开时由 InstallMethod 构建
+        if (collapsed)
+            card.IsSwapped = true;
+        else
+            card.StackInstall();
     }
 
     #endregion
