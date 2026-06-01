@@ -28,7 +28,7 @@ public class HStringHelper
             return "";
         uint length;
         var buffer = WinRTInterop.WindowsGetStringRawBuffer(value, &length);
-        return new string(buffer, 0, (int)length);
+        return length != 0 ? new string(buffer, 0, (int)length) : string.Empty;
     }
 
     public static void DeleteHString(HString value)
