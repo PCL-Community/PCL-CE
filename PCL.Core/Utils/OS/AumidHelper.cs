@@ -4,6 +4,8 @@ namespace PCL.Core.Utils.OS;
 
 public static class AumidHelper
 {
+    // TODO: 针对每个路径建立单独的 AUMID
+    
     public static bool HasAumid()
     {
         using var key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\AppUserModelId\XXX");
