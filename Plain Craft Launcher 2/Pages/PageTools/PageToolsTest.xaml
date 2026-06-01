@@ -7,25 +7,29 @@
                    PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10" Grid.IsSharedSizeScope="True">
-            <local:MyCard Margin="0,15" Title="百宝箱">
+            <local:MyCard Margin="0,15" Title="{DynamicResource Tools.Test.Title}">
                 <WrapPanel Margin="25,40,21,5" ItemHeight="50">
-                    <local:MyButton MinWidth="100" Text="内存优化"
-                                    ToolTip="内存优化为 PCL CE 特供版，效果加强！&#xa;&#xa;将物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL 可以静默执行内存优化。"
+                    <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Memory.Title}"
+                                    ToolTip="{DynamicResource Tools.Test.Memory.ToolTip}"
                                     Margin="0,0,15,15" Click="BtnMemory_Click" />
-                    <local:MyButton x:Name="BtnClear" MinWidth="120" Text="清理游戏垃圾"
-                                    ToolTip="清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件" Margin="0,0,15,15" Click="BtnClear_Click" />
-                    <local:MyButton MinWidth="100" Text="今日人品" Margin="0,0,15,15" Click="BtnLuck_Click" />
-                    <local:MyButton MinWidth="100" Text="崩溃测试"
-                                    ToolTip="点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭" ColorType="Red"
+                    <local:MyButton x:Name="BtnClear" MinWidth="120" Text="{DynamicResource Tools.Test.Clean.Title}"
+                                    ToolTip="{DynamicResource Tools.Test.Clean.ToolTip}" Margin="0,0,15,15"
+                                    Click="BtnClear_Click" />
+                    <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Luck.Title}" Margin="0,0,15,15"
+                                    Click="BtnLuck_Click" />
+                    <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Crash.Title}"
+                                    ToolTip="{DynamicResource Tools.Test.Crash.ToolTip}" ColorType="Red"
                                     Margin="0,0,15,15" Click="BtnCrash_Click" />
-                    <local:MyButton MinWidth="120" Text="创建快捷方式" ToolTip="创建一个指向 PCL 社区版可执行文件的快捷方式" Margin="0,0,15,15"
+                    <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.Shortcut.Title}"
+                                    ToolTip="{DynamicResource Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
                                     Click="BtnCreateShortcut_Click" />
-                    <local:MyButton MinWidth="120" Text="查看启动计数" Margin="0,0,15,15" Click="BtnLaunchCount_Click" />
+                    <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.LaunchCount.Title}"
+                                    Margin="0,0,15,15" Click="BtnLaunchCount_Click" />
                 </WrapPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="下载自定义文件">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.CustomDownload.Title}">
                 <StackPanel Orientation="Vertical" Margin="25,40,25,20">
-                    <TextBlock Text="使用 PCL 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能会报错 (403) 已禁止，无法正常下载。"
+                    <TextBlock Text="{DynamicResource Tools.Test.CustomDownload.Description}"
                                TextWrapping="Wrap" />
                     <Grid Margin="0,10,0,0">
                         <Grid.Resources>
@@ -46,7 +50,7 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="下载地址" />
+                        <TextBlock Grid.Column="0" Grid.Row="0" Text="{DynamicResource Tools.Test.CustomDownload.Url}" />
                         <local:MyTextBox x:Name="TextDownloadUrl" Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
                                          TextChanged="TextDownloadUrl_TextChanged"
                                          ValidatedTextChanged="TextDownloadUrl_ValidateChanged">
@@ -55,12 +59,14 @@
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
 
-                        <TextBlock Grid.Column="0" Grid.Row="1" Text="User-Agent" />
+                        <TextBlock Grid.Column="0" Grid.Row="1"
+                                   Text="{DynamicResource Tools.Test.CustomDownload.UserAgent}" />
                         <local:MyTextBox x:Name="TextUserAgent" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
                                          ValidatedTextChanged="TextUserAgent_OnValidatedTextChanged"
                                          Margin="0,10" />
 
-                        <TextBlock Grid.Column="0" Grid.Row="2" Text="保存到" />
+                        <TextBlock Grid.Column="0" Grid.Row="2"
+                                   Text="{DynamicResource Tools.Test.CustomDownload.SaveTo}" />
                         <local:MyTextBox x:Name="TextDownloadFolder" Grid.Column="1" Grid.Row="2" Margin="0,10"
                                          ValidatedTextChanged="TextDownloadFolder_OnValidatedTextChanged">
                             <local:MyTextBox.ValidateRules>
@@ -68,9 +74,11 @@
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <local:MyTextButton Grid.Column="2" Grid.Row="2" Margin="10,0,5,0" VerticalAlignment="Center"
-                                            Text="选择" Click="MyTextButton_Click" />
+                                            Text="{DynamicResource Tools.Test.CustomDownload.Select}"
+                                            Click="MyTextButton_Click" />
 
-                        <TextBlock Grid.Column="0" Grid.Row="3" Text="文件名" />
+                        <TextBlock Grid.Column="0" Grid.Row="3"
+                                   Text="{DynamicResource Tools.Test.CustomDownload.FileName}" />
                         <local:MyTextBox x:Name="TextDownloadName" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2">
                             <local:MyTextBox.ValidateRules>
                                 <val:FileNameValidator />
@@ -85,15 +93,17 @@
                             <ColumnDefinition />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnDownloadStart" Grid.Column="0" Width="140" Text="开始下载"
+                        <local:MyButton x:Name="BtnDownloadStart" Grid.Column="0" Width="140"
+                                        Text="{DynamicResource Tools.Test.CustomDownload.Start}"
                                         ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right"
                                         Click="BtnDownloadStart_Click" />
-                        <local:MyButton x:Name="BtnDownloadOpen" Grid.Column="1" Width="140" Text="{DynamicResource Common.Action.OpenFolder}"
+                        <local:MyButton x:Name="BtnDownloadOpen" Grid.Column="1" Width="140"
+                                        Text="{DynamicResource Common.Action.OpenFolder}"
                                         Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnDownloadOpen_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardSkin" Margin="0,0,0,15" Title="下载正版玩家的皮肤">
+            <local:MyCard x:Name="CardSkin" Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Skin.Title}">
                 <StackPanel Margin="25,40,25,15">
                     <Grid x:Name="PanSkinID" Margin="0,14,0,2">
                         <Grid.ColumnDefinitions>
@@ -104,23 +114,26 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="正版玩家名" Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Tools.Test.Skin.PlayerName}" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextSkinID" Grid.Column="1" MaxLength="50" />
                         <Grid Height="35" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
-                            <local:MyButton x:Name="BtnSkinSave" Text="保存皮肤" MinWidth="140" Padding="13,0"
+                            <local:MyButton x:Name="BtnSkinSave" Text="{DynamicResource Tools.Test.Skin.Save}"
+                                            MinWidth="140" Padding="13,0"
                                             Margin="0,0,20,0" Grid.Row="1" Click="BtnSkinSave_Click" />
                         </Grid>
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="瞅眼服务器">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.ServerQuery.Title}">
                 <local:MinecraftServerQuery Margin="15,40,15,15" />
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="自定义成就图片生成器 (仅支持英文)" CanSwap="True" IsSwapped="True">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Achievement.Title}" CanSwap="True"
+                          IsSwapped="True">
                 <StackPanel Margin="25,30,25,15">
                     <Grid Margin="0,4,0,2">
                         <Grid.ColumnDefinitions>
@@ -136,16 +149,17 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="物品名（ID）" Margin="0,0,25,0" />
+                                   Text="{DynamicResource Tools.Test.Achievement.ItemId}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
                                          x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10">
                             <local:MyTextBox.ValidateRules>
-                                <val:RegexValidator Pattern="^[a-z0-9_]+$" ErrorMessage="请输入正确的物品 ID！" />
+                                <val:RegexValidator Pattern="^[a-z0-9_]+$"
+                                                    ErrorKey="Tools.Test.Achievement.InvalidId" />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
 
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="成就名" Margin="0,0,25,0" />
+                                   Text="{DynamicResource Tools.Test.Achievement.Name}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
                                          x:Name="AchievementTitleTextBox" MaxLength="50">
                             <local:MyTextBox.ValidateRules>
@@ -154,7 +168,7 @@
                         </local:MyTextBox>
 
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="第一行" Margin="0,0,25,0" />
+                                   Text="{DynamicResource Tools.Test.Achievement.Line1}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"
                                          x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
                             <local:MyTextBox.ValidateRules>
@@ -163,7 +177,7 @@
                         </local:MyTextBox>
 
                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="第二行（可选）" Margin="0,0,25,0" />
+                                   Text="{DynamicResource Tools.Test.Achievement.Line2}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2"
                                          x:Name="AchievementString2TextBox" MaxLength="50" />
                     </Grid>
@@ -175,23 +189,27 @@
                             <ColumnDefinition />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnAchievementPreview" Grid.Column="0" Width="140" Text="预览成就图像"
+                        <local:MyButton x:Name="BtnAchievementPreview" Grid.Column="0" Width="140"
+                                        Text="{DynamicResource Tools.Test.Achievement.Preview}"
                                         ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right"
                                         Click="BtnAchievementPreview_Click" />
-                        <local:MyButton x:Name="BtnAchievementSave" Grid.Column="1" Width="140" Text="保存图片"
+                        <local:MyButton x:Name="BtnAchievementSave" Grid.Column="1" Width="140"
+                                        Text="{DynamicResource Tools.Test.Achievement.Save}"
                                         Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnAchievementSave_Click" />
                     </Grid>
                     <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed" />
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="0,0,0,15" Title="皮肤头像生成器" CanSwap="True" IsSwapped="True">
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Avatar.Title}" CanSwap="True"
+                          IsSwapped="True">
                 <StackPanel Orientation="Vertical" Margin="25,40,25,20">
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="头像大小：" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="{DynamicResource Tools.Test.Avatar.Size}" VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
                         <local:MyComboBox x:Name="CmbHeadSize" Grid.Column="1" Height="26" SelectedIndex="0">
                             <sys:String>64x64</sys:String>
                             <sys:String>96x96</sys:String>
@@ -205,9 +223,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnSelectSkin" Grid.Column="1" Text="选择皮肤" Width="140" Height="35"
+                        <local:MyButton x:Name="BtnSelectSkin" Grid.Column="1"
+                                        Text="{DynamicResource Tools.Test.Avatar.SelectSkin}" Width="140" Height="35"
                                         Margin="0,0,10,0" />
-                        <local:MyButton Grid.Column="2" Text="保存头像" Width="140" Height="35" Click="BtnSaveHead_Click" />
+                        <local:MyButton Grid.Column="2" Text="{DynamicResource Tools.Test.Avatar.Save}" Width="140"
+                                        Height="35" Click="BtnSaveHead_Click" />
                     </Grid>
                     <Border x:Name="SkinPreviewBorder" Margin="0,15,0,0" HorizontalAlignment="Center" Padding="10"
                             Visibility="Collapsed">
