@@ -204,15 +204,16 @@ public class SaveManager
     }
 
     /// <summary>
-    /// 原子写入 level.dat：先将 NBT 写入临时文件，备份当前文件，再重命名临时文件。
-    /// 参考 Minecraft 自身的保存流程。
+    /// 原子写入 level.dat：先将 NBT 写入临时文件，再通过重命名完成原子替换。
+    /// 始终写入 level.dat（即使从 level.dat_old 回退读取）。
     /// </summary>
     private static async Task WriteLevelDatAtomicallyAsync(
-        string levelDatPath, NbtFile nbtFile, CancellationToken ct)
+        string sourcePath, NbtFile nbtFile, CancellationToken ct)
     {
-        var dir = Path.GetDirectoryName(levelDatPath)!;
+        var dir = Path.GetDirectoryName(sourcePath)!;
         var tempPath = Path.Combine(dir, $"level{Guid.NewGuid():N}.dat");
         var backupPath = Path.Combine(dir, "level.dat_old");
+        var targetPath = Path.Combine(dir, "level.dat");
 
         try
         {
@@ -224,21 +225,19 @@ public class SaveManager
                 nbtFile.SaveToStream(fs, NbtCompression.GZip);
             }, ct).ConfigureAwait(false);
 
-            // 2. 备份当前 level.dat → level.dat_old
-            File.Move(levelDatPath, backupPath, overwrite: true);
+            // 2. 仅当从 level.dat 读取时，才备份当前 level.dat → level.dat_old；
+            //    若从 level.dat_old 回退读取，说明 level.dat 已损坏/不存在，跳过备份。
+            if (sourcePath == targetPath && File.Exists(targetPath))
+            {
+                File.Move(targetPath, backupPath, overwrite: true);
+            }
 
             // 3. 重命名临时文件 → level.dat
-            File.Move(tempPath, levelDatPath);
+            File.Move(tempPath, targetPath);
         }
         catch
         {
-            // 清理临时文件
             TryDelete(tempPath);
-            // 如果 level.dat 已被移走但备份存在，尝试回滚
-            if (!File.Exists(levelDatPath) && File.Exists(backupPath))
-            {
-                try { File.Move(backupPath, levelDatPath); } catch { /* best-effort */ }
-            }
             throw;
         }
     }
