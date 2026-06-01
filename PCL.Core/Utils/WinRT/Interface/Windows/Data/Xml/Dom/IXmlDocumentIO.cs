@@ -27,12 +27,18 @@ internal unsafe struct IXmlDocumentIOVtbl
 
     // IXmlDocumentIO
 
-    // LoadXml(string xml)
+    /// <summary>
+    /// LoadXml(string xml)
+    /// </summary>
     public delegate* unmanaged<void*, IntPtr, int> LoadXml;
 
-    // LoadXml(string xml, XmlLoadSettings settings)
+    /// <summary>
+    /// LoadXml(string xml, XmlLoadSettings settings)
+    /// </summary>
     public delegate* unmanaged<void*, IntPtr, void*, int> LoadXmlWithSettings;
 
-    // SaveToFileAsync(IStorageFile file)
+    /// <summary>
+    /// SaveToFileAsync(IStorageFile file)
+    /// </summary>
     public delegate* unmanaged<void*, void*, void**, int> SaveToFileAsync;
 }
