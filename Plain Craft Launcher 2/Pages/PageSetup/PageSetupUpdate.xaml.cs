@@ -75,9 +75,9 @@ public partial class PageSetupUpdate
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(updateInfo.versionName);
-                    var summary = updateInfo.changelog.Between("<summary>", "</summary>");
-                    if (!updateInfo.changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
+                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
+                    var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
+                    if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
                         TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
                     else
                         TextChangelog.Text = summary;
@@ -149,12 +149,12 @@ public partial class PageSetupUpdate
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
-        if (!updateInfo.versionName.StartsWithF("2.13.") && !ModBase
+        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
                 .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {
             ModMain.MyMsgBox(
-                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.versionName,
+                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
                     SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
@@ -172,7 +172,7 @@ public partial class PageSetupUpdate
         if (updateInfo is null)
             ModMain.MyMsgBox(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
         else
-            ModMain.MyMsgBoxMarkdown(updateInfo.changelog, Lang.Text("Setup.Update.Changelog.Title"));
+            ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
     }
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)

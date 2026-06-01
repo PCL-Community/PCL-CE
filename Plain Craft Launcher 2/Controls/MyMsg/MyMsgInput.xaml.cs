@@ -19,14 +19,14 @@ public partial class MyMsgInput
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             myConverter = converter;
-            LabTitle.Text = converter.title;
-            LabText.Text = converter.text;
-            PanText.Visibility = string.IsNullOrEmpty(converter.text) ? Visibility.Collapsed : Visibility.Visible;
-            TextArea.Text = (string)converter.content;
-            TextArea.HintText = converter.hintText;
-            TextArea.ValidateRules = converter.validateRules;
-            ConfigurePrimaryButton(converter.button1, converter.isWarn);
-            ConfigureSecondaryButton(converter.button2);
+            LabTitle.Text = converter.Title;
+            LabText.Text = converter.Text;
+            PanText.Visibility = string.IsNullOrEmpty(converter.Text) ? Visibility.Collapsed : Visibility.Visible;
+            TextArea.Text = (string)converter.Content;
+            TextArea.HintText = converter.HintText;
+            TextArea.ValidateRules = converter.ValidateRules;
+            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigureSecondaryButton(converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -72,7 +72,7 @@ public partial class MyMsgInput
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.isWarn
+                    (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
@@ -99,7 +99,7 @@ public partial class MyMsgInput
     private void Close()
     {
         // 结束线程阻塞
-        myConverter.waitFrame.Continue = false;
+        myConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
@@ -124,19 +124,19 @@ public partial class MyMsgInput
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         TextArea.Validate(); // #5773
-        if (myConverter.isExited || !TextArea.IsValidated)
+        if (myConverter.IsExited || !TextArea.IsValidated)
             return;
-        myConverter.isExited = true;
-        myConverter.result = TextArea.Text;
+        myConverter.IsExited = true;
+        myConverter.Result = TextArea.Text;
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.isExited)
+        if (myConverter.IsExited)
             return;
-        myConverter.isExited = true;
-        myConverter.result = null;
+        myConverter.IsExited = true;
+        myConverter.Result = null;
         Close();
     }
 

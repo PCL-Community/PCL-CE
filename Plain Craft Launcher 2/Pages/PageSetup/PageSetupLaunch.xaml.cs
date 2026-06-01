@@ -403,7 +403,7 @@ public partial class PageSetupLaunch
     /// <summary>
     ///     获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
-    public static double GetRam(ModMinecraft.McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
+    public static double GetRam(ModMinecraft.Instance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
         // ------------------------------------------
         // 修改下方代码时需要一并修改 PageInstanceSetup
@@ -420,7 +420,7 @@ public partial class PageSetupLaunch
             double ramTarget1; // 估计能勉强带动了的内存
             double ramTarget2; // 估计没啥问题了的内存
             double ramTarget3; // 放一百万个材质和 Mod 和光影需要的内存
-            if (version is not null && !version.isLoaded)
+            if (version is not null && !version.IsLoaded)
                 version.Load();
             if (version is not null && version.Modable)
             {
@@ -432,7 +432,7 @@ public partial class PageSetupLaunch
                 ramTarget2 = 2.7d + modCount / 50d;
                 ramTarget3 = 4.5d + modCount / 25d;
             }
-            else if (version is not null && version.Info.hasOptiFine)
+            else if (version is not null && version.Info.HasOptiFine)
             {
                 // OptiFine 实例
                 ramMininum = 0.5d;

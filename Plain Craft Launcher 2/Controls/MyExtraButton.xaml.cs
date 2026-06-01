@@ -30,7 +30,7 @@ public partial class MyExtraButton
     public ShowCheckDelegate showCheck = null;
 
     // 自定义属性
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyExtraButton()
     {
@@ -106,7 +106,7 @@ public partial class MyExtraButton
                                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, 50d - Height, 200,
                                 ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                        }, "MyExtraButton MainScale " + uuid);
+                        }, "MyExtraButton MainScale " + Uuid);
                 }
                 else
                 {
@@ -118,7 +118,7 @@ public partial class MyExtraButton
                                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
                             ModAnimation.AaHeight(this, -Height, 400, 100, new ModAnimation.AniEaseOutFluent()),
                             ModAnimation.AaCode(() => Visibility = Visibility.Collapsed, after: true)
-                        }, "MyExtraButton MainScale " + uuid);
+                        }, "MyExtraButton MainScale " + Uuid);
                 }
 
                 IsHitTestVisible = value; // 防止缩放动画中依然可以点进去
@@ -141,7 +141,7 @@ public partial class MyExtraButton
                     800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                 ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
                     ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyExtraButton Scale " + uuid);
+            }, "MyExtraButton Scale " + Uuid);
     }
 
     private void RefreshScaleAfterRelease()
@@ -151,7 +151,7 @@ public partial class MyExtraButton
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
                     ease: new ModAnimation.AniEaseOutBack())
-            }, "MyExtraButton Scale " + uuid);
+            }, "MyExtraButton Scale " + Uuid);
     }
 
     public void ShowRefresh()
@@ -231,7 +231,7 @@ public partial class MyExtraButton
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
                     ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyExtraButton Scale " + uuid);
+            }, "MyExtraButton Scale " + Uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -245,17 +245,17 @@ public partial class MyExtraButton
                     // 禁用
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", animationColorIn),
-                        "MyExtraButton Color " + uuid);
+                        "MyExtraButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", animationColorIn),
-                        "MyExtraButton Color " + uuid);
+                        "MyExtraButton Color " + Uuid);
                 else
                     // 普通
                     ModAnimation.AniStart(
                         ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", animationColorOut),
-                        "MyExtraButton Color " + uuid);
+                        "MyExtraButton Color " + Uuid);
             }
 
             else
@@ -263,7 +263,7 @@ public partial class MyExtraButton
                 ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
                     !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
                     !IsEnabled || IsMouseOver ? animationColorIn : animationColorOut,
-                    "MyExtraButton Color " + uuid, false);
+                    "MyExtraButton Color " + Uuid, false);
             }
         }
         catch (Exception ex)

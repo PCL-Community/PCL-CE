@@ -123,7 +123,7 @@ public partial class MyListItem : IMyRadio
                     });
             }
 
-            ModAnimation.AniStart(ani, "ListItem Color " + uuid);
+            ModAnimation.AniStart(ani, "ListItem Color " + Uuid);
         }
         else
         {
@@ -160,7 +160,7 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            ModAnimation.AniStop("ListItem Color " + uuid);
+            ModAnimation.AniStop("ListItem Color " + Uuid);
         }
     }
 
@@ -339,7 +339,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     /// <summary>
     ///     是否启用缩放动画。
@@ -890,12 +890,12 @@ public partial class MyListItem : IMyRadio
                     anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
                 }
 
-                ModAnimation.AniStart(anim, "MyListItem Checked " + uuid);
+                ModAnimation.AniStart(anim, "MyListItem Checked " + Uuid);
             }
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyListItem Checked " + uuid);
+                ModAnimation.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
                     if (rectCheck is not null)

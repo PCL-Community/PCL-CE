@@ -26,7 +26,7 @@ public static class ModNet
             Retries = 3
         };
         var result = Requester.FetchString(url, param);
-        return isJson ? ModBase.GetJson(result) : result;
+        return isJson ? (object)ModBase.GetJson(result) : result;
     }
 
     public static object NetGetCodeByRequestOnce(string url, Encoding? encode = null, int timeout = 30000,
@@ -41,7 +41,7 @@ public static class ModNet
             Retries = 1
         };
         var result = Requester.FetchString(url, param);
-        return isJson ? ModBase.GetJson(result) : result;
+        return isJson ? (object)ModBase.GetJson(result) : result;
     }
 
     public static string NetGetCodeByLoader(string url, int timeout = 45000, bool isJson = false,

@@ -148,7 +148,7 @@ public partial class ServerCard
         {
             var launchOptions = new ModLaunch.McLaunchOptions
             {
-                serverIp = server.Address,
+                ServerIp = server.Address,
                 instance = PageInstanceLeft.instance
             };
             ModLaunch.McLaunchStart(launchOptions);

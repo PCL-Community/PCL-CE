@@ -285,7 +285,7 @@ public partial class PageInstanceSaves : IRefreshable
                         var worldName = GetFileNameFromPath(tmpCurFolder);
                         var launchOptions = new ModLaunch.McLaunchOptions
                         {
-                            worldName = worldName,
+                            WorldName = worldName,
                             instance = PageInstanceLeft.instance
                         };
                         ModLaunch.McLaunchStart(launchOptions);

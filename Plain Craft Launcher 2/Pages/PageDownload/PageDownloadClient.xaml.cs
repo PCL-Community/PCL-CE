@@ -44,7 +44,7 @@ public partial class PageDownloadClient
                 _ => new List<JsonObject>()
             );
 
-            var versions = (JsonArray)ModDownload.dlClientListLoader.output.value["versions"];
+            var versions = (JsonArray)ModDownload.dlClientListLoader.output.Value["versions"];
             foreach (JsonObject Version in versions)
             {
                 var cat = McVersionClassifier.ClassifyVersion(Version);

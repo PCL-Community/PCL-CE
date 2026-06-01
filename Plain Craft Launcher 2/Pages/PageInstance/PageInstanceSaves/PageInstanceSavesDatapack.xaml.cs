@@ -455,7 +455,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                                 hasEnabled = true;
                             else if (DatapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
                                 hasDisabled = true;
-                            if (DatapackEntity.Comp is null || string.IsNullOrEmpty(DatapackEntity.Comp.id))
+                            if (DatapackEntity.Comp is null || string.IsNullOrEmpty(DatapackEntity.Comp.Id))
                                 canFavoriteAndShare = false;
                         }
                 });
@@ -699,7 +699,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 exportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
                 foreach (var DatapackEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(
-                        $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.compFile?.releaseDate},{DatapackEntity.Comp?.id},{GetDatapackFileInfo(DatapackEntity.path).Length},{DatapackEntity.path}");
+                        $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.compFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.path).Length},{DatapackEntity.path}");
                 ExportText(exportContent.Join("\r\n"),
                     ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) + "的数据包信息.csv");
                 break;
@@ -1180,8 +1180,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 if (!file.Available)
                     continue;
                 // 添加到下载列表
-                var tempAddress = ModBase.pathTemp + @"DownloadedComp\" + file.fileName;
-                var realAddress = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks", file.fileName);
+                var tempAddress = ModBase.pathTemp + @"DownloadedComp\" + file.FileName;
+                var realAddress = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks", file.FileName);
                 fileList.Add(file.ToNetFile(tempAddress));
                 fileCopyList[tempAddress] = realAddress;
             }
@@ -1436,7 +1436,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
     {
         var shareList = ModLocalComp.compResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.id).ToHashSet();
+            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
         ModBase.ClipboardSet(ModComp.CompFavorites.GetShareCode(shareList));
         ChangeAllSelected(false);
     }
@@ -1467,7 +1467,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 ModMain.frmMain.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.instance.Info.vanillaName,
+                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.instance.Info.VanillaName,
                         ModComp.CompLoaderType.Minecraft, ModComp.CompType.DataPack, null, null, null)
                 });
             }
@@ -1567,13 +1567,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                         searchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
                     if (Entry.Comp is not null)
                     {
-                        if ((Entry.Comp.rawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.rawName, 1d));
-                        if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.rawName ?? ""))
+                        if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
+                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName, 1d));
+                        if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
                             searchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName, 1d));
-                        if ((Entry.Comp.description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.description, 0.4d));
-                        searchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.tags), 0.2d));
+                        if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
+                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.Description, 0.4d));
+                        searchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 
                     queryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>

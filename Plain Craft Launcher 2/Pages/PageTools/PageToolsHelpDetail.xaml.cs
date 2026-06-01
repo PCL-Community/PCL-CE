@@ -14,7 +14,7 @@ public partial class PageOtherHelpDetail : IRefreshable
 
     public void Refresh()
     {
-        Init(new ModMain.HelpEntry(entry.rawPath));
+        Init(new ModMain.HelpEntry(entry.RawPath));
     }
 
     private void PageOtherHelpDetail_Loaded(object sender, RoutedEventArgs e)
@@ -27,7 +27,7 @@ public partial class PageOtherHelpDetail : IRefreshable
     /// </summary>
     public bool Init(ModMain.HelpEntry entry)
     {
-        var content = entry.xamlContent ?? "";
+        var content = entry.XamlContent ?? "";
         if (string.IsNullOrEmpty(content))
             throw new Exception("帮助 xaml 文件为空");
         try

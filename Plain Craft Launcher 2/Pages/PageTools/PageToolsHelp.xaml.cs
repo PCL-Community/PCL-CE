@@ -34,7 +34,7 @@ public partial class PageToolsHelp : IRefreshable
             // 获取全部分类
             var types = new List<string>();
             foreach (var Item in helpItems)
-            foreach (var Type in Item.types)
+            foreach (var Type in Item.Types)
                 if (!types.Contains(Type))
                     types.Add(Type);
 
@@ -51,7 +51,7 @@ public partial class PageToolsHelp : IRefreshable
                 // 确认所属该分类的项目
                 var typeItems = new List<ModMain.HelpEntry>();
                 foreach (var Item in helpItems)
-                    if (Item.types.Contains(Type))
+                    if (Item.Types.Contains(Type))
                         typeItems.Add(Item);
                 // 增加卡片
                 var newCard = new MyCard { Title = Type, Margin = new Thickness(0d, 0d, 0d, 15d) };
@@ -93,8 +93,8 @@ public partial class PageToolsHelp : IRefreshable
     {
         try
         {
-            if (entry.isEvent)
-                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(entry.eventType), entry.eventData);
+            if (entry.IsEvent)
+                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(entry.EventType), entry.EventData);
             else
                 EnterHelpPage(entry);
         }
@@ -177,15 +177,15 @@ public partial class PageToolsHelp : IRefreshable
             var queryList = new List<ModBase.SearchEntry<ModMain.HelpEntry>>();
             foreach (var Entry in ModMain.helpLoader.output)
             {
-                if (!Entry.showInSearch || (ModBase.Val(ModBase.versionBranchCode) == 50d && !Entry.showInPublic))
+                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.versionBranchCode) == 50d && !Entry.ShowInPublic))
                     continue;
-                if (!Entry.showInSearch || (ModBase.Val(ModBase.versionBranchCode) != 50d && !Entry.showInSnapshot))
+                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.versionBranchCode) != 50d && !Entry.ShowInSnapshot))
                     continue;
                 queryList.Add(new ModBase.SearchEntry<ModMain.HelpEntry>
                 {
                     item = Entry,
                     searchSource = new List<ModBase.SearchSource>
-                        { new(Entry.title, 1d), new(Entry.desc, 0.5d), new(Entry.search, 1.5d) }
+                        { new(Entry.Title, 1d), new(Entry.Desc, 0.5d), new(Entry.Search, 1.5d) }
                 });
                 // New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
             }

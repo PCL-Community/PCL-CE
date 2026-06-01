@@ -224,11 +224,11 @@ public static class ModLoader
         /// <summary>
         ///     加载器的标识编号。
         /// </summary>
-        public int uuid = ModBase.GetUuid();
+        public int Uuid = ModBase.GetUuid();
 
         public LoaderBase()
         {
-            name = "未命名任务 " + uuid + "#";
+            name = "未命名任务 " + Uuid + "#";
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ public static class ModLoader
         public override bool Equals(object obj)
         {
             var @base = obj as LoaderBase;
-            return @base is not null && uuid == @base.uuid;
+            return @base is not null && Uuid == @base.Uuid;
         }
     }
 

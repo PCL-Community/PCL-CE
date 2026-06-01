@@ -227,8 +227,8 @@ public partial class PageToolsTest
                     if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.WaitForExit();
                     foreach (var mcFolder in ModMinecraft.mcFolderList)
                     {
-                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.location));
-                        var dirInfo = new DirectoryInfo(mcFolder.location + "versions");
+                        cleanMcFolderList.Add(new DirectoryInfo(mcFolder.Location));
+                        var dirInfo = new DirectoryInfo(mcFolder.Location + "versions");
                         if (dirInfo.Exists)
                             foreach (var item in dirInfo.EnumerateDirectories())
                                 cleanMcFolderList.Add(item);

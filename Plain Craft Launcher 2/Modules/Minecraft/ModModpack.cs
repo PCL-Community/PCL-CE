@@ -626,7 +626,7 @@ public static class ModModpack
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    States.Instance.CustomInfo[versionFolder] = projects.First().description;
+                    States.Instance.CustomInfo[versionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {
@@ -866,7 +866,7 @@ public static class ModModpack
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    States.Instance.CustomInfo[versionFolder] = projects.First().description;
+                    States.Instance.CustomInfo[versionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {

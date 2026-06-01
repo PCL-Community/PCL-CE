@@ -1,6 +1,5 @@
 ﻿using PCL.Core.App.IoC;
 using PCL.Core.UI;
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;

@@ -1538,7 +1538,7 @@ public partial class FormMain
             }
             case PageType.HelpDetail:
             {
-                return stack.additional.Value.HelpEntry.title;
+                return stack.additional.Value.HelpEntry.Title;
             }
             case PageType.VersionSaves:
             {

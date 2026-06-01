@@ -208,7 +208,7 @@ public partial class MySkin
             var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
             var cachePath = ModBase.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
-            ModProfile.selectedProfile.skinHeadId = skinHeadId;
+            ModProfile.selectedProfile.SkinHeadId = skinHeadId;
             ModProfile.SaveProfile();
             var completeHead = new Bitmap(56, 56);
             using (var g = Graphics.FromImage(completeHead))
@@ -318,9 +318,9 @@ public partial class MySkin
         {
             try
             {
-                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.uuid,
+                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
                     skinAddress);
-                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.uuid} -> {skinAddress}");
+                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
                 foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
                     SkinLoader.WaitForExit(isForceRestart: true);
                 ModMain.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), ModMain.HintType.Finish);
@@ -363,9 +363,9 @@ public partial class MySkin
                     return;
                 }
 
-                var accessToken = ModLaunch.mcLoginMsLoader.output.accessToken;
-                var uuid = ModLaunch.mcLoginMsLoader.output.uuid;
-                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.profileJson);
+                var accessToken = ModLaunch.mcLoginMsLoader.output.AccessToken;
+                var uuid = ModLaunch.mcLoginMsLoader.output.Uuid;
+                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.ProfileJson);
                 foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)

@@ -83,7 +83,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception secEx)
         {
-            ModBase.Log(secEx, "Occured an exception when exit server.");
+            ModBase.Log(secEx, "Occurred an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }
@@ -159,7 +159,7 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "Occured an exception when exit server.");
+            ModBase.Log(ex, "Occurred an exception when exit server.");
             ModMain.Hint("在服务器退出时发生了错误！", ModMain.HintType.Critical);
         }
     }

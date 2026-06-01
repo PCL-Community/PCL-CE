@@ -24,7 +24,7 @@ public class MyTextButton : Label
                     ModAnimation.AaOpacity(button, -button.Opacity, 50),
                     ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
                     ModAnimation.AaOpacity(button, 1d, 170)
-                }, "MyTextButton Text " + button.uuid);
+                }, "MyTextButton Text " + button.Uuid);
         }));
     
     private string colorName;
@@ -35,7 +35,7 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int uuid = ModBase.GetUuid();
+    public int Uuid = ModBase.GetUuid();
 
     public MyTextButton()
     {
@@ -101,6 +101,6 @@ public class MyTextButton : Label
         colorName = ForeName;
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
-            "MyTextButton Color " + uuid, ControlVisualHelpers.ShouldAnimate(this));
+            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
     }
 }
