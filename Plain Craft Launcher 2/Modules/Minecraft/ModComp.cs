@@ -610,64 +610,7 @@ public static class ModComp
             {
                 try
                 {
-                    string? slug = null;
-                    string? projectId = null;
-                    var processedText = text.Replace("https://", "").Replace("http://", "");
-
-                    // 1. 处理 CurseForge 链接
-                    if (processedText.Contains("curseforge.com/minecraft/"))
-                    {
-                        var parts = processedText.Split('/');
-                        if (parts.Length < 4) return;
-
-                        var categoryUrl = parts[2];
-                        slug = parts[3];
-
-                        // 获取资源信息
-                        var json = ModDownload.DlModRequest<JsonObject>(
-                            $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}");
-                        var dataArray = (JsonArray)json["data"];
-
-                        if (dataArray.Any())
-                        {
-                            var firstData = (JsonObject)dataArray[0];
-                            var receivedClassId = firstData["classId"]?.ToString();
-
-                            // 映射分类 ID
-                            var categoryMapping = new Dictionary<string, string>
-                            {
-                                { "mc-mods", "6" },
-                                { "modpacks", "4471" },
-                                { "texture-packs", "12" },
-                                { "shaders", "6552" }
-                            };
-
-                            if (categoryMapping.TryGetValue(categoryUrl, out var targetClassId) &&
-                                receivedClassId != targetClassId)
-                            {
-                                // 如果分类不匹配，带上 classId 重新搜索
-                                json = ModDownload.DlModRequest<JsonObject>(
-                                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}");
-                                dataArray = (JsonArray)json["data"];
-                            }
-
-                            if (dataArray.Any()) projectId = dataArray[0]["id"]?.ToString();
-                        }
-                    }
-                    // 2. 处理 Modrinth 链接
-                    else if (processedText.Contains("modrinth.com/"))
-                    {
-                        var parts = processedText.Split('/');
-                        if (parts.Length < 3) return;
-
-                        slug = parts[2];
-                        var json = ModDownload.DlModRequest<JsonObject>($"https://api.modrinth.com/v2/project/{slug}");
-                        projectId = json["id"]?.ToString();
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    var projectId = ResolveLinkToProjectId(text);
 
                     if (string.IsNullOrEmpty(projectId)) return;
                     ModBase.Log($"[Clipboard] Found ProjectId: {projectId}");
@@ -2198,6 +2141,65 @@ public static class ModComp
     ///     已知工程信息的缓存。
     /// </summary>
     public static ConcurrentDictionary<string, CompProject> compProjectCache = new();
+
+    /// <summary>
+    ///     从单条 CurseForge / Modrinth 资源链接解析出 projectId。无法识别或获取失败时返回 null。
+    /// </summary>
+    public static string? ResolveLinkToProjectId(string url)
+    {
+        var processedText = url.Replace("https://", "").Replace("http://", "");
+        string? projectId = null;
+
+        // 1. 处理 CurseForge 链接
+        if (processedText.Contains("curseforge.com/minecraft/"))
+        {
+            var parts = processedText.Split('/');
+            if (parts.Length < 4) return null;
+
+            var categoryUrl = parts[2];
+            var slug = parts[3];
+
+            var json = ModDownload.DlModRequest<JsonObject>(
+                $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}");
+            var dataArray = (JsonArray)json["data"];
+
+            if (dataArray.Any())
+            {
+                var firstData = (JsonObject)dataArray[0];
+                var receivedClassId = firstData["classId"]?.ToString();
+
+                var categoryMapping = new Dictionary<string, string>
+                {
+                    { "mc-mods", "6" },
+                    { "modpacks", "4471" },
+                    { "texture-packs", "12" },
+                    { "shaders", "6552" }
+                };
+
+                if (categoryMapping.TryGetValue(categoryUrl, out var targetClassId) &&
+                    receivedClassId != targetClassId)
+                {
+                    json = ModDownload.DlModRequest<JsonObject>(
+                        $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={slug}&classId={targetClassId}");
+                    dataArray = (JsonArray)json["data"];
+                }
+
+                if (dataArray.Any()) projectId = dataArray[0]["id"]?.ToString();
+            }
+        }
+        // 2. 处理 Modrinth 链接
+        else if (processedText.Contains("modrinth.com/"))
+        {
+            var parts = processedText.Split('/');
+            if (parts.Length < 3) return null;
+
+            var slug = parts[2];
+            var json = ModDownload.DlModRequest<JsonObject>($"https://api.modrinth.com/v2/project/{slug}");
+            projectId = json["id"]?.ToString();
+        }
+
+        return projectId;
+    }
 
     /// <summary>
     ///     根据搜索请求获取一系列的工程列表。需要基于加载器运行。
