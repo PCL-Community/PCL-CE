@@ -17,15 +17,6 @@ public static class ToastNotification
     /// <param name="title">Notification title</param>
     public static unsafe void SendToast(string message, string title = "Notice")
     {
-        // var toast = new ToastContentBuilder();
-        // toast
-        //     .AddArgument("action", "viewConversation")
-        //     .AddText(title)
-        //     .AddText(message);
-        //
-        // toast.Show();
-        // TODO
-        
         var xml = HStringHelper.ToHString($"""
             <toast>
                 <visual>
@@ -82,7 +73,7 @@ public static class ToastNotification
     /// </summary>
     public static void UninstallToasts()
     {
-        // ToastNotificationManagerCompat.Uninstall();
-        // TODO
+        // TODO: 更改这里的逻辑
+        AumidHelper.UnregisterAumid("PCLCommunity.PCLCE");
     }
 }
