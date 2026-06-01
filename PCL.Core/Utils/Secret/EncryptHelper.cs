@@ -148,9 +148,7 @@ public static class EncryptHelper
 
     private static byte[] _GetKey()
     {
-        Span<byte> store = stackalloc byte[Encoding.UTF8.GetByteCount(Key)];
-        Key.GetBytes(Encoding.UTF8, store);
-        var space = (ReadOnlySpan<byte>)store;
+        var space = Key.GetBytes();
         var keyFile = Path.Combine(Paths.SharedData, "UserKey.bin");
         if (File.Exists(keyFile))
         {
@@ -158,8 +156,8 @@ public static class EncryptHelper
             var data = EncryptionData.FromBytes(buf);
             return data.Version switch
             {
-                1 => ProtectedData.Unprotect(data.Data.AsSpan(), DataProtectionScope.CurrentUser, space),
-                2 => CngProtectedData.Unprotect(data.Data.AsSpan(), CngDataProtectionScope.CurrentUser, space),
+                1 => ProtectedData.Unprotect(data.Data, DataProtectionScope.CurrentUser, space),
+                2 => CngProtectedData.Unprotect(data.Data, CngDataProtectionScope.CurrentUser, space),
                 _ => throw new NotSupportedException("Unsupported key version")
             };
         }
