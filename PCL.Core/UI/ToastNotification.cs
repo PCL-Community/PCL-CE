@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Security;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.WinRT;
 using PCL.Core.Utils.WinRT.Interface;
@@ -21,8 +22,8 @@ public static class ToastNotification
             <toast>
                 <visual>
                     <binding template="ToastGeneric">
-                        <text>{title}</text>
-                        <text>{message}</text>
+                        <text>{SecurityElement.Escape(title)}</text>
+                        <text>{SecurityElement.Escape(message)}</text>
                     </binding>
                 </visual>
             </toast>
@@ -31,7 +32,7 @@ public static class ToastNotification
         // TODO: 将 AUMID 判断放在其他位置
         if (!AumidHelper.HasAumid())
         {
-            AumidHelper.RegisterAumid("PCLCommunity.PCLCE");
+            AumidHelper.RegisterAumid();
         }
         var aumid = HStringHelper.ToHString("PCLCommunity.PCLCE");
         
@@ -63,6 +64,14 @@ public static class ToastNotification
                     aumid, &toastNotifier));
             Marshal.ThrowExceptionForHR(
                 ((IToastNotifier*)toastNotifier)->lpVtbl->Show(toastNotifier, toastNotification));
+            
+            // 释放资源
+            inspectable->lpVtbl->Release(inspectable);
+            ((IXmlDocumentIO*)xmlDocumentIO)->lpVtbl->Release(xmlDocumentIO);
+            toastNotificationFactory->lpVtbl->Release(toastNotificationFactory);
+            ((IInspectable*)toastNotification)->lpVtbl->Release(toastNotification);
+            toastNotificationManagerStatics->lpVtbl->Release(toastNotificationManagerStatics);
+            ((IToastNotifier*)toastNotifier)->lpVtbl->Release(toastNotifier);
         }
         
         HStringHelper.DeleteHString(xml);
@@ -75,6 +84,6 @@ public static class ToastNotification
     public static void UninstallToasts()
     {
         // TODO: 更改这里的逻辑
-        AumidHelper.UnregisterAumid("PCLCommunity.PCLCE");
+        AumidHelper.UnregisterAumid();
     }
 }
