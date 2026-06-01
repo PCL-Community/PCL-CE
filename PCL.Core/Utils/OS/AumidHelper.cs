@@ -8,20 +8,20 @@ public static class AumidHelper
     
     public static bool HasAumid()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\AppUserModelId\XXX");
+        using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
         return key != null;
     }
     
-    public static void RegisterAumid(string aumid)
+    public static void RegisterAumid()
     {
-        using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\{aumid}");
+        using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
         key.SetValue("DisplayName", "Plain Craft Launcher Community Edition");
         key.SetValue("IconUri", IconHelper.GetIconPath());
         key.SetValue("IconBackgroundColor", "FFDDDD");
     }
 
-    public static void UnregisterAumid(string aumid)
+    public static void UnregisterAumid()
     {
-        Registry.CurrentUser.DeleteSubKey($@"Software\Classes\AppUserModelId\{aumid}", false);
+        Registry.CurrentUser.DeleteSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE", false);
     }
 }
