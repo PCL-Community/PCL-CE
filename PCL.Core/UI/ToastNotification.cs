@@ -27,7 +27,6 @@ public static class ToastNotification
                 </visual>
             </toast>
             """);
-
         
         // TODO: 将 AUMID 判断放在其他位置
         if (!AumidHelper.HasAumid())
@@ -35,6 +34,8 @@ public static class ToastNotification
             AumidHelper.RegisterAumid("PCLCommunity.PCLCE");
         }
         var aumid = HStringHelper.ToHString("PCLCommunity.PCLCE");
+        
+        // TODO: 支持触发事件
         
         fixed (Guid* xmlDocumentIOIid = &IXmlDocumentIOInfo.Iid)
         {
