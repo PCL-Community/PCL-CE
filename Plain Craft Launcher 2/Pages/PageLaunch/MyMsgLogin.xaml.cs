@@ -75,7 +75,7 @@ public partial class MyMsgLogin
             return;
         ModBase.OpenWebsite(website);
         ModBase.ClipboardSet(userCode);
-        await Task.Delay((data["interval"].ToObject<int>() - 1) * 1000).ConfigureAwait(false);
+        var delayTime = (data["interval"].ToObject<int>() - 1) * 1000;
         // 轮询
         var unknownFailureCount = 0;
         while (!myConverter.IsExited)
@@ -90,12 +90,14 @@ public partial class MyMsgLogin
                     .ConfigureAwait(false);
                 if (!result.IsSuccess)
                 {
-                    var error = await result.AsJsonAsync<ErrorBody>().ConfigureAwait(false);
+                    var error = await result.AsJsonAsync<ErrorBody>()
+                        .ConfigureAwait(false);
                     switch(error?.Error)
                     {
                         case "authorization_pending":
                             {
-                                await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+                                await Task.Delay(delayTime)
+                                    .ConfigureAwait(false);
                                 continue;
                             }
                         default:
