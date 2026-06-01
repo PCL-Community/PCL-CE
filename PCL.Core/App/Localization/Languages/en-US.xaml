@@ -2671,6 +2671,13 @@
 
     <!-- Speed -->
 
+    <sys:String x:Key="Speed.Progress.Total">Total progress</sys:String>
+    <sys:String x:Key="Speed.Progress.Speed">Download speed</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingFiles">Remaining files</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingThreads">Remaining threads</sys:String>
+    <sys:String x:Key="Speed.Error.ClickToCopy">Click to copy error details</sys:String>
+    <sys:String x:Key="Speed.Error.Copied">Error details copied!</sys:String>
+
     <!-- Tools.ServerQuery -->
 
     <sys:String x:Key="Tools.ServerQuery.Address.Hint">Enter server address</sys:String>

@@ -2671,6 +2671,13 @@
 
     <!-- Speed -->
 
+    <sys:String x:Key="Speed.Progress.Total">总进度</sys:String>
+    <sys:String x:Key="Speed.Progress.Speed">下载速度</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingFiles">剩余文件</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingThreads">剩余线程</sys:String>
+    <sys:String x:Key="Speed.Error.ClickToCopy">单击复制错误详情</sys:String>
+    <sys:String x:Key="Speed.Error.Copied">已复制错误详情！</sys:String>
+
     <!-- Tools.ServerQuery -->
 
     <sys:String x:Key="Tools.ServerQuery.Address.Hint">输入服务器地址</sys:String>
