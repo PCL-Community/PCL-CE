@@ -15,6 +15,7 @@ public static class AumidHelper
         using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\{aumid}");
         key.SetValue("DisplayName", "Plain Craft Launcher Community Edition");
         key.SetValue("IconUri", IconHelper.GetIconPath());
+        key.SetValue("IconBackgroundColor", "FFDDDD");
     }
 
     public static void UnregisterAumid(string aumid)
