@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
+using PCL.Core.Minecraft.Saves.Exceptions;
 using PCL.Core.Minecraft.Saves.Parsing;
 
 namespace PCL.Core.Test.Minecraft;
@@ -280,6 +281,216 @@ public class SaveManagerTest
         Assert.AreEqual(2, names.Count);
         CollectionAssert.Contains(names, "A");
         CollectionAssert.Contains(names, "B");
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_FallsBackToLevelDatOld()
+    {
+        var folder = Path.Combine(_tempRoot, "BackupOnly");
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, "level.dat_old");
+        var root = new fNbt.NbtCompound("");
+        var data = new fNbt.NbtCompound("Data");
+        data.Add(new fNbt.NbtString("LevelName", "BackupWorld"));
+        data.Add(new fNbt.NbtLong("LastPlayed", 0));
+        data.Add(new fNbt.NbtLong("Time", 0));
+        data.Add(new fNbt.NbtInt("GameType", 0));
+        root.Add(data);
+        var nbtFile = new fNbt.NbtFile(root);
+        using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            nbtFile.SaveToStream(fs, fNbt.NbtCompression.GZip);
+
+        var info = await _saveManager.LoadSaveAsync(folder);
+
+        Assert.AreEqual("BackupWorld", info.LevelName);
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_NoLevelDat_ThrowsSaveNotFound()
+    {
+        var folder = Path.Combine(_tempRoot, "EmptyFolder");
+        Directory.CreateDirectory(folder);
+
+        await Assert.ThrowsExactlyAsync<SaveNotFoundException>(
+            async () => await _saveManager.LoadSaveAsync(folder));
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_CorruptedFile_ThrowsSaveCorrupted()
+    {
+        var folder = Path.Combine(_tempRoot, "CorruptedWorld");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "level.dat"), "not valid gzip data");
+
+        await Assert.ThrowsExactlyAsync<SaveCorruptedException>(
+            async () => await _saveManager.LoadSaveAsync(folder));
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_ReadsSeedFromWorldGenSettings()
+    {
+        var folder = Path.Combine(_tempRoot, "116World");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "ModernWorld"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("DataVersion", 2586)); // 1.16.5
+            data.Add(new fNbt.NbtInt("GameType", 0));
+            var wgs = new fNbt.NbtCompound("WorldGenSettings");
+            wgs.Add(new fNbt.NbtLong("seed", 987654321L));
+            data.Add(wgs);
+        });
+
+        var info = await _saveManager.LoadSaveAsync(folder);
+
+        Assert.AreEqual(987654321L, info.Seed);
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_SeedFallbackToRandomSeed()
+    {
+        var folder = Path.Combine(_tempRoot, "FallbackSeed");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "FallbackWorld"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("DataVersion", 2586));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+            var wgs = new fNbt.NbtCompound("WorldGenSettings");
+            // no seed inside WorldGenSettings
+            data.Add(wgs);
+            data.Add(new fNbt.NbtLong("RandomSeed", 555555L));
+        });
+
+        var info = await _saveManager.LoadSaveAsync(folder);
+
+        Assert.AreEqual(555555L, info.Seed);
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_NextGenExternalSeedFile()
+    {
+        var folder = Path.Combine(_tempRoot, "NextGenSeedFile");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "NextGenSeed"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("DataVersion", 4800));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+        });
+
+        // create external seed file
+        var externalDir = Path.Combine(folder, "data", "minecraft");
+        Directory.CreateDirectory(externalDir);
+        var externalPath = Path.Combine(externalDir, "world_gen_settings.dat");
+        var extRoot = new fNbt.NbtCompound("");
+        var extData = new fNbt.NbtCompound("data");
+        extData.Add(new fNbt.NbtLong("seed", 999888777L));
+        extRoot.Add(extData);
+        var extNbt = new fNbt.NbtFile(extRoot);
+        using (var fs = new FileStream(externalPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            extNbt.SaveToStream(fs, fNbt.NbtCompression.GZip);
+
+        var info = await _saveManager.LoadSaveAsync(folder);
+
+        Assert.AreEqual(999888777L, info.Seed);
+    }
+
+    [TestMethod]
+    public async Task LoadSaveAsync_NoMatchingParser_ThrowsSaveCorrupted()
+    {
+        // Use a custom factory that never matches any parser
+        var factory = new SaveParserFactory(Array.Empty<ISaveParser>());
+        var manager = new SaveManager(factory);
+
+        var folder = Path.Combine(_tempRoot, "NoParserWorld");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "NoParser"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+        });
+
+        await Assert.ThrowsExactlyAsync<SaveCorruptedException>(
+            async () => await manager.LoadSaveAsync(folder));
+    }
+
+    [TestMethod]
+    public async Task LoadSavesAsync_SkipsCorruptedFolders()
+    {
+        var valid = Path.Combine(_tempRoot, "Valid");
+        var corrupted = Path.Combine(_tempRoot, "Corrupted");
+        Directory.CreateDirectory(valid);
+        Directory.CreateDirectory(corrupted);
+        File.WriteAllText(Path.Combine(corrupted, "level.dat"), "garbage");
+
+        WriteLevelDat(valid, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "OnlyValid"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+        });
+
+        var names = new System.Collections.Generic.List<string>();
+        await foreach (var info in _saveManager.LoadSavesAsync(_tempRoot, CancellationToken.None))
+            names.Add(info.LevelName);
+
+        Assert.AreEqual(1, names.Count);
+        Assert.AreEqual("OnlyValid", names[0]);
+    }
+
+    [TestMethod]
+    public async Task ApplyChangesAsync_NoMatchingEditor_ThrowsSaveCorrupted()
+    {
+        var folder = Path.Combine(_tempRoot, "NoEditorWorld");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "NoEditor"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+        });
+
+        // Use an empty editor list so no editor matches
+        var manager = new SaveManager(customEditors: Array.Empty<ISaveEditor>());
+        var changes = new SaveChanges { AllowCommands = new Editable<bool>(true) };
+
+        await Assert.ThrowsExactlyAsync<SaveCorruptedException>(
+            async () => await manager.ApplyChangesAsync(folder, changes));
+    }
+
+    [TestMethod]
+    public async Task ApplyChangesAsync_PreservesLevelDatOldBackup()
+    {
+        var folder = Path.Combine(_tempRoot, "BackupWorld");
+        Directory.CreateDirectory(folder);
+        WriteLevelDat(folder, data =>
+        {
+            data.Add(new fNbt.NbtString("LevelName", "BackupTest"));
+            data.Add(new fNbt.NbtLong("LastPlayed", 0));
+            data.Add(new fNbt.NbtLong("Time", 0));
+            data.Add(new fNbt.NbtInt("GameType", 0));
+            data.Add(new fNbt.NbtByte("allowCommands", 0));
+            data.Add(new fNbt.NbtByte("Difficulty", 1));
+            data.Add(new fNbt.NbtByte("DifficultyLocked", 0));
+        });
+
+        var changes = new SaveChanges { AllowCommands = new Editable<bool>(true) };
+        var applied = await _saveManager.ApplyChangesAsync(folder, changes);
+
+        Assert.IsTrue(applied);
+        Assert.IsTrue(File.Exists(Path.Combine(folder, "level.dat")));
+        Assert.IsTrue(File.Exists(Path.Combine(folder, "level.dat_old")));
     }
 
     #endregion

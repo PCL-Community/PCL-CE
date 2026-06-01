@@ -1,6 +1,6 @@
 using System;
 
-namespace PCL.Core.Minecraft.Saves;
+namespace PCL.Core.Minecraft.Saves.Editing;
 
 /// <summary>
 /// 可编辑值的标记联合 —— 表示"不修改"或"修改为某值"。

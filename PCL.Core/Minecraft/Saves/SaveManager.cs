@@ -162,7 +162,7 @@ public class SaveManager
             nbtFile = new NbtFile();
             await Task.Run(() =>
             {
-                using var fs = new FileStream(levelDatPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 4096, true);
+                using var fs = new FileStream(levelDatPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
                 nbtFile.LoadFromStream(fs, NbtCompression.AutoDetect);
             }, ct).ConfigureAwait(false);
 
@@ -192,17 +192,60 @@ public class SaveManager
                         $"应用修改失败：'{folderPath}'", ex);
                 }
 
-                // 修改成功，写回文件
-                await Task.Run(() =>
-                {
-                    using var fs = new FileStream(levelDatPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-                    nbtFile.SaveToStream(fs, NbtCompression.GZip);
-                }, ct).ConfigureAwait(false);
+                // 原子写入：temp → 备份 → 重命名
+                await WriteLevelDatAtomicallyAsync(levelDatPath, nbtFile, ct).ConfigureAwait(false);
                 return true;
             }
         }
 
-        return false;
+        // 找不到匹配编辑器时抛出异常，与"无修改"（返回 false）区分
+        throw new SaveCorruptedException(folderPath,
+            $"找不到匹配的存档编辑器（DataVersion: {dataVersion}）");
+    }
+
+    /// <summary>
+    /// 原子写入 level.dat：先将 NBT 写入临时文件，备份当前文件，再重命名临时文件。
+    /// 参考 Minecraft 自身的保存流程。
+    /// </summary>
+    private static async Task WriteLevelDatAtomicallyAsync(
+        string levelDatPath, NbtFile nbtFile, CancellationToken ct)
+    {
+        var dir = Path.GetDirectoryName(levelDatPath)!;
+        var tempPath = Path.Combine(dir, $"level{Guid.NewGuid():N}.dat");
+        var backupPath = Path.Combine(dir, "level.dat_old");
+
+        try
+        {
+            // 1. 写入临时文件
+            await Task.Run(() =>
+            {
+                using var fs = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write,
+                    FileShare.None, 4096, true);
+                nbtFile.SaveToStream(fs, NbtCompression.GZip);
+            }, ct).ConfigureAwait(false);
+
+            // 2. 备份当前 level.dat → level.dat_old
+            File.Move(levelDatPath, backupPath, overwrite: true);
+
+            // 3. 重命名临时文件 → level.dat
+            File.Move(tempPath, levelDatPath);
+        }
+        catch
+        {
+            // 清理临时文件
+            TryDelete(tempPath);
+            // 如果 level.dat 已被移走但备份存在，尝试回滚
+            if (!File.Exists(levelDatPath) && File.Exists(backupPath))
+            {
+                try { File.Move(backupPath, levelDatPath); } catch { /* best-effort */ }
+            }
+            throw;
+        }
+    }
+
+    private static void TryDelete(string path)
+    {
+        try { if (File.Exists(path)) File.Delete(path); } catch { /* best-effort */ }
     }
 
     /// <summary>核心加载逻辑：读取 level.dat → 解析 DataVersion → 匹配解析器 → 构建 SaveInfo。</summary>
