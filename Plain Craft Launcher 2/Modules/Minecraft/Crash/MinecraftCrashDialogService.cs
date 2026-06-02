@@ -14,7 +14,6 @@ namespace PCL;
 public sealed class MinecraftCrashDialogService
 {
     private readonly MinecraftCrashReportExportService _exportService = new();
-    private readonly CrashResultLocalizer _localizer = new();
     private readonly CrashReportBuilder _reportBuilder = new();
 
     /// <summary>

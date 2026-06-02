@@ -13,7 +13,7 @@ namespace PCL.Core.Minecraft.CrashAnalysis;
 ///         结果仍然是结构化参数，不在这里拼接用户文案。
 ///     </p>
 /// </summary>
-public sealed class CrashStackAnalyzer
+public sealed partial class CrashStackAnalyzer
 {
     private const int MaxKeywordCount = 20;
 
@@ -40,15 +40,53 @@ public sealed class CrashStackAnalyzer
         "electronwill"
     };
 
-    private static readonly Regex _StackPackageRegex = new(
+    [GeneratedRegex(
         @"\n[^{]*(?<stack>[a-zA-Z_]\w+\.[a-zA-Z_][\w\.]+)(?=\.[\w\.$]+\.)",
-        RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(500));
+        RegexOptions.None,
+        500)]
+    private static partial Regex _StackPackageRegex();
 
-    private static readonly Regex _MixinStackRegex = new(
+    [GeneratedRegex(
         @"at [^(]+?\.\w+\$\w+\$(?<stack>[\w\$]+?)(?=\$\w+\()",
-        RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(500));
+        RegexOptions.None,
+        500)]
+    private static partial Regex _MixinStackRegex();
+
+    [GeneratedRegex(
+        @"\t\tfabric[\w-]*: Fabric",
+        RegexOptions.IgnoreCase,
+        500)]
+    private static partial Regex _FabricBuiltinModRegex();
+
+    [GeneratedRegex(
+        @"(?<=valid mod file ).*",
+        RegexOptions.Multiline | RegexOptions.IgnoreCase,
+        500)]
+    private static partial Regex _ValidModFileRegex();
+
+    [GeneratedRegex(
+        @".*(?= with)",
+        RegexOptions.IgnoreCase,
+        500)]
+    private static partial Regex _DebugModNameRegex();
+
+    [GeneratedRegex(
+        @"(?<=: )[^\n]+(?= [^\n]+)",
+        RegexOptions.IgnoreCase,
+        500)]
+    private static partial Regex _FabricModNameRegex();
+
+    [GeneratedRegex(
+        @"(?<=\()[^\t]+\.jar(?=\))|(?<=(\t\t)|(\| ))[^\t\|]+\.jar",
+        RegexOptions.IgnoreCase,
+        500)]
+    private static partial Regex _JarModNameRegex();
+
+    [GeneratedRegex(
+        @"/FATAL] .+?(?=[\n]+\[)",
+        RegexOptions.Singleline,
+        500)]
+    private static partial Regex _FatalBlockRegex();
 
     public static CrashFinding? Analyze(CrashRuleContext context)
     {
@@ -124,8 +162,8 @@ public sealed class CrashStackAnalyzer
             .Where(line =>
                 (line.Contains(".jar", StringComparison.OrdinalIgnoreCase) &&
                  line.Length - line.Replace(".jar", "", StringComparison.OrdinalIgnoreCase).Length == 4) ||
-                (isFabricDetail && line.StartsWith("\t\t", StringComparison.Ordinal) && !Regex.IsMatch(line,
-                    @"\t\tfabric[\w-]*: Fabric", RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500))))
+                (isFabricDetail && line.StartsWith("\t\t", StringComparison.Ordinal) &&
+                 !_FabricBuiltinModRegex().IsMatch(line)))
             .ToList();
 
         return _ExtractNamesFromLines(keywords, modLines, isFabricDetail);
@@ -133,15 +171,16 @@ public sealed class CrashStackAnalyzer
 
     private static IReadOnlyList<string> _ResolveFromDebugLog(IReadOnlyList<string> keywords, string debugLog)
     {
-        var modLines = CrashTextUtils.MatchAll(debugLog,
-            "(?<=valid mod file ).*",
-            RegexOptions.Multiline | RegexOptions.IgnoreCase);
+        var modLines = _ValidModFileRegex()
+            .Matches(debugLog)
+            .Select(static match => match.Value)
+            .ToList();
 
         return (
             from keyword in keywords
             from modLine in modLines
             where modLine.Contains($"{{{keyword}}}", StringComparison.OrdinalIgnoreCase)
-            select CrashTextUtils.MatchFirst(modLine, ".*(?= with)", RegexOptions.IgnoreCase)
+            select _MatchFirst(_DebugModNameRegex(), modLine)
             into name
             where !string.IsNullOrWhiteSpace(name)
             select name.Trim()
@@ -172,12 +211,8 @@ public sealed class CrashStackAnalyzer
                     normalizedLine.Contains(" mixin-", StringComparison.Ordinal)) continue;
 
                 var name = isFabricDetail
-                    ? CrashTextUtils.MatchFirst(line,
-                        @"(?<=: )[^\n]+(?= [^\n]+)",
-                        RegexOptions.IgnoreCase)
-                    : CrashTextUtils.MatchFirst(line,
-                        @"(?<=\()[^\t]+\.jar(?=\))|(?<=(\t\t)|(\| ))[^\t\|]+\.jar",
-                        RegexOptions.IgnoreCase);
+                    ? _MatchFirst(_FabricModNameRegex(), line)
+                    : _MatchFirst(_JarModNameRegex(), line);
                 if (!string.IsNullOrWhiteSpace(name)) result.Add(name.Trim());
 
                 break;
@@ -187,6 +222,12 @@ public sealed class CrashStackAnalyzer
         return result;
     }
 
+    private static string _MatchFirst(Regex regex, string text)
+    {
+        var match = regex.Match(text);
+        return match.Success ? match.Value : string.Empty;
+    }
+
     private static IReadOnlyList<string> _ExtractStackBlocks(CrashRuleContext context)
     {
         var blocks = new List<string>();
@@ -194,10 +235,9 @@ public sealed class CrashStackAnalyzer
             blocks.Add(CrashTextUtils.BeforeFirst(context.CrashReport.Text, "System Details"));
         if (!context.Game.IsEmpty)
         {
-            blocks.AddRange(CrashTextUtils.MatchAll(
-                context.Game.Text,
-                @"/FATAL] .+?(?=[\n]+\[)",
-                RegexOptions.Singleline));
+            blocks.AddRange(_FatalBlockRegex()
+                .Matches(context.Game.Text)
+                .Select(static match => match.Value));
 
             if (context.Game.Contains("Unreported exception thrown!"))
                 blocks.Add(CrashTextUtils.Between(context.Game.Text,
@@ -219,9 +259,9 @@ public sealed class CrashStackAnalyzer
         {
             var wrapped = "\n" + block + "\n";
 
-            foreach (Match match in _StackPackageRegex.Matches(wrapped))
+            foreach (Match match in _StackPackageRegex().Matches(wrapped))
                 stacks.Add(match.Groups["stack"].Value.Trim());
-            foreach (Match match in _MixinStackRegex.Matches(wrapped))
+            foreach (Match match in _MixinStackRegex().Matches(wrapped))
                 stacks.Add(match.Groups["stack"].Value.Replace('$', '.').Trim());
         }
 
