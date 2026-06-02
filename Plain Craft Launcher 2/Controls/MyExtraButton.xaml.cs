@@ -27,7 +27,7 @@ public partial class MyExtraButton
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
     private bool isRightMouseHeld;
-    public ShowCheckDelegate showCheck = null;
+    public ShowCheckDelegate? showCheck = null;
 
     // 自定义属性
     public int Uuid = ModBase.GetUuid();

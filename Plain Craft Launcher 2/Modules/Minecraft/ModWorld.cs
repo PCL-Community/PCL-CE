@@ -61,12 +61,12 @@ public static class ModWorld
         /// <summary>
         ///     版本 ID。
         /// </summary>
-        public string versionId;
+        public string? versionId;
 
         /// <summary>
         ///     版本名。
         /// </summary>
-        public string versionName;
+        public string? versionName;
 
         /// <summary>
         ///     存档。

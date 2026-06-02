@@ -53,7 +53,7 @@ public class CrashAnalyzer
     ///     将可用于分析的日志存储到 AnalyzeRawFiles。
     /// </summary>
     /// <param name="latestLog">从 PCL 捕获到的最后 200 行程序输出。</param>
-    public void Collect(string versionPathIndie, IList<string> latestLog = null)
+    public void Collect(string versionPathIndie, IList<string>? latestLog = null)
     {
         ModBase.Log("[Crash] 步骤 1：收集日志文件");
 
@@ -504,7 +504,7 @@ public class CrashAnalyzer
     /// <summary>
     ///     根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
     /// </summary>
-    public void Analyze(ModMinecraft.Instance version = null)
+    public void Analyze(ModMinecraft.Instance? version = null)
     {
         _version = version;
         ModBase.Log("[Crash] 步骤 3：分析崩溃原因");

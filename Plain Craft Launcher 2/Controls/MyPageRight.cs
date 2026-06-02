@@ -44,7 +44,7 @@ public class MyPageRight : AdornerDecorator
                 ModBase.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
             }
 
-            return (MyScrollViewer)res;
+            return (MyScrollViewer)res!;
         }
         set => SetValue(PanScrollProperty, value);
     }
@@ -64,11 +64,11 @@ public class MyPageRight : AdornerDecorator
 
     #region 加载器
 
-    private ModLoader.LoaderBase pageLoader;
+    private ModLoader.LoaderBase pageLoader = null!;
     private Func<object>? pageLoaderInputInvoke;
     private MyLoading? pageLoaderUi;
-    private FrameworkElement panLoader;
-    private FrameworkElement panContent;
+    private FrameworkElement panLoader = null!;
+    private FrameworkElement panContent = null!;
     private FrameworkElement? panAlways;
     private bool pageLoaderAutoRun;
 
@@ -136,7 +136,7 @@ public class MyPageRight : AdornerDecorator
     }
 
     // 重试
-    public void PageLoaderRestart(object input = null, bool isForceRestart = true) // 由外部调用的重试
+    public void PageLoaderRestart(object? input = null, bool isForceRestart = true) // 由外部调用的重试
     {
         if (!pageLoaderAutoRun)
             return;
@@ -175,7 +175,7 @@ public class MyPageRight : AdornerDecorator
                 {
                     // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
                     PageState = PageStates.ContentEnter;
-                    TriggerEnterAnimation(panAlways, (FrameworkElement)(panContent ?? Child));
+                    TriggerEnterAnimation(panAlways!, (FrameworkElement)(panContent ?? Child));
                 }
                 else if (pageLoader.State == ModBase.LoadState.Loading)
                 {
@@ -186,7 +186,7 @@ public class MyPageRight : AdornerDecorator
                 else // PageLoader.State = LoadState.Failed
                 {
                     PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(panAlways, panLoader);
+                    TriggerEnterAnimation(panAlways!, panLoader);
                 }
 
                 break;
@@ -245,7 +245,7 @@ public class MyPageRight : AdornerDecorator
             case PageStates.ContentStay:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(panAlways, (FrameworkElement)(panContent ?? Child));
+                TriggerExitAnimation(panAlways!, (FrameworkElement)(panContent ?? Child));
                 break;
             }
             case PageStates.LoaderEnter:
@@ -253,13 +253,13 @@ public class MyPageRight : AdornerDecorator
             case PageStates.LoaderStay:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(panAlways, panLoader);
+                TriggerExitAnimation(panAlways!, panLoader);
                 break;
             }
             case PageStates.LoaderWait:
             {
                 PageState = PageStates.PageExit;
-                TriggerExitAnimation(panAlways);
+                TriggerExitAnimation(panAlways!);
                 break;
             }
             case PageStates.LoaderExit:
@@ -684,7 +684,7 @@ public class MyPageRight : AdornerDecorator
     }
 
     // 查找列表中的第一个滚动条
-    private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
+    private MyScrollBar? GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
     {
         foreach (var Element in elements)
         {

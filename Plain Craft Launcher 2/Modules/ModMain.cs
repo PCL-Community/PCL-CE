@@ -253,6 +253,13 @@ public static class ModMain
         public string Text;
         public HintType Type;
         public bool Log;
+
+        public HintMessage(string text = "", HintType type = HintType.Info, bool log = false)
+        {
+            Text = text;
+            Type = type;
+            Log = log;
+        }
     }
 
 
@@ -346,7 +353,7 @@ public static class ModMain
                                 ModAnimation.AaX(doubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaDouble(i =>
                                 {
-                                    percent += (double)i;
+                                    percent += (double)i!;
                                     var gradient = (LinearGradientBrush)doubleStack.Background;
                                     gradient.GradientStops[0].Color = targetColor0 * percent +
                                                                       new ModBase.MyColor(255d, 255d, 255d) *
@@ -409,7 +416,7 @@ public static class ModMain
                         ModAnimation.AaOpacity(newHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
-                            percent += (double)i;
+                            percent += (double)i!;
                             var gradient = (LinearGradientBrush)newHintControl.Background;
                             gradient.GradientStops[0].Color = targetColor0 * percent +
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - percent);
@@ -482,28 +489,28 @@ public static class ModMain
         /// <summary>
         ///     点击第一个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action Button1Action;
+        public Action? Button1Action;
 
         public string Button2 = "";
 
         /// <summary>
         ///     点击第二个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action Button2Action;
+        public Action? Button2Action;
 
         public string Button3 = "";
 
         /// <summary>
         ///     点击第三个按钮将执行该方法，不关闭弹窗。
         /// </summary>
-        public Action Button3Action;
+        public Action? Button3Action;
 
         /// <summary>
         ///     输入模式：文本框的文本。
         ///     选择模式：需要放进去的 List(Of MyListItem)。
         ///     登录模式：登录步骤 1 中返回的 JSON。
         /// </summary>
-        public object Content;
+        public object Content = null!;
 
         public bool ForceWait;
 
@@ -529,16 +536,16 @@ public static class ModMain
         ///     选择模式：点击的按钮编号，从 1 开始。
         ///     登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
         /// </summary>
-        public object Result;
+        public object Result = null!;
 
-        public string Text;
-        public string Title;
-        public MyMsgBoxType Type;
+        public string Text = "";
+        public string Title = "";
+        public MyMsgBoxType Type = MyMsgBoxType.Text;
 
         /// <summary>
         ///     输入模式：输入验证规则。
         /// </summary>
-        public Collection<IValidator<string>> ValidateRules;
+        public Collection<IValidator<string>> ValidateRules = null!;
 
         public DispatcherFrame WaitFrame = new(true);
     }
@@ -572,7 +579,7 @@ public static class ModMain
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+        Action? button1Action = null, Action? button2Action = null, Action? button3Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
@@ -646,7 +653,7 @@ public static class ModMain
             }
 
             ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
-            return (int)converter.Result;
+            return (int)converter.Result!;
         }
 
         // 不进行等待，直接返回
@@ -667,7 +674,7 @@ public static class ModMain
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static int MyMsgBoxMarkdown(string caption, string? title = null, string? button1 = null, string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+        Action? button1Action = null, Action? button2Action = null, Action? button3Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
@@ -741,7 +748,7 @@ public static class ModMain
             }
 
             ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
-            return (int)converter.Result;
+            return (int)converter.Result!;
         }
 
         // 不进行等待，直接返回
@@ -759,7 +766,7 @@ public static class ModMain
     /// <param name="button1">显示的第一个按钮，默认为“确定”。</param>
     /// <param name="button2">显示的第二个按钮，默认为“取消”。</param>
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static string MyMsgBoxInput(string title, string text = "", string defaultInput = "",
+    public static string? MyMsgBoxInput(string title, string text = "", string defaultInput = "",
         Collection<IValidator<string>>? validateRules = null, string hintText = "", string? button1 = null,
         string? button2 = null, bool isWarn = false)
     {
@@ -889,11 +896,11 @@ public static class ModMain
         MsgBoxTheme theme, bool block, ref int result)
     {
         var btnText1 = buttons.Count < 1 ? GetDefaultConfirmText() : buttons.ElementAt(0).Context;
-        var btnAct1 = (Action)(buttons.Count < 1 ? (object)null : buttons.ElementAt(0).OnClick);
+        Action? btnAct1 = buttons.Count < 1 ? null : buttons.ElementAt(0).OnClick;
         var btnText2 = buttons.Count < 2 ? GetDefaultCancelText() : buttons.ElementAt(1).Context;
-        var btnAct2 = (Action)(buttons.Count < 2 ? (object)null : buttons.ElementAt(1).OnClick);
+        Action? btnAct2 = buttons.Count < 2 ? null : buttons.ElementAt(1).OnClick;
         var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Context;
-        var btnAct3 = (Action)(buttons.Count < 3 ? (object)null : buttons.ElementAt(2).OnClick);
+        Action? btnAct3 = buttons.Count < 3 ? null : buttons.ElementAt(2).OnClick;
 
         var isWarn = theme == MsgBoxTheme.Warning || theme == MsgBoxTheme.Error;
 
@@ -942,10 +949,10 @@ public static class ModMain
         /// <summary>
         ///     显示描述。
         /// </summary>
-        public string Desc;
+        public string Desc = "";
 
-        public string EventData;
-        public string EventType;
+        public string EventData = "";
+        public string EventType = "";
 
         // 动作
 
@@ -959,17 +966,12 @@ public static class ModMain
         /// <summary>
         ///     帮助项的自定义图标。可能为 Nothing。
         /// </summary>
-        public string Logo;
-
-        /// <summary>
-        ///     原始信息路径。用于刷新。
-        /// </summary>
-        public string RawPath;
+        public string Logo = "";
 
         /// <summary>
         ///     检索关键字。
         /// </summary>
-        public string Search;
+        public string Search = "";
 
         /// <summary>
         ///     是否在公开版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
@@ -991,17 +993,18 @@ public static class ModMain
         /// <summary>
         ///     显示标题。
         /// </summary>
-        public string Title;
+        public string Title = "";
+        public List<string> Types = [];
 
         /// <summary>
-        ///     用于分类的标签列表。
+        ///     原始文件路径。
         /// </summary>
-        public List<string> Types;
+        public string RawPath = "";
 
         /// <summary>
         ///     若非执行事件，其对应的 .xaml 本地文件内容。
         /// </summary>
-        public string XamlContent;
+        public string XamlContent = "";
 
         // 转换
 
@@ -1011,28 +1014,30 @@ public static class ModMain
         public HelpEntry(string filePath)
         {
             RawPath = filePath;
-            var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(filePath)));
+            var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(filePath))!);
             if (jsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + filePath, filePath);
             // 加载常规信息
             if (jsonData["Title"] is not null)
-                Title = (string)jsonData["Title"];
+                Title = ((string)jsonData["Title"]!)!;
             else
                 throw new ArgumentException("未找到 Title 项");
-            Desc = (string)(jsonData["Description"] ?? "");
-            Search = (string)(jsonData["Keywords"] ?? "");
-            Logo = (string)jsonData["Logo"]; // 为保持 Nothing，不要加 If
+            Desc = ((string)(jsonData["Description"] ?? ""))!;
+            Search = ((string)(jsonData["Keywords"] ?? ""))!;
+            Logo = ((string)jsonData["Logo"]!)!; // 为保持 Nothing，不要加 If
             ShowInSearch = (bool)(jsonData["ShowInSearch"] ?? ShowInSearch);
             ShowInPublic = (bool)(jsonData["ShowInPublic"] ?? ShowInPublic);
             ShowInSnapshot = (bool)(jsonData["ShowInSnapshot"] ?? ShowInSnapshot);
-            Types = new List<string>();
-            foreach (var nameOfType in (IEnumerable)(jsonData["Types"] ?? ModBase.GetJson("[]")))
-                Types.Add(nameOfType.ToString());
+            Types = [];
+            var typesNode = jsonData["Types"] ?? ModBase.GetJson("[]");
+            if (typesNode is IEnumerable typesEnum)
+                foreach (var nameOfType in typesEnum)
+                    Types.Add(nameOfType?.ToString() ?? "");
             // 加载事件信息
-            if ((bool)(jsonData["IsEvent"] ?? false))
+            if (jsonData["IsEvent"]?.GetValue<bool>() ?? false)
             {
-                EventType = Enum.Parse(typeof(CustomEvent.EventType), jsonData["EventType"].ToString()).ToString();
-                EventData = (jsonData["EventData"] ?? "").ToString();
+                EventType = Enum.Parse(typeof(CustomEvent.EventType), jsonData["EventType"]?.ToString() ?? "").ToString()!;
+                EventData = (jsonData["EventData"] ?? "")?.ToString() ?? "";
                 IsEvent = true;
             }
             else
@@ -1085,7 +1090,7 @@ public static class ModMain
             item.Type = MyListItem.CheckType.Clickable;
             item.Tag = this;
             CustomEventService.SetEventType(item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
-            CustomEventService.SetEventData(item, null);
+            CustomEventService.SetEventData(item, null!);
             // 项目的点击事件
             item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
             return item;
@@ -1146,7 +1151,7 @@ public static class ModMain
                     foreach (var file in ModBase.EnumerateFiles(ModBase.pathHelpFolder))
                     {
                         // 跳过非 Json 文件与以 . 开头的文件夹
-                        if (file.Extension.ToLower() != ".json" || file.Directory.FullName
+                        if (file.Extension.ToLower() != ".json" || file.Directory!.FullName
                                 .Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "").Contains(@"\."))
                             continue;
                         // 检查忽略列表
@@ -1243,14 +1248,14 @@ public static class ModMain
     {
         try
         {
-            if (frmLaunchLeft is null || frmLaunchLeft.AprilPosTrans is null || frmMain.lastMouseArg is null)
+            if (frmMain is not { } frm || frmLaunchLeft is null || frmLaunchLeft.AprilPosTrans is null || frm.lastMouseArg is null)
                 return;
-            if (isAprilGiveup || frmMain.pageCurrent != FormMain.PageType.Launch ||
+            if (isAprilGiveup || frm.pageCurrent != FormMain.PageType.Launch ||
                 ModAnimation.AniControlEnabled != 0 || !frmLaunchLeft.BtnLaunch.IsLoaded)
                 return;
 
             // 计算是否空闲
-            var mousePos = frmMain.lastMouseArg.GetPosition(frmMain);
+            var mousePos = frm.lastMouseArg.GetPosition(frm);
             if (mousePos == aprilMousePosLast)
             {
                 aprilIdieCount += 1;
@@ -1266,7 +1271,7 @@ public static class ModMain
             double distance;
             var buttonWidth = frmLaunchLeft.BtnLaunch.ActualWidth / 2d;
             var buttonHeight = frmLaunchLeft.BtnLaunch.ActualHeight / 2d;
-            var vec = (Vector)(frmMain.lastMouseArg.GetPosition(frmLaunchLeft.BtnLaunch) -
+            var vec = (Vector)(frm.lastMouseArg.GetPosition(frmLaunchLeft.BtnLaunch) -
                                new Vector(buttonWidth, buttonHeight));
             var dir = new Vector(vec.X, vec.Y);
             dir.Normalize();
@@ -1278,8 +1283,8 @@ public static class ModMain
             // 计算回归移动
             if (aprilIdieCount >= 64 * 5)
             {
-                var safeDist = (Vector)(frmMain.lastMouseArg.GetPosition(frmMain.PanMain) -
-                                        new Vector(buttonWidth, frmMain.PanMain.ActualHeight - buttonHeight * 3d));
+                var safeDist = (Vector)(frm.lastMouseArg.GetPosition(frm.PanMain) -
+                                        new Vector(buttonWidth, frm.PanMain.ActualHeight - buttonHeight * 3d));
                 var back = new Vector(frmLaunchLeft.AprilPosTrans.X, frmLaunchLeft.AprilPosTrans.Y);
                 if (safeDist.Length > 250d && back.Length > 0.4d)
                 {
@@ -1290,41 +1295,41 @@ public static class ModMain
             }
 
             // 回到边界
-            var relative = frmLaunchLeft.BtnLaunch.TranslatePoint(new Point(0d, 0d), frmMain.PanForm);
+            var relative = frmLaunchLeft.BtnLaunch.TranslatePoint(new Point(0d, 0d), frm.PanForm);
             if (relative.X < -buttonWidth * 2d)
             {
-                frmLaunchLeft.AprilPosTrans.X += frmMain.PanForm.ActualWidth + buttonWidth * 2d; // 离开左边界
+                frmLaunchLeft.AprilPosTrans.X += frm.PanForm.ActualWidth + buttonWidth * 2d; // 离开左边界
                 aprilSpeed.X -= 80d;
                 if (relative.Y < 0d)
                     frmLaunchLeft.AprilPosTrans.Y += buttonHeight * 2.5d;
-                else if (relative.Y > frmMain.PanForm.ActualHeight - buttonHeight * 2d)
+                else if (relative.Y > frm.PanForm.ActualHeight - buttonHeight * 2d)
                     frmLaunchLeft.AprilPosTrans.Y -= buttonHeight * 2.5d;
             }
-            else if (relative.X > frmMain.PanForm.ActualWidth)
+            else if (relative.X > frm.PanForm.ActualWidth)
             {
-                frmLaunchLeft.AprilPosTrans.X -= frmMain.PanForm.ActualWidth + buttonWidth * 2d; // 离开右边界
+                frmLaunchLeft.AprilPosTrans.X -= frm.PanForm.ActualWidth + buttonWidth * 2d; // 离开右边界
                 aprilSpeed.X += 80d;
                 if (relative.Y < 0d)
                     frmLaunchLeft.AprilPosTrans.Y += buttonHeight * 2.5d;
-                else if (relative.Y > frmMain.PanForm.ActualHeight - buttonHeight * 2d)
+                else if (relative.Y > frm.PanForm.ActualHeight - buttonHeight * 2d)
                     frmLaunchLeft.AprilPosTrans.Y -= buttonHeight * 2.5d;
             }
             else if (relative.Y < -buttonHeight * 2d)
             {
-                frmLaunchLeft.AprilPosTrans.Y += frmMain.PanForm.ActualHeight + buttonHeight * 2d; // 离开上边界
+                frmLaunchLeft.AprilPosTrans.Y += frm.PanForm.ActualHeight + buttonHeight * 2d; // 离开上边界
                 aprilSpeed.Y -= 25d;
                 if (relative.X < 0d)
                     frmLaunchLeft.AprilPosTrans.X += buttonWidth * 2d;
-                else if (relative.X > frmMain.PanForm.ActualWidth - buttonWidth * 2d)
+                else if (relative.X > frm.PanForm.ActualWidth - buttonWidth * 2d)
                     frmLaunchLeft.AprilPosTrans.X -= buttonWidth * 2d;
             }
-            else if (relative.Y > frmMain.PanForm.ActualHeight)
+            else if (relative.Y > frm.PanForm.ActualHeight)
             {
-                frmLaunchLeft.AprilPosTrans.Y -= frmMain.PanForm.ActualHeight + buttonHeight * 2d; // 离开下边界
+                frmLaunchLeft.AprilPosTrans.Y -= frm.PanForm.ActualHeight + buttonHeight * 2d; // 离开下边界
                 aprilSpeed.Y += 25d;
                 if (relative.X < 0d)
                     frmLaunchLeft.AprilPosTrans.X += buttonWidth * 2d;
-                else if (relative.X > frmMain.PanForm.ActualWidth - buttonWidth * 2d)
+                else if (relative.X > frm.PanForm.ActualWidth - buttonWidth * 2d)
                     frmLaunchLeft.AprilPosTrans.X -= buttonWidth * 2d;
             }
 
@@ -1444,7 +1449,7 @@ public static class ModMain
             // 写入新设置
             using (var writeKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, true))
             {
-                writeKey.SetValue(executeable,
+                writeKey!.SetValue(executeable,
                     wantHighPerformance ? GPU_PERFERENCE_REG_VALUE_HIGH : GPU_PERFERENCE_REG_VALUE_DEFAULT);
                 ModBase.Log($"[System] 已调整程序 ({executeable}) 显卡设置: {wantHighPerformance}");
             }
@@ -1453,12 +1458,12 @@ public static class ModMain
     /// <summary>
     /// 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
     /// /// </summary>
-    public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
+    public static string? ArgumentReplace(string text, Func<string, string>? escapeHandler = null, bool replaceTime = true) 
     {
     // 预处理
     if (text is null) return null;
     
-    Func<string, string> replacer = (s) =>
+    Func<string?, string> replacer = (s) =>
     {
         if (s is null) return "";
         if (escapeHandler is null) return s;

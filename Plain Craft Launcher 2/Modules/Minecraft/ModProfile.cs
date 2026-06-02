@@ -22,7 +22,7 @@ public static class ModProfile
     /// <summary>
     ///     当前选定的档案
     /// </summary>
-    public static McProfile selectedProfile;
+    public static McProfile selectedProfile = null!;
 
     /// <summary>
     ///     上次选定的档案编号
@@ -149,7 +149,7 @@ public static class ModProfile
     ///     根据用户名返回对应 UUID，需要多线程
     /// </summary>
     /// <param name="name">玩家 ID</param>
-    public static object McLoginMojangUuid(string name, bool throwOnNotFound)
+    public static object? McLoginMojangUuid(string name, bool throwOnNotFound)
     {
         if (name.Trim().Length == 0)
             return ModBase.StrFill("", "0", 32);
@@ -160,7 +160,7 @@ public static class ModProfile
         // 从官网获取
         try
         {
-            JsonObject gotJson = null;
+            JsonObject? gotJson = null;
             var finished = false;
             ModBase.RunInNewThread(() =>
                 {
@@ -181,7 +181,7 @@ public static class ModProfile
                 Thread.Sleep(50);
             if (gotJson is null)
                 throw new FileNotFoundException("正版玩家档案不存在（" + name + "）");
-            uuid = (string)(gotJson["id"] ?? "");
+            uuid = (string?)gotJson["id"] ?? "";
         }
         catch (Exception ex)
         {
@@ -195,7 +195,7 @@ public static class ModProfile
         // 写入缓存
         if ((uuid?.Length ?? 0) != 32)
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
-        ModBase.WriteIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
+        ModBase.WriteIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid!);
         return uuid;
     }
 
@@ -205,13 +205,13 @@ public static class ModProfile
 
     public class McProfile
     {
-        public string AccessToken;
-        public string ClientToken;
+        public string AccessToken = "";
+        public string ClientToken = "";
 
         /// <summary>
         ///     档案描述，暂时没做功能
         /// </summary>
-        public string Desc;
+        public string Desc = "";
 
         /// <summary>
         ///     联网验证档案的验证有效期
@@ -222,39 +222,39 @@ public static class ModProfile
         ///     用于识别正版档案的 ID 标识符
         /// </summary>
         [Obsolete("暂时弃用，应当使用 AccessToken 与 RefreshToken")]
-        public string IdentityId;
+        public string IdentityId = "";
 
         /// <summary>
         ///     登录用户名，用于第三方验证
         /// </summary>
-        public string Name;
+        public string Name = "";
 
         /// <summary>
         ///     登录密码，用于第三方验证
         /// </summary>
-        public string Password;
+        public string Password = "";
 
         /// <summary>
         ///     原始 JSON 数据，用于正版验证部分功能
         /// </summary>
-        public string RawJson;
+        public string RawJson = "";
 
-        public string RefreshToken;
+        public string RefreshToken = "";
 
         /// <summary>
         ///     验证服务器地址，用于第三方验证
         /// </summary>
-        public string Server;
+        public string Server = "";
 
         /// <summary>
         ///     验证服务器名称，来自第三方验证服务器返回的 Metadata
         /// </summary>
-        public string ServerName;
+        public string ServerName = "";
 
         /// <summary>
         ///     用于档案列表头像显示的皮肤 ID
         /// </summary>
-        public string SkinHeadId;
+        public string SkinHeadId = "";
 
         /// <summary>
         ///     档案类型
@@ -264,9 +264,9 @@ public static class ModProfile
         /// <summary>
         ///     玩家 ID
         /// </summary>
-        public string Username;
+        public string Username = "";
 
-        public string Uuid;
+        public string Uuid = "";
     }
 
     #endregion
@@ -292,49 +292,50 @@ public static class ModProfile
             }
 
             var profileJobj = ModBase.GetJson(ModBase.ReadFile(profilePath));
-            lastUsedProfile = (int)profileJobj["lastUsed"];
-            var profileListJobj = (JsonArray)profileJobj["profiles"];
+            lastUsedProfile = profileJobj["lastUsed"]?.GetValue<int>() ?? 0;
+            if (profileJobj["profiles"] is not JsonArray profileListJobj) return;
             foreach (var Profile in profileListJobj)
             {
-                McProfile newProfile = null;
-                if ((string)Profile["type"] == "microsoft")
+                if (Profile is null) continue;
+                McProfile? newProfile = null;
+                if ((string?)Profile["type"] == "microsoft")
                     newProfile = new McProfile
                     {
                         Type = ModLaunch.McLoginType.Ms,
-                        Uuid = (string)Profile["uuid"],
-                        Username = (string)Profile["username"],
+                        Uuid = (string?)Profile["uuid"] ?? "",
+                        Username = (string?)Profile["username"] ?? "",
                         AccessToken = EncryptHelper.SecretDecrypt((string?)Profile["accessToken"]),
                         RefreshToken = EncryptHelper.SecretDecrypt((string?)Profile["refreshToken"]),
-                        Expires = (long)Profile["expires"],
-                        Desc = (string)Profile["desc"],
+                        Expires = Profile["expires"]?.GetValue<long>() ?? 0,
+                        Desc = (string?)Profile["desc"] ?? "",
                         RawJson = EncryptHelper.SecretDecrypt((string?)Profile["rawJson"]),
-                        SkinHeadId = (string)Profile["skinHeadId"]
+                        SkinHeadId = (string?)Profile["skinHeadId"] ?? ""
                     };
-                else if ((string)Profile["type"] == "authlib")
+                else if ((string?)Profile["type"] == "authlib")
                     newProfile = new McProfile
                     {
                         Type = ModLaunch.McLoginType.Auth,
-                        Uuid = (string)Profile["uuid"],
-                        Username = (string)Profile["username"],
+                        Uuid = (string?)Profile["uuid"] ?? "",
+                        Username = (string?)Profile["username"] ?? "",
                         AccessToken = EncryptHelper.SecretDecrypt((string?)Profile["accessToken"]),
                         RefreshToken = EncryptHelper.SecretDecrypt((string?)Profile["refreshToken"]),
-                        Expires = (long)Profile["expires"],
-                        Server = (string)Profile["server"],
-                        ServerName = (string)Profile["serverName"],
+                        Expires = Profile["expires"]?.GetValue<long>() ?? 0,
+                        Server = (string?)Profile["server"] ?? "",
+                        ServerName = (string?)Profile["serverName"] ?? "",
                         Name = EncryptHelper.SecretDecrypt((string?)Profile["name"]),
                         Password = EncryptHelper.SecretDecrypt((string?)Profile["password"]),
                         ClientToken = EncryptHelper.SecretDecrypt((string?)Profile["clientToken"]),
-                        Desc = (string)Profile["desc"],
-                        SkinHeadId = (string)Profile["skinHeadId"]
+                        Desc = (string?)Profile["desc"] ?? "",
+                        SkinHeadId = (string?)Profile["skinHeadId"] ?? ""
                     };
                 else
                     newProfile = new McProfile
                     {
                         Type = ModLaunch.McLoginType.Legacy,
-                        Uuid = (string)Profile["uuid"],
-                        Username = (string)Profile["username"],
-                        Desc = (string)Profile["desc"],
-                        SkinHeadId = (string)Profile["skinHeadId"]
+                        Uuid = (string?)Profile["uuid"] ?? "",
+                        Username = (string?)Profile["username"] ?? "",
+                        Desc = (string?)Profile["desc"] ?? "",
+                        SkinHeadId = (string?)Profile["skinHeadId"] ?? ""
                     };
                 profileList.Add(newProfile);
             }
@@ -360,7 +361,7 @@ public static class ModProfile
     /// <summary>
     ///     以当前的档案列表写入配置文件
     /// </summary>
-    public static void SaveProfile(JsonArray listJson = null)
+    public static void SaveProfile(JsonArray? listJson = null)
     {
         try
         {
@@ -374,7 +375,7 @@ public static class ModProfile
                 var list = new JsonArray();
                 foreach (var Profile in profileList)
                 {
-                    JsonObject profileJobj = null;
+                    JsonObject? profileJobj = null;
                     if (Profile.Type == ModLaunch.McLoginType.Ms)
                         profileJobj = new JsonObject
                         {
@@ -458,11 +459,11 @@ public static class ModProfile
             return;
         isCreatingProfile = true;
         if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 0) // 正版验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Ms));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true, ModLaunch.McLoginType.Ms));
         else if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 1) // 第三方验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true, ModLaunch.McLoginType.Auth));
         else // 离线验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true, ModLaunch.McLoginType.Legacy));
     }
 
     private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOfflineAndThirdParty) => includeOfflineAndThirdParty switch
@@ -509,7 +510,7 @@ public static class ModProfile
     {
         if (selectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
-            string newUsername = null;
+            string? newUsername = null;
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"), Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"),
                 selectedProfile.Username,
                 [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
@@ -537,13 +538,13 @@ public static class ModProfile
                             Headers = new Dictionary<string, string>
                                 { { "Authorization", "Bearer " + selectedProfile.AccessToken } }
                         }));
-                    if ((string)checkResult["status"] == "DUPLICATE")
+                    if ((string?)checkResult["status"] == "DUPLICATE")
                     {
                         ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Duplicate"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
                         return;
                     }
 
-                    if ((string)checkResult["status"] == "NOT_ALLOWED")
+                    if ((string?)checkResult["status"] == "NOT_ALLOWED")
                     {
                         ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.NotAllowed"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
                         return;
@@ -561,10 +562,10 @@ public static class ModProfile
                     var resultJson = (JsonObject)ModBase.GetJson(result);
                     ModMain.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), ModMain.HintType.Finish);
                     profileList.Remove(selectedProfile);
-                    selectedProfile.Username = (string)resultJson["name"];
+                    selectedProfile.Username = (string?)resultJson["name"] ?? selectedProfile.Username;
                     profileList.Add(selectedProfile);
                     lastUsedProfile = profileList.Count - 1;
-                    ModMain.frmLaunchLeft.RefreshPage(true);
+                    ModMain.frmLaunchLeft?.RefreshPage(true);
                     SaveProfile();
                 }
                 catch (HttpRequestException ex)
@@ -587,7 +588,7 @@ public static class ModProfile
         }
         else
         {
-            string newUsername = null;
+            string? newUsername = null;
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
                 defaultInput: selectedProfile.Username,
                 validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
@@ -602,7 +603,7 @@ public static class ModProfile
     ///     编辑离线档案的 UUID
     /// </summary>
     /// <param name="profile">目标档案</param>
-    public static void EditOfflineUuid(McProfile profile, string uuid = null)
+    public static void EditOfflineUuid(McProfile profile, string? uuid = null)
     {
         var profileIndex = profileList.IndexOf(profile);
         string newUuid;
@@ -765,7 +766,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     else
                     {
                         ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportSuccess", importCount), ModMain.HintType.Finish);
-                        ModBase.RunInUi(() => ModMain.frmLoginProfile.RefreshProfileList());
+                        ModBase.RunInUi(() => ModMain.frmLoginProfile?.RefreshProfileList());
                     }
                 }
             }
@@ -807,7 +808,9 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             var options = new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true };
             var jsonString = JsonSerializer.Serialize(finalDictList, options);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var directory = Path.GetDirectoryName(path);
+            if (directory is not null)
+                Directory.CreateDirectory(directory);
             File.WriteAllText(path, jsonString);
 
             ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportSuccess", profileList.Count), ModMain.HintType.Finish);
@@ -821,7 +824,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
     // --- 类型转换辅助 ---
 
-    private static McProfile ConvertToPclProfile(JsonElement el)
+    private static McProfile? ConvertToPclProfile(JsonElement el)
     {
         try
         {
@@ -829,7 +832,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             JsonElement argvalue = default;
             var profile = new McProfile
             {
-                Uuid = el.TryGetProperty("uuid", out argvalue) ? el.GetProperty("uuid").GetString() : "",
+                Uuid = el.TryGetProperty("uuid", out argvalue) ? el.GetProperty("uuid").GetString() ?? "" : "",
                 Expires = 1743779140286L
             };
 
@@ -838,23 +841,23 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                 case "microsoft":
                 {
                     profile.Type = ModLaunch.McLoginType.Ms;
-                    profile.Username = el.GetProperty("displayName").GetString();
+                    profile.Username = el.GetProperty("displayName").GetString() ?? "";
                     break;
                 }
                 case "authlibInjector":
                 {
                     profile.Type = ModLaunch.McLoginType.Auth;
-                    profile.Username = el.GetProperty("displayName").GetString();
-                    profile.Server = el.GetProperty("serverBaseURL").GetString();
-                    profile.Name = el.GetProperty("username").GetString();
-                    profile.ClientToken = el.GetProperty("clientToken").GetString();
+                    profile.Username = el.GetProperty("displayName").GetString() ?? "";
+                    profile.Server = el.GetProperty("serverBaseURL").GetString() ?? "";
+                    profile.Name = el.GetProperty("username").GetString() ?? "";
+                    profile.ClientToken = el.GetProperty("clientToken").GetString() ?? "";
                     break;
                 }
 
                 default:
                 {
                     profile.Type = ModLaunch.McLoginType.Legacy;
-                    profile.Username = el.GetProperty("username").GetString();
+                    profile.Username = el.GetProperty("username").GetString() ?? "";
                     break;
                 }
             }
@@ -964,7 +967,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
     /// <returns>显示的详情信息</returns>
     public static object GetProfileInfo(McProfile profile)
     {
-        string info = null;
+        string info = "";
         if (profile.Type == ModLaunch.McLoginType.Auth)
         {
             info += Lang.Text("Launch.Account.Type.ThirdParty");
@@ -1157,11 +1160,12 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
                 ModBase.Log("[Skin] 皮肤修改返回值：" + "\r\n" + res);
                 var resultJson = (JsonObject)ModBase.GetJson(res);
-                if (resultJson.ContainsKey("errorMessage")) throw new Exception(resultJson["errorMessage"].ToString());
-                foreach (var skinNode in resultJson["skins"].AsArray()) { var skin = skinNode.AsObject();
-                    if (skin["state"].ToString() == "ACTIVE")
+                if (resultJson.ContainsKey("errorMessage")) throw new Exception(resultJson["errorMessage"]?.ToString() ?? "Unknown error");
+                foreach (var skinNode in resultJson["skins"]?.AsArray() ?? []) { var skin = skinNode?.AsObject();
+                    if (skin is null) continue;
+                    if (skin["state"]?.ToString() == "ACTIVE")
                     {
-                        MySkin.ReloadCache((string)skin["url"]);
+                        MySkin.ReloadCache((string?)skin["url"] ?? "");
                         return;
                     } }
 

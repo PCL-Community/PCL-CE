@@ -16,7 +16,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         savePath = file.Item2;
     }
 
-    public override void Start(object input = null, bool isForceRestart = false)
+    public override void Start(object? input = null, bool isForceRestart = false)
     {
         if (input is Tuple<string, string> tuple)
         {

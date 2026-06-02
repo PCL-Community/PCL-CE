@@ -94,7 +94,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
     {
         var res = new ModLocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.instance;
+        res.gameVersion = PageInstanceLeft.instance!;
         res.frm = null;
         res.loaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
         res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
@@ -106,7 +106,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     public void PageOther_Loaded()
     {
-        if (ModMain.frmMain.pageLast.page != FormMain.PageType.CompDetail)
+        if (ModMain.frmMain!.pageLast.page != FormMain.PageType.CompDetail)
             PanBack.ScrollToHome();
         ModAnimation.AniControlEnabled += 1;
         selectedDatapacks.Clear();
@@ -602,7 +602,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         ModBase.Log($"[System] 文件为 {extension} 格式，尝试作为数据包安装");
 
         // 确认安装
-        if (!(ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+        if (!(ModMain.frmMain!.pageCurrent == FormMain.PageType.InstanceSetup &&
               ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
             if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Install.Message"),
                     Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
@@ -636,7 +636,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
                 ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
                 if (ModMain.frmInstanceSavesDatapack is not null)
-                    ModMain.frmInstanceSavesDatapack.ReloadDatapackFileList(true);
+        ModMain.frmInstanceSavesDatapack!.ReloadDatapackFileList(true);
         }
 
         catch (Exception ex)
@@ -650,8 +650,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
-        PageComp.targetVersion = PageInstanceLeft.instance; // 将当前实例设置为筛选器
+        ModMain.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
+        PageComp.targetVersion = PageInstanceLeft.instance!; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -757,7 +757,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     private void FrmMain_KeyDown(object sender, KeyEventArgs e)
     {
-        if (!ReferenceEquals(ModMain.frmMain.pageRight, this))
+        if (!ReferenceEquals(ModMain.frmMain!.pageRight, this))
             return;
         if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && e.Key == Key.A)
             ChangeAllSelected(true);
@@ -1055,7 +1055,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         foreach (var DatapackE in datapackList)
         {
             var datapackEntity = DatapackE;
-            string newPath = null;
+            string? newPath = null;
 
             if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
                 // 禁用 - 添加 .disabled 后缀
@@ -1177,7 +1177,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             foreach (var Entry in datapackList)
             {
                 var file = Entry.UpdateFile;
-                if (!file.Available)
+                if (file is null || !file.Available)
                     continue;
                 // 添加到下载列表
                 var tempAddress = ModBase.pathTemp + @"DownloadedComp\" + file.FileName;
@@ -1303,7 +1303,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             updatingVersions.Add(pathDatapacks);
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
-            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+            ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
             ModMain.frmMain.BtnExtraDownload.Ribble();
             ReloadDatapackFileList(true);
         }
@@ -1428,7 +1428,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnSelectFavorites_Click(object sender, ModBase.RouteEventArgs e)
     {
         var selected = ModLocalComp.compResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
+            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp!).ToList();
         ModComp.CompFavorites.ShowMenu(selected, (UIElement)sender);
     }
 
@@ -1436,7 +1436,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnSelectShare_Click(object sender, ModBase.RouteEventArgs e)
     {
         var shareList = ModLocalComp.compResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
+            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp!.Id).ToHashSet();
         ModBase.ClipboardSet(ModComp.CompFavorites.GetShareCode(shareList));
         ChangeAllSelected(false);
     }
@@ -1457,17 +1457,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             {
                 ModMain.MyMsgBox(
                     Lang.Text("Instance.Saves.Datapack.Info.ReadFailed") + "\r\n" + "\r\n" + Lang.Text("Instance.Resource.Item.Info.DetailedError") +
-                    datapackEntry.FileUnavailableReason.Message, Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
+                    datapackEntry.FileUnavailableReason!.Message, Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
                 return;
             }
 
             if (datapackEntry.Comp is not null)
             {
                 // 跳转到数据包下载页面
-                ModMain.frmMain.PageChange(new FormMain.PageStackData
+                ModMain.frmMain!.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.instance.Info.VanillaName,
+                    additional = (datapackEntry.Comp!, new List<string>(), PageInstanceLeft.instance!.Info.VanillaName,
                         ModComp.CompLoaderType.Minecraft, ModComp.CompType.DataPack, null, null, null)
                 });
             }
@@ -1546,7 +1546,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     #region 搜索
 
     public bool IsSearching => !string.IsNullOrWhiteSpace(SearchBox.Text);
-    private List<ModLocalComp.LocalCompFile> searchResult;
+    private List<ModLocalComp.LocalCompFile> searchResult = [];
 
     public void SearchRun(object sender, EventArgs e)
     {
@@ -1559,7 +1559,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 foreach (var Entry in ModLocalComp.compResourceListLoader.output)
                 {
                     var searchSource = new List<ModBase.SearchSource>();
-                    searchSource.Add(new ModBase.SearchSource(Entry.Name, 1d));
+                    searchSource.Add(new ModBase.SearchSource(Entry.Name!, 1d));
                     searchSource.Add(new ModBase.SearchSource(Entry.FileName, 1d));
                     if (Entry.Version is not null)
                         searchSource.Add(new ModBase.SearchSource(Entry.Version, 0.2d));
@@ -1568,11 +1568,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName, 1d));
+                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName!, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName, 1d));
+                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName!, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.Description, 0.4d));
+                            searchSource.Add(new ModBase.SearchSource(Entry.Comp.Description!, 0.4d));
                         searchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 

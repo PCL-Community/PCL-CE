@@ -32,10 +32,10 @@ public partial class PageDownloadLabyMod
                 return;
             var productionEntry = new JsonObject();
             productionEntry.Add("channel", "production");
-            productionEntry.Add("version", versions["production"]["labyModVersion"].ToString());
+            productionEntry.Add("version", versions["production"]?["labyModVersion"]?.ToString() ?? "");
             var snapshotEntry = new JsonObject();
             snapshotEntry.Add("channel", "snapshot");
-            snapshotEntry.Add("version", versions["snapshot"]["labyModVersion"].ToString());
+            snapshotEntry.Add("version", versions["snapshot"]?["labyModVersion"]?.ToString() ?? "");
             PanVersions.Children.Clear();
             PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(productionEntry,
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));

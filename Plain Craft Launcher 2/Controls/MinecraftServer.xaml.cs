@@ -59,7 +59,7 @@ public partial class MinecraftServer : Grid
                 if (ret is null) throw new Exception("未返回服务器信息");
 
                 // 处理服务器图标
-                await ImageLoaderHelper.SetServerLogoAsync(ret.Favicon, ImgServerLogo);
+                await ImageLoaderHelper.SetServerLogoAsync(ret.Favicon ?? "", ImgServerLogo);
 
                 // 更新UI
                 UpdateServerStatus(ret);
@@ -89,7 +89,7 @@ public partial class MinecraftServer : Grid
         ModStyle.MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false);
 
         // 玩家列表提示
-        if (ret.Players.Samples.Any())
+        if (ret.Players.Samples?.Any() == true)
         {
             LabServerPlayer.ToolTip = string.Join("\r\n", ret.Players.Samples.Select(x => x.Name));
             ToolTipService.SetPlacement(LabServerPlayer, PlacementMode.Mouse);

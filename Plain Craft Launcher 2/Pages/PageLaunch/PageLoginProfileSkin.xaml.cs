@@ -111,7 +111,7 @@ public partial class PageLoginProfileSkin
     // 选择档案
     private void ChangeProfile(object sender, EventArgs e)
     {
-        ModProfile.selectedProfile = null;
+        ModProfile.selectedProfile = null!;
         ModBase.RunInUi(() =>
         {
             ModMain.frmLaunchLeft.RefreshPage(true);

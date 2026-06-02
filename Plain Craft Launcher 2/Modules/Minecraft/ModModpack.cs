@@ -47,11 +47,11 @@ public static class ModModpack
     ///     必须在工作线程执行。
     /// </summary>
     /// <exception cref="ModBase.CancelledException" />
-    public static LoaderCombo<string> ModpackInstall(string file, string instanceName = null, string logo = null,
-        string resourceId = null, bool isOnlineInstall = false)
+    public static LoaderCombo<string> ModpackInstall(string file, string? instanceName = null, string? logo = null,
+        string? resourceId = null, bool isOnlineInstall = false)
     {
         ModBase.Log("[ModPack] 整合包安装请求：" + (file ?? "null"));
-        ZipArchive archive = null;
+        ZipArchive? archive = null;
         var archiveBaseFolder = "";
         try
         {
@@ -70,7 +70,7 @@ public static class ModModpack
             {
                 try
                 {
-                    archive = new ZipArchive(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    archive = new ZipArchive(new FileStream(file!, FileMode.Open, FileAccess.Read, FileShare.Read));
                     if (archive.Entries.Any(e => e.IsEncrypted))
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.EncryptedArchiveUnsupported"));
                     // 从根目录判断整合包类型
@@ -92,9 +92,10 @@ public static class ModModpack
                         break;
                     } // Modrinth 整合包
 
-                    if (archive.GetEntry("manifest.json") is not null)
+                    var manifestEntry = archive.GetEntry("manifest.json");
+                    if (manifestEntry is not null)
                     {
-                        var json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(archive.GetEntry("manifest.json").Open(),
+                        var json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(manifestEntry.Open(),
                             Encoding.UTF8));
                         if (json["addons"] is null)
                         {
@@ -188,7 +189,7 @@ public static class ModModpack
                 {
                     if (ex.Message.Contains("Error.WinIOError"))
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.OpenFailed"), ex);
-                    else if (file.EndsWithF(".rar", true))
+                    else if (file!.EndsWithF(".rar", true))
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.RarUnsupported"), ex);
                     else
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnsupportedArchive"), ex);
@@ -201,40 +202,40 @@ public static class ModModpack
                 case 0:
                 {
                     ModBase.Log("[ModPack] 整合包种类：CurseForge");
-                    return InstallPackCurseForge(file, archive, archiveBaseFolder, instanceName, logo, resourceId,
+                    return InstallPackCurseForge(file!, archive!, archiveBaseFolder, instanceName, logo, resourceId,
                         isOnlineInstall);
                 }
                 case 1:
                 {
                     ModBase.Log("[ModPack] 整合包种类：HMCL");
-                    return InstallPackHMCL(file, archive, archiveBaseFolder);
+                    return InstallPackHMCL(file!, archive!, archiveBaseFolder);
                 }
                 case 2:
                 {
                     ModBase.Log("[ModPack] 整合包种类：MMC");
-                    return InstallPackMMC(file, archive, archiveBaseFolder);
+                    return InstallPackMMC(file!, archive!, archiveBaseFolder);
                 }
                 case 3:
                 {
                     ModBase.Log("[ModPack] 整合包种类：MCBBS");
-                    return InstallPackMCBBS(file, archive, archiveBaseFolder, instanceName);
+                    return InstallPackMCBBS(file!, archive!, archiveBaseFolder, instanceName);
                 }
                 case 4:
                 {
                     ModBase.Log("[ModPack] 整合包种类：Modrinth");
-                    return InstallPackModrinth(file, archive, archiveBaseFolder, instanceName, logo, resourceId,
+                    return InstallPackModrinth(file!, archive!, archiveBaseFolder, instanceName, logo, resourceId,
                         isOnlineInstall);
                 }
                 case 9:
                 {
                     ModBase.Log("[ModPack] 整合包种类：带启动器的压缩包");
-                    return InstallPackLauncherPack(file, archive, archiveBaseFolder);
+                    return InstallPackLauncherPack(file!, archive!, archiveBaseFolder);
                 }
 
                 default:
                 {
                     ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
-                    return InstallPackCompress(file, archive);
+                    return InstallPackCompress(file!, archive!);
                 }
             }
         }
@@ -256,7 +257,7 @@ public static class ModModpack
         while (retryCount <= 5)
             try
             {
-                loader.Progress = initialProgress;
+                loader!.Progress = initialProgress;
 
                 // 删除旧目录
                 ModBase.DeleteDirectory(installTemp);
@@ -339,7 +340,7 @@ public static class ModModpack
     #region CurseForge
 
     private static LoaderCombo<string> InstallPackCurseForge(string fileAddress, ZipArchive archive,
-        string archiveBaseFolder, string instanceName = null, string logo = null, string resourceId = null,
+        string archiveBaseFolder, string? instanceName = null, string? logo = null, string? resourceId = null,
         bool isOnlineInstall = false)
     {
         // 读取 Json 文件
@@ -347,22 +348,22 @@ public static class ModModpack
         try
         {
             json = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()));
+                ModBase.ReadFile((archive.GetEntry(archiveBaseFolder + "manifest.json") ?? throw new Exception("CurseForge 整合包安装信息存在问题")).Open()));
         }
         catch (Exception ex)
         {
             throw new Exception("CurseForge 整合包安装信息存在问题", ex);
         }
 
-        if (json["minecraft"] is null || json["minecraft"]["version"] is null)
+        if (json["minecraft"] is not { } minecraftNode || minecraftNode["version"] is null)
             throw new Exception("CurseForge 整合包未提供 Minecraft 版本信息");
 
         // 获取实例名
         if (instanceName is null)
         {
-            instanceName = (string)(json["name"] ?? "");
+            instanceName = (string?)(json["name"] ?? "");
             var validate = new FolderNameValidator(Path.Combine(ModMinecraft.mcFolderSelected, "versions"));
-            if (!validate.Validate(instanceName).IsValid)
+            if (!validate.Validate(instanceName ?? "").IsValid)
                 instanceName = "";
             if (string.IsNullOrEmpty(instanceName))
                 instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
@@ -372,13 +373,13 @@ public static class ModModpack
         }
 
         // 获取 Mod API 版本信息
-        string forgeVersion = null;
-        string neoForgeVersion = null;
-        string fabricVersion = null;
-        string quiltVersion = null;
-        foreach (var Entry in (dynamic)json["minecraft"]["modLoaders"] ?? Array.Empty<JsonNode>())
+        string? forgeVersion = null;
+        string? neoForgeVersion = null;
+        string? fabricVersion = null;
+        string? quiltVersion = null;
+        foreach (var Entry in (dynamic?)json["minecraft"]!?["modLoaders"] ?? Array.Empty<JsonNode>())
         {
-            string id = (Entry["id"] ?? "").ToString().ToLower();
+            string id = (Entry!["id"] ?? "").ToString().ToLower();
             if (id.StartsWithF("forge-"))
             {
                 // Forge 指定
@@ -426,7 +427,7 @@ public static class ModModpack
         // 解压
         var installTemp = ModMain.RequestTaskTempFolder();
         var installLoaders = new List<LoaderBase>();
-        var overrideHome = (string)(json["overrides"] ?? "");
+        var overrideHome = (string?)(json["overrides"] ?? "");
         if (!string.IsNullOrEmpty(overrideHome))
             installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
                 task =>
@@ -443,7 +444,7 @@ public static class ModModpack
         // 获取 Mod 列表
         var modList = new List<int>();
         var modOptionalList = new List<int>();
-        foreach (var ModEntry in (dynamic)json["files"] ?? Array.Empty<JsonNode>())
+        foreach (var ModEntry in (dynamic?)json!["files"] ?? Array.Empty<JsonNode>())
         {
             if (ModEntry["projectID"] is null || ModEntry["fileID"] is null)
             {
@@ -469,11 +470,11 @@ public static class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JsonArray)((JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    ret = (JsonArray?)((JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
                         "POST", "{\"fileIds\": [" + modList.Join(",") + "]}", "application/json",
-                        allowMirror)))["data"];
-                    if (modList.Count <= ret.Count)
+                        allowMirror)))["data"] ?? throw new Exception(Lang.Text("Minecraft.Download.Modpack.SomeModsDeleted"));
+                    if (modList.Count <= ret!.Count)
                     {
                         ModBase.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
                         break;
@@ -496,7 +497,7 @@ public static class ModModpack
                 var fileList = new Dictionary<int, DownloadFile>();
                 foreach (var ModJson in task.input)
                 {
-                    var id = ModJson["id"].ToObject<int>();
+                    var id = ModJson!["id"].ToObject<int>();
                     // 跳过重复的 Mod（疑似 CurseForge Bug）
                     if (fileList.ContainsKey(id))
                         continue;
@@ -513,9 +514,9 @@ public static class ModModpack
                     // 根据 modules 和文件名后缀判断资源类型
                     string targetFolder;
                     ModComp.CompType type;
-                    if (ModJson["modules"].AsArray().Any()) // modules 可能返回 null（#1006）
+                    if (ModJson!["modules"]?.AsArray()?.Any() ?? false) // modules 可能返回 null（#1006）
                     {
-                        var moduleNames = ((JsonArray)ModJson["modules"]).Select(l => l["name"].ToString()).ToList();
+                        var moduleNames = ((JsonArray)ModJson["modules"]!).Select(l => l!["name"]!.ToString()).ToList();
                         if (moduleNames.Contains("META-INF") || moduleNames.Contains("mcmod.info") ||
                             (ModJson?["FileName"]?.ToString()?.EndsWithF(".jar", true)).GetValueOrDefault())
                         {
@@ -545,7 +546,7 @@ public static class ModModpack
                     }
 
                     // 建立 CompFile
-                    var file = new ModComp.CompFile((JsonObject)ModJson, type);
+                    var file = new ModComp.CompFile((JsonObject)ModJson!, type);
                     if (!file.Available)
                         continue;
                     // 实际的添加
@@ -575,7 +576,7 @@ public static class ModModpack
         {
             targetInstanceName = instanceName,
             targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\",
-            minecraftName = json["minecraft"]["version"].ToString(),
+            minecraftName = json["minecraft"]!["version"]!.ToString(),
             forgeVersion = forgeVersion,
             neoForgeVersion = neoForgeVersion,
             fabricVersion = fabricVersion,
@@ -616,13 +617,14 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"].ToString();
+            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"]!.ToString();
             States.Instance.ModpackSource[versionFolder] = "CurseForge";
-            States.Instance.ModpackId[versionFolder] = resourceId;
+            States.Instance.ModpackId[versionFolder] = resourceId ?? "";
             do
             {
                 try
                 {
+                    if (resourceId is null) break;
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
@@ -651,7 +653,7 @@ public static class ModModpack
         var loader = new LoaderCombo<string>(loaderName, loaders) { OnStateChanged = ModDownloadLib.McInstallState };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
         if (!isOnlineInstall)
             ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.TaskManager));
         return loader;
@@ -662,7 +664,7 @@ public static class ModModpack
     #region Modrinth
 
     private static LoaderCombo<string> InstallPackModrinth(string fileAddress, ZipArchive archive,
-        string archiveBaseFolder, string instanceName = null, string logo = null, string resourceId = null,
+        string archiveBaseFolder, string? instanceName = null, string? logo = null, string? resourceId = null,
         bool isOnlineInstall = false)
     {
         // 读取 Json 文件
@@ -670,21 +672,21 @@ public static class ModModpack
         try
         {
             json = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open()));
+                ModBase.ReadFile((archive.GetEntry(archiveBaseFolder + "modrinth.index.json") ?? throw new Exception("Modrinth 整合包安装信息存在问题")).Open()));
         }
         catch (Exception ex)
         {
             throw new Exception("Modrinth 整合包安装信息存在问题", ex);
         }
 
-        if (json["dependencies"] is null || json["dependencies"]["minecraft"] is null)
+        if (json["dependencies"] is not { } deps || deps["minecraft"] is null)
             throw new Exception("Modrinth 整合包未提供 Minecraft 版本信息");
         // 获取 Mod API 版本信息
-        string minecraftVersion = null;
-        string forgeVersion = null;
-        string neoForgeVersion = null;
-        string fabricVersion = null;
-        string quiltVersion = null;
+        string? minecraftVersion = null;
+        string? forgeVersion = null;
+        string? neoForgeVersion = null;
+        string? fabricVersion = null;
+        string? quiltVersion = null;
         foreach (var Entry in json["dependencies"]?.AsObject() ?? new JsonObject())
             switch (Entry.Key.ToLower() ?? "")
             {
@@ -730,9 +732,9 @@ public static class ModModpack
         // 获取实例名
         if (instanceName is null)
         {
-            instanceName = (string)(json["name"] ?? "");
+            instanceName = (string?)(json["name"] ?? "");
             var validate = new FolderNameValidator(Path.Combine(ModMinecraft.mcFolderSelected, "versions"));
-            if (!validate.Validate(instanceName).IsValid)
+            if (!validate.Validate(instanceName ?? "").IsValid)
                 instanceName = "";
             if (string.IsNullOrEmpty(instanceName))
                 instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
@@ -759,7 +761,7 @@ public static class ModModpack
         }); // 每 6M 需要 1s
         // 获取下载文件列表
         var fileList = new List<DownloadFile>();
-        foreach (var File in (dynamic)json["files"] ?? Array.Empty<JsonNode>())
+        foreach (var File in (dynamic?)json!["files"] ?? Array.Empty<JsonNode>())
         {
             // 检查是否需要该文件
             if (File["env"] is not null)
@@ -800,8 +802,8 @@ public static class ModModpack
             }
 
             fileList.Add(new DownloadFile(urls, targetPath,
-                new ModBase.FileChecker(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
-                    hash: File["hashes"]["sha1"].ToString()), true));
+                new ModBase.FileChecker(actualSize: ((JsonNode)File!["fileSize"]!).ToObject<long>(),
+                    hash: File!["hashes"]!["sha1"]!.ToString()), true));
         }
 
         if (fileList.Any())
@@ -856,13 +858,14 @@ public static class ModModpack
 
             // 整合包版本
             if (json["versionId"] is not null)
-                States.Instance.ModpackVersion[versionFolder] = json["versionId"].ToString();
+                States.Instance.ModpackVersion[versionFolder] = json["versionId"]!.ToString();
             States.Instance.ModpackSource[versionFolder] = "Modrinth";
-            States.Instance.ModpackId[versionFolder] = resourceId;
+            States.Instance.ModpackId[versionFolder] = resourceId ?? "";
             do
             {
                 try
                 {
+                    if (resourceId is null) break;
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
@@ -891,7 +894,7 @@ public static class ModModpack
         var loader = new LoaderCombo<string>(loaderName, loaders) { OnStateChanged = ModDownloadLib.McInstallState };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
         if (!isOnlineInstall)
             ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.TaskManager));
         return loader;
@@ -908,7 +911,7 @@ public static class ModModpack
         try
         {
             json = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
+                ModBase.ReadFile((archive.GetEntry(archiveBaseFolder + "modpack.json") ?? throw new Exception("HMCL 整合包安装信息存在问题")).Open(), Encoding.UTF8));
         }
         catch (Exception ex)
         {
@@ -916,9 +919,9 @@ public static class ModModpack
         }
 
         // 获取实例名
-        var instanceName = (string)(json["name"] ?? "");
+        var instanceName = (string?)(json["name"] ?? "");
         var validate = new FolderNameValidator(Path.Combine(ModMinecraft.mcFolderSelected, "versions"));
-        if (!validate.Validate(instanceName).IsValid)
+        if (!validate.Validate(instanceName ?? "").IsValid)
             instanceName = "";
         if (string.IsNullOrEmpty(instanceName))
             instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
@@ -946,7 +949,7 @@ public static class ModModpack
         {
             targetInstanceName = instanceName,
             targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\",
-            minecraftName = json["gameVersion"].ToString()
+            minecraftName = json["gameVersion"]!.ToString()
         };
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器
@@ -969,7 +972,7 @@ public static class ModModpack
         var loader = new LoaderCombo<string>(loaderName, loaders) { OnStateChanged = ModDownloadLib.McInstallState };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
         ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.TaskManager));
         return loader;
     }
@@ -979,7 +982,7 @@ public static class ModModpack
     #region MCBBS
 
     private static LoaderCombo<string> InstallPackMCBBS(string fileAddress, ZipArchive archive,
-        string archiveBaseFolder, string instanceName = null)
+        string archiveBaseFolder, string? instanceName = null)
     {
         // 读取 Json 文件
         JsonObject json;
@@ -987,7 +990,8 @@ public static class ModModpack
         {
             // VB 的 If(a, b) 在 C# 中如果是 null 合并则用 ??，如果是三元运算则用 ?:
             var entry = archive.GetEntry(archiveBaseFolder + "mcbbs.packmeta") ??
-                        archive.GetEntry(archiveBaseFolder + "manifest.json");
+                        archive.GetEntry(archiveBaseFolder + "manifest.json")
+                        ?? throw new Exception("MCBBS 整合包安装信息存在问题");
             using (var stream = entry.Open())
             {
                 json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
@@ -1031,13 +1035,13 @@ public static class ModModpack
             // JVM 参数处理
             if (json["launchInfo"] is not null)
             {
-                var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = string.Join(" ", launchInfo["javaArgument"]);
-                Config.Instance.GameArgs[versionFolder] = string.Join(" ", launchInfo["launchArgument"]);
+                var launchInfo = (JsonObject)json["launchInfo"]!;
+                Config.Instance.JvmArgs[versionFolder] = string.Join(" ", launchInfo["javaArgument"]!.AsArray().Select(n => n?.ToString() ?? ""));
+                Config.Instance.GameArgs[versionFolder] = string.Join(" ", launchInfo["launchArgument"]!.AsArray().Select(n => n?.ToString() ?? ""));
             }
 
             // 整合包版本
-            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"].ToString();
+            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"]!.ToString();
         });
 
         unzipTask.ProgressWeight = new FileInfo(fileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
@@ -1049,12 +1053,12 @@ public static class ModModpack
             throw new Exception(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons"));
 
         var addons = new Dictionary<string, string>();
-        foreach (var EntryNode in json["addons"].AsArray()) { var entry = EntryNode.AsObject(); addons.Add(entry["id"].ToString(), entry["version"].ToString()); }
+        foreach (var EntryNode in json["addons"]!.AsArray()) { var entry = EntryNode!.AsObject(); addons.Add(entry["id"]!.ToString(), entry["version"]!.ToString()); }
 
         if (!addons.ContainsKey("game"))
         {
             ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.Generic"), ModMain.HintType.Critical);
-            return null;
+            return null!;
         }
 
         // 构造安装请求
@@ -1102,7 +1106,7 @@ public static class ModModpack
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
 
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
         ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.TaskManager));
 
         return loader;
@@ -1135,7 +1139,7 @@ public static class ModModpack
                 ExtractModpackFiles(targetFolder, fileAddress, task, 0.9d);
                 Thread.Sleep(400); // 避免文件争用
                 // 查找解压后的 exe 文件
-                string launcher = null;
+                string? launcher = null;
                 foreach (var ExeFile in Directory.GetFiles(targetFolder, "*.exe", SearchOption.TopDirectoryOnly))
                 {
                     var info = FileVersionInfo.GetVersionInfo(ExeFile);
@@ -1145,7 +1149,7 @@ public static class ModModpack
                         launcher = ExeFile;
                         ModBase.Log($"[Modpack] 发现整合包附带的 PCL 启动器：{ExeFile}");
                     }
-                    else if ((info.ProductName.ContainsF("Launcher", true) || info.ProductName.ContainsF("启动", true)) &&
+                    else if ((info.ProductName!.ContainsF("Launcher", true) || info.ProductName!.ContainsF("启动", true)) &&
                              !(info.ProductName == "Plain Craft Launcher Admin Manager"))
                     {
                         if (launcher is null)
@@ -1168,9 +1172,9 @@ public static class ModModpack
                         ) == 1)
                     {
                         ModBase.OpenExplorer(targetFolder);
-                        ModBase.ShellOnly(launcher, "--wait"); // 要求等待已有的 PCL 退出
+                        ModBase.ShellOnly(launcher!, "--wait"); // 要求等待已有的 PCL 退出
                         ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
-                        ModMain.frmMain.EndProgram(false);
+                        ModMain.frmMain!.EndProgram(false);
                         return;
                     }
                 }
@@ -1194,8 +1198,8 @@ public static class ModModpack
         });
         loader.Start(targetFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.Ribble();
         return loader;
     }
 
@@ -1206,7 +1210,7 @@ public static class ModModpack
     private static LoaderCombo<string> InstallPackCompress(string fileAddress, ZipArchive archive)
     {
         // 尝试定位 .minecraft 文件夹：寻找形如 “/versions/XXX/XXX.json” 的路径
-        Match match = null;
+        Match? match = null;
         var regex = new Regex(@"^.*\/(?=versions\/(?<ver>[^\/]+)\/(\k<ver>)\.json$)", RegexOptions.IgnoreCase);
         foreach (var Entry in archive.Entries)
         {
@@ -1252,7 +1256,7 @@ public static class ModModpack
                 PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), ModBase.GetFolderNameFromPath(targetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
-                ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect));
+                ModBase.RunInUi(() => ModMain.frmMain!.PageChange(FormMain.PageType.InstanceSelect));
             })
         })
         {
@@ -1260,8 +1264,8 @@ public static class ModModpack
         };
         loader.Start(targetFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.Ribble();
         return loader;
     }
 
@@ -1282,7 +1286,7 @@ public static class ModModpack
         public JsonArray jvmArgs = new();
         public JsonArray libraries = new();
         public JsonObject overridedJson = new();
-        public string tweakers = null;
+        public string? tweakers = null;
     }
 
     private static LoaderCombo<string> InstallPackMMC(string fileAddress, ZipArchive archive, string archiveBaseFolder)
@@ -1290,12 +1294,12 @@ public static class ModModpack
         // 读取 Json 文件
         JsonObject packJson;
         string packInstance;
-        MMCPackInfo packInfo = null;
+        MMCPackInfo? packInfo = null;
         try
         {
             packJson = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
-            packInstance = ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
+                ModBase.ReadFile((archive.GetEntry(archiveBaseFolder + "mmc-pack.json") ?? throw new Exception("MMC 整合包安装信息存在问题")).Open(), Encoding.UTF8));
+            packInstance = ModBase.ReadFile((archive.GetEntry(archiveBaseFolder + "instance.cfg") ?? throw new Exception("MMC 整合包安装信息存在问题")).Open(), Encoding.UTF8);
 
             #region JSON Patches
 
@@ -1314,18 +1318,18 @@ public static class ModModpack
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(archiveBaseFolder + "patches/"))
                         {
                             var patch = (JsonObject)ModBase.GetJson(ModBase.ReadFile(
-                                archive.GetEntry(entry.FullName).Open(), Encoding.UTF8));
+                                (archive.GetEntry(entry.FullName) ?? throw new Exception("MMC patch entry not found")).Open(), Encoding.UTF8));
                             patches.Add(new KeyValuePair<JsonObject, int>(patch,
-                                (int)(patch["order"] is not null ? patch["order"] : 0)));
+                                (int)(patch["order"] is not null ? patch["order"]! : 0)));
                         }
 
-                    var components = (JsonArray)packJson["components"];
+                    var components = (JsonArray?)packJson["components"] ?? new JsonArray();
                     foreach (var Patch in patches)
                     {
                         // 检查 Patch 是否在 mmc-pack.json 中
                         var isContainedInPackJson = false;
                         foreach (var Component in components)
-                            if ((Component["uid"].ToString() ?? "") == (Patch.Key["uid"].ToString() ?? ""))
+                            if ((Component!["uid"]!.ToString() ?? "") == (Patch.Key["uid"]!.ToString() ?? ""))
                             {
                                 isContainedInPackJson = true;
                                 break;
@@ -1333,7 +1337,7 @@ public static class ModModpack
 
                         if (!isContainedInPackJson)
                         {
-                            ModBase.Log($"[ModPack] JSON-Patch {Patch.Key["uid"]} 未包含于 mmc-pack.json, 跳过该 Patch");
+                            ModBase.Log($"[ModPack] JSON-Patch {Patch.Key["uid"]!} 未包含于 mmc-pack.json, 跳过该 Patch");
                             patches.Remove(Patch);
                         }
                     }
@@ -1342,10 +1346,10 @@ public static class ModModpack
                     // 应用 Patches
                     packInfo = new MMCPackInfo();
 
-                    string tweakers = null;
-                    JsonObject assetIndex = null;
-                    JsonObject javaVerJson = null;
-                    string mainClass = null;
+                    string? tweakers = null;
+                    JsonObject? assetIndex = null;
+                    JsonObject? javaVerJson = null;
+                    string? mainClass = null;
                     var gameArguments = new JsonArray();
                     var jvmArguments = new JsonArray();
                     var libJson = new JsonArray();
@@ -1353,26 +1357,26 @@ public static class ModModpack
                     foreach (var Patch in patches)
                     {
                         var patchJson = Patch.Key;
-                        if ((string)patchJson["uid"] == "net.minecraft")
+                        if ((string)patchJson["uid"]! == "net.minecraft")
                         {
                             packInfo.isMinecraftOverrided = true;
                         }
-                        else if ((string)patchJson["uid"] == "net.minecraftforge")
+                        else if ((string)patchJson["uid"]! == "net.minecraftforge")
                         {
-                            if (patchJson["version"].ToString().StartsWithF("0."))
+                            if (patchJson["version"]!.ToString().StartsWithF("0."))
                                 packInfo.isCleanroomOverrided = true;
                             else
                                 packInfo.isForgeOverrided = true;
                         }
-                        else if ((string)patchJson["uid"] == "net.neoforged")
+                        else if ((string)patchJson["uid"]! == "net.neoforged")
                         {
                             packInfo.isNeoForgeOverrided = true;
                         }
-                        else if ((string)patchJson["uid"] == "net.fabricmc.fabric-loader")
+                        else if ((string)patchJson["uid"]! == "net.fabricmc.fabric-loader")
                         {
                             packInfo.isFabricOverrided = true;
                         }
-                        else if ((string)patchJson["uid"] == "org.quiltmc.quilt-loader")
+                        else if ((string)patchJson["uid"]! == "org.quiltmc.quilt-loader")
                         {
                             packInfo.isQuiltOverrided = true;
                         }
@@ -1389,7 +1393,7 @@ public static class ModModpack
                         {
                             var libs = new JsonArray();
                             if (patchJson["libraries"] is not null)
-                                foreach (var Library in patchJson["libraries"].AsArray())
+                                foreach (var Library in patchJson["libraries"]!.AsArray())
                                 {
                                     if (Library is not JsonObject LibraryObj) continue;
                                     var libJobj = LibraryObj.DeepClone().AsObject();
@@ -1403,7 +1407,7 @@ public static class ModModpack
                                 }
 
                             if (patchJson["+libraries"] is not null)
-                                foreach (var Library in patchJson["+libraries"].AsArray()) // TODO: 此处处理不严谨，但也能用吧
+                                foreach (var Library in patchJson["+libraries"]!.AsArray()) // TODO: 此处处理不严谨，但也能用吧
                                 {
                                     if (Library is not JsonObject LibraryObj) continue;
                                     var libJobj = LibraryObj.DeepClone().AsObject();
@@ -1423,61 +1427,61 @@ public static class ModModpack
                         // Tweakers
                         if (patchJson["+tweakers"] is not null)
                         {
-                            tweakers = (string)patchJson["+tweakers"][0];
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]} 的 Tweakers");
+                            tweakers = (string?)patchJson["+tweakers"]![0];
+                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]!} 的 Tweakers");
                         }
 
                         // AssetIndex
                         if (patchJson["assetIndex"] is not null)
                         {
                             assetIndex = patchJson["assetIndex"]?.DeepClone().AsObject();
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]} 的 AssetIndex");
+                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]!} 的 AssetIndex");
                         }
 
                         // minecraftArguments -> arguments.game
                         if (patchJson["minecraftArguments"] is not null)
                         {
-                            foreach (var Arg in patchJson["minecraftArguments"].ToString().Split(" "))
+                            foreach (var Arg in patchJson["minecraftArguments"]!.ToString().Split(" "))
                                 gameArguments.Add(Arg);
                             packInfo.isMcArgsEdited = true;
                             ModBase.Log(
-                                $"[ModPack] 已应用 JSON-Patch {patchJson["uid"]} 的 minecraftArguments 至 arguments.game");
+                                $"[ModPack] 已应用 JSON-Patch {patchJson["uid"]!} 的 minecraftArguments 至 arguments.game");
                         }
 
                         // mainClass
                         if (patchJson["mainClass"] is not null)
                         {
-                            mainClass = (string)patchJson["mainClass"];
-                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]} 的 mainClass");
+                            mainClass = (string?)patchJson["mainClass"];
+                            ModBase.Log($"[ModPack] 已应用 JSON-Patch {patchJson["uid"]!} 的 mainClass");
                         }
 
                         // Java 版本要求
                         if (patchJson["compatibleJavaMajors"] is not null)
                         {
                             var javaVersion = 0;
-                            string javaComponent = null;
-                            var javaMajors = (JsonArray)patchJson["compatibleJavaMajors"];
+                            string? javaComponent = null;
+                            var javaMajors = (JsonArray)patchJson["compatibleJavaMajors"]!;
                             foreach (var Java in javaMajors)
                             {
-                                if (javaVersion > ModBase.Val(Java))
+                                if (javaVersion > ModBase.Val(Java!))
                                     continue;
                                 // 优先选择主要的版本
-                                if (ModBase.Val(Java) == 21d)
+                                if (ModBase.Val(Java!) == 21d)
                                 {
                                     javaVersion = 21;
                                     javaComponent = "java-runtime-delta";
                                 }
-                                else if (ModBase.Val(Java) == 17d)
+                                else if (ModBase.Val(Java!) == 17d)
                                 {
                                     javaVersion = 17;
                                     javaComponent = "java-runtime-gamma";
                                 }
-                                else if (ModBase.Val(Java) == 11d)
+                                else if (ModBase.Val(Java!) == 11d)
                                 {
                                     javaVersion = 11;
                                     javaComponent = null;
                                 }
-                                else if (ModBase.Val(Java) == 8d)
+                                else if (ModBase.Val(Java!) == 8d)
                                 {
                                     javaVersion = 8;
                                     javaComponent = "jre-legacy";
@@ -1486,17 +1490,17 @@ public static class ModModpack
 
                             if (javaVersion == 0)
                             {
-                                javaVersion = (int)javaMajors[0];
+                                javaVersion = (int)javaMajors[0]!;
                                 javaComponent = null;
                             }
 
                             javaVerJson = new JsonObject { { "majorVersion", javaVersion } };
                             if (javaComponent is not null) javaVerJson.Add("component", javaComponent);
-                            ModBase.Log($"[ModPack] JSON-Patch {patchJson["uid"]} 要求 Java 版本: " + javaVersion);
+                            ModBase.Log($"[ModPack] JSON-Patch {patchJson["uid"]!} 要求 Java 版本: " + javaVersion);
                         }
                     }
 
-                    JsonObject jsonArguments = null;
+                    JsonObject? jsonArguments = null;
                     if (!string.IsNullOrWhiteSpace(tweakers))
                     {
                         gameArguments.Add("--tweakClass");
@@ -1664,8 +1668,8 @@ public static class ModModpack
             targetInstanceName = instanceName,
             targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\"
         };
-        foreach (var Component in packJson["components"].AsArray())
-            switch ((Component["uid"] ?? "").ToString() ?? "")
+        foreach (var Component in packJson["components"]!.AsArray())
+            switch ((Component!["uid"] ?? "").ToString() ?? "")
             {
                 case "org.lwjgl":
                 {
@@ -1674,31 +1678,31 @@ public static class ModModpack
                 }
                 case "net.minecraft":
                 {
-                    request.minecraftName = (string)Component["version"];
+                    request.minecraftName = (string?)Component["version"];
                     break;
                 }
                 case "net.minecraftforge":
                 {
-                    if (Component["version"].ToString().StartsWithF("0."))
-                        request.cleanroomVersion = (string)Component["version"];
+                    if (Component["version"]!.ToString().StartsWithF("0."))
+                        request.cleanroomVersion = (string?)Component["version"];
                     else
-                        request.forgeVersion = (string)Component["version"];
+                        request.forgeVersion = (string?)Component["version"];
 
                     break;
                 }
                 case "net.neoforged":
                 {
-                    request.neoForgeVersion = (string)Component["version"];
+                    request.neoForgeVersion = (string?)Component["version"];
                     break;
                 }
                 case "net.fabricmc.fabric-loader":
                 {
-                    request.fabricVersion = (string)Component["version"];
+                    request.fabricVersion = (string?)Component["version"];
                     break;
                 }
                 case "org.quiltmc.quilt-loader":
                 {
-                    request.quiltVersion = (string)Component["version"];
+                    request.quiltVersion = (string?)Component["version"];
                     break;
                 }
             }
@@ -1727,7 +1731,7 @@ public static class ModModpack
         var loader = new LoaderCombo<string>(loaderName, loaders) { OnStateChanged = ModDownloadLib.McInstallState };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
-        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain!.BtnExtraDownload.ShowRefresh();
         ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.TaskManager));
         return loader;
     }

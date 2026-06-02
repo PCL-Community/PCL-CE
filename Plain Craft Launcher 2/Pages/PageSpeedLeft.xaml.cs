@@ -371,7 +371,7 @@ public partial class PageSpeedLeft
             {
                 // 移除已有的卡片
                 Grid card = rightCards[loader.name];
-                ModMain.frmSpeedRight.PanMain.Children.Remove(card);
+                ModMain.frmSpeedRight?.PanMain.Children.Remove(card);
                 rightCards.Remove(loader.name);
                 ModBase.Log($"[Watcher] 移除任务管理卡片：{loader.name}");
             });

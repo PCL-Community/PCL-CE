@@ -15,7 +15,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 {
     private readonly string _baseUrl;
 
-    private Dictionary<string, string> _remoteCache;
+    private Dictionary<string, string> _remoteCache = null!;
 
     public UpdatesMinioModel(string baseUrl, string name = "Minio")
     {
@@ -35,7 +35,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         // 先检查缓存
         var remoteCache =
             ModBase.GetJson(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
-        _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
+        _remoteCache = remoteCache.ToObject<Dictionary<string, string>>()!;
         return true;
     }
 
@@ -141,8 +141,8 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     private VersionDataModel GetChannelInfo(UpdateChannel channel, UpdateArch arch)
     {
         var channelName = GetChannelName(channel, arch);
-        var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject<MinioUpdateModel>().Assets
-            .FirstOrDefault();
+        var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject<MinioUpdateModel>()?.Assets
+            ?.FirstOrDefault();
         if (deJsonData is null)
             throw new NullReferenceException("Can not get remote update info!");
         return new VersionDataModel
@@ -241,40 +241,40 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     private class MinioUpdateModel
     {
         [JsonPropertyName("assets")]
-        public List<MinioUpdateAsset> Assets { get; set; }
+        public List<MinioUpdateAsset> Assets { get; set; } = null!;
     }
 
     private class MinioUpdateAsset
     {
         [JsonPropertyName("file_name")]
-        public string FileName { get; set; }
+        public string FileName { get; set; } = null!;
 
         [JsonPropertyName("version")]
-        public MinioUpdateAssetVersionInfo Version { get; set; }
+        public MinioUpdateAssetVersionInfo Version { get; set; } = null!;
 
         [JsonPropertyName("upd_time")]
-        public string UpdTime { get; set; }
+        public string UpdTime { get; set; } = null!;
 
         [JsonPropertyName("downloads")]
-        public List<string> Downloads { get; set; }
+        public List<string> Downloads { get; set; } = null!;
 
         [JsonPropertyName("patches")]
-        public List<string> Patches { get; set; }
+        public List<string> Patches { get; set; } = null!;
 
         [JsonPropertyName("sha256")]
-        public string Sha256 { get; set; }
+        public string Sha256 { get; set; } = null!;
 
         [JsonPropertyName("changelog")]
-        public string Changelog { get; set; }
+        public string Changelog { get; set; } = null!;
     }
 
     private class MinioUpdateAssetVersionInfo
     {
         [JsonPropertyName("channel")]
-        public string Channel { get; set; }
+        public string Channel { get; set; } = null!;
 
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         [JsonPropertyName("code")]
         public int Code { get; set; }

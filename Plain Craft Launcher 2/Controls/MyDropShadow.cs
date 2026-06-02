@@ -213,7 +213,7 @@ public class MyDropShadow : Decorator
 
     private static void ClearBrushes(DependencyObject o, DependencyPropertyChangedEventArgs e)
     {
-        ((MyDropShadow)o)._brushes = null;
+        ((MyDropShadow)o)._brushes = null!;
     }
 
     private GradientStopCollection CreateStops(Color c, double cornerRadius)

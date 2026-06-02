@@ -114,7 +114,7 @@ public partial class PageSetupGameLink
             SetGameLinkByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
-    private static void SetGameLinkByTag(string tag, object value)
+    private static void SetGameLinkByTag(string? tag, object value)
     {
         switch (tag)
         {
@@ -154,6 +154,7 @@ public partial class PageSetupGameLink
             ModBase.RunInNewThread(() =>
             {
                 var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
+                if (status is null) return;
                 ModBase.RunInUi(() =>
                 {
                     TextUdpNatType.Text =

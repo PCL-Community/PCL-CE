@@ -219,7 +219,7 @@ public partial class PageSetupUI
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
-    private static void SetByTag(string tag, object value)
+    private static void SetByTag(string? tag, object value)
     {
         switch (tag)
         {
@@ -365,7 +365,7 @@ public partial class PageSetupUI
             EventHandler<ExceptionRoutedEventArgs> videoHandler = (sender, e) =>
             {
                 var videoEx = e.ErrorException;
-                var videoAddress = ModMain.frmMain.VideoBack.Source.ToString();
+                var videoAddress = ModMain.frmMain?.VideoBack.Source?.ToString() ?? "";
                 if (ModMain.frmMain.VideoBack.Source is not null)
                 {
                     ModVideoBack.VideoStop();
@@ -381,7 +381,7 @@ public partial class PageSetupUI
                         ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogLevel.Msgbox);
                 }
             };
-            ModMain.frmMain.VideoBack.MediaFailed -= videoHandler;
+            ModMain.frmMain?.VideoBack.MediaFailed -= videoHandler;
             ModVideoBack.GamingStateChanged -= ModVideoBack.OnGamingStateChanged;
             ModVideoBack.ForcePlayChanged -= ModVideoBack.OnForcePlayChanged;
             ModVideoBack.GamingStateChanged += ModVideoBack.OnGamingStateChanged;
@@ -471,8 +471,11 @@ public partial class PageSetupUI
             File.Delete(ModBase.exePath + @"PCL\Logo.png");
             ModBase.CopyFile(fileName, ModBase.exePath + @"PCL\Logo.png");
             // 设置当前显示
-            ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-            ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+            if (ModMain.frmMain is { } frm)
+            {
+                frm.ImageTitleLogo.Source = ""; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
+                frm.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+            }
         }
         catch (Exception ex)
         {
@@ -484,7 +487,7 @@ public partial class PageSetupUI
                     ModBase.LogLevel.Msgbox);
             else
                 ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogLevel.Msgbox);
-            ModMain.frmMain.ImageTitleLogo.Source = null;
+            ModMain.frmMain?.ImageTitleLogo.SetValue(MyImage.SourceProperty, null);
         }
     }
 
@@ -499,8 +502,11 @@ public partial class PageSetupUI
         {
             try
             {
-                ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-                ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+                if (ModMain.frmMain is { } frm2)
+                {
+                    frm2.ImageTitleLogo.Source = ""; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
+                    frm2.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+                }
             }
             catch (Exception ex)
             {
@@ -512,7 +518,8 @@ public partial class PageSetupUI
                         ModBase.LogLevel.Msgbox);
                 else
                     ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogLevel.Msgbox);
-                ModMain.frmMain.ImageTitleLogo.Source = null;
+                if (ModMain.frmMain is { } frm3)
+                    frm3.ImageTitleLogo.Source = "";
                 e.handled = true;
                 try
                 {
@@ -531,7 +538,8 @@ public partial class PageSetupUI
         var fileName = SystemDialogs.SelectFile(Lang.Text("Setup.Ui.ImageFile.Filter"), Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName))
         {
-            ModMain.frmMain.ImageTitleLogo.Source = null;
+            if (ModMain.frmMain is { } frm4)
+                frm4.ImageTitleLogo.Source = "";
             e.handled = true;
         }
         else
@@ -671,7 +679,7 @@ public partial class PageSetupUI
 
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.frmLaunchRight.ForceRefresh();
+        ModMain.frmLaunchRight?.ForceRefresh();
         ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), ModMain.HintType.Finish);
     }
 
@@ -712,7 +720,7 @@ public partial class PageSetupUI
 
     private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
     {
-        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.HomePageMarket });
+        ModMain.frmMain?.PageChange(new FormMain.PageStackData { page = FormMain.PageType.HomePageMarket });
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -749,7 +757,7 @@ public partial class PageSetupUI
     /// </summary>
     public static void HiddenRefresh()
     {
-        if (ModMain.frmMain.PanTitleSelect is null || !ModMain.frmMain.PanTitleSelect.IsLoaded)
+        if (ModMain.frmMain is not { } frm || frm.PanTitleSelect is null || !frm.PanTitleSelect.IsLoaded)
             return;
         try
         {
@@ -761,17 +769,17 @@ public partial class PageSetupUI
 
             if (isAllTitleHidden)
             {
-                ModMain.frmMain.PanTitleSelect.Visibility = Visibility.Collapsed;
+                frm.PanTitleSelect.Visibility = Visibility.Collapsed;
             }
             else
             {
-                ModMain.frmMain.PanTitleSelect.Visibility = Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect1.Visibility = !HiddenForceShow && conf.PageDownload
+                frm.PanTitleSelect.Visibility = Visibility.Visible;
+                frm.BtnTitleSelect1.Visibility = !HiddenForceShow && conf.PageDownload
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect2.Visibility =
+                frm.BtnTitleSelect2.Visibility =
                     !HiddenForceShow && conf.PageSetup ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect3.Visibility =
+                frm.BtnTitleSelect3.Visibility =
                     !HiddenForceShow && conf.PageTools ? Visibility.Collapsed : Visibility.Visible;
             }
 
@@ -894,11 +902,11 @@ public partial class PageSetupUI
             }
 
             // 其他入口刷新
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSelect)
-                ModMain.frmSelectRight.BtnEmptyDownload_Loaded();
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.Launch)
-                ModMain.frmLaunchLeft.RefreshButtonsUI();
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+            if (frm.pageCurrent == FormMain.PageType.InstanceSelect)
+                ModMain.frmSelectRight?.BtnEmptyDownload_Loaded();
+            if (frm.pageCurrent == FormMain.PageType.Launch)
+                ModMain.frmLaunchLeft?.RefreshButtonsUI();
+            if (frm.pageCurrent == FormMain.PageType.InstanceSetup &&
                 ModMain.frmInstanceModDisabled is not null)
                 ModMain.frmInstanceModDisabled.BtnDownload_Loaded();
         }
@@ -912,7 +920,7 @@ public partial class PageSetupUI
     // ================= 设置页面协同 =================
     private void HiddenSetupMain()
     {
-        var isChecked = (bool)CheckHiddenPageSetup.Checked;
+        var isChecked = CheckHiddenPageSetup.Checked == true;
         CheckHiddenSetupLaunch.Checked = isChecked;
         CheckHiddenSetupUI.Checked = isChecked;
         CheckHiddenSetupLauncherLanguage.Checked = isChecked;
@@ -931,7 +939,7 @@ public partial class PageSetupUI
     {
         if (!user)
             return; // 仅处理用户点击，防止死循环
-        var isChecked = (bool)CheckHiddenPageSetup.Checked;
+        var isChecked = CheckHiddenPageSetup.Checked == true;
         CheckHiddenSetupLaunch.Checked = isChecked;
         CheckHiddenSetupUI.Checked = isChecked;
         CheckHiddenSetupLauncherLanguage.Checked = isChecked;
@@ -962,7 +970,7 @@ public partial class PageSetupUI
     {
         if (!user)
             return;
-        var isChecked = (bool)CheckHiddenPageTools.Checked;
+        var isChecked = CheckHiddenPageTools.Checked == true;
         CheckHiddenToolsGameLink.Checked = isChecked;
         CheckHiddenToolsHelp.Checked = isChecked;
         CheckHiddenToolsTest.Checked = isChecked;

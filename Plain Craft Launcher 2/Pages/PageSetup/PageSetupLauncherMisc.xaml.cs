@@ -111,7 +111,7 @@ public partial class PageSetupLauncherMisc
             SetMiscByTag(sender.Tag?.ToString(), sender.Value);
     }
 
-    private static void SetMiscByTag(string tag, object value)
+    private static void SetMiscByTag(string? tag, object value)
     {
         switch (tag)
         {

@@ -12,7 +12,7 @@ public class MyMenuItem : MenuItem
 
     private const int animationTimeIn = 100;
     private const int animationTimeOut = 200;
-    private string colorName;
+    private string colorName = null!;
 
     // 基础
 

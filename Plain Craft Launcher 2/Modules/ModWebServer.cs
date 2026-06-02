@@ -114,8 +114,8 @@ public static class ModWebServer
         private readonly OAuthComplete _completeCallback;
         private readonly string _picAddress;
         private readonly string _serviceName;
-        private string _callbackContent;
-        private IDictionary<string, string> _callbackParameters;
+        private string? _callbackContent;
+        private IDictionary<string, string>? _callbackParameters;
 
         private OAuthCompleteStatus _status;
 

@@ -108,7 +108,7 @@ public partial class MySlider
                 }
                 else
                 {
-                    RefreshWidth(null, null);
+                    RefreshWidth(null!, null!);
                 }
 
                 if (ModAnimation.AniControlEnabled == 0)

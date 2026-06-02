@@ -8,7 +8,7 @@ namespace PCL;
 
 public partial class MyMsgText
 {
-    private readonly ModMain.MyMsgBoxConverter myConverter;
+    private readonly ModMain.MyMsgBoxConverter myConverter = null!;
     private readonly int uuid = ModBase.GetUuid();
 
     public MyMsgText(ModMain.MyMsgBoxConverter converter)
@@ -67,12 +67,15 @@ public partial class MyMsgText
             Btn1.Focus();
             // 动画
             Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
-                "PanMsgBackground Background");
+            if (ModMain.frmMain is { } frm)
+            {
+                ModAnimation.AniStart(
+                    ModAnimation.AaColor(frm.PanMsgBackground, BlurBorder.BackgroundProperty,
+                        (myConverter.IsWarn
+                            ? new ModBase.MyColor(140d, 80d, 0d, 0d)
+                            : new ModBase.MyColor(90d, 0d, 0d, 0d)) - frm.PanMsgBackground.Background, 200),
+                    "PanMsgBackground Background");
+            }
             ModAnimation.AniStart(
                 new[]
                 {
@@ -104,10 +107,10 @@ public partial class MyMsgText
         {
             ModAnimation.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
+                if (!ModMain.WaitingMyMsgBox.Any() && ModMain.frmMain is { } frm)
+                    ModAnimation.AniStart(ModAnimation.AaColor(frm.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
+                        new ModBase.MyColor(0d, 0d, 0d, 0d) - frm.PanMsgBackground.Background, 200,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
@@ -135,7 +138,7 @@ public partial class MyMsgText
         }
     }
 
-    public void Btn2_Click(object sender, MouseButtonEventArgs e)
+    public void Btn2_Click(object? sender = null, MouseButtonEventArgs? e = null)
     {
         if (myConverter.IsExited)
             return;
@@ -151,7 +154,7 @@ public partial class MyMsgText
         }
     }
 
-    public void Btn3_Click(object sender, MouseButtonEventArgs e)
+    public void Btn3_Click(object? sender = null, MouseButtonEventArgs? e = null)
     {
         if (myConverter.IsExited)
             return;
@@ -173,7 +176,7 @@ public partial class MyMsgText
         {
             if (e.LeftButton == MouseButtonState.Pressed)
                 if (e.GetPosition(ShapeLine).Y <= 2d)
-                    ModMain.frmMain.DragMove();
+                    ModMain.frmMain?.DragMove();
         }
         catch (Exception ex)
         {

@@ -108,7 +108,7 @@ public static class ModLocalComp
                     var scheNbt = new NbtFile();
                     scheNbt.LoadFromStream(fs, NbtCompression.AutoDetect);
                     // 读取版本信息
-                    var versionTag = (NbtInt)scheNbt.RootTag.Get("Version");
+                    var versionTag = (NbtInt?)scheNbt.RootTag.Get("Version");
                     if (versionTag is not null) _litematicVersion = versionTag.Value;
 
                     // 读取 Metadata 节点
@@ -458,12 +458,12 @@ public static class ModLocalComp
             }
         }
 
-        private string _Name;
+        private string? _Name;
 
         /// <summary>
         ///     Mod 的描述信息。
         /// </summary>
-        public string Description
+        public string? Description
         {
             get
             {
@@ -487,7 +487,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _Description;
+        private string? _Description;
 
         /// <summary>
         ///     文件类型标签。
@@ -532,12 +532,12 @@ public static class ModLocalComp
             }
         }
 
-        private List<string> _tags;
+        private List<string>? _tags;
 
         /// <summary>
         ///     Mod 的版本，不保证符合版本格式规范。
         /// </summary>
-        public string Version
+        public string? Version
         {
             get
             {
@@ -555,12 +555,12 @@ public static class ModLocalComp
             }
         }
 
-        public string _Version;
+        public string? _Version;
 
         /// <summary>
         ///     用于依赖检查的 ModID。
         /// </summary>
-        public string ModId
+        public string? ModId
         {
             get
             {
@@ -573,8 +573,8 @@ public static class ModLocalComp
                 if (value is null)
                     return;
                 value = value.RegexSeek(RegexPatterns.ModIdMatch);
-                if (value is null || value.Length <= 1 || (ModBase.Val(value).ToString() ?? "") == (value ?? ""))
-                    return;
+                if (value is not { Length: > 1 }) return;
+                if ((ModBase.Val(value).ToString() ?? "") == value) return;
                 if (value.ContainsF("name", true) || value.ContainsF("modid", true))
                     return;
                 if (!possibleModId.Contains(value))
@@ -584,7 +584,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _ModId;
+        private string? _ModId;
 
         /// <summary>
         ///     其他可能的 ModID。
@@ -594,7 +594,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Mod 的主页。
         /// </summary>
-        public string Url
+        public string? Url
         {
             get
             {
@@ -608,12 +608,12 @@ public static class ModLocalComp
             }
         }
 
-        private string _Url;
+        private string? _Url;
 
         /// <summary>
         ///     Mod 的作者列表。
         /// </summary>
-        public string Authors
+        public string? Authors
         {
             get
             {
@@ -627,7 +627,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _Authors;
+        private string? _Authors;
 
         /// <summary>
         ///     Litematic 文件的创建时间戳。
@@ -660,7 +660,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Schem 读取到的原始名称。
         /// </summary>
-        public string SchemOriginalName
+        public string? SchemOriginalName
         {
             get
             {
@@ -669,12 +669,12 @@ public static class ModLocalComp
             }
         }
 
-        private string _schemOriginalName;
+        private string? _schemOriginalName;
 
         /// <summary>
         ///     Litematic 读取到的原始名称。
         /// </summary>
-        public string LitematicOriginalName
+        public string? LitematicOriginalName
         {
             get
             {
@@ -683,7 +683,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _litematicOriginalName;
+        private string? _litematicOriginalName;
 
         /// <summary>
         ///     Litematic 文件的版本。
@@ -702,7 +702,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Litematic 文件的包围盒大小。
         /// </summary>
-        public string LitematicEnclosingSize
+        public string? LitematicEnclosingSize
         {
             get
             {
@@ -711,7 +711,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _litematicEnclosingSize;
+        private string? _litematicEnclosingSize;
 
         /// <summary>
         ///     Litematic 文件的区域数量。
@@ -758,7 +758,7 @@ public static class ModLocalComp
         /// <summary>
         ///     原版结构文件的游戏版本。
         /// </summary>
-        public string StructureGameVersion
+        public string? StructureGameVersion
         {
             get
             {
@@ -767,7 +767,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _structureGameVersion;
+        private string? _structureGameVersion;
 
         /// <summary>
         ///     原版结构文件的数据版本。
@@ -786,7 +786,7 @@ public static class ModLocalComp
         /// <summary>
         ///     原版结构文件的作者。
         /// </summary>
-        public string StructureAuthor
+        public string? StructureAuthor
         {
             get
             {
@@ -795,7 +795,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _structureAuthor;
+        private string? _structureAuthor;
 
         /// <summary>
         ///     Sponge Schematic 文件的版本。
@@ -814,12 +814,12 @@ public static class ModLocalComp
         /// <summary>
         ///     Mod 图标路径。
         /// </summary>
-        public string Logo { get; set; }
+        public string? Logo { get; set; }
 
         /// <summary>
         ///     依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
         /// </summary>
-        public Dictionary<string, string> Dependencies
+        public Dictionary<string, string?> Dependencies
         {
             get
             {
@@ -828,15 +828,16 @@ public static class ModLocalComp
             }
         }
 
-        private Dictionary<string, string> _Dependencies = new();
+        private Dictionary<string, string?> _Dependencies = new();
 
-        private void AddDependency(string modID, string versionRequirement = null)
+        private void AddDependency(string modID, string? versionRequirement = null)
         {
             // 确保信息正确
-            if (modID is null || modID.Length < 2)
+            if (string.IsNullOrEmpty(modID) || modID.Length < 2)
                 return;
-            modID = modID.ToLower();
-            if (modID == "name" || (ModBase.Val(modID).ToString() ?? "") == (modID ?? ""))
+            var normalizedId = modID.ToLower();
+            if (string.IsNullOrEmpty(normalizedId)) return;
+            if (normalizedId == "name" || (ModBase.Val(normalizedId).ToString() ?? "") == normalizedId)
                 return; // 跳过 name 与纯数字 id
             if (versionRequirement is null ||
                 (!versionRequirement.Contains(".") && !versionRequirement.Contains("-")) ||
@@ -846,14 +847,14 @@ public static class ModLocalComp
                      !versionRequirement.EndsWithF("]") && !versionRequirement.EndsWithF(")"))
                 versionRequirement = "[" + versionRequirement + ",)";
             // 向依赖项中添加
-            if (_Dependencies.ContainsKey(modID))
+            if (_Dependencies.ContainsKey(normalizedId))
             {
-                if (_Dependencies[modID] is null)
-                    _Dependencies[modID] = versionRequirement;
+                if (_Dependencies[normalizedId] is null)
+                    _Dependencies[normalizedId] = versionRequirement;
             }
             else
             {
-                _Dependencies.Add(modID, versionRequirement);
+                _Dependencies.Add(normalizedId, versionRequirement);
             }
         }
 
@@ -884,7 +885,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Mod 文件出错的原因。若无错误，则为 Nothing。
         /// </summary>
-        public Exception FileUnavailableReason
+        public Exception? FileUnavailableReason
         {
             get
             {
@@ -893,7 +894,7 @@ public static class ModLocalComp
             }
         }
 
-        private Exception _FileUnavailableReason;
+        private Exception? _FileUnavailableReason;
 
         // 2. 进行 .class 以外的信息获取
         // 成功：标记 IsInfoWithoutClassAvailable。
@@ -930,7 +931,7 @@ public static class ModLocalComp
             _Version = null;
             _ModId = null;
             possibleModId = new List<string>();
-            _Dependencies = new Dictionary<string, string>();
+            _Dependencies = new Dictionary<string, string?>();
             isLoaded = false;
             _FileUnavailableReason = null;
             isInfoWithClassLoaded = false;
@@ -1082,7 +1083,7 @@ public static class ModLocalComp
             }
 
             // 对于其他文件，尝试作为 Jar 文件打开
-            ZipArchive jar = null;
+            ZipArchive? jar = null;
             try
             {
                 jar = new ZipArchive(new FileStream(path, FileMode.Open));
@@ -1122,7 +1123,7 @@ public static class ModLocalComp
                 {
                     // 获取信息文件
                     var infoEntry = jar.GetEntry("mcmod.info");
-                    string infoString = null;
+                    string? infoString = null;
                     if (infoEntry is not null)
                     {
                         infoString = ModBase.ReadFile(infoEntry.Open());
@@ -1133,29 +1134,30 @@ public static class ModLocalComp
                     if (infoString is null)
                         break;
                     // 获取可用 Json 项
-                    JsonObject infoObject;
+                    JsonObject? infoObject;
                     var jsonObject = (JsonNode)ModBase.GetJson(infoString);
                     if (jsonObject.GetValueKind() == JsonValueKind.Array)
-                        infoObject = (JsonObject)jsonObject[0];
+                        infoObject = (JsonObject?)jsonObject[0];
                     else
-                        infoObject = (JsonObject)jsonObject["modList"][0];
+                        infoObject = (JsonObject?)jsonObject["modList"]?[0];
+                    if (infoObject is null) break;
                     // 从文件中获取 Mod 信息项
-                    Name = (string)infoObject["name"];
-                    Description = (string)infoObject["description"];
-                    Version = (string)infoObject["version"];
-                    Url = (string)infoObject["url"];
-                    ModId = (string)infoObject["modid"];
-                    var authorJson = (JsonArray)infoObject["authorList"];
+                    if ((string?)infoObject["name"] is { } nameVal) Name = nameVal;
+                    Description = (string?)infoObject["description"];
+                    Version = (string?)infoObject["version"];
+                    Url = (string?)infoObject["url"];
+                    ModId = (string?)infoObject["modid"];
+                    var authorJson = (JsonArray?)infoObject["authorList"];
                     if (authorJson is not null)
                     {
                         var author = new List<string>();
                         foreach (var Token in authorJson)
-                            author.Add(Token.ToString());
+                            if (Token is not null) author.Add(Token.ToString());
                         if (author.Any())
                             Authors = author.Join(", ");
                     }
 
-                    var logoFile = (string)infoObject["logoFile"];
+                    var logoFile = (string?)infoObject["logoFile"];
                     if (logoFile is not null)
                     {
                         var logoItem = jar.GetEntry(logoFile);
@@ -1170,13 +1172,13 @@ public static class ModLocalComp
                         }
                     }
 
-                    var reqs = (JsonArray)infoObject["requiredMods"];
+                    var reqs = (JsonArray?)infoObject["requiredMods"];
                     if (reqs is not null)
-                        foreach (string item in reqs) // 将迭代变量重命名为 item
-                            if (!string.IsNullOrEmpty(item))
+                        foreach (var item in reqs) // 将迭代变量重命名为 item
+                            if (item is not null && !string.IsNullOrEmpty(item.ToString()))
                             {
                                 // 使用一个局部变量 token 来处理逻辑
-                                var token = item;
+                                var token = item.ToString()!;
 
                                 token = token.Substring(token.IndexOfF(":") + 1);
                                 if (token.Contains("@"))
@@ -1190,22 +1192,22 @@ public static class ModLocalComp
                                 }
                             }
 
-                    reqs = (JsonArray)infoObject["dependencies"];
+                    reqs = (JsonArray?)infoObject["dependencies"];
                     if (reqs is not null)
-                        foreach (string rawToken in reqs)
-                            if (!string.IsNullOrEmpty(rawToken))
+                        foreach (var rawTokenNode in reqs)
+                            if (rawTokenNode is not null && !string.IsNullOrEmpty(rawTokenNode.ToString()))
                             {
-                                var id = rawToken.Substring(rawToken.IndexOfF(":") + 1);
-
-                                if (id.Contains("@"))
-                                {
-                                    var parts = id.Split("@");
-                                    AddDependency(parts[0], parts[1]);
-                                }
-                                else
-                                {
-                                    AddDependency(id);
-                                }
+                                var rawToken = rawTokenNode.ToString()!;
+                                 var id = rawToken.Substring(rawToken.IndexOfF(":") + 1);
+                                 if (id.Contains("@"))
+                                 {
+                                     var parts = id.Split("@");
+                                     AddDependency(parts[0], parts[1]);
+                                 }
+                                 else
+                                 {
+                                     AddDependency(id);
+                                 }
                             }
                 }
                 catch (Exception ex)
@@ -1223,7 +1225,7 @@ public static class ModLocalComp
                 try
                 {
                     var fabricEntry = jar.GetEntry("fabric.mod.json");
-                    string fabricText = null;
+                    string? fabricText = null;
                     if (fabricEntry is not null)
                     {
                         fabricText = ModBase.ReadFile(fabricEntry.Open(), Encoding.UTF8);
@@ -1234,39 +1236,43 @@ public static class ModLocalComp
 
                     var fabricObject = (JsonObject)ModBase.GetJson(fabricText);
 
-                    if (fabricObject.ContainsKey("name")) Name = fabricObject["name"].ToString();
-                    if (fabricObject.ContainsKey("version")) Version = fabricObject["version"].ToString();
-                    if (fabricObject.ContainsKey("description")) Description = fabricObject["description"].ToString();
-                    if (fabricObject.ContainsKey("id")) ModId = fabricObject["id"].ToString();
-                    if (fabricObject.ContainsKey("contact") && fabricObject["contact"]["homepage"] is not null)
-                        Url = fabricObject["contact"]["homepage"].ToString();
+                    if (fabricObject.ContainsKey("name") && fabricObject["name"] is not null)
+                        Name = fabricObject["name"]!.ToString();
+                    if (fabricObject.ContainsKey("version")) Version = fabricObject["version"]?.ToString();
+                    if (fabricObject.ContainsKey("description")) Description = fabricObject["description"]?.ToString();
+                    if (fabricObject.ContainsKey("id")) ModId = fabricObject["id"]?.ToString();
+                    if (fabricObject.ContainsKey("contact") && fabricObject["contact"]?["homepage"] is not null)
+                        Url = fabricObject["contact"]!["homepage"]!.ToString();
 
-                    var authorJson = (JsonArray)fabricObject["authors"];
+                    var authorJson = (JsonArray?)fabricObject["authors"];
                     if (authorJson is not null)
                     {
-                        var authorList = authorJson.Select(t => t.ToString()).ToList();
+                        var authorList = authorJson.Where(t => t is not null).Select(t => t!.ToString()).ToList();
                         if (authorList.Any()) Authors = string.Join(", ", authorList);
                     }
 
                     if (fabricObject.ContainsKey("icon"))
                     {
-                        var logoFile = fabricObject["icon"].ToString();
-                        var logoItem = jar.GetEntry(logoFile);
-                        if (logoItem is not null)
+                        var logoFile = fabricObject["icon"]?.ToString();
+                        if (logoFile is not null)
                         {
-                            var md5 = ModBase.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
-                            Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
-                            using (var entryStream = logoItem.Open())
+                            var logoItem = jar.GetEntry(logoFile);
+                            if (logoItem is not null)
                             {
-                                ModBase.WriteFile(Logo, entryStream);
+                                var md5 = ModBase.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                                Logo = System.IO.Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{md5}.png");
+                                using (var entryStream = logoItem.Open())
+                                {
+                                    ModBase.WriteFile(Logo, entryStream);
+                                }
                             }
                         }
                     }
 
                     // 依赖处理 (省略了 VB 中的注释部分，按逻辑实现)
-                    if (fabricObject.ContainsKey("depends"))
-                        foreach (var dep in (JsonObject)fabricObject["depends"])
-                            AddDependency(dep.Key, dep.Value.ToString());
+                    if (fabricObject.ContainsKey("depends") && fabricObject["depends"] is JsonObject depsObj)
+                        foreach (var dep in depsObj)
+                            AddDependency(dep.Key, dep.Value?.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -1284,7 +1290,7 @@ public static class ModLocalComp
                 {
                     // 获取 quilt.mod.json 文件
                     var quiltEntry = jar.GetEntry("quilt.mod.json");
-                    string quiltText = null;
+                    string? quiltText = null;
                     if (quiltEntry is not null)
                     {
                         quiltText = ModBase.ReadFile(quiltEntry.Open(), Encoding.UTF8);
@@ -1294,26 +1300,31 @@ public static class ModLocalComp
 
                     if (quiltText is null)
                         break;
-                    var quiltObject = (JsonObject)((JsonObject)ModBase.GetJson(quiltText))["quilt_loader"];
+                    var quiltRoot = (JsonObject)ModBase.GetJson(quiltText);
+                    var quiltObject = (JsonObject?)quiltRoot["quilt_loader"];
+                    if (quiltObject is null) break;
                     // 从文件中获取 Mod 信息项
                     if (quiltObject.ContainsKey("id"))
-                        ModId = (string)quiltObject["id"];
+                        ModId = (string?)quiltObject["id"];
                     if (quiltObject.ContainsKey("version"))
-                        Version = (string)quiltObject["version"];
+                        Version = (string?)quiltObject["version"];
                     if (quiltObject.ContainsKey("metadata"))
                     {
-                        var quiltMetadata = (JsonObject)quiltObject["metadata"];
-                        if (quiltMetadata.ContainsKey("name"))
-                            Name = (string)quiltMetadata["name"];
-                        if (quiltMetadata.ContainsKey("description"))
-                            Description = (string)quiltMetadata["description"];
-                        if (quiltMetadata.ContainsKey("contact"))
-                            Url = (string)(quiltMetadata["contact"]["homepage"] ?? "");
+                        var quiltMetadata = (JsonObject?)quiltObject["metadata"];
+                        if (quiltMetadata is not null)
+                        {
+                            if (quiltMetadata.ContainsKey("name") && (string?)quiltMetadata["name"] is { } qName)
+                                Name = qName;
+                            if (quiltMetadata.ContainsKey("description"))
+                                Description = (string?)quiltMetadata["description"];
+                            if (quiltMetadata.ContainsKey("contact"))
+                                Url = (string?)(quiltMetadata["contact"]?["homepage"] ?? "");
+                        }
                     }
 
                     if (quiltObject.ContainsKey("icon"))
                     {
-                        var logoFile = (string)quiltObject["icon"];
+                        var logoFile = (string?)quiltObject["icon"];
                         if (logoFile is not null)
                         {
                             var logoItem = jar.GetEntry(logoFile);
@@ -1345,7 +1356,7 @@ public static class ModLocalComp
             {
                 // 获取 mods.toml 文件
                 var tomlEntry = jar.GetEntry("META-INF/mods.toml");
-                string tomlText = null;
+                    string? tomlText = null;
                 if (tomlEntry is not null)
                 {
                     using (var reader = new StreamReader(tomlEntry.Open()))
@@ -1445,7 +1456,7 @@ public static class ModLocalComp
                     }
 
                     // 从解析出的数据中提取 Mod 信息
-                    Dictionary<string, object> modEntry = null;
+                    Dictionary<string, object>? modEntry = null;
                     foreach (var subData in tomlData)
                         if (subData.Key == "mods")
                         {
@@ -1455,33 +1466,33 @@ public static class ModLocalComp
 
                     if (modEntry is not null && modEntry.ContainsKey("modId"))
                     {
-                        ModId = modEntry["modId"].ToString();
+                        ModId = modEntry["modId"]?.ToString();
                         // 假设 _ModId 是内部属性，如果为 null 说明设置失败
                         if (_ModId is not null)
                         {
-                            if (modEntry.ContainsKey("displayName")) Name = modEntry["displayName"].ToString();
-                            if (modEntry.ContainsKey("description")) Description = modEntry["description"].ToString();
-                            if (modEntry.ContainsKey("version")) Version = modEntry["version"].ToString();
+                            if (modEntry.ContainsKey("displayName") && modEntry["displayName"]?.ToString() is { } dn) Name = dn;
+                            if (modEntry.ContainsKey("description")) Description = modEntry["description"]?.ToString();
+                            if (modEntry.ContainsKey("version")) Version = modEntry["version"]?.ToString();
 
                             // [0] 是全局段落（无 Header）
                             if (tomlData[0].Value.ContainsKey("displayURL"))
-                                Url = tomlData[0].Value["displayURL"].ToString();
+                                Url = tomlData[0].Value["displayURL"]?.ToString();
                             if (tomlData[0].Value.ContainsKey("authors"))
-                                Authors = tomlData[0].Value["authors"].ToString();
+                                Authors = tomlData[0].Value["authors"]?.ToString();
 
                             // 读取依赖
                             foreach (var subData in tomlData)
-                                if (subData.Key.ToLower() == $"dependencies.{ModId.ToLower()}")
+                                if (subData.Key.ToLower() == $"dependencies.{ModId?.ToLower()}")
                                 {
                                     var depEntry = subData.Value;
                                     if (depEntry.ContainsKey("modId") &&
                                         depEntry.ContainsKey("mandatory") && (bool)depEntry["mandatory"] &&
                                         depEntry.ContainsKey("side") &&
-                                        depEntry["side"].ToString().ToLower() != "server")
+                                        depEntry["side"]?.ToString()?.ToLower() != "server")
                                         AddDependency(
-                                            depEntry["modId"].ToString(),
+                                            depEntry["modId"]?.ToString() ?? "",
                                             depEntry.ContainsKey("versionRange")
-                                                ? depEntry["versionRange"].ToString()
+                                                ? depEntry["versionRange"]?.ToString()
                                                 : null
                                         );
                                 }
@@ -1507,7 +1518,7 @@ public static class ModLocalComp
                 {
                     // 获取 fml_cache_annotation.json 文件
                     var fmlEntry = jar.GetEntry("META-INF/fml_cache_annotation.json");
-                    string fmlText = null;
+                    string? fmlText = null;
                     if (fmlEntry is not null)
                     {
                         fmlText = ModBase.ReadFile(fmlEntry.Open(), Encoding.UTF8);
@@ -1519,18 +1530,19 @@ public static class ModLocalComp
                         break;
                     var fmlJson = (JsonObject)ModBase.GetJson(fmlText);
                     // 获取可用 Json 项
-                    JsonObject fmlObject = null;
+                    JsonObject? fmlObject = null;
                     foreach (var ModFilePair in fmlJson)
                     {
-                        var modFileAnnos = (JsonArray)ModFilePair.Value["annotations"];
+                        var modFileAnnos = (JsonArray?)ModFilePair.Value?["annotations"];
                         if (modFileAnnos is not null)
                             // 先获取 Mod
                             foreach (var ModFileAnno in modFileAnnos)
                             {
-                                var name = (string)(ModFileAnno["name"] ?? "");
+                                if (ModFileAnno is null) continue;
+                                var name = (string?)(ModFileAnno["name"] ?? "");
                                 if (name == "Lnet/minecraftforge/fml/common/Mod;")
                                 {
-                                    fmlObject = (JsonObject)ModFileAnno["values"];
+                                    fmlObject = (JsonObject?)ModFileAnno["values"];
                                     goto Got;
                                 }
                             }
@@ -1538,42 +1550,44 @@ public static class ModLocalComp
 
                     break;
                     Got: ;
+                    if (fmlObject is null) break;
 
                     // 从文件中获取 Mod 信息项
                     if (fmlObject.ContainsKey("useMetadata") &&
-                        (fmlObject["useMetadata"]["value"] ?? "").ToString().ToLower() == "true")
+                        (fmlObject["useMetadata"]?["value"] ?? "").ToString()?.ToLower() == "true")
                     {
                         // 要求使用 mcmod.info 中的信息
-                        var value = (string)fmlObject["modid"]["value"];
+                        var value = (string?)fmlObject["modid"]?["value"];
                         if (value is null)
                             break;
                         value = value.ToLower().RegexSeek(RegexPatterns.ModIdMatch);
-                        if (value is not null && value.ToLower() != "name" && value.Length > 1 &&
-                            (ModBase.Val(value).ToString() ?? "") != (value ?? ""))
-                            if (!possibleModId.Contains(value))
-                                possibleModId.Add(value);
+                        if (value is not { Length: > 1 }) break;
+                        if (value.ToLower() == "name" ||
+                            (ModBase.Val(value).ToString() ?? "") == value) break;
+                        if (!possibleModId.Contains(value))
+                            possibleModId.Add(value);
                         break;
                     }
 
-                    if (fmlObject.ContainsKey("name"))
-                        Name = (string)fmlObject["name"]["value"];
+                    if (fmlObject.ContainsKey("name") && fmlObject["name"]?["value"] is not null)
+                        Name = (string)fmlObject["name"]!["value"]!;
                     if (fmlObject.ContainsKey("version"))
-                        Version = (string)fmlObject["version"]["value"];
+                        Version = (string?)fmlObject["version"]?["value"];
                     if (fmlObject.ContainsKey("modid"))
-                        ModId = (string)fmlObject["modid"]["value"];
+                        ModId = (string?)fmlObject["modid"]?["value"];
                     if (!fmlObject.ContainsKey("serverSideOnly") ||
-                        !fmlObject["serverSideOnly"]["value"].ToObject<bool>())
+                        !(fmlObject["serverSideOnly"]?["value"]?.ToObject<bool>() ?? false))
                     {
                         // 添加 Minecraft 依赖
-                        var depMinecraft = (string)((fmlObject["acceptedMinecraftVersions"] is not null
-                            ? fmlObject["acceptedMinecraftVersions"]["value"]
-                            : "") ?? "");
+                        var depMinecraft = (string?)((fmlObject["acceptedMinecraftVersions"] is not null
+                            ? fmlObject["acceptedMinecraftVersions"]?["value"]
+                            : null) ?? "");
                         if (!string.IsNullOrEmpty(depMinecraft))
                             AddDependency("minecraft", depMinecraft);
                         // 添加其他依赖
-                        var deps = (string)((fmlObject["dependencies"] is not null
-                            ? fmlObject["dependencies"]["value"]
-                            : "") ?? "");
+                        var deps = (string?)((fmlObject["dependencies"] is not null
+                            ? fmlObject["dependencies"]?["value"]
+                            : null) ?? "");
                         if (!string.IsNullOrEmpty(deps))
                             foreach (var item in deps.Split(";"))
                             {
@@ -1680,7 +1694,7 @@ public static class ModLocalComp
         /// <summary>
         ///     该 Mod 关联的网络项目。
         /// </summary>
-        public CompProject Comp
+        public CompProject? Comp
         {
             get => _Comp;
             set
@@ -1690,17 +1704,17 @@ public static class ModLocalComp
             }
         }
 
-        private CompProject _Comp;
+        private CompProject? _Comp;
 
         /// <summary>
         ///     本地文件对应的联网文件信息。
         /// </summary>
-        public CompFile compFile;
+        public CompFile? compFile;
 
         /// <summary>
         ///     该 Mod 对应的联网最新版本。
         /// </summary>
-        public CompFile UpdateFile
+        public CompFile? UpdateFile
         {
             get => _UpdateFile;
             set
@@ -1710,7 +1724,7 @@ public static class ModLocalComp
             }
         }
 
-        private CompFile _UpdateFile;
+        private CompFile? _UpdateFile;
 
         /// <summary>
         ///     该 Mod 的更新日志网址。
@@ -1744,15 +1758,16 @@ public static class ModLocalComp
         /// </summary>
         public void FromJson(JsonObject json)
         {
-            compLoaded = (bool)json["CompLoaded"];
-            if (json.ContainsKey("Comp"))
-                Comp = new CompProject((JsonObject)json["Comp"]);
-            if (json.ContainsKey("ChangelogUrls"))
-                changelogUrls = json["ChangelogUrls"].ToObject<List<string>>();
-            if (json.ContainsKey("CompFile"))
-                compFile = new CompFile((JsonObject)json["CompFile"], CompType.Mod);
-            if (json.ContainsKey("UpdateFile"))
-                UpdateFile = new CompFile((JsonObject)json["UpdateFile"], CompType.Mod);
+            if (json["CompLoaded"] is not null)
+                compLoaded = (bool)json["CompLoaded"]!;
+            if (json.ContainsKey("Comp") && json["Comp"] is JsonObject compObj)
+                Comp = new CompProject(compObj);
+            if (json.ContainsKey("ChangelogUrls") && json["ChangelogUrls"] is JsonArray changelogArr)
+                changelogUrls = changelogArr.Select(t => t?.ToString() ?? "").Where(s => s != "").ToList();
+            if (json.ContainsKey("CompFile") && json["CompFile"] is JsonObject compFileObj)
+                compFile = new CompFile(compFileObj, CompType.Mod);
+            if (json.ContainsKey("UpdateFile") && json["UpdateFile"] is JsonObject updateFileObj)
+                UpdateFile = new CompFile(updateFileObj, CompType.Mod);
         }
 
         /// <summary>
@@ -1872,7 +1887,7 @@ public static class ModLocalComp
             }
         }
 
-        private string _ModrinthHash;
+        private string? _ModrinthHash;
 
         #endregion
 
@@ -1883,7 +1898,7 @@ public static class ModLocalComp
             return $"{State} - {path}";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var target = obj as LocalCompFile;
             return target is not null && (path ?? "") == (target.path ?? "");
@@ -1912,13 +1927,13 @@ public static class ModLocalComp
 
     public class CompLocalLoaderData
     {
-        public string compPath;
+        public string compPath = "";
         public CompType compType;
 
         public KeyValuePair<List<LocalCompFile>, JsonObject> detailInfo;
-        public PageInstanceCompResource frm;
-        public ModMinecraft.Instance gameVersion;
-        public List<CompLoaderType> loaders;
+        public PageInstanceCompResource? frm;
+        public ModMinecraft.Instance gameVersion = null!;
+        public List<CompLoaderType> loaders = [];
     }
 
     // 加载资源列表
@@ -1959,7 +1974,7 @@ public static class ModLocalComp
                     });
                 }
 
-                loader.input.frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
+                loader.input.frm?.LoaderRun(LoaderFolderRunType.UpdateOnly);
             }
 
             // 获取 Mod 文件夹下的可用文件列表
@@ -2005,10 +2020,10 @@ public static class ModLocalComp
                         foreach (var File in ModBase.EnumerateFiles(loader.input.compPath))
                             try
                             {
-                                if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
+                                if ((File.DirectoryName?.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
                                     if (!(PageInstanceLeft.instance is not null &&
                                           PageInstanceLeft.instance.Info.HasForge &&
-                                          PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
+                                          PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory?.Name ?? "") ==
                                           (PageInstanceLeft.instance.Info.VanillaName ?? "")))
                                         continue;
 
@@ -2081,12 +2096,13 @@ public static class ModLocalComp
                     continue;
                 var cacheKey = ModEntry.ModrinthHash + loader.input.gameVersion.Info.VanillaName +
                                loader.input.loaders.Join("");
-                if (cache.ContainsKey(cacheKey))
+                if (cache.ContainsKey(cacheKey) && cache[cacheKey] is JsonObject cacheObj)
                 {
-                    ModEntry.FromJson((JsonObject)cache[cacheKey]);
+                    ModEntry.FromJson(cacheObj);
                     // 如果缓存中的信息在 6 小时以内更新过，则无需重新获取
                     if (ModEntry.compLoaded &&
-                        DateTime.Now - cache[cacheKey]["Comp"]["CacheTime"].ToObject<DateTime>() <
+                        cacheObj["Comp"]?["CacheTime"] is not null &&
+                        DateTime.Now - cacheObj["Comp"]!["CacheTime"]!.ToObject<DateTime>() <
                         new TimeSpan(6, 0, 0))
                         continue;
                 }
@@ -2166,11 +2182,12 @@ public static class ModLocalComp
                 var modrinthMapping = new Dictionary<string, List<LocalCompFile>>();
                 foreach (var Entry in mods)
                 {
-                    if (modrinthVersion[Entry.ModrinthHash] is null) continue;
-                    if (modrinthVersion[Entry.ModrinthHash]["files"][0]["hashes"]["sha1"].ToString() !=
+                    if (modrinthVersion[Entry.ModrinthHash] is not JsonNode versionEntry) continue;
+                    if (versionEntry["files"]?[0]?["hashes"]?["sha1"]?.ToString() !=
                         Entry.ModrinthHash) continue;
 
-                    var projectId = modrinthVersion[Entry.ModrinthHash]["project_id"].ToString();
+                    var projectId = versionEntry["project_id"]?.ToString();
+                    if (projectId is null) continue;
                     // 读取已加载的缓存，加快结果出现速度
                     if (compProjectCache.ContainsKey(projectId) && Entry.Comp is null)
                         Entry.Comp = compProjectCache[projectId];
@@ -2179,9 +2196,12 @@ public static class ModLocalComp
                     modrinthMapping[projectId].Add(Entry);
 
                     // 记录对应的 CompFile
-                    var fileInfo = new CompFile((JsonObject)modrinthVersion[Entry.ModrinthHash], CompType.Mod);
-                    if (Entry.compFile is null || Entry.compFile.ReleaseDate < fileInfo.ReleaseDate)
-                        Entry.compFile = fileInfo;
+                    if (versionEntry is JsonObject versionObj)
+                    {
+                        var fileInfo = new CompFile(versionObj, CompType.Mod);
+                        if (Entry.compFile is null || Entry.compFile.ReleaseDate < fileInfo.ReleaseDate)
+                            Entry.compFile = fileInfo;
+                    }
                 }
 
                 if (loader.IsAbortedWithThread(currentTaskId)) return;
@@ -2195,8 +2215,10 @@ public static class ModLocalComp
 
                 foreach (var ProjectJson in modrinthProject)
                 {
-                    var project = new CompProject((JsonObject)ProjectJson);
-                    foreach (var Entry in modrinthMapping[project.Id]) Entry.Comp = project;
+                    if (ProjectJson is not JsonObject projectObj) continue;
+                    var project = new CompProject(projectObj);
+                    if (modrinthMapping.ContainsKey(project.Id))
+                        foreach (var Entry in modrinthMapping[project.Id]) Entry.Comp = project;
                 }
 
                 ModBase.Log("[Mod] 已从 Modrinth 获取本地 Mod 信息，继续获取更新信息");
@@ -2212,8 +2234,8 @@ public static class ModLocalComp
 
                 foreach (var Entry in mods)
                 {
-                    if (modrinthUpdate[Entry.ModrinthHash] is null || Entry.compFile is null) continue;
-                    var updateFile = new CompFile((JsonObject)modrinthUpdate[Entry.ModrinthHash], CompType.Mod);
+                    if (modrinthUpdate[Entry.ModrinthHash] is not JsonObject updateObj || Entry.compFile is null) continue;
+                    var updateFile = new CompFile(updateObj, CompType.Mod);
                     if (!updateFile.Available) continue;
 
                     if (ModBase.modeDebug)
@@ -2225,15 +2247,16 @@ public static class ModLocalComp
                     if (Entry.UpdateFile is not null && updateFile.Hash == Entry.UpdateFile.Hash)
                     {
                         Entry.changelogUrls.Add(
-                            $"https://modrinth.com/mod/{modrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={mcInstance}");
-                        Entry.UpdateFile.DownloadUrls.AddRange(updateFile.DownloadUrls);
+                            $"https://modrinth.com/mod/{updateObj["project_id"]}/changelog?g={mcInstance}");
+                        if (updateFile.DownloadUrls is not null && Entry.UpdateFile is not null)
+                            Entry.UpdateFile.DownloadUrls?.AddRange(updateFile.DownloadUrls);
                         Entry.UpdateFile = updateFile;
                     }
                     else if (Entry.UpdateFile is null || updateFile.ReleaseDate >= Entry.UpdateFile.ReleaseDate)
                     {
                         Entry.changelogUrls = new List<string>
                         {
-                            $"https://modrinth.com/mod/{modrinthUpdate[Entry.ModrinthHash]["project_id"]}/changelog?g={mcInstance}"
+                            $"https://modrinth.com/mod/{updateObj["project_id"]}/changelog?g={mcInstance}"
                         };
                         Entry.UpdateFile = updateFile;
                     }
@@ -2262,8 +2285,9 @@ public static class ModLocalComp
                 var curseForgeResponse = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                     "https://api.curseforge.com/v1/fingerprints/432", "POST",
                     $"{{\"fingerprints\": [{string.Join(",", curseForgeHashes)}]}}", "application/json"));
-                var curseForgeRaw = (JsonArray)curseForgeResponse["data"]["exactMatches"];
-                ModBase.Log($"[Mod] 从 CurseForge 获取到 {curseForgeRaw.Count} 个本地 Mod 的对应信息");
+                var curseForgeRaw = (JsonArray?)curseForgeResponse["data"]?["exactMatches"];
+                if (curseForgeRaw is not null)
+                    ModBase.Log($"[Mod] 从 CurseForge 获取到 {curseForgeRaw.Count} 个本地 Mod 的对应信息");
 
                 // 步骤 2：构建映射 (此处省略具体循环，逻辑同 Modrinth，注意 ProjectId 转换)
                 // ...
@@ -2316,15 +2340,15 @@ public static class ModLocalComp
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
         var modLoaders = new List<CompLoaderType>();
-        if (PageInstanceLeft.instance.Info.HasForge)
+        if (PageInstanceLeft.instance?.Info.HasForge == true)
             modLoaders.Add(CompLoaderType.Forge);
-        if (PageInstanceLeft.instance.Info.HasNeoForge)
+        if (PageInstanceLeft.instance?.Info.HasNeoForge == true)
             modLoaders.Add(CompLoaderType.NeoForge);
-        if (PageInstanceLeft.instance.Info.HasFabric)
+        if (PageInstanceLeft.instance?.Info.HasFabric == true)
             modLoaders.Add(CompLoaderType.Fabric);
-        if (PageInstanceLeft.instance.Info.HasQuilt)
+        if (PageInstanceLeft.instance?.Info.HasQuilt == true)
             modLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
-        if (PageInstanceLeft.instance.Info.HasLiteLoader)
+        if (PageInstanceLeft.instance?.Info.HasLiteLoader == true)
             modLoaders.Add(CompLoaderType.LiteLoader);
         if (!modLoaders.Any())
             modLoaders.AddRange(new[]
@@ -2375,7 +2399,7 @@ public static class ModLocalComp
     /// <returns>
     ///     如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
     /// </returns>
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string modId,
+    public static LocalCompFile? GetModLocalCompByKeywords(ModMinecraft.Instance instance, string modId,
         string mainKeyword, params string[] keywords)
     {
         if (modId is null)
@@ -2383,7 +2407,7 @@ public static class ModLocalComp
         return GetModLocalCompByKeywords(instance, new[] { modId }, mainKeyword, keywords);
     }
 
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string[] modIds,
+    public static LocalCompFile? GetModLocalCompByKeywords(ModMinecraft.Instance instance, string[] modIds,
         string mainKeyword, params string[] keywords)
     {
         if (!instance.Modable)

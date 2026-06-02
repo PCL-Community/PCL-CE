@@ -68,7 +68,7 @@ public partial class PageSetupUpdate
         {
             case UpdateStatus.Available:
             {
-                Exception checkUpdateEx = null;
+                Exception? checkUpdateEx = null;
                 try
                 {
                     updateInfo = UpdateManager.remoteServer.GetLatestVersion(

@@ -321,7 +321,7 @@ public partial class PageComp
         }
 
         request.searchText = PanSearchBox.Text;
-        request.gameVersion = gameVersion;
+        request.gameVersion = gameVersion ?? "";
         var selectedTag = (ComboSearchTag.SelectedItem as FrameworkElement)?.Tag?.ToString();
         var loaderTag = (ComboSearchShaderLoader.SelectedItem as FrameworkElement)?.Tag?.ToString();
 
@@ -347,7 +347,7 @@ public partial class PageComp
     private void StartNewSearch()
     {
         page = 0;
-        object argInput = LoaderInput();
+        object? argInput = LoaderInput();
         if (loader.ShouldStart(ref argInput))
             storage = new ModComp.CompProjectStorage(); // 避免连续搜索两次使得 CompProjectStorage 引用丢失（#1311）
         loader.Start();

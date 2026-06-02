@@ -20,7 +20,7 @@ public class MyBitmap
     /// <summary>
     ///     存储的图片
     /// </summary>
-    public Bitmap pic;
+    public Bitmap? pic;
 
     // 构造函数
     public MyBitmap()

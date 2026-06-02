@@ -161,6 +161,7 @@ public partial class PageToolsLeft
 
     private static void PageChangeRun(MyPageRight target)
     {
+        if (ModMain.frmMain is null) return;
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);

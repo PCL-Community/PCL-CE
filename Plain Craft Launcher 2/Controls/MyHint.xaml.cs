@@ -179,7 +179,7 @@ public partial class MyHint
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyHint control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
+    public static void AniDispose(MyHint control, bool removeFromChildren, ParameterizedThreadStart? callBack = null)
     {
         if (!control.IsHitTestVisible)
             return;

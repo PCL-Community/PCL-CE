@@ -64,9 +64,9 @@ public static class UpdateManager
         }
     }
     
-    public static ModLoader.LoaderCombo<JsonObject> updateLoader;
+    public static ModLoader.LoaderCombo<JsonObject> updateLoader = null!;
 
-    public static void UpdateStart(UpdateEnums.UpdateType type, string receivedKey = null, bool forceValidated = false)
+    public static void UpdateStart(UpdateEnums.UpdateType type, string? receivedKey = null, bool forceValidated = false)
     {
         var dlTargetPath = ModBase.exePath + @"PCL\Plain Craft Launcher Community Edition.exe";
         ModBase.RunInNewThread(() =>
@@ -143,8 +143,11 @@ public static class UpdateManager
                 if (type == UpdateEnums.UpdateType.UpdateNow)
                 {
                     ModLoader.LoaderTaskbarAdd(updateLoader);
-                    ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-                    ModMain.frmMain.BtnExtraDownload.Ribble();
+                    if (ModMain.frmMain is not null)
+                    {
+                        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+                        ModMain.frmMain.BtnExtraDownload.Ribble();
+                    }
                 }
             }
             catch (Exception ex)
@@ -193,7 +196,7 @@ public static class UpdateManager
     ///     确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
     ///     如果不是，则下载一个。
     /// </summary>
-    internal static void DownloadLatestPCL(ModLoader.LoaderBase loaderToSyncProgress = null)
+    internal static void DownloadLatestPCL(ModLoader.LoaderBase? loaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
         var latestPCLPath = Path.Combine(ModBase.pathTemp, "CE-Latest.exe");

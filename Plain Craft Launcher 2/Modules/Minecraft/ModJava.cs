@@ -31,8 +31,8 @@ public static class ModJava
     ///     最小与最大版本在与输入相同时也会通过。
     ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
-    public static JavaEntry JavaSelect(string cancelException, Version minVersion = null, Version maxVersion = null,
-        ModMinecraft.Instance relatedInstance = null)
+    public static JavaEntry? JavaSelect(string cancelException, Version? minVersion = null, Version? maxVersion = null,
+        ModMinecraft.Instance? relatedInstance = null)
     {
         ModBase.Log(
             $"[Java] 要求选择合适 Java，要求最低版本 {(minVersion is not null ? minVersion.ToString() : "未指定")}，要求选择的最高版本 {(maxVersion is not null ? maxVersion.ToString() : "未指定")}，关联实例 {(relatedInstance is not null ? relatedInstance.Name : "未指定")}");
@@ -177,7 +177,7 @@ public static class ModJava
     {
         var rawPreference = Config.Instance.SelectedJava[instance.PathInstance];
 
-        JavaPreference preference = default;
+        JavaPreference? preference = null;
         
         // 尝试读取 JSON 配置
         if (!string.IsNullOrEmpty(rawPreference))
@@ -234,7 +234,7 @@ public static class ModJava
     /// <summary>
     ///     是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
     /// </summary>
-    public static bool IsGameSet64BitJava(ModMinecraft.Instance relatedVersion = null)
+    public static bool IsGameSet64BitJava(ModMinecraft.Instance? relatedVersion = null)
     {
         try
         {
@@ -350,7 +350,7 @@ public static class ModJava
         return loader;
     }
 
-    private static string lastJavaBaseDir; // 用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
+    private static string? lastJavaBaseDir; // 用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
 
     private static readonly HashSet<string> ignoreHash = new[]
     {
@@ -375,7 +375,8 @@ public static class ModJava
         string? targetName = null;
         JsonNode? targetValue = null;
         var components =
-            (JsonObject)((JsonObject)ModBase.GetJson(indexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
+            (JsonObject?)((JsonObject?)ModBase.GetJson(indexFileStr))?[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"]
+            ?? throw new Exception("未能获取 Java 运行时列表");
         if (components.ContainsKey(loader.input)) // 精确匹配
         {
             targetName = loader.input;
@@ -395,32 +396,37 @@ public static class ModJava
         if (targetComponent is null)
             throw new Exception($"Mojang 未提供所需的 Java {loader.input}");
         // 获取文件列表
-        var address = (string)targetComponent["manifest"]["url"];
-        ModLaunch.McLaunchLog($"准备下载 Java {targetComponent["version"]["name"]}（{targetName}）：{address}");
-        var listFileStr = (JsonObject)Requester.FetchJson(
+        var address = (string?)targetComponent["manifest"]?["url"]
+            ?? throw new Exception($"Java {targetName} 的 manifest URL 为空");
+        ModLaunch.McLaunchLog($"准备下载 Java {targetComponent["version"]?["name"]}（{targetName}）：{address}");
+        var listFileStr = (JsonObject?)Requester.FetchJson(
             ModDownload.DlSourceOrder(new[] { address },
-                new[] { address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
+                new[] { address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry)
+            ?? throw new Exception("未能获取 Java 文件列表");
         lastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             ".minecraft", "runtime", targetName);
-        var results = new List<DownloadFile>(listFileStr["files"].AsObject().Count);
-        foreach (var File in listFileStr["files"].AsObject())
+        var files = listFileStr["files"]?.AsObject()
+            ?? throw new Exception("Java 文件列表中缺少 files 字段");
+        var results = new List<DownloadFile>(files.Count);
+        foreach (var File in files)
         {
             if (File.Value?.AsObject()?["downloads"]?["raw"] is null)
                 continue;
 
-            var info = File.Value["downloads"]["raw"].AsObject();
-            var checkHash = info["sha1"];
-            if (ignoreHash.Contains((string)checkHash))
+            var info = File.Value["downloads"]!["raw"]!.AsObject();
+            var checkHash = (string?)info["sha1"];
+            if (checkHash is not null && ignoreHash.Contains(checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
-            var checker = new ModBase.FileChecker(actualSize: (long)info["size"], hash: (string)info["sha1"]);
-            var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir, File.Key));
+            var checker = new ModBase.FileChecker(actualSize: (long?)info["size"] ?? 0, hash: (string?)info["sha1"]);
+            var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir!, File.Key));
             if (!Files.IsPathWithinDirectory(filePath, lastJavaBaseDir))
                 throw new Exception($"{filePath} 不在 {lastJavaBaseDir} 中");
 
             if (checker.Check(filePath) is null)
                 continue; // 跳过已存在的文件
-            var url = (string)info["url"];
+            var url = (string?)info["url"]
+                ?? throw new Exception($"Java 文件 {File.Key} 缺少下载 URL");
             results.Add(new DownloadFile(
                 ModDownload.DlSourceOrder(new[] { url },
                     new[] { url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, checker));

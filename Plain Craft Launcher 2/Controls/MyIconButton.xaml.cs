@@ -50,7 +50,7 @@ public partial class MyIconButton
         set
         {
             if (Path is null) return;
-            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
         }
     }
 

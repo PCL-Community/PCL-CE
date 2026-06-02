@@ -185,7 +185,7 @@ public class MyComboBox : ComboBox
         try
         {
             var popup = (Grid)Template.FindName("PanPopup", this);
-            popup.Opacity = ModMain.frmMain.Opacity;
+            popup.Opacity = ModMain.frmMain?.Opacity ?? 1d;
             if (!DropDownWidthSync)
                 popup.MinWidth = ActualWidth;
         }
@@ -195,7 +195,7 @@ public class MyComboBox : ComboBox
         }
     }
 
-    private void MyComboBox_DropDownClosed(object sender, EventArgs e)
+    private void MyComboBox_DropDownClosed(object? sender, EventArgs e)
     {
         Width = realWidth;
     }

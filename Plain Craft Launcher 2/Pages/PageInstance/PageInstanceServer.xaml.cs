@@ -19,7 +19,7 @@ public partial class PageInstanceServer : MyPageRight
     public static readonly List<MinecraftServerInfo> serverList = new();
     private static readonly List<ServerCard> serverCardList = new();
 
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource? _cts;
 
     private DateTime _lastRefresh = DateTime.MinValue;
 
@@ -42,8 +42,8 @@ public partial class PageInstanceServer : MyPageRight
         foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += (s, ev) => RemoveServerEvent(s!, ev);
+            serverCard.EditServer += (a, b) => EditServer(a!, (ServerCard.ResultEventArgs)b!);
             serverCard.UpdateServerInfo(server);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -76,7 +76,7 @@ public partial class PageInstanceServer : MyPageRight
         // Read NBT file
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.instance!.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
             ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
@@ -111,7 +111,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"),
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.instance!.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
@@ -131,8 +131,8 @@ public partial class PageInstanceServer : MyPageRight
         var server = nbtData[index] as NbtCompound;
 
         // Update server data
-        server["name"] = new NbtString("name", e.Param1);
-        server["ip"] = new NbtString("ip", e.Param2);
+        server!["name"] = new NbtString("name", e.Param1);
+        server!["ip"] = new NbtString("ip", e.Param2);
 
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
@@ -145,7 +145,7 @@ public partial class PageInstanceServer : MyPageRight
 
         var serverCard = sender as ServerCard;
 
-        serverCard.server.Name = e.Param1;
+        serverCard!.server.Name = e.Param1;
         serverCard.server.Address = e.Param2;
 
         await serverCard.RefreshServerStatus(true);
@@ -215,15 +215,15 @@ public partial class PageInstanceServer : MyPageRight
             RefreshTip();
 
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += (s, ev) => RemoveServerEvent(s!, ev);
+            serverCard.EditServer += (a, b) => EditServer(a!, (ServerCard.ResultEventArgs)b!);
             serverCard.UpdateServerInfo(newServer);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
             await serverCard.RefreshServerStatus(false);
 
-            var serversDatPath = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
+            var serversDatPath = Path.Combine(PageInstanceLeft.instance!.PathIndie, "servers.dat");
 
             NbtList nbtData;
             if (!File.Exists(serversDatPath))
@@ -233,7 +233,7 @@ public partial class PageInstanceServer : MyPageRight
             }
             else
             {
-                nbtData = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversDatPath, "servers");
+                nbtData = (await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversDatPath, "servers"))!;
             }
 
             if (nbtData is not null)
@@ -269,7 +269,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         serverList.Clear();
 
-        var serversFile = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
+        var serversFile = Path.Combine(PageInstanceLeft.instance!.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 
@@ -288,7 +288,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     解析NBT格式的服务器数据
     /// </summary>
-    private void ParseServersFromNBT(NbtList serversList)
+    private void ParseServersFromNBT(NbtList? serversList)
     {
         if (serversList is not null)
         {
@@ -315,7 +315,7 @@ public partial class PageInstanceServer : MyPageRight
                         Name = name,
                         Address = ip,
                         Status = ServerStatus.Unknown,
-                        Icon = iconBase64
+                        Icon = iconBase64 ?? ""
                     });
                 }
             }
@@ -338,8 +338,8 @@ public partial class PageInstanceServer : MyPageRight
         foreach (var server in serverList)
         {
             var serverCard = new ServerCard();
-            serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
+            serverCard.RemoveServer += (s, ev) => RemoveServerEvent(s!, ev);
+            serverCard.EditServer += (a, b) => EditServer(a!, (ServerCard.ResultEventArgs)b!);
             serverCard.UpdateServerInfo(server);
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -434,7 +434,7 @@ public partial class PageInstanceServer : MyPageRight
                     server.Description = result.Description;
                     server.Version = result.Version.Name;
                     server.Ping = (int)result.Latency;
-                    server.Icon = result.Favicon;
+                    server.Icon = result.Favicon ?? "";
                 }
                 else
                 {

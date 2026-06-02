@@ -12,9 +12,9 @@ public partial class PageLogRight
 {
     public Run labDebug;
     public Run labError;
-    public Run labFatal;
-    public Run labInfo;
-    public Run labWarn;
+    public Run labFatal = null!;
+    public Run labInfo = null!;
+    public Run labWarn = null!;
 
     public PageLogRight()
     {
@@ -64,18 +64,19 @@ public partial class PageLogRight
     public void Reload()
     {
         // 初始化
-        if (ModMain.frmLogLeft.currentLog is null || ModMain.frmLogLeft.currentUuid <= 0 ||
-            ModMain.frmLogLeft.shownLogs.Count == 0)
+        if (ModMain.frmLogLeft is not { } frmLogLeft || frmLogLeft.currentLog is null || frmLogLeft.currentUuid <= 0 ||
+            frmLogLeft.shownLogs.Count == 0)
         {
-            ModMain.frmMain.PageChange(ModMain.frmMain.pageCurrent);
+            if (ModMain.frmMain is { } frm)
+                frm.PageChange(frm.pageCurrent);
             return;
         }
 
         PanAllBack.Visibility = Visibility.Visible;
         CardOperation.Visibility = Visibility.Visible;
-        BtnOperationKill.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited;
-        BtnOperationExportStackDump.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited &&
-                                                !string.IsNullOrWhiteSpace(ModMain.frmLogLeft.currentLog.jStackPath);
+        BtnOperationKill.IsEnabled = !frmLogLeft.currentLog.gameProcess.HasExited;
+        BtnOperationExportStackDump.IsEnabled = !frmLogLeft.currentLog.gameProcess.HasExited &&
+                                                !string.IsNullOrWhiteSpace(frmLogLeft.currentLog.jStackPath);
         SliderMaxLog.Value = Config.System.MaxGameLog;
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)

@@ -186,7 +186,7 @@ public partial class PageToolsGameLink
     }
 
 
-    private void OnPlayersChanged(object sender, NotifyCollectionChangedEventArgs e)
+    private void OnPlayersChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         ModBase.Log("接收到玩家列表改变事件");
         ModBase.RunInUi(() =>
@@ -221,7 +221,7 @@ public partial class PageToolsGameLink
     }
 
 
-    private void OnDiscoveredWorldsChanged(object sender, NotifyCollectionChangedEventArgs e)
+    private void OnDiscoveredWorldsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         LogWrapper.Info("[Lobby] Found new world changes");
 
@@ -288,17 +288,17 @@ public partial class PageToolsGameLink
 
     #region 公告
 
-    public static ModLoader.LoaderCombo<int> lobbyAnnouncementLoader;
+    public static ModLoader.LoaderCombo<int> lobbyAnnouncementLoader = null!;
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
 
-    private CancellationTokenSource _linkAnnounceUpdateCancelSource;
+    private CancellationTokenSource? _linkAnnounceUpdateCancelSource;
 
     // 公告轮播实现
     private async Task _LinkAnnounceUpdate()
     {
         var currentIndex = 0;
-        var globalCancelToken = _linkAnnounceUpdateCancelSource.Token;
-        CancellationTokenSource waiterCts = null;
+        var globalCancelToken = _linkAnnounceUpdateCancelSource!.Token;
+        CancellationTokenSource? waiterCts = null;
 
         _linkAnnounces.CollectionChanged += (sender, e) =>
         {
@@ -362,7 +362,7 @@ public partial class PageToolsGameLink
             try
             {
                 var serverNumber = 0;
-                JsonObject jObj = null;
+                JsonObject? jObj = null;
 
                 #region 多服务器轮询获取公告
 
@@ -418,10 +418,10 @@ public partial class PageToolsGameLink
 
                 #region 解析基础状态与版本限制
 
-                LobbyInfoProvider.IsLobbyAvailable = (bool)jObj["available"];
-                LobbyInfoProvider.AllowCustomName = (bool)jObj["allowCustomName"];
-                LobbyInfoProvider.RequiresLogin = (bool)jObj["requireLogin"];
-                LobbyInfoProvider.RequiresRealName = (bool)jObj["requireRealname"];
+                LobbyInfoProvider.IsLobbyAvailable = (bool)jObj["available"]!;
+                LobbyInfoProvider.AllowCustomName = (bool)jObj["allowCustomName"]!;
+                LobbyInfoProvider.RequiresLogin = (bool)jObj["requireLogin"]!;
+                LobbyInfoProvider.RequiresRealName = (bool)jObj["requireRealname"]!;
 
                 if (jObj["version"].ToObject<double>() > LobbyInfoProvider.ProtocolVersion)
                 {
@@ -438,9 +438,10 @@ public partial class PageToolsGameLink
 
                 #region 解析公告列表 (Notices)
 
-                var notices = (JsonArray)jObj["notices"];
-                foreach (JsonObject notice in notices)
+                var notices = (JsonArray)jObj["notices"]!;
+                foreach (JsonObject? notice in notices)
                 {
+                    if (notice is null) continue;
                     var content = notice["content"]?.ToString();
                     if (string.IsNullOrWhiteSpace(content)) continue;
 
@@ -467,15 +468,18 @@ public partial class PageToolsGameLink
 
                 #region 解析中继服务器 (Relays)
 
-                var relays = (JsonArray)jObj["relays"];
+                var relays = (JsonArray)jObj["relays"]!;
                 ETRelay.RelayList = new List<ETRelay>();
                 foreach (var relay in relays)
+                {
+                    if (relay is null) continue;
                     ETRelay.RelayList.Add(new ETRelay
                     {
-                        Name = relay["name"]?.ToString(),
-                        Url = relay["url"]?.ToString(),
+                        Name = relay["name"]?.ToString() ?? "",
+                        Url = relay["url"]?.ToString() ?? "",
                         Type = relay["type"]?.ToString() == "official" ? ETRelayType.Selfhosted : ETRelayType.Community
                     });
+                }
 
                 #endregion
 
@@ -529,7 +533,7 @@ public partial class PageToolsGameLink
 
     private object PlayerInfoItem(PlayerProfile info, MyListItem.ClickEventHandler onClick)
     {
-        string details = null;
+        string details = "";
         if (info.Kind == PlayerKind.HOST)
             details += "[主机] ";
         details += info.Vendor;
@@ -552,7 +556,7 @@ public partial class PageToolsGameLink
     private void PlayerInfoClick(object sender, MouseButtonEventArgs e)
     {
         var info = (PlayerProfile)((MyListItem)sender).Tag;
-        string msg = null;
+        string msg = "";
         msg += $"用户名：{info.Name}";
         msg += "\r\n";
         msg += $"联机协议客户端标识：{info.Vendor}";
@@ -689,7 +693,7 @@ public partial class PageToolsGameLink
             var status = await CliNetTest.GetNetStatusAsync();
             ModBase.RunInUi(() =>
                 LabNatType.Text =
-                    $"{CliNetTest.GetNatTypeString(status.UdpNatType)} (UDP), {CliNetTest.GetNatTypeString(status.TcpNatType)}(TCP)");
+                    $"{CliNetTest.GetNatTypeString(status!.UdpNatType)} (UDP), {CliNetTest.GetNatTypeString(status.TcpNatType)}(TCP)");
         }
         catch (Exception ex)
         {
@@ -807,7 +811,7 @@ public partial class PageToolsGameLink
             CurrentSubpage = Subpages.PanFinish;
         });
 
-        var res = await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(true);
+        var res = await LobbyService.CreateLobbyAsync(port, username!).ConfigureAwait(true);
 
         if (!res)
             ModBase.RunInUi(() =>
@@ -844,7 +848,7 @@ public partial class PageToolsGameLink
             CurrentSubpage = Subpages.PanFinish;
         });
 
-        var res = await LobbyService.JoinLobbyAsync(id, username).ConfigureAwait(true);
+        var res = await LobbyService.JoinLobbyAsync(id, username!).ConfigureAwait(true);
 
         if (!res)
             ModBase.RunInUi(() =>
@@ -858,7 +862,7 @@ public partial class PageToolsGameLink
     private void TextJoinLobbyId_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
-            BtnJoin_Click(sender, null);
+            BtnJoin_Click(sender, null!);
     }
 
     #endregion
@@ -965,7 +969,7 @@ public partial class PageToolsGameLink
     // 复制 IP
     private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
-        var ip = $"127.0.0.1:{LobbyInfoProvider.McForward.LocalPort}";
+        var ip = $"127.0.0.1:{LobbyInfoProvider.McForward!.LocalPort}";
         ModMain.MyMsgBox(
             $"大厅创建者的游戏地址：{ip}\r\n注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。", "复制 IP",
             Lang.Text("Common.Action.Copy"), "返回", button1Action: () => ModBase.ClipboardSet(ip));
@@ -999,6 +1003,7 @@ public partial class PageToolsGameLink
 
     private void PageLinkLobby_OnPageEnter()
     {
+        if (ModMain.frmToolsGameLink is null) return;
         ModMain.frmToolsGameLink.PanEula.Visibility =
             CurrentSubpage == Subpages.PanEula ? Visibility.Visible : Visibility.Collapsed;
         ModMain.frmToolsGameLink.PanSelect.Visibility =

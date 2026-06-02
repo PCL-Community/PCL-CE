@@ -65,13 +65,13 @@ public partial class PageDownloadCompFavorites
     // 加载器信息
     public ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> loader;
 
-    private void PageDownloadCompFavorites_Inited(object sender, EventArgs e)
+    private void PageDownloadCompFavorites_Inited(object? sender, EventArgs e)
     {
         RefreshFavTargets();
         PageLoaderInit(Load, PanLoad, PanContent, null, loader, _ => Load_OnFinish(), LoaderInput);
     }
 
-    private void PageDownloadCompFavorites_Loaded(object sender, EventArgs e)
+    private void PageDownloadCompFavorites_Loaded(object? sender, EventArgs e)
     {
         Items_SetSelectAll(false);
         RefreshBar();
@@ -80,7 +80,7 @@ public partial class PageDownloadCompFavorites
 
     private List<string> LoaderInput()
     {
-        List<string> targetList = null;
+        List<string>? targetList = null;
         try
         {
             targetList = CurrentFavTarget.Favs.Distinct().ToList();
@@ -90,7 +90,7 @@ public partial class PageDownloadCompFavorites
             ModBase.Log(ex, "[Favorites] 加载收藏夹列表时出错");
         }
 
-        return (List<string>)targetList.Clone(); // 复制而不是直接引用！
+        return targetList is not null ? (List<string>)targetList.Clone() : new List<string>(); // 复制而不是直接引用！
     }
 
     private void CompFavoritesGet(ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> task)
@@ -104,9 +104,9 @@ public partial class PageDownloadCompFavorites
 
     public class CompListItemContainer // 用来存储自动依据类型生成的卡片及其相关信息
     {
-        public MyCard Card { get; set; }
-        public StackPanel ContentList { get; set; }
-        public string Title { get; set; }
+        public MyCard Card { get; set; } = null!;
+        public StackPanel ContentList { get; set; } = null!;
+        public string Title { get; set; } = null!;
         public int CompType { get; set; }
     }
 
@@ -307,7 +307,7 @@ public partial class PageDownloadCompFavorites
         btn_EditNote.Click += (sender, e) =>
         {
             CurrentFavTarget.Notes.TryGetValue(compId, out notes);
-            var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes);
+            var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes ?? "");
             // 只有在用户确认时才更新备注，避免取消时清空原有备注
             if (desiredNote is not null)
             {
@@ -334,12 +334,12 @@ public partial class PageDownloadCompFavorites
         // ---操作逻辑---
         // 右键查看详细信息界面
         if (compItem.Tag is ModComp.CompProject)
-            compItem.MouseRightButtonUp += (_, _) => ModMain.frmMain.PageChange(
+            compItem.MouseRightButtonUp += (_, _) => ModMain.frmMain?.PageChange(
                 new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
                     additional = ((ModComp.CompProject)compItem.Tag, new List<string>(), string.Empty, ModComp.CompLoaderType.Any,
-                        ((ModComp.CompProject)compItem.Tag).Type, null, null, null)
+                        ((ModComp.CompProject)compItem.Tag).Type, null!, null!, null!)
                 });
         // ---其它事件---
         compItem.Changed += ItemCheckStatusChanged;
@@ -667,8 +667,8 @@ public partial class PageDownloadCompFavorites
 
             checkLoader.Start(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(checkLoader);
-            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
+            ModMain.frmMain?.BtnExtraDownload.ShowRefresh();
+            ModMain.frmMain?.BtnExtraDownload.Ribble();
             Items_SetSelectAll(false);
         }
         catch (Exception ex)
@@ -700,7 +700,7 @@ public partial class PageDownloadCompFavorites
             CurrentFavTarget.Favs.Remove(((ModComp.CompProject)item.Tag).Id);
             ModComp.CompFavorites.Save();
             if (!compItemList.Any())
-                ModMain.frmDownloadCompFavorites.PageLoaderRestart();
+                ModMain.frmDownloadCompFavorites?.PageLoaderRestart();
         }
         catch (Exception ex)
         {
@@ -812,7 +812,7 @@ public partial class PageDownloadCompFavorites
             var newName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), defaultInput: CurrentFavTarget.Name);
             if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
                 return;
-            CurrentFavTarget.Name = newName;
+            CurrentFavTarget.Name = newName!;
             ModComp.CompFavorites.Save();
             RefreshFavTargets();
         };
@@ -898,7 +898,7 @@ public partial class PageDownloadCompFavorites
                 if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
                     searchSource.Add(new ModBase.SearchSource(entry.Description, 0.4d));
                 if ((entry.TranslatedName ?? "") != (entry.RawName ?? ""))
-                    searchSource.Add(new ModBase.SearchSource(entry.TranslatedName, 1d));
+                    searchSource.Add(new ModBase.SearchSource(entry.TranslatedName ?? "", 1d));
                 searchSource.Add(new ModBase.SearchSource(string.Join("", entry.Tags), 0.2d));
                 queryList.Add(new ModBase.SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
             }

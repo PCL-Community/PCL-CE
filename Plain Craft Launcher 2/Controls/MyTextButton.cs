@@ -98,6 +98,7 @@ public class MyTextButton : Label
         // 重复性验证
         if ((colorName ?? "") == (ForeName ?? ""))
             return;
+        if (ForeName is null) return;
         colorName = ForeName;
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,

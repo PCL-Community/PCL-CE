@@ -39,7 +39,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 Source = SourceName,
                 VersionCode = (int)data["version_number"],
                 VersionName = (string)data["version_name"],
-                Sha256 = (string)data["sha256"],
+                Sha256 = data["sha256"]?.ToString() ?? "",
                 Changelog = (string)data["release_note"]
             };
         }

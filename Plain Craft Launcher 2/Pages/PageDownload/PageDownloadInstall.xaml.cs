@@ -136,7 +136,7 @@ public partial class PageDownloadInstall
         LoadLegacyFabricApi.State = ModDownload.dlLegacyFabricApiLoader;
     }
 
-    private string GetLoaderError(MyLoading loader)
+    private string? GetLoaderError(MyLoading loader)
     {
         if (loader is null || !loader.State.IsLoader)
             return Lang.Text("Download.Install.State.Getting");
@@ -223,7 +223,7 @@ public partial class PageDownloadInstall
         }
 
         // 启动 Forge 加载
-        if (ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (_vanillaName is not null && ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
         {
             var forgeLoader =
                 new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
@@ -337,7 +337,7 @@ public partial class PageDownloadInstall
         }, "FrmDownloadInstall SelectPageSwitch");
     }
 
-    public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs e)
+    public void MinecraftSelected(MyListItem sender, MouseButtonEventArgs? e)
     {
         _vanillaName = sender.Title;
         _vanillaData = (JsonObject)(dynamic)sender.Tag;
@@ -912,7 +912,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取实例图标。
     /// </summary>
-    private string GetSelectLogo()
+    private string? GetSelectLogo()
     {
         if (selectedFabric is not null) return "pack://application:,,,/images/Blocks/Fabric.png";
 
@@ -941,7 +941,7 @@ public partial class PageDownloadInstall
     /// </summary>
     private string GetSelectName()
     {
-        var name = _vanillaName;
+        var name = _vanillaName ?? "";
         if (selectedFabric is not null) name += "-Fabric_" + selectedFabric.Replace("+build", "");
         if (selectedLegacyFabric is not null) name += "-LegacyFabric_" + selectedLegacyFabric;
         if (selectedQuilt is not null) name += "-Quilt_" + selectedQuilt;
@@ -1008,8 +1008,9 @@ public partial class PageDownloadInstall
                 _ => new List<JsonObject>()
             );
 
-            foreach (JsonObject version in versions)
+            foreach (var versionNode in versions)
             {
+                if (versionNode is not JsonObject version) continue;
                 var category = McVersionClassifier.ClassifyVersion(version);
                 dict[category].Add(version);
             }
@@ -1028,9 +1029,10 @@ public partial class PageDownloadInstall
 
             ModBase.Log("[Download] 自动选择 MC 版本：" + mcVersionWaitingForSelect);
 
-            foreach (JsonObject version1 in versions)
+            foreach (var versionNode1 in versions)
             {
-                if (((string)version1["id"] ?? "") != mcVersionWaitingForSelect)
+                if (versionNode1 is not JsonObject version1) continue;
+                if ((version1["id"]?.ToString() ?? "") != mcVersionWaitingForSelect)
                     continue;
 
                 var item = ModDownloadLib.McDownloadListItem(version1, (_, _) => { }, false);
@@ -1135,7 +1137,7 @@ public partial class PageDownloadInstall
             stack.Children.Add(
                 ModDownloadLib.McDownloadListItem(
                     (JsonObject)item,
-                    (sender, e) => ModMain.frmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
+                    (sender, e) => ModMain.frmDownloadInstall.MinecraftSelected((MyListItem)sender!, e),
                     false
                 )
             );
@@ -1144,7 +1146,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     当 MC 版本列表加载完时，立即自动选择的版本。用于外部调用。
     /// </summary>
-    public static string mcVersionWaitingForSelect = null;
+    public static string? mcVersionWaitingForSelect = null;
 
     #endregion
 
@@ -1153,7 +1155,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 OptiFine 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadOptiFineGetError()
+    private string? LoadOptiFineGetError()
     {
         if (selectedLoaderName == "NeoForge" || selectedLoaderName == "Quilt" || selectedLoaderName == "LabyMod")
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
@@ -1165,10 +1167,10 @@ public partial class PageDownloadInstall
         if (selectedCleanroom is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithCleanroom");
         // 检查 Forge 1.13 - 1.14.3：全部不兼容
-        if (selectedLoaderName == "Forge" && ModMinecraft.CompareVersion(_vanillaName, "1.13") >= 0 &&
-            ModMinecraft.CompareVersion("1.14.3", _vanillaName) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
+        if (selectedLoaderName == "Forge" && ModMinecraft.CompareVersion(_vanillaName!, "1.13") >= 0 &&
+            ModMinecraft.CompareVersion("1.14.3", _vanillaName!) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
         // 检查 Fabric 1.20.5+: 全部不兼容
-        if (selectedFabric is not null && ModMinecraft.CompareVersion(_vanillaName, "1.20.4") > 0)
+        if (selectedFabric is not null && ModMinecraft.CompareVersion(_vanillaName!, "1.20.4") > 0)
             return Lang.Text("Download.Install.Compat.IncompatibleWithFabric");
         // 检查 Loader
         if (GetLoaderError(LoadOptiFine) is not null)
@@ -1298,7 +1300,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 LiteLoader 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadLiteLoaderGetError()
+    private string? LoadLiteLoaderGetError()
     {
         // 检查 Loader
         if (GetLoaderError(LoadLiteLoader) is not null)
@@ -1367,9 +1369,9 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 Forge 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadForgeGetError()
+    private string? LoadForgeGetError()
     {
-        if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName) && ModMinecraft.CompareVersionGe(_vanillaName, "1.1"))
+        if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName!) && ModMinecraft.CompareVersionGe(_vanillaName!, "1.1"))
             return Lang.Text("Download.Install.State.NoVersion");
         
         if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Forge"))
@@ -1387,8 +1389,8 @@ public partial class PageDownloadInstall
             if (Version.Category == "universal" || Version.Category == "client")
                 continue; // 跳过无法自动安装的版本
             if (selectedNeoForge is not null || selectedFabric is not null || selectedQuilt is not null)
-                return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-            if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
+                return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName!);
+            if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName!, "1.13") &&
                 ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
                 return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine"); // 1.13 ~ 1.14.3 OptiFine 检查
             if (selectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(selectedOptiFine, Version))
@@ -1476,7 +1478,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 NeoForge 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadNeoForgeGetError()
+    private string? LoadNeoForgeGetError()
     {
         if (selectedOptiFine is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
@@ -1557,7 +1559,7 @@ public partial class PageDownloadInstall
     /// </summary>
     private string? LoadCleanroomGetError()
     {
-        if (!_vanillaName.StartsWith("1."))
+        if (!(_vanillaName?.StartsWith("1.") ?? false))
             return Lang.Text("Download.Install.State.NoAvailableVersion");
         if (selectedOptiFine is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
@@ -1635,23 +1637,30 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 Fabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadFabricGetError()
+    private string? LoadFabricGetError()
     {
         // 检查 OptiFine 1.20.5+：没有 OptiFabric 故全部不兼容
-        if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.20.5"))
+        if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName!, "1.20.5"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
         // 检查 Loader
         if (GetLoaderError(LoadFabric) is not null)
             return GetLoaderError(LoadFabric);
         // 检查版本
-        foreach (JsonObject version in ModDownload.dlFabricListLoader.output.Value["game"].AsArray())
-            if ((version["version"].ToString() ?? "") ==
-                (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
+        var gameArray = ModDownload.dlFabricListLoader.output.Value["game"]?.AsArray();
+        if (gameArray is not null)
+        {
+            foreach (var versionNode in gameArray)
             {
-                if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Fabric"))
-                    return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-                return null;
+                if (versionNode is not JsonObject version) continue;
+                if ((version["version"]?.ToString() ?? "") ==
+                    (_vanillaName!.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3")))
+                {
+                    if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Fabric"))
+                        return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
+                    return null;
+                }
             }
+        }
 
         return Lang.Text("Download.Install.State.NoVersion");
     }
@@ -1673,8 +1682,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JsonArray)ModDownload.dlFabricListLoader.output.Value["loader"];
-            if (!versions.Any())
+            if (ModDownload.dlFabricListLoader.output.Value["loader"] is not JsonArray versions || !versions.Any())
                 return;
             // 可视化
             PanFabric.Children.Clear();
@@ -1747,7 +1755,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 FabricApi 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadFabricApiGetError()
+    private string? LoadFabricApiGetError()
     {
         // 检查 Loader
         if (GetLoaderError(LoadFabricApi) is not null)
@@ -1824,7 +1832,7 @@ public partial class PageDownloadInstall
     }
 
     // 选择与清除
-    private void FabricApi_Selected(MyListItem sender, EventArgs e)
+    private void FabricApi_Selected(MyListItem sender, EventArgs? e)
     {
         selectedFabricApi = (ModComp.CompFile)(dynamic)sender.Tag;
         selectedAPIName = "Fabric API";
@@ -1848,21 +1856,28 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 LegacyFabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadLegacyFabricGetError()
+    private string? LoadLegacyFabricGetError()
     {
         if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
         if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
             return $"{Lang.Text("Download.Install.State.GetVersionListFailed")}{((ModLoader.LoaderBase)LoadLegacyFabric.State).Error.Message}";
-        foreach (JsonObject Version in ModDownload.dlLegacyFabricListLoader.output.Value["game"].AsArray())
-            if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
+        var legacyGameArray = ModDownload.dlLegacyFabricListLoader.output.Value["game"]?.AsArray();
+        if (legacyGameArray is not null)
+        {
+            foreach (var versionNode in legacyGameArray)
             {
-                if (selectedLiteLoader is not null)
-                    return Lang.Text("Download.Install.Compat.IncompatibleWithLiteLoader");
-                if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "LegacyFabric"))
-                    return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-                return null;
+                if (versionNode is not JsonObject Version) continue;
+                if ((Version["version"]?.ToString() ?? "") == (_vanillaName ?? ""))
+                {
+                    if (selectedLiteLoader is not null)
+                        return Lang.Text("Download.Install.Compat.IncompatibleWithLiteLoader");
+                    if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "LegacyFabric"))
+                        return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
+                    return null;
+                }
             }
+        }
 
         return Lang.Text("Download.Install.State.NoVersion");
     }
@@ -1884,8 +1899,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlLegacyFabricListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JsonArray)ModDownload.dlLegacyFabricListLoader.output.Value["loader"];
-            if (!versions.Any())
+            if (ModDownload.dlLegacyFabricListLoader.output.Value["loader"] is not JsonArray versions || !versions.Any())
                 return;
             // 可视化
             PanLegacyFabric.Children.Clear();
@@ -1951,7 +1965,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 LegacyFabricApi 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadLegacyFabricApiGetError()
+    private string? LoadLegacyFabricApiGetError()
     {
         if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
@@ -2011,7 +2025,7 @@ public partial class PageDownloadInstall
             PanLegacyFabricApi.Children.Clear();
             foreach (var Version in versions)
             {
-                if (!IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName))
+            if (!IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName!))
                     continue;
                 PanLegacyFabricApi.Children.Add(
                     ModDownloadLib.LegacyFabricApiDownloadListItem(Version,
@@ -2034,7 +2048,7 @@ public partial class PageDownloadInstall
     }
 
     // 选择与清除
-    private void LegacyFabricApi_Selected(MyListItem sender, EventArgs e)
+    private void LegacyFabricApi_Selected(MyListItem sender, EventArgs? e)
     {
         selectedLegacyFabricApi = (ModComp.CompFile)(dynamic)sender.Tag;
         selectedAPIName = "Legacy Fabric API";
@@ -2058,7 +2072,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 Quilt 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadQuiltGetError()
+    private string? LoadQuiltGetError()
     {
         if (selectedOptiFine is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
@@ -2068,14 +2082,21 @@ public partial class PageDownloadInstall
         if (GetLoaderError(LoadQuilt) is not null)
             return GetLoaderError(LoadQuilt);
         // 检查版本
-        foreach (JsonObject version in ModDownload.dlQuiltListLoader.output.Value["game"].AsArray())
-            if ((version["version"].ToString() ?? "") ==
-                (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
+        var quiltGameArray = ModDownload.dlQuiltListLoader.output.Value["game"]?.AsArray();
+        if (quiltGameArray is not null)
+        {
+            foreach (var versionNode in quiltGameArray)
             {
-                if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Fabric"))
-                    return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-                return null;
+                if (versionNode is not JsonObject version) continue;
+                if ((version["version"]?.ToString() ?? "") ==
+                    (_vanillaName!.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3")))
+                {
+                    if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Fabric"))
+                        return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
+                    return null;
+                }
             }
+        }
 
         return Lang.Text("Download.Install.State.NoVersion");
     }
@@ -2097,8 +2118,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlQuiltListLoader.State != ModBase.LoadState.Finished)
                 return;
             // 获取版本列表
-            var versions = (JsonArray)ModDownload.dlQuiltListLoader.output.Value["loader"];
-            if (!versions.Any())
+            if (ModDownload.dlQuiltListLoader.output.Value["loader"] is not JsonArray versions || !versions.Any())
                 return;
             // 可视化
             PanQuilt.Children.Clear();
@@ -2166,7 +2186,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 QSL 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadQSLGetError()
+    private string? LoadQSLGetError()
     {
         if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
             return Lang.Text("Download.Version.LoadingList");
@@ -2234,7 +2254,7 @@ public partial class PageDownloadInstall
             PanQSL.Children.Clear();
             foreach (var Version in versions)
             {
-                if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
+            if (!IsSuitableQSL(Version.GameVersions, _vanillaName!))
                     continue;
                 PanQSL.Children.Add(
                     ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
@@ -2255,7 +2275,7 @@ public partial class PageDownloadInstall
     }
 
     // 选择与清除
-    private void QSL_Selected(MyListItem sender, EventArgs e)
+    private void QSL_Selected(MyListItem sender, EventArgs? e)
     {
         selectedQSL = (ModComp.CompFile)(dynamic)sender.Tag;
         selectedAPIName = "QFAPI / QSL";
@@ -2299,7 +2319,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 OptiFabric 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadOptiFabricGetError()
+    private string? LoadOptiFabricGetError()
     {
         if (VanillaDrop >= 140 && VanillaDrop <= 150)
             return Lang.Text("Download.Install.Compat.OptiFabricOriginsRequired");
@@ -2386,7 +2406,7 @@ public partial class PageDownloadInstall
     }
 
     // 选择与清除
-    private void OptiFabric_Selected(MyListItem sender, EventArgs e)
+    private void OptiFabric_Selected(MyListItem sender, EventArgs? e)
     {
         selectedOptiFabric = (ModComp.CompFile)(dynamic)sender.Tag;
         CardOptiFabric.IsSwapped = true;
@@ -2408,7 +2428,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     获取 LabyMod 的加载异常信息。若正常则返回 Nothing。
     /// </summary>
-    private string LoadLabyModGetError()
+    private string? LoadLabyModGetError()
     {
         if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
@@ -2421,12 +2441,27 @@ public partial class PageDownloadInstall
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
         if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "LabyMod"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-        foreach (JsonObject Version in ModDownload.dlLabyModListLoader.output.Value["production"]["minecraftVersions"].AsArray())
-            if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
-                return null;
-        foreach (JsonObject Version in ModDownload.dlLabyModListLoader.output.Value["snapshot"]["minecraftVersions"].AsArray())
-            if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
-                return null;
+        var labyOutput = ModDownload.dlLabyModListLoader.output.Value;
+        var labyProd = labyOutput?["production"]?["minecraftVersions"]?.AsArray();
+        var labySnap = labyOutput?["snapshot"]?["minecraftVersions"]?.AsArray();
+        if (labyProd is not null)
+        {
+            foreach (var versionNode in labyProd)
+            {
+                if (versionNode is not JsonObject Version) continue;
+                if ((Version["version"]?.ToString() ?? "") == (_vanillaName ?? ""))
+                    return null;
+            }
+        }
+        if (labySnap is not null)
+        {
+            foreach (var versionNode in labySnap)
+            {
+                if (versionNode is not JsonObject Version) continue;
+                if ((Version["version"]?.ToString() ?? "") == (_vanillaName ?? ""))
+                    return null;
+            }
+        }
         return Lang.Text("Download.Install.State.NoVersion");
     }
 
@@ -2448,19 +2483,38 @@ public partial class PageDownloadInstall
                 return;
             // 获取版本列表
             var versions = ModDownload.dlLabyModListLoader.output.Value;
-            if (versions is null || versions["production"] is null || versions["snapshot"] is null)
+            if (versions is null) return;
+            var production = versions["production"];
+            var snapshot = versions["snapshot"];
+            if (production is null || snapshot is null)
                 return;
             // 可视化
             var processedVersions = new JsonArray();
-            foreach (JsonObject Production in versions["production"]["minecraftVersions"].AsArray())
-                if ((Production["version"].ToString() ?? "") == (_vanillaName ?? ""))
+            foreach (var prodNode in production["minecraftVersions"]?.AsArray() ?? [])
+            {
+                if (prodNode is not JsonObject Production) continue;
+                if ((Production["version"]?.ToString() ?? "") == (_vanillaName ?? ""))
                 {
                     var productionVersion = new JsonObject();
-                    productionVersion.Add("version", versions["production"]["labyModVersion"].ToString());
+                    productionVersion.Add("version", production["labyModVersion"]?.ToString() ?? "");
                     productionVersion.Add("channel", "production");
-                    productionVersion.Add("commitReference", versions["production"]["commitReference"].ToString());
+                    productionVersion.Add("commitReference", production["commitReference"]?.ToString() ?? "");
                     processedVersions.Add(productionVersion);
                 }
+            }
+
+            foreach (var snapNode in snapshot["minecraftVersions"]?.AsArray() ?? [])
+            {
+                if (snapNode is not JsonObject Snapshot) continue;
+                if ((Snapshot["version"]?.ToString() ?? "") == (_vanillaName ?? ""))
+                {
+                    var snapshotVersion = new JsonObject();
+                    snapshotVersion.Add("version", snapshot["labyModVersion"]?.ToString() ?? "");
+                    snapshotVersion.Add("channel", "snapshot");
+                    snapshotVersion.Add("commitReference", snapshot["commitReference"]?.ToString() ?? "");
+                    processedVersions.Add(snapshotVersion);
+                }
+            }
 
             foreach (JsonObject Snapshot in versions["snapshot"]["minecraftVersions"].AsArray())
                 if ((Snapshot["version"].ToString() ?? "") == (_vanillaName ?? ""))
@@ -2550,22 +2604,22 @@ public partial class PageDownloadInstall
         {
             targetInstanceName = instanceName,
             targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\",
-            minecraftJson = _vanillaData?["url"].ToString(),
-            minecraftName = _vanillaName,
-            optiFineEntry = selectedOptiFine,
-            forgeEntry = selectedForge,
-            neoForgeEntry = selectedNeoForge,
-            cleanroomEntry = selectedCleanroom,
-            fabricVersion = selectedFabric,
-            fabricApi = selectedFabricApi,
-            quiltVersion = selectedQuilt,
-            qsl = selectedQSL,
-            optiFabric = selectedOptiFabric,
-            liteLoaderEntry = selectedLiteLoader,
-            labyModChannel = selectedLabyModChannel,
-            labyModCommitRef = selectedLabyModCommitRef,
-            legacyFabricVersion = selectedLegacyFabric,
-            legacyFabricApi = selectedLegacyFabricApi
+            minecraftJson = _vanillaData?["url"]?.ToString(),
+            minecraftName = _vanillaName!,
+            optiFineEntry = selectedOptiFine!,
+            forgeEntry = selectedForge!,
+            neoForgeEntry = selectedNeoForge!,
+            cleanroomEntry = selectedCleanroom!,
+            fabricVersion = selectedFabric!,
+            fabricApi = selectedFabricApi!,
+            quiltVersion = selectedQuilt!,
+            qsl = selectedQSL!,
+            optiFabric = selectedOptiFabric!,
+            liteLoaderEntry = selectedLiteLoader!,
+            labyModChannel = selectedLabyModChannel!,
+            labyModCommitRef = selectedLabyModCommitRef!,
+            legacyFabricVersion = selectedLegacyFabric!,
+            legacyFabricApi = selectedLegacyFabricApi!
         };
         if (!ModDownloadLib.McInstall(request))
             return;

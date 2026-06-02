@@ -309,7 +309,7 @@ public static class ModLink
 
     #region EasyTier
 
-    public static ModLoader.LoaderCombo<JsonObject> dlEasyTierLoader;
+    public static ModLoader.LoaderCombo<JsonObject>? dlEasyTierLoader;
 
     public static int DownloadEasyTier()
     {

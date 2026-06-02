@@ -19,7 +19,7 @@ public partial class PageLoginOffline
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
     }
 
     private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
@@ -83,6 +83,6 @@ public partial class PageLoginOffline
         ModProfile.selectedProfile = newProfile;
         ModProfile.isCreatingProfile = false;
         ModMain.Hint(Lang.Text("Launch.Account.Profile.Created"), ModMain.HintType.Finish);
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
     }
 }

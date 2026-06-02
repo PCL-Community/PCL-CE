@@ -5,8 +5,8 @@ namespace PCL;
 public class UpdatesWrapperModel : IUpdateSource
 {
     private readonly IEnumerable<IUpdateSource> _sources;
-    private IUpdateSource _announcementSource;
-    private IUpdateSource _versionSource;
+    private IUpdateSource _announcementSource = null!;
+    private IUpdateSource _versionSource = null!;
 
     public UpdatesWrapperModel(IEnumerable<IUpdateSource> sources)
     {

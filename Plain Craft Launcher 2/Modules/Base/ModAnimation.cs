@@ -109,6 +109,7 @@ public static partial class ModAnimation
                 i += 1;
                 // 初始化
                 var entry = aniGroups.Values.ElementAtOrDefault(i);
+                if (entry is null) continue;
                 if (entry.startTick > aniLastTick)
                     continue; // 跳过本刻之后开始的动画
                 var canRemoveAfter = true; // 是否应该去除“之后”标记
@@ -432,7 +433,7 @@ public static partial class ModAnimation
 
     public class AniGroupEntry
     {
-        public List<AniData> data;
+        public List<AniData> data = null!;
         public long startTick;
         public int Uuid = ModBase.GetUuid();
     }
@@ -627,7 +628,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaX(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaX(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -654,7 +655,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaY(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaY(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -681,7 +682,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaWidth(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaWidth(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -708,7 +709,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaHeight(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaHeight(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -735,7 +736,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaOpacity(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaOpacity(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -762,7 +763,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaValue(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaValue(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -789,7 +790,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaRadius(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaRadius(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -817,7 +818,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaBorderThickness(object obj, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -842,7 +843,7 @@ public static partial class ModAnimation
     /// <param name="ease">插值器类型。</param>
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     public static AniData AaStrokeThickness(object obj, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -867,7 +868,7 @@ public static partial class ModAnimation
     /// <param name="ease">插值器类型。</param>
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     public static AniData AaGridLengthWidth(object obj, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -897,7 +898,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaDouble(object obj, DependencyProperty prop, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -918,7 +919,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaDouble(ParameterizedThreadStart lambda, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -942,7 +943,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaColor(FrameworkElement obj, DependencyProperty prop, ModBase.MyColor value, int time = 400,
-        int delay = 0, AniEase ease = null, bool after = false)
+        int delay = 0, AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -965,7 +966,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaColor(FrameworkElement obj, DependencyProperty prop, string res, int time = 400,
-        int delay = 0, AniEase ease = null, bool after = false)
+        int delay = 0, AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -991,7 +992,7 @@ public static partial class ModAnimation
     /// <param name="absolute">大小改变是否为绝对值。若为 True 则为绝对像素，若为 False 则为相对百分比。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaScale(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaScale(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false, bool absolute = false)
     {
         ModBase.MyRect changeRect;
@@ -1024,7 +1025,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaTextAppear(object obj, bool hide = false, bool timePerText = true, int time = 70,
-        int delay = 0, AniEase ease = null, bool after = false)
+        int delay = 0, AniEase? ease = null, bool after = false)
     {
         // Are we cool yet？
         return new AniData
@@ -1074,7 +1075,7 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaScaleTransform(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaScaleTransform(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -1098,7 +1099,7 @@ public static partial class ModAnimation
     /// <returns></returns>
     /// <remarks></remarks>
     public static AniData AaRotateTransform(object obj, double value, int time = 400, int delay = 0,
-        AniEase ease = null, bool after = false)
+        AniEase? ease = null, bool after = false)
     {
         return new AniData
         {
@@ -1118,7 +1119,7 @@ public static partial class ModAnimation
     /// <param name="delay">动画延迟执行的时间（毫秒）。</param>
     /// <param name="ease">插值器类型。</param>
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
-    public static AniData AaTranslateX(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaTranslateX(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -1143,7 +1144,7 @@ public static partial class ModAnimation
     /// <param name="delay">动画延迟执行的时间（毫秒）。</param>
     /// <param name="ease">插值器类型。</param>
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
-    public static AniData AaTranslateY(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
+    public static AniData AaTranslateY(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null,
         bool after = false)
     {
         return new AniData
@@ -1167,7 +1168,7 @@ public static partial class ModAnimation
     /// <remarks></remarks>
     public static List<AniData> AaStack(StackPanel stack, int time = 100, int delay = 25)
     {
-        List<AniData> aaStackRet = default;
+        List<AniData> aaStackRet = [];
         aaStackRet = new List<AniData>();
         var aniDelay = 0;
         foreach (var Item in stack.Children)

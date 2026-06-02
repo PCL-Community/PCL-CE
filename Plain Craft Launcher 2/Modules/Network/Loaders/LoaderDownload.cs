@@ -28,7 +28,7 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public void RefreshStat() { }
 
-    public override void Start(object input = null, bool isForceRestart = false)
+    public override void Start(object? input = null, bool isForceRestart = false)
     {
         if (input is List<PCL.Network.DownloadFile> inputFiles)
             files = new ModBase.SafeList<PCL.Network.DownloadFile>(inputFiles);

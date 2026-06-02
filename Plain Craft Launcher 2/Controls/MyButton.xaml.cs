@@ -117,7 +117,7 @@ public partial class MyButton
             }, "MyButton Color " + Uuid);
     }
 
-    private void RefreshColor(object obj = null, object e = null)
+    private void RefreshColor(object? obj = null, object? e = null)
     {
         try
         {

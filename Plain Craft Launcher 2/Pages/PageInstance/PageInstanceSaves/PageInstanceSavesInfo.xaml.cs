@@ -1,4 +1,3 @@
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -63,10 +62,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 Hintversion1_3.Visibility = Visibility.Collapsed;
                 PanSettings.Visibility = Visibility.Collapsed;
 
-                var gameLevel = saveInfo.RootTag.Get<NbtCompound>("Data");
-                AddInfoTable(Lang.Text("Instance.Saves.Info.LevelName"), gameLevel.Get<NbtString>("LevelName").Value);
-                NbtString versionName = null;
-                NbtInt versionId = null;
+                var gameLevel = saveInfo.RootTag.Get<NbtCompound>("Data")!;
+                AddInfoTable(Lang.Text("Instance.Saves.Info.LevelName"), gameLevel.Get<NbtString>("LevelName")!.Value);
+                NbtString? versionName = null;
+                NbtInt? versionId = null;
                 var gameVersion = gameLevel.Get<NbtCompound>("Version");
                 if (gameVersion is not null)
                 {
@@ -75,8 +74,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }
 
                 var currentVersionId = versionId?.Value ?? default(int?);
-                ModMain.frmInstanceSavesLeft.ItemDatapack.Visibility =
-                    !currentVersionId.HasValue || currentVersionId < 1444 ? Visibility.Collapsed : Visibility.Visible;
+                if (ModMain.frmInstanceSavesLeft is { } frmSavesLeft)
+                    frmSavesLeft.ItemDatapack.Visibility =
+                        !currentVersionId.HasValue || currentVersionId < 1444 ? Visibility.Collapsed : Visibility.Visible;
 
                 var hasDifficulty = gameLevel.Contains("Difficulty") || gameLevel.Contains("difficulty_settings");
                 var hasAllowCommands = gameLevel.Contains("allowCommands");
@@ -101,25 +101,25 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }
                 else
                 {
-                    AddInfoTable(Lang.Text("Instance.Saves.Info.Version"), $"{versionName.Value} ({versionId.Value})");
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.Version"), $"{versionName!.Value} ({versionId?.Value ?? 0})");
                 }
 
-                NbtLong seedNbt = null;
+                NbtLong? seedNbt = null;
                 string seed;
                 if (gameLevel.TryGet("RandomSeed", out seedNbt))
-                    seed = seedNbt.Value.ToString();
+                    seed = seedNbt!.Value.ToString();
                 else
                 {
                     if (gameLevel.Contains("WorldGenSettings"))
                     {
-                        seed = gameLevel.Get<NbtCompound>("WorldGenSettings").Get<NbtLong>("seed").Value.ToString();
+                        seed = gameLevel.Get<NbtCompound>("WorldGenSettings")!.Get<NbtLong>("seed")!.Value.ToString();
                     }
                     else
                     {
                         string worldGenSettingsDatPath = System.IO.Path.Combine(PageInstanceSavesLeft.currentSave, "data", "minecraft", "world_gen_settings.dat");
                         NbtFile worldGenSettingsNbt = new NbtFile(worldGenSettingsDatPath);
-                        var worldGenSettings = worldGenSettingsNbt.RootTag.Get<NbtCompound>("data");
-                        seed = worldGenSettings.Get<NbtLong>("seed").Value.ToString();
+                        var worldGenSettings = worldGenSettingsNbt.RootTag.Get<NbtCompound>("data")!;
+                        seed = worldGenSettings.Get<NbtLong>("seed")!.Value.ToString();
                     }
                 }
 
@@ -128,7 +128,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 if (hasAllowCommands)
                 {
                     PanSettings.Visibility = Visibility.Visible;
-                    var allowCommandValue = int.Parse(gameLevel.Get<NbtByte>("allowCommands").Value.ToString());
+                    var allowCommandValue = int.Parse(gameLevel.Get<NbtByte>("allowCommands")!.Value.ToString());
                     var combo = new MyComboBox
                     {
                         Width = 100d, HorizontalAlignment = HorizontalAlignment.Left,
@@ -145,7 +145,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         try
                         {
                             var newVal = (byte)combo.SelectedValue;
-                            gameLevel.Get<NbtByte>("allowCommands").Value = (byte)newVal;
+                            gameLevel.Get<NbtByte>("allowCommands")!.Value = (byte)newVal;
                             using (var fileStream = new FileStream(saveDatPath, FileMode.Create, FileAccess.Write,
                                        FileShare.None))
                             {
@@ -183,7 +183,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                     if (gameLevel.Contains("difficulty_settings"))
                     {
-                        var difficultyElementString = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value;
+                        var difficultyElementString = gameLevel.Get<NbtCompound>("difficulty_settings")!.Get<NbtString>("difficulty")!.Value;
                         byte value = difficultyElementString switch
                         {
                             "peaceful" => 0,
@@ -196,7 +196,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     }
                     else
                     {
-                        difficultyElement = gameLevel.Get<NbtByte>("Difficulty");
+                        difficultyElement = gameLevel.Get<NbtByte>("Difficulty")!;
                     }
 
                     var difficultyValue = difficultyElement.Value;
@@ -214,14 +214,14 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     difficultyCombo.DisplayMemberPath = "Display";
                     difficultyCombo.SelectedValue = difficultyValue;
 
-                    NbtByte isHardcoreCheck = null;
+                    NbtByte? isHardcoreCheck = null;
 
                     if (gameLevel.Contains("difficulty_settings"))
-                        isHardcoreCheck = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("hardcore");
+                        isHardcoreCheck = gameLevel.Get<NbtCompound>("difficulty_settings")?.Get<NbtByte>("hardcore");
                     else
                         isHardcoreCheck = gameLevel.Get<NbtByte>("hardcore");
                         
-                    var isHardcoreMode = isHardcoreCheck.Value == 1;
+                    var isHardcoreMode = isHardcoreCheck?.Value == 1;
 
                     var lockCheckBox = new MyCheckBox
                     {
@@ -235,10 +235,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     }
                     else
                     {
-                        NbtByte lockedElement;
+                        NbtByte? lockedElement;
 
                         if (gameLevel.Contains("difficulty_settings"))
-                            lockedElement = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked");
+                            lockedElement = gameLevel.Get<NbtCompound>("difficulty_settings")?.Get<NbtByte>("locked");
                         else
                             lockedElement = gameLevel.Get<NbtByte>("DifficultyLocked");
                         
@@ -264,18 +264,18 @@ public partial class PageInstanceSavesInfo : IRefreshable
                             if (gameLevel.Contains("difficulty_settings"))
                             {
                                 var newDifficultyString = GetDifficultyName(newDifficulty);
-                                gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value = newDifficultyString;
+                                gameLevel.Get<NbtCompound>("difficulty_settings")!.Get<NbtString>("difficulty")!.Value = newDifficultyString;
                             }
                             else
                             {
-                                gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
+                                gameLevel.Get<NbtByte>("Difficulty")!.Value = (byte)newDifficulty;
                             }
                             
                             if (!isHardcoreMode)
                             {
                                 var newLocked = lockCheckBox.Checked == true ? 1 : 0;
                                 if (gameLevel.Contains("DifficultyLocked"))
-                                    gameLevel.Get<NbtByte>("DifficultyLocked").Value = (byte)newLocked;
+                                    gameLevel.Get<NbtByte>("DifficultyLocked")!.Value = (byte)newLocked;
                                 else if (newLocked == 1)
                                     gameLevel.Add(new NbtByte("DifficultyLocked", (byte)newLocked));
                             }
@@ -304,23 +304,23 @@ public partial class PageInstanceSavesInfo : IRefreshable
                             if (gameLevel.Contains("difficulty_settings"))
                             {
                                 var newDifficultyString = GetDifficultyName(newDifficulty);
-                                gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value = newDifficultyString;
+                                gameLevel.Get<NbtCompound>("difficulty_settings")!.Get<NbtString>("difficulty")!.Value = newDifficultyString;
                             }
                             else
                             {
-                                gameLevel.Get<NbtByte>("Difficulty").Value = (byte)newDifficulty;
+                                gameLevel.Get<NbtByte>("Difficulty")!.Value = (byte)newDifficulty;
                             }
                             
                             if (!isHardcoreMode)
                             {
                                 var newLocked = lockCheckBox.Checked == true ? 1 : 0;
                                 if (gameLevel.Contains("difficulty_settings"))
-                                    gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked").Value = (byte)newLocked;
+                                    gameLevel.Get<NbtCompound>("difficulty_settings")!.Get<NbtByte>("locked")!.Value = (byte)newLocked;
                                 else if (gameLevel.Contains("DifficultyLocked"))
-                                    gameLevel.Get<NbtByte>("DifficultyLocked").Value = (byte)newLocked;
+                                    gameLevel.Get<NbtByte>("DifficultyLocked")!.Value = (byte)newLocked;
                                 else if (newLocked == 1)
                                     if (gameLevel.Contains("difficulty_settings"))
-                                        gameLevel.Get<NbtCompound>("difficulty_settings").Add(new NbtByte("locked", (byte)newLocked));
+                                        gameLevel.Get<NbtCompound>("difficulty_settings")!.Add(new NbtByte("locked", (byte)newLocked));
                                     else
                                         gameLevel.Add(new NbtByte("DifficultyLocked", (byte)newLocked));
                             }
@@ -355,20 +355,20 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }
 
                 var lastPlayed = new DateTime(1970, 1, 1, 0, 0, 0)
-                    .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed").Value.ToString()))
+                    .AddMilliseconds(long.Parse(gameLevel.Get<NbtLong>("LastPlayed")!.Value.ToString()))
                     .ToLocalTime();
                 AddInfoTable(Lang.Text("Instance.Saves.Info.LastPlayed"), Lang.Date(lastPlayed, "g"));
 
-                NbtInt spawnX = null;
+                NbtInt? spawnX = null;
                 if (gameLevel.TryGet("SpawnX", out spawnX))
                 {
-                    var spawnY = gameLevel.Get<NbtInt>("SpawnY");
-                    var spawnZ = gameLevel.Get<NbtInt>("SpawnZ");
-                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnX.Value} / {spawnY.Value} / {spawnZ.Value}");
+                    var spawnY = gameLevel.Get<NbtInt>("SpawnY")!;
+                    var spawnZ = gameLevel.Get<NbtInt>("SpawnZ")!;
+                    AddInfoTable(Lang.Text("Instance.Saves.Info.SpawnPoint"), $"{spawnX!.Value} / {spawnY.Value} / {spawnZ.Value}");
                 }
                 else
                 {
-                    var spawnPos = gameLevel.Get<NbtCompound>("spawn").Get<NbtIntArray>("pos");
+                    var spawnPos = gameLevel.Get<NbtCompound>("spawn")!.Get<NbtIntArray>("pos")!;
                     var spawnXPos = spawnPos[0];
                     var spawnYPos = spawnPos[1];
                     var spawnZPos = spawnPos[2];
@@ -377,24 +377,24 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
                 var gameTypeName = Lang.Text("Instance.Saves.Info.GetFailed");
 
-                NbtByte isHardcore = null;
+                NbtByte? isHardcore = null;
 
                 if (gameLevel.Contains("difficulty_settings"))
                 {
-                    isHardcore = gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("hardcore");
+                    isHardcore = gameLevel.Get<NbtCompound>("difficulty_settings")?.Get<NbtByte>("hardcore");
                 }
                 else
                 {
                     isHardcore = gameLevel.Get<NbtByte>("hardcore");
                 }
 
-                if (isHardcore.Value == 1)
+                if (isHardcore?.Value == 1)
                 {
                     gameTypeName = Lang.Text("Instance.Saves.Info.GameMode.Hardcore");
                 }
                 else
                 {
-                    var gameType = gameLevel.Get<NbtInt>("GameType");
+                    var gameType = gameLevel.Get<NbtInt>("GameType")!;
                     switch (gameType.Value)
                     {
                         case 0:
@@ -431,8 +431,8 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 if (hasDifficulty)
                 {
                     string difficultyRaw = gameLevel.Contains("difficulty_settings")
-                        ? gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtString>("difficulty").Value
-                        : gameLevel.Get<NbtByte>("Difficulty").Value.ToString();
+                        ? gameLevel.Get<NbtCompound>("difficulty_settings")!.Get<NbtString>("difficulty")!.Value
+                        : gameLevel.Get<NbtByte>("Difficulty")!.Value.ToString();
 
                     string difficultyName = difficultyRaw switch
                     {
@@ -443,18 +443,18 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         _ => Lang.Text("Instance.Saves.Info.GetFailed")
                     };
 
-                    NbtByte lockedElement = gameLevel.Contains("difficulty_settings")
-                        ? gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked")
+                    NbtByte? lockedElement = gameLevel.Contains("difficulty_settings")
+                        ? gameLevel.Get<NbtCompound>("difficulty_settings")?.Get<NbtByte>("locked")
                         : gameLevel.Get<NbtByte>("DifficultyLocked");
                     var isDifficultyLocked =
                         (lockedElement is not null && lockedElement.Value == 1) ||
-                        isHardcore.Value == 1 ? Lang.Text("Common.Option.Yes") :
+                        isHardcore?.Value == 1 ? Lang.Text("Common.Option.Yes") :
                         lockedElement is not null ? Lang.Text("Common.Option.No") : Lang.Text("Instance.Saves.Info.GetFailed");
                     if (Hintversion1_8.Visibility != Visibility.Visible)
                         AddInfoTable(Lang.Text("Instance.Saves.Info.Hardness"), $"{difficultyName}  |  {Lang.Text("Instance.Saves.Info.DifficultyLocked", isDifficultyLocked)}");
                 }
 
-                var totalTicks = long.Parse(gameLevel.Get<NbtLong>("Time").Value.ToString());
+                var totalTicks = long.Parse(gameLevel.Get<NbtLong>("Time")!.Value.ToString());
                 var formattedPlayTime = Lang.TimeSpan(
                     TimeSpan.FromSeconds(totalTicks / 20.0d),
                     precision: 3,
@@ -483,7 +483,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         PanList.RowDefinitions.Clear();
     }
 
-    private void AddInfoTable(string head, string content, bool isSeed = false, string versionName = null,
+    private void AddInfoTable(string head, string content, bool isSeed = false, string? versionName = null,
         bool allowCopy = false)
     {
         var headTextBlock = new TextBlock { Text = head, Margin = new Thickness(0d, 3d, 0d, 3d) };

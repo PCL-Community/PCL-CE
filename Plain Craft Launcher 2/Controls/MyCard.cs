@@ -142,7 +142,7 @@ public class MyCard : AnimatedBackgroundGrid
                 HorizontalAlignment = HorizontalAlignment.Right, Stretch = Stretch.Uniform, Height = 6d, Width = 10d,
                 VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0d, 17d, 16d, 0d),
                 Data =
-                    (Geometry)new GeometryConverter().ConvertFromString("M2,4 l-2,2 10,10 10,-10 -2,-2 -8,8 -8,-8 z"),
+                    (Geometry)new GeometryConverter().ConvertFromString("M2,4 l-2,2 10,10 10,-10 -2,-2 -8,8 -8,-8 z")!,
                 RenderTransform = new RotateTransform(180d), RenderTransformOrigin = new Point(0.5d, 0.5d)
             };
             MainSwap.SetResourceReference(Shape.FillProperty, "ColorBrush1");
@@ -454,7 +454,7 @@ public class MyCard : AnimatedBackgroundGrid
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
+    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart? callBack = null)
     {
         if (control.IsHitTestVisible)
         {

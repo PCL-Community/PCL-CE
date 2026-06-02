@@ -38,7 +38,7 @@ public class LazyLoadBehavior : Behavior<FrameworkElement>
         base.OnDetaching();
     }
 
-    private void OnLayoutUpdated(object sender, EventArgs e)
+    private void OnLayoutUpdated(object? sender, EventArgs e)
     {
         var element = AssociatedObject;
         if (element is null || element.RenderSize.Width < double.Epsilon || !element.IsVisible)

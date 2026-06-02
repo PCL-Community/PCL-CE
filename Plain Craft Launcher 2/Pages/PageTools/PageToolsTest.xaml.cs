@@ -113,7 +113,7 @@ public partial class PageToolsTest
         }
     }
 
-    public static void StartCustomDownload(string url, string fileName, string folder = null, string userAgent = "")
+    public static void StartCustomDownload(string url, string fileName, string? folder = null, string userAgent = "")
     {
         try
         {

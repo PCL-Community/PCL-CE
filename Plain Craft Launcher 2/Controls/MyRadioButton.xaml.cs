@@ -90,7 +90,7 @@ public partial class MyRadioButton
         set
         {
             if (ShapeLogo is null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
         }
     }
 

@@ -13,7 +13,7 @@ public static class ModMusic
     /// <summary>
     ///     当前正在播放的 NAudio.Wave.WaveOutEvent。
     /// </summary>
-    public static WaveOutEvent musicNAudio;
+    public static WaveOutEvent? musicNAudio;
 
     /// <summary>
     ///     当前播放的音乐地址。

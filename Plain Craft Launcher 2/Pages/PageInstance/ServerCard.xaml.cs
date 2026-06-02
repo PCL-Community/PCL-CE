@@ -9,7 +9,7 @@ namespace PCL;
 
 public partial class ServerCard
 {
-    private readonly IconManager _manager;
+    private readonly IconManager _manager = null!;
     public MinecraftServerInfo server;
 
     public ServerCard()

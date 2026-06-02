@@ -11,11 +11,11 @@ namespace PCL;
 
 public partial class MyMsgLogin
 {
-    private readonly JsonObject data;
-    private string deviceCode; // 用于轮询的设备代码
+    private readonly JsonObject data = null!;
+    private string deviceCode = ""; // 用于轮询的设备代码
     private string oAuthUrl = ""; // OAuth 轮询验证地址
-    private string userCode; // 需要用户在网页上输入的设备代码
-    private string website; // 验证网页的网址
+    private string userCode = ""; // 需要用户在网页上输入的设备代码
+    private string website = ""; // 验证网页的网址
 
     public MyMsgLogin()
     {
@@ -36,22 +36,22 @@ public partial class MyMsgLogin
         myConverter.Result = result;
         ModBase.RunInUi(Close);
         Thread.Sleep(200);
-        ModMain.frmMain.ShowWindowToTop();
+        ModMain.frmMain!.ShowWindowToTop();
     }
 
     private void Init()
     {
-        userCode = (string)data["user_code"];
-        deviceCode = (string)data["device_code"];
+        userCode = (string)data["user_code"]!;
+        deviceCode = (string)data["device_code"]!;
         ModBase.ClipboardSet(deviceCode);
         if (data["verification_uri_complete"] is not null)
         {
-            website = (string)data["verification_uri_complete"];
+            website = (string)data["verification_uri_complete"]!;
             LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", userCode, website);
         }
         else
         {
-            website = (string)data["verification_uri"];
+            website = (string)data["verification_uri"]!;
             LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", userCode, website);
         }
 
@@ -92,7 +92,7 @@ public partial class MyMsgLogin
                 var resultJson = (JsonObject)ModBase.GetJson(result);
                 ModProfile.ProfileLog($"令牌过期时间：{resultJson["expires_in"]} 秒");
                 ModMain.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), ModMain.HintType.Finish);
-                Finished(new[] { resultJson["access_token"].ToString(), resultJson["refresh_token"].ToString() });
+                Finished(new[] { resultJson["access_token"]!.ToString(), resultJson["refresh_token"]!.ToString() });
                 return;
             }
             catch (WebException ex)
@@ -120,7 +120,7 @@ public partial class MyMsgLogin
 
     #region 弹窗
 
-    private readonly ModMain.MyMsgBoxConverter myConverter;
+    private readonly ModMain.MyMsgBoxConverter myConverter = null!;
     private readonly int uuid = ModBase.GetUuid();
 
     public MyMsgLogin(ModMain.MyMsgBoxConverter converter)
@@ -152,18 +152,18 @@ public partial class MyMsgLogin
             // 动画
             Opacity = 0d;
             ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                ModAnimation.AaColor(ModMain.frmMain!.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (myConverter.IsWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain!.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
                 {
                     ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
+                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i!,
                         -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
+                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i!,
                         -TransformRotate.Angle, 300, 60,
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "MyMsgBox " + uuid);
@@ -184,26 +184,26 @@ public partial class MyMsgLogin
             ModAnimation.AaCode(() =>
             {
                 if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
+                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain!.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
+                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain!.PanMsgBackground.Background, 200,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
+            ModAnimation.AaDouble(i => TransformPos.Y += (double)i!, 20d - TransformPos.Y,
                 150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
+            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i!,
                 6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
     // 实现回车和 Esc 的接口（#4857）
-    public void Btn1_Click(object sender, MouseButtonEventArgs e)
+    public void Btn1_Click(object sender, MouseButtonEventArgs? e = null)
     {
     }
 
-    public void Btn3_Click(object sender, MouseButtonEventArgs e)
+    public void Btn3_Click(object sender, MouseButtonEventArgs? e = null)
     {
         Finished(new ThreadInterruptedException());
     }
@@ -212,7 +212,7 @@ public partial class MyMsgLogin
     {
         // On Error Resume Next
         if (e.GetPosition(ShapeLine).Y <= 2d)
-            ModMain.frmMain.DragMove();
+            ModMain.frmMain!.DragMove();
     }
 
     #endregion

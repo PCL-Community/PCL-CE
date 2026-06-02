@@ -50,7 +50,8 @@ public partial class PageSetupAbout
                 var cos = await response.AsJsonAsync<List<GitHubContributor>>(JsonCompat.SerializerOptions);
                 Contributors.Clear();
                 foreach (var item in cos)
-                    Contributors.Add((GitHubContributor)item);
+                    if (item is not null)
+                        Contributors.Add(item);
             }
         }
         catch (Exception ex)

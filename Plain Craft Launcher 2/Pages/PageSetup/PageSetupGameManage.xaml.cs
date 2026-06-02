@@ -97,7 +97,7 @@ public partial class PageSetupGameManage
             SetGameManageByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private static void SetGameManageByTag(string tag, object value)
+    private static void SetGameManageByTag(string? tag, object value)
     {
         switch (tag)
         {

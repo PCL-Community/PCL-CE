@@ -35,7 +35,7 @@ public static class ModVideoBack
     public static event EventHandler<BooleanEventArgs>? GamingStateChanged;
     public static event EventHandler<BooleanEventArgs>? ForcePlayChanged;
 
-    public static void OnGamingStateChanged(object sender, BooleanEventArgs e) // 用户是否在游戏中 事件
+    public static void OnGamingStateChanged(object? sender, BooleanEventArgs e) // 用户是否在游戏中 事件
     {
         ModBase.RunInUi(() =>
         {
@@ -57,7 +57,7 @@ public static class ModVideoBack
         });
     }
 
-    public static void OnForcePlayChanged(object sender, BooleanEventArgs e) // 是否强行播放 事件
+    public static void OnForcePlayChanged(object? sender, BooleanEventArgs e) // 是否强行播放 事件
     {
         ModBase.RunInUi(() =>
         {
@@ -146,7 +146,7 @@ public static class ModVideoBack
             else if (ForcePlay)
             {
             }
-            else if (ModMain.frmMain.VideoBack.Source is not null)
+            else if (ModMain.frmMain?.VideoBack.Source is not null)
             {
                 try
                 {

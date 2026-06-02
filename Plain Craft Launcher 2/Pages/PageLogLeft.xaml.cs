@@ -9,7 +9,7 @@ namespace PCL;
 
 public partial class PageLogLeft
 {
-    public ModWatcher.Watcher currentLog;
+    public ModWatcher.Watcher? currentLog;
     public int currentUuid;
     public Dictionary<int, FlowDocument> flowDocuments = new();
     public int isLoading;
@@ -25,12 +25,12 @@ public partial class PageLogLeft
     private void PageLogLeft_Loaded(object sender, RoutedEventArgs e)
     {
         Reload();
-        ModMain.frmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain?.BtnExtraLog.ShowRefresh();
     }
 
     private void PageLogLeft_Unloaded(object sender, RoutedEventArgs e)
     {
-        ModMain.frmMain.BtnExtraLog.ShowRefresh();
+        ModMain.frmMain?.BtnExtraLog.ShowRefresh();
     }
 
     private void Reload()
@@ -39,18 +39,20 @@ public partial class PageLogLeft
         {
             if (shownLogs.Count == 0)
             {
-                ModMain.frmMain.PageChange((FormMain.PageType)ModMain.frmMain.PageCurrentSub);
+                if (ModMain.frmMain is { } frm)
+                    frm.PageChange((FormMain.PageType)frm.PageCurrentSub);
                 return;
             }
 
             isLoading += 1;
 
             // 创建 UI
-            ModMain.frmLogLeft.PanList.Children.Clear();
+            if (ModMain.frmLogLeft is not { } frmLog) return;
+            frmLog.PanList.Children.Clear();
 
             // 测试实例列表
             // TODO(i18n): 文本 @ PageLog 左侧 - 列表标题
-            ModMain.frmLogLeft.PanList.Children.Add(new TextBlock
+            frmLog.PanList.Children.Add(new TextBlock
                 { Text = "测试实例列表", Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
             foreach (var item in shownLogs)
             {
@@ -63,15 +65,15 @@ public partial class PageLogLeft
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
                     Title = version.Name, Info = $"{version.Info} - {Lang.Date(proc.StartTime, "T")}", Height = 40d, Tag = uuid
                 };
-                newItem.Changed += ModMain.frmLogLeft.Version_Change;
+                newItem.Changed += frmLog.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 var removeButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
-                removeButton.Click += (a, b) => ModMain.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
+                removeButton.Click += (a, b) => frmLog.Remove_Click(a, (RoutedEventArgs)b);
                 newItem.Buttons = new[] { removeButton };
                 if (uuid == currentUuid)
                     newItem.Checked = true;
-                ModMain.frmLogLeft.PanList.Children.Add(newItem);
+                frmLog.PanList.Children.Add(newItem);
             }
 
             // 通知日志保留设置
@@ -170,7 +172,7 @@ public partial class PageLogLeft
 
         ModBase.RunInUi(() =>
         {
-            ModMain.frmLogRight.Reload();
+            ModMain.frmLogRight?.Reload();
             Reload();
         });
     }
@@ -195,7 +197,7 @@ public partial class PageLogLeft
             {
                 ModBase.RunInUi(() =>
                 {
-                    ModMain.frmLogRight.Reload();
+                    ModMain.frmLogRight?.Reload();
                     Reload();
                 });
             }
@@ -203,7 +205,8 @@ public partial class PageLogLeft
             break;
         }
 
-        ModMain.frmMain.BtnExtraLog.ShowRefresh();
+        if (ModMain.frmMain is not null)
+        ModMain.frmMain?.BtnExtraLog.ShowRefresh();
     }
 
     public void Remove_Click(object sender, RoutedEventArgs e)
