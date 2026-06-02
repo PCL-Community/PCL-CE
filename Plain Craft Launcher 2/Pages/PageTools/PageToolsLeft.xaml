@@ -7,7 +7,7 @@
       mc:Ignorable="d">
     <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
         
-        <TextBlock Text="{DynamicResource Tools.Left.Online}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameLinkCategory"/>  
+        <TextBlock Text="{DynamicResource Tools.Left.Multiplayer}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameLinkCategory"/>  
 
         <local:MyListItem x:Name="ItemGameLink" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1"
                           Check="PageCheck"

@@ -2630,7 +2630,7 @@
 
     <!-- Tools -->
 
-    <sys:String x:Key="Tools.Left.Online">联机</sys:String>
+    <sys:String x:Key="Tools.Left.Multiplayer">联机</sys:String>
     <sys:String x:Key="Tools.Left.Lobby">大厅</sys:String>
     <sys:String x:Key="Tools.Left.Utilities">奇妙小工具</sys:String>
     <sys:String x:Key="Tools.Left.Utilities.Title">百宝箱</sys:String>
@@ -2693,7 +2693,7 @@
     <sys:String x:Key="Tools.Test.Achievement.Save">保存图片</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">请输入正确的物品 ID！</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">自定义成就图片已保存！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 图片|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 图片 (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.FetchFailed">获取成就图片失败，请检查文字是否包含特殊字符</sys:String>
 
     <!-- Tools.Test.Avatar -->
@@ -2791,7 +2791,7 @@
     <sys:String x:Key="Tools.GameLink.Agreement.Description">此处列出了 PCL CE 大厅使用的相关服务文档及介绍</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE 大厅相关隐私政策</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">了解 PCL CE 如何处理您的个人信息</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark Network 用户协议与隐私政策</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID 服务条款</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">查看 Natayark OpenID 服务条款</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Body">使用大厅功能即代表你同意下列条款：&#x0A;&#x0A;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#x0A;我承诺使用大厅功能带来的一切风险自行承担。&#x0A;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#x0A;为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。&#x0A;&#x0A;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">我已阅读并同意</sys:String>

@@ -1756,7 +1756,7 @@
 
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>
-    <sys:String x:Key="Setup.GameLink.Username.ToolTip">PCL CE will try to use this username for lobby display.&#x0a;If left blank, the Natayark ID username will be used.&#x0a;&#x0a;In some cases, the Natayark ID username may still be displayed instead of the name set here.</sys:String>
+    <sys:String x:Key="Setup.GameLink.Username.ToolTip">PCL CE will try to use this username for lobby display.&#x0A;If left blank, the Natayark ID username will be used.&#x0A;&#x0A;In some cases, the Natayark ID username may still be displayed instead of the name set here.</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Preference">Protocol preference</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Tcp">TCP</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Udp">UDP</sys:String>
@@ -1768,20 +1768,20 @@
     <sys:String x:Key="Setup.GameLink.PortGuessNat.ToolTip">Let EasyTier attempt port guessing for symmetric NAT (birthday paradox).&#x0a;This may improve the multiplayer experience, but it may also cause issues in some cases.&#x0a;Generally, keep it enabled.</sys:String>
     <sys:String x:Key="Setup.GameLink.EnableIPv6">Allow IPv6 communication</sys:String>
     <sys:String x:Key="Setup.GameLink.EnableIPv6.ToolTip">Compared with IPv4, IPv6 makes P2P communication easier and can greatly improve the multiplayer experience. Do not disable it unless you have a specific reason.</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput">Output CLI info to logs for debugging</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput.ToolTip">Output EasyTier CLI info to the launcher log every 30 seconds for developer and community support investigation.&#x0a;This option is for debugging only and is not recommended to keep enabled.</sys:String>
+    <sys:String x:Key="Setup.GameLink.CliDebugOutput">Output CLI information to logs for debugging</sys:String>
+    <sys:String x:Key="Setup.GameLink.CliDebugOutput.ToolTip">Output EasyTier CLI information to the launcher log every 30 seconds for developer and community support investigation.&#x0a;This option is for debugging only and is not recommended to keep enabled.</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Title">Network test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Start">Start test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Testing">Testing...</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.NotTested">Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Supported">Supported</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Unsupported">Unsupported</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6 status: {0}</sys:String>
     <sys:String x:Key="Setup.GameLink.Initialized">Multiplayer settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.GameLink.Error.InitFailed">Failed to initialize multiplayer settings</sys:String>
-    <sys:String x:Key="Setup.GameLink.Error.ConfigChangeFailed">Failed to change configuration item</sys:String>
+    <sys:String x:Key="Setup.GameLink.Error.ConfigChangeFailed">Failed to change configuration item.</sys:String>
 
     <!-- Setup.Update -->
 
@@ -2084,7 +2084,7 @@
     <sys:String x:Key="Instance.Overall.Manage.Delete">Delete instance</sys:String>
     <sys:String x:Key="Instance.Overall.Manage.PatchCore">Patch core</sys:String>
     <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">Select where to save the script</sys:String>
-    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file(*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file (*.bat)|*.bat</sys:String>
     <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">Please wait for the current launch task to finish first!</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
@@ -2248,7 +2248,7 @@
     <sys:String x:Key="Instance.Resource.Export.Mode.Txt">TXT format</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV format</sys:String>
     <sys:String x:Key="Instance.Resource.Export.SelectSaveLocation">Select save location</sys:String>
-    <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file(*.txt)|*.txt|CSV file(*.csv)|*.csv</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file (*.txt)|*.txt|CSV file (*.csv)|*.csv</sys:String>
 
     <!-- Instance.Resource.Datapack -->
 
@@ -2283,7 +2283,7 @@
 
     <sys:String x:Key="Instance.Resource.Item.UpdateCompare">Current version: {0} ({1})&#x0a;Latest version: {2} ({3})</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateToolTip">Click to update, right-click to view changelog.</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Error, unable to get information</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Unable to get information</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">Folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [Error]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">Confirm update</sys:String>
@@ -2292,7 +2292,7 @@
     <sys:String x:Key="Instance.Resource.Item.ViewChangelog">View changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">Failed to open changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedTitle">Failed to Read Resource</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read info for this resource.</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read information for this resource.</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.EmptyFolder">Empty folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.ContainsOne">Contains 1 file</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.ContainsMany">Contains {0} files</sys:String>
@@ -2368,7 +2368,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Data pack status toggle failed. Please try closing any running games and try again!</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT format: Only export the current data pack file name information&#x0a;CSV format: Export detailed data pack information, including file name, project ID, version information, and other details</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack info.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack information.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">Data pack read failed</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Author">Author: </sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.File">File: </sys:String>
@@ -2630,7 +2630,7 @@
 
     <!-- Tools -->
 
-    <sys:String x:Key="Tools.Left.Online">Online</sys:String>
+    <sys:String x:Key="Tools.Left.Multiplayer">Multiplayer</sys:String>
     <sys:String x:Key="Tools.Left.Lobby">Lobby</sys:String>
     <sys:String x:Key="Tools.Left.Utilities">Utilities</sys:String>
     <sys:String x:Key="Tools.Left.Utilities.Title">Toolbox</sys:String>
@@ -2654,7 +2654,7 @@
     <!-- Tools.Test.CustomDownload -->
 
     <sys:String x:Key="Tools.Test.CustomDownload.Title">Custom download</sys:String>
-    <sys:String x:Key="Tools.Test.CustomDownload.Description">Use PCL's high-speed multi-threaded download engine to download any file. Note: some websites (e.g. Baidu Netdisk) may return error (403) Forbidden and cannot be downloaded.</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Description">Use PCL's high-speed multi-threaded download engine to download any file. Note: some websites may return 403 Forbidden errors and cannot be downloaded.</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.Url">Download URL</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.UserAgent">User-Agent</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.SaveTo">Save to</sys:String>
@@ -2674,9 +2674,9 @@
     <sys:String x:Key="Tools.Test.Skin.Save">Save skin</sys:String>
     <sys:String x:Key="Tools.Test.Skin.Fetching">Fetching skin...</sys:String>
     <sys:String x:Key="Tools.Test.Skin.InvalidId">This is not a valid ID...</sys:String>
-    <sys:String x:Key="Tools.Test.Skin.TooFrequent">Skin fetch rate limited, please try again in 5 minutes!</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.TooFrequent">Skin fetch has been rate-limited. Please try again in 5 minutes!</sys:String>
     <sys:String x:Key="Tools.Test.Skin.Saved">Player {0}'s skin saved!</sys:String>
-    <sys:String x:Key="Tools.Test.Skin.FileFilter">Skin image file(*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.FileFilter">Skin image file (*.png)|*.png</sys:String>
 
     <!-- Tools.Test.ServerQuery -->
 
@@ -2693,8 +2693,8 @@
     <sys:String x:Key="Tools.Test.Achievement.Save">Save image</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">Please enter a valid item ID!</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">Custom achievement image saved!</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG image|*.png</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.FetchFailed">Failed to get achievement image, check for special characters</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG image (*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FetchFailed">Failed to get achievement image. Please check for special characters.</sys:String>
 
     <!-- Tools.Test.Avatar -->
 
@@ -2702,7 +2702,7 @@
     <sys:String x:Key="Tools.Test.Avatar.Size">Avatar size:</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.SelectSkin">Select skin</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.SelectSkinFile">Select skin file</sys:String>
-    <sys:String x:Key="Tools.Test.Avatar.FileFilter">Image file(*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.FileFilter">Image file (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.Save">Save avatar</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.SelectFirst">Please select a skin first!</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.InvalidSize">Image size is incorrect! Please confirm you selected the correct file!</sys:String>
@@ -2713,23 +2713,23 @@
     <!-- Tools.Test.Memory -->
 
     <sys:String x:Key="Tools.Test.Memory.Title">Optimize memory</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.ToolTip">Memory optimization is a PCL CE exclusive, supercharged!&#xa;&#xa;Reduces physical memory usage by about 1/3, not just for MC!&#xa;If using an HDD, this may cause a brief period of severe lag.&#xa;Use the --memory flag to run memory optimization silently on launch.</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Deprecated">Memory optimization will be deprecated.&#xa;&#xa;This feature relies on undocumented Windows NT kernel function calls, may become unavailable in future versions, and could cause undefined behavior.&#xa;&#xa;It is recommended to use Mem Reduct instead, a professional third-party memory management tool.&#xa;&#xa;Continue using memory optimization anyway?</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.DeprecatedTitle">Feature deprecating</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.ToolTip">Memory optimization is a PCL CE-exclusive boosted feature!&#x0A;&#x0A;It reduces physical memory usage by about 1/3, and not only for Minecraft.&#x0A;If you are using an HDD, this may cause severe lag for a short time.&#x0A;Use the --memory flag to run memory optimization silently on launch.</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Deprecated">Memory optimization will be deprecated.&#x0A;&#x0A;This feature relies on undocumented Windows NT kernel function calls, which may become unavailable in future versions or cause undefined behavior.&#x0A;&#x0A;We recommend using Mem Reduct instead, a professional third-party memory management tool.&#x0A;&#x0A;Continue using memory optimization anyway?</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.DeprecatedTitle">Memory optimization is deprecating</sys:String>
     <sys:String x:Key="Tools.Test.Memory.LearnMemReduct">Learn about Mem Reduct</sys:String>
     <sys:String x:Key="Tools.Test.Memory.Optimizing">Optimizing memory...</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.StillRunning">Memory optimization is still running, please wait!</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Result">Memory optimization complete, freed {0}, available memory {1}</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.StillRunning">Memory optimization is still running. Please wait!</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Result">Memory optimization complete. Freed {0}; available memory: {1}</sys:String>
     <sys:String x:Key="Tools.Test.Memory.Failed">Memory optimization failed</sys:String>
     <sys:String x:Key="Tools.Test.Memory.FailedMessage">Memory optimization failed&#xa;&#xa;Details: {0}</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.PromoteFailed">Elevation failed, please grant administrator access to use memory optimization</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.PromoteFailed">Elevation failed. Please grant administrator permission to use memory optimization.</sys:String>
 
     <!-- Tools.Test.Clean -->
 
     <sys:String x:Key="Tools.Test.Clean.Title">Clean game junk</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ToolTip">Clean PCL cache and MC logs, crash reports, and other junk files</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ToolTip">Clean PCL cache, Minecraft logs, crash reports, and other junk files</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">Confirm cleanup</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">About to clean game logs, error reports, caches, and other files.&#xa;While nobody should put important files there, are you sure you want to continue?&#xa;&#xa;PCL will restart automatically after cleanup.</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">About to clean game logs, error reports, caches, and other files.&#x0A;These folders should not contain important files, but are you sure you want to continue?&#x0A;&#x0A;PCL will restart automatically after cleanup.</sys:String>
     <sys:String x:Key="Tools.Test.Clean.Cleared">Cache cleared</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ClearedMessage">Cleaned {0} files!&#xa;PCL will restart...</sys:String>
     <sys:String x:Key="Tools.Test.Clean.NoFiles">No files to clean!</sys:String>
@@ -2767,7 +2767,7 @@
     <sys:String x:Key="Tools.Test.Crash.Title">Crash test</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ToolTip">Clicking this will crash the launcher directly. Don't click unless you know what you're doing. No issues or problems caused by this will be accepted, and related issues will be closed immediately.</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">Crash confirmation</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">You must have clicked wrong, confirm below if not</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">You probably clicked the wrong button. Confirm below if you really meant to do this.</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">Manual crash</sys:String>
 
     <!-- Tools.Test.LaunchCount -->
@@ -2779,7 +2779,7 @@
 
     <sys:String x:Key="Tools.Test.Dependency.Title">Dependency check</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Checking">Checking environment...</sys:String>
-    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">Missing required dependency "{0}"&#xa;&#xa;Click OK to open Microsoft Store</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">Required dependency "{0}" is missing.&#x0A;&#x0A;Click OK to open Microsoft Store.</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Later">Later</sys:String>
 
     <!-- Tools.GameLink -->
@@ -2788,103 +2788,103 @@
     <sys:String x:Key="Tools.GameLink.Loading.DownloadingModule">Downloading lobby module</sys:String>
     <sys:String x:Key="Tools.GameLink.Loading.ConnectingServer">Connecting to lobby server...</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Title">PCL CE Lobby Terms &amp; Conditions</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.Description">Listed below are the service documents and introductions used by PCL CE Lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Description">Service documents and introductions used by PCL CE Lobby are listed below.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE Lobby Privacy Policy</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark Network User Agreement &amp; Privacy Policy</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID Terms of Service</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I promise to strictly comply with relevant laws and regulations of Mainland China and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I promise to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE Lobby Privacy Policy and the Natayark OpenID Terms of Service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID ToS</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID terms of service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to strictly comply with relevant laws and regulations of Chinese Mainland and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">I have read and agree</sys:String>
-    <sys:String x:Key="Tools.GameLink.Nat.Title">NAT Type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Title">NAT type</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Test">Click to test</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Testing">Testing</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Failed">Test failed</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Result">UDP: {0}, TCP: {1}</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.Account">Natayark Account</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.Login">Click to login Natayark account</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Account">Natayark account</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Login">Log in to Natayark</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL will open a login page. Please complete the login in your browser, then return to the launcher to continue.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">Login to Natayark Network</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">Log in to Natayark Network</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Continue">Continue</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.BrowserContinue">Please continue in browser...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.BrowserContinue">Please continue in your browser...</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginComplete">Login completed</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LogoutConfirm">Are you sure you want to log out?</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.LogoutTitle">Logout</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutTitle">Log out</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LogoutComplete">Logged out!</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Loading">Loading...</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Abnormal">(Abnormal)</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.TokenExpired">Natayark ID token expired, please login again</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.ProfileLoadFailed">Failed to load Natayark user data, please try to re-login in settings</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.TokenInvalid">Naid Access Token invalid, try refreshing login</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.InvalidAuthCode">Naid authorization code invalid</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.AccountExpired">Natayark account info expired, please re-login in settings!</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.LoginFailed">Naid login failed, please try to login again in settings</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.FetchFailed">Failed to fetch info</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenExpired">Natayark ID token has expired. Please log in again.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.ProfileLoadFailed">Failed to load Natayark user data. Please log in again in Settings.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenInvalid">NAID access token is invalid. Try refreshing your login.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.InvalidAuthCode">NAID authorization code is invalid.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.AccountExpired">Natayark account information has expired. Please log in again in Settings!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginFailed">NAID login failed. Please log in again in Settings.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.FetchFailed">Failed to fetch information</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Important">Important</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Warning">Warning</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Notice">Notice</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Format">[{0}] {1}</sys:String>
-    <sys:String x:Key="Tools.GameLink.EasyTierVersion">Both parties are using different launcher versions, which may cause connectivity issues.&#x0A;It is strongly recommended that both parties upgrade to the latest version before continuing.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Join.Title">Join Lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Join.Description">1. Enter the lobby ID sent by your friend below and click [Join]&#x0A;2. Launch the game, select [Multiplayer], and join the lobby in LAN games</sys:String>
+    <sys:String x:Key="Tools.GameLink.EasyTierVersion">Both sides are using different launcher versions, which may cause connection issues.&#x0A;We strongly recommend that both sides upgrade to the latest version before continuing.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Title">Join lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Description">1. Enter the lobby ID sent by your friend below and click "Join"&#x0A;2. Launch the game, select "Multiplayer", and join the lobby in LAN games</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Action">Join</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Paste">Paste</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Clear">Clear</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.IdHint">ID should look like: U/NNNN-AAAA-SSSS-EEEE</sys:String>
-    <sys:String x:Key="Tools.GameLink.Join.InvalidText">Invalid lobby ID, please check and re-enter</sys:String>
-    <sys:String x:Key="Tools.GameLink.Create.Title">Create Lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Create.Description">1. After entering a world, select [Open to LAN] in the game menu&#x0A;2. Select this game instance below and click [Create]&#x0A;3. After the lobby is created, copy the lobby ID and send it to your friend</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.InvalidText">Invalid lobby ID. Please check and enter it again.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Title">Create lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Description">1. After entering a world, select "Open to LAN" in the game menu&#x0A;2. Select this game instance below and click "Create"&#x0A;3. After the lobby is created, copy the lobby ID and send it to your friend</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Action">Create</sys:String>
-    <sys:String x:Key="Tools.GameLink.Create.ManualInput">Manual Input</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.ManualInput">Manual input</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.EnterPort">Enter port</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.NoWorld">Please select a world to play together!</sys:String>
-    <sys:String x:Key="Tools.GameLink.Create.NotMcPort">This doesn't seem to be an MC service port...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.NotMcPort">This doesn't seem to be a Minecraft service port...</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Report">Report violation</sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark Network User Agreement &amp; Privacy Policy</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Privacy">Lobby Privacy Policy</sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.Disable">Disable Lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Disable">Disable lobby</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Faq">FAQ</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Friends">Links: </sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier Official Website</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">Lobby Info</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">Connection Status</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier official website</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">Lobby information</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">Connection status</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Checking">Checking</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.PingToHost">Ping to Lobby Host</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingToHost">Ping to lobby host</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.PingMs">{0}ms</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.LobbyId">Lobby ID</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">Connection Type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">Connection type</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Connecting">Connecting</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.UserName">Username</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.UserType">User Type</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.Actions">Lobby Actions</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.CopyVirtualIp">Copy Virtual IP</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.CopyLobbyId">Copy Lobby ID</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.Exit">Exit Lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.UserType">User type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Actions">Lobby actions</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyVirtualIp">Copy virtual IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyLobbyId">Copy lobby ID</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Exit">Exit lobby</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Connected">Connected</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Unavailable">Unavailable</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Host">Host</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Guest">Guest</sys:String>
-    <sys:String x:Key="Tools.GameLink.Finish.CloseLobby">Close Lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Player.InfoTitle">Player {0} Details</sys:String>
-    <sys:String x:Key="Tools.GameLink.Player.InfoMessage">Username: {0}&#x0A;Client Identifier: {1}&#x0A;&#x0A;This data is for reference only. Actual gameplay experience shall prevail.&#x0A;&#x0A;To learn about NAT types and how they affect your lobby experience, please refer to the FAQ section on the left.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CloseLobby">Close lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoTitle">Player {0} details</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoMessage">Username: {0}&#x0A;Client identifier: {1}&#x0A;&#x0A;This data is for reference only. Actual gameplay may vary.&#x0A;&#x0A;To learn about NAT types and how they affect your lobby experience, see the FAQ section on the left.</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.Host">[Host]</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.Details">{0} {1}</sys:String>
-    <sys:String x:Key="Tools.GameLink.Member.ListLoading">Lobby Members (Retrieving information)</sys:String>
-    <sys:String x:Key="Tools.GameLink.Member.ListCount">Lobby Members ({0} total)</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListLoading">Lobby members (retrieving information)</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListCount">Lobby members ({0} total)</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">Are you sure you want to revoke the lobby agreement authorization?</sys:String>
-    <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">Revoke Authorization</sys:String>
-    <sys:String x:Key="Tools.GameLink.Eula.Disabled">Lobby feature has been disabled!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">Revoke authorization</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.Disabled">Lobby feature disabled!</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">Are you sure you want to exit the lobby?</sys:String>
-    <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">Confirm Exit</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">Confirm exit</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.HostWarning">Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessageWithHost">Are you sure you want to exit the lobby?&#x0A;Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Exit.Disbanded">The lobby has been automatically disbanded because you closed the MC instance in the lobby.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">Lobby Disbanded</sys:String>
-    <sys:String x:Key="Tools.GameLink.CopyIp.Message">Lobby host's game address: {0}&#x0A;Note: IP connection is only recommended when the lobby broadcast doesn't appear in the MC multiplayer list! IP connection may require a licensed account.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.Disbanded">The lobby has been automatically disbanded because you closed the Minecraft instance in the lobby.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">Lobby disbanded</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Message">Lobby host's game address: {0}&#x0A;Note: IP connection is only recommended when the lobby broadcast does not appear in the Minecraft multiplayer list. IP connection may require a licensed account.</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Title">Copy IP</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Back">Back</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.ServerExit">An error occurred while exiting the server!</sys:String>
-    <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">Please update to the latest PCL CE to use the lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">Failed to connect to lobby server</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">Please update to the latest PCL CE to use lobby features.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">Failed to connect to the lobby server</sys:String>
 
     <!-- Speed -->
 
@@ -2908,24 +2908,24 @@
     <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">Server returned invalid information</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">Server address too long</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">Server returned empty data packet</sys:String>
-    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">Server disconnected before returning pong packet, unable to calculate latency.</sys:String>
-    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">Server disconnected before returning complete status packet.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">Server disconnected before returning the pong packet, so latency could not be calculated.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">Server disconnected before returning the complete status packet.</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.PongDataLength">Pong data must be exactly 8 bytes</sys:String>
 
     <!-- Update -->
 
     <sys:String x:Key="Update.Action">Update</sys:String>
-    <sys:String x:Key="Update.Check.Failed">Unable to get latest version info. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update.Check.Failed">Unable to get latest version information. Please check your network connection.</sys:String>
     <sys:String x:Key="Update.Available">A new launcher version is available ({0} -&gt; {1})&#x0A;Update now?</sys:String>
-    <sys:String x:Key="Update.Title">Launcher Update</sys:String>
+    <sys:String x:Key="Update.Title">Launcher update</sys:String>
     <sys:String x:Key="Update.Error.FetchFailed">Failed to get launcher update. Please check your network connection.</sys:String>
-    <sys:String x:Key="Update.Error.UnableToGetUpdate">Unable to get update</sys:String>
+    <sys:String x:Key="Update.Error.UnableToGetUpdate">Unable to get update information</sys:String>
     <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
-    <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, Actual: {1}</sys:String>
-    <sys:String x:Key="Update.Error.UpdateBlocked">Update Failed</sys:String>
-    <sys:String x:Key="Update.Error.ViewHelp">View Help</sys:String>
-    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or has insufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
-    <sys:String x:Key="Update.Service.PclCe">PCL CE Service</sys:String>
+    <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, actual: {1}</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlocked">Update failed</sys:String>
+    <sys:String x:Key="Update.Error.ViewHelp">View help</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
+    <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
     <sys:String x:Key="Update.Task.Check">Verify update</sys:String>
     <sys:String x:Key="Update.Task.Install">Install update</sys:String>
     <sys:String x:Key="Update.Task.Prepare">Prepare update</sys:String>
@@ -2934,44 +2934,44 @@
     <sys:String x:Key="Update.Task.DownloadLatestStable">Download latest stable</sys:String>
     <sys:String x:Key="Update.Task.DownloadFile">Download file</sys:String>
     <sys:String x:Key="Update.Task.ApplyFile">Apply file</sys:String>
-    <sys:String x:Key="Update.Task.GetDownloadInfo">Get download info</sys:String>
+    <sys:String x:Key="Update.Task.GetDownloadInfo">Get download information</sys:String>
     <sys:String x:Key="Update.Task.DownloadUpdateFile">Download update file</sys:String>
-    <sys:String x:Key="Update.Task.GetVersionInfo">Get version info</sys:String>
-    <sys:String x:Key="Update.Task.GetVersionInfoFailed">Failed to get version info</sys:String>
-    <sys:String x:Key="Update.Task.GetAnnouncementFailed">Failed to get announcement info</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfo">Get version information</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfoFailed">Failed to get version information</sys:String>
+    <sys:String x:Key="Update.Task.GetAnnouncementFailed">Failed to get announcement information</sys:String>
     <sys:String x:Key="Update.Task.RefreshSettings">Refresh settings UI</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition Notice</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">You are using the PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#x0A;PCL-Community and its members have no affiliation with LTCat (龙腾猫跃) and do not guarantee your usage.&#x0A;&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;&#x0A;Differences from the official version:&#x0A;- Themes: Only some fixed blue themes; no plans to add new themes.&#x0A;- Toolbox: Some content from the official version is missing (Echo Cave, Don't Click).&#x0A;&#x0A;This message will be shown once after a launcher update.</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Confirm">I Understand</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition notice</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">You are using PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#x0A;PCL-Community and its members are not affiliated with LTCat (龙腾猫跃), and do not guarantee your usage.&#x0A;&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;&#x0A;Differences from the official version:&#x0A;- Themes: only some fixed blue themes; no plans to add new themes.&#x0A;- Toolbox: some content from the official version is missing (Echo Cave, Don't Click).&#x0A;&#x0A;This message will be shown once after a launcher update.</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">I understand</sys:String>
 
     <!-- LogPage -->
 
     <sys:String x:Key="LogPage.Title">Live logs</sys:String>
     <sys:String x:Key="LogPage.Empty.Title">No live logs</sys:String>
-    <sys:String x:Key="LogPage.Empty.Description">Go to Instance Settings → Overview → Test Game to display live game logs.</sys:String>
+    <sys:String x:Key="LogPage.Empty.Description">Go to Instance settings → Overview → Test game to display live game logs.</sys:String>
     <sys:String x:Key="LogPage.Left.InstancesTitle">Test instances</sys:String>
     <sys:String x:Key="LogPage.Action.Scroll">Scroll</sys:String>
     <sys:String x:Key="LogPage.Action.Export">Export</sys:String>
     <sys:String x:Key="LogPage.Action.Clear">Clear</sys:String>
     <sys:String x:Key="LogPage.Action.KillProcess">Kill</sys:String>
     <sys:String x:Key="LogPage.Action.ExportStack">Dump</sys:String>
-    <sys:String x:Key="LogPage.Action.GameClosed">Game {0} closed!</sys:String>
+    <sys:String x:Key="LogPage.Action.GameClosed">Game {0} closed.</sys:String>
     <sys:String x:Key="LogPage.Level.Debug">Debug</sys:String>
     <sys:String x:Key="LogPage.Level.Info">Info</sys:String>
     <sys:String x:Key="LogPage.Level.Warn">Warn</sys:String>
     <sys:String x:Key="LogPage.Level.Error">Error</sys:String>
     <sys:String x:Key="LogPage.Level.Fatal">Fatal</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Title">Max lines</sys:String>
-    <sys:String x:Key="LogPage.MaxLines.ToolTip">Maximum number of lines displayed; older logs are automatically removed when exceeded.</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.ToolTip">Maximum number of lines displayed. Older logs are automatically removed when this limit is exceeded.</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Unlimited">Unlimited</sys:String>
-    <sys:String x:Key="LogPage.MaxLines.Hint">Logs are limited to {0} lines by default. Adjust this in Max Log Lines settings.</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Hint">Logs are limited to {0} lines by default. Adjust this in the max log lines settings.</sys:String>
     <sys:String x:Key="LogPage.Export.SelectLocation">Select export location</sys:String>
     <sys:String x:Key="LogPage.Export.Success">Log exported!</sys:String>
     <sys:String x:Key="LogPage.Export.GameLog.FileName">Game log - {0}.log</sys:String>
-    <sys:String x:Key="LogPage.Export.GameLog.Filter">Game log(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.Filter">Game log (*.log)|*.log</sys:String>
     <sys:String x:Key="LogPage.ExportStack.FileName">Game stack dump - {0}.log</sys:String>
-    <sys:String x:Key="LogPage.ExportStack.Filter">Game stack dump(*.log)|*.log</sys:String>
-    <sys:String x:Key="LogPage.ExportStack.Progress">Exporting stack dump, please wait (may take 15s ~ 1min)</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Filter">Game stack dump (*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Progress">Exporting stack dump. Please wait (may take 15 seconds to 1 minute).</sys:String>
     <sys:String x:Key="LogPage.ExportStack.Success">Stack dump exported!</sys:String>
 
     <!-- Watcher -->
@@ -2989,19 +2989,19 @@
     <sys:String x:Key="Watcher.Progress.LwjglConfirmed">Log 3/5: LWJGL version confirmed</sys:String>
     <sys:String x:Key="Watcher.Progress.OpenAlLoaded">Log 4/5: OpenAL loaded</sys:String>
     <sys:String x:Key="Watcher.Progress.TexturesLoaded">Log 5/5: Textures loaded</sys:String>
-    <sys:String x:Key="Watcher.Log.CloseDetected">Identified close log: {0}</sys:String>
-    <sys:String x:Key="Watcher.Log.CrashDetected">Identified crash log: {0}</sys:String>
-    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading, may have crashed</sys:String>
-    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exit code abnormal, may have crashed</sys:String>
-    <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed, crash analysis will start in 2 seconds</sys:String>
+    <sys:String x:Key="Watcher.Log.CloseDetected">Detected close log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Log.CrashDetected">Detected crash log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading and may have crashed.</sys:String>
+    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exited with an abnormal code and may have crashed.</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed. Crash analysis will start in 2 seconds.</sys:String>
     <sys:String x:Key="Watcher.Crash.AnalysisStart">Crash analysis started</sys:String>
-    <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected, analysis started...</sys:String>
-    <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force kill Minecraft process</sys:String>
-    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">Process still alive, trying taskkill.exe</sys:String>
+    <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected. Starting analysis...</sys:String>
+    <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force-kill the Minecraft process</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">Process is still alive. Trying taskkill.exe</sys:String>
     <sys:String x:Key="Watcher.Kill.TaskkillResult">taskkill.exe result: {0}</sys:String>
-    <sys:String x:Key="Watcher.Kill.Timeout">Force kill failed: process exit timeout</sys:String>
-    <sys:String x:Key="Watcher.Kill.Success">Minecraft process forcefully killed</sys:String>
-    <sys:String x:Key="Watcher.Kill.Failed">Failed to force kill Minecraft process</sys:String>
+    <sys:String x:Key="Watcher.Kill.Timeout">Force-kill failed: process exit timed out</sys:String>
+    <sys:String x:Key="Watcher.Kill.Success">Minecraft process force-killed</sys:String>
+    <sys:String x:Key="Watcher.Kill.Failed">Failed to force-kill the Minecraft process</sys:String>
 
     <!-- Link -->
 
@@ -3021,39 +3021,39 @@
     <sys:String x:Key="Link.Quality.Good">Good</sys:String>
     <sys:String x:Key="Link.Quality.Normal">Normal</sys:String>
     <sys:String x:Key="Link.Quality.Poor">Poor</sys:String>
-    <sys:String x:Key="Link.Quality.GoodDescription">Current network environment will not affect connection experience&#x0A;This environment is suitable as lobby host</sys:String>
-    <sys:String x:Key="Link.Quality.NormalDescription">Current network environment may affect your connection experience</sys:String>
-    <sys:String x:Key="Link.Quality.PoorDescription">Some router and firewall settings may affect your connection experience</sys:String>
-    <sys:String x:Key="Link.Natayark.TokenFetchEmpty">Failed to get AccessToken and RefreshToken, response is empty</sys:String>
-    <sys:String x:Key="Link.Natayark.TokenParseFailed">Failed to get AccessToken and RefreshToken, unable to parse response</sys:String>
-    <sys:String x:Key="Link.Natayark.UserInfoFetchEmpty">Failed to get Natayark user info, response is empty</sys:String>
-    <sys:String x:Key="Link.Natayark.UserInfoParseFailed">Failed to get Natayark user info, unable to parse response</sys:String>
+    <sys:String x:Key="Link.Quality.GoodDescription">The current network environment should not affect connection experience.&#x0A;This environment is suitable as the lobby host.</sys:String>
+    <sys:String x:Key="Link.Quality.NormalDescription">The current network environment may affect your connection experience.</sys:String>
+    <sys:String x:Key="Link.Quality.PoorDescription">Some router and firewall settings may affect your connection experience.</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenFetchEmpty">Failed to get AccessToken and RefreshToken: response is empty</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenParseFailed">Failed to get AccessToken and RefreshToken: unable to parse response</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoFetchEmpty">Failed to get Natayark user information: response is empty</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoParseFailed">Failed to get Natayark user information: unable to parse response</sys:String>
     <sys:String x:Key="Link.Lobby.InitFailed">Lobby service initialization failed. Please check your network.</sys:String>
-    <sys:String x:Key="Link.Lobby.LoginRequired">Please log in to your Natayark ID first!</sys:String>
-    <sys:String x:Key="Link.Lobby.CreateRoomFailed">An error occurred while creating the room. Please check logs and report to the developer!</sys:String>
+    <sys:String x:Key="Link.Lobby.LoginRequired">Please log in to Natayark ID first!</sys:String>
+    <sys:String x:Key="Link.Lobby.CreateRoomFailed">An error occurred while creating the room. Please check the logs and report this to the developer!</sys:String>
     <sys:String x:Key="Link.Lobby.CreateLobbyFailed">Failed to create lobby. Please check logs or report to the developer.</sys:String>
-    <sys:String x:Key="Link.Lobby.JoinFailed">Failed to join lobby. It may not exist or has been disbanded.</sys:String>
+    <sys:String x:Key="Link.Lobby.JoinFailed">Failed to join lobby. It may not exist or may have been disbanded.</sys:String>
     <sys:String x:Key="Link.Lobby.InvalidCodeFormat">Invalid lobby code format. Please check and try again!</sys:String>
     <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE Lobby{0}</sys:String>
     <sys:String x:Key="Link.Lobby.MotdDesc"> - {0}</sys:String>
     <sys:String x:Key="Link.Lobby.UnsupportedType">Unsupported lobby type: {0}</sys:String>
     <sys:String x:Key="Link.Lobby.WorldNameFormat">{0} / {1} ({2})</sys:String>
     <sys:String x:Key="Link.Mod.LobbyUnavailable">Lobby is currently unavailable. Please try again later.</sys:String>
-    <sys:String x:Key="Link.Mod.InvalidPlayerId">MC player ID cannot contain separator (|)!</sys:String>
+    <sys:String x:Key="Link.Mod.InvalidPlayerId">Minecraft player ID cannot contain separators (|)!</sys:String>
     <sys:String x:Key="Link.Mod.LoginFirst">Please go to multiplayer settings and log in to Natayark Network first!</sys:String>
-    <sys:String x:Key="Link.Mod.ReLoginRequired">Please re-login to your Natayark Network account and try again!</sys:String>
-    <sys:String x:Key="Link.Mod.NaidFetchFailed">Failed to fetch Natayark ID info</sys:String>
+    <sys:String x:Key="Link.Mod.ReLoginRequired">Please log in to your Natayark Network account again and try again!</sys:String>
+    <sys:String x:Key="Link.Mod.NaidFetchFailed">Failed to fetch Natayark ID information</sys:String>
     <sys:String x:Key="Link.Mod.RealNameRequired">Please complete real-name verification at the Natayark Account Center first!</sys:String>
-    <sys:String x:Key="Link.Mod.AccountBanned">Your Natayark Network account status is abnormal, may be banned!</sys:String>
-    <sys:String x:Key="Link.Mod.UsernameOrLogin">Please set a username in settings, or log in to Natayark Network first!</sys:String>
-    <sys:String x:Key="Link.Mod.DownloadingDeps">Downloading multiplayer dependencies, please wait...</sys:String>
+    <sys:String x:Key="Link.Mod.AccountBanned">Your Natayark Network account status is abnormal and may be banned!</sys:String>
+    <sys:String x:Key="Link.Mod.UsernameOrLogin">Please set a username in Settings, or log in to Natayark Network first!</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingDeps">Downloading multiplayer dependencies. Please wait...</sys:String>
     <sys:String x:Key="Link.Mod.EasyTierNotReady">EasyTier has not finished downloading. Please wait and try again!</sys:String>
-    <sys:String x:Key="Link.Mod.DownloadingEasyTier">Downloading EasyTier, please wait...</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingEasyTier">Downloading EasyTier. Please wait...</sys:String>
     <sys:String x:Key="Link.Mod.DownloadComplete">Multiplayer components downloaded!</sys:String>
     <sys:String x:Key="Link.Mod.DownloadEasyTierFailed">Failed to download EasyTier dependencies. Please check your network.</sys:String>
     <sys:String x:Key="Link.Mod.Task.DownloadEasyTier">Download EasyTier</sys:String>
     <sys:String x:Key="Link.Mod.Task.ExtractFiles">Extract files</sys:String>
-    <sys:String x:Key="Link.Mod.Task.CleanCache">Clean cache and redundant components</sys:String>
+    <sys:String x:Key="Link.Mod.Task.CleanCache">Clean caches and redundant components</sys:String>
     <sys:String x:Key="Link.Mod.Task.RefreshUi">Refresh UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.InitLobby">Initialize lobby</sys:String>
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
