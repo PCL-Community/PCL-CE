@@ -246,10 +246,10 @@ public class McPingService : IMcPingService
         catch (EndOfStreamException ex)
         {
             if (statusPayload is not null && latency is null)
-                throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.StaleConnection"), ex);
 
             if (statusPayload is null)
-                throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.IncompleteConnection"), ex);
 
             throw;
         }
@@ -259,10 +259,9 @@ public class McPingService : IMcPingService
 
     private static long _ReadInt64BigEndian(byte[] data)
     {
-        if (data.Length != 8)
-            throw new ArgumentException("Pong 数据长度必须为 8 字节", nameof(data));
-
-        return BinaryPrimitives.ReadInt64BigEndian(data);
+        return data.Length != 8
+            ? throw new ArgumentException(Lang.Text("Tools.ServerQuery.Error.PongDataLength"), nameof(data))
+            : BinaryPrimitives.ReadInt64BigEndian(data);
     }
 
     private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)

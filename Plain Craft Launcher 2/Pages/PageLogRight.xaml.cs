@@ -29,11 +29,11 @@ public partial class PageLogRight
         PanLogCard.Inlines.Clear();
         PanLogCard.Inlines.Add(new Run(Lang.Text("LogPage.Title")));
         PanLogCard.Inlines.Add(new Run(" | "));
-        labDebug = new Run("0 Debug")
+        labDebug = new Run($"0 {Lang.Text("LogPage.Level.Debug")}")
             { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"] };
         PanLogCard.Inlines.Add(labDebug);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labInfo = new Run("0 Info")
+        labInfo = new Run($"0 {Lang.Text("LogPage.Level.Info")}")
         {
             Foreground =
                 (Brush)System.Windows.Application.Current.Resources[
@@ -41,15 +41,15 @@ public partial class PageLogRight
         };
         PanLogCard.Inlines.Add(labInfo);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labWarn = new Run("0 Warn")
+        labWarn = new Run($"0 {Lang.Text("LogPage.Level.Warn")}")
             { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushWarn"] };
         PanLogCard.Inlines.Add(labWarn);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labError = new Run("0 Error")
+        labError = new Run($"0 {Lang.Text("LogPage.Level.Error")}")
             { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushError"] };
         PanLogCard.Inlines.Add(labError);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labFatal = new Run("0 Fatal")
+        labFatal = new Run($"0 {Lang.Text("LogPage.Level.Fatal")}")
             { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushFatal"] };
         PanLogCard.Inlines.Add(labFatal);
     }
@@ -102,11 +102,11 @@ public partial class PageLogRight
     {
         // 刷新计数器
 
-        labFatal.Text = $"{ModMain.frmLogLeft.currentLog.countFatal} Fatal";
-        labError.Text = $"{ModMain.frmLogLeft.currentLog.countError} Error";
-        labWarn.Text = $"{ModMain.frmLogLeft.currentLog.countWarn} Warn";
-        labInfo.Text = $"{ModMain.frmLogLeft.currentLog.countInfo} Info";
-        labDebug.Text = $"{ModMain.frmLogLeft.currentLog.countDebug} Debug";
+        labFatal.Text = $"{ModMain.frmLogLeft.currentLog.countFatal} {Lang.Text("LogPage.Level.Fatal")}";
+        labError.Text = $"{ModMain.frmLogLeft.currentLog.countError} {Lang.Text("LogPage.Level.Error")}";
+        labWarn.Text = $"{ModMain.frmLogLeft.currentLog.countWarn} {Lang.Text("LogPage.Level.Warn")}";
+        labInfo.Text = $"{ModMain.frmLogLeft.currentLog.countInfo} {Lang.Text("LogPage.Level.Info")}";
+        labDebug.Text = $"{ModMain.frmLogLeft.currentLog.countDebug} {Lang.Text("LogPage.Level.Debug")}";
     }
 
     private void OnLogOutput(ModWatcher.Watcher sender, ModWatcher.LogOutputEventArgs e)

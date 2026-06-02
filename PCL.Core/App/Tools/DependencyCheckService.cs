@@ -44,7 +44,7 @@ public sealed partial class DependencyCheckService
         Context.Info($"正在打开微软应用商店 (id = {id})");
         var psi = new ProcessStartInfo()
         {
-            FileName = $"ms-windows-store://pdp?launch=true&hl=zh-cn&gl=cn&referrer=storeforweb&productid={id}&mode=full",
+            FileName = $"ms-windows-store://pdp?launch=true&productid={id}&mode=full",
             UseShellExecute = true
         };
         using var ps = new Process() { StartInfo = psi };

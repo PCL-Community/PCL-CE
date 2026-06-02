@@ -482,7 +482,7 @@ public partial class PageToolsTest
 
     private void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
     {
-        var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName") + ".lnk";
+        var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
         var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
         var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
         var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);

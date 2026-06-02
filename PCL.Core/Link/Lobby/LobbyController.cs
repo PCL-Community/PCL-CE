@@ -84,13 +84,16 @@ public sealed class LobbyController
                 }
             }
 
-            var localPort = await scfEntity.EasyTier.AddPortForwardAsync(scfEntity.HostInfo.Ip, port)
+            var localPort = await scfEntity.EasyTier
+                .AddPortForwardAsync(scfEntity.HostInfo.Ip, port)
                 .ConfigureAwait(false);
-            var desc = hostname.IsNullOrWhiteSpace() ? " - " + hostname : string.Empty;
-
+            var desc = hostname.IsNullOrWhiteSpace()
+                ? string.Empty
+                : Lang.Text("Link.Lobby.MotdDesc", hostname);
             var tcpPortForForward = NetworkHelper.NewTcpPort();
+
             McForward = new TcpForward(IPAddress.Loopback, tcpPortForForward, IPAddress.Loopback, localPort);
-            McBroadcast = new BroadcastLocal($"§e{Lang.Text("Link.Lobby.MotdFormat")}{desc}", tcpPortForForward);
+            McBroadcast = new BroadcastLocal(Lang.Text("Link.Lobby.MotdFormat", desc), tcpPortForForward);
             McForward.Start();
             McBroadcast.Start();
 

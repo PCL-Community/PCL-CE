@@ -2745,7 +2745,7 @@
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">桌面</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">开始菜单</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">已在{0}创建快捷方式</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL 社区版</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL 社区版{0}</sys:String>
 
     <!-- Tools.Test.Luck -->
 
@@ -2790,7 +2790,9 @@
     <sys:String x:Key="Tools.GameLink.Agreement.Title">PCL CE 联机大厅说明与条款</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Description">此处列出了 PCL CE 大厅使用的相关服务文档及介绍</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE 大厅相关隐私政策</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">了解 PCL CE 如何处理您的个人信息</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark Network 用户协议与隐私政策</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">查看 Natayark OpenID 服务条款</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Body">使用大厅功能即代表你同意下列条款：&#x0A;&#x0A;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#x0A;我承诺使用大厅功能带来的一切风险自行承担。&#x0A;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#x0A;为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。&#x0A;&#x0A;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">我已阅读并同意</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Title">NAT 类型</sys:String>
@@ -2820,6 +2822,8 @@
     <sys:String x:Key="Tools.GameLink.Announcement.Important">重要</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Warning">注意</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Notice">提示</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Format">[{0}] {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.EasyTierVersion">联机双方目前使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再继续联机</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Title">加入大厅</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Description">1、在下方输入朋友发送给你的大厅编号，单击【加入】&#x0A;2、启动游戏，选择【多人游戏】，在局域网游戏中加入大厅</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Action">加入</sys:String>
@@ -2845,6 +2849,7 @@
     <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">连接状况</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Checking">检测中</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.PingToHost">与大厅创建者的延迟</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingMs">{0}ms</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.LobbyId">大厅编号</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">连接方式</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Connecting">连接中</sys:String>
@@ -2862,6 +2867,7 @@
     <sys:String x:Key="Tools.GameLink.Player.InfoTitle">玩家 {0} 的详细信息</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.InfoMessage">用户名：{0}&#x0A;联机协议客户端标识：{1}&#x0A;&#x0A;此处数据仅供参考，请以实际游玩体验为准。&#x0A;&#x0A;若想了解 NAT 类型与其如何影响联机体验，请前往界面左侧的常见问题一栏。</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.Host">[主机]</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Details">{0} {1}</sys:String>
     <sys:String x:Key="Tools.GameLink.Member.ListLoading">大厅成员列表（正在获取信息）</sys:String>
     <sys:String x:Key="Tools.GameLink.Member.ListCount">大厅成员列表（共 {0} 人）</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">你确定要撤销联机协议授权吗？</sys:String>
@@ -2870,6 +2876,7 @@
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">你确定要退出大厅吗？</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">确认退出</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.HostWarning">由于你是大厅创建者，退出后此大厅将会自动解散。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessageWithHost">你确定要退出大厅吗？&#x0A;由于你是大厅创建者，退出后此大厅将会自动解散。</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.Disbanded">由于你关闭了联机中的 MC 实例，大厅已自动解散。</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">大厅已解散</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Message">大厅创建者的游戏地址：{0}&#x0A;注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。</sys:String>
@@ -2901,8 +2908,12 @@
     <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">服务器返回了错误的信息</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">服务器地址过长</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">服务器返回了空数据包</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">服务器在返回完整状态数据包前提前断开连接。</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.PongDataLength">Pong 数据长度必须为 8 字节</sys:String>
 
     <!-- Update -->
+
     <sys:String x:Key="Update.Action">更新</sys:String>
     <sys:String x:Key="Update.Check.Failed">无法获取最新版本信息，请检查网络连接</sys:String>
     <sys:String x:Key="Update.Available">启动器有新版本可用（{0} -&gt; {1}）&#x0A;是否立即更新？</sys:String>
@@ -2945,6 +2956,11 @@
     <sys:String x:Key="LogPage.Action.KillProcess">结束进程</sys:String>
     <sys:String x:Key="LogPage.Action.ExportStack">导出运行栈</sys:String>
     <sys:String x:Key="LogPage.Action.GameClosed">已关闭游戏 {0}！</sys:String>
+    <sys:String x:Key="LogPage.Level.Debug">Debug</sys:String>
+    <sys:String x:Key="LogPage.Level.Info">Info</sys:String>
+    <sys:String x:Key="LogPage.Level.Warn">Warn</sys:String>
+    <sys:String x:Key="LogPage.Level.Error">Error</sys:String>
+    <sys:String x:Key="LogPage.Level.Fatal">Fatal</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Title">最大行数</sys:String>
     <sys:String x:Key="LogPage.MaxLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Unlimited">无限制</sys:String>
@@ -3018,8 +3034,10 @@
     <sys:String x:Key="Link.Lobby.CreateLobbyFailed">创建大厅失败，请检查日志或向开发者反馈。</sys:String>
     <sys:String x:Key="Link.Lobby.JoinFailed">加入大厅失败，可能是大厅不存在或已被解散</sys:String>
     <sys:String x:Key="Link.Lobby.InvalidCodeFormat">大厅编号格式不正确，请检查后再试！</sys:String>
-    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE 大厅</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE 大厅{0}</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdDesc"> - {0}</sys:String>
     <sys:String x:Key="Link.Lobby.UnsupportedType">不支持的大厅类型: {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.WorldNameFormat">{0} / {1} ({2})</sys:String>
     <sys:String x:Key="Link.Mod.LobbyUnavailable">大厅功能暂不可用，请稍后再试</sys:String>
     <sys:String x:Key="Link.Mod.InvalidPlayerId">MC 玩家 ID 不可包含分隔符 (|) ！</sys:String>
     <sys:String x:Key="Link.Mod.LoginFirst">请先前往联机设置并登录至 Natayark Network 再进行联机！</sys:String>

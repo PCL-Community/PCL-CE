@@ -2745,7 +2745,7 @@
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">Desktop</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">Start menu</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">Shortcut created on {0}</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL Community Edition</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL Community Edition{0}</sys:String>
 
     <!-- Tools.Test.Luck -->
 
@@ -2790,7 +2790,9 @@
     <sys:String x:Key="Tools.GameLink.Agreement.Title">PCL CE Lobby Terms &amp; Conditions</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Description">Listed below are the service documents and introductions used by PCL CE Lobby</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE Lobby Privacy Policy</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark Network User Agreement &amp; Privacy Policy</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID Terms of Service</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I promise to strictly comply with relevant laws and regulations of Mainland China and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I promise to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE Lobby Privacy Policy and the Natayark OpenID Terms of Service.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">I have read and agree</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Title">NAT Type</sys:String>
@@ -2820,6 +2822,8 @@
     <sys:String x:Key="Tools.GameLink.Announcement.Important">Important</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Warning">Warning</sys:String>
     <sys:String x:Key="Tools.GameLink.Announcement.Notice">Notice</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Format">[{0}] {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.EasyTierVersion">Both parties are using different launcher versions, which may cause connectivity issues.&#x0A;It is strongly recommended that both parties upgrade to the latest version before continuing.</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Title">Join Lobby</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Description">1. Enter the lobby ID sent by your friend below and click [Join]&#x0A;2. Launch the game, select [Multiplayer], and join the lobby in LAN games</sys:String>
     <sys:String x:Key="Tools.GameLink.Join.Action">Join</sys:String>
@@ -2845,6 +2849,7 @@
     <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">Connection Status</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Checking">Checking</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.PingToHost">Ping to Lobby Host</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingMs">{0}ms</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.LobbyId">Lobby ID</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">Connection Type</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.Connecting">Connecting</sys:String>
@@ -2862,6 +2867,7 @@
     <sys:String x:Key="Tools.GameLink.Player.InfoTitle">Player {0} Details</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.InfoMessage">Username: {0}&#x0A;Client Identifier: {1}&#x0A;&#x0A;This data is for reference only. Actual gameplay experience shall prevail.&#x0A;&#x0A;To learn about NAT types and how they affect your lobby experience, please refer to the FAQ section on the left.</sys:String>
     <sys:String x:Key="Tools.GameLink.Player.Host">[Host]</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Details">{0} {1}</sys:String>
     <sys:String x:Key="Tools.GameLink.Member.ListLoading">Lobby Members (Retrieving information)</sys:String>
     <sys:String x:Key="Tools.GameLink.Member.ListCount">Lobby Members ({0} total)</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">Are you sure you want to revoke the lobby agreement authorization?</sys:String>
@@ -2870,6 +2876,7 @@
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">Are you sure you want to exit the lobby?</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">Confirm Exit</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.HostWarning">Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessageWithHost">Are you sure you want to exit the lobby?&#x0A;Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.Disbanded">The lobby has been automatically disbanded because you closed the MC instance in the lobby.</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">Lobby Disbanded</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Message">Lobby host's game address: {0}&#x0A;Note: IP connection is only recommended when the lobby broadcast doesn't appear in the MC multiplayer list! IP connection may require a licensed account.</sys:String>
@@ -2901,8 +2908,12 @@
     <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">Server returned invalid information</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">Server address too long</sys:String>
     <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">Server returned empty data packet</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">Server disconnected before returning pong packet, unable to calculate latency.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">Server disconnected before returning complete status packet.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.PongDataLength">Pong data must be exactly 8 bytes</sys:String>
 
     <!-- Update -->
+
     <sys:String x:Key="Update.Action">Update</sys:String>
     <sys:String x:Key="Update.Check.Failed">Unable to get latest version info. Please check your network connection.</sys:String>
     <sys:String x:Key="Update.Available">A new launcher version is available ({0} -&gt; {1})&#x0A;Update now?</sys:String>
@@ -2945,6 +2956,11 @@
     <sys:String x:Key="LogPage.Action.KillProcess">Kill</sys:String>
     <sys:String x:Key="LogPage.Action.ExportStack">Dump</sys:String>
     <sys:String x:Key="LogPage.Action.GameClosed">Game {0} closed!</sys:String>
+    <sys:String x:Key="LogPage.Level.Debug">Debug</sys:String>
+    <sys:String x:Key="LogPage.Level.Info">Info</sys:String>
+    <sys:String x:Key="LogPage.Level.Warn">Warn</sys:String>
+    <sys:String x:Key="LogPage.Level.Error">Error</sys:String>
+    <sys:String x:Key="LogPage.Level.Fatal">Fatal</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Title">Max lines</sys:String>
     <sys:String x:Key="LogPage.MaxLines.ToolTip">Maximum number of lines displayed; older logs are automatically removed when exceeded.</sys:String>
     <sys:String x:Key="LogPage.MaxLines.Unlimited">Unlimited</sys:String>
@@ -3018,8 +3034,10 @@
     <sys:String x:Key="Link.Lobby.CreateLobbyFailed">Failed to create lobby. Please check logs or report to the developer.</sys:String>
     <sys:String x:Key="Link.Lobby.JoinFailed">Failed to join lobby. It may not exist or has been disbanded.</sys:String>
     <sys:String x:Key="Link.Lobby.InvalidCodeFormat">Invalid lobby code format. Please check and try again!</sys:String>
-    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE Lobby</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE Lobby{0}</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdDesc"> - {0}</sys:String>
     <sys:String x:Key="Link.Lobby.UnsupportedType">Unsupported lobby type: {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.WorldNameFormat">{0} / {1} ({2})</sys:String>
     <sys:String x:Key="Link.Mod.LobbyUnavailable">Lobby is currently unavailable. Please try again later.</sys:String>
     <sys:String x:Key="Link.Mod.InvalidPlayerId">MC player ID cannot contain separator (|)!</sys:String>
     <sys:String x:Key="Link.Mod.LoginFirst">Please go to multiplayer settings and log in to Natayark Network first!</sys:String>

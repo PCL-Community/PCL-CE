@@ -218,7 +218,10 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
                         throw new ArgumentNullException(nameof(pingRes), "Failed to ping minecraft entity.");
                     }
 
-                    var worldName = $"{pingRes.Description} / {pingRes.Version.Name} ({info.Address.Port})";
+                    var worldName = Lang.Text("Link.Lobby.WorldNameFormat",
+                        pingRes.Description,
+                        pingRes.Version.Name,
+                        info.Address.Port);
                     await _RunInUiAsync(() => DiscoveredWorlds.Add(new FoundWorld(worldName, info.Address.Port)))
                         .ConfigureAwait(false);
                 }

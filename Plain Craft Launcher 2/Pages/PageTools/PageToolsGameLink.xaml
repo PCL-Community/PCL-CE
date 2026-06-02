@@ -80,12 +80,12 @@
                             <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
                                        Text="{DynamicResource Tools.GameLink.Agreement.Description}" />
                             <local:MyListItem Title="{DynamicResource Tools.GameLink.Agreement.PrivacyPolicy}"
-                                              Info="了解 PCL CE 如何处理您的个人信息"
+                                              Info="{DynamicResource Tools.GameLink.Agreement.PrivacyPolicyInfo}"
                                               Type="Clickable" local:CustomEventService.EventType="打开网页"
                                               local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
                                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
                             <local:MyListItem Title="{DynamicResource Tools.GameLink.Agreement.NatayarkTerms}"
-                                              Info="查看 Natayark OpenID 服务条款"
+                                              Info="{DynamicResource Tools.GameLink.Agreement.NatayarkTermsInfo}"
                                               Type="Clickable" local:CustomEventService.EventType="打开网页"
                                               local:CustomEventService.EventData="https://account.naids.com/policy"
                                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
@@ -230,7 +230,7 @@
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Grid.ColumnSpan="2">
                         <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion"
-                                      Text="联机双方目前使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再继续联机" Theme="Yellow"
+                                      Text="{DynamicResource Tools.GameLink.EasyTierVersion}" Theme="Yellow"
                                       Visibility="Collapsed" />
                     </StackPanel>
                     <!--大厅信息栏-->

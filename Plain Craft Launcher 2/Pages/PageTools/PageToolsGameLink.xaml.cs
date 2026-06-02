@@ -173,7 +173,7 @@ public partial class PageToolsGameLink
         ModBase.RunInUi(() =>
         {
             LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
-            LabFinishPing.Text = latency + "ms";
+            LabFinishPing.Text = Lang.Text("Tools.GameLink.Finish.PingMs", latency);
             LabConnectType.Text = Lang.Text("Tools.GameLink.Finish.Unavailable");
         });
     }
@@ -334,7 +334,8 @@ public partial class PageToolsGameLink
                     prefix = Lang.Text("Tools.GameLink.Announcement.Notice");
                 }
 
-                HintAnnounce.Text = "[" + prefix + "] " + info.Content.Replace("\n", "\r\n");
+                HintAnnounce.Text = Lang.Text("Tools.GameLink.Announcement.Format", prefix,
+                    info.Content.Replace("\n", "\r\n"));
             }
             else
             {
@@ -533,15 +534,10 @@ public partial class PageToolsGameLink
 
     private object PlayerInfoItem(PlayerProfile info, MyListItem.ClickEventHandler onClick)
     {
-        string details = null;
-        if (info.Kind == PlayerKind.HOST)
-            details += Lang.Text("Tools.GameLink.Player.Host") + " ";
-        details += info.Vendor;
-        // If info.Cost = ETConnectionType.Local Then
-        // details += $"[本机] NAT {LobbyTextHandler.GetNatTypeChinese(info.NatType)}"
-        // Else
-        // details += $"{info.Ping}ms / {LobbyTextHandler.GetConnectTypeChinese(info.Cost)}"
-        // End If
+        var details = info.Kind == PlayerKind.HOST
+            ? Lang.Text("Tools.GameLink.Player.Details", Lang.Text("Tools.GameLink.Player.Host"), info.Vendor)
+            : info.Vendor;
+
         var newItem = new MyListItem
         {
             Title = info.Name,
@@ -550,6 +546,7 @@ public partial class PageToolsGameLink
             Tag = info
         };
         newItem.Click += onClick;
+
         return newItem;
     }
 
@@ -942,8 +939,10 @@ public partial class PageToolsGameLink
     // 退出
     private async void BtnFinishExit_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
-        var creatorHint = LobbyService.IsHost ? "\r\n" + Lang.Text("Tools.GameLink.Exit.HostWarning") : "";
-        if (ModMain.MyMsgBox(Lang.Text("Tools.GameLink.Exit.ConfirmMessage") + creatorHint,
+        if (ModMain.MyMsgBox(
+                Lang.Text(LobbyService.IsHost
+                    ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
+                    : "Tools.GameLink.Exit.ConfirmMessage"),
                 Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
                 Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Common.Action.Cancel"),
