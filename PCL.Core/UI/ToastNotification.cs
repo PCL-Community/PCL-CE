@@ -12,22 +12,34 @@ namespace PCL.Core.UI;
 public static class ToastNotification
 {
     /// <summary>
-    /// Send a Toast notification with simple texts to the system.
+    /// 发送简单的 Toast 通知。
     /// </summary>
-    /// <param name="message">Notification detail text</param>
-    /// <param name="title">Notification title</param>
-    public static unsafe void SendToast(string message, string title = "Notice")
+    /// <param name="message">通知内容</param>
+    /// <param name="title">通知标题</param>
+    public static void SendToast(string message, string title = "Notice")
     {
-        var xml = HStringHelper.ToHString($"""
-            <toast>
-                <visual>
-                    <binding template="ToastGeneric">
-                        <text>{SecurityElement.Escape(title)}</text>
-                        <text>{SecurityElement.Escape(message)}</text>
-                    </binding>
-                </visual>
-            </toast>
-            """);
+        var xml = $"""
+                   <toast>
+                       <visual>
+                           <binding template="ToastGeneric">
+                               <text>{SecurityElement.Escape(title)}</text>
+                               <text>{SecurityElement.Escape(message)}</text>
+                           </binding>
+                       </visual>
+                   </toast>
+                   """;
+        
+        SendToastFromTemplate(xml);
+    }
+
+    /// <summary>
+    /// 根据模板发送 Toast 通知。
+    /// </summary>
+    /// <param name="xml">Toast 模板</param>
+    public static unsafe void SendToastFromTemplate(string xml)
+    {
+        // 定义 Toast 模板
+        var toastXml = HStringHelper.ToHString(xml);
         
         // TODO: 将 AUMID 判断放在其他位置
         if (!AumidHelper.HasAumid())
@@ -44,24 +56,31 @@ public static class ToastNotification
             void* toastNotification;
             void* toastNotifier;
 
+            // 创建 XmlDocument 对象
             var inspectable = (IInspectable*)WinRTInterop.ActivateInstance(IXmlDocumentIOInfo.ActivatableClassId);
             Marshal.ThrowExceptionForHR(
                 inspectable->lpVtbl->QueryInterface(inspectable, xmlDocumentIOIid, &xmlDocumentIO));
+            // 加载 XML
             Marshal.ThrowExceptionForHR(
-                ((IXmlDocumentIO*)xmlDocumentIO)->lpVtbl->LoadXml(xmlDocumentIO, xml));
+                ((IXmlDocumentIO*)xmlDocumentIO)->lpVtbl->LoadXml(xmlDocumentIO, toastXml));
 
+            // 获取 ToastNotification 的激活工厂
             var toastNotificationFactory =
                 (IToastNotificationFactory*)WinRTInterop.GetActivationFactory(
                     IToastNotificationFactoryInfo.ActivatableClassId, IToastNotificationFactoryInfo.Iid);
+            // 从 XML 创建 ToastNotification 对象
             Marshal.ThrowExceptionForHR(
                 toastNotificationFactory->lpVtbl->CreateToastNotification(toastNotificationFactory, xmlDocumentIO,
                     &toastNotification));
 
+            // 创建 ToastNotifierManager 对象
             var toastNotificationManagerStatics = (IToastNotificationManagerStatics*)WinRTInterop.GetActivationFactory(
                 IToastNotificationManagerStaticsInfo.ActivatableClassId, IToastNotificationManagerStaticsInfo.Iid);
+            // 获取 ToastNotifier 对象
             Marshal.ThrowExceptionForHR(
                 toastNotificationManagerStatics->lpVtbl->CreateToastNotifierWithId(toastNotificationManagerStatics,
                     aumid, &toastNotifier));
+            // 发送 Toast 通知
             Marshal.ThrowExceptionForHR(
                 ((IToastNotifier*)toastNotifier)->lpVtbl->Show(toastNotifier, toastNotification));
             
@@ -74,7 +93,8 @@ public static class ToastNotification
             ((IToastNotifier*)toastNotifier)->lpVtbl->Release(toastNotifier);
         }
         
-        HStringHelper.DeleteHString(xml);
+        // 释放 HSTRING
+        HStringHelper.DeleteHString(toastXml);
         HStringHelper.DeleteHString(aumid);
     }
 
