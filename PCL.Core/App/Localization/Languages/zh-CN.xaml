@@ -2903,9 +2903,35 @@
     <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">服务器返回了空数据包</sys:String>
 
     <!-- Update -->
-    <!-- Update.Task -->
-    <!-- Update.Error -->
-    <!-- Update.CommunityNotice -->
+    <sys:String x:Key="Update.Action">更新</sys:String>
+    <sys:String x:Key="Update.Check.Failed">无法获取最新版本信息，请检查网络连接</sys:String>
+    <sys:String x:Key="Update.Available">启动器有新版本可用（{0} -&gt; {1}）&#x0A;是否立即更新？</sys:String>
+    <sys:String x:Key="Update.Title">启动器更新</sys:String>
+    <sys:String x:Key="Update.Error.FetchFailed">获取启动器更新失败，请检查网络连接</sys:String>
+    <sys:String x:Key="Update.Error.UnableToGetUpdate">无法获取更新</sys:String>
+    <sys:String x:Key="Update.Error.FileNotFound">找不到更新文件</sys:String>
+    <sys:String x:Key="Update.Error.Sha256Mismatch">更新文件 SHA256 不正确，应该为 {0}，实际为 {1}</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlocked">更新失败</sys:String>
+    <sys:String x:Key="Update.Error.ViewHelp">查看帮助</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。&#x0A;请将 PCL 所在文件夹加入白名单，或者手动用 {0}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！</sys:String>
+    <sys:String x:Key="Update.Service.PclCe">PCL CE 服务</sys:String>
+    <sys:String x:Key="Update.Task.Check">校验更新</sys:String>
+    <sys:String x:Key="Update.Task.Install">安装更新</sys:String>
+    <sys:String x:Key="Update.Task.Prepare">准备更新</sys:String>
+    <sys:String x:Key="Update.Task.ShowButton">显示按钮</sys:String>
+    <sys:String x:Key="Update.Task.RestartInstall">重启安装</sys:String>
+    <sys:String x:Key="Update.Task.DownloadLatestStable">下载最新稳定版</sys:String>
+    <sys:String x:Key="Update.Task.DownloadFile">下载文件</sys:String>
+    <sys:String x:Key="Update.Task.ApplyFile">应用文件</sys:String>
+    <sys:String x:Key="Update.Task.GetDownloadInfo">获取下载信息</sys:String>
+    <sys:String x:Key="Update.Task.DownloadUpdateFile">下载更新文件</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfo">获取版本信息</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfoFailed">获取版本信息失败</sys:String>
+    <sys:String x:Key="Update.Task.GetAnnouncementFailed">获取公告信息失败</sys:String>
+    <sys:String x:Key="Update.Task.RefreshSettings">刷新设置 UI</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">社区版本说明</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#x0A;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#x0A;&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;&#x0A;该版本与官方版本的特性区别：&#x0A;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#x0A;- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。&#x0A;&#x0A;此提示会在启动器更新后展示一次。</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">我知道了</sys:String>
 
     <!-- LogPage -->
 

@@ -2903,9 +2903,35 @@
     <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">Server returned empty data packet</sys:String>
 
     <!-- Update -->
-    <!-- Update.Task -->
-    <!-- Update.Error -->
-    <!-- Update.CommunityNotice -->
+    <sys:String x:Key="Update.Action">Update</sys:String>
+    <sys:String x:Key="Update.Check.Failed">Unable to get latest version info. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update.Available">A new launcher version is available ({0} -&gt; {1})&#x0A;Update now?</sys:String>
+    <sys:String x:Key="Update.Title">Launcher Update</sys:String>
+    <sys:String x:Key="Update.Error.FetchFailed">Failed to get launcher update. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update.Error.UnableToGetUpdate">Unable to get update</sys:String>
+    <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
+    <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, Actual: {1}</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlocked">Update Failed</sys:String>
+    <sys:String x:Key="Update.Error.ViewHelp">View Help</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or has insufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
+    <sys:String x:Key="Update.Service.PclCe">PCL CE Service</sys:String>
+    <sys:String x:Key="Update.Task.Check">Verify update</sys:String>
+    <sys:String x:Key="Update.Task.Install">Install update</sys:String>
+    <sys:String x:Key="Update.Task.Prepare">Prepare update</sys:String>
+    <sys:String x:Key="Update.Task.ShowButton">Show button</sys:String>
+    <sys:String x:Key="Update.Task.RestartInstall">Restart install</sys:String>
+    <sys:String x:Key="Update.Task.DownloadLatestStable">Download latest stable</sys:String>
+    <sys:String x:Key="Update.Task.DownloadFile">Download file</sys:String>
+    <sys:String x:Key="Update.Task.ApplyFile">Apply file</sys:String>
+    <sys:String x:Key="Update.Task.GetDownloadInfo">Get download info</sys:String>
+    <sys:String x:Key="Update.Task.DownloadUpdateFile">Download update file</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfo">Get version info</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfoFailed">Failed to get version info</sys:String>
+    <sys:String x:Key="Update.Task.GetAnnouncementFailed">Failed to get announcement info</sys:String>
+    <sys:String x:Key="Update.Task.RefreshSettings">Refresh settings UI</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition Notice</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">You are using the PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#x0A;PCL-Community and its members have no affiliation with LTCat (龙腾猫跃) and do not guarantee your usage.&#x0A;&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;If you downloaded the Community Edition by accident, we recommend using the official PCL instead.&#x0A;&#x0A;Differences from the official version:&#x0A;- Themes: Only some fixed blue themes; no plans to add new themes.&#x0A;- Toolbox: Some content from the official version is missing (Echo Cave, Don't Click).&#x0A;&#x0A;This message will be shown once after a launcher update.</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">I Understand</sys:String>
 
     <!-- LogPage -->
 
