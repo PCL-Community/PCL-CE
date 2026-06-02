@@ -12,7 +12,7 @@ namespace PCL.Core.Minecraft.CrashAnalysis;
 ///         不能把完整中文分析段落写在 C# 中。新增 CrashReasonCode 时请同步补齐语言文件和测试。
 ///     </p>
 /// </summary>
-public sealed class CrashResultLocalizer
+public static class CrashResultLocalizer
 {
     /// <summary>
     ///     根据当前语言生成崩溃分析弹窗正文。
