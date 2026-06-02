@@ -40,7 +40,7 @@ public sealed class CrashLogCollector
                 DisplayName = "RawOutput.log",
                 Origin = CrashLogOrigin.CapturedOutput,
                 LastWriteTime = request.Now,
-                Content = string.Join("\n", request.LatestOutputLines),
+                Content = string.Join('\n', request.LatestOutputLines),
                 Length = request.LatestOutputLines.Sum(static line => line.Length)
             });
 
