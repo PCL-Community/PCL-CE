@@ -248,7 +248,7 @@ public partial class PageLaunchRight : IRefreshable
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
-        string[] lines = null;
+        string[]? lines = null;
 
         // 外部文件
         var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
@@ -270,14 +270,9 @@ public partial class PageLaunchRight : IRefreshable
         // 嵌入式资源
         if (lines is null || lines.Length == 0)
         {
-            using (var reader = new StreamReader(Application.GetResourceStream(new Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream))
-            {
-                lines = reader.ReadToEnd()
-                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(l => !string.IsNullOrWhiteSpace(l))
-                    .Select(l => l.Trim())
-                    .ToArray();
-            }
+            var langCode = LocalizationService.CurrentLanguage.Code;
+            lines = _LoadEmbeddedHints(langCode)
+                ?? _LoadEmbeddedHints(LocalizationService.DefaultLanguageCode);
         }
 
         // 长度限制
@@ -290,6 +285,26 @@ public partial class PageLaunchRight : IRefreshable
         // 随机返回
         var hint = lines[Random.Shared.Next(lines.Length)];
         return raw ? hint : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+    }
+
+    private static string[]? _LoadEmbeddedHints(string langCode)
+    {
+        try
+        {
+            var uri = new Uri($"pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints/{langCode}.txt", UriKind.Absolute);
+            using var stream = Application.GetResourceStream(uri)?.Stream;
+            if (stream is null) return null;
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd()
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Trim())
+                .ToArray();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     // 联网获取主页文件
