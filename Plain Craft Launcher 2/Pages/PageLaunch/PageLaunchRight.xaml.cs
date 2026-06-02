@@ -248,7 +248,7 @@ public partial class PageLaunchRight : IRefreshable
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
-        string[] lines = null;
+        string[]? lines = null;
 
         // 外部文件
         var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
@@ -287,7 +287,7 @@ public partial class PageLaunchRight : IRefreshable
         return raw ? hint : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
     }
 
-    private static string[] _LoadEmbeddedHints(string langCode)
+    private static string[]? _LoadEmbeddedHints(string langCode)
     {
         try
         {
