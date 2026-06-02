@@ -3216,10 +3216,10 @@ public static class ModComp
             return;
 
         // 必要前置：默认展开
-        AddDependencyBar(stack, deps,
+        _AddDependencyBar(stack, deps,
             Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), collapsed: false);
         // 可选前置：默认收起（库 Mod 可能有大量可选前置，参见 Issue #2873）
-        AddDependencyBar(stack, optionalDeps,
+        _AddDependencyBar(stack, optionalDeps,
             Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), collapsed: true);
 
         // 添加结尾间隔（版本列表标题）
@@ -3235,7 +3235,7 @@ public static class ModComp
     ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
     /// </summary>
     /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
-    private static void AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
+    private static void _AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
     {
         if (depIds is null || !depIds.Any())
             return;
@@ -3261,7 +3261,7 @@ public static class ModComp
         foreach (var project in projects)
             bar.ContentPanel.Children.Add(project.ToCompItem(false, false));
 
-        bar.Toggled += DependencyBar_Toggled;
+        bar.Toggled += _DependencyBarToggled;
         stack.Children.Add(bar);
     }
 
@@ -3269,7 +3269,7 @@ public static class ModComp
     ///     折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
     ///     避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
     /// </summary>
-    private static void DependencyBar_Toggled(object? sender, EventArgs e)
+    private static void _DependencyBarToggled(object? sender, EventArgs e)
     {
         if (sender is not DependencyObject element)
             return;
