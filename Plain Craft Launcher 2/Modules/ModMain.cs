@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -92,6 +92,13 @@ public static class ModMain
     public static PageInstanceSavesDatapack? frmInstanceSavesDatapack;
     public static PageDownloadCompDetail? frmDownloadCompDetail;
     public static PageHomepageNewsView? frmHomepageNews;
+    public static PageCrashLeft? frmCrashLeft;
+    public static PageCrashOverview? frmCrashOverview;
+    public static PageCrashDiagnoses? frmCrashDiagnoses;
+    public static PageCrashSuggestions? frmCrashSuggestions;
+    public static PageCrashEvidence? frmCrashEvidence;
+    public static PageCrashLogs? frmCrashLogs;
+    public static PageCrashEnvironment? frmCrashEnvironment;
 
     public static ModLoader.LoaderTask<int, List<HelpEntry>> helpLoader = new("Help Page", HelpLoad, null,
         ThreadPriority.BelowNormal);

@@ -18,11 +18,15 @@ public sealed class CrashLocalizationTests
         .ToArray();
 
     [TestMethod]
-    public void AllCrashReasonCodesHaveLocalizationKey()
+    public void AllCrashDiagnosisCodesHaveLocalizationKey()
     {
         var baseKeys = _LoadResources("zh-CN");
-        foreach (var reason in Enum.GetValues<CrashReasonCode>())
-            Assert.IsTrue(baseKeys.ContainsKey($"Crash.Finding.{reason}"), $"缺少 Crash.Finding.{reason}");
+        foreach (var code in Enum.GetValues<CrashDiagnosisCode>())
+        {
+            Assert.IsTrue(baseKeys.ContainsKey($"Crash.Diagnosis.Title.{code}"), $"缺少 Crash.Diagnosis.Title.{code}");
+            Assert.IsTrue(baseKeys.ContainsKey($"Crash.Diagnosis.Description.{code}"),
+                $"缺少 Crash.Diagnosis.Description.{code}");
+        }
     }
 
     [TestMethod]
@@ -76,7 +80,7 @@ public sealed class CrashLocalizationTests
 
     private static string[] _GetPlaceholders(string value)
     {
-        return Regex.Matches(value, @"\{\d+(?::[^}]*)?\}")
+        return Regex.Matches(value, @"\{[A-Za-z][A-Za-z0-9_]*\}|\{\d+(?::[^}]*)?\}")
             .Select(static match => match.Value)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static placeholder => placeholder, StringComparer.Ordinal)

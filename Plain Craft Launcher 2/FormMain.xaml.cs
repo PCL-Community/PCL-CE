@@ -1443,7 +1443,12 @@ public partial class FormMain
         /// <summary>
         ///     主页市场，这是一个副页面。
         /// </summary>
-        HomePageMarket = 13
+        HomePageMarket = 13,
+
+        /// <summary>
+        ///     崩溃分析，这是一个副页面。
+        /// </summary>
+        CrashAnalysis = 14
     }
 
     /// <summary>
@@ -1501,7 +1506,14 @@ public partial class FormMain
         VersionInstall = 10,
         VersionServer = 11,
         VersionSavesInfo = 0,
-        VersionSavesDatapack = 1
+        VersionSavesDatapack = 1,
+
+        CrashOverview = 0,
+        CrashDiagnoses = 1,
+        CrashSuggestions = 2,
+        CrashEvidence = 3,
+        CrashLogs = 4,
+        CrashEnvironment = 5
     }
 
     /// <summary>
@@ -1542,6 +1554,10 @@ public partial class FormMain
             case PageType.HomePageMarket:
             {
                 return Lang.Text("Main.Title.HomePageMarket");
+            }
+            case PageType.CrashAnalysis:
+            {
+                return Lang.Text("Main.Title.CrashAnalysis");
             }
 
             default:
@@ -1606,6 +1622,12 @@ public partial class FormMain
                     if (ModMain.frmInstanceLeft is null)
                         ModMain.frmInstanceLeft = new PageInstanceLeft();
                     return ModMain.frmInstanceLeft.pageID;
+                }
+                case PageType.CrashAnalysis:
+                {
+                    if (ModMain.frmCrashLeft is null)
+                        ModMain.frmCrashLeft = new PageCrashLeft();
+                    return ModMain.frmCrashLeft.pageID;
                 }
 
                 default:
@@ -1761,6 +1783,20 @@ public partial class FormMain
                         ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.frmInstanceSavesLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)subType)
+                        {
+                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            break;
+                        }
+
+                    break;
+                }
+                case PageType.CrashAnalysis:
+                {
+                    if (ModMain.frmCrashLeft is null)
+                        ModMain.frmCrashLeft = new PageCrashLeft();
+                    foreach (var item in ModMain.frmCrashLeft.PanItem.Children)
+                        if (item is MyListItem listItem && listItem.Tag is not null &&
                             ModBase.Val(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
@@ -1958,6 +1994,16 @@ public partial class FormMain
                     {
                         ModMain.frmHomePageMarket = ModMain.frmHomePageMarket ?? new PageHomePageMarket();
                         PageChangeAnim(new MyPageLeft(), ModMain.frmHomePageMarket);
+                        break;
+                    }
+                case PageType.CrashAnalysis: // 崩溃分析
+                    {
+                        ModMain.frmCrashLeft ??= new PageCrashLeft();
+                        if (subType != PageSubType.Default)
+                            ModMain.frmCrashLeft.pageID = subType;
+                        else
+                            subType = ModMain.frmCrashLeft.pageID;
+                        PageChangeAnim(ModMain.frmCrashLeft, (FrameworkElement)ModMain.frmCrashLeft.PageGet(subType));
                         break;
                     }
             }
