@@ -3203,8 +3203,8 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
-    ///     前置列表（必要 / 可选）会被放入可折叠栏：必要前置默认展开，可选前置默认收起。
+    /// 预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
+    /// 前置列表（必要 / 可选）会被放入可折叠栏：必要前置默认展开，可选前置默认收起。
     /// </summary>
     public static void CompFilesCardPreload(StackPanel stack, List<CompFile> files)
     {
@@ -3231,8 +3231,8 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack"/>。
-    ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
+    /// 将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack"/>。
+    /// 仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
     /// </summary>
     /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
     private static void _AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
@@ -3266,8 +3266,8 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
-    ///     避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
+    /// 折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
+    /// 避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
     /// </summary>
     private static void _DependencyBarToggled(object? sender, EventArgs e)
     {

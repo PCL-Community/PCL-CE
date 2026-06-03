@@ -7,8 +7,8 @@ using System.Windows.Shapes;
 namespace PCL;
 
 /// <summary>
-///     轻量折叠栏：一行可点击标题 + 三角，点击切换其下内容区的显示。
-///     无卡片外观（无阴影/边框/背景）、无高度动画，仅切换内容 Visibility 并平滑旋转三角。
+/// 轻量折叠栏：一行可点击标题 + 三角，点击切换其下内容区的显示。
+/// 无卡片外观（无阴影/边框/背景）、无高度动画，仅切换内容 Visibility 并平滑旋转三角。
 /// </summary>
 public class MyCollapseBar : StackPanel
 {
