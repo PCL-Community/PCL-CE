@@ -233,7 +233,7 @@ public partial class PageSetupUI
 
             case "UiLauncherLogo": Config.Preference.ShowStartupLogo = (bool)value; break;
             case "UiShowLaunchingHint": Config.Preference.ShowLaunchingHint = (bool)value; break;
-            case "UiHintAlignRight": Config.Preference.HintAlignRight = (bool)value; break;
+            case "UiHintAlignRight": Config.Preference.HintAlignRight = (bool)value; ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed")); break;
             case "UiLockWindowSize": Config.Preference.LockWindowSize = (bool)value; break;
             case "UiBlur": Config.Preference.Blur.IsEnabled = (bool)value; break;
             case "UiAutoPauseVideo": Config.Preference.Background.AutoPauseVideo = (bool)value; break;
