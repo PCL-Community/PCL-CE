@@ -134,11 +134,8 @@ public partial class MyHint
         LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
 
-        // 根据提示气泡对齐方向调整边框
-        if (!HasBorder)
-            BorderThickness = Config.Preference.HintAlignRight
-                ? new Thickness(0d, 0d, 3d, 0d)
-                : new Thickness(3d, 0d, 0d, 0d);
+        // 根据提示气泡对齐方向刷新边框
+        HasBorder = HasBorder;
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
