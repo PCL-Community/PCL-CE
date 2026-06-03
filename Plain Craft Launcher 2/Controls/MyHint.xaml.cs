@@ -135,6 +135,7 @@ public partial class MyHint
         BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
 
         // 根据提示气泡对齐方向刷新边框
+        // 此处依赖 HasBorder 的副作用进行范围检查
         HasBorder = HasBorder;
     }
 
