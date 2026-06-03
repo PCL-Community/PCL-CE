@@ -2628,4 +2628,435 @@
     <sys:String x:Key="Instance.Export.MrpackFilter">Modrinth 整合包文件(*.mrpack)|*.mrpack</sys:String>
     <sys:String x:Key="Instance.Export.PackPathInvalid.Title">无法使用配置文件中指定的导出路径</sys:String>
 
+    <!-- Tools -->
+
+    <sys:String x:Key="Tools.Left.Multiplayer">联机</sys:String>
+    <sys:String x:Key="Tools.Left.Lobby">大厅</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities">奇妙小工具</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities.Title">百宝箱</sys:String>
+    <sys:String x:Key="Tools.Left.Help">帮助库</sys:String>
+
+    <!-- Tools.Help -->
+
+    <sys:String x:Key="Tools.Help.Search.Hint">搜索帮助</sys:String>
+    <sys:String x:Key="Tools.Help.Loading">正在加载帮助列表</sys:String>
+    <sys:String x:Key="Tools.Help.Category.Guide">指南</sys:String>
+    <sys:String x:Key="Tools.Help.Search.NoResults">无搜索结果</sys:String>
+    <sys:String x:Key="Tools.Help.Search.Results">搜索结果</sys:String>
+    <sys:String x:Key="Tools.Help.Search.ExactMatch">完全匹配  |  相似度：{0}  |  {1}</sys:String>
+    <sys:String x:Key="Tools.Help.Search.Similarity">相似度：{0}  |  {1}</sys:String>
+
+    <!-- Tools.Test -->
+
+    <sys:String x:Key="Tools.Test.Title">百宝箱</sys:String>
+    <sys:String x:Key="Tools.Test.CeNotice">为便于维护，社区版中不包含百宝箱功能……</sys:String>
+
+    <!-- Tools.Test.CustomDownload -->
+
+    <sys:String x:Key="Tools.Test.CustomDownload.Title">下载自定义文件</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Description">使用 PCL 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能会报错 (403) 已禁止，无法正常下载。</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Url">下载地址</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.UserAgent">User-Agent</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.SaveTo">保存到</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Select">选择</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.SelectLocation">选择文件保存位置</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.FileName">文件名</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Start">开始下载</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.LoaderName">自定义下载文件：{0} </sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.LoaderTitle">自定义下载 ({0}) </sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Finished">{0}完成！</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Aborted">{0}已取消！</sys:String>
+
+    <!-- Tools.Test.Skin -->
+
+    <sys:String x:Key="Tools.Test.Skin.Title">下载正版玩家的皮肤</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.PlayerName">正版玩家名</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Save">保存皮肤</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Fetching">正在获取皮肤...</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.InvalidId">这不是一个有效的 ID...</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.TooFrequent">获取皮肤太过频繁，请 5 分钟之后再试！</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Saved">玩家 {0} 的皮肤已保存！</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.FileFilter">皮肤图片文件(*.png)|*.png</sys:String>
+
+    <!-- Tools.Test.ServerQuery -->
+
+    <sys:String x:Key="Tools.Test.ServerQuery.Title">瞅眼服务器</sys:String>
+
+    <!-- Tools.Test.Achievement -->
+
+    <sys:String x:Key="Tools.Test.Achievement.Title">自定义成就图片生成器 (仅支持英文)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品名（ID）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Name">成就名</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line1">第一行</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line2">第二行（可选）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Preview">预览成就图像</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Save">保存图片</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.InvalidId">请输入正确的物品 ID！</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Saved">自定义成就图片已保存！</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 图片 (*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FetchFailed">获取成就图片失败，请检查文字是否包含特殊字符</sys:String>
+
+    <!-- Tools.Test.Avatar -->
+
+    <sys:String x:Key="Tools.Test.Avatar.Title">皮肤头像生成器</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Size">头像大小：</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectSkin">选择皮肤</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectSkinFile">选择皮肤文件</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.FileFilter">图像文件(*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Save">保存头像</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectFirst">请先选择皮肤！</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.InvalidSize">图片的大小不正确！请确认你选择了正确的文件！</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Generated">头像生成成功！</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.GenerateFailed">生成头像失败：{0}</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Saved">头像保存成功！</sys:String>
+
+    <!-- Tools.Test.Memory -->
+
+    <sys:String x:Key="Tools.Test.Memory.Title">内存优化</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.ToolTip">内存优化为 PCL CE 特供版，效果加强！&#xa;&#xa;将物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL 可以静默执行内存优化。</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Deprecated">内存优化功能即将被废弃。\n\n该功能依赖未文档化的 Windows NT 内核函数调用，可能在未来版本中不可用，且存在引发未定义行为的可能。\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。\n\n是否仍然继续使用内存优化？</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.DeprecatedTitle">功能即将废弃</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.LearnMemReduct">了解 Mem Reduct</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Optimizing">正在进行内存优化</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.StillRunning">内存优化尚未结束，请稍等！</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Result">内存优化结束，共优化 {0}，目前可用内存 {1}</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Failed">内存优化失败</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.FailedMessage">内存优化失败\n\n详细信息：{0}</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.PromoteFailed">提权进程启动失败，请允许管理员权限以使用内存优化</sys:String>
+
+    <!-- Tools.Test.Clean -->
+
+    <sys:String x:Key="Tools.Test.Clean.Title">清理游戏垃圾</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ToolTip">清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">清理确认</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。\n虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？\n\n在完成清理后，PCL 将自动重启。</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.Cleared">缓存已清理</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！\nPCL 即将自动重启……</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.NoFiles">没有找到任何可以清理的文件！</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.WaitForDownload">请在所有下载任务完成后再来清理吧……</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">请先关闭所有运行中的游戏……</sys:String>
+
+    <!-- Tools.Test.Shortcut -->
+
+    <sys:String x:Key="Tools.Test.Shortcut.Title">创建快捷方式</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">创建一个指向 PCL 社区版可执行文件的快捷方式</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">选择快捷方式位置</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。\n\n{0}位置: {1}\n{2}位置: {3}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.Desktop">桌面</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.StartMenu">开始菜单</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.Created">已在{0}创建快捷方式</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL 社区版{0}</sys:String>
+
+    <!-- Tools.Test.Luck -->
+
+    <sys:String x:Key="Tools.Test.Luck.Title">今日人品</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MsgboxTitle">今日人品 - {0}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MessageGood">你今天的人品值是：{0}！{1}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MessageBad">你今天的人品值是：{0}... {1}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating100">100！100！&#xa;隐藏主题 欧皇…… 不对，社区版应该没有这玩意……</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating95">差一点就到100了呢...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating90">好评如潮！</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating60">还行啦，还行啦</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating40">勉强还行吧...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating30">呜...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating10">不会吧！</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating0">（是百分制哦）</sys:String>
+
+    <!-- Tools.Test.Crash -->
+
+    <sys:String x:Key="Tools.Test.Crash.Title">崩溃测试</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ToolTip">点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">崩溃确认</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">你一定是点错了，如果没错请在下方确认</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ManualCrash">手动崩溃</sys:String>
+
+    <!-- Tools.Test.LaunchCount -->
+
+    <sys:String x:Key="Tools.Test.LaunchCount.Title">查看启动计数</sys:String>
+    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL 已经为你启动了 {0} 次游戏了。</sys:String>
+
+    <!-- Tools.Test.Dependency -->
+
+    <sys:String x:Key="Tools.Test.Dependency.Title">依赖检查</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Checking">开始环境检查……</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"\n\n点击确定打开微软应用商店安装</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Later">稍后</sys:String>
+
+    <!-- Tools.GameLink -->
+
+    <sys:String x:Key="Tools.GameLink.Loading.Creating">正在创建大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Loading.DownloadingModule">下载联机模块中……</sys:String>
+    <sys:String x:Key="Tools.GameLink.Loading.ConnectingServer">正在连接到大厅服务器...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Title">PCL CE 联机大厅说明与条款</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Description">此处列出了 PCL CE 大厅使用的相关服务文档及介绍</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE 大厅相关隐私政策</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">了解 PCL CE 如何处理您的个人信息</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID 服务条款</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">查看 Natayark OpenID 服务条款</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">使用大厅功能即代表你同意下列条款：&#x0A;&#x0A;我承诺严格遵守中国大陆相关法律法规，不会将大厅功能用于违法违规用途。&#x0A;我承诺使用大厅功能带来的一切风险自行承担。&#x0A;我已知晓并同意 PCL CE 收集经处理的本机识别码、Natayark ID 与其他信息并在必要时提供给执法部门。&#x0A;为保护未成年人个人信息，使用联机大厅前，我确认我已满十四周岁。&#x0A;&#x0A;另外，你还需要同意 PCL CE 大厅相关隐私政策及《Natayark OpenID 服务条款》。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Accept">我已阅读并同意</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Title">NAT 类型</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Test">点击测试</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Testing">正在测试</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Failed">测试失败</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Result">UDP: {0}, TCP: {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Account">Natayark 账户</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Login">点击登录 Natayark 账户</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">登录至 Natayark Network</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Continue">继续</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.BrowserContinue">请在浏览器中继续...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginComplete">已完成登录操作</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutConfirm">你确定要退出登录吗？</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutTitle">退出登录</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutComplete">已退出登录！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Loading">正在加载...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Abnormal">（异常）</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenExpired">Natayark ID 令牌已过期，请重新登录</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.ProfileLoadFailed">获取 Natayark 用户数据失败，请尝试前往设置重新登录</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenInvalid">Naid Access Token 无效，尝试刷新登录</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.InvalidAuthCode">Naid 验证代码无效</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.AccountExpired">Natayark 账号信息已过期，请前往设置重新登录！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginFailed">Naid 登录失败，请尝试前往设置重新登录</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.FetchFailed">获取信息失败</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Important">重要</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Warning">注意</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Notice">提示</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Format">[{0}] {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.EasyTierVersion">联机双方目前使用的启动器版本不同，这可能会导致一些连接问题&#x0A;强烈建议双方升级到最新版本后再继续联机</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Title">加入大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Description">1、在下方输入朋友发送给你的大厅编号，单击【加入】&#x0A;2、启动游戏，选择【多人游戏】，在局域网游戏中加入大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Action">加入</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Paste">粘贴</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Clear">清除</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.IdHint">编号应该长得像这样：U/NNNN-AAAA-SSSS-EEEE</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.InvalidText">大厅编号不正确，请检查后重新输入</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Title">创建大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Description">1、进入世界后，在游戏菜单中选择【对局域网开放】&#x0A;2、在下方选择此游戏实例，单击【创建】&#x0A;3、成功创建大厅后，复制大厅编号并发送给你的朋友</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Action">创建</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.ManualInput">手动输入</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.EnterPort">请输入端口</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.NoWorld">请先选择一个要联机的世界！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.NotMcPort">这似乎不是个 MC 服务端口...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Report">违法违规举报</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark Network 用户协议与隐私政策</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Privacy">大厅隐私协议</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Disable">停用联机功能</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Faq">常见问题解答</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Friends">友情链接：</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier 工具官网</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">大厅信息</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">连接状况</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Checking">检测中</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingToHost">与大厅创建者的延迟</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingMs">{0}ms</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.LobbyId">大厅编号</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">连接方式</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Connecting">连接中</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.UserName">用户名</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.UserType">用户类型</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Actions">大厅操作</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyVirtualIp">复制虚拟 IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyLobbyId">复制大厅编号</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Exit">退出大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Connected">已连接</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Unavailable">暂不可用</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Host">创建者</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Guest">加入者</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CloseLobby">关闭大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoTitle">玩家 {0} 的详细信息</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoMessage">用户名：{0}&#x0A;联机协议客户端标识：{1}&#x0A;&#x0A;此处数据仅供参考，请以实际游玩体验为准。&#x0A;&#x0A;若想了解 NAT 类型与其如何影响联机体验，请前往界面左侧的常见问题一栏。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Host">[主机]</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Details">{0} {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListLoading">大厅成员列表（正在获取信息）</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListCount">大厅成员列表（共 {0} 人）</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">你确定要撤销联机协议授权吗？</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">撤销授权确认</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.Disabled">联机功能已停用！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">你确定要退出大厅吗？</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">确认退出</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.HostWarning">由于你是大厅创建者，退出后此大厅将会自动解散。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessageWithHost">你确定要退出大厅吗？&#x0A;由于你是大厅创建者，退出后此大厅将会自动解散。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.Disbanded">由于你关闭了联机中的 MC 实例，大厅已自动解散。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">大厅已解散</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Message">大厅创建者的游戏地址：{0}&#x0A;注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Title">复制 IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Back">返回</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ServerExit">在服务器退出时发生了错误！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">请更新到最新版 PCL CE 以使用大厅</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">无法连接到大厅服务器</sys:String>
+
+    <!-- Speed -->
+
+    <sys:String x:Key="Speed.Progress.Total">总进度</sys:String>
+    <sys:String x:Key="Speed.Progress.Speed">下载速度</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingFiles">剩余文件</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingThreads">剩余线程</sys:String>
+    <sys:String x:Key="Speed.Error.ClickToCopy">单击复制错误详情</sys:String>
+    <sys:String x:Key="Speed.Error.Copied">已复制错误详情！</sys:String>
+
+    <!-- Tools.ServerQuery -->
+
+    <sys:String x:Key="Tools.ServerQuery.Address.Hint">输入服务器地址</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Action.Query">查询</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.Querying">查询中...</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.NoInfo">未返回服务器信息</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Title.MinecraftServer">Minecraft 服务器</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.UnableToConnect">无法连接: {0}</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.Connect">连接超时</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.ReadWrite">数据读写超时</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">服务器返回了错误的信息</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">服务器地址过长</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">服务器返回了空数据包</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">服务器在返回完整状态数据包前提前断开连接。</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.PongDataLength">Pong 数据长度必须为 8 字节</sys:String>
+
+    <!-- Update -->
+
+    <sys:String x:Key="Update.Action">更新</sys:String>
+    <sys:String x:Key="Update.Check.Failed">无法获取最新版本信息，请检查网络连接</sys:String>
+    <sys:String x:Key="Update.Available">启动器有新版本可用（{0} -&gt; {1}）&#x0A;是否立即更新？</sys:String>
+    <sys:String x:Key="Update.Title">启动器更新</sys:String>
+    <sys:String x:Key="Update.Error.FetchFailed">获取启动器更新失败，请检查网络连接</sys:String>
+    <sys:String x:Key="Update.Error.UnableToGetUpdate">无法获取更新</sys:String>
+    <sys:String x:Key="Update.Error.FileNotFound">找不到更新文件</sys:String>
+    <sys:String x:Key="Update.Error.Sha256Mismatch">更新文件 SHA256 不正确，应该为 {0}，实际为 {1}</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlocked">更新失败</sys:String>
+    <sys:String x:Key="Update.Error.ViewHelp">查看帮助</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。&#x0A;请将 PCL 所在文件夹加入白名单，或者手动用 {0}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！</sys:String>
+    <sys:String x:Key="Update.Service.PclCe">PCL CE 服务</sys:String>
+    <sys:String x:Key="Update.Task.Check">校验更新</sys:String>
+    <sys:String x:Key="Update.Task.Install">安装更新</sys:String>
+    <sys:String x:Key="Update.Task.Prepare">准备更新</sys:String>
+    <sys:String x:Key="Update.Task.ShowButton">显示按钮</sys:String>
+    <sys:String x:Key="Update.Task.RestartInstall">重启安装</sys:String>
+    <sys:String x:Key="Update.Task.DownloadLatestStable">下载最新稳定版</sys:String>
+    <sys:String x:Key="Update.Task.DownloadFile">下载文件</sys:String>
+    <sys:String x:Key="Update.Task.ApplyFile">应用文件</sys:String>
+    <sys:String x:Key="Update.Task.GetDownloadInfo">获取下载信息</sys:String>
+    <sys:String x:Key="Update.Task.DownloadUpdateFile">下载更新文件</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfo">获取版本信息</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfoFailed">获取版本信息失败</sys:String>
+    <sys:String x:Key="Update.Task.GetAnnouncementFailed">获取公告信息失败</sys:String>
+    <sys:String x:Key="Update.Task.RefreshSettings">刷新设置 UI</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">社区版本说明</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#x0A;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#x0A;&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;&#x0A;该版本与官方版本的特性区别：&#x0A;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#x0A;- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。&#x0A;&#x0A;此提示会在启动器更新后展示一次。</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">我知道了</sys:String>
+
+    <!-- LogPage -->
+
+    <sys:String x:Key="LogPage.Title">实时日志</sys:String>
+    <sys:String x:Key="LogPage.Empty.Title">无实时日志</sys:String>
+    <sys:String x:Key="LogPage.Empty.Description">请点击 实例设置 → 概览 → 测试游戏 以显示游戏的实时日志。</sys:String>
+    <sys:String x:Key="LogPage.Left.InstancesTitle">测试实例列表</sys:String>
+    <sys:String x:Key="LogPage.Action.Scroll">滚动</sys:String>
+    <sys:String x:Key="LogPage.Action.Export">导出</sys:String>
+    <sys:String x:Key="LogPage.Action.Clear">清空</sys:String>
+    <sys:String x:Key="LogPage.Action.KillProcess">结束进程</sys:String>
+    <sys:String x:Key="LogPage.Action.ExportStack">导出运行栈</sys:String>
+    <sys:String x:Key="LogPage.Action.GameClosed">已关闭游戏 {0}！</sys:String>
+    <sys:String x:Key="LogPage.Level.Debug">Debug</sys:String>
+    <sys:String x:Key="LogPage.Level.Info">Info</sys:String>
+    <sys:String x:Key="LogPage.Level.Warn">Warn</sys:String>
+    <sys:String x:Key="LogPage.Level.Error">Error</sys:String>
+    <sys:String x:Key="LogPage.Level.Fatal">Fatal</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Title">最大行数</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Unlimited">无限制</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Hint">实时日志默认只保留 {0} 行，你可以在 实时日志行数 设置中修改！</sys:String>
+    <sys:String x:Key="LogPage.Export.SelectLocation">选择导出位置</sys:String>
+    <sys:String x:Key="LogPage.Export.Success">日志已导出！</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.FileName">游戏日志 - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.Filter">游戏日志(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.FileName">游戏运行栈 - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Filter">游戏运行栈(*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Progress">正在导出运行栈，请稍等（可能需要 15 秒 ~ 1 分钟）</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Success">运行栈已导出！</sys:String>
+
+    <!-- Watcher -->
+
+    <sys:String x:Key="Watcher.Start">开始 Minecraft 日志监控</sys:String>
+    <sys:String x:Key="Watcher.Exited">Minecraft 日志监控已退出</sys:String>
+    <sys:String x:Key="Watcher.ProcessExited">Minecraft 已退出，返回值：{0}</sys:String>
+    <sys:String x:Key="Watcher.LoadComplete">Minecraft 加载已完成</sys:String>
+    <sys:String x:Key="Watcher.WindowLoaded">Minecraft 窗口已加载：{0}（{1}）</sys:String>
+    <sys:String x:Key="Watcher.FmlWindowLoaded">FML 窗口已加载：{0}（{1}）</sys:String>
+    <sys:String x:Key="Watcher.WindowMaximized">已最大化 Minecraft 窗口：{0}</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">由于反作弊或安全软件拦截，PCL 无法操作游戏窗口</sys:String>
+    <sys:String x:Key="Watcher.Progress.LogAppeared">日志 1/5：已出现日志输出</sys:String>
+    <sys:String x:Key="Watcher.Progress.UserSet">日志 2/5：游戏用户已设置</sys:String>
+    <sys:String x:Key="Watcher.Progress.LwjglConfirmed">日志 3/5：LWJGL 版本已确认</sys:String>
+    <sys:String x:Key="Watcher.Progress.OpenAlLoaded">日志 4/5：OpenAL 已加载</sys:String>
+    <sys:String x:Key="Watcher.Progress.TexturesLoaded">日志 5/5：材质已加载</sys:String>
+    <sys:String x:Key="Watcher.Log.CloseDetected">识别为关闭的 Log：{0}</sys:String>
+    <sys:String x:Key="Watcher.Log.CrashDetected">识别为崩溃的 Log：{0}</sys:String>
+    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft 尚未加载完成，可能已崩溃</sys:String>
+    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft 返回值异常，可能已崩溃</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft 已崩溃，将在 2 秒后开始崩溃分析</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">崩溃分析开始</sys:String>
+    <sys:String x:Key="Watcher.Crash.Hint">检测到 Minecraft 出现错误，错误分析已开始……</sys:String>
+    <sys:String x:Key="Watcher.Kill.Attempt">尝试强制结束 Minecraft 进程</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">进程仍未退出，尝试使用 taskkill.exe</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillResult">执行 taskkill.exe 结果：{0}</sys:String>
+    <sys:String x:Key="Watcher.Kill.Timeout">强制结束 Minecraft 进程失败：等待进程退出超时</sys:String>
+    <sys:String x:Key="Watcher.Kill.Success">已强制结束 Minecraft 进程</sys:String>
+    <sys:String x:Key="Watcher.Kill.Failed">强制结束 Minecraft 进程失败</sys:String>
+
+    <!-- Link -->
+
+    <sys:String x:Key="Link.Nat.Type.Open">开放</sys:String>
+    <sys:String x:Key="Link.Nat.Type.FullCone">中等（完全圆锥）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Restricted">中等（受限圆锥）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.PortRestricted">中等（端口受限圆锥）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.SymmetricEasy">严格（宽松对称）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Symmetric">严格（对称）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.SymmetricFirewall">严格（对称防火墙）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.UdpBlocked">严格（阻止 UDP）</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Unknown">未知</sys:String>
+    <sys:String x:Key="Link.Connection.Local">本机</sys:String>
+    <sys:String x:Key="Link.Connection.P2P">P2P</sys:String>
+    <sys:String x:Key="Link.Connection.Relay">中继</sys:String>
+    <sys:String x:Key="Link.Connection.Unknown">未知</sys:String>
+    <sys:String x:Key="Link.Quality.Good">优秀</sys:String>
+    <sys:String x:Key="Link.Quality.Normal">一般</sys:String>
+    <sys:String x:Key="Link.Quality.Poor">较差</sys:String>
+    <sys:String x:Key="Link.Quality.GoodDescription">当前网络环境不会影响联机体验&#x0A;该网络环境适合作为大厅创建者</sys:String>
+    <sys:String x:Key="Link.Quality.NormalDescription">当前网络环境可能会影响您的联机体验</sys:String>
+    <sys:String x:Key="Link.Quality.PoorDescription">部分路由器和防火墙设置可能会影响您的联机体验</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenFetchEmpty">获取 AccessToken 与 RefreshToken 失败，返回内容为空</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenParseFailed">获取 AccessToken 与 RefreshToken 失败，解析返回内容失败</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoFetchEmpty">获取 Natayark 用户信息失败，返回内容为空</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoParseFailed">获取 Natayark 用户信息失败，解析返回内容失败</sys:String>
+    <sys:String x:Key="Link.Lobby.InitFailed">大厅服务初始化失败，请检查网络连接。</sys:String>
+    <sys:String x:Key="Link.Lobby.LoginRequired">请先登录 Natayark ID 再使用大厅！</sys:String>
+    <sys:String x:Key="Link.Lobby.CreateRoomFailed">在创建房间的时候遇到了问题，请查看日志并将此问题反馈给开发者！</sys:String>
+    <sys:String x:Key="Link.Lobby.CreateLobbyFailed">创建大厅失败，请检查日志或向开发者反馈。</sys:String>
+    <sys:String x:Key="Link.Lobby.JoinFailed">加入大厅失败，可能是大厅不存在或已被解散</sys:String>
+    <sys:String x:Key="Link.Lobby.InvalidCodeFormat">大厅编号格式不正确，请检查后再试！</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE 大厅{0}</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdDesc"> - {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.UnsupportedType">不支持的大厅类型: {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.WorldNameFormat">{0} / {1} ({2})</sys:String>
+    <sys:String x:Key="Link.Mod.LobbyUnavailable">大厅功能暂不可用，请稍后再试</sys:String>
+    <sys:String x:Key="Link.Mod.InvalidPlayerId">MC 玩家 ID 不可包含分隔符 (|) ！</sys:String>
+    <sys:String x:Key="Link.Mod.LoginFirst">请先前往联机设置并登录至 Natayark Network 再进行联机！</sys:String>
+    <sys:String x:Key="Link.Mod.ReLoginRequired">请重新登录 Natayark Network 账号再试！</sys:String>
+    <sys:String x:Key="Link.Mod.NaidFetchFailed">尝试获取 Natayark ID 信息失败</sys:String>
+    <sys:String x:Key="Link.Mod.RealNameRequired">请先前往 Natayark 账户中心进行实名验证再尝试操作！</sys:String>
+    <sys:String x:Key="Link.Mod.AccountBanned">你的 Natayark Network 账号状态异常，可能已被封禁！</sys:String>
+    <sys:String x:Key="Link.Mod.UsernameOrLogin">请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingDeps">正在下载联机依赖组件，请稍后...</sys:String>
+    <sys:String x:Key="Link.Mod.EasyTierNotReady">EasyTier 尚未下载完成，请等待其下载完成后再试！</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingEasyTier">正在下载 EasyTier，请稍后...</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadComplete">联机组件下载完成！</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadEasyTierFailed">下载 EasyTier 依赖文件失败，请检查网络连接</sys:String>
+    <sys:String x:Key="Link.Mod.Task.DownloadEasyTier">下载 EasyTier</sys:String>
+    <sys:String x:Key="Link.Mod.Task.ExtractFiles">解压文件</sys:String>
+    <sys:String x:Key="Link.Mod.Task.CleanCache">清理缓存与冗余组件</sys:String>
+    <sys:String x:Key="Link.Mod.Task.RefreshUi">刷新界面</sys:String>
+    <sys:String x:Key="Link.Mod.Task.InitLobby">大厅初始化</sys:String>
+    <sys:String x:Key="Link.Mod.Task.InitLobbyUi">大厅界面初始化</sys:String>
+    <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
+
 </ResourceDictionary>

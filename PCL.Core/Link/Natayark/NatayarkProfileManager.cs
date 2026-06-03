@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
@@ -64,13 +65,13 @@ public static class NatayarkProfileManager
                 oauthResponse.EnsureSuccessStatusCode();
 
                 var result = await oauthResponse.AsStringAsync().ConfigureAwait(false) 
-                    ?? throw new Exception("获取 AccessToken 与 RefreshToken 失败，返回内容为空");
+                    ?? throw new Exception(Lang.Text("Link.Natayark.TokenFetchEmpty"));
                 var data = JsonCompat.ParseNode(result);
                 var accessToken = data?["access_token"]?.ToString();
                 var refreshToken = data?["refresh_token"]?.ToString();
 
                 if (data is null || accessToken is null || refreshToken is null)
-                    throw new Exception("获取 AccessToken 与 RefreshToken 失败，解析返回内容失败");
+                    throw new Exception(Lang.Text("Link.Natayark.TokenParseFailed"));
 
                 NaidProfile.AccessToken = accessToken;
                 NaidProfile.RefreshToken = refreshToken;
@@ -86,9 +87,9 @@ public static class NatayarkProfileManager
                 userDataResponse.EnsureSuccessStatusCode();
 
                 var receivedUserData = await userDataResponse.AsStringAsync()
-                    ?? throw new Exception("获取 Natayark 用户信息失败，返回内容为空");
+                    ?? throw new Exception(Lang.Text("Link.Natayark.UserInfoFetchEmpty"));
                 var userData = (JsonCompat.ParseNode(receivedUserData)?["data"])
-                    ?? throw new Exception("获取 Natayark 用户信息失败，解析返回内容失败");
+                    ?? throw new Exception(Lang.Text("Link.Natayark.UserInfoParseFailed"));
 
                 NaidProfile.Id = JsonCompat.ToObject<int>(userData["id"]);
                 NaidProfile.Username = userData["username"]?.ToString() ?? string.Empty;
@@ -107,31 +108,31 @@ public static class NatayarkProfileManager
                 {
                     NaidProfile = new NaidUser();
                     States.Link.NaidRefreshToken = string.Empty;
-                    WarnLog("获取 Natayark 用户数据失败，请尝试前往设置重新登录");
+                    WarnLog(Lang.Text("Tools.GameLink.Natayark.ProfileLoadFailed"));
                 }
                 else
                 {
                     if (ex.Message.Contains("invalid access token"))
                     {
-                        WarnLog("Naid Access Token 无效，尝试刷新登录");
+                        WarnLog(Lang.Text("Tools.GameLink.Natayark.TokenInvalid"));
                         await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false); // 搁这让电脑休息半秒吗
                         await GetNaidDataAsync(States.Link.NaidRefreshToken, true, true).ConfigureAwait(false);
                     }
                     else if (ex.Message.Contains("invalid_grant"))
                     {
-                        WarnLog("Naid 验证代码无效");
+                        WarnLog(Lang.Text("Tools.GameLink.Natayark.InvalidAuthCode"));
                     }
                     else if (ex is HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized })
                     {
                         NaidProfile = new NaidUser();
                         States.Link.NaidRefreshToken = string.Empty;
-                        WarnLog("Natayark 账号信息已过期，请前往设置重新登录！");
+                        WarnLog(Lang.Text("Tools.GameLink.Natayark.AccountExpired"));
                     }
                     else
                     {
                         NaidProfile = new NaidUser();
                         States.Link.NaidRefreshToken = string.Empty;
-                        WarnLog("Naid 登录失败，请尝试前往设置重新登录");
+                        WarnLog(Lang.Text("Tools.GameLink.Natayark.LoginFailed"));
                     }
                 }
                 throw;

@@ -1,11 +1,11 @@
-﻿using PCL.Core.App.IoC;
-using PCL.Core.UI;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
@@ -17,7 +17,7 @@ public sealed partial class DependencyCheckService
     [LifecycleStart]
     private static async Task _Start()
     {
-        Context.Info("开始环境检查……");
+        Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
             await _CheckAndAsk("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
@@ -33,8 +33,8 @@ public sealed partial class DependencyCheckService
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
-                $"当前系统环境缺失软件运行所需依赖“{packageName}”\n\n点击确定打开微软应用商店安装",
-                buttons: [Lang.Text("Common.Action.Confirm"), "稍后"]);
+                Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+                buttons: [Lang.Text("Common.Action.Confirm"), Lang.Text("Tools.Test.Dependency.Later")]);
             if (selection == 1) _LaunchMsStore(storeId);
         }
     }
@@ -44,7 +44,7 @@ public sealed partial class DependencyCheckService
         Context.Info($"正在打开微软应用商店 (id = {id})");
         var psi = new ProcessStartInfo()
         {
-            FileName = $"ms-windows-store://pdp?launch=true&hl=zh-cn&gl=cn&referrer=storeforweb&productid={id}&mode=full",
+            FileName = $"ms-windows-store://pdp?launch=true&productid={id}&mode=full",
             UseShellExecute = true
         };
         using var ps = new Process() { StartInfo = psi };

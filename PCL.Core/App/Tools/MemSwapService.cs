@@ -4,6 +4,7 @@ using PCL.Core.Utils.OS;
 using System;
 using System.Threading;
 using PCL.Core.App.Essentials;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 
@@ -25,11 +26,11 @@ public sealed partial class MemSwapService
         if (!_MemSwapLock.Wait(0))
         {
             Context.Warn("检测到正在进行的内存处理，取消当前处理");
-            if (showHint) HintWrapper.Show("内存优化尚未结束，请稍等！");
+            if (showHint) HintWrapper.Show(Lang.Text("Tools.Test.Memory.StillRunning"));
             return false;
         }
         Context.Info("收到内存交换请求，开始处理");
-        if (showHint) HintWrapper.Show("正在进行内存优化");
+        if (showHint) HintWrapper.Show(Lang.Text("Tools.Test.Memory.Optimizing"));
 
         try
         {
@@ -49,11 +50,11 @@ public sealed partial class MemSwapService
                         var afterStr = ByteStream.GetReadableLength((long)after);
                         var diffStr = ByteStream.GetReadableLength((long)diff);
                         Context.Info($"处理结束，总共处理 {diffStr}");
-                        if (showHint) MsgBoxWrapper.Show($"内存优化结束，共优化 {diffStr}，目前可用内存 {afterStr}");
+                        if (showHint) MsgBoxWrapper.Show(Lang.Text("Tools.Test.Memory.Result", diffStr, afterStr));
                     }
                     else
                     {
-                        Context.Error($"内存优化失败\n\n详细信息: {result}", actionLevel: ActionLevel.MsgBoxErr);
+                        Context.Error(Lang.Text("Tools.Test.Memory.FailedMessage", result), actionLevel: ActionLevel.MsgBoxErr);
                     }
                 }
                 catch (Exception ex) { Context.Error("内存优化失败", ex); }
@@ -63,7 +64,7 @@ public sealed partial class MemSwapService
             // 执行操作
             if (PromoteService.Activate()) return true;
             _MemSwapLock.Release();
-            if (showHint) MsgBoxWrapper.Show("提权进程启动失败，请允许管理员权限以使用内存优化", "内存优化失败");
+            if (showHint) MsgBoxWrapper.Show(Lang.Text("Tools.Test.Memory.PromoteFailed"), Lang.Text("Tools.Test.Memory.Failed"));
             return false;
         }
         catch (Exception)

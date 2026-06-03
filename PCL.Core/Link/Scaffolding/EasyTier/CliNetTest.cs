@@ -4,6 +4,7 @@ using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 
@@ -91,18 +92,20 @@ public class CliNetTest
         8 => NatType.UdpBlocked,
         _ => NatType.Unknown
     };
-    
-    public static string GetNatTypeString(NatType type) => type switch
+
+    public static string GetNatTypeString(NatType type)
     {
-        NatType.OpenInternet => "开放",
-        NatType.NoPat => "开放",
-        NatType.FullCone => "中等（完全圆锥）",
-        NatType.PortRestricted => "中等（端口受限圆锥）",
-        NatType.Restricted => "中等（受限圆锥）",
-        NatType.SymmetricEasy => "严格（宽松对称）",
-        NatType.Symmetric => "严格（对称）",
-        NatType.SymmetricFirewall => "严格（对称防火墙）",
-        NatType.UdpBlocked => "严格（阻止 UDP）",
-        _ => "未知"
-    };
+        return Lang.Text(type switch
+        {
+            NatType.OpenInternet or NatType.NoPat => "Link.Nat.Type.Open",
+            NatType.FullCone => "Link.Nat.Type.FullCone",
+            NatType.PortRestricted => "Link.Nat.Type.PortRestricted",
+            NatType.Restricted => "Link.Nat.Type.Restricted",
+            NatType.SymmetricEasy => "Link.Nat.Type.SymmetricEasy",
+            NatType.Symmetric => "Link.Nat.Type.Symmetric",
+            NatType.SymmetricFirewall => "Link.Nat.Type.SymmetricFirewall",
+            NatType.UdpBlocked => "Link.Nat.Type.UdpBlocked",
+            _ => "Link.Nat.Type.Unknown"
+        });
+    }
 }
