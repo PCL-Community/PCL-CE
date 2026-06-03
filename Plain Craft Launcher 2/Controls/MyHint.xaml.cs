@@ -36,8 +36,6 @@ public partial class MyHint
             f.LabText.Text = (string)e.NewValue;
         }));
 
-    private Themes _ColorType = Themes.Red;
-
     // 触发点击事件
     private bool isMouseDown;
     public int Uuid = ModBase.GetUuid();
@@ -70,13 +68,13 @@ public partial class MyHint
 
     public Themes Theme
     {
-        get => _ColorType;
+        get => field;
         set
         {
-            _ColorType = value;
+            field = value;
             UpdateUI();
         }
-    }
+    } = Themes.Red;
 
     [Obsolete("IsWarn 已过时。请换用 Theme 属性。")]
     public bool IsWarn

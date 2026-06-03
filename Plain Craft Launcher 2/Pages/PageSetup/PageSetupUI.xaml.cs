@@ -729,17 +729,15 @@ public partial class PageSetupUI
 
     #region 功能隐藏
 
-    private static bool _HiddenForceShow;
-
     /// <summary>
     ///     是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
-        get => _HiddenForceShow;
+        get => field;
         set
         {
-            _HiddenForceShow = value;
+            field = value;
             HiddenRefresh();
         }
     }

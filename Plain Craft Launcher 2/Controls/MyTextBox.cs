@@ -34,7 +34,6 @@ public class MyTextBox : TextBox
 
     // 额外控件初始化
 
-    private Collection<IValidator<string>> _ValidateRules = new();
     public List<RoutedEventHandler> changedEventList = new();
 
     // 提示文本
@@ -114,13 +113,13 @@ public class MyTextBox : TextBox
     /// </summary>
     public Collection<IValidator<string>> ValidateRules
     {
-        get => _ValidateRules;
+        get => field;
         set
         {
-            _ValidateRules = value;
+            field = value;
             Validate();
         }
-    }
+    } = new();
 
     public string HintText
     {

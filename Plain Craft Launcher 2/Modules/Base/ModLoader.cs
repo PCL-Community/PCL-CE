@@ -188,9 +188,7 @@ public static class ModLoader
         /// </summary>
         public readonly object lockState = new();
 
-        private MyLoading.MyLoadingState _LoadingState = MyLoading.MyLoadingState.Stop;
-        private double _Progress = -1;
-        private ModBase.LoadState _State = ModBase.LoadState.Waiting;
+
 
         /// <summary>
         ///     使用 LoaderCombo 加载时，该任务是否会阻碍后续任务的进行。
@@ -269,15 +267,15 @@ public static class ModLoader
         /// </summary>
         public ModBase.LoadState State
         {
-            get => _State;
+            get => field;
             set
             {
-                if (_State == value)
+                if (field == value)
                     return;
-                var oldState = _State;
+                var oldState = field;
                 if (value == ModBase.LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
-                _State = value;
+                field = value;
                 ModBase.Log("[Loader] 加载器 " + name + " 状态改变：" + ModBase.GetStringFromEnum(value));
                 // 实现 ILoadingTrigger 接口与 OnStateChanged 回调
                 ModBase.RunInUi(() =>
@@ -307,7 +305,7 @@ public static class ModLoader
                 if (hasOnStateChangedThread)
                     ModBase.RunInThread(() => OnStateChangedThread?.Invoke(this, value, oldState));
             }
-        }
+        } = ModBase.LoadState.Waiting;
 
         /// <summary>
         ///     若加载器出错，可提供给外部参考的异常。
@@ -330,7 +328,7 @@ public static class ModLoader
                     }
                     case ModBase.LoadState.Loading:
                     {
-                        return _Progress == -1 ? 0.02d : _Progress;
+                        return field == -1 ? 0.02d : field;
                     }
 
                     default:
@@ -341,13 +339,13 @@ public static class ModLoader
             }
             set
             {
-                if (_Progress == value)
+                if (field == value)
                     return;
-                var oldValue = _Progress;
-                _Progress = value;
+                var oldValue = field;
+                field = value;
                 ProgressChanged?.Invoke(value, oldValue);
             }
-        }
+        } = -1;
 
         /// <summary>
         ///     计算总进度时的权重。它应该为预计时间（秒）。
@@ -358,16 +356,16 @@ public static class ModLoader
 
         public MyLoading.MyLoadingState LoadingState
         {
-            get => _LoadingState;
+            get => field;
             set
             {
-                if (_LoadingState == value)
+                if (field == value)
                     return;
-                var oldState = _LoadingState;
-                _LoadingState = value;
+                var oldState = field;
+                field = value;
                 LoadingStateChanged?.Invoke(value, oldState);
             }
-        }
+        } = MyLoading.MyLoadingState.Stop;
 
         public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
         public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;

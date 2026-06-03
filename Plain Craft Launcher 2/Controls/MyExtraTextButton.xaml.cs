@@ -22,12 +22,6 @@ public partial class MyExtraTextButton
             if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
-    private string _Logo = "";
-    private double _LogoScale = 1d;
-
-    // 动画
-    private bool _Show;
-
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
 
@@ -49,26 +43,26 @@ public partial class MyExtraTextButton
 
     public string Logo
     {
-        get => _Logo;
+        get => field;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value;
+            field = value;
             Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
         }
-    }
+    } = "";
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             if (Path is not null)
                 Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
-    }
+    } = 1d;
 
     // 显示文本
     public InlineCollection Inlines => LabText.Inlines;
@@ -85,12 +79,12 @@ public partial class MyExtraTextButton
 
     public bool Show
     {
-        get => _Show;
+        get => field;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)

@@ -182,21 +182,19 @@ public partial class PageComp
     /// </summary>
     public ModComp.CompType PageType
     {
-        get => _Type;
+        get => field;
         set
         {
-            if (_Type == value)
+            if (field == value)
                 return;
-            _Type = value;
+            field = value;
             BtnSearchInstallModPack.Visibility =
                 value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
             loader.name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
             PanSearchBox.HintText = ModComp.GetCompSearchName(value);
             Load.Text = ModComp.GetCompLoadingName(value);
         }
-    }
-
-    private ModComp.CompType _Type = (ModComp.CompType)(-1);
+    } = (ModComp.CompType)(-1);
 
     #endregion
 

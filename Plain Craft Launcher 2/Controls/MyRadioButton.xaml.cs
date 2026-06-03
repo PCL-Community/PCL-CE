@@ -38,8 +38,6 @@ public partial class MyRadioButton
         }));
 
     private bool _Checked; // 是否选中
-    private ColorState _ColorType = ColorState.White;
-    private double _LogoScale = 1d;
     private bool isMouseDown;
 
     // 基础
@@ -96,14 +94,14 @@ public partial class MyRadioButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             if (ShapeLogo is not null)
                 ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
-    }
+    } = 1d;
 
     public bool Checked
     {
@@ -121,13 +119,13 @@ public partial class MyRadioButton
 
     public ColorState ColorType
     {
-        get => _ColorType;
+        get => field;
         set
         {
-            _ColorType = value;
+            field = value;
             RefreshColor();
         }
-    } // 颜色类别
+    } = ColorState.White; // 颜色类别
 
     public event CheckEventHandler? Check;
 

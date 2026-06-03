@@ -1296,16 +1296,14 @@ public partial class FormMain
     }
 
     // 窗口隐藏与置顶
-    private bool _Hidden;
-
     public bool Hidden
     {
-        get => _Hidden;
+        get => field;
         set
         {
-            if (_Hidden == value)
+            if (field == value)
                 return;
-            _Hidden = value;
+            field = value;
             if (value)
             {
                 // 隐藏
