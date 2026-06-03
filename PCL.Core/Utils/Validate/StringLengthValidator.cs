@@ -12,7 +12,7 @@ public class StringLengthValidator(int min = 0, int max = int.MaxValue) : Abstra
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x => x.Length != Max || Max == Min).WithMessage($"长度必须为 {Max} 个字符！")
@@ -22,7 +22,7 @@ public class StringLengthValidator(int min = 0, int max = int.MaxValue) : Abstra
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }

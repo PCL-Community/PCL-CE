@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
 using PCL.Core.Link.McPing;
@@ -23,14 +24,14 @@ public static class ModLink
     {
         if (!LobbyInfoProvider.IsLobbyAvailable)
         {
-            ModMain.Hint("大厅功能暂不可用，请稍后再试", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), ModMain.HintType.Critical);
             return false;
         }
 
         if (ModProfile.selectedProfile is not null)
             if (ModProfile.selectedProfile.Username.Contains("|"))
             {
-                ModMain.Hint("MC 玩家 ID 不可包含分隔符 (|) ！");
+                ModMain.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
                 return false;
             }
 
@@ -38,7 +39,7 @@ public static class ModLink
         {
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                ModMain.Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Link.Mod.LoginFirst"), ModMain.HintType.Critical);
                 return false;
             }
 
@@ -50,7 +51,7 @@ public static class ModLink
             catch (Exception ex)
             {
                 ModBase.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
-                ModMain.Hint("请重新登录 Natayark Network 账号再试！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Link.Mod.ReLoginRequired"), ModMain.HintType.Critical);
                 return false;
             }
 
@@ -65,32 +66,32 @@ public static class ModLink
 
             if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
             {
-                ModMain.Hint("尝试获取 Natayark ID 信息失败", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), ModMain.HintType.Critical);
                 return false;
             }
 
             if (LobbyInfoProvider.RequiresRealName && !NatayarkProfileManager.NaidProfile.IsRealNamed)
             {
-                ModMain.Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Link.Mod.RealNameRequired"), ModMain.HintType.Critical);
                 return false;
             }
 
             if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
-                ModMain.Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Link.Mod.AccountBanned"), ModMain.HintType.Critical);
                 return false;
             }
         }
 
         if (string.IsNullOrWhiteSpace(Config.Link.Username) && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
-            ModMain.Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), ModMain.HintType.Critical);
             return false;
         }
 
         if (ETController.Precheck() == 1)
         {
-            ModMain.Hint("正在下载联机依赖组件，请稍后...");
+            ModMain.Hint(Lang.Text("Link.Mod.DownloadingDeps"));
             DownloadEasyTier();
             return false;
         }
@@ -99,14 +100,14 @@ public static class ModLink
         {
             if (dlEasyTierLoader.State == ModBase.LoadState.Loading)
             {
-                ModMain.Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！");
+                ModMain.Hint(Lang.Text("Link.Mod.EasyTierNotReady"));
                 return false;
             }
 
             if (dlEasyTierLoader.State == ModBase.LoadState.Failed ||
                 dlEasyTierLoader.State == ModBase.LoadState.Aborted)
             {
-                ModMain.Hint("正在下载 EasyTier，请稍后...");
+                ModMain.Hint(Lang.Text("Link.Mod.DownloadingEasyTier"));
                 DownloadEasyTier();
                 return false;
             }
@@ -331,31 +332,31 @@ public static class ModLink
                 };
 
                 // 1. Download EasyTier
-                loaders.Add(new LoaderDownload("下载 EasyTier", new List<DownloadFile>
+                loaders.Add(new LoaderDownload(Lang.Text("Link.Mod.Task.DownloadEasyTier"), new List<DownloadFile>
                 {
                     new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
                 }) { ProgressWeight = 15 });
 
                 // 2. Extract files
-                loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.ExtractFiles"), _ =>
                     ModBase.ExtractFile(dlTargetPath,
                         Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
                 ) { block = true });
 
                 // 3. Cleanup
-                loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", _ =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.CleanCache"), _ =>
                 {
                     File.Delete(dlTargetPath);
                     CleanupEasyTierCache();
                 }));
 
                 // 4. Update UI hint
-                loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", _ =>
-                    HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
+            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.RefreshUi"), _ =>
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Error)
                 ) { show = false });
 
                 // Start loader combo
-                dlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
+                dlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>(Lang.Text("Link.Mod.Task.InitLobby"), loaders);
                 dlEasyTierLoader.Start();
 
                 // Taskbar and UI notification
@@ -367,7 +368,7 @@ public static class ModLink
             {
                 // Error handling with concise English logs
                 LogWrapper.Warn(ex, "Failed to download EasyTier dependency files");
-                HintWrapper.Show("下载 EasyTier 依赖文件失败，请检查网络连接", HintTheme.Error);
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadEasyTierFailed"), HintTheme.Error);
             }
         });
 

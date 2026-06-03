@@ -27,12 +27,12 @@ public partial class NewsViewModel : ObservableObject
 
     public NewsViewModel()
     {
-        LoadDataCommand.Execute(null);
+        _LoadDataCommand.Execute(null);
     }
 
     [RelayCommand]
 #pragma warning disable IDE1006 // 命名样式
-    private async Task LoadDataAsync()
+    private async Task _LoadDataAsync()
 #pragma warning restore IDE1006 // 命名样式
     {
         if (IsLoading) return;
@@ -71,7 +71,7 @@ public partial class NewsViewModel : ObservableObject
 
     [RelayCommand]
 #pragma warning disable IDE1006 // 命名样式
-    private void OpenRead(string url)
+    private void _OpenRead(string url)
 #pragma warning restore IDE1006 // 命名样式
     {
         Basics.OpenPath(url);

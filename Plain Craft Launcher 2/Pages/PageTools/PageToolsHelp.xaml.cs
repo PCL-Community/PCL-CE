@@ -195,18 +195,20 @@ public partial class PageToolsHelp : IRefreshable
             PanSearchList.Children.Clear();
             if (!searchResult.Any())
             {
-                PanSearch.Title = "无搜索结果";
+                PanSearch.Title = Lang.Text("Tools.Help.Search.NoResults");
                 PanSearchList.Visibility = Visibility.Collapsed;
             }
             else
             {
-                PanSearch.Title = "搜索结果";
+                PanSearch.Title = Lang.Text("Tools.Help.Search.Results");
                 foreach (var Result in searchResult)
                 {
                     var item = Result.item.ToListItem();
                     if (ModBase.modeDebug)
-                        item.Info = (Result.absoluteRight ? "完全匹配，" : "") + "相似度：" +
-                                    Lang.Number(Math.Round(Result.similarity, 3), "N3") + "，" + item.Info;
+                        item.Info = Lang.Text(
+                            Result.absoluteRight ? "Tools.Help.Search.ExactMatch" : "Tools.Help.Search.Similarity",
+                            Lang.Number(Math.Round(Result.similarity, 3), "N3"),
+                            item.Info);
                     PanSearchList.Children.Add(item);
                 }
 

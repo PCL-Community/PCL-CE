@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 public partial class MotdRenderer {
     // Default Color for originalColorMap: #808080
     // Minecraft color code mapping
-    private static readonly Dictionary<string, Brush> ColorMapWithBlackBackground = new() {
+    private static readonly Dictionary<string, Brush> _ColorMapWithBlackBackground = new() {
         { "0", Brushes.Black }, // Black
         { "1", new SolidColorBrush(Color.FromRgb(0, 0, 170)) }, // Dark Blue
         { "2", new SolidColorBrush(Color.FromRgb(0, 170, 0)) }, // Dark Green
@@ -35,7 +35,7 @@ public partial class MotdRenderer {
     };
 
     // Color code mapping optimized for white background (#f3f6fa)
-    private static readonly Dictionary<string, Brush> ColorMapWithWhiteBackground = new() {
+    private static readonly Dictionary<string, Brush> _ColorMapWithWhiteBackground = new() {
         { "0", new SolidColorBrush(Color.FromRgb(51, 51, 51)) }, // Deep Gray #333333
         { "1", new SolidColorBrush(Color.FromRgb(0, 48, 135)) }, // Navy Blue #003087
         { "2", new SolidColorBrush(Color.FromRgb(0, 128, 0)) }, // Forest Green #008000
@@ -169,7 +169,7 @@ public partial class MotdRenderer {
     }
 
     public static bool TryGetColorFromCode(string code, bool isDarkMode, out String? color) {
-        var colorMap = isDarkMode ? ColorMapWithBlackBackground : ColorMapWithWhiteBackground;
+        var colorMap = isDarkMode ? _ColorMapWithBlackBackground : _ColorMapWithWhiteBackground;
         var success = colorMap.TryGetValue(code.ToLower(), out var brush);
         if (!success) {
             color = null;
@@ -184,7 +184,7 @@ public partial class MotdRenderer {
         MotdCanvas.Children.Clear();
         _obfuscatedTextBlocks.Clear();
 
-        var colorMap = isDarkMode ? ColorMapWithBlackBackground : ColorMapWithWhiteBackground;
+        var colorMap = isDarkMode ? _ColorMapWithBlackBackground : _ColorMapWithWhiteBackground;
         var font = Config.Preference.MotdFont;
         var fontFamily = new FontFamily(string.IsNullOrWhiteSpace(font)
             ? "./Resources/#PCL English, Segoe UI, Microsoft YaHei UI"
