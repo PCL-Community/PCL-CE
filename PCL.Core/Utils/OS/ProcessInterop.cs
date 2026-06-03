@@ -4,7 +4,6 @@ using System.IO;
 using System.Management;
 using System.Security;
 using System.Security.Principal;
-using System.Threading.Tasks;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 
@@ -113,7 +112,7 @@ public class ProcessInterop {
         const string gpuPreferenceRegValueDefault = "GpuPreference=0;";
 
         try {
-            var isCurrentHighPerformance = GetCurrentGpuPreference(executable, gpuPreferenceRegKey, gpuPreferenceRegValueHigh);
+            var isCurrentHighPerformance = _GetCurrentGpuPreference(executable, gpuPreferenceRegKey, gpuPreferenceRegValueHigh);
 
             LogWrapper.Info("System", $"当前程序 ({executable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
 
@@ -124,7 +123,7 @@ public class ProcessInterop {
             }
 
             // 写入新设置
-            SetGpuPreferenceValue(executable, wantHighPerformance, gpuPreferenceRegKey,
+            _SetGpuPreferenceValue(executable, wantHighPerformance, gpuPreferenceRegKey,
                 gpuPreferenceRegValueHigh, gpuPreferenceRegValueDefault);
         } catch (UnauthorizedAccessException ex) {
             var errorMsg = "没有足够的权限访问注册表。请以管理员身份运行程序或检查用户权限设置。";
@@ -144,7 +143,7 @@ public class ProcessInterop {
     /// <summary>
     /// 获取当前程序的GPU偏好设置
     /// </summary>
-    private static bool GetCurrentGpuPreference(string executable, string regKey, string highPerfValue) {
+    private static bool _GetCurrentGpuPreference(string executable, string regKey, string highPerfValue) {
         try {
             using var readOnlyKey = Registry.CurrentUser.OpenSubKey(regKey, false);
             if (readOnlyKey is null) {
@@ -163,7 +162,7 @@ public class ProcessInterop {
     /// <summary>
     /// 设置GPU偏好值到注册表
     /// </summary>
-    private static bool SetGpuPreferenceValue(string executable, bool wantHighPerformance,
+    private static bool _SetGpuPreferenceValue(string executable, bool wantHighPerformance,
         string regKey, string highPerfValue, string defaultValue) {
         RegistryKey? writeKey = null;
         try {

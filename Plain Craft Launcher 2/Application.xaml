@@ -161,7 +161,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate>
-                            <Border Loaded="TooltipLoaded" Unloaded="TooltipUnloaded"
+                            <Border Loaded="_TooltipLoaded" Unloaded="_TooltipUnloaded"
                                     BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1.5" CornerRadius="4"
                                     MaxWidth="500" Background="{DynamicResource ColorBrushToolTip}" Margin="0,0,4,4"
                                     SnapsToDevicePixels="True">
@@ -180,7 +180,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate>
-                            <Border Loaded="TooltipLoaded" Unloaded="TooltipUnloaded"
+                            <Border Loaded="_TooltipLoaded" Unloaded="_TooltipUnloaded"
                                     BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1" CornerRadius="3"
                                     Background="{DynamicResource ColorBrushToolTip}" Margin="0,0,4,4"
                                     SnapsToDevicePixels="True">
@@ -450,7 +450,7 @@
                     <local:MyListItem.Buttons>
                         <x:Array Type="local:MyIconButton">
                             <local:MyIconButton Height="20" Width="20" VerticalAlignment="Center" Tag="{Binding}"
-                                                Click="MyIconButton_Click"
+                                                Click="_MyIconButtonClick"
                                                 Logo="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z" />
                         </x:Array>
                     </local:MyListItem.Buttons>

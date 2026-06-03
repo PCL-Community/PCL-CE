@@ -8,7 +8,7 @@ using System.Linq;
 /// 提供随机数和集合随机操作的实用方法。
 /// </summary>
 public static class RandomUtils {
-    private static readonly Random SharedRandom = Random.Shared;
+    private static readonly Random _SharedRandom = Random.Shared;
 
     /// <summary>
     /// 从集合中随机选择一个元素。
@@ -21,7 +21,7 @@ public static class RandomUtils {
     public static T PickRandom<T>(ICollection<T> collection) {
         if (collection.Count == 0)
             throw new ArgumentException("集合不能为空", nameof(collection));
-        var index = SharedRandom.Next(collection.Count);
+        var index = _SharedRandom.Next(collection.Count);
         if (collection is IList<T> list)
             return list[index];
         return collection.Skip(index).First();
@@ -35,7 +35,7 @@ public static class RandomUtils {
     /// <returns>随机整数，范围为 [min, max]。</returns>
     /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="min"/> 大于 <paramref name="max"/> 时抛出。</exception>
     public static int NextInt(int min, int max) {
-        return min > max ? throw new ArgumentOutOfRangeException(nameof(min), "最小值不能大于最大值") : SharedRandom.Next(min, max + 1);
+        return min > max ? throw new ArgumentOutOfRangeException(nameof(min), "最小值不能大于最大值") : _SharedRandom.Next(min, max + 1);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class RandomUtils {
         var result = new List<T>(list);
         var n = result.Count;
         for (var i = n - 1; i > 0; i--) {
-            var j = SharedRandom.Next(0, i + 1);
+            var j = _SharedRandom.Next(0, i + 1);
             (result[i], result[j]) = (result[j], result[i]);
         }
 
@@ -65,7 +65,7 @@ public static class RandomUtils {
     public static void ShuffleInPlace<T>(IList<T> list) {
         var n = list.Count;
         for (var i = n - 1; i > 0; i--) {
-            var j = SharedRandom.Next(0, i + 1);
+            var j = _SharedRandom.Next(0, i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
     }

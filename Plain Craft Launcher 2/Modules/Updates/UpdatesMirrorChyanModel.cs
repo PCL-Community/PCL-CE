@@ -1,5 +1,6 @@
 using System.Net.Http;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -64,7 +65,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
     {
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取下载信息", load =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetDownloadInfo"), load =>
         {
             var ret = (JsonObject)Requester.FetchJson(GetUrl(channel, arch), RequestParam.WithRetry);
             var dlUrl = ret["data"]["url"]?.ToString();
@@ -72,7 +73,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 throw new Exception("Mirror 酱下载源不可用");
             load.output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
         }));
-        loaders.Add(new LoaderDownload("下载更新文件", new List<DownloadFile>()));
+        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadUpdateFile"), new List<DownloadFile>()));
         return loaders;
     }
 
