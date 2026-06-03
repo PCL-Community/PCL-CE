@@ -61,10 +61,13 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d),
-                    3d, ModBase.GetWPFSize(1d));
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d))
+                    : new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
             else
-                BorderThickness = new Thickness(0d, 0d, 3d, 0d);
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(0d, 0d, 3d, 0d)
+                    : new Thickness(3d, 0d, 0d, 0d);
         }
     }
 
@@ -130,6 +133,12 @@ public partial class MyHint
         BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+
+        // 根据提示气泡对齐方向调整边框
+        if (!HasBorder)
+            BorderThickness = Config.Preference.HintAlignRight
+                ? new Thickness(0d, 0d, 3d, 0d)
+                : new Thickness(3d, 0d, 0d, 0d);
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)

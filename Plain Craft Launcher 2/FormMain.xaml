@@ -222,7 +222,7 @@
                     </Border>
                 </Grid>
                 <StackPanel x:Name="PanHint" IsHitTestVisible="False" UseLayoutRounding="True"
-                            SnapsToDevicePixels="True" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                             Margin="0,0,0,20"
                             Grid.Row="0" Grid.RowSpan="2" />
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Margin="15">
