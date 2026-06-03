@@ -109,9 +109,20 @@ public static class JsonCompat
         dateTime = default;
         if (string.IsNullOrWhiteSpace(value)) return false;
 
+        // ISO 8601 允许用 24:00:00 表示当日终点（语义等于次日零点），但 .NET 的日期解析器不接受小时为 24，
+        // 需先把小时 24 归一化为 00，再在解析成功后补一天。例如社区版本清单中的 2009-10-24T24:00:00+00:00。
+        var addDay = false;
+        var endOfDay = RegexPatterns.Iso8601EndOfDay.Match(value);
+        if (endOfDay.Success)
+        {
+            value = value.Remove(endOfDay.Index + 1, 2).Insert(endOfDay.Index + 1, "00");
+            addDay = true;
+        }
+
         if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
                 out var dateTimeOffset))
         {
+            if (addDay) dateTimeOffset = dateTimeOffset.AddDays(1);
             dateTime = dateTimeOffset.LocalDateTime;
             return true;
         }
@@ -119,7 +130,7 @@ public static class JsonCompat
         if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var parsed))
             return false;
 
-        dateTime = NormalizeDateTime(parsed);
+        dateTime = NormalizeDateTime(addDay ? parsed.AddDays(1) : parsed);
         return true;
     }
 
