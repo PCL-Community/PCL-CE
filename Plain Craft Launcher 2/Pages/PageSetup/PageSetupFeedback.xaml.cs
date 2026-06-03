@@ -26,6 +26,19 @@ public partial class PageSetupFeedback
 
     public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
 
+    private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
+    {
+        [((long)TagId.Processing).ToString()] = (p => p.PanListProcessing, "Blocks/CommandBlock.png"),
+        [((long)TagId.WaitingProcess).ToString()] = (p => p.PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
+        [((long)TagId.Wait).ToString()] = (p => p.PanListWait, "Blocks/Anvil.png"),
+        [((long)TagId.Pause).ToString()] = (p => p.PanListPause, "Blocks/RedstoneLampOff.png"),
+        [((long)TagId.Upnext).ToString()] = (p => p.PanListUpnext, "Blocks/RedstoneLampOn.png"),
+        [((long)TagId.Completed).ToString()] = (p => p.PanListCompleted, "Blocks/Grass.png"),
+        [((long)TagId.Decline).ToString()] = (p => p.PanListDecline, "Blocks/CobbleStone.png"),
+        [((long)TagId.Ignored).ToString()] = (p => p.PanListIgnored, "Blocks/CobbleStone.png"),
+        [((long)TagId.Duplicate).ToString()] = (p => p.PanListDuplicate, "Blocks/CobbleStone.png"),
+    };
+
     public PageSetupFeedback()
     {
         InitializeComponent();
@@ -137,26 +150,13 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        var tagMap = new Dictionary<string, (StackPanel Panel, string Icon)>
-        {
-            [((long)TagId.Processing).ToString()] = (PanListProcessing, "Blocks/CommandBlock.png"),
-            [((long)TagId.WaitingProcess).ToString()] = (PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
-            [((long)TagId.Wait).ToString()] = (PanListWait, "Blocks/Anvil.png"),
-            [((long)TagId.Pause).ToString()] = (PanListPause, "Blocks/RedstoneLampOff.png"),
-            [((long)TagId.Upnext).ToString()] = (PanListUpnext, "Blocks/RedstoneLampOn.png"),
-            [((long)TagId.Completed).ToString()] = (PanListCompleted, "Blocks/Grass.png"),
-            [((long)TagId.Decline).ToString()] = (PanListDecline, "Blocks/CobbleStone.png"),
-            [((long)TagId.Ignored).ToString()] = (PanListIgnored, "Blocks/CobbleStone.png"),
-            [((long)TagId.Duplicate).ToString()] = (PanListDuplicate, "Blocks/CobbleStone.png"),
-        };
-
         foreach (var item in Loader.output)
         {
-            var tag = item.Tags.Find(tagMap.ContainsKey);
+            var tag = item.Tags.Find(TagMap.ContainsKey);
             if (tag is not null)
             {
-                var (panel, icon) = tagMap[tag];
-                panel.Children.Add(CreateFeedbackItem(item, icon));
+                var (panel, icon) = TagMap[tag];
+                panel(this).Children.Add(CreateFeedbackItem(item, icon));
             }
         }
 
