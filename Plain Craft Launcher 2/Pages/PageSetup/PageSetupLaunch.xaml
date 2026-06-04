@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
@@ -264,7 +264,7 @@
                                             VerticalAlignment="Center" Click="BtnAdvanceJvmReset_Click"
                                             ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Right"
                                             ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
-                                            Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
+                                            SvgIcon="lucide/rotate-ccw"
                                             LogoScale="0.9" />
                     </StackPanel>
                     <local:MyTextBox Grid.Row="2" x:Name="TextAdvanceJvm" Grid.ColumnSpan="2" Tag="LaunchAdvanceJvm"
@@ -308,7 +308,7 @@
             <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,15"
                                      x:Name="BtnSwitch" Text="{DynamicResource Setup.Launch.SwitchToInstanceSetup}" Click="BtnSwitch_Click"
                                      LogoScale="0.9"
-                                     Logo="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
+                                     SvgIcon="lucide/arrow-right" />
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

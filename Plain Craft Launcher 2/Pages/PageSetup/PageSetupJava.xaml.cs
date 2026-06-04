@@ -95,7 +95,7 @@ public partial class PageSetupJava
             }
         };
         var btnOpenFolder = new MyIconButton();
-        btnOpenFolder.Logo = Icon.IconButtonOpen;
+        btnOpenFolder.SvgIcon = "lucide/folder-open";
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
@@ -108,7 +108,7 @@ public partial class PageSetupJava
             ModBase.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
-        btnInfo.Logo = Icon.IconButtonInfo;
+        btnInfo.SvgIcon = "lucide/info";
         btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
         btnInfo.Click += (sender, e) =>
         {
@@ -144,14 +144,14 @@ public partial class PageSetupJava
             {
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
-                btnEnableSwitch.Logo = Icon.IconButtonDisable;
+                btnEnableSwitch.SvgIcon = "lucide/circle-minus";
                 btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Disable");
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
-                btnEnableSwitch.Logo = Icon.IconButtonEnable;
+                btnEnableSwitch.SvgIcon = "lucide/circle-check";
                 btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Enable");
             }
         }

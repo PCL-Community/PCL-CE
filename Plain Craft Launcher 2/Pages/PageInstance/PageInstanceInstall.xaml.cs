@@ -467,14 +467,14 @@ public partial class PageInstanceInstall
             ItemSelect.Info = selectedInfo;
             BtnSelectStart.Text = Lang.Text("Instance.Install.Action.StartReset");
             _installAction = InstallAction.Reset;
-            BtnSelectStart.Logo = Icon.IconButtonReset;
+            BtnSelectStart.SvgIcon = "lucide/rotate-ccw";
         }
         else
         {
             ItemSelect.Info = currentInfo + " → " + selectedInfo;
             BtnSelectStart.Text = Lang.Text("Instance.Install.Action.StartModify");
             _installAction = InstallAction.Modify;
-            BtnSelectStart.Logo = Icon.IconButtonEdit;
+            BtnSelectStart.SvgIcon = "lucide/pencil";
         }
 
         // Minecraft

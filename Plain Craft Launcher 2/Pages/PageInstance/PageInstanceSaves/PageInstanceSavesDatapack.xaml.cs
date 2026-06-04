@@ -277,14 +277,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         };
 
         // 图标按钮
-        var btnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
+        var btnOpen = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/folder-open", Tag = sender };
         btnOpen.ToolTip = Lang.Text("Instance.Saves.OpenFileLocation");
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
         btnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
 
-        var btnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
+        var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
         btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCont, 30d);
@@ -292,7 +292,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         btnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var btnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
+        var btnDelete = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/trash-2", Tag = sender };
         btnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
@@ -301,7 +301,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var btnDisable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonStop, Tag = sender };
+            var btnDisable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-minus", Tag = sender };
             btnDisable.ToolTip = Lang.Text("Instance.Resource.Disable");
             ToolTipService.SetPlacement(btnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnDisable, 30d);
@@ -311,7 +311,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else if (sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var btnEnable = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonCheck, Tag = sender };
+            var btnEnable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-check", Tag = sender };
             btnEnable.ToolTip = Lang.Text("Instance.Resource.Enable");
             ToolTipService.SetPlacement(btnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnEnable, 30d);

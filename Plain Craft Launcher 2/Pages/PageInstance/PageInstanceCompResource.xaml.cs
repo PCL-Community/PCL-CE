@@ -627,20 +627,20 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 图标按钮
-        var btnOpen = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonOpen, Tag = sender };
+        var btnOpen = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/folder-open", Tag = sender };
         btnOpen.ToolTip = Lang.Text("Instance.Saves.OpenFileLocation");
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
         btnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
-        var btnCont = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonInfo, Tag = sender };
+        var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
         btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCont, 30d);
         ToolTipService.SetHorizontalOffset(btnCont, 2d);
         btnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
-        var btnDelete = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonDelete, Tag = sender };
+        var btnDelete = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/trash-2", Tag = sender };
         btnDelete.ToolTip = Lang.Text("Common.Action.Delete");
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
@@ -656,9 +656,9 @@ public partial class PageInstanceCompResource : IRefreshable
             var btnED = new MyIconButton
             {
                 LogoScale = 1d,
-                Logo = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? Icon.IconButtonStop
-                    : Icon.IconButtonCheck,
+                SvgIcon = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                    ? "lucide/circle-minus"
+                    : "lucide/circle-check",
                 Tag = sender
             };
             btnED.ToolTip = sender.Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? Lang.Text("Instance.Resource.Disable") : Lang.Text("Instance.Resource.Enable");

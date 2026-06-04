@@ -30,7 +30,7 @@ public partial class PageDownloadCompFavorites
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = Icon.IconButtonSetup;
+            Btn_ManageTargetFav.SvgIcon = "lucide/settings";
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -299,7 +299,7 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var btn_EditNote = new MyIconButton();
-        btn_EditNote.Logo = Icon.IconButtonEdit;
+        btn_EditNote.SvgIcon = "lucide/pencil";
         btn_EditNote.ToolTip = Lang.Text("Download.Comp.Favorites.EditNote");
         ToolTipService.SetPlacement(btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_EditNote, 30d);
@@ -318,7 +318,7 @@ public partial class PageDownloadCompFavorites
         };
         // 删除按钮
         var btn_Delete = new MyIconButton();
-        btn_Delete.Logo = Icon.IconButtonLikeFill;
+        btn_Delete.SvgIcon = "lucide/heart";
         btn_Delete.ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite");
         ToolTipService.SetPlacement(btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_Delete, 30d);
@@ -720,7 +720,7 @@ public partial class PageDownloadCompFavorites
         var newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Share"),
-            Icon = Icon.IconButtonShare
+            SvgIcon = "lucide/share-2"
         };
         newItem.Click += (_, _) =>
         {
@@ -743,7 +743,7 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Import"),
-            Icon = Icon.IconButtonAdd
+            SvgIcon = "lucide/circle-plus"
         };
         newItem.Click += (_, _) =>
         {
@@ -789,7 +789,7 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.New"),
-            Icon = Icon.IconButtonCreate
+            SvgIcon = "lucide/folder-plus"
         };
         newItem.Click += (_, _) =>
         {
@@ -805,7 +805,7 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Rename"),
-            Icon = Icon.IconButtonEdit
+            SvgIcon = "lucide/pencil"
         };
         newItem.Click += (_, _) =>
         {
@@ -820,7 +820,7 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Delete"),
-            Icon = Icon.IconButtonDelete
+            SvgIcon = "lucide/trash-2"
         };
         newItem.Click += (_, _) =>
         {

@@ -321,12 +321,12 @@ public static class ModComp
                 if (hasFavs)
                 {
                     item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
-                    item.Icon = Icon.IconButtonLikeFill;
+                    item.SvgIcon = "lucide/heart";
                 }
                 else
                 {
                     item.Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name);
-                    item.Icon = Icon.IconButtonLikeLine;
+                    item.SvgIcon = "lucide/heart";
                 }
 
                 item.Click += (_, _) =>
@@ -3042,7 +3042,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick is not null)
                     {
-                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+                        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);

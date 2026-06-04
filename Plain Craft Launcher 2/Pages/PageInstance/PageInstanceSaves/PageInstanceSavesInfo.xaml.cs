@@ -516,7 +516,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             var btnChunkbase = new MyIconButton
             {
-                Logo = Icon.IconButtonlink,
+                SvgIcon = "lucide/external-link",
                 ToolTip = Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"),
                 Width = 22d,
                 Height = 22d

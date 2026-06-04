@@ -323,7 +323,7 @@ public partial class PageSpeedLeft
                     var cancel = new MyIconButton
                     {
                         Name = "BtnCancel",
-                        Logo = "F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z", Height = 20d,
+                        SvgIcon = "lucide/x", Height = 20d,
                         Margin = new Thickness(0d, 10d, 10d, 0d), LogoScale = 1.1d,
                         HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top
                     };

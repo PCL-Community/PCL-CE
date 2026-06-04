@@ -64,7 +64,7 @@ public partial class PageLogLeft
                 };
                 newItem.Changed += ModMain.frmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
-                var removeButton = new MyIconButton { Logo = Icon.IconButtonDelete, LogoScale = 1.1d };
+                var removeButton = new MyIconButton { SvgIcon = "lucide/trash-2", LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
                 removeButton.Click += (a, b) => ModMain.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 newItem.Buttons = new[] { removeButton };
