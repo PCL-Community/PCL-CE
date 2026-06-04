@@ -293,10 +293,10 @@ public static class StringExtension
             return encode.GetBytes(str.ToString());
         }
 
-        public void GetBytes(Encoding? encode, Span<byte> space)
+        public int GetBytes(Encoding? encode = null, Span<byte> destination)
         {
             encode ??= Encoding.UTF8;
-            encode.GetBytes(str, space);
+            return encode.GetBytes(str, destination);
         }
     }
 }
