@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -281,5 +281,21 @@ public static class StringExtension
 
         public int LastIndexOfF(string subStr, int startIndex, bool ignoreCase = false)
             => str.LastIndexOf(subStr, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
+
+    extension(string hex)
+    {
+        public byte[] HexToBytes()
+        {
+            var bufLen = hex.Length / 2;
+            if (hex.Length % 2 == 1) throw new ArgumentException("hex str is incorrect", nameof(hex));
+            var buf = new byte[bufLen];
+            for (var i = 0; i < bufLen; i++)
+            {
+                buf[i] = Convert.ToByte(hex.Substring(2 * i, 2), 16);
+            }
+
+            return buf;
+        }
     }
 }

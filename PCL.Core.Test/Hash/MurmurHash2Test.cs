@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Hash;
+using PCL.Core.Utils.Exts;
 using System.Text;
 
 namespace PCL.Core.Test.Hash;
@@ -16,5 +17,8 @@ public class MurmurHash2Test
         var buf = Encoding.UTF8.GetBytes(input);
         var result = MurmurHash2Provider.Instance.ComputeHash(buf);
         Assert.AreEqual(output, BitConverter.ToUInt32(result));
+
+        var hex = result.ToHexString().HexToBytes();
+        Assert.AreEqual(output, BitConverter.ToUInt32(hex));
     }
 }

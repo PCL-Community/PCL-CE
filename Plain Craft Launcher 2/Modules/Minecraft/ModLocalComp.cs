@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
 using static PCL.ModComp;
 using static PCL.ModLoader;
@@ -1773,8 +1774,11 @@ public static class ModLocalComp
             {
                 if (_CurseForgeHash is null)
                 {
-                    var hex = _hashCache.Value.GetMurmurHash2Async(path).GetAwaiter().GetResult();
-                    _CurseForgeHash = uint.Parse(hex, System.Globalization.NumberStyles.HexNumber);
+                    var buf = _hashCache.Value
+                        .GetMurmurHash2Async(path)
+                        .GetAwaiter().GetResult()
+                        .HexToBytes();
+                    _CurseForgeHash = BitConverter.ToUInt32(buf);
                 }
 
                 return (uint)_CurseForgeHash;
