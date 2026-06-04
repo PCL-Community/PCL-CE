@@ -166,7 +166,7 @@ public static class EncryptHelper
         var storeData = EncryptionData.ToBytes(new EncryptionData
         {
             Version = 2,
-            Data = CngProtectedData.Protect(randomKey, CngDataProtectionScope.CurrentUser, space)
+            Data = CngProtectedData.Protect(randomKey, Key, CngDataProtectionScope.CurrentUser)
         });
 
         var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
