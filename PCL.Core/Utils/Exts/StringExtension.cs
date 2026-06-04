@@ -290,7 +290,7 @@ public static class StringExtension
             return encode.GetBytes(str);
         }
     }
-    extension(Readonly<char> str){
+    extension(ReadonlySpan<char> str){
     
         public int GetBytes(Span<byte> destination, Encoding? encode = null)
         {
