@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -80,11 +80,19 @@ public partial class MyIconTextButton
             if (ShapeLogo is null || ShapeSvgIcon is null)
                 return;
             SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            ApplyLogoScale();
             RefreshColor();
         }
     }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private void ApplyLogoScale()
+    {
+        LogoHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     public double LogoScale
     {
@@ -92,8 +100,7 @@ public partial class MyIconTextButton
         set
         {
             _LogoScale = value;
-            if (LogoHost is not null)
-                LogoHost.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            ApplyLogoScale();
         }
     }
 

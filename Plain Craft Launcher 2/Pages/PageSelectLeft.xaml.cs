@@ -242,7 +242,7 @@ public partial class PageSelectLeft : IRefreshable
                 Title = Lang.Text("Select.Folder.AddExisting.Title"),
                 Height = 34,
                 ToolTip = Lang.Text("Select.Folder.AddExisting.ToolTip"),
-                SvgIcon = "lucide/circle-plus"
+                SvgIcon = "lucide/folder-input"
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemAdd, -50);
@@ -258,7 +258,7 @@ public partial class PageSelectLeft : IRefreshable
                 Title = Lang.Text("Select.Folder.ImportModpack.Title"),
                 Height = 34,
                 ToolTip = Lang.Text("Select.Folder.ImportModpack.ToolTip"),
-                SvgIcon = "lucide/file-input"
+                SvgIcon = "lucide/package-plus"
             };
             ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
             ToolTipService.SetHorizontalOffset(itemInstall, -50);

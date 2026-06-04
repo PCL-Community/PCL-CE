@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -72,10 +72,18 @@ public partial class MyExtraTextButton
             if (Path is null || ShapeSvgIcon is null)
                 return;
             SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            ApplyLogoScale();
         }
     }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     public double LogoScale
     {
@@ -83,7 +91,7 @@ public partial class MyExtraTextButton
         set
         {
             _LogoScale = value;
-            IconHost?.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            ApplyLogoScale();
         }
     }
 

@@ -32,7 +32,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Install}"
                               LogoScale="0.87"
-                              SvgIcon="lucide/package-plus">
+                              SvgIcon="lucide/wrench">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="10" ToolTip="{DynamicResource Common.Action.Refresh}"

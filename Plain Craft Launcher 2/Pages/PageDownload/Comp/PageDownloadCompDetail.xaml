@@ -36,7 +36,7 @@
                         <local:MyIconTextButton x:Name="BtnTranslate"
                                                 Text="{DynamicResource Download.Comp.Detail.TranslateDescription}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
-                                                SvgIcon="lucide/languages"
+                                                SvgIcon="lucide/earth"
                                                 Margin="0,0,3,0" HorizontalAlignment="Left" />
                         <local:MyIconTextButton x:Name="BtnFavorites"
                                                 Text="{DynamicResource Download.Comp.Detail.Favorite}"

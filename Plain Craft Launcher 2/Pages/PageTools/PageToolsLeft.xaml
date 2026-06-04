@@ -13,7 +13,7 @@
                           Check="PageCheck"
                           MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Tools.Left.Lobby}"  
                           LogoScale="0.85"
-                          SvgIcon="lucide/unlink">
+                          SvgIcon="lucide/bubbles">
             <local:MyListItem.Buttons>
                 <x:Array Type="{x:Type local:MyIconButton}">
                     <local:MyIconButton Tag="1" ToolTip="{DynamicResource Common.Action.Refresh}" ToolTipService.Placement="Right"

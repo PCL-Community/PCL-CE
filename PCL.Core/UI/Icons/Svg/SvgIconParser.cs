@@ -90,7 +90,7 @@ internal static class SvgIconParser
         if (string.IsNullOrWhiteSpace(d))
             return null;
 
-        var geometry = Geometry.Parse(d);
+        var geometry = SvgPathGeometryParser.Parse(d);
         _ApplyFillRule(geometry, style);
         _TryFreeze(geometry);
 
@@ -220,6 +220,7 @@ internal static class SvgIconParser
         _TryFreeze(geometry);
         return geometry;
     }
+
 
     private static (double MinX, double MinY, double Width, double Height) _ReadViewBox(XElement root)
     {

@@ -38,7 +38,7 @@
                                Check="PageCheck"
                                Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.GameManage}" Type="RadioBox"
                               LogoScale="0.95"
-                              SvgIcon="lucide/gamepad-2">
+                              SvgIcon="lucide/book-marked">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="2" ToolTip="{DynamicResource Common.Action.Initialize}" ToolTipService.Placement="Right"
@@ -55,7 +55,7 @@
             <local:MyListItem x:Name="ItemGameLink" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="7"
                                Check="PageCheck"
                                MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.GameLink}"
-                              SvgIcon="lucide/unlink">
+                              SvgIcon="lucide/bubbles">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="7" ToolTip="{DynamicResource Common.Action.Initialize}" ToolTipService.Placement="Right"

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -70,11 +70,19 @@ public partial class MyIconButton
             if (Path is null || ShapeSvgIcon is null)
                 return;
             SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            ApplyLogoScale();
             RefreshAnim();
         }
     }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     public double LogoScale
     {
@@ -82,11 +90,7 @@ public partial class MyIconButton
         set
         {
             _LogoScale = value;
-            IconHost?.RenderTransform = new ScaleTransform
-            {
-                ScaleX = LogoScale,
-                ScaleY = LogoScale
-            };
+            ApplyLogoScale();
         }
     }
 

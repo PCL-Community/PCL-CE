@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -85,10 +85,13 @@ public partial class MyExtraButton
             if (Path is null || ShapeSvgIcon is null)
                 return;
             SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            ApplyLogoScale();
         }
     }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
     public double LogoScale
     {
@@ -96,8 +99,7 @@ public partial class MyExtraButton
         set
         {
             _LogoScale = value;
-            if (IconHost is not null)
-                IconHost.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            ApplyLogoScale();
         }
     }
 
@@ -145,6 +147,11 @@ public partial class MyExtraButton
     }
 
     public bool CanRightClick { get; set; }
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     // 声明
     public event ClickEventHandler? Click;

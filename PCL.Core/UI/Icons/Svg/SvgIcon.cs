@@ -16,7 +16,7 @@ public class SvgIcon : FrameworkElement
         typeof(SvgIcon),
         new FrameworkPropertyMetadata(string.Empty,
             FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
-            OnIconChanged));
+            _OnIconChanged));
 
     public static readonly DependencyProperty DefaultPackProperty = DependencyProperty.Register(
         nameof(DefaultPack),
@@ -24,7 +24,7 @@ public class SvgIcon : FrameworkElement
         typeof(SvgIcon),
         new FrameworkPropertyMetadata(SvgIconLoader.DefaultIconPack,
             FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
-            OnIconChanged));
+            _OnIconChanged));
 
     public static readonly DependencyProperty IconBrushProperty = DependencyProperty.Register(
         nameof(IconBrush),
@@ -93,7 +93,7 @@ public class SvgIcon : FrameworkElement
 
     public IAnimation AnimateIconBrushTo(NColor color, TimeSpan? duration = null, IEasing? easing = null)
     {
-        EnsureAnimatableIconBrush();
+        _EnsureAnimatableIconBrush();
 
         var animation = new NColorFromToAnimation
         {
@@ -107,7 +107,7 @@ public class SvgIcon : FrameworkElement
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        var model = GetModel();
+        var model = _GetModel();
         var naturalSize = model is null
             ? new Size(24D, 24D)
             : new Size(model.Width, model.Height);
@@ -128,11 +128,11 @@ public class SvgIcon : FrameworkElement
     {
         base.OnRender(drawingContext);
 
-        var model = GetModel();
+        var model = _GetModel();
         if (model is null || model.Elements.Count == 0 || RenderSize.Width <= 0D || RenderSize.Height <= 0D)
             return;
 
-        var target = CalculateTargetRect(model, RenderSize, Stretch);
+        var target = _CalculateTargetRect(new Size(model.Width, model.Height), RenderSize, Stretch);
         if (target.Width <= 0D || target.Height <= 0D)
             return;
 
@@ -152,7 +152,7 @@ public class SvgIcon : FrameworkElement
         drawingContext.Pop();
     }
 
-    private SvgIconModel? GetModel()
+    private SvgIconModel? _GetModel()
     {
         if (_modelLoaded)
             return _model;
@@ -162,14 +162,14 @@ public class SvgIcon : FrameworkElement
         return _model;
     }
 
-    private static void OnIconChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+    private static void _OnIconChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
     {
         var icon = (SvgIcon)dependencyObject;
         icon._model = null;
         icon._modelLoaded = false;
     }
 
-    private void EnsureAnimatableIconBrush()
+    private void _EnsureAnimatableIconBrush()
     {
         if (IconBrush is SolidColorBrush { IsFrozen: false })
             return;
@@ -181,17 +181,20 @@ public class SvgIcon : FrameworkElement
         };
     }
 
-    private static Rect CalculateTargetRect(SvgIconModel model, Size renderSize, Stretch stretch)
+    private static Rect _CalculateTargetRect(Size sourceSize, Size renderSize, Stretch stretch)
     {
+        if (sourceSize.Width <= 0D || sourceSize.Height <= 0D)
+            sourceSize = new Size(24D, 24D);
+
         if (stretch == Stretch.None)
         {
-            var x = (renderSize.Width - model.Width) / 2D;
-            var y = (renderSize.Height - model.Height) / 2D;
-            return new Rect(x, y, model.Width, model.Height);
+            var x = (renderSize.Width - sourceSize.Width) / 2D;
+            var y = (renderSize.Height - sourceSize.Height) / 2D;
+            return new Rect(x, y, sourceSize.Width, sourceSize.Height);
         }
 
-        var scaleX = renderSize.Width / model.Width;
-        var scaleY = renderSize.Height / model.Height;
+        var scaleX = renderSize.Width / sourceSize.Width;
+        var scaleY = renderSize.Height / sourceSize.Height;
 
         var scale = stretch switch
         {
@@ -200,8 +203,8 @@ public class SvgIcon : FrameworkElement
             _ => Math.Min(scaleX, scaleY)
         };
 
-        var width = stretch == Stretch.Fill ? renderSize.Width : model.Width * scale;
-        var height = stretch == Stretch.Fill ? renderSize.Height : model.Height * scale;
+        var width = stretch == Stretch.Fill ? renderSize.Width : sourceSize.Width * scale;
+        var height = stretch == Stretch.Fill ? renderSize.Height : sourceSize.Height * scale;
         var left = (renderSize.Width - width) / 2D;
         var top = (renderSize.Height - height) / 2D;
 

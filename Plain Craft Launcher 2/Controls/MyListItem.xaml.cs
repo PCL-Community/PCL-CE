@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -575,7 +575,7 @@ public partial class MyListItem : IMyRadio
                 Icon = SvgIcon,
                 Stretch = Stretch.Uniform,
                 RenderTransformOrigin = new Point(0.5d, 0.5d),
-                RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
+                RenderTransform = new ScaleTransform { ScaleX = 1D, ScaleY = 1D },
                 SnapsToDevicePixels = false,
                 UseLayoutRounding = false,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -678,8 +678,11 @@ public partial class MyListItem : IMyRadio
         set
         {
             _LogoScale = value;
-        if (pathLogo is not null)
-                pathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            if (pathLogo is not null)
+            {
+                var scale = IsUsingSvgIcon ? 1D : LogoScale;
+                pathLogo.RenderTransform = new ScaleTransform { ScaleX = scale, ScaleY = scale };
+            }
         }
     }
 
@@ -758,12 +761,15 @@ public partial class MyListItem : IMyRadio
             : 6);
         ColumnLogo.Width = new GridLength((hasLogo ? 34 : 0) + (Height < 40d ? 0 : 4));
 
-        if (!IsUsingSvgIcon && (logo.EndsWithF(".png", true) ||
-                                logo.EndsWithF(".jpg", true) ||
-                                logo.EndsWithF(".webp", true)))
-            pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
-        else
-            pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
+        if (pathLogo is not null)
+        {
+            if (!IsUsingSvgIcon && (logo.EndsWithF(".png", true) ||
+                                    logo.EndsWithF(".jpg", true) ||
+                                    logo.EndsWithF(".webp", true)))
+                pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
+            else
+                pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
+        }
 
         LabTitle.Margin = new Thickness(4d, 0d, 0d, Height < 40d ? 0 : 2);
     }

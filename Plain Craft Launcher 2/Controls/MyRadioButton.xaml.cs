@@ -107,11 +107,20 @@ public partial class MyRadioButton
             if (ShapeLogo is null || ShapeSvgIcon is null)
                 return;
             SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            ApplyLogoScale();
             RefreshColor();
         }
     }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private void ApplyLogoScale()
+    {
+        if (LogoHost is not null)
+            LogoHost.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     public double LogoScale
     {
@@ -119,7 +128,7 @@ public partial class MyRadioButton
         set
         {
             _LogoScale = value;
-            LogoHost?.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            ApplyLogoScale();
         }
     }
 
