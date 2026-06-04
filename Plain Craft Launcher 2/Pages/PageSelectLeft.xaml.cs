@@ -471,8 +471,8 @@ public partial class PageSelectLeft : IRefreshable
                     if (!version.Modable) continue;
                     var modIndieFolder = new DirectoryInfo(version.PathInstance + @"mods\");
                     if (modIndieFolder.Exists && modIndieFolder.EnumerateFiles().Any()) return;
-                    Config.Instance.IndieV1[version] = 2;
-                    Config.Instance.IndieV2[version] = false;
+                    Config.Instance.IndieV1[version.PathInstance] = 2;
+                    Config.Instance.IndieV2[version.PathInstance] = false;
                     ModBase.Log("[Setup] 已自动关闭单版本隔离：" + version.Name, ModBase.LogLevel.Debug);
                 }
             }

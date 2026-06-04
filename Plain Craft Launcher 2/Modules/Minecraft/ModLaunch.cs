@@ -2280,7 +2280,7 @@ public static class ModLaunch
         if (McLaunchGetLwjglVersion(mc) == "3.4.1")
         {
             bool globalDisabled = Config.Launch.DisableLwjglUnsafeAgent;
-            bool instanceDisabled = Config.Instance.DisableLwjglUnsafeAgent[mc];
+            bool instanceDisabled = Config.Instance.DisableLwjglUnsafeAgent[mc.PathInstance];
 
             return !globalDisabled && !instanceDisabled;
         }
