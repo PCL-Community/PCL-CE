@@ -12,7 +12,7 @@ namespace PCL.Core.Utils.Hash;
 public class MurmurHash2Provider : IHashProvider
 {
     public static MurmurHash2Provider Instance { get; } = new();
-    public int Length => 8;
+    public int Length => 4;
 
     public byte[] ComputeHash(ReadOnlySpan<byte> data)
     {

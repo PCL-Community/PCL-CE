@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using PCL.Core.Utils.Exts;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -36,6 +37,10 @@ public class HashCache
             )
             """;
         cmd.ExecuteNonQuery();
+
+        using var setCmd = connection.CreateCommand();
+        setCmd.CommandText = "PRAGMA journal_mode=WAL";
+        setCmd.ExecuteNonQuery();
     }
 
     private SqliteConnection _CreateConnection()
@@ -60,6 +65,8 @@ public class HashCache
     public Task<string> GetMurmurHash2Async(string filePath) =>
         _GetHashAsync(filePath, MurmurHash2Provider.Instance, "MurmurHash2");
 
+    private static readonly ConcurrentDictionary<string, Task<string>> _FileHashComputePending = new();
+
     public async Task<string> GetHashAsync(string filePath, IHashProvider provider)
     {
         var algoName = provider switch
@@ -71,7 +78,16 @@ public class HashCache
             MurmurHash2Provider => "MurmurHash2",
             _ => throw new ArgumentException($"不支持的哈希算法: {provider.GetType().Name}")
         };
-        return await _GetHashAsync(filePath, provider, algoName).ConfigureAwait(false);
+        var computeKey = $"{filePath}:{algoName}";
+        return await _FileHashComputePending.GetOrAdd(computeKey, key =>
+        {
+            var computeTask = _GetHashAsync(filePath, provider, algoName);
+            _ = computeTask.ContinueWith(t =>
+            {
+                _FileHashComputePending.TryRemove(computeKey, out _);
+            }, TaskContinuationOptions.ExecuteSynchronously);
+            return computeTask;
+        }).ConfigureAwait(false);
     }
 
     private async Task<string> _GetHashAsync(string filePath, IHashProvider provider, string algoName)
@@ -81,39 +97,41 @@ public class HashCache
 
         var fullPath = Path.GetFullPath(filePath);
 
-        if (!File.Exists(fullPath))
+        try
+        {
+            var fileInfo = new FileInfo(fullPath);
+            var fileSize = fileInfo.Length;
+            var lastWrite = fileInfo.LastWriteTimeUtc.ToString("O");
+
+            var cached = await _FindCacheEntryAsync(fullPath).ConfigureAwait(false);
+
+            if (cached != null)
+            {
+                if (cached.FileSize == fileSize && cached.LastWriteTime == lastWrite)
+                {
+                    var hash = _GetHashFromEntry(cached, algoName);
+                    if (hash != null)
+                        return hash;
+
+                    var computedHash = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
+                    await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computedHash).ConfigureAwait(false);
+                    return computedHash;
+                }
+                else
+                {
+                    await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+                }
+            }
+
+            var computed = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
+            await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computed).ConfigureAwait(false);
+            return computed;
+        }
+        catch (FileNotFoundException)
         {
             await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
-            throw new FileNotFoundException("文件不存在", fullPath);
+            throw;
         }
-
-        var fileInfo = new FileInfo(fullPath);
-        var fileSize = fileInfo.Length;
-        var lastWrite = fileInfo.LastWriteTimeUtc.ToString("O");
-
-        var cached = await _FindCacheEntryAsync(fullPath).ConfigureAwait(false);
-
-        if (cached != null)
-        {
-            if (cached.FileSize == fileSize && cached.LastWriteTime == lastWrite)
-            {
-                var hash = _GetHashFromEntry(cached, algoName);
-                if (hash != null)
-                    return hash;
-
-                var computedHash = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
-                await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computedHash).ConfigureAwait(false);
-                return computedHash;
-            }
-            else
-            {
-                await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
-            }
-        }
-
-        var computed = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
-        await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computed).ConfigureAwait(false);
-        return computed;
     }
 
     private static async Task<string> _ComputeHashAsync(string fullPath, IHashProvider provider)
