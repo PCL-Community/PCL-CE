@@ -38,7 +38,6 @@ public partial class MyRadioButton
         }));
 
     private bool _Checked; // 是否选中
-    private string _SvgIcon = string.Empty;
     private bool _hasLegacyLogo;
     private bool isMouseDown;
 
@@ -102,22 +101,23 @@ public partial class MyRadioButton
 
     public string SvgIcon
     {
-        get => _SvgIcon;
+        get;
         set
         {
-            if ((value ?? string.Empty) == _SvgIcon)
+            value ??= string.Empty;
+            if (value == field)
                 return;
-            _SvgIcon = value ?? string.Empty;
+            field = value;
             if (ShapeLogo is null || ShapeSvgIcon is null)
                 return;
-            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, field);
             ApplyLogoScale();
             RefreshLogoHostVisibility();
             RefreshColor();
         }
-    }
+    } = string.Empty;
 
-    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
@@ -155,7 +155,7 @@ public partial class MyRadioButton
 
     public double LogoScale
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -179,7 +179,7 @@ public partial class MyRadioButton
 
     public ColorState ColorType
     {
-        get => field;
+        get;
         set
         {
             field = value;

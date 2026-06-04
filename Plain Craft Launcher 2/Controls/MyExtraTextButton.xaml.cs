@@ -19,10 +19,8 @@ public partial class MyExtraTextButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyExtraTextButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
+            ((MyExtraTextButton)sender)?.LabText.Text = (string)e.NewValue;
         }));
-
-    private string _SvgIcon = string.Empty;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
@@ -46,7 +44,7 @@ public partial class MyExtraTextButton
 
     public string Logo
     {
-        get => field;
+        get;
         set
         {
             if ((value ?? "") == (field ?? ""))
@@ -58,29 +56,30 @@ public partial class MyExtraTextButton
             SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
             RefreshIconHostVisibility();
         }
-    }
+    } = string.Empty;
 
     public string SvgIcon
     {
-        get => _SvgIcon;
+        get;
         set
         {
-            if ((value ?? string.Empty) == _SvgIcon)
+            value ??= string.Empty;
+            if (value == field)
                 return;
-            _SvgIcon = value ?? string.Empty;
+            field = value;
             if (Path is null || ShapeSvgIcon is null)
                 return;
-            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
             ApplyLogoScale();
             RefreshIconHostVisibility();
         }
-    }
+    } = string.Empty;
 
-    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
-    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(field);
+    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(Logo);
 
     private void ApplyLogoScale()
     {
@@ -110,11 +109,11 @@ public partial class MyExtraTextButton
             IconHost.Margin = new Thickness(0, 12, 0, 12);
             LabText.Margin = new Thickness(0, 0, 0, 0.8);
         }
-    } = "";
+    }
 
     public double LogoScale
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -137,7 +136,7 @@ public partial class MyExtraTextButton
 
     public bool Show
     {
-        get => field;
+        get;
         set
         {
             if (field == value)

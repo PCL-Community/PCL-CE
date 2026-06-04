@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,8 +18,6 @@ public partial class MyExtraButton
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
 
-    private string _SvgIcon = string.Empty;
-
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
     private bool isRightMouseHeld;
@@ -38,7 +36,7 @@ public partial class MyExtraButton
 
     public double Progress
     {
-        get => field;
+        get;
         set
         {
             if (field == value)
@@ -58,7 +56,7 @@ public partial class MyExtraButton
 
     public string Logo
     {
-        get => field;
+        get;
         set
         {
             if ((value ?? "") == (field ?? ""))
@@ -71,26 +69,27 @@ public partial class MyExtraButton
 
     public string SvgIcon
     {
-        get => _SvgIcon;
+        get;
         set
         {
-            if ((value ?? string.Empty) == _SvgIcon)
+            value ??= string.Empty;
+            if (value == field)
                 return;
-            _SvgIcon = value ?? string.Empty;
+            field = value;
             if (Path is null || ShapeSvgIcon is null)
                 return;
-            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
             ApplyLogoScale();
         }
-    }
+    } = string.Empty;
 
-    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
     public double LogoScale
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -100,7 +99,7 @@ public partial class MyExtraButton
 
     public bool Show
     {
-        get => field;
+        get;
         set
         {
             if (field == value)

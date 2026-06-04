@@ -23,8 +23,6 @@ public partial class MyIconButton
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
 
-    private string _SvgIcon = string.Empty;
-
     //鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isMouseDown;
 
@@ -66,21 +64,22 @@ public partial class MyIconButton
 
     public string SvgIcon
     {
-        get => _SvgIcon;
+        get;
         set
         {
-            if ((value ?? string.Empty) == _SvgIcon)
+            value ??= string.Empty;
+            if (value == field)
                 return;
-            _SvgIcon = value ?? string.Empty;
+            field = value;
             if (Path is null || ShapeSvgIcon is null)
                 return;
-            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
             ApplyLogoScale();
             RefreshAnim();
         }
-    }
+    } = string.Empty;
 
-    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
@@ -91,7 +90,7 @@ public partial class MyIconButton
 
     public double LogoScale
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -103,7 +102,7 @@ public partial class MyIconButton
 
     public SolidColorBrush Foreground
     {
-        get => field;
+        get;
         set
         {
             field = value;

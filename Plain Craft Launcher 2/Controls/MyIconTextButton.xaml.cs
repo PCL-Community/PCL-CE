@@ -36,7 +36,6 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
-    private string _SvgIcon = string.Empty;
     private bool _hasLegacyLogo;
     private bool isMouseDown;
 
@@ -76,22 +75,23 @@ public partial class MyIconTextButton
 
     public string SvgIcon
     {
-        get => _SvgIcon;
+        get;
         set
         {
-            if ((value ?? string.Empty) == _SvgIcon)
+            value ??= string.Empty;
+            if (value == field)
                 return;
-            _SvgIcon = value ?? string.Empty;
+            field = value;
             if (ShapeLogo is null || ShapeSvgIcon is null)
                 return;
-            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, field);
             ApplyLogoScale();
             RefreshLogoHostVisibility();
             RefreshColor();
         }
-    }
+    } = string.Empty;
 
-    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
@@ -131,7 +131,7 @@ public partial class MyIconTextButton
 
     public double LogoScale
     {
-        get => field;
+        get;
         set
         {
             field = value;
