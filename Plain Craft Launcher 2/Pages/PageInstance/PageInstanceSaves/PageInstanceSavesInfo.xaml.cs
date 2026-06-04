@@ -10,6 +10,7 @@ namespace PCL;
 
 public partial class PageInstanceSavesInfo : IRefreshable
 {
+    /// <summary>无状态服务，线程安全，所有实例可共享。</summary>
     private static readonly SaveManager SaveManager = new();
     private CancellationTokenSource? _cts;
 
@@ -29,6 +30,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
     private async Task RefreshInfoAsync()
     {
         _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
 
@@ -78,10 +80,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 Lang.TimeSpan(save.PlayTime, 3, false, TimeUnit.Day, TimeUnit.Second));
 
             if (save.VersionName is not null || save.Difficulty.HasValue)
-                BuildAllowCommandsSetting(save.AllowCommands, ct);
+                BuildAllowCommandsSetting(save.AllowCommands);
 
             if (save.Difficulty.HasValue)
-                BuildDifficultySetting(save.IsHardcore, save.IsDifficultyLocked, (int)save.Difficulty.Value, ct);
+                BuildDifficultySetting(save.IsHardcore, save.IsDifficultyLocked, (int)save.Difficulty.Value);
 
             PanContent.Visibility = Visibility.Visible;
         }
@@ -91,13 +93,15 @@ public partial class PageInstanceSavesInfo : IRefreshable
             ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox);
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
+            PanSettingsList.Children.Clear();
+            PanSettingsList.RowDefinitions.Clear();
             Hintversion1_9.Visibility = Visibility.Collapsed;
             Hintversion1_8.Visibility = Visibility.Collapsed;
             Hintversion1_3.Visibility = Visibility.Collapsed;
         }
     }
 
-    private void BuildAllowCommandsSetting(bool allowCommands, CancellationToken ct)
+    private void BuildAllowCommandsSetting(bool allowCommands)
     {
         PanSettings.Visibility = Visibility.Visible;
         var folder = PageInstanceSavesLeft.currentSave;
@@ -120,7 +124,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 await SaveManager.ApplyChangesAsync(folder, new SaveChanges
                 {
                     AllowCommands = new Editable<bool>((int)combo.SelectedValue == 1),
-                }, ct);
+                });
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint); }
@@ -129,7 +133,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         AddSettingRow(Lang.Text("Instance.Saves.Info.AllowCommands"), combo);
     }
 
-    private void BuildDifficultySetting(bool isHardcore, bool isLocked, int difficultyValue, CancellationToken ct)
+    private void BuildDifficultySetting(bool isHardcore, bool isLocked, int difficultyValue)
     {
         PanSettings.Visibility = Visibility.Visible;
         var folder = PageInstanceSavesLeft.currentSave;
@@ -168,7 +172,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 {
                     Difficulty = new Editable<Difficulty>((Difficulty)(int)combo.SelectedValue),
                     LockDifficulty = new Editable<bool>(!isHardcore && lockCheckBox.Checked == true),
-                }, ct);
+                });
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint); }
