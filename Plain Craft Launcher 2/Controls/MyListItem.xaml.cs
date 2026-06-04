@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.UI.Icons.Svg;
 
 namespace PCL;
 
@@ -520,32 +521,80 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register("Logo", typeof(string),
-        typeof(MyListItem), new PropertyMetadata("", OnLogoChanged));
+    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register(
+        nameof(Logo),
+        typeof(string),
+        typeof(MyListItem),
+        new PropertyMetadata("", OnLogoChanged));
+
+    public string SvgIcon
+    {
+        get => (string)GetValue(SvgIconProperty);
+        set
+        {
+            if (SvgIcon == value)
+                return;
+            SetValue(SvgIconProperty, value);
+        }
+    }
+
+    public static readonly DependencyProperty SvgIconProperty = DependencyProperty.Register(
+        nameof(SvgIcon),
+        typeof(string),
+        typeof(MyListItem),
+        new PropertyMetadata("", OnSvgIconChanged));
 
     private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (MyListItem)d;
-        var value = e.NewValue as string;
-        control.UpdateLogo(value);
+        control.UpdateLogo(e.NewValue as string);
     }
 
-    private void UpdateLogo(string _Logo)
+    private static void OnSvgIconChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyListItem)d;
+        control.UpdateLogo(control.Logo);
+    }
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private void UpdateLogo(string logo)
     {
         // 删除旧 Logo
-            if (pathLogo is not null)
+        if (pathLogo is not null)
             Children.Remove(pathLogo);
+        pathLogo = null;
+
         // 添加新 Logo
-        if (!string.IsNullOrEmpty(_Logo))
+        if (IsUsingSvgIcon)
         {
-            if (_Logo.StartsWithF("http", true))
+            pathLogo = new SvgIcon
+            {
+                Tag = this,
+                IsHitTestVisible = LogoClickable,
+                Icon = SvgIcon,
+                Stretch = Stretch.Uniform,
+                RenderTransformOrigin = new Point(0.5d, 0.5d),
+                RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
+                SnapsToDevicePixels = false,
+                UseLayoutRounding = false,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            ((SvgIcon)pathLogo).SetBinding(
+                Core.UI.Icons.Svg.SvgIcon.IconBrushProperty,
+                new Binding("Foreground") { Source = this });
+        }
+        else if (!string.IsNullOrEmpty(logo))
+        {
+            if (logo.StartsWithF("http", true))
             {
                 // 网络图片
                 pathLogo = new MyImage
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
-                    Source = _Logo,
+                    Source = logo,
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = true,
@@ -553,14 +602,14 @@ public partial class MyListItem : IMyRadio
                 };
                 RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
             }
-            else if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
+            else if (logo.EndsWithF(".png", true) || logo.EndsWithF(".jpg", true) || logo.EndsWithF(".webp", true))
             {
                 // 位图
                 pathLogo = new Canvas
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
-                    Background = new MyBitmap(_Logo),
+                    Background = new MyBitmap(logo),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = true,
@@ -568,8 +617,8 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (_Logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
-                    _Logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
+                if (logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
+                    logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.NearestNeighbor);
                 else
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
@@ -584,7 +633,7 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Stretch = Stretch.Uniform,
-                    Data = (Geometry)new GeometryConverter().ConvertFromString(_Logo),
+                    Data = (Geometry)new GeometryConverter().ConvertFromString(logo),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = false,
@@ -592,7 +641,10 @@ public partial class MyListItem : IMyRadio
                 };
                 pathLogo.SetBinding(Shape.FillProperty, new Binding("Foreground") { Source = this });
             }
+        }
 
+        if (pathLogo is not null)
+        {
             SetColumn(pathLogo, 2);
             SetRowSpan(pathLogo, 4);
             OnSizeChanged(); // 设置边距
@@ -614,7 +666,8 @@ public partial class MyListItem : IMyRadio
         }
 
         // 改变行距
-        ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
+        ColumnLogo.Width = new GridLength((hasLogo ? 34 : 0) + (Height < 40d ? 0 : 4));
     }
 
     private double _LogoScale = 1d;
@@ -696,17 +749,21 @@ public partial class MyListItem : IMyRadio
     // 适应尺寸
     private void OnSizeChanged()
     {
-        var _Logo = Logo;
-        ColumnCheck.Width =
-            new GridLength(_Type == CheckType.None || _Type == CheckType.Clickable ? Height < 40d ? 4 : 2 : 6);
-        ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
-        if (pathLogo is not null)
-        {
-            if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
-                pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
-            else
-                pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
-        }
+        var logo = Logo;
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
+        ColumnCheck.Width = new GridLength(_Type is CheckType.None or CheckType.Clickable
+            ? Height < 40d
+                ? 4
+                : 2
+            : 6);
+        ColumnLogo.Width = new GridLength((hasLogo ? 34 : 0) + (Height < 40d ? 0 : 4));
+
+        if (!IsUsingSvgIcon && (logo.EndsWithF(".png", true) ||
+                                logo.EndsWithF(".jpg", true) ||
+                                logo.EndsWithF(".webp", true)))
+            pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
+        else
+            pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);
 
         LabTitle.Margin = new Thickness(4d, 0d, 0d, Height < 40d ? 0 : 2);
     }

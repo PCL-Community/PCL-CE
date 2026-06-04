@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -27,6 +27,7 @@ public partial class MyExtraTextButton
 
     // 动画
     private bool _Show;
+    private string _SvgIcon = string.Empty;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
@@ -56,8 +57,25 @@ public partial class MyExtraTextButton
                 return;
             _Logo = value;
             Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
         }
     }
+
+    public string SvgIcon
+    {
+        get => _SvgIcon;
+        set
+        {
+            if ((value ?? string.Empty) == _SvgIcon)
+                return;
+            _SvgIcon = value ?? string.Empty;
+            if (Path is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
+        }
+    }
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
 
     public double LogoScale
     {
@@ -65,8 +83,7 @@ public partial class MyExtraTextButton
         set
         {
             _LogoScale = value;
-            if (Path is not null)
-                Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            IconHost?.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
 

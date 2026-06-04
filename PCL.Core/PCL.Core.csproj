@@ -93,6 +93,7 @@
         <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
         <Resource Include="UI\Assets\*" />
         <Resource Include="UI\Assets\Shaders\*.ps" />
+        <Resource Include="UI\IconPacks\**\*.svg" />
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>

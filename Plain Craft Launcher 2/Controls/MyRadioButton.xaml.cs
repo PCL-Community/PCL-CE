@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -40,6 +40,7 @@ public partial class MyRadioButton
     private bool _Checked; // 是否选中
     private ColorState _ColorType = ColorState.White;
     private double _LogoScale = 1d;
+    private string _SvgIcon = string.Empty;
     private bool isMouseDown;
 
     // 基础
@@ -86,13 +87,31 @@ public partial class MyRadioButton
 
     public string Logo
     {
-        get => ShapeLogo.Data.ToString();
+        get => ShapeLogo.Data?.ToString() ?? string.Empty;
         set
         {
             if (ShapeLogo is null) return;
             ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
         }
     }
+
+    public string SvgIcon
+    {
+        get => _SvgIcon;
+        set
+        {
+            if ((value ?? string.Empty) == _SvgIcon)
+                return;
+            _SvgIcon = value ?? string.Empty;
+            if (ShapeLogo is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            RefreshColor();
+        }
+    }
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
 
     public double LogoScale
     {
@@ -100,8 +119,7 @@ public partial class MyRadioButton
         set
         {
             _LogoScale = value;
-            if (ShapeLogo is not null)
-                ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            LogoHost?.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
 

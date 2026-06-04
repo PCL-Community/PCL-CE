@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -37,6 +37,7 @@ public partial class MyIconTextButton
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
     private double _LogoScale = 1d;
+    private string _SvgIcon = string.Empty;
     private bool isMouseDown;
 
     // 基础
@@ -59,13 +60,31 @@ public partial class MyIconTextButton
 
     public string Logo
     {
-        get => ShapeLogo.Data.ToString();
+        get => ShapeLogo.Data?.ToString() ?? string.Empty;
         set
         {
             if (ShapeLogo is null) return;
             ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
+            SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
         }
     }
+
+    public string SvgIcon
+    {
+        get => _SvgIcon;
+        set
+        {
+            if ((value ?? string.Empty) == _SvgIcon)
+                return;
+            _SvgIcon = value ?? string.Empty;
+            if (ShapeLogo is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
+            RefreshColor();
+        }
+    }
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(_SvgIcon);
 
     public double LogoScale
     {
@@ -73,8 +92,8 @@ public partial class MyIconTextButton
         set
         {
             _LogoScale = value;
-            if (ShapeLogo is not null)
-                ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            if (LogoHost is not null)
+                LogoHost.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
     }
 
@@ -115,12 +134,21 @@ public partial class MyIconTextButton
 
     private void StartForegroundAnimation(string resourceKey, int duration)
     {
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
-                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
-            }, CheckedAnimationKey);
+        if (IsUsingSvgIcon)
+        {
+            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration);
+            ModAnimation.AniStart(ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
+                CheckedAnimationKey);
+        }
+        else
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
+                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
+                }, CheckedAnimationKey);
+        }
     }
 
     private void StartBackgroundAnimation(string resourceKey, int duration)
@@ -190,7 +218,7 @@ public partial class MyIconTextButton
                 ModAnimation.AniStop(ColorAnimationKey);
                 Background = ThemeManager.colorSemiTransparent;
                 var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
-                ShapeLogo.SetResourceReference(Shape.FillProperty, foregroundKey);
+                SvgIconControlHelper.SetIconResource(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon, foregroundKey);
                 LabText.SetResourceReference(TextBlock.ForegroundProperty, foregroundKey);
             }
         }
