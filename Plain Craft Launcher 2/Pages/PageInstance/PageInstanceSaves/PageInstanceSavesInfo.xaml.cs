@@ -37,8 +37,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
             ClearInfoTable();
             PanSettingsList.Children.Clear();
             PanSettingsList.RowDefinitions.Clear();
-            foreach (var h in new[] { Hintversion1_9, Hintversion1_8, Hintversion1_3 })
-                h.Visibility = Visibility.Collapsed;
+            Hintversion1_9.Visibility = Visibility.Collapsed;
+            Hintversion1_8.Visibility = Visibility.Collapsed;
+            Hintversion1_3.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
 
             var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct);
@@ -90,8 +91,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
             ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox);
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
-            foreach (var h in new[] { Hintversion1_9, Hintversion1_8, Hintversion1_3 })
-                h.Visibility = Visibility.Collapsed;
+            Hintversion1_9.Visibility = Visibility.Collapsed;
+            Hintversion1_8.Visibility = Visibility.Collapsed;
+            Hintversion1_3.Visibility = Visibility.Collapsed;
         }
     }
 
