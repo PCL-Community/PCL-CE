@@ -768,7 +768,7 @@ public partial class PageInstanceOverall
                                             ".jar");
                     core.AddToCore(userInput);
                     ModMain.Hint(Lang.Text("Instance.Overall.Patch.Success"), ModMain.HintType.Finish);
-                    Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.instance] = true;
+                    Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.instance.PathInstance] = true;
                 });
                 break;
             }
