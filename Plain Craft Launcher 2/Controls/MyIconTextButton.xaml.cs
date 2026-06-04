@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -38,6 +38,7 @@ public partial class MyIconTextButton
 
     private double _LogoScale = 1d;
     private string _SvgIcon = string.Empty;
+    private bool _hasLegacyLogo;
     private bool isMouseDown;
 
     // 基础
@@ -47,6 +48,7 @@ public partial class MyIconTextButton
     public MyIconTextButton()
     {
         InitializeComponent();
+        RefreshLogoHostVisibility();
 
         MouseLeftButtonUp += (_, _) => MyIconTextButton_MouseUp();
         MouseLeftButtonDown += (_, _) => MyIconTextButton_MouseDown();
@@ -64,8 +66,12 @@ public partial class MyIconTextButton
         set
         {
             if (ShapeLogo is null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
+            _hasLegacyLogo = !string.IsNullOrWhiteSpace(value);
+            ShapeLogo.Data = _hasLegacyLogo
+                ? (Geometry)new GeometryConverter().ConvertFromString(value)!
+                : null;
             SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshLogoHostVisibility();
         }
     }
 
@@ -81,6 +87,7 @@ public partial class MyIconTextButton
                 return;
             SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
             ApplyLogoScale();
+            RefreshLogoHostVisibility();
             RefreshColor();
         }
     }
@@ -89,9 +96,38 @@ public partial class MyIconTextButton
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
+    private bool HasAnyIcon => IsUsingSvgIcon || _hasLegacyLogo;
+
     private void ApplyLogoScale()
     {
-        LogoHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+        LogoHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshLogoHostVisibility()
+    {
+        if (LogoHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 16;
+            LogoHost.Height = 16;
+            LogoHost.Margin = new Thickness(12, 0, 0, 0);
+            LabText.Margin = new Thickness(7, 0, 12, 1);
+        }
+        else
+        {
+            LogoHost.Visibility = Visibility.Collapsed;
+            LogoHost.Width = 0;
+            LogoHost.Height = 16;
+            LogoHost.Margin = new Thickness(0);
+            LabText.Margin = new Thickness(12, 0, 12, 1);
+        }
     }
 
     public double LogoScale

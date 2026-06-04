@@ -41,6 +41,7 @@ public partial class MyRadioButton
     private ColorState _ColorType = ColorState.White;
     private double _LogoScale = 1d;
     private string _SvgIcon = string.Empty;
+    private bool _hasLegacyLogo;
     private bool isMouseDown;
 
     // 基础
@@ -50,12 +51,12 @@ public partial class MyRadioButton
     public MyRadioButton()
     {
         InitializeComponent();
+        RefreshLogoHostVisibility();
 
         Loaded += (_, _) =>
         {
-            if (LabText is not null)
-                LabText.Text = (string)GetValue(TextProperty);
-            
+            LabText?.Text = (string)GetValue(TextProperty);
+
             ThemeService.ColorModeChanged += OnColorModeChanged;
             ThemeService.ColorThemeChanged += OnColorThemeChanged;
         };
@@ -76,13 +77,14 @@ public partial class MyRadioButton
 
     private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
     {
-        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+        Dispatcher.Invoke(RefreshMyRadioButtonColor);
     }
+
     private void OnColorThemeChanged(ColorTheme theme)
     {
-        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+        Dispatcher.Invoke(RefreshMyRadioButtonColor);
     }
-    
+
     // 自定义属性
 
     public string Logo
@@ -91,8 +93,12 @@ public partial class MyRadioButton
         set
         {
             if (ShapeLogo is null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            _hasLegacyLogo = !string.IsNullOrWhiteSpace(value);
+            ShapeLogo.Data = _hasLegacyLogo
+                ? (Geometry)new GeometryConverter().ConvertFromString(value)
+                : null;
             SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshLogoHostVisibility();
         }
     }
 
@@ -108,6 +114,7 @@ public partial class MyRadioButton
                 return;
             SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, _SvgIcon);
             ApplyLogoScale();
+            RefreshLogoHostVisibility();
             RefreshColor();
         }
     }
@@ -116,10 +123,36 @@ public partial class MyRadioButton
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
+    private bool HasAnyIcon => IsUsingSvgIcon || _hasLegacyLogo;
+
     private void ApplyLogoScale()
     {
-        if (LogoHost is not null)
-            LogoHost.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+        LogoHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshLogoHostVisibility()
+    {
+        if (LogoHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 16;
+        }
+        else
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 0;
+        }
+
+        LogoHost.Height = 16;
+        LogoHost.Margin = new Thickness(12, 0, 0, 0);
+        LabText.Margin = new Thickness(8, 0, 12, 0);
     }
 
     public double LogoScale

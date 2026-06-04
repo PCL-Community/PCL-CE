@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -34,6 +34,14 @@ public partial class MyIconButton
     // 自定义属性
 
     public int Uuid = ModBase.GetUuid();
+
+    protected override Size MeasureOverride(Size constraint)
+    {
+        var measured = base.MeasureOverride(constraint);
+        if (double.IsNaN(Width) && !double.IsNaN(Height) && Height > 0D && !double.IsInfinity(Height))
+            return new Size(Height, Height);
+        return measured;
+    }
 
     public MyIconButton()
     {

@@ -1,40 +1,64 @@
 <local:MyPageLeft x:Class="PCL.PageToolsLeft"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:PCL"
-      mc:Ignorable="d">
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:PCL"
+                  mc:Ignorable="d">
     <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
-        
-        <TextBlock Text="{DynamicResource Tools.Left.Multiplayer}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameLinkCategory"/>  
 
-        <local:MyListItem x:Name="ItemGameLink" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1"
+        <TextBlock Text="{DynamicResource Tools.Left.Multiplayer}"
+                   Margin="13,5,5,3"
+                   Opacity="0.6" FontSize="12"
+                   x:Name="TextGameLinkCategory" />
+
+        <local:MyListItem x:Name="ItemGameLink"
+                          IsScaleAnimationEnabled="False"
+                          Type="RadioBox" Tag="1"
                           Check="PageCheck"
-                          MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Tools.Left.Lobby}"  
+                          MinPaddingRight="35" Height="36"
+                          VerticalAlignment="Top"
+                          Title="{DynamicResource Tools.Left.Lobby}"
                           LogoScale="0.85"
-                          SvgIcon="lucide/bubbles">
+                          SvgIcon="lucide/link-2">
             <local:MyListItem.Buttons>
                 <x:Array Type="{x:Type local:MyIconButton}">
-                    <local:MyIconButton Tag="1" ToolTip="{DynamicResource Common.Action.Refresh}" ToolTipService.Placement="Right"
-                                        ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
-                                        LogoScale="0.85" Click="Refresh"
+                    <local:MyIconButton Tag="1"
+                                        ToolTip="{DynamicResource Common.Action.Refresh}"
+                                        ToolTipService.Placement="Right"
+                                        ToolTipService.InitialShowDelay="200"
+                                        ToolTipService.VerticalOffset="-1"
+                                        LogoScale="0.85"
+                                        Click="Refresh"
                                         SvgIcon="lucide/refresh-cw" />
                 </x:Array>
             </local:MyListItem.Buttons>
         </local:MyListItem>
-        
-        <TextBlock Text="{DynamicResource Tools.Left.Utilities}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextToolsCategory"/>  
-        <local:MyListItem x:Name="ItemTest" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="3" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Tools.Left.Utilities.Title}" Check="PageCheck"  
-                          LogoScale="0.9" SvgIcon="lucide/package" />
 
-        <local:MyListItem x:Name="ItemLauncherHelp" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="2" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Tools.Left.Help}" Check="PageCheck"  
+        <TextBlock Text="{DynamicResource Tools.Left.Utilities}" Margin="13,5,5,3" Opacity="0.6" FontSize="12"
+                   x:Name="TextToolsCategory" />
+        <local:MyListItem x:Name="ItemTest"
+                          IsScaleAnimationEnabled="False"
+                          Type="RadioBox" Tag="3"
+                          MinPaddingRight="35" Height="36"
+                          VerticalAlignment="Top"
+                          Title="{DynamicResource Tools.Left.Utilities.Title}" Check="PageCheck"
+                          LogoScale="0.9"
+                          SvgIcon="lucide/tool-case" />
+
+        <local:MyListItem x:Name="ItemLauncherHelp" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="2"
+                          MinPaddingRight="35" Height="36" VerticalAlignment="Top"
+                          Title="{DynamicResource Tools.Left.Help}" Check="PageCheck"
                           LogoScale="0.97" SvgIcon="lucide/circle-help">
             <local:MyListItem.Buttons>
                 <x:Array Type="{x:Type local:MyIconButton}">
-                    <local:MyIconButton Tag="2" ToolTip="{DynamicResource Common.Action.Refresh}" ToolTipService.Placement="Right"
-                                        ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
-                                        Click="Refresh" LogoScale="0.85"
+                    <local:MyIconButton Tag="2"
+                                        ToolTip="{DynamicResource Common.Action.Refresh}"
+                                        ToolTipService.Placement="Right"
+                                        ToolTipService.InitialShowDelay="200"
+                                        ToolTipService.VerticalOffset="-1"
+                                        Click="Refresh"
+                                        LogoScale="0.85"
                                         SvgIcon="lucide/refresh-cw" />
                 </x:Array>
             </local:MyListItem.Buttons>

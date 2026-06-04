@@ -68,7 +68,7 @@
                                     ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
                                     ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
                                     LogoScale="1.15"
-                                    SvgIcon="lucide/circle-check" />
+                                    SvgIcon="lucide/arrow-right-left" />
             </StackPanel>
         </local:MyCard>
     </Grid>

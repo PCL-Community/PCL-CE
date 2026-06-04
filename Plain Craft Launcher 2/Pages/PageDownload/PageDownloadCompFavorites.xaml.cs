@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -317,9 +317,11 @@ public partial class PageDownloadCompFavorites
             }
         };
         // 删除按钮
-        var btn_Delete = new MyIconButton();
-        btn_Delete.SvgIcon = "lucide/heart";
-        btn_Delete.ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite");
+        var btn_Delete = new MyIconButton
+        {
+            SvgIcon = "lucide/heart-filled",
+            ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite")
+        };
         ToolTipService.SetPlacement(btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_Delete, 30d);
         ToolTipService.SetHorizontalOffset(btn_Delete, 2d);
@@ -330,7 +332,7 @@ public partial class PageDownloadCompFavorites
             RefreshCardTitle();
             RefreshBar();
         };
-        compItem.Buttons = new[] { btn_EditNote, btn_Delete };
+        compItem.Buttons = [btn_EditNote, btn_Delete];
         // ---操作逻辑---
         // 右键查看详细信息界面
         if (compItem.Tag is ModComp.CompProject)

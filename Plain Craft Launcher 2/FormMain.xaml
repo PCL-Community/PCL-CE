@@ -250,7 +250,7 @@
                     <local:MyExtraButton x:Name="BtnExtraLog" HorizontalAlignment="Right" VerticalAlignment="Center"
                                          Click="BtnExtraLog_Click"
                                          ToolTip="{DynamicResource Main.Extra.GameLog.ToolTip}" Visibility="Collapsed"
-                                         SvgIcon="lucide/logs" />
+                                         SvgIcon="lucide/scroll-text" />
                     <local:MyExtraButton x:Name="BtnExtraMusic" HorizontalAlignment="Right" VerticalAlignment="Center"
                                          Click="BtnExtraMusic_Click" RightClick="BtnExtraMusic_RightClick"
                                          Visibility="Collapsed" CanRightClick="True" />

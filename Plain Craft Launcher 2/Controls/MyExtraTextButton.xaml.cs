@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -38,6 +38,7 @@ public partial class MyExtraTextButton
     public MyExtraTextButton()
     {
         InitializeComponent();
+        RefreshIconHostVisibility();
 
         Loaded += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
@@ -55,9 +56,12 @@ public partial class MyExtraTextButton
         {
             if ((value ?? "") == (_Logo ?? ""))
                 return;
-            _Logo = value;
-            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            _Logo = value ?? string.Empty;
+            Path.Data = string.IsNullOrWhiteSpace(_Logo)
+                ? null
+                : (Geometry)new GeometryConverter().ConvertFromString(_Logo);
             SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshIconHostVisibility();
         }
     }
 
@@ -73,6 +77,7 @@ public partial class MyExtraTextButton
                 return;
             SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, _SvgIcon);
             ApplyLogoScale();
+            RefreshIconHostVisibility();
         }
     }
 
@@ -80,9 +85,36 @@ public partial class MyExtraTextButton
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
+    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(_Logo);
+
     private void ApplyLogoScale()
     {
-        IconHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+        IconHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshIconHostVisibility()
+    {
+        if (IconHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            IconHost.Visibility = Visibility.Visible;
+            IconHost.Width = 16;
+            IconHost.Margin = new Thickness(2, 12, 0, 12);
+            LabText.Margin = new Thickness(12, 0, 0, 0.8);
+        }
+        else
+        {
+            IconHost.Visibility = Visibility.Collapsed;
+            IconHost.Width = 0;
+            IconHost.Margin = new Thickness(0, 12, 0, 12);
+            LabText.Margin = new Thickness(0, 0, 0, 0.8);
+        }
     }
 
     public double LogoScale

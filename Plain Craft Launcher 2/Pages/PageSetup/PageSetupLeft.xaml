@@ -85,11 +85,15 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
 
-            <local:MyListItem x:Name="ItemLauncherLanguage" IsScaleAnimationEnabled="False" Tag="11" MinPaddingRight="35"
+            <local:MyListItem x:Name="ItemLauncherLanguage"
+                              IsScaleAnimationEnabled="False"
+                              Tag="11" MinPaddingRight="35"
                               Check="PageCheck"
-                              Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.LauncherLanguage.Title}" Type="RadioBox"
+                              Height="36" VerticalAlignment="Top"
+                              Title="{DynamicResource Setup.LauncherLanguage.Title}"
+                              Type="RadioBox"
                               LogoScale="0.95"
-                              SvgIcon="lucide/languages">
+                              SvgIcon="lucide/earth">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="11" ToolTip="{DynamicResource Common.Action.Initialize}" ToolTipService.Placement="Right"

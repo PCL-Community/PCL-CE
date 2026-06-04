@@ -115,7 +115,7 @@
                               Type="RadioBox" MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.ResourcePacks}"
                               Tag="7"
-                              SvgIcon="lucide/image">
+                              SvgIcon="lucide/layers">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="7" ToolTip="{DynamicResource Common.Action.Refresh}"

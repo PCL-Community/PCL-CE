@@ -78,7 +78,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.ResourcePack}"
                               LogoScale="0.81"
-                              SvgIcon="lucide/image">
+                              SvgIcon="lucide/layers">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="5" ToolTip="{DynamicResource Common.Action.Refresh}"
@@ -175,7 +175,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Forge}"
                               LogoScale="1.00"
-                              SvgIcon="lucide/hammer">
+                              SvgIcon="lucide/anvil">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="11" ToolTip="{DynamicResource Common.Action.Refresh}"
@@ -191,7 +191,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.NeoForge}"
                               LogoScale="0.95"
-                              SvgIcon="lucide/anvil">
+                              SvgIcon="lucide/cat">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="12" ToolTip="{DynamicResource Common.Action.Refresh}"
@@ -223,7 +223,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Fabric}"
                               LogoScale="1.02"
-                              SvgIcon="lucide/leaf">
+                              SvgIcon="lucide/scroll">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="14" ToolTip="{DynamicResource Common.Action.Refresh}"
@@ -239,7 +239,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.LegacyFabric}"
                               LogoScale="1.02"
-                              SvgIcon="lucide/leaf">
+                              SvgIcon="lucide/scroll">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="18" ToolTip="{DynamicResource Common.Action.Refresh}"

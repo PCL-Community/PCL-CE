@@ -97,9 +97,10 @@ public class SvgIcon : FrameworkElement
 
         var animation = new NColorFromToAnimation
         {
+            Name = "SvgIconColor",
             To = color,
             Duration = duration ?? TimeSpan.FromMilliseconds(120),
-            Easing = easing ?? new CubicEaseOut()
+            Easing = easing ?? CubicEaseOut.Shared
         };
 
         return animation.RunFireAndForget(new WpfAnimatable(this, IconBrushProperty));

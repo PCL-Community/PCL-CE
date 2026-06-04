@@ -89,67 +89,68 @@ public partial class PageSelectLeft : IRefreshable
                     contMenu.Items.Add(item);
                 }
 
-                const string ICON_RENAME = "lucide/pencil";
-                const string ICON_MOVEUP = "lucide/chevron-up";
-                const string ICON_MOVEDOWN = "lucide/chevron-down";
-                const string ICON_OPEN = "lucide/folder-open";
-                const string ICON_REFRESH = "lucide/refresh-cw";
-                const string ICON_DELETE = "lucide/trash-2";
-                const string ICON_REMOVE = "lucide/unlink";
+                const string iconRestore = "lucide/rotate-ccw";
+                const string iconRename = "lucide/pencil";
+                const string iconMoveup = "lucide/move-up";
+                const string iconMovedown = "lucide/move-down";
+                const string iconOpen = "lucide/folder-open";
+                const string iconRefresh = "lucide/refresh-cw";
+                const string iconDelete = "lucide/trash-2";
+                const string iconRemove = "lucide/list-x";
 
                 switch (folder.type)
                 {
                     case ModMinecraft.McFolder.Types.Original:
-                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), ICON_RENAME, new Thickness(0, 2, 0, 0),
+                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), iconRename, new Thickness(0, 2, 0, 0),
                             ModMain.frmSelectLeft.Rename_Click);
-                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), ICON_MOVEUP, null,
+                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), iconMoveup, null,
                             ModMain.frmSelectLeft.MoveUp_Click);
-                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), ICON_MOVEDOWN, null,
+                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), iconMovedown, null,
                             ModMain.frmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null,
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), iconOpen, null,
                             ModMain.frmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null,
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), iconRefresh, null,
                             ModMain.frmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
                             ModMinecraft.mcFolderList.Count == 1 &&
                             folder.Location == Path.Combine(ModBase.exePath, ".minecraft") + @"\"
                                 ? Lang.Text("Select.Folder.Clear")
-                                : Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2),
+                                : Lang.Text("Common.Action.Delete"), iconDelete, new Thickness(0, 0, 0, 2),
                             ModMain.frmSelectLeft.Delete_Click);
                         break;
 
                     case ModMinecraft.McFolder.Types.RenamedOriginal:
-                        AddMenuItem("Restore", Lang.Text("Select.Folder.RestoreName"), ICON_RENAME,
+                        AddMenuItem("Restore", Lang.Text("Select.Folder.RestoreName"), iconRestore,
                             new Thickness(0, 2, 0, 0),
                             ModMain.frmSelectLeft.Restore_Click);
-                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), ICON_RENAME, null,
+                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), iconRename, null,
                             ModMain.frmSelectLeft.Rename_Click);
-                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), ICON_MOVEUP, null,
+                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), iconMoveup, null,
                             ModMain.frmSelectLeft.MoveUp_Click);
-                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), ICON_MOVEDOWN, null,
+                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), iconMovedown, null,
                             ModMain.frmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null,
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), iconOpen, null,
                             ModMain.frmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null,
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), iconRefresh, null,
                             ModMain.frmSelectLeft.Refresh_Click);
-                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2),
+                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), iconDelete, new Thickness(0, 0, 0, 2),
                             ModMain.frmSelectLeft.Delete_Click);
                         break;
 
                     case ModMinecraft.McFolder.Types.Custom:
-                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), ICON_RENAME, new Thickness(0, 2, 0, 0),
+                        AddMenuItem("Rename", Lang.Text("Select.Folder.Rename"), iconRename, new Thickness(0, 2, 0, 0),
                             ModMain.frmSelectLeft.Rename_Click);
-                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), ICON_MOVEUP, null,
+                        AddMenuItem("MoveUp", Lang.Text("Select.Folder.MoveUp"), iconMoveup, null,
                             ModMain.frmSelectLeft.MoveUp_Click);
-                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), ICON_MOVEDOWN, null,
+                        AddMenuItem("MoveDown", Lang.Text("Select.Folder.MoveDown"), iconMovedown, null,
                             ModMain.frmSelectLeft.MoveDown_Click);
-                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), ICON_OPEN, null,
+                        AddMenuItem("Open", Lang.Text("Common.Action.Open"), iconOpen, null,
                             ModMain.frmSelectLeft.Open_Click);
-                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), ICON_REFRESH, null,
+                        AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), iconRefresh, null,
                             ModMain.frmSelectLeft.Refresh_Click);
-                        AddMenuItem("Remove", Lang.Text("Select.Folder.RemoveFromList"), ICON_REMOVE,
+                        AddMenuItem("Remove", Lang.Text("Select.Folder.RemoveFromList"), iconRemove,
                             null, ModMain.frmSelectLeft.Remove_Click);
-                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), ICON_DELETE, new Thickness(0, 0, 0, 2),
+                        AddMenuItem("Delete", Lang.Text("Common.Action.Delete"), iconDelete, new Thickness(0, 0, 0, 2),
                             ModMain.frmSelectLeft.Delete_Click);
                         break;
                 }

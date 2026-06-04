@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -427,7 +427,7 @@ public partial class PageSelectRight
             ToolTipService.SetVerticalOffset(btnStar, 30d);
             ToolTipService.SetHorizontalOffset(btnStar, 2d);
             btnStar.LogoScale = 1.1d;
-            btnStar.SvgIcon = "lucide/heart";
+            btnStar.SvgIcon = "lucide/heart-filled";
         }
         else
         {

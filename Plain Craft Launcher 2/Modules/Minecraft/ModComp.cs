@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -321,7 +321,7 @@ public static class ModComp
                 if (hasFavs)
                 {
                     item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
-                    item.SvgIcon = "lucide/heart";
+                    item.SvgIcon = "lucide/heart-filled";
                 }
                 else
                 {
@@ -371,7 +371,8 @@ public static class ModComp
                 var item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name)
+                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name),
+                    SvgIcon = "lucide/heart"
                 };
                 item.Click += (_, _) =>
                 {
@@ -1665,7 +1666,7 @@ public static class ModComp
 
                     if (!showMcVersionDesc && !showLoaderDesc)
                     {
-                        ((Grid)newItem.PathVersion.Parent).Children.Remove(newItem.PathVersion);
+                        ((Grid)newItem.SvgIconVersion.Parent).Children.Remove(newItem.SvgIconVersion);
                         ((Grid)newItem.LabVersion.Parent).Children.Remove(newItem.LabVersion);
                         newItem.ColumnVersion1.Width = new GridLength(0);
                         newItem.ColumnVersion2.MaxWidth = 0;

@@ -1,42 +1,12 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
-    xmlns:svg="clr-namespace:PCL.Core.UI.Icons.Svg;assembly=PCL.Core" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSpeedRight"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
-        <StackPanel x:Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
-            <!--<local:MyCard Title="UI 的示例下载任务">
-                <Grid Margin="25,40,15,10" Height="156">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="45" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="26" />
-                        <RowDefinition Height="26" />
-                        <RowDefinition Height="26" />
-                        <RowDefinition Height="26" />
-                        <RowDefinition Height="26" />
-                        <RowDefinition Height="26" />
-                    </Grid.RowDefinitions>
-                    <svg:SvgIcon Icon="lucide/check" Height="16" Width="16" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="0" IconBrush="{DynamicResource ColorBrush3}" Margin="0,2.5,14,0" VerticalAlignment="Top" />
-                    <TextBlock Text="完成了的分任务" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="0" />
-                    <svg:SvgIcon Icon="lucide/x" Height="15" Width="15" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="1" IconBrush="{DynamicResource ColorBrush3}" Margin="0,1,14,0" VerticalAlignment="Top" />
-                    <TextBlock Text="搞定" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" />
-                    <TextBlock Text="98%" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="2" Foreground="{DynamicResource ColorBrush3}" Margin="0,0.5,14,0" />
-                    <TextBlock Text="正在进行中的分任务示例" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="2" />
-                    <svg:SvgIcon Icon="lucide/ellipsis" Width="18" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="3" IconBrush="{DynamicResource ColorBrush3}" Margin="0,7,14,0" VerticalAlignment="Top" Height="6" />
-                    <TextBlock Text="还没开始" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="3" />
-                    <svg:SvgIcon Icon="lucide/ellipsis" Width="16" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="4" IconBrush="{DynamicResource ColorBrush3}" Margin="0,7.5,14,0" VerticalAlignment="Top" Height="6" />
-                    <TextBlock Text="等待中 = 摸鱼" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="4" />
-                    <svg:SvgIcon Icon="lucide/ellipsis" Width="16" HorizontalAlignment="Center" Grid.Column="0" Grid.Row="5" IconBrush="{DynamicResource ColorBrush3}" Margin="0,7.5,14,0" VerticalAlignment="Top" Height="6" />
-                    <TextBlock Text="摸鱼一时爽，一直摸鱼一直爽" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="5" />
-                </Grid>
-                <local:MyIconButton SvgIcon="lucide/x" Height="20" Margin="0,10,10,0" ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-10" ToolTip="取消" LogoScale="1.1" HorizontalAlignment="Right" VerticalAlignment="Top" />
-            </local:MyCard> -->
-        </StackPanel>
+        <StackPanel x:Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True" />
     </local:MyScrollViewer>
 </local:MyPageRight>
