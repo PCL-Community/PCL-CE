@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.UI.Icons.Svg;
+using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
 
@@ -582,7 +582,7 @@ public partial class MyListItem : IMyRadio
                 VerticalAlignment = VerticalAlignment.Stretch
             };
             ((SvgIcon)pathLogo).SetBinding(
-                Core.UI.Icons.Svg.SvgIcon.IconBrushProperty,
+                Core.UI.Controls.SvgIcon.SvgIcon.IconBrushProperty,
                 new Binding("Foreground") { Source = this });
         }
         else if (!string.IsNullOrEmpty(logo))

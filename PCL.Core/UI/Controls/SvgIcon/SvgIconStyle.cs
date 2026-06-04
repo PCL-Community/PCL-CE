@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal sealed record SvgIconStyle
 {

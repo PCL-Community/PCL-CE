@@ -4,7 +4,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.App;
-using PCL.Core.UI.Icons.Svg;
+using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
 
@@ -100,7 +100,7 @@ public class MyMenuItem : MenuItem
             IsHitTestVisible = false,
             Visibility = Visibility.Collapsed
         };
-        _svgIconControl.SetBinding(Core.UI.Icons.Svg.SvgIcon.IconBrushProperty,
+        _svgIconControl.SetBinding(Core.UI.Controls.SvgIcon.SvgIcon.IconBrushProperty,
             new Binding(nameof(Foreground)) { Source = this });
 
         if (VisualTreeHelper.GetParent(iconControl) is not Grid grid) return;

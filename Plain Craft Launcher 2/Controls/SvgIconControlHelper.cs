@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.UI;
-using PCL.Core.UI.Icons.Svg;
+using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
 

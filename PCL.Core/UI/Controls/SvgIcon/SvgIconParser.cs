@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal static class SvgIconParser
 {

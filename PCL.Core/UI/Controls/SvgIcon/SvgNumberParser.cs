@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal static partial class SvgNumberParser
 {

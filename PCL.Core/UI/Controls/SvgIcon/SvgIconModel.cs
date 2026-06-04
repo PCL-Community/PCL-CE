@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal sealed class SvgIconModel
 {

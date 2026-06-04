@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 public static class SvgIconLoader
 {
@@ -14,7 +14,7 @@ public static class SvgIconLoader
     private static readonly string _AssemblyName =
         typeof(SvgIconLoader).Assembly.GetName().Name ?? "PCL.Core";
 
-    private static readonly ConcurrentDictionary<string, Lazy<SvgIconModel?>> _Cache = 
+    private static readonly ConcurrentDictionary<string, Lazy<SvgIconModel?>> _Cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     internal static SvgIconModel? Load(string? icon, string? defaultPack = null)
@@ -36,7 +36,8 @@ public static class SvgIconLoader
     {
         try
         {
-            var uri = new Uri($"pack://application:,,,/{_AssemblyName};component/UI/IconPacks/{key.Pack}/{key.Name}.svg",
+            var uri = new Uri(
+                $"pack://application:,,,/{_AssemblyName};component/UI/Assets/IconPacks/{key.Pack}/{key.Name}.svg",
                 UriKind.Absolute);
             var info = Application.GetResourceStream(uri);
             if (info is null)

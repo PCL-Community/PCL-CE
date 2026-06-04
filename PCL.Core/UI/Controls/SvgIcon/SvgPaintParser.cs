@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Media;
 
-namespace PCL.Core.UI.Icons.Svg;
+namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal static class SvgPaintParser
 {

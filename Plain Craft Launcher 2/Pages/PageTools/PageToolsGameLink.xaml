@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:svg="clr-namespace:PCL.Core.UI.Icons.Svg;assembly=PCL.Core"
+    xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
     mc:Ignorable="d" x:Class="PCL.PageToolsGameLink"
     d:DesignWidth="800" d:DesignHeight="800">
     <Grid>
@@ -108,7 +108,7 @@
                                         ToolTip="{DynamicResource Tools.GameLink.Nat.Title}"
                                         ToolTipService.Placement="Center" ToolTipService.InitialShowDelay="100"
                                         ToolTipService.VerticalOffset="-35">
-                                <svg:SvgIcon IsHitTestVisible="False"
+                                <svgIcon:SvgIcon IsHitTestVisible="False"
                                              Width="14" Stretch="Uniform"
                                              IconBrush="{DynamicResource ColorBrushGray1}"
                                              Margin="12,0,7,0"
@@ -125,7 +125,7 @@
                                         ToolTip="{DynamicResource Tools.GameLink.Natayark.Account}"
                                         ToolTipService.Placement="Center"
                                         ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
-                                <svg:SvgIcon IsHitTestVisible="False"
+                                <svgIcon:SvgIcon IsHitTestVisible="False"
                                              Width="14" Stretch="Uniform"
                                              IconBrush="{DynamicResource ColorBrushGray1}"
                                              Margin="12,0,7,0"
