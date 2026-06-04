@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Humanizer;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.UI;
@@ -12,6 +13,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
 {
     /// <summary>无状态服务，线程安全，所有实例可共享。</summary>
     private static readonly SaveManager SaveManager = new();
+
+    /// <summary>防并发冲突</summary>
+    private static readonly SemaphoreSlim WriteLock = new(1, 1);
+
     private CancellationTokenSource? _cts;
 
     public PageInstanceSavesInfo()
@@ -25,7 +30,9 @@ public partial class PageInstanceSavesInfo : IRefreshable
     }
 
     void IRefreshable.Refresh() => Refresh();
-    public void Refresh() => _ = RefreshInfoAsync();
+    public void Refresh() => RefreshInfoAsync().ContinueWith(
+        t => LogWrapper.Warn(t.Exception, "Saves", "刷新存档信息异常"), //only 兜底
+        CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
 
     private async Task RefreshInfoAsync()
     {
@@ -121,10 +128,15 @@ public partial class PageInstanceSavesInfo : IRefreshable
             try
             {
                 if (combo.SelectedValue is null) return;
-                await SaveManager.ApplyChangesAsync(folder, new SaveChanges
+                await WriteLock.WaitAsync();
+                try
                 {
-                    AllowCommands = new Editable<bool>((int)combo.SelectedValue == 1),
-                });
+                    await SaveManager.ApplyChangesAsync(folder, new SaveChanges
+                    {
+                        AllowCommands = new Editable<bool>((int)combo.SelectedValue == 1),
+                    });
+                }
+                finally { WriteLock.Release(); }
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint); }
@@ -168,11 +180,16 @@ public partial class PageInstanceSavesInfo : IRefreshable
             try
             {
                 if (combo.SelectedValue is null) return;
-                await SaveManager.ApplyChangesAsync(folder, new SaveChanges
+                await WriteLock.WaitAsync();
+                try
                 {
-                    Difficulty = new Editable<Difficulty>((Difficulty)(int)combo.SelectedValue),
-                    LockDifficulty = new Editable<bool>(!isHardcore && lockCheckBox.Checked == true),
-                });
+                    await SaveManager.ApplyChangesAsync(folder, new SaveChanges
+                    {
+                        Difficulty = new Editable<Difficulty>((Difficulty)(int)combo.SelectedValue),
+                        LockDifficulty = new Editable<bool>(!isHardcore && lockCheckBox.Checked == true),
+                    });
+                }
+                finally { WriteLock.Release(); }
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint); }
