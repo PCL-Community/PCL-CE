@@ -2416,6 +2416,11 @@
     <sys:String x:Key="Instance.Saves.Info.Modify.BeforeSave">Make sure the save is not open in-game before modifying settings</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.CheatSuccess">Cheat settings modified successfully</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.DifficultySuccess">Difficulty modified successfully</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.CheatFailed">Failed to modify cheat settings</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.DifficultyFailed">Failed to modify difficulty settings</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.LoadFailed">Failed to get save info</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ClipboardFailed">Failed to copy to clipboard</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ChunkbaseFailed">Failed to open Chunkbase</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_9">Unable to get save version for versions below 1.9</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_8">Unable to get save version and difficulty for versions below 1.8</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_3">Unable to get save version, difficulty, and cheat settings for versions below 1.3</sys:String>

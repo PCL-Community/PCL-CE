@@ -87,7 +87,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取存档信息失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox);
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
             foreach (var h in new[] { Hintversion1_9, Hintversion1_8, Hintversion1_3 })
@@ -121,7 +121,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }, ct);
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
             }
-            catch (Exception ex) { ModBase.Log(ex, "作弊设置修改失败", ModBase.LogLevel.Hint); }
+            catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint); }
         };
 
         AddSettingRow(Lang.Text("Instance.Saves.Info.AllowCommands"), combo);
@@ -169,7 +169,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 }, ct);
                 ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
             }
-            catch (Exception ex) { ModBase.Log(ex, "难度设置修改失败", ModBase.LogLevel.Hint); }
+            catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint); }
         }
 
         combo.SelectionChanged += async (_, _) => await ApplyAsync();
@@ -219,7 +219,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
             seedBtn.Click += (_, _) =>
             {
                 try { ModBase.ClipboardSet(content); }
-                catch (Exception ex) { ModBase.Log(ex, "复制到剪贴板失败", ModBase.LogLevel.Hint); }
+                catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"), ModBase.LogLevel.Hint); }
             };
             contentStack.Children.Add(seedBtn);
 
@@ -287,9 +287,6 @@ public partial class PageInstanceSavesInfo : IRefreshable
             ModBase.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "跳转到 Chunkbase 失败", ModBase.LogLevel.Hint);
-        }
+        catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"), ModBase.LogLevel.Hint); }
     }
 }
