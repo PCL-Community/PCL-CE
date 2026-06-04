@@ -36,8 +36,6 @@ public partial class MyHint
             f.LabText.Text = (string)e.NewValue;
         }));
 
-    private Themes _ColorType = Themes.Red;
-
     // 触发点击事件
     private bool isMouseDown;
     public int Uuid = ModBase.GetUuid();
@@ -61,22 +59,25 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d),
-                    ModBase.GetWPFSize(1d));
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d))
+                    : new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
             else
-                BorderThickness = new Thickness(3d, 0d, 0d, 0d);
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(0d, 0d, 3d, 0d)
+                    : new Thickness(3d, 0d, 0d, 0d);
         }
     }
 
     public Themes Theme
     {
-        get => _ColorType;
+        get => field;
         set
         {
-            _ColorType = value;
+            field = value;
             UpdateUI();
         }
-    }
+    } = Themes.Red;
 
     [Obsolete("IsWarn 已过时。请换用 Theme 属性。")]
     public bool IsWarn
@@ -130,6 +131,10 @@ public partial class MyHint
         BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+
+        // 根据提示气泡对齐方向刷新边框
+        // 此处依赖 HasBorder 的副作用进行范围检查
+        HasBorder = HasBorder;
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)

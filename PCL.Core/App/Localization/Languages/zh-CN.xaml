@@ -1392,6 +1392,8 @@
     <sys:String x:Key="Setup.Ui.Basic.ShowLogo">打开启动器时显示 PCL 图标</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">锁定启动器大小</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">在启动游戏时显示"你知道吗"</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight">弹出提示靠右显示</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight.Changed">切换成功！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高级材质</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">启用此功能后会在部分透明区域（例如卡片）实现模糊效果。&#x0a;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlurRadius">模糊半径</sys:String>

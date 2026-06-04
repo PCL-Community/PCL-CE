@@ -36,7 +36,6 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
-    private double _LogoScale = 1d;
     private string _SvgIcon = string.Empty;
     private bool _hasLegacyLogo;
     private bool isMouseDown;
@@ -132,13 +131,13 @@ public partial class MyIconTextButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public InlineCollection Inlines => LabText.Inlines;
 

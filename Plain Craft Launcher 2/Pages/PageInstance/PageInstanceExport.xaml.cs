@@ -386,10 +386,10 @@ public partial class PageInstanceExport : IRefreshable
     /// </summary>
     private List<string> RulesOverrides
     {
-        get => _RulesOverrides;
+        get => field;
         set
         {
-            _RulesOverrides = value;
+            field = value;
             if (value is null)
             {
                 BtnOverrideCancel.Visibility = Visibility.Collapsed;
@@ -407,8 +407,6 @@ public partial class PageInstanceExport : IRefreshable
             }
         }
     }
-
-    private List<string> _RulesOverrides;
 
     /// <summary>
     ///     获取当前实际生效的所有规则。

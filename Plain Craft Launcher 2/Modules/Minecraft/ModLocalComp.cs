@@ -496,12 +496,12 @@ public static class ModLocalComp
         {
             get
             {
-                if (_tags is null)
+                if (field is null)
                 {
-                    _tags = new List<string>();
+                    field = new List<string>();
                     if (IsFolder)
                     {
-                        _tags.Add("文件夹");
+                        field.Add("文件夹");
                     }
                     else
                     {
@@ -510,29 +510,27 @@ public static class ModLocalComp
                         {
                             case ".litematic":
                             {
-                                _tags.Add("原理图");
+                                field.Add("原理图");
                                 break;
                             }
                             case ".schem":
                             case ".schematic":
                             {
-                                _tags.Add("Schematic结构");
+                                field.Add("Schematic结构");
                                 break;
                             }
                             case ".nbt":
                             {
-                                _tags.Add("原版结构");
+                                field.Add("原版结构");
                                 break;
                             }
                         }
                     }
                 }
 
-                return _tags;
+                return field;
             }
         }
-
-        private List<string> _tags;
 
         /// <summary>
         ///     Mod 的版本，不保证符合版本格式规范。
@@ -598,17 +596,15 @@ public static class ModLocalComp
         {
             get
             {
-                if (_Url is null)
+                if (field is null)
                     Load();
-                return _Url;
+                return field;
             }
             set
             {
-                if (_Url is null && value is not null && value.StartsWithF("http")) _Url = value;
+                if (field is null && value is not null && value.StartsWithF("http")) field = value;
             }
         }
-
-        private string _Url;
 
         /// <summary>
         ///     Mod 的作者列表。
@@ -1682,15 +1678,13 @@ public static class ModLocalComp
         /// </summary>
         public CompProject Comp
         {
-            get => _Comp;
+            get => field;
             set
             {
-                _Comp = value;
+                field = value;
                 OnCompUpdate?.Invoke(this);
             }
         }
-
-        private CompProject _Comp;
 
         /// <summary>
         ///     本地文件对应的联网文件信息。
@@ -1702,15 +1696,13 @@ public static class ModLocalComp
         /// </summary>
         public CompFile UpdateFile
         {
-            get => _UpdateFile;
+            get => field;
             set
             {
-                _UpdateFile = value;
+                field = value;
                 OnCompUpdate?.Invoke(this);
             }
         }
-
-        private CompFile _UpdateFile;
 
         /// <summary>
         ///     该 Mod 的更新日志网址。
@@ -1849,7 +1841,7 @@ public static class ModLocalComp
         {
             get
             {
-                if (_ModrinthHash is null)
+                if (field is null)
                 {
                     // 读取缓存
                     var info = new FileInfo(path);
@@ -1858,21 +1850,19 @@ public static class ModLocalComp
                     var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
                     if (!string.IsNullOrEmpty(cached))
                     {
-                        _ModrinthHash = cached;
-                        return _ModrinthHash;
+                        field = cached;
+                        return field;
                     }
 
                     // 计算 SHA1
-                    _ModrinthHash = ModBase.GetFileSHA1(path);
+                    field = ModBase.GetFileSHA1(path);
                     // 写入缓存
-                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, _ModrinthHash);
+                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, field);
                 }
 
-                return _ModrinthHash;
+                return field;
             }
         }
-
-        private string _ModrinthHash;
 
         #endregion
 

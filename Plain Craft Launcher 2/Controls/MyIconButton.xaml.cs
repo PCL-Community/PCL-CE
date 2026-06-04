@@ -23,9 +23,6 @@ public partial class MyIconButton
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
 
-    private SolidColorBrush _Foreground = new(Color.FromRgb(128, 128, 128));
-
-    private double _LogoScale = 1d;
     private string _SvgIcon = string.Empty;
 
     //鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
@@ -94,27 +91,27 @@ public partial class MyIconButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public Themes Theme { get; set; } = Themes.Color;
 
     public SolidColorBrush Foreground
     {
-        get => _Foreground;
+        get => field;
         set
         {
-            _Foreground = value;
+            field = value;
             ModAnimation.AniControlEnabled += 1;
             RefreshAnim();
             ModAnimation.AniControlEnabled -= 1;
         }
-    }
+    } = new(Color.FromRgb(128, 128, 128));
 
     private string ColorAnimationKey => "MyIconButton Color " + Uuid;
 

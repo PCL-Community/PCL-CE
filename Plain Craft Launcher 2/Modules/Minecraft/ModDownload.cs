@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -227,30 +227,29 @@ public static class ModDownload
         {
             lock (_allDropsLock)
             {
-                if (_allDrops is null)
+                if (field is null)
                 {
                     var rawData = States.Game.Drops;
                     if (string.IsNullOrEmpty(rawData))
-                        _allDrops = new List<int>();
+                        field = new List<int>();
                     else
-                        _allDrops = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                        field = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                             .Select(d => (int)Math.Round(ModBase.Val(d))).ToList();
                 }
 
-                return _allDrops.Count != 0 ? _allDrops : null;
+                return field.Count != 0 ? field : null;
             }
         }
         set
         {
             lock (_allDropsLock)
             {
-                _allDrops = value;
+                field = value;
                 States.Game.Drops = value.Join(",");
             }
         }
     }
 
-    private static List<int> _allDrops;
     private static readonly object _allDropsLock = new();
 
     // 主加载器
@@ -546,8 +545,6 @@ public static class ModDownload
 
     public class DlOptiFineListEntry
     {
-        private string _inherit;
-
         /// <summary>
         ///     显示名称，已去除 HD_U 字样，如“1.12.2 C8”。
         /// </summary>
@@ -583,12 +580,12 @@ public static class ModDownload
         /// </summary>
         public string Inherit
         {
-            get => _inherit;
+            get => field;
             set
             {
                 if (value.EndsWithF(".0"))
                     value = value.Substring(0, value.Length - 2);
-                _inherit = value;
+                field = value;
             }
         }
     }

@@ -17,12 +17,7 @@ public partial class MyExtraButton
     // 务必放在 IsMouseDown 更新之后
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
-    private string _Logo = "";
-    private double _LogoScale = 1d;
 
-    // 进度条
-    private double _Progress;
-    private bool _Show;
     private string _SvgIcon = string.Empty;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
@@ -43,12 +38,12 @@ public partial class MyExtraButton
 
     public double Progress
     {
-        get => _Progress;
+        get => field;
         set
         {
-            if (_Progress == value)
+            if (field == value)
                 return;
-            _Progress = value;
+            field = value;
             if (value < 0.0001d)
             {
                 PanProgress.Visibility = Visibility.Collapsed;
@@ -63,16 +58,16 @@ public partial class MyExtraButton
 
     public string Logo
     {
-        get => _Logo;
+        get => field;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value;
+            field = value;
             Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
             SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
         }
-    }
+    } = "";
 
     public string SvgIcon
     {
@@ -95,22 +90,22 @@ public partial class MyExtraButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public bool Show
     {
-        get => _Show;
+        get => field;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)

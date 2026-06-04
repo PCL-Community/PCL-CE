@@ -22,11 +22,6 @@ public partial class MyExtraTextButton
             if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
-    private string _Logo = "";
-    private double _LogoScale = 1d;
-
-    // 动画
-    private bool _Show;
     private string _SvgIcon = string.Empty;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
@@ -51,15 +46,15 @@ public partial class MyExtraTextButton
 
     public string Logo
     {
-        get => _Logo;
+        get => field;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value ?? string.Empty;
-            Path.Data = string.IsNullOrWhiteSpace(_Logo)
+            field = value ?? string.Empty;
+            Path.Data = string.IsNullOrWhiteSpace(value)
                 ? null
-                : (Geometry)new GeometryConverter().ConvertFromString(_Logo);
+                : (Geometry)new GeometryConverter().ConvertFromString(value);
             SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
             RefreshIconHostVisibility();
         }
@@ -85,7 +80,7 @@ public partial class MyExtraTextButton
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
-    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(_Logo);
+    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(field);
 
     private void ApplyLogoScale()
     {
@@ -115,17 +110,17 @@ public partial class MyExtraTextButton
             IconHost.Margin = new Thickness(0, 12, 0, 12);
             LabText.Margin = new Thickness(0, 0, 0, 0.8);
         }
-    }
+    } = "";
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     // 显示文本
     public InlineCollection Inlines => LabText.Inlines;
@@ -142,12 +137,12 @@ public partial class MyExtraTextButton
 
     public bool Show
     {
-        get => _Show;
+        get => field;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)

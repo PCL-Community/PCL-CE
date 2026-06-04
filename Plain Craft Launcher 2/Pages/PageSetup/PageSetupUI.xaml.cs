@@ -54,6 +54,7 @@ public partial class PageSetupUI
             ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
             ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
+            CheckHintAlignRight.Checked = Config.Preference.HintAlignRight;
 
             // 字体设置
             ComboUiFont.SelectedFontTag = Config.Preference.Font;
@@ -232,6 +233,7 @@ public partial class PageSetupUI
 
             case "UiLauncherLogo": Config.Preference.ShowStartupLogo = (bool)value; break;
             case "UiShowLaunchingHint": Config.Preference.ShowLaunchingHint = (bool)value; break;
+            case "UiHintAlignRight": Config.Preference.HintAlignRight = (bool)value; ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed")); break;
             case "UiLockWindowSize": Config.Preference.LockWindowSize = (bool)value; break;
             case "UiBlur": Config.Preference.Blur.IsEnabled = (bool)value; break;
             case "UiAutoPauseVideo": Config.Preference.Background.AutoPauseVideo = (bool)value; break;
@@ -729,17 +731,15 @@ public partial class PageSetupUI
 
     #region 功能隐藏
 
-    private static bool _HiddenForceShow;
-
     /// <summary>
     ///     是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
-        get => _HiddenForceShow;
+        get => field;
         set
         {
-            _HiddenForceShow = value;
+            field = value;
             HiddenRefresh();
         }
     }
