@@ -51,19 +51,19 @@ public class HashCache
     }
 
     public Task<string> GetMD5Async(string filePath) =>
-        _GetHashAsync(filePath, MD5Provider.Instance, "MD5");
+        _GetHashWithPending(filePath, MD5Provider.Instance, "MD5");
 
     public Task<string> GetSHA1Async(string filePath) =>
-        _GetHashAsync(filePath, SHA1Provider.Instance, "SHA1");
+        _GetHashWithPending(filePath, SHA1Provider.Instance, "SHA1");
 
     public Task<string> GetSHA256Async(string filePath) =>
-        _GetHashAsync(filePath, SHA256Provider.Instance, "SHA256");
+        _GetHashWithPending(filePath, SHA256Provider.Instance, "SHA256");
 
     public Task<string> GetSHA512Async(string filePath) =>
-        _GetHashAsync(filePath, SHA512Provider.Instance, "SHA512");
+        _GetHashWithPending(filePath, SHA512Provider.Instance, "SHA512");
 
     public Task<string> GetMurmurHash2Async(string filePath) =>
-        _GetHashAsync(filePath, MurmurHash2Provider.Instance, "MurmurHash2");
+        _GetHashWithPending(filePath, MurmurHash2Provider.Instance, "MurmurHash2");
 
     private static readonly ConcurrentDictionary<string, Task<string>> _FileHashComputePending = new();
 
@@ -79,7 +79,13 @@ public class HashCache
             _ => throw new ArgumentException($"不支持的哈希算法: {provider.GetType().Name}")
         };
         var computeKey = $"{filePath}:{algoName}";
-        return await _FileHashComputePending.GetOrAdd(computeKey, key =>
+        return await _GetHashWithPending(filePath, provider, algoName).ConfigureAwait(false);
+    }
+
+    private Task<string> _GetHashWithPending(string filePath, IHashProvider provider, string algoName)
+    {
+        var computeKey = $"{filePath}:{algoName}";
+        return _FileHashComputePending.GetOrAdd(computeKey, key =>
         {
             var computeTask = _GetHashAsync(filePath, provider, algoName);
             _ = computeTask.ContinueWith(t =>
@@ -87,7 +93,7 @@ public class HashCache
                 _FileHashComputePending.TryRemove(computeKey, out _);
             }, TaskContinuationOptions.ExecuteSynchronously);
             return computeTask;
-        }).ConfigureAwait(false);
+        });
     }
 
     private async Task<string> _GetHashAsync(string filePath, IHashProvider provider, string algoName)
