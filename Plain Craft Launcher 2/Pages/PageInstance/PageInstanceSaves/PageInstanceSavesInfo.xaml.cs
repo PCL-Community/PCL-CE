@@ -187,15 +187,6 @@ public partial class PageInstanceSavesInfo : IRefreshable
         _ => Lang.Text("Instance.Saves.Info.GameMode.Survival"),
     };
 
-    private static string DifficultyName(Difficulty diff) => diff switch
-    {
-        Difficulty.Peaceful => Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"),
-        Difficulty.Easy => Lang.Text("Instance.Saves.Info.Difficulty.Easy"),
-        Difficulty.Normal => Lang.Text("Instance.Saves.Info.Difficulty.Normal"),
-        Difficulty.Hard => Lang.Text("Instance.Saves.Info.Difficulty.Hard"),
-        _ => Lang.Text("Instance.Saves.Info.GetFailed"),
-    };
-
     private static void ShowHint(MyHint hint, string langKey)
     {
         hint.Text = Lang.Text(langKey);
