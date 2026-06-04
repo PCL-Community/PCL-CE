@@ -40,7 +40,7 @@ public class HashCache
 
     private SqliteConnection _CreateConnection()
     {
-        var connection = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
+        var connection = new SqliteConnection($"Data Source={_dbPath};Pooling=True");
         connection.Open();
         return connection;
     }
@@ -88,7 +88,6 @@ public class HashCache
         }
 
         var fileInfo = new FileInfo(fullPath);
-        fileInfo.Refresh();
         var fileSize = fileInfo.Length;
         var lastWrite = fileInfo.LastWriteTimeUtc.ToString("O");
 
@@ -106,6 +105,10 @@ public class HashCache
                 await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computedHash).ConfigureAwait(false);
                 return computedHash;
             }
+            else
+            {
+                await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+            }
         }
 
         var computed = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
@@ -115,7 +118,7 @@ public class HashCache
 
     private static async Task<string> _ComputeHashAsync(string fullPath, IHashProvider provider)
     {
-        using FileStream fs = new(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using FileStream fs = new(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         return (await provider.ComputeHashAsync(fs).ConfigureAwait(false)).ToHexString();
     }
 
@@ -155,6 +158,7 @@ public class HashCache
 
     private async Task _InsertOrUpdateHashAsync(string fullPath, long fileSize, string lastWrite, string algoName, string hash)
     {
+        if (hash.IsNullOrWhiteSpace()) return;
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
