@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -82,6 +83,8 @@ public class MurmurHash2Provider : IHashProvider
         h *= 0x5BD1E995;
         h ^= h >> 15;
 
-        return BitConverter.GetBytes(h);
+        var buf = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(buf, h);
+        return buf;
     }
 }
