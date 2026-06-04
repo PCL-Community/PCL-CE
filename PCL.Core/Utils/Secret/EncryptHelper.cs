@@ -15,7 +15,7 @@ namespace PCL.Core.Utils.Secret;
 
 public static class EncryptHelper
 {
-    private static readnoly byte[] Key = "PCL CE Encryption Key".GetBytes();
+    private static readonly byte[] Key = "PCL CE Encryption Key".GetBytes();
     public static (IEncryptionProvider Provider, uint Version) DefaultProvider => _DefaultProvider.Value;
     private static readonly Lazy<(IEncryptionProvider Provider, uint Version)> _DefaultProvider = new(_SelectBestEncryption);
 
