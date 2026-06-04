@@ -15,7 +15,7 @@ namespace PCL.Core.Utils.Secret;
 
 public static class EncryptHelper
 {
-    private const string Key = "PCL CE Encryption Key";
+    private static readnoly byte[] Key = "PCL CE Encryption Key".GetBytes();
     public static (IEncryptionProvider Provider, uint Version) DefaultProvider => _DefaultProvider.Value;
     private static readonly Lazy<(IEncryptionProvider Provider, uint Version)> _DefaultProvider = new(_SelectBestEncryption);
 
@@ -148,7 +148,6 @@ public static class EncryptHelper
 
     private static byte[] _GetKey()
     {
-        var space = Key.GetBytes();
         var keyFile = Path.Combine(Paths.SharedData, "UserKey.bin");
         if (File.Exists(keyFile))
         {
@@ -156,8 +155,8 @@ public static class EncryptHelper
             var data = EncryptionData.FromBytes(buf);
             return data.Version switch
             {
-                1 => ProtectedData.Unprotect(data.Data, DataProtectionScope.CurrentUser, space),
-                2 => CngProtectedData.Unprotect(data.Data, CngDataProtectionScope.CurrentUser, space),
+                1 => ProtectedData.Unprotect(data.Data, Key, DataProtectionScope.CurrentUser),
+                2 => CngProtectedData.Unprotect(data.Data, Key, CngDataProtectionScope.CurrentUser),
                 _ => throw new NotSupportedException("Unsupported key version")
             };
         }
