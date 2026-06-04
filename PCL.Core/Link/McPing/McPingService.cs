@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -74,7 +75,7 @@ public class McPingService : IMcPingService
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("连接超时"), ModuleName, $"Failed to connect to the {_endpoint}");
+            LogWrapper.Error(new TimeoutException(Lang.Text("Tools.ServerQuery.Error.Timeout.Connect")), ModuleName, $"Failed to connect to the {_endpoint}");
             return null;
         }
         catch (Exception e)
@@ -109,7 +110,7 @@ public class McPingService : IMcPingService
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("数据读写超时"), "McPing", $"Operation timed out on {_endpoint}");
+            LogWrapper.Error(new TimeoutException(Lang.Text("Tools.ServerQuery.Error.Timeout.ReadWrite")), "McPing", $"Operation timed out on {_endpoint}");
             return null;
         }
         catch (Exception e)
@@ -124,10 +125,10 @@ public class McPingService : IMcPingService
 
         so.Close();
 
-        if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException("未返回服务器信息");
+        if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException(Lang.Text("Tools.ServerQuery.State.NoInfo"));
         var retCtx = Encoding.UTF8.GetString(statusPayload);
 
-        var retJson = JsonCompat.ParseNode(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
+        var retJson = JsonCompat.ParseNode(retCtx) ?? throw new NullReferenceException(Lang.Text("Tools.ServerQuery.Error.InvalidResponse"));
 #if DEBUG
         var resJsonDebug = retJson.DeepClone();
         if (resJsonDebug is JsonObject jsonObject && jsonObject.ContainsKey("favicon"))
@@ -145,7 +146,7 @@ public class McPingService : IMcPingService
 
         var response = JsonSerializer.Deserialize<McPingResult>(retJson, JsonCompat.SerializerOptions);
         if (response?.Version is null)
-            throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
+            throw new NullReferenceException(Lang.Text("Tools.ServerQuery.Error.InvalidResponse"));
 
         response = response with
         {
@@ -174,7 +175,7 @@ public class McPingService : IMcPingService
         handshake.AddRange(VarIntHelper.Encode(0)); //状态头 表明这是一个握手包
         handshake.AddRange(VarIntHelper.Encode(772)); //协议头 表明请求客户端的版本
         var binaryIp = Encoding.UTF8.GetBytes(serverIp);
-        if (binaryIp.Length > 255) throw new Exception("服务器地址过长");
+        if (binaryIp.Length > 255) throw new Exception(Lang.Text("Tools.ServerQuery.Error.AddressTooLong"));
         handshake.AddRange(VarIntHelper.Encode((uint)binaryIp.Length)); //服务器地址长度
         handshake.AddRange(binaryIp); //服务器地址
         handshake.AddRange(BitConverter.GetBytes((ushort)serverPort).AsEnumerable().Reverse()); //服务器端口
@@ -213,7 +214,7 @@ public class McPingService : IMcPingService
             {
                 var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
                 LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
-                if (packetLength <= 0) throw new InvalidDataException("服务器返回了空数据包");
+                if (packetLength <= 0) throw new InvalidDataException(Lang.Text("Tools.ServerQuery.Error.EmptyPacket"));
 
                 var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
                 using var packetStream = new MemoryStream(packetData, writable: false);
@@ -245,10 +246,10 @@ public class McPingService : IMcPingService
         catch (EndOfStreamException ex)
         {
             if (statusPayload is not null && latency is null)
-                throw new EndOfStreamException("服务器在返回状态后提前断开连接，未返回 pong 数据包，无法计算延迟。", ex);
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.StaleConnection"), ex);
 
             if (statusPayload is null)
-                throw new EndOfStreamException("服务器在返回完整状态数据包前提前断开连接。", ex);
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.IncompleteConnection"), ex);
 
             throw;
         }
@@ -258,10 +259,9 @@ public class McPingService : IMcPingService
 
     private static long _ReadInt64BigEndian(byte[] data)
     {
-        if (data.Length != 8)
-            throw new ArgumentException("Pong 数据长度必须为 8 字节", nameof(data));
-
-        return BinaryPrimitives.ReadInt64BigEndian(data);
+        return data.Length != 8
+            ? throw new ArgumentException(Lang.Text("Tools.ServerQuery.Error.PongDataLength"), nameof(data))
+            : BinaryPrimitives.ReadInt64BigEndian(data);
     }
 
     private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)

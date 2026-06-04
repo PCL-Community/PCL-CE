@@ -53,7 +53,7 @@ public static class SimilaritySearch {
     /// <param name="source">被搜索的长内容。</param>
     /// <param name="query">用户输入的搜索文本。</param>
     /// <returns>一个表示相似度的 double 值。</returns>
-    private static double SearchSimilarity(string source, string query) {
+    private static double _SearchSimilarity(string source, string query) {
         if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(query)) {
             return 0.0;
         }
@@ -129,13 +129,13 @@ public static class SimilaritySearch {
     /// <summary>
     /// 获取多段文本加权后的相似度。
     /// </summary>
-    private static double SearchSimilarityWeighted(List<KeyValuePair<string, double>> source, string query) {
+    private static double _SearchSimilarityWeighted(List<KeyValuePair<string, double>> source, string query) {
         if (source.Count == 0) return 0.0;
 
         var totalWeight = source.Sum(pair => pair.Value);
         if (totalWeight == 0) return 0.0;
 
-        var weightedSum = source.Sum(pair => SearchSimilarity(pair.Key, query) * pair.Value);
+        var weightedSum = source.Sum(pair => _SearchSimilarity(pair.Key, query) * pair.Value);
 
         return weightedSum / totalWeight;
     }
@@ -143,7 +143,7 @@ public static class SimilaritySearch {
     /// <summary>
     /// 检查一个条目的所有搜索源是否完全匹配查询的所有部分。
     /// </summary>
-    private static bool IsAbsoluteMatch(IEnumerable<KeyValuePair<string, double>> searchSources, string[] queryParts) {
+    private static bool _IsAbsoluteMatch(IEnumerable<KeyValuePair<string, double>> searchSources, string[] queryParts) {
         // 预处理搜索源：转小写并移除空格，避免在循环中重复操作
         var processedSources = searchSources
             .Select(s => s.Key.Replace(" ", "").ToLower())
@@ -185,8 +185,8 @@ public static class SimilaritySearch {
 
         // 1. 计算每个条目的相似度和是否完全匹配
         foreach (var entry in entries) {
-            entry.Similarity = SearchSimilarityWeighted(entry.SearchSource, query);
-            entry.AbsoluteRight = IsAbsoluteMatch(entry.SearchSource, queryParts);
+            entry.Similarity = _SearchSimilarityWeighted(entry.SearchSource, query);
+            entry.AbsoluteRight = _IsAbsoluteMatch(entry.SearchSource, queryParts);
         }
 
         // 2. 排序：完全匹配的优先，其次按相似度降序

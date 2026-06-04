@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using PCL.Core.App;
-using PCL.Core.IO;
 using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Exts;
 

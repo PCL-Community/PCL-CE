@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using PCL.Core.App;
@@ -3202,7 +3203,8 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
+    /// 预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
+    /// 前置列表（必要 / 可选）会被放入可折叠栏：必要前置默认展开，可选前置默认收起。
     /// </summary>
     public static void CompFilesCardPreload(StackPanel stack, List<CompFile> files)
     {
@@ -3212,60 +3214,77 @@ public static class ModComp
         var optionalDeps = files.SelectMany(f => f.OptionalDependencies).Distinct().ToList();
         if (!deps.Any() && !optionalDeps.Any())
             return;
-        // 必要前置
-        if (deps.Any())
-        {
-            deps.Sort();
-            deps = deps.Where(dep =>
-            {
-                if (!compProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return compProjectCache.ContainsKey(dep);
-            }).ToList();
-            // 添加开头间隔
-            stack.Children.Add(new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 2d, 0d, 5d)
-            });
-            // 添加前置列表
-            foreach (var dep in deps)
-            {
-                 var item = compProjectCache[dep].ToCompItem(false, false);
-                 stack.Children.Add(item);
-            }
-        }
 
-        // 可选前置
-        if (optionalDeps.Any())
-        {
-            optionalDeps.Sort();
-            optionalDeps = optionalDeps.Where(dep =>
-            {
-                if (!compProjectCache.ContainsKey(dep))
-                    ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-                return compProjectCache.ContainsKey(dep);
-            }).ToList();
-            // 添加开头间隔
-            stack.Children.Add(new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 2d, 0d, 5d)
-            });
-            // 添加前置列表
-            foreach (var dep in optionalDeps)
-            {
-                var item = compProjectCache[dep].ToCompItem(false, false);
-                stack.Children.Add(item);
-            }
-        }
+        // 必要前置：默认展开
+        _AddDependencyBar(stack, deps,
+            Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), collapsed: false);
+        // 可选前置：默认收起（库 Mod 可能有大量可选前置，参见 Issue #2873）
+        _AddDependencyBar(stack, optionalDeps,
+            Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), collapsed: true);
 
-        // 添加结尾间隔
+        // 添加结尾间隔（版本列表标题）
         stack.Children.Add(new TextBlock
         {
-            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d, HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(6d, 12d, 0d, 5d)
+            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d,
+            HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(6d, 12d, 0d, 5d)
         });
+    }
+
+    /// <summary>
+    /// 将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack"/>。
+    /// 仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
+    /// </summary>
+    /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
+    private static void _AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
+    {
+        if (depIds is null || !depIds.Any())
+            return;
+
+        depIds.Sort();
+        var projects = new List<CompProject>();
+        foreach (var dep in depIds)
+        {
+            if (compProjectCache.TryGetValue(dep, out var project))
+                projects.Add(project);
+            else
+                ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+        }
+        if (!projects.Any())
+            return;
+
+        var bar = new MyCollapseBar
+        {
+            Title = $"{title} ({projects.Count})",
+            Margin = new Thickness(0d, 0d, 0d, 8d),
+            IsCollapsed = collapsed
+        };
+        foreach (var project in projects)
+            bar.ContentPanel.Children.Add(project.ToCompItem(false, false));
+
+        bar.Toggled += _DependencyBarToggled;
+        stack.Children.Add(bar);
+    }
+
+    /// <summary>
+    /// 折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
+    /// 避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
+    /// </summary>
+    private static void _DependencyBarToggled(object? sender, EventArgs e)
+    {
+        if (sender is not DependencyObject element)
+            return;
+        for (var current = VisualTreeHelper.GetParent(element); current is not null;
+             current = VisualTreeHelper.GetParent(current))
+        {
+            if (current is not MyCard card)
+                continue;
+            var rawUseAnimation = card.UseAnimation;
+            card.UseAnimation = false;
+            card.TriggerForceResize();
+            card.Dispatcher.BeginInvoke(new Action(() => card.UseAnimation = rawUseAnimation),
+                System.Windows.Threading.DispatcherPriority.Loaded);
+            break;
+        }
     }
 
     #endregion

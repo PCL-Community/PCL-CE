@@ -23,7 +23,7 @@ public class FolderNameValidator(
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
@@ -63,7 +63,7 @@ public class FolderNameValidator(
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }
