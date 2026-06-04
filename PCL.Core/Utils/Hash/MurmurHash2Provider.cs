@@ -83,8 +83,6 @@ public class MurmurHash2Provider : IHashProvider
         h *= 0x5BD1E995;
         h ^= h >> 15;
 
-        var buf = new byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(buf, h);
-        return buf;
+        return BitConverter.GetBytes(h);
     }
 }
