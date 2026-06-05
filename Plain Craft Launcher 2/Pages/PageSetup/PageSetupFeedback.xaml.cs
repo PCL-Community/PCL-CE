@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.Utils;
+using System.Text.Json.Serialization;
 using PCL.Network;
 using PCL.Core.App.Localization;
 
@@ -9,7 +9,7 @@ namespace PCL;
 
 public partial class PageSetupFeedback
 {
-    public enum TagID : long
+    public enum TagId : long
     {
         Processing = 6820804544L,
         WaitingProcess = 6820804546L,
@@ -22,60 +22,65 @@ public partial class PageSetupFeedback
         Upnext = 8550609020L
     }
 
-    private new bool isLoaded;
+    private bool _isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> loader;
+    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
+
+    private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
+    {
+        [((long)TagId.Processing).ToString()] = (p => p.PanListProcessing, "Blocks/CommandBlock.png"),
+        [((long)TagId.WaitingProcess).ToString()] = (p => p.PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
+        [((long)TagId.Wait).ToString()] = (p => p.PanListWait, "Blocks/Anvil.png"),
+        [((long)TagId.Pause).ToString()] = (p => p.PanListPause, "Blocks/RedstoneLampOff.png"),
+        [((long)TagId.Upnext).ToString()] = (p => p.PanListUpnext, "Blocks/RedstoneLampOn.png"),
+        [((long)TagId.Completed).ToString()] = (p => p.PanListCompleted, "Blocks/Grass.png"),
+        [((long)TagId.Decline).ToString()] = (p => p.PanListDecline, "Blocks/CobbleStone.png"),
+        [((long)TagId.Ignored).ToString()] = (p => p.PanListIgnored, "Blocks/CobbleStone.png"),
+        [((long)TagId.Duplicate).ToString()] = (p => p.PanListDuplicate, "Blocks/CobbleStone.png"),
+    };
 
     public PageSetupFeedback()
     {
         InitializeComponent();
-        loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
     private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, loader, _ => RefreshList());
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
         // 重复加载部分
         PanBack.ScrollToHome();
         // 非重复加载部分
-        if (isLoaded)
+        if (_isLoaded)
             return;
-        isLoaded = true;
+        _isLoaded = true;
     }
 
     public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> task)
     {
-        JsonArray list;
-        list = (JsonArray)Requester.FetchJson(
+        var list = Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
             new RequestParam
             {
                 Retries = 3,
                 UseBrowserUserAgent = true
-            }); // 获取近期 200 条数据就够了
+            }) as JsonArray; // 获取近期 200 条数据就够了
         if (list is null)
             throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
         var res = new List<Feedback>();
-        foreach (JsonObject i in list)
+        foreach (var i in list)
         {
-            var pullRequestToken = i["pull_request"];
+            if (i is not JsonObject issue) continue;
+            var pullRequestToken = issue["pull_request"];
             if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
 
-            var item = new Feedback
-            {
-                Title = i["title"].ToString(),
-                Url = i["html_url"].ToString(),
-                Content = i["body"].ToString(),
-                Time = DateTime.Parse(i["created_at"].ToString()),
-                User = i["user"]["login"].ToString(),
-                ID = i["number"].ToString(),
-                Open = i["state"].ToString().Equals("open"),
-                IsPullRequest = false
-            };
+            var item = issue.Deserialize<Feedback>()!;
+            item.User = issue["user"]!["login"]!.ToString();
+            item.Id = issue["number"]!.ToString();
 
             var issueType = Lang.Text("Setup.Feedback.Uncategorized");
-            var typeToken = i["type"];
+            var typeToken = issue["type"];
             if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
             {
                 var typeNameToken = typeToken["name"];
@@ -84,9 +89,11 @@ public partial class PageSetupFeedback
 
             item.Type = issueType;
 
-            var thisTags = (JsonArray)i["labels"];
-            foreach (JsonObject thisTag in thisTags)
-                item.Tags.Add(thisTag["id"].ToString());
+            if (issue["labels"] is JsonArray thisTags)
+                foreach (var thisTag in thisTags)
+                    if (thisTag is JsonObject tagObj)
+                        item.Tags.Add(tagObj["id"]!.ToString());
+
             res.Add(item);
         }
 
@@ -95,16 +102,16 @@ public partial class PageSetupFeedback
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
     {
-        var commonInfo = $"{item.User} | {Lang.Date(item.Time, "G")}";
+        var li = new MyListItem
+        {
+            Title = item.Title,
+            Type = MyListItem.CheckType.Clickable,
+            Info = $"{item.User} | {Lang.Date(item.Time)}",
+            Logo = ModBase.pathImage + logo,
+            Tags = item.Type
+        };
 
-        var li = new MyListItem();
-        li.Title = item.Title;
-        li.Type = MyListItem.CheckType.Clickable;
-        li.Info = commonInfo;
-        li.Logo = ModBase.pathImage + logo;
-        li.Tags = item.Type;
-
-        li.Click += (sender, e) => ShowFeedbackDetail(item);
+        li.Click += (_, _) => ShowFeedbackDetail(item);
 
         return li;
     }
@@ -116,7 +123,7 @@ public partial class PageSetupFeedback
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
-                    $"#{item.ID} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+                    $"#{item.Id} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
         {
             case 2:
             {
@@ -143,34 +150,14 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in loader.output)
+        foreach (var item in Loader.output)
         {
-            if (item.Tags.Contains(((long)TagID.Processing).ToString()))
-                PanListProcessing.Children.Add(CreateFeedbackItem(item, "Blocks/CommandBlock.png"));
-
-            if (item.Tags.Contains(((long)TagID.WaitingProcess).ToString()))
-                PanListWaitingProcess.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneBlock.png"));
-
-            if (item.Tags.Contains(((long)TagID.Wait).ToString()))
-                PanListWait.Children.Add(CreateFeedbackItem(item, "Blocks/Anvil.png"));
-
-            if (item.Tags.Contains(((long)TagID.Pause).ToString()))
-                PanListPause.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOff.png"));
-
-            if (item.Tags.Contains(((long)TagID.Upnext).ToString()))
-                PanListUpnext.Children.Add(CreateFeedbackItem(item, "Blocks/RedstoneLampOn.png"));
-
-            if (item.Tags.Contains(((long)TagID.Completed).ToString()))
-                PanListCompleted.Children.Add(CreateFeedbackItem(item, "Blocks/Grass.png"));
-
-            if (item.Tags.Contains(((long)TagID.Decline).ToString()))
-                PanListDecline.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
-
-            if (item.Tags.Contains(((long)TagID.Ignored).ToString()))
-                PanListIgnored.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
-
-            if (item.Tags.Contains(((long)TagID.Duplicate).ToString()))
-                PanListDuplicate.Children.Add(CreateFeedbackItem(item, "Blocks/CobbleStone.png"));
+            var tag = item.Tags.Find(TagMap.ContainsKey);
+            if (tag is not null)
+            {
+                var (panel, icon) = TagMap[tag];
+                panel(this).Children.Add(CreateFeedbackItem(item, icon));
+            }
         }
 
         SetPanelVisibility(PanListProcessing, PanContentProcessing);
@@ -191,15 +178,19 @@ public partial class PageSetupFeedback
 
     public class Feedback
     {
-        public string User { get; set; }
-        public string Title { get; set; }
-        public DateTime Time { get; set; }
-        public string Content { get; set; }
-        public string Url { get; set; }
-        public string ID { get; set; }
-        public List<string> Tags { get; set; } = new();
-        public bool Open { get; set; } = true;
-        public string Type { get; set; }
-        public bool IsPullRequest { get; set; }
+        [JsonIgnore]
+        public string User { get; set; } = string.Empty;
+        [JsonPropertyName("title")]
+        public string Title { get; init; } = string.Empty;
+        [JsonPropertyName("created_at")]
+        public DateTime Time { get; init; }
+        [JsonPropertyName("body")]
+        public string Content { get; init; } = string.Empty;
+        [JsonPropertyName("html_url")]
+        public string Url { get; init; } = string.Empty;
+        [JsonIgnore]
+        public string Id { get; set; } = string.Empty;
+        public List<string> Tags { get; } = new();
+        public string Type { get; set; } = string.Empty;
     }
 }

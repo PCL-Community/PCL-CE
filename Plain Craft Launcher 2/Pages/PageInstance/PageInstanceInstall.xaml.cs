@@ -1310,8 +1310,7 @@ public partial class PageInstanceInstall
 
                                 default:
                                 {
-                                    var releaseDate = Version["releaseTime"].ToObject<DateTime>().ToUniversalTime()
-                                        .AddHours(2d);
+                                    var releaseDate = McVersionClassifier.GetReleaseTime(Version).ToUniversalTime().AddHours(2d);
                                     if (releaseDate.Month == 4 && releaseDate.Day == 1)
                                     {
                                         type = "愚人节版";
@@ -1344,7 +1343,7 @@ public partial class PageInstanceInstall
 
                 // 排序
                 foreach (var Pair in dict.ToList())
-                    dict[Pair.Key] = Pair.Value.OrderByDescending(j => j["releaseTime"].ToObject<DateTime>()).ToList();
+                    dict[Pair.Key] = Pair.Value.OrderByDescending(McVersionClassifier.GetReleaseTime).ToList();
                 // 清空当前
                 PanMinecraft.Children.Clear();
                 // 添加最新版本

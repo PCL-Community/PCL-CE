@@ -17,19 +17,18 @@ public sealed class NetManager
                 return Files.Values.Count(file => file.State != NetState.Finished);
         }
     }
-    private long _downloadDone;
     public object LockDone { get; } = new();
     public long DownloadDone
     {
         get
         {
             lock (LockDone)
-                return _downloadDone;
+                return field;
         }
         set
         {
             lock (LockDone)
-                _downloadDone = value;
+                field = value;
         }
     }
 

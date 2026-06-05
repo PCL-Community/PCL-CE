@@ -36,7 +36,6 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
-    private double _LogoScale = 1d;
     private bool isMouseDown;
 
     // 基础
@@ -69,14 +68,14 @@ public partial class MyIconTextButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             if (ShapeLogo is not null)
                 ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
-    }
+    } = 1d;
 
     public InlineCollection Inlines => LabText.Inlines;
 

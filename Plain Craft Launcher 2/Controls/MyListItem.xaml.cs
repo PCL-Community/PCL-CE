@@ -242,14 +242,12 @@ public partial class MyListItem : IMyRadio
     /// <summary>
     ///     Tags 的存放 StackPanel
     /// </summary>
-    public StackPanel _PanTags;
-
     public StackPanel PanTags
     {
         get
         {
-            if (_PanTags is not null)
-                return _PanTags;
+            if (field is not null)
+                return field;
             var newStack = new StackPanel
             {
                 IsHitTestVisible = false,
@@ -260,8 +258,8 @@ public partial class MyListItem : IMyRadio
             SetColumn(newStack, 3);
             SetRow(newStack, 2);
             PanBack.Children.Add(newStack);
-            _PanTags = newStack;
-            return _PanTags;
+            field = newStack;
+            return field;
         }
     }
 
@@ -301,13 +299,12 @@ public partial class MyListItem : IMyRadio
     }
 
     // 副文本
-    private TextBlock _LabInfo;
 
     public TextBlock LabInfo
     {
         get
         {
-            if (_LabInfo is null)
+            if (field is null)
             {
                 var lab = new TextBlock
                 {
@@ -325,12 +322,12 @@ public partial class MyListItem : IMyRadio
                 SetColumn(lab, 4);
                 SetRow(lab, 2);
                 PanBack.Children.Add(lab);
-                _LabInfo = lab;
+                field = lab;
                 // <TextBlock Grid.Row="2" SnapsToDevicePixels="False" UseLayoutRounding="False" HorizontalAlignment="Left" x:Name = "LabInfo" IsHitTestVisible="False" Grid.Column="2" 
                 // TextTrimming = "CharacterEllipsis" Visibility="Collapsed" FontSize="12" Foreground="{StaticResource ColorBrushGray2}" Margin="4,0,0,0" />
             }
 
-            return _LabInfo;
+            return field;
         }
     }
 
@@ -346,16 +343,14 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public bool IsScaleAnimationEnabled
     {
-        get => _IsScaleAnimationEnabled;
+        get => field;
         set
         {
-            _IsScaleAnimationEnabled = value;
+            field = value;
             if (_RectBack is not null)
                 RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
         }
-    }
-
-    private bool _IsScaleAnimationEnabled = true;
+    } = true;
 
     // 边距
     public int PaddingLeft
@@ -371,14 +366,13 @@ public partial class MyListItem : IMyRadio
     public int MinPaddingRight { get; set; } = 4;
 
     // 按钮
-    private IEnumerable<MyIconButton> _Buttons;
 
     public IEnumerable<MyIconButton> Buttons
     {
-        get => _Buttons;
+        get => field;
         set
         {
-            _Buttons = value;
+            field = value;
             // 没有特殊按钮，移除原 Stack
             if (buttonStack is not null)
             {
@@ -617,18 +611,16 @@ public partial class MyListItem : IMyRadio
         ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
     }
 
-    private double _LogoScale = 1d;
-
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
         if (pathLogo is not null)
                 pathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
-    }
+    } = 1d;
 
     // 图标的点击
     /// <summary>

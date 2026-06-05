@@ -16,7 +16,6 @@ public partial class MySkin
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
     // 皮肤储存
-    private string _Address;
     private bool isChanging;
 
     // 点击
@@ -39,11 +38,11 @@ public partial class MySkin
 
     public string Address
     {
-        get => _Address;
+        get => field;
         set
         {
-            _Address = value;
-            ToolTip = string.IsNullOrEmpty(_Address)
+            field = value;
+            ToolTip = string.IsNullOrEmpty(field)
                 ? Lang.Text("Common.State.Loading")
                 : Lang.Text("Launch.Skin.Change.ToolTip");
         }

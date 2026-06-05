@@ -2,18 +2,16 @@ namespace PCL;
 
 public static class ModVideoBack
 {
-    private static bool _isGaming;
-    private static bool _forcePlay;
     public static bool isMinimized = false; // 窗口是否被最小化
 
     public static bool IsGaming // 判断用户是否在游戏中
     {
-        get => _isGaming;
+        get => field;
         set
         {
-            if (_isGaming != value)
+            if (field != value)
             {
-                _isGaming = value;
+                field = value;
                 GamingStateChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }
@@ -21,12 +19,12 @@ public static class ModVideoBack
 
     public static bool ForcePlay // 判断是否强行播放
     {
-        get => _forcePlay;
+        get => field;
         set
         {
-            if (_forcePlay != value)
+            if (field != value)
             {
-                _forcePlay = value;
+                field = value;
                 ForcePlayChanged?.Invoke(null, new BooleanEventArgs(value));
             }
         }

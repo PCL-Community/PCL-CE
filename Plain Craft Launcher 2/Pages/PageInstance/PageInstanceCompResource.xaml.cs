@@ -1480,16 +1480,14 @@ public partial class PageInstanceCompResource : IRefreshable
 
     #region 筛选
 
-    private FilterType _Filter = FilterType.All;
-
     public FilterType Filter
     {
-        get => _Filter;
+        get => field;
         set
         {
-            if (_Filter == value)
+            if (field == value)
                 return;
-            _Filter = value;
+            field = value;
             switch (value)
             {
                 case FilterType.All:
@@ -1527,7 +1525,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
             RefreshUI();
         }
-    }
+    } = FilterType.All;
 
     public enum FilterType
     {

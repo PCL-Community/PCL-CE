@@ -187,7 +187,6 @@ public static class ModWatcher
         private readonly bool realTime;
 
         private readonly object waitingLogLock = new();
-        private MinecraftState _State = MinecraftState.Loading;
         public uint countDebug;
         public uint countError;
         public uint countFatal;
@@ -304,15 +303,15 @@ public static class ModWatcher
 
         public MinecraftState State
         {
-            get => _State;
+            get => field;
             set
             {
-                if (_State == value)
+                if (field == value)
                     return;
-                _State = value;
+                field = value;
                 WatcherStateChanged();
             }
-        }
+        } = MinecraftState.Loading;
 
         /// <summary>
         ///     是否处理实时日志。

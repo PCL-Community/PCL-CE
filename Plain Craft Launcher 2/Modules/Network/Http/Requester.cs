@@ -108,9 +108,16 @@ public static class Requester
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             if (SupportBody(request.Method) && param.Content is not null)
             {
-                var content = param.Content is string text ? text : param.Content.ToString() ?? "";
-                request.Content = new StringContent(content, param.Encoding ?? Encoding.UTF8,
-                    param.ContentType ?? "application/json");
+                if (param.Content is HttpContent httpContent)
+                {
+                    request.Content = httpContent;
+                }
+                else
+                {
+                    var content = param.Content is string text ? text : param.Content.ToString() ?? "";
+                    request.Content = new StringContent(content, param.Encoding ?? Encoding.UTF8,
+                        param.ContentType ?? "application/json");
+                }
             }
 
             using var cts = new CancellationTokenSource();

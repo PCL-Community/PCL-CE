@@ -23,10 +23,6 @@ public partial class MyIconButton
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
 
-    private SolidColorBrush _Foreground = new(Color.FromRgb(128, 128, 128));
-
-    private double _LogoScale = 1d;
-
     // 自定义属性
 
     public int Uuid = ModBase.GetUuid();
@@ -56,28 +52,28 @@ public partial class MyIconButton
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
+            field = value;
             if (Path is not null)
                 Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         }
-    }
+    } = 1d;
 
     public Themes Theme { get; set; } = Themes.Color;
 
     public SolidColorBrush Foreground
     {
-        get => _Foreground;
+        get => field;
         set
         {
-            _Foreground = value;
+            field = value;
             ModAnimation.AniControlEnabled += 1;
             RefreshAnim();
             ModAnimation.AniControlEnabled -= 1;
         }
-    }
+    } = new(Color.FromRgb(128, 128, 128));
 
     // 自定义事件
     public event ClickEventHandler? Click;
