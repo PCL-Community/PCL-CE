@@ -28,7 +28,7 @@ public static class ToastNotification
                        </visual>
                    </toast>
                    """;
-        
+
         SendToastFromTemplate(xml);
     }
 
@@ -40,62 +40,103 @@ public static class ToastNotification
     {
         // 定义 Toast 模板
         var toastXml = HStringHelper.ToHString(xml);
-        
+
         // TODO: 将 AUMID 判断放在其他位置
         if (!AumidHelper.HasAumid())
         {
             AumidHelper.RegisterAumid();
         }
+
         var aumid = HStringHelper.ToHString("PCLCommunity.PCLCE");
-        
+
         // TODO: 支持触发事件
-        
-        fixed (Guid* xmlDocumentIOIid = &IXmlDocumentIOInfo.Iid)
+
+        IInspectable* inspectable = null;
+        IXmlDocumentIO* xmlDocumentIO = null;
+        IToastNotificationFactory* toastNotificationFactory = null;
+        IToastNotificationManagerStatics* toastNotificationManagerStatics = null;
+        IInspectable* toastNotification = null;
+        IToastNotifier* toastNotifier = null;
+
+        try
         {
-            void* xmlDocumentIO;
-            void* toastNotification;
-            void* toastNotifier;
+            fixed (Guid* xmlDocumentIOIid = &IXmlDocumentIOInfo.Iid)
+            {
+                // 创建 XmlDocument 对象
+                inspectable =
+                    (IInspectable*)WinRTInterop.ActivateInstance(
+                        IXmlDocumentIOInfo.ActivatableClassId);
 
-            // 创建 XmlDocument 对象
-            var inspectable = (IInspectable*)WinRTInterop.ActivateInstance(IXmlDocumentIOInfo.ActivatableClassId);
-            Marshal.ThrowExceptionForHR(
-                inspectable->lpVtbl->QueryInterface(inspectable, xmlDocumentIOIid, &xmlDocumentIO));
-            // 加载 XML
-            Marshal.ThrowExceptionForHR(
-                ((IXmlDocumentIO*)xmlDocumentIO)->lpVtbl->LoadXml(xmlDocumentIO, toastXml));
+                Marshal.ThrowExceptionForHR(
+                    inspectable->lpVtbl->QueryInterface(
+                        inspectable,
+                        xmlDocumentIOIid,
+                        (void**)&xmlDocumentIO));
 
-            // 获取 ToastNotification 的激活工厂
-            var toastNotificationFactory =
-                (IToastNotificationFactory*)WinRTInterop.GetActivationFactory(
-                    IToastNotificationFactoryInfo.ActivatableClassId, IToastNotificationFactoryInfo.Iid);
-            // 从 XML 创建 ToastNotification 对象
-            Marshal.ThrowExceptionForHR(
-                toastNotificationFactory->lpVtbl->CreateToastNotification(toastNotificationFactory, xmlDocumentIO,
-                    &toastNotification));
+                // 加载 XML
+                Marshal.ThrowExceptionForHR(
+                    xmlDocumentIO->lpVtbl->LoadXml(
+                        xmlDocumentIO,
+                        toastXml));
 
-            // 创建 ToastNotifierManager 对象
-            var toastNotificationManagerStatics = (IToastNotificationManagerStatics*)WinRTInterop.GetActivationFactory(
-                IToastNotificationManagerStaticsInfo.ActivatableClassId, IToastNotificationManagerStaticsInfo.Iid);
-            // 获取 ToastNotifier 对象
-            Marshal.ThrowExceptionForHR(
-                toastNotificationManagerStatics->lpVtbl->CreateToastNotifierWithId(toastNotificationManagerStatics,
-                    aumid, &toastNotifier));
-            // 发送 Toast 通知
-            Marshal.ThrowExceptionForHR(
-                ((IToastNotifier*)toastNotifier)->lpVtbl->Show(toastNotifier, toastNotification));
-            
-            // 释放资源
-            inspectable->lpVtbl->Release(inspectable);
-            ((IXmlDocumentIO*)xmlDocumentIO)->lpVtbl->Release(xmlDocumentIO);
-            toastNotificationFactory->lpVtbl->Release(toastNotificationFactory);
-            ((IInspectable*)toastNotification)->lpVtbl->Release(toastNotification);
-            toastNotificationManagerStatics->lpVtbl->Release(toastNotificationManagerStatics);
-            ((IToastNotifier*)toastNotifier)->lpVtbl->Release(toastNotifier);
+                // 获取 ToastNotificationFactory
+                toastNotificationFactory =
+                    (IToastNotificationFactory*)WinRTInterop.GetActivationFactory(
+                        IToastNotificationFactoryInfo.ActivatableClassId,
+                        IToastNotificationFactoryInfo.Iid);
+
+                // 创建 ToastNotification
+                Marshal.ThrowExceptionForHR(
+                    toastNotificationFactory->lpVtbl->CreateToastNotification(
+                        toastNotificationFactory,
+                        xmlDocumentIO,
+                        (void**)&toastNotification));
+
+                // 获取 ToastNotificationManager
+                toastNotificationManagerStatics =
+                    (IToastNotificationManagerStatics*)WinRTInterop.GetActivationFactory(
+                        IToastNotificationManagerStaticsInfo.ActivatableClassId,
+                        IToastNotificationManagerStaticsInfo.Iid);
+
+                // 创建 ToastNotifier
+                Marshal.ThrowExceptionForHR(
+                    toastNotificationManagerStatics->lpVtbl->CreateToastNotifierWithId(
+                        toastNotificationManagerStatics,
+                        aumid,
+                        (void**)&toastNotifier));
+
+                // 发送
+                Marshal.ThrowExceptionForHR(
+                    toastNotifier->lpVtbl->Show(
+                        toastNotifier,
+                        toastNotification));
+            }
         }
-        
-        // 释放 HSTRING
-        HStringHelper.DeleteHString(toastXml);
-        HStringHelper.DeleteHString(aumid);
+        finally
+        {
+            if (toastNotifier is not null)
+                toastNotifier->lpVtbl->Release(toastNotifier);
+
+            if (toastNotification is not null)
+                toastNotification->lpVtbl->Release(toastNotification);
+
+            if (toastNotificationManagerStatics is not null)
+                toastNotificationManagerStatics->lpVtbl->Release(
+                    toastNotificationManagerStatics);
+
+            if (toastNotificationFactory is not null)
+                toastNotificationFactory->lpVtbl->Release(
+                    toastNotificationFactory);
+
+            if (xmlDocumentIO is not null)
+                xmlDocumentIO->lpVtbl->Release(xmlDocumentIO);
+
+            if (inspectable is not null)
+                inspectable->lpVtbl->Release(inspectable);
+
+            HStringHelper.DeleteHString(toastXml);
+            HStringHelper.DeleteHString(aumid);
+        }
     }
 
     /// <summary>

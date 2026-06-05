@@ -9,11 +9,12 @@ public static class AumidHelper
     public static bool HasAumid()
     {
         using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
-        return key != null;
+        return key is not null;
     }
     
     public static void RegisterAumid()
     {
+        //
         using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
         key.SetValue("DisplayName", "Plain Craft Launcher Community Edition");
         key.SetValue("IconUri", IconHelper.GetIconPath());
