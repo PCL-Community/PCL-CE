@@ -337,7 +337,7 @@ public partial class PageInstanceExport : IRefreshable
             if (string.IsNullOrEmpty(ignoreLine) || ignoreLine.StartsWithF("#") || ignoreLine.StartsWithF("="))
                 continue;
             ignoreLine = ignoreLine.Replace("/", @"\");
-            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && addSuffixStarToFolderPath ? "*" : "");
+            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && addSuffixStarToFolderPath ? "**" : "");
         }
     }
 
