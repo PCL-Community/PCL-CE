@@ -149,7 +149,11 @@ public partial class PageSetupLaunch
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var senderTag = sender.Tag?.ToString();
+            SetLaunchByTag(senderTag,
+                senderTag == "LaunchArgumentPriority" ? Convert.ToInt32(sender.SelectedValue) : sender.SelectedIndex);
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
