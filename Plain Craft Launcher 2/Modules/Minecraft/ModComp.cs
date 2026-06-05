@@ -2167,7 +2167,7 @@ public static class ModComp
 
         // 容忍无协议前缀（如直接粘贴 www.curseforge.com/...）：原样试，再补 https:// 试
         if (!Uri.TryCreate(token, UriKind.Absolute, out var uri) &&
-            !Uri.TryCreate("https://" + token, UriKind.Absolute, out uri)) return false;
+            !Uri.TryCreate($"https://{token}", UriKind.Absolute, out uri)) return false;
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return false;
 
         // 仅取 path 段，天然忽略 ?query 与 #fragment
