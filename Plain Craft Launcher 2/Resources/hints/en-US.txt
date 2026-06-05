@@ -1015,8 +1015,6 @@ Alt+F4 closes the window, it's not diamonds or a gift pack!
 
 Most of the PCL CE development team are students, so updates might be a bit slow.
 
-PCL CE does not support multiple languages; for multilingual support, please go to the sister branch PCL2-Language.
-
 PCL CE supports checking server status in "Instance Settings - Server" or "Tools - Toolbox - Peek at Server", so you can see if your favorite server is online without entering the game.
 
 PCL CE allows save backups in "Instance Settings - Saves - Details - Backup".
