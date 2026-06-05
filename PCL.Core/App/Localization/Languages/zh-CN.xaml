@@ -2416,6 +2416,11 @@
     <sys:String x:Key="Instance.Saves.Info.Modify.BeforeSave">修改设置前请确保该存档未在游戏中打开，否则会导致设置无效</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.CheatSuccess">作弊设置修改成功</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.DifficultySuccess">难度设置修改成功</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.CheatFailed">作弊设置修改失败</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.DifficultyFailed">难度设置修改失败</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.LoadFailed">获取存档信息失败</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ClipboardFailed">复制到剪贴板失败</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ChunkbaseFailed">跳转到 Chunkbase 失败</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_9">1.9 以下的版本无法获取存档版本</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_8">1.8 以下的版本无法获取存档版本和游戏难度</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_3">1.3 以下的版本无法获取存档版本、游戏难度和是否允许作弊</sys:String>
