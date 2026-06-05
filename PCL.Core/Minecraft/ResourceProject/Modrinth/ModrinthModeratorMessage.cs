@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace PCL.Core.Minecraft.ResourceProject.Modrinth;
 
 [Serializable]
 public record ModrinthModeratorMessage(
-    string message,
-    string? body);
+    [property: JsonPropertyName("message")] string Message,
+    [property: JsonPropertyName("body")] string? Body);

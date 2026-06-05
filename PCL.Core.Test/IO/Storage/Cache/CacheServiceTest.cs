@@ -57,7 +57,7 @@ public class CacheServiceTest
     {
         if (_cache != null)
         {
-            await _cache.StopAsync().ConfigureAwait(false);
+            await _cache.DisposeAsync().ConfigureAwait(false);
         }
 
         // Clean up the test directory

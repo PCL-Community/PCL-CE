@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace PCL.Core.Minecraft.ResourceProject.Curseforge;
 
 [Serializable]
 public record CurseforgeCategories(
-    int id,
-    int gameId,
-    string name,
-    string slug,
-    string url,
-    string iconUrl,
-    string dateModified,
-    bool isClass,
-    int classId,
-    int parentCategoryId,
-    int displayIndex);
+    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("gameId")] int GameId,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("slug")] string Slug,
+    [property: JsonPropertyName("url")] string Url,
+    [property: JsonPropertyName("iconUrl")] string IconUrl,
+    [property: JsonPropertyName("dateModified")] string DateModified,
+    [property: JsonPropertyName("isClass")] bool IsClass,
+    [property: JsonPropertyName("classId")] int ClassId,
+    [property: JsonPropertyName("parentCategoryId")] int ParentCategoryId,
+    [property: JsonPropertyName("displayIndex")] int DisplayIndex);
