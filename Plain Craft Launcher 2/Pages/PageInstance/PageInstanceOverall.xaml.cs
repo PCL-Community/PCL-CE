@@ -341,46 +341,48 @@ public partial class PageInstanceOverall
             ModBase.IniClearCache(Path.Combine(PageInstanceLeft.instance.PathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
-            if (Directory.Exists($"{newPath}{oldName}-natives"))
+            if (Directory.Exists(Path.Combine(newPath, $"{oldName}-natives")))
             {
                 if (isCaseChangedOnly)
                 {
-                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives", $"{oldName}natives_temp");
-                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives_temp", $"{newName}-natives");
+                    FileSystem.RenameDirectory(Path.Combine(newPath, $"{oldName}-natives"), $"{oldName}natives_temp");
+                    FileSystem.RenameDirectory(Path.Combine(newPath, $"{oldName}-natives_temp"), $"{newName}-natives");
                 }
                 else
                 {
-                    ModBase.DeleteDirectory($"{newPath}{newName}-natives");
-                    FileSystem.RenameDirectory($"{newPath}{oldName}-natives", $"{newName}-natives");
+                    ModBase.DeleteDirectory(Path.Combine(newPath, $"{newName}-natives"));
+                    FileSystem.RenameDirectory(Path.Combine(newPath, $"{oldName}-natives"), $"{newName}-natives");
                 }
             }
 
-            if (File.Exists($"{newPath}{oldName}.jar"))
+            if (File.Exists(Path.Combine(newPath, $"{oldName}.jar")))
             {
                 if (isCaseChangedOnly)
                 {
-                    FileSystem.RenameFile($"{newPath}{oldName}.jar", $"{oldName}_temp.jar");
-                    FileSystem.RenameFile($"{newPath}{oldName}_temp.jar", $"{newName}.jar");
+                    FileSystem.RenameFile(Path.Combine(newPath, $"{oldName}.jar"), $"{oldName}_temp.jar");
+                    FileSystem.RenameFile(Path.Combine(newPath, $"{oldName}_temp.jar"), $"{newName}.jar");
                 }
                 else
                 {
-                    File.Delete($"{newPath}{newName}.jar");
-                    FileSystem.RenameFile($"{newPath}{oldName}.jar", $"{newName}.jar");
+                    File.Delete(Path.Combine(newPath, $"{newName}.jar"));
+                    FileSystem.RenameFile(Path.Combine(newPath, $"{oldName}.jar"), $"{newName}.jar");
                 }
             }
 
             // 替换实例设置文件中的路径
-            if (File.Exists(newPath + @"PCL\Setup.ini"))
-                ModBase.WriteFile(newPath + @"PCL\Setup.ini",
-                    ModBase.ReadFile(newPath + @"PCL\Setup.ini").Replace(oldPath, newPath));
+            if (File.Exists(Path.Combine(newPath, @"PCL\Setup.ini")))
+                ModBase.WriteFile(Path.Combine(newPath, @"PCL\Setup.ini"),
+                    ModBase.ReadFile(Path.Combine(newPath, @"PCL\Setup.ini")).Replace(oldPath, newPath));
             // 更改已选中的实例
             if ((ModBase.ReadIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
                 ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", newName);
-            // 写入实例 Json
+            // 写入实例 Json，并删除旧的 Json
             try
             {
                 jsonObject["id"] = newName;
-                ModBase.WriteFile(newPath + newName + ".json", jsonObject.ToString());
+                ModBase.WriteFile(Path.Combine(newPath, $"{newName}.json"), jsonObject.ToString());
+                if (!isCaseChangedOnly)
+                    File.Delete(Path.Combine(newPath, $"{oldName}.json"));
             }
             catch (Exception ex)
             {
