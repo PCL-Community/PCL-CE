@@ -2143,7 +2143,7 @@ public static class ModComp
     public static ConcurrentDictionary<string, CompProject> compProjectCache = new();
 
     /// <summary>
-    ///     CurseForge 分类 URL 段 → classId 映射。提为 static 避免每次解析重新分配。
+    /// CurseForge 分类 URL 段 → classId 映射。提为 static 避免每次解析重新分配。
     /// </summary>
     private static readonly Dictionary<string, string> curseForgeCategoryClassIds = new()
     {
@@ -2156,8 +2156,8 @@ public static class ModComp
     private enum ResourceSite { None, CurseForge, Modrinth }
 
     /// <summary>
-    ///     用 Uri 解析单个 token 是否为受支持的 CurseForge/Modrinth 资源链接。
-    ///     成功时输出站点、分类段与 slug（query、fragment 会被自动丢弃）。
+    /// 用 Uri 解析单个 token 是否为受支持的 CurseForge/Modrinth 资源链接。
+    /// 成功时输出站点、分类段与 slug（query、fragment 会被自动丢弃）。
     /// </summary>
     private static bool TryParseResourceLink(string token, out ResourceSite site, out string category, out string slug)
     {
@@ -2171,7 +2171,7 @@ public static class ModComp
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return false;
 
         // 仅取 path 段，天然忽略 ?query 与 #fragment
-        var segments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+        var segments = uri.AbsolutePath.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
         // CurseForge: /minecraft/{category}/{slug}
         if (IsHostOf(uri.Host, "curseforge.com"))
@@ -2205,13 +2205,13 @@ public static class ModComp
     private static string? FindFirstResourceLinkToken(string? text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
-        foreach (var token in text.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var token in text.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
             if (TryParseResourceLink(token, out _, out _, out _)) return token;
         return null;
     }
 
     /// <summary>
-    ///     从单条 CurseForge / Modrinth 资源链接解析出 projectId。无法识别或获取失败时返回 null。
+    /// 从单条 CurseForge / Modrinth 资源链接解析出 projectId。无法识别或获取失败时返回 null。
     /// </summary>
     public static string? ResolveLinkToProjectId(string url)
     {
@@ -2231,15 +2231,15 @@ public static class ModComp
             if (!dataArray.Any()) return null;
 
             var receivedClassId = ((JsonObject)dataArray[0])["classId"]?.ToString();
-            if (curseForgeCategoryClassIds.TryGetValue(category, out var targetClassId) &&
-                receivedClassId != targetClassId)
-            {
-                json = ModDownload.DlModRequest<JsonObject>(
-                    $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={encodedSlug}&classId={targetClassId}");
-                dataArray = (JsonArray)json["data"];
-            }
+            if (!curseForgeCategoryClassIds.TryGetValue(category, out var targetClassId) ||
+                receivedClassId == targetClassId)
+                return dataArray[0]["id"]?.ToString();
 
-            return dataArray.Any() ? dataArray[0]["id"]?.ToString() : null;
+            // 分类不符：带 classId 重搜。结果与首次查询语义不同，使用独立变量
+            var filteredJson = ModDownload.DlModRequest<JsonObject>(
+                $"https://api.curseforge.com/v1/mods/search?gameId=432&slug={encodedSlug}&classId={targetClassId}");
+            var filteredDatas = (JsonArray)filteredJson["data"];
+            return filteredDatas.Any() ? filteredDatas[0]["id"]?.ToString() : null;
         }
 
         // Modrinth：slug 进 path，用 EscapeDataString
@@ -2249,12 +2249,12 @@ public static class ModComp
     }
 
     /// <summary>
-    ///     若输入文本中恰好含 1 条 CurseForge/Modrinth 资源链接，返回该链接；含 0 条或 ≥2 条时返回 null。
+    /// 若输入文本中恰好含 1 条 CurseForge/Modrinth 资源链接，返回该链接；含 0 条或 ≥2 条时返回 null。
     /// </summary>
     public static string? TryExtractSingleResourceLink(string? text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
-        var tokens = text.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var tokens = text.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         string? found = null;
         foreach (var token in tokens)
         {
