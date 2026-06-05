@@ -983,20 +983,18 @@ public partial class PageToolsGameLink
         PanFinish
     }
 
-    private Subpages _CurrentSubpage = States.Link.LinkEula ? Subpages.PanSelect : Subpages.PanEula;
-
     public Subpages CurrentSubpage
     {
-        get => _CurrentSubpage;
+        get => field;
         set
         {
-            if (_CurrentSubpage == value)
+            if (field == value)
                 return;
-            _CurrentSubpage = value;
+            field = value;
             ModBase.Log("[Link] 子页面更改为 " + ModBase.GetStringFromEnum(value));
             PageOnContentExit();
         }
-    }
+    } = States.Link.LinkEula ? Subpages.PanSelect : Subpages.PanEula;
 
     private void PageLinkLobby_OnPageEnter()
     {

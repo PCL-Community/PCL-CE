@@ -321,12 +321,12 @@ public static class ModComp
                 if (hasFavs)
                 {
                     item.Header = Lang.Text("Download.Comp.Detail.Favorites.UnfavoriteContextMenu", i.Name);
-                    item.Icon = Icon.IconButtonLikeFill;
+                    item.SvgIcon = "lucide/heart-filled";
                 }
                 else
                 {
                     item.Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name);
-                    item.Icon = Icon.IconButtonLikeLine;
+                    item.SvgIcon = "lucide/heart";
                 }
 
                 item.Click += (_, _) =>
@@ -371,7 +371,8 @@ public static class ModComp
                 var item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name)
+                    Header = Lang.Text("Download.Comp.Detail.Favorites.FavoriteContextMenu", i.Name),
+                    SvgIcon = "lucide/heart"
                 };
                 item.Click += (_, _) =>
                 {
@@ -1665,7 +1666,7 @@ public static class ModComp
 
                     if (!showMcVersionDesc && !showLoaderDesc)
                     {
-                        ((Grid)newItem.PathVersion.Parent).Children.Remove(newItem.PathVersion);
+                        ((Grid)newItem.SvgIconVersion.Parent).Children.Remove(newItem.SvgIconVersion);
                         ((Grid)newItem.LabVersion.Parent).Children.Remove(newItem.LabVersion);
                         newItem.ColumnVersion1.Width = new GridLength(0);
                         newItem.ColumnVersion2.MaxWidth = 0;
@@ -3042,7 +3043,7 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick is not null)
                     {
-                        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+                        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);

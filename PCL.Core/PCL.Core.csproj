@@ -57,7 +57,7 @@
         <!-- 归档文件 -->
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
         <PackageReference Include="System.Text.Json" Version="10.0.3" />
         <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />
@@ -93,6 +93,7 @@
         <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
         <Resource Include="UI\Assets\*" />
         <Resource Include="UI\Assets\Shaders\*.ps" />
+        <Resource Include="UI\Assets\IconPacks\**\*.svg" />
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>

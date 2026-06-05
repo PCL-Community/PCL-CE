@@ -414,7 +414,6 @@ public static class ModMinecraft
 
     public const int mcInstanceCacheVersion = 30;
 
-    private static Instance _mcInstanceSelected;
     private static object _McInstanceSelected_mcInstanceSelectedLast = 0; // 为 0 以保证与 Nothing 不相同，使得 UI 显示可以正常初始化
 
     /// <summary>
@@ -422,12 +421,12 @@ public static class ModMinecraft
     /// </summary>
     public static Instance McInstanceSelected
     {
-        get => _mcInstanceSelected;
+        get => field;
         set
         {
             if (ReferenceEquals(_McInstanceSelected_mcInstanceSelectedLast, value))
                 return;
-            _mcInstanceSelected = value; // 由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
+            field = value; // 由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
             _McInstanceSelected_mcInstanceSelectedLast = value;
             if (value is null)
                 return;
@@ -440,13 +439,6 @@ public static class ModMinecraft
 
     public class Instance
     {
-        private McInstanceInfo _info;
-        private string _inheritInstanceName;
-        private JsonObject _jsonObject;
-        private string _jsonText;
-        private JsonObject _jsonVersion;
-        private string _name;
-
         /// <summary>
         ///     显示的描述文本。
         /// </summary>
@@ -553,9 +545,9 @@ public static class ModMinecraft
         {
             get
             {
-                if (_name is null && !string.IsNullOrEmpty(PathInstance))
-                    _name = ModBase.GetFolderNameFromPath(PathInstance);
-                return _name;
+                if (field is null && !string.IsNullOrEmpty(PathInstance))
+                    field = ModBase.GetFolderNameFromPath(PathInstance);
+                return field;
             }
         }
 
@@ -580,9 +572,9 @@ public static class ModMinecraft
         {
             get
             {
-                if (_info is not null)
-                    return _info;
-                _info = new McInstanceInfo();
+                if (field is not null)
+                    return field;
+                field = new McInstanceInfo();
 
                 #region 获取游戏版本
 
@@ -597,7 +589,7 @@ public static class ModMinecraft
                             releaseTime = JsonObject["releaseTime"].ToObject<DateTime>();
                         if (releaseTime.Year > 2000 && releaseTime.Year < 2013)
                         {
-                            _info.VanillaName = "Old";
+                            field.VanillaName = "Old";
                             goto VersionSearchFinish;
                         }
                     }
@@ -609,14 +601,14 @@ public static class ModMinecraft
                     // 实验性快照
                     if ((string)(JsonObject["type"] ?? "") == "pending")
                     {
-                        _info.VanillaName = "pending";
+                        field.VanillaName = "pending";
                         goto VersionSearchFinish;
                     }
 
                     // 从 PCL 下载的版本信息中获取版本号
                     if (JsonObject["clientVersion"] is not null)
                     {
-                        _info.VanillaName = (string)JsonObject["clientVersion"];
+                        field.VanillaName = (string)JsonObject["clientVersion"];
                         goto VersionSearchFinish;
                     }
 
@@ -625,7 +617,7 @@ public static class ModMinecraft
                         foreach (var patchNode in JsonObject["patches"].AsArray()) { var patch = patchNode.AsObject();
                             if ((patch["id"] ?? "").ToString() == "game" && patch["version"] is not null)
                             {
-                                _info.VanillaName = patch["version"].ToString();
+                                field.VanillaName = patch["version"].ToString();
                                 goto VersionSearchFinish;
                             } }
 
@@ -639,7 +631,7 @@ public static class ModMinecraft
                             {
                                 if (mark)
                                 {
-                                    _info.VanillaName = Argument.ToString();
+                                    field.VanillaName = Argument.ToString();
                                     goto VersionSearchFinish;
                                 }
 
@@ -654,7 +646,7 @@ public static class ModMinecraft
                                 var regexArgument = Argument.ToString().RegexSeek(RegexPatterns.LabyModVersion);
                                 if (regexArgument is not null)
                                 {
-                                    _info.VanillaName = regexArgument;
+                                    field.VanillaName = regexArgument;
                                     goto VersionSearchFinish;
                                 }
                             }
@@ -663,9 +655,9 @@ public static class ModMinecraft
                     // 从继承实例中获取版本号
                     if (!string.IsNullOrEmpty(InheritInstanceName))
                     {
-                        _info.VanillaName = (JsonObject["jar"] ?? "").ToString(); // LiteLoader 优先使用 Jar
-                        if (string.IsNullOrEmpty(_info.VanillaName))
-                            _info.VanillaName = InheritInstanceName;
+                        field.VanillaName = (JsonObject["jar"] ?? "").ToString(); // LiteLoader 优先使用 Jar
+                        if (string.IsNullOrEmpty(field.VanillaName))
+                            field.VanillaName = InheritInstanceName;
                         goto VersionSearchFinish;
                     }
 
@@ -674,7 +666,7 @@ public static class ModMinecraft
                         .RegexSeek(RegexPatterns.MinecraftDownloadUrlVersion);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
@@ -683,7 +675,7 @@ public static class ModMinecraft
                     regex = librariesString.RegexSeek(RegexPatterns.ForgeLibVersion);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
@@ -691,7 +683,7 @@ public static class ModMinecraft
                     regex = librariesString.RegexSeek(RegexPatterns.OptiFineLibVersion);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
@@ -699,14 +691,14 @@ public static class ModMinecraft
                     regex = librariesString.RegexSeek(RegexPatterns.FabricLikeLibVersion);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
                     // 从 jar 项中获取版本号
                     if (JsonObject["jar"] is not null)
                     {
-                        _info.VanillaName = JsonObject["jar"].ToString();
+                        field.VanillaName = JsonObject["jar"].ToString();
                         goto VersionSearchFinish;
                     }
 
@@ -716,7 +708,7 @@ public static class ModMinecraft
                         var jsonVerName = JsonVersion["name"].ToString();
                         if (jsonVerName.Length < 32) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
                         {
-                            _info.VanillaName = jsonVerName;
+                            field.VanillaName = jsonVerName;
                             ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
                             goto VersionSearchFinish;
                         }
@@ -727,18 +719,18 @@ public static class ModMinecraft
                         RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
                     // 非准确的版本判断警告
                     ModBase.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
-                    _info.Reliable = false;
+                    field.Reliable = false;
                     // 从文件夹名中获取
                     regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
@@ -749,18 +741,18 @@ public static class ModMinecraft
                     regex = jsonRawText.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
                     if (regex is not null)
                     {
-                        _info.VanillaName = regex;
+                        field.VanillaName = regex;
                         goto VersionSearchFinish;
                     }
 
                     // 无法获取
-                    _info.VanillaName = "Unknown";
+                    field.VanillaName = "Unknown";
                     Desc = Lang.Text("Select.Instance.Description.UnknownMcVersion");
                 }
                 catch (Exception ex)
                 {
                     ModBase.Log(ex, "识别 Minecraft 版本时出错");
-                    _info.VanillaName = "Unknown";
+                    field.VanillaName = "Unknown";
                     Desc = Lang.Text("Minecraft.Error.Unrecognizable", ex.Message);
                 }
 
@@ -768,34 +760,34 @@ public static class ModMinecraft
 
                 VersionSearchFinish: ;
 
-                if (_info.VanillaName.StartsWithF("20.") || _info.VanillaName.StartsWithF("21."))
+                if (field.VanillaName.StartsWithF("20.") || field.VanillaName.StartsWithF("21."))
                 {
-                    _info.VanillaName = "1." + _info.VanillaName;
+                    field.VanillaName = "1." + field.VanillaName;
                 }
                 
-                _info.VanillaName = _info.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "");
+                field.VanillaName = field.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "");
                 // 获取版本号
-                if (_info.VanillaName.StartsWithF("1."))
+                if (field.VanillaName.StartsWithF("1."))
                 {
-                    var segments = _info.VanillaName.Split(" _-.".ToCharArray());
-                    _info.vanilla = new Version((int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
+                    var segments = field.VanillaName.Split(" _-.".ToCharArray());
+                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
                         0, (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
-                else if (_info.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
+                else if (field.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
                 {
-                    var segments = _info.VanillaName.Split(" _-.".ToCharArray());
-                    _info.vanilla = new Version((int)Math.Round(ModBase.Val(segments[0])),
+                    var segments = field.VanillaName.Split(" _-.".ToCharArray());
+                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments[0])),
                         (int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
                         (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else
                 {
-                    _info.vanilla = new Version(9999, 0, 0);
+                    field.vanilla = new Version(9999, 0, 0);
                 }
 
-                return _info;
+                return field;
             }
-            set { _info = value; }
+            set { field = value; }
         }
 
         /// <summary>
@@ -813,7 +805,7 @@ public static class ModMinecraft
                 }
 
                 ;
-                if (_jsonText is null)
+                if (field is null)
                 {
                     var jsonPath = PathInstance + Name + ".json";
                     if (!File.Exists(jsonPath))
@@ -832,30 +824,30 @@ public static class ModMinecraft
                         }
                     }
 
-                    _jsonText = ModBase.ReadFile(jsonPath);
+                    field = ModBase.ReadFile(jsonPath);
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
-                    if (!FastJsonCheck(_jsonText))
+                    if (!FastJsonCheck(field))
                     {
                         if (ModBase.RunInUi())
                         {
                             ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{jsonPath}）", ModBase.LogLevel.Debug);
                             Thread.Sleep(200);
-                            _jsonText = ModBase.ReadFile(jsonPath);
+                            field = ModBase.ReadFile(jsonPath);
                         }
                         else
                         {
                             ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{jsonPath}）", ModBase.LogLevel.Debug);
                             Thread.Sleep(2000);
-                            _jsonText = ModBase.ReadFile(jsonPath);
+                            field = ModBase.ReadFile(jsonPath);
                         }
-                        if (!FastJsonCheck(_jsonText))
-                            ModBase.GetJson(_jsonText);
+                        if (!FastJsonCheck(field))
+                            ModBase.GetJson(field);
                     }
                 }
 
-                return _jsonText;
+                return field;
             }
-            set => _jsonText = value;
+            set => field = value;
         }
 
         /// <summary>
@@ -866,21 +858,21 @@ public static class ModMinecraft
         {
             get
             {
-                if (_jsonObject is null)
+                if (field is null)
                 {
                     var text = JsonText; // 触发 JsonText 的 Get 事件
                     try
                     {
-                        _jsonObject = (JsonObject)ModBase.GetJson(text);
+                        field = (JsonObject)ModBase.GetJson(text);
                         // 转换 HMCL 关键项
-                        if (_jsonObject.ContainsKey("patches") && !_jsonObject.ContainsKey("time"))
+                        if (field.ContainsKey("patches") && !field.ContainsKey("time"))
                         {
                             IsHmclFormatJson = true;
                             // 合并 JSON
                             // Dim HasOptiFine As Boolean = False, HasForge As Boolean = False
                             JsonObject currentObject = null;
                             var subjsonList = new List<JsonObject>();
-                            foreach (var SubjsonNode in _jsonObject["patches"].AsArray()) { var subjson = SubjsonNode.AsObject();
+                            foreach (var SubjsonNode in field["patches"].AsArray()) { var subjson = SubjsonNode.AsObject();
                                 subjsonList.Add(subjson); }
                             subjsonList.Sort((left, right) =>
                                 ModBase.Val((left["priority"] ?? "0").ToString()) <
@@ -903,11 +895,11 @@ public static class ModMinecraft
                                 }
                             }
 
-                            _jsonObject = currentObject;
+                            field = currentObject;
                             // 修改附加项
-                            _jsonObject["id"] = Name;
-                            if (_jsonObject.ContainsKey("inheritsFrom"))
-                                _jsonObject.Remove("inheritsFrom");
+                            field["id"] = Name;
+                            if (field.ContainsKey("inheritsFrom"))
+                                field.Remove("inheritsFrom");
                         }
 
                         // 与继承实例合并
@@ -916,9 +908,9 @@ public static class ModMinecraft
                         {
                             try
                             {
-                                inheritInstanceName = _jsonObject["inheritsFrom"] is null
+                                inheritInstanceName = field["inheritsFrom"] is null
                                     ? ""
-                                    : _jsonObject["inheritsFrom"].ToString();
+                                    : field["inheritsFrom"].ToString();
                                 if (Equals(inheritInstanceName, Name))
                                 {
                                     ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogLevel.Debug);
@@ -938,8 +930,8 @@ public static class ModMinecraft
                                             inheritInstanceName));
                                     inheritInstanceName = inheritInstance.InheritInstanceName;
                                     // 合并
-                                    inheritInstance.JsonObject.Merge(_jsonObject);
-                                    _jsonObject = inheritInstance.JsonObject;
+                                    inheritInstance.JsonObject.Merge(field);
+                                    field = inheritInstance.JsonObject;
                                     goto Recheck;
                                 }
                             }
@@ -955,9 +947,9 @@ public static class ModMinecraft
                     }
                 }
 
-                return _jsonObject;
+                return field;
             }
-            set => _jsonObject = value;
+            set => field = value;
         }
 
         /// <summary>
@@ -995,7 +987,7 @@ public static class ModMinecraft
                                 if (versionJson is not null)
                                     using (var versionJsonStream = new StreamReader(versionJson.Open()))
                                     {
-                                        _jsonVersion = (JsonObject)ModBase.GetJson(versionJsonStream.ReadToEnd());
+                                        field = (JsonObject)ModBase.GetJson(versionJsonStream.ReadToEnd());
                                     }
                             }
                         }
@@ -1006,7 +998,7 @@ public static class ModMinecraft
                     } while (false);
                 }
 
-                return _jsonVersion;
+                return field;
             }
         }
 
@@ -1017,22 +1009,22 @@ public static class ModMinecraft
         {
             get
             {
-                if (_inheritInstanceName is null)
+                if (field is null)
                 {
-                    _inheritInstanceName = (JsonObject["inheritsFrom"] ?? "").ToString();
+                    field = (JsonObject["inheritsFrom"] ?? "").ToString();
                     // 由于过老的 LiteLoader 中没有 Inherits（例如 1.5.2），需要手动判断以获取真实继承实例
                     // 此外，由于这里的加载早于实例种类判断，所以需要手动判断是否为 LiteLoader
                     // 如果实例提供了不同的 JAR，代表所需的 JAR 可能已被更改，则跳过 Inherit 替换
                     if (JsonText.Contains("liteloader") && (Info.VanillaName ?? "") != (Name ?? "") &&
                         !JsonText.Contains("logging"))
                         if (((JsonObject["jar"] ?? Info.VanillaName).ToString() ?? "") == (Info.VanillaName ?? ""))
-                            _inheritInstanceName = Info.VanillaName;
+                            field = Info.VanillaName;
                     // HMCL 实例无 JSON
                     if (IsHmclFormatJson)
-                        _inheritInstanceName = "";
+                        field = "";
                 }
 
-                return _inheritInstanceName;
+                return field;
             }
         }
 

@@ -17,12 +17,6 @@ public partial class MyExtraButton
     // 务必放在 IsMouseDown 更新之后
     private const int animationColorIn = 120;
     private const int animationColorOut = 150;
-    private string _Logo = "";
-    private double _LogoScale = 1d;
-
-    // 进度条
-    private double _Progress;
-    private bool _Show;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
@@ -42,12 +36,12 @@ public partial class MyExtraButton
 
     public double Progress
     {
-        get => _Progress;
+        get;
         set
         {
-            if (_Progress == value)
+            if (field == value)
                 return;
-            _Progress = value;
+            field = value;
             if (value < 0.0001d)
             {
                 PanProgress.Visibility = Visibility.Collapsed;
@@ -62,35 +56,55 @@ public partial class MyExtraButton
 
     public string Logo
     {
-        get => _Logo;
+        get;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value;
+            field = value;
             Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
         }
-    }
+    } = "";
+
+    public string SvgIcon
+    {
+        get;
+        set
+        {
+            value ??= string.Empty;
+            if (value == field)
+                return;
+            field = value;
+            if (Path is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
+            ApplyLogoScale();
+        }
+    } = string.Empty;
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get;
         set
         {
-            _LogoScale = value;
-            if (Path is not null)
-                Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public bool Show
     {
-        get => _Show;
+        get;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)
@@ -127,6 +141,11 @@ public partial class MyExtraButton
     }
 
     public bool CanRightClick { get; set; }
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform { ScaleX = EffectiveLogoScale, ScaleY = EffectiveLogoScale };
+    }
 
     // 声明
     public event ClickEventHandler? Click;

@@ -13,7 +13,6 @@ public partial class MySlider
 
     // 自定义属性
 
-    private int _MaxValue = 100;
     private int _Value;
     private bool changeByKey;
 
@@ -39,15 +38,15 @@ public partial class MySlider
 
     public int MaxValue
     {
-        get => _MaxValue;
+        get => field;
         set
         {
-            if (value == _MaxValue)
+            if (value == field)
                 return;
-            _MaxValue = value;
+            field = value;
             RefreshWidth(null, null);
         }
-    }
+    } = 100;
 
     public int Value
     {

@@ -43,7 +43,7 @@ public class CacheSystemIntegrationTest
     {
         if (_cache != null)
         {
-            await _cache.StopAsync();
+            await _cache.DisposeAsync();
         }
 
         if (Directory.Exists(_testCacheDir))

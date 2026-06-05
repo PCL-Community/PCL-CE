@@ -47,6 +47,7 @@ public partial class PageDownloadCompDetail
         // 决定按钮显示
         BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
         BtnIntroWiki.Visibility = _project.WikiId == 0 ? Visibility.Collapsed : Visibility.Visible;
+        RefreshFavoriteButton();
 
         ModAnimation.AniControlEnabled -= 1;
     }
@@ -504,7 +505,7 @@ public partial class PageDownloadCompDetail
 
     private void BtnFavorites_Click(object sender, EventArgs e)
     {
-        ModComp.CompFavorites.ShowMenu(_project, (UIElement)sender);
+        ModComp.CompFavorites.ShowMenu(_project, (UIElement)sender, RefreshFavoriteButton);
     }
 
     private void BtnIntroLinkCopy_Click(object sender, EventArgs e)
@@ -531,10 +532,14 @@ public partial class PageDownloadCompDetail
     {
         try
         {
-            if (_project is not null)
-                // 刷新顶部的项目卡片收藏状态
-                if (_compItem is not null)
-                    _compItem.RefreshFavoriteStatus();
+            if (_project is null) return;
+
+            var isFavourite = ModComp.CompFavorites.IsFavourite(_project.Id);
+            BtnFavorites.SvgIcon = isFavourite ? "lucide/heart-filled" : "lucide/heart";
+
+            // 刷新顶部的项目卡片收藏状态
+            if (_compItem is not null)
+                _compItem.RefreshFavoriteStatus();
         }
         catch (Exception ex)
         {

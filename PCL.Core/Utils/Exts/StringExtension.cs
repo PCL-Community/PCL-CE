@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace PCL.Core.Utils.Exts;
@@ -41,7 +42,7 @@ public static class StringConvertExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse", 
+        var parse = targetType.GetMethod("Parse",
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
@@ -170,7 +171,7 @@ public static class StringExtension
 
     extension(string input)
     {
-          
+
         public T ParseToEnum<T>() where T : struct, Enum
         {
             if (String.IsNullOrWhiteSpace(input))
@@ -281,5 +282,11 @@ public static class StringExtension
 
         public int LastIndexOfF(string subStr, int startIndex, bool ignoreCase = false)
             => str.LastIndexOf(subStr, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
+
+    extension(string hex)
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] HexToBytes() => Convert.FromHexString(hex);
     }
 }
