@@ -47,7 +47,7 @@ public static class ToastNotification
             AumidHelper.RegisterAumid();
         }
 
-        var aumid = HStringHelper.ToHString("PCLCommunity.PCLCE");
+        var aumid = HStringHelper.ToHString(AumidHelper.Aumid);
 
         // TODO: 支持触发事件
 

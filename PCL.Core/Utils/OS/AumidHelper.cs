@@ -4,18 +4,18 @@ namespace PCL.Core.Utils.OS;
 
 public static class AumidHelper
 {
-    // TODO: 针对每个路径建立单独的 AUMID
+    public const string Aumid = "PCLCommunity.PCLCE";
     
     public static bool HasAumid()
     {
-        using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
+        using var key = Registry.CurrentUser.OpenSubKey(string.Concat(@"Software\Classes\AppUserModelId\", Aumid));
         return key is not null;
     }
     
     public static void RegisterAumid()
     {
-        //
-        using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE");
+        // .NET 8 在正常情况下不可能返回 null，如果炸了不应该包住而是让他炸下去
+        using var key = Registry.CurrentUser.CreateSubKey(string.Concat(@"Software\Classes\AppUserModelId\", Aumid));
         key.SetValue("DisplayName", "Plain Craft Launcher Community Edition");
         key.SetValue("IconUri", IconHelper.GetIconPath());
         key.SetValue("IconBackgroundColor", "FFDDDD");
@@ -23,6 +23,6 @@ public static class AumidHelper
 
     public static void UnregisterAumid()
     {
-        Registry.CurrentUser.DeleteSubKey($@"Software\Classes\AppUserModelId\PCLCommunity.PCLCE", false);
+        Registry.CurrentUser.DeleteSubKey(string.Concat(@"Software\Classes\AppUserModelId\", Aumid), false);
     }
 }
