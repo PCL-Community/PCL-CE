@@ -14,8 +14,6 @@ public class AnimatedBackgroundGrid : Grid
 
     public readonly int uuid = ModBase.GetUuid();
 
-    private bool _isAnimating;
-
     public AnimatedBackgroundGrid(DependencyProperty brushDp)
     {
         _animatableBrushProperty = brushDp;
@@ -36,8 +34,8 @@ public class AnimatedBackgroundGrid : Grid
 
     protected bool IsAnimating
     {
-        get => _isAnimating;
-        private set => _isAnimating = value;
+        get => field;
+        private set => field = value;
     }
 
     public SolidColorBrush BackgroundBrush

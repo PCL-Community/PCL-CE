@@ -340,12 +340,12 @@ public static class ModDownloadLib
 
     private static void McDownloadSaveMenuBuild(object sender, EventArgs _)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
         btnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
-        var btnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
+        var btnServer = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/server", ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
@@ -355,17 +355,17 @@ public static class ModDownloadLib
 
     private static void McDownloadMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b); // dynamic!
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
         btnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b); // dynamic!
-        var btnServer = new MyIconButton { LogoScale = 1d, Logo = Icon.IconButtonServer, ToolTip = Lang.Text("Download.Version.DownloadServer") };
+        var btnServer = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/server", ToolTip = Lang.Text("Download.Version.DownloadServer") };
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
@@ -1184,7 +1184,7 @@ public static class ModDownloadLib
 
     private static void OptiFineSaveContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -1194,12 +1194,12 @@ public static class ModDownloadLib
 
     private static void OptiFineContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         //btnSave.Click += () ModDownloadLib.OptiFineSave_Click;
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -1500,7 +1500,7 @@ public static class ModDownloadLib
         }
         else
         {
-            var btnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
+            var btnList = new MyIconButton { SvgIcon = "lucide/list", ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);
@@ -1511,7 +1511,7 @@ public static class ModDownloadLib
 
     private static void LiteLoaderContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveInstaller"), Tag = sender };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveInstaller"), Tag = sender };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
@@ -1522,7 +1522,7 @@ public static class ModDownloadLib
         }
         else
         {
-            var btnList = new MyIconButton { Logo = Icon.IconButtonList, ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
+            var btnList = new MyIconButton { SvgIcon = "lucide/list", ToolTip = Lang.Text("Download.Version.ViewAllVersions"), Tag = sender };
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);
@@ -2428,12 +2428,12 @@ public static class ModDownloadLib
 
     private static void ForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2443,7 +2443,7 @@ public static class ModDownloadLib
 
     private static void ForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2633,12 +2633,12 @@ public static class ModDownloadLib
 
     private static void NeoForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2648,7 +2648,7 @@ public static class ModDownloadLib
 
     private static void NeoForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2735,12 +2735,12 @@ public static class ModDownloadLib
 
     private static void CleanroomContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (sender, _e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -2750,7 +2750,7 @@ public static class ModDownloadLib
 
     private static void CleanroomSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3035,7 +3035,7 @@ public static class ModDownloadLib
 
     private static void FabricContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3260,7 +3260,7 @@ public static class ModDownloadLib
 
     private static void QuiltContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -3551,12 +3551,12 @@ public static class ModDownloadLib
 
     private static void LabyModContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton { Logo = Icon.IconButtonSave, ToolTip = Lang.Text("Download.Version.SaveAs") };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
-        var btnInfo = new MyIconButton { LogoScale = 1.05d, Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Download.Version.Changelog") };
+        var btnInfo = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/info", ToolTip = Lang.Text("Download.Version.Changelog") };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

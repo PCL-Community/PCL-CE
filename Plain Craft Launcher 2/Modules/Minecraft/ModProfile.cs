@@ -473,21 +473,21 @@ public static class ModProfile
             {
                 Title = Lang.Text("Launch.Account.Type.Microsoft"),
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = Icon.IconButtonAuth
+                SvgIcon = "lucide/shield-check"
             },
 
             new MyListItem
             {
                 Title = Lang.Text("Launch.Account.Type.ThirdParty"),
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = Icon.IconButtonThirdparty
+                SvgIcon = "lucide/network"
             },
 
             new MyListItem
             {
                 Title = Lang.Text("Launch.Account.Type.Offline"),
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = Icon.IconButtonOffline
+                SvgIcon = "lucide/link-2-off"
             }
         ],
         _ =>
@@ -496,7 +496,7 @@ public static class ModProfile
             {
                 Title = Lang.Text("Launch.Account.Type.Microsoft"),
                 Type = MyListItem.CheckType.RadioBox,
-                Logo = Icon.IconButtonAuth
+                SvgIcon = "lucide/shield-check"
             }
         ]
     };

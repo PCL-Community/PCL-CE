@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
 
@@ -242,14 +243,12 @@ public partial class MyListItem : IMyRadio
     /// <summary>
     ///     Tags 的存放 StackPanel
     /// </summary>
-    public StackPanel _PanTags;
-
     public StackPanel PanTags
     {
         get
         {
-            if (_PanTags is not null)
-                return _PanTags;
+            if (field is not null)
+                return field;
             var newStack = new StackPanel
             {
                 IsHitTestVisible = false,
@@ -260,8 +259,8 @@ public partial class MyListItem : IMyRadio
             SetColumn(newStack, 3);
             SetRow(newStack, 2);
             PanBack.Children.Add(newStack);
-            _PanTags = newStack;
-            return _PanTags;
+            field = newStack;
+            return field;
         }
     }
 
@@ -301,13 +300,12 @@ public partial class MyListItem : IMyRadio
     }
 
     // 副文本
-    private TextBlock _LabInfo;
 
     public TextBlock LabInfo
     {
         get
         {
-            if (_LabInfo is null)
+            if (field is null)
             {
                 var lab = new TextBlock
                 {
@@ -325,12 +323,12 @@ public partial class MyListItem : IMyRadio
                 SetColumn(lab, 4);
                 SetRow(lab, 2);
                 PanBack.Children.Add(lab);
-                _LabInfo = lab;
+                field = lab;
                 // <TextBlock Grid.Row="2" SnapsToDevicePixels="False" UseLayoutRounding="False" HorizontalAlignment="Left" x:Name = "LabInfo" IsHitTestVisible="False" Grid.Column="2" 
                 // TextTrimming = "CharacterEllipsis" Visibility="Collapsed" FontSize="12" Foreground="{StaticResource ColorBrushGray2}" Margin="4,0,0,0" />
             }
 
-            return _LabInfo;
+            return field;
         }
     }
 
@@ -346,16 +344,14 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public bool IsScaleAnimationEnabled
     {
-        get => _IsScaleAnimationEnabled;
+        get => field;
         set
         {
-            _IsScaleAnimationEnabled = value;
+            field = value;
             if (_RectBack is not null)
                 RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
         }
-    }
-
-    private bool _IsScaleAnimationEnabled = true;
+    } = true;
 
     // 边距
     public int PaddingLeft
@@ -371,14 +367,13 @@ public partial class MyListItem : IMyRadio
     public int MinPaddingRight { get; set; } = 4;
 
     // 按钮
-    private IEnumerable<MyIconButton> _Buttons;
 
     public IEnumerable<MyIconButton> Buttons
     {
-        get => _Buttons;
+        get => field;
         set
         {
-            _Buttons = value;
+            field = value;
             // 没有特殊按钮，移除原 Stack
             if (buttonStack is not null)
             {
@@ -520,32 +515,80 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register("Logo", typeof(string),
-        typeof(MyListItem), new PropertyMetadata("", OnLogoChanged));
+    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register(
+        nameof(Logo),
+        typeof(string),
+        typeof(MyListItem),
+        new PropertyMetadata("", OnLogoChanged));
+
+    public string SvgIcon
+    {
+        get => (string)GetValue(SvgIconProperty);
+        set
+        {
+            if (SvgIcon == value)
+                return;
+            SetValue(SvgIconProperty, value);
+        }
+    }
+
+    public static readonly DependencyProperty SvgIconProperty = DependencyProperty.Register(
+        nameof(SvgIcon),
+        typeof(string),
+        typeof(MyListItem),
+        new PropertyMetadata("", OnSvgIconChanged));
 
     private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (MyListItem)d;
-        var value = e.NewValue as string;
-        control.UpdateLogo(value);
+        control.UpdateLogo(e.NewValue as string);
     }
 
-    private void UpdateLogo(string _Logo)
+    private static void OnSvgIconChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyListItem)d;
+        control.UpdateLogo(control.Logo);
+    }
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private void UpdateLogo(string logo)
     {
         // 删除旧 Logo
-            if (pathLogo is not null)
+        if (pathLogo is not null)
             Children.Remove(pathLogo);
+        pathLogo = null;
+
         // 添加新 Logo
-        if (!string.IsNullOrEmpty(_Logo))
+        if (IsUsingSvgIcon)
         {
-            if (_Logo.StartsWithF("http", true))
+            pathLogo = new SvgIcon
+            {
+                Tag = this,
+                IsHitTestVisible = LogoClickable,
+                Icon = SvgIcon,
+                Stretch = Stretch.Uniform,
+                RenderTransformOrigin = new Point(0.5d, 0.5d),
+                RenderTransform = new ScaleTransform { ScaleX = 1D, ScaleY = 1D },
+                SnapsToDevicePixels = false,
+                UseLayoutRounding = false,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            ((SvgIcon)pathLogo).SetBinding(
+                Core.UI.Controls.SvgIcon.SvgIcon.IconBrushProperty,
+                new Binding("Foreground") { Source = this });
+        }
+        else if (!string.IsNullOrEmpty(logo))
+        {
+            if (logo.StartsWithF("http", true))
             {
                 // 网络图片
                 pathLogo = new MyImage
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
-                    Source = _Logo,
+                    Source = logo,
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = true,
@@ -553,14 +596,14 @@ public partial class MyListItem : IMyRadio
                 };
                 RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
             }
-            else if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
+            else if (logo.EndsWithF(".png", true) || logo.EndsWithF(".jpg", true) || logo.EndsWithF(".webp", true))
             {
                 // 位图
                 pathLogo = new Canvas
                 {
                     Tag = this,
                     IsHitTestVisible = LogoClickable,
-                    Background = new MyBitmap(_Logo),
+                    Background = new MyBitmap(logo),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = true,
@@ -568,8 +611,8 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (_Logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
-                    _Logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
+                if (logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
+                    logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.NearestNeighbor);
                 else
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
@@ -584,7 +627,7 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Stretch = Stretch.Uniform,
-                    Data = (Geometry)new GeometryConverter().ConvertFromString(_Logo),
+                    Data = (Geometry)new GeometryConverter().ConvertFromString(logo),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                     SnapsToDevicePixels = false,
@@ -592,7 +635,10 @@ public partial class MyListItem : IMyRadio
                 };
                 pathLogo.SetBinding(Shape.FillProperty, new Binding("Foreground") { Source = this });
             }
+        }
 
+        if (pathLogo is not null)
+        {
             SetColumn(pathLogo, 2);
             SetRowSpan(pathLogo, 4);
             OnSizeChanged(); // 设置边距
@@ -614,21 +660,23 @@ public partial class MyListItem : IMyRadio
         }
 
         // 改变行距
-        ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
+        ColumnLogo.Width = new GridLength((hasLogo ? 34 : 0) + (Height < 40d ? 0 : 4));
     }
-
-    private double _LogoScale = 1d;
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get => field;
         set
         {
-            _LogoScale = value;
-        if (pathLogo is not null)
-                pathLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            if (pathLogo is not null)
+            {
+                var scale = IsUsingSvgIcon ? 1D : LogoScale;
+                pathLogo.RenderTransform = new ScaleTransform { ScaleX = scale, ScaleY = scale };
+            }
         }
-    }
+    } = 1d;
 
     // 图标的点击
     /// <summary>
@@ -696,13 +744,20 @@ public partial class MyListItem : IMyRadio
     // 适应尺寸
     private void OnSizeChanged()
     {
-        var _Logo = Logo;
-        ColumnCheck.Width =
-            new GridLength(_Type == CheckType.None || _Type == CheckType.Clickable ? Height < 40d ? 4 : 2 : 6);
-        ColumnLogo.Width = new GridLength((string.IsNullOrEmpty(_Logo) ? 0 : 34) + (Height < 40d ? 0 : 4));
+        var logo = Logo;
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
+        ColumnCheck.Width = new GridLength(_Type is CheckType.None or CheckType.Clickable
+            ? Height < 40d
+                ? 4
+                : 2
+            : 6);
+        ColumnLogo.Width = new GridLength((hasLogo ? 34 : 0) + (Height < 40d ? 0 : 4));
+
         if (pathLogo is not null)
         {
-            if (_Logo.EndsWithF(".png", true) || _Logo.EndsWithF(".jpg", true) || _Logo.EndsWithF(".webp", true))
+            if (!IsUsingSvgIcon && (logo.EndsWithF(".png", true) ||
+                                    logo.EndsWithF(".jpg", true) ||
+                                    logo.EndsWithF(".webp", true)))
                 pathLogo.Margin = new Thickness(4d, 5d, 3d, 5d);
             else
                 pathLogo.Margin = new Thickness(Height < 40d ? 6 : 8, 8d, Height < 40d ? 4 : 6, 8d);

@@ -447,7 +447,6 @@ public static partial class ModAnimation
     /// </summary>
     public static bool aniRunning;
 
-    private static int _AniControlEnabled;
     private static readonly object aniControlEnabledLock = new();
 
     /// <summary>
@@ -455,12 +454,12 @@ public static partial class ModAnimation
     /// </summary>
     public static int AniControlEnabled
     {
-        get => _AniControlEnabled;
+        get => field;
         set
         {
             lock (aniControlEnabledLock)
             {
-                _AniControlEnabled = value;
+                field = value;
             }
         }
     }

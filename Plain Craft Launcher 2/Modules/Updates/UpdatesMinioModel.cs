@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
@@ -72,7 +73,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
         var tempPath = $@"{ModBase.pathTemp}Cache\Update\Download\";
-        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取版本信息", load =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetVersionInfo"), load =>
         {
             var channelName = GetChannelName(channel, arch);
             var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")
@@ -99,8 +100,8 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 load.output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.Downloads), tempPath) };
             }
         }));
-        loaders.Add(new LoaderDownload("下载文件", new List<DownloadFile>()));
-        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", _ =>
+        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), new List<DownloadFile>()));
+        loaders.Add(new ModLoader.LoaderTask<string, int>(Lang.Text("Update.Task.ApplyFile"), _ =>
         {
             if (patchUpdate)
             {
@@ -128,7 +129,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         .FirstOrDefault(x => x.Name.Contains(".exe"));
 
                     if (entry is null)
-                        throw new Exception("找不到更新文件");
+                        throw new Exception(Lang.Text("Update.Error.FileNotFound"));
 
                     // 解压到指定文件（覆盖已存在文件）
                     entry.ExtractToFile(output, true);

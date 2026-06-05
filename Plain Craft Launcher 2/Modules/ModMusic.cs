@@ -226,14 +226,14 @@ public static class ModMusic
                     string tipText;
                     if (MusicState == MusicStates.Pause)
                     {
-                        ModMain.frmMain.BtnExtraMusic.Logo = Icon.IconPlay;
+                        ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/play";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
                         tipText = $"已暂停：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
                     }
                     else
                     {
-                        ModMain.frmMain.BtnExtraMusic.Logo = Icon.IconMusic;
+                        ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/music";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
                         tipText = $"正在播放：{fileName}";
                         tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");

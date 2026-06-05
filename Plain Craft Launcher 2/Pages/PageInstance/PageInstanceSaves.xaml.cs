@@ -213,13 +213,13 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var btnOpen = new MyIconButton
                     {
-                        Logo = Icon.IconButtonOpen,
+                        SvgIcon = "lucide/folder-open",
                         ToolTip = Lang.Text("Common.Action.Open")
                     };
                     btnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var btnDelete = new MyIconButton
                     {
-                        Logo = Icon.IconButtonDelete,
+                        SvgIcon = "lucide/trash-2",
                         ToolTip = Lang.Text("Common.Action.Delete")
                     };
                     btnDelete.Click += (_, _) =>
@@ -244,7 +244,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var btnCopy = new MyIconButton
                     {
-                        Logo = Icon.IconButtonCopy,
+                        SvgIcon = "lucide/copy",
                         ToolTip = Lang.Text("Common.Action.Copy")
                     };
                     btnCopy.Click += (_, _) =>
@@ -269,7 +269,7 @@ public partial class PageInstanceSaves : IRefreshable
                     };
                     var btnInfo = new MyIconButton
                     {
-                        Logo = Icon.IconButtonInfo,
+                        SvgIcon = "lucide/info",
                         ToolTip = Lang.Text("Instance.Saves.Details")
                     };
                     btnInfo.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
@@ -277,7 +277,7 @@ public partial class PageInstanceSaves : IRefreshable
 
                     var btnLaunch = new MyIconButton
                     {
-                        Logo = Icon.IconPlayGame,
+                        SvgIcon = "lucide/play",
                         ToolTip = Lang.Text("Instance.Saves.QuickPlay")
                     };
                     btnLaunch.Click += (_, _) =>

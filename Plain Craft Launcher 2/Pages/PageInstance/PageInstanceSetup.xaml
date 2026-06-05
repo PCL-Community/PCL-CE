@@ -404,7 +404,7 @@
             <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,0"
                                      x:Name="BtnSwitch" Text="{DynamicResource Instance.Setup.OpenGlobalSettings}"
                                      LogoScale="0.9"
-                                     Logo="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
+                                     SvgIcon="lucide/arrow-right" />
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

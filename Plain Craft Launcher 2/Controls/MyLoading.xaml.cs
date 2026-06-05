@@ -145,27 +145,25 @@ public partial class MyLoading
     }
 
     // 用于外部改变的公开状态
-    private ILoadingTrigger __State;
-
     private ILoadingTrigger _State
     {
         [MethodImpl(MethodImplOptions.Synchronized)]
-        get => __State;
+        get => field;
 
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (__State is not null)
+            if (field is not null)
             {
-                __State.ProgressChanged -= (_, _) => RefreshText();
-                __State.LoadingStateChanged -= (_, _) => RefreshState();
+                field.ProgressChanged -= (_, _) => RefreshText();
+                field.LoadingStateChanged -= (_, _) => RefreshState();
             }
 
-            __State = value;
-            if (__State is not null)
+            field = value;
+            if (field is not null)
             {
-                __State.ProgressChanged += (_, _) => RefreshText();
-                __State.LoadingStateChanged += (_, _) => RefreshState();
+                field.ProgressChanged += (_, _) => RefreshText();
+                field.LoadingStateChanged += (_, _) => RefreshState();
             }
         }
     }

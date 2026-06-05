@@ -257,7 +257,7 @@ public static class ModMain
 
 
     /// <summary>
-    ///     在窗口左下角弹出提示文本。
+    ///     在窗口弹出提示文本。
     /// </summary>
     public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
     {
@@ -279,6 +279,11 @@ public static class ModMain
     {
         try
         {
+            // 根据配置更新提示气泡对齐方向
+            frmMain!.PanHint.HorizontalAlignment = Config.Preference.HintAlignRight
+                ? HorizontalAlignment.Right
+                : HorizontalAlignment.Left;
+
             // Tag 存储了：{ 是否可以重用, Uuid }
             if (!HintWaiting.Any())
                 return;
@@ -328,6 +333,10 @@ public static class ModMain
                     }
                 }
 
+                // 根据提示方向准备参数
+                var alignRight = Config.Preference.HintAlignRight;
+                var slideSign = alignRight ? -1d : 1d;
+
                 if (doubleStack is not null)
                 {
                     var doubleStackTag = (object[])doubleStack.Tag;
@@ -339,11 +348,11 @@ public static class ModMain
                                     ModAnimation.aniSpeed;
                         ModAnimation.AniStart(new[]
                             {
-                                ModAnimation.AaX(doubleStack, -12 - doubleStack.Margin.Left, 50,
+                                ModAnimation.AaX(doubleStack, slideSign * 12 - doubleStack.Margin.Left, 50,
                                     ease: new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -8, 50, 50, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaX(doubleStack, 8d, 50, 100, new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
+                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 50, new ModAnimation.AniEaseInFluent()),
+                                ModAnimation.AaX(doubleStack, -slideSign * 8d, 50, 100, new ModAnimation.AniEaseOutFluent()),
+                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 150, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaDouble(i =>
                                 {
                                     percent += (double)i;
@@ -355,7 +364,7 @@ public static class ModMain
                                                                       new ModBase.MyColor(255d, 255d, 255d) *
                                                                       (1d - percent);
                                 }, 0.7d, 250),
-                                ModAnimation.AaX(doubleStack, -50, 200, (int)Math.Round(delay),
+                                ModAnimation.AaX(doubleStack, slideSign * 50, 200, (int)Math.Round(delay),
                                     new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaOpacity(doubleStack, -1, 150, (int)Math.Round(delay)),
                                 ModAnimation.AaCode(() => doubleStackTag[0] = false,
@@ -373,10 +382,10 @@ public static class ModMain
                     var newHintTag = new object[] { true, ModBase.GetUuid() };
                     var newHintControl = new Border
                     {
-                        Tag = newHintTag, Margin = new Thickness(-70, 0d, 20d, 0d),
+                        Tag = newHintTag, Margin = alignRight ? new Thickness(20d, 0d, -70d, 0d) : new Thickness(-70, 0d, 20d, 0d),
                         Opacity = 0d,
-                        Height = 0d, HorizontalAlignment = HorizontalAlignment.Left,
-                        CornerRadius = new CornerRadius(0d, 6d, 6d, 0d),
+                        Height = 0d, HorizontalAlignment = alignRight ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+                        CornerRadius = alignRight ? new CornerRadius(6d, 0d, 0d, 6d) : new CornerRadius(0d, 6d, 6d, 0d),
                         Background = new LinearGradientBrush(
                             new GradientStopCollection(new List<GradientStop>
                             {
@@ -387,7 +396,7 @@ public static class ModMain
                         Child = new TextBlock
                         {
                             TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = currentHint.Text,
-                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
+                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = alignRight ? new Thickness(8d, 5d, 33d, 5d) : new Thickness(33d, 5d, 8d, 5d)
                         }
                     };
                     // AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
@@ -403,9 +412,9 @@ public static class ModMain
                         newHintControl.Height = 26d;
                     // 开始动画
                     animations.AddRange([
-                        ModAnimation.AaX(newHintControl, 30d,
+                        ModAnimation.AaX(newHintControl, slideSign * 30d,
                             ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(newHintControl, 20d, 200, ease: new ModAnimation.AniEaseOutFluent()),
+                        ModAnimation.AaX(newHintControl, slideSign * 20d, 200, ease: new ModAnimation.AniEaseOutFluent()),
                         ModAnimation.AaOpacity(newHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
@@ -424,7 +433,7 @@ public static class ModMain
                     ModAnimation.AniStart(
                         new[]
                         {
-                            ModAnimation.AaX(newHintControl, -50, 200, (int)Math.Round(delay),
+                            ModAnimation.AaX(newHintControl, slideSign * 50, 200, (int)Math.Round(delay),
                                 new ModAnimation.AniEaseInFluent()),
                             ModAnimation.AaOpacity(newHintControl, -1, 150, (int)Math.Round(delay)),
                             ModAnimation.AaCode(() => newHintTag[0] = false, (int)Math.Round(delay)),
@@ -450,6 +459,7 @@ public static class ModMain
 
     private static void HideAllHint()
     {
+        var hideSign = Config.Preference.HintAlignRight ? -1d : 1d;
         foreach (Border control in frmMain!.PanHint.Children)
         {
             var controlTag = (object[])control.Tag;
@@ -457,7 +467,7 @@ public static class ModMain
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaX(control, -50, 200, ease: new ModAnimation.AniEaseInFluent()),
+                    ModAnimation.AaX(control, hideSign * 50, 200, ease: new ModAnimation.AniEaseInFluent()),
                     ModAnimation.AaOpacity(control, -1, 150, ease: new ModAnimation.AniEaseInFluent()),
                     ModAnimation.AaCode(() => controlTag[0] = false),
                     ModAnimation.AaHeight(control, -26, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),

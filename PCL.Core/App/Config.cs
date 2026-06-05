@@ -198,6 +198,11 @@ public static partial class Config
         [ConfigItem<bool>("UiShowLaunchingHint", true, ConfigSource.Local)] public partial bool ShowLaunchingHint { get; set; }
 
         /// <summary>
+        /// 提示气泡靠右弹出。
+        /// </summary>
+        [ConfigItem<bool>("UiHintAlignRight", false, ConfigSource.Local)] public partial bool HintAlignRight { get; set; }
+
+        /// <summary>
         /// 标题内容类型。
         /// </summary>
         [ConfigItem<LauncherTitleType>("UiLogoType", LauncherTitleType.Default, ConfigSource.Local)] public partial LauncherTitleType WindowTitleType { get; set; }

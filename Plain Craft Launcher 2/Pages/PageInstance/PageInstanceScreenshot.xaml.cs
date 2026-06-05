@@ -211,7 +211,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnOpen",
                     Text = Lang.Text("Common.Action.Open"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonOpen,
+                    SvgIcon = "lucide/folder-open",
                     Tag = i
                 };
                 btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
@@ -221,7 +221,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnDelete",
                     Text = Lang.Text("Common.Action.Delete"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonDelete,
+                    SvgIcon = "lucide/trash-2",
                     Tag = i
                 };
                 btnDelete.Click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
@@ -231,7 +231,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnCopy",
                     Text = Lang.Text("Common.Action.Copy"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonCopy,
+                    SvgIcon = "lucide/copy",
                     Tag = i
                 };
                 btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);

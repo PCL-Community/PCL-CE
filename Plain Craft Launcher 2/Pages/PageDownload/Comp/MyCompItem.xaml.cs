@@ -228,11 +228,11 @@ public partial class MyCompItem
     /// </summary>
     public void RefreshFavoriteStatus()
     {
-        if (Tag is ModComp.CompProject)
-        {
-            var project = (ModComp.CompProject)Tag;
-             ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.Id);
-        }
+        if (Tag is not ModComp.CompProject project) return;
+
+        var isFavourite = ModComp.CompFavorites.IsFavourite(project.Id);
+        BtnDelete.SvgIcon = isFavourite ? "lucide/heart-filled" : "lucide/heart";
+        ShowFavoriteBtn = isFavourite;
     }
 
     #endregion

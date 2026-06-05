@@ -38,8 +38,7 @@ public partial class MyRadioButton
         }));
 
     private bool _Checked; // 是否选中
-    private ColorState _ColorType = ColorState.White;
-    private double _LogoScale = 1d;
+    private bool _hasLegacyLogo;
     private bool isMouseDown;
 
     // 基础
@@ -49,12 +48,12 @@ public partial class MyRadioButton
     public MyRadioButton()
     {
         InitializeComponent();
+        RefreshLogoHostVisibility();
 
         Loaded += (_, _) =>
         {
-            if (LabText is not null)
-                LabText.Text = (string)GetValue(TextProperty);
-            
+            LabText?.Text = (string)GetValue(TextProperty);
+
             ThemeService.ColorModeChanged += OnColorModeChanged;
             ThemeService.ColorThemeChanged += OnColorThemeChanged;
         };
@@ -75,35 +74,94 @@ public partial class MyRadioButton
 
     private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
     {
-        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+        Dispatcher.Invoke(RefreshMyRadioButtonColor);
     }
+
     private void OnColorThemeChanged(ColorTheme theme)
     {
-        Dispatcher.Invoke(() => RefreshMyRadioButtonColor());
+        Dispatcher.Invoke(RefreshMyRadioButtonColor);
     }
-    
+
     // 自定义属性
 
     public string Logo
     {
-        get => ShapeLogo.Data.ToString();
+        get => ShapeLogo.Data?.ToString() ?? string.Empty;
         set
         {
             if (ShapeLogo is null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            _hasLegacyLogo = !string.IsNullOrWhiteSpace(value);
+            ShapeLogo.Data = _hasLegacyLogo
+                ? (Geometry)new GeometryConverter().ConvertFromString(value)
+                : null;
+            SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshLogoHostVisibility();
         }
+    }
+
+    public string SvgIcon
+    {
+        get;
+        set
+        {
+            value ??= string.Empty;
+            if (value == field)
+                return;
+            field = value;
+            if (ShapeLogo is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, field);
+            ApplyLogoScale();
+            RefreshLogoHostVisibility();
+            RefreshColor();
+        }
+    } = string.Empty;
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private bool HasAnyIcon => IsUsingSvgIcon || _hasLegacyLogo;
+
+    private void ApplyLogoScale()
+    {
+        LogoHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshLogoHostVisibility()
+    {
+        if (LogoHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 16;
+        }
+        else
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 0;
+        }
+
+        LogoHost.Height = 16;
+        LogoHost.Margin = new Thickness(12, 0, 0, 0);
+        LabText.Margin = new Thickness(8, 0, 12, 0);
     }
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get;
         set
         {
-            _LogoScale = value;
-            if (ShapeLogo is not null)
-                ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public bool Checked
     {
@@ -121,13 +179,13 @@ public partial class MyRadioButton
 
     public ColorState ColorType
     {
-        get => _ColorType;
+        get;
         set
         {
-            _ColorType = value;
+            field = value;
             RefreshColor();
         }
-    } // 颜色类别
+    } = ColorState.White; // 颜色类别
 
     public event CheckEventHandler? Check;
 

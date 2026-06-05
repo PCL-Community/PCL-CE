@@ -1,4 +1,4 @@
-﻿<Grid x:Class="PCL.MyListItem"
+<Grid x:Class="PCL.MyListItem"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       x:Name="PanBack"
