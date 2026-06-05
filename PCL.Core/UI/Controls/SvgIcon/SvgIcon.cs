@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
 using PCL.Core.UI.Animation;
@@ -14,7 +15,8 @@ public class SvgIcon : FrameworkElement
         nameof(Icon),
         typeof(string),
         typeof(SvgIcon),
-        new FrameworkPropertyMetadata(string.Empty,
+        new FrameworkPropertyMetadata(
+            string.Empty,
             FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
             _OnIconChanged));
 
@@ -22,7 +24,8 @@ public class SvgIcon : FrameworkElement
         nameof(DefaultPack),
         typeof(string),
         typeof(SvgIcon),
-        new FrameworkPropertyMetadata(SvgIconLoader.DefaultIconPack,
+        new FrameworkPropertyMetadata(
+            SvgIconLoader.DefaultIconPack,
             FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender,
             _OnIconChanged));
 
@@ -30,13 +33,17 @@ public class SvgIcon : FrameworkElement
         nameof(IconBrush),
         typeof(Brush),
         typeof(SvgIcon),
-        new FrameworkPropertyMetadata(SystemColors.ControlTextBrush, FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(
+            SystemColors.ControlTextBrush,
+            FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty StrokeThicknessProperty = DependencyProperty.Register(
         nameof(StrokeThickness),
         typeof(double),
         typeof(SvgIcon),
-        new FrameworkPropertyMetadata(2D, FrameworkPropertyMetadataOptions.AffectsRender),
+        new FrameworkPropertyMetadata(
+            2D,
+            FrameworkPropertyMetadataOptions.AffectsRender),
         value => value is double number && !double.IsNaN(number) && number >= 0D);
 
     public static readonly DependencyProperty UseOriginalColorProperty = DependencyProperty.Register(
@@ -49,7 +56,8 @@ public class SvgIcon : FrameworkElement
         nameof(Stretch),
         typeof(Stretch),
         typeof(SvgIcon),
-        new FrameworkPropertyMetadata(Stretch.Uniform,
+        new FrameworkPropertyMetadata(
+            Stretch.Uniform,
             FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
     private SvgIconModel? _model;
@@ -91,13 +99,17 @@ public class SvgIcon : FrameworkElement
         set => SetValue(StretchProperty, value);
     }
 
-    public IAnimation AnimateIconBrushTo(NColor color, TimeSpan? duration = null, IEasing? easing = null)
+    public IAnimation AnimateIconBrushTo(
+        NColor color,
+        TimeSpan? duration = null,
+        IEasing? easing = null,
+        string? animationKey = null)
     {
         _EnsureAnimatableIconBrush();
 
         var animation = new NColorFromToAnimation
         {
-            Name = "SvgIconColor",
+            Name = animationKey ?? $"SvgIconColor {RuntimeHelpers.GetHashCode(this)}",
             To = color,
             Duration = duration ?? TimeSpan.FromMilliseconds(120),
             Easing = easing ?? CubicEaseOut.Shared

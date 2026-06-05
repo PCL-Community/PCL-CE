@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
+using PCL.Core.Logging;
 
 namespace PCL.Core.UI.Controls.SvgIcon;
 
@@ -77,8 +78,16 @@ internal static class SvgIconParser
                 _ => null
             };
         }
-        catch
+        catch (Exception ex)
         {
+#if DEBUG
+            var descriptor = name;
+            var d = _Attr(element, "d");
+            if (!string.IsNullOrWhiteSpace(d))
+                descriptor += $" d=\"{(d.Length > 80 ? d[..80] + "..." : d)}\"";
+
+            LogWrapper.Debug(ex, "SvgIcon", $"跳过无法解析的 SVG 元素：{descriptor}");
+#endif
             // 单个图元解析失败时跳过，避免一个不兼容节点导致整个图标不可用。
             return null;
         }

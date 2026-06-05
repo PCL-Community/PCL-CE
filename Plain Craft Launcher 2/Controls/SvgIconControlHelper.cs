@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.UI;
@@ -45,16 +45,30 @@ internal static class SvgIconControlHelper
             legacyIcon.SetResourceReference(Shape.FillProperty, resourceKey);
     }
 
-    internal static void AnimateSvgIconBrushTo(SvgIcon svgIcon, string resourceKey, int duration)
+    internal static void AnimateSvgIconBrushTo(
+        SvgIcon svgIcon,
+        string resourceKey,
+        int duration,
+        string? animationKey = null)
     {
         if (svgIcon.Visibility == Visibility.Visible)
-            svgIcon.AnimateIconBrushTo(ResolveResourceColor(resourceKey), TimeSpan.FromMilliseconds(duration));
+            svgIcon.AnimateIconBrushTo(
+                ResolveResourceColor(resourceKey),
+                TimeSpan.FromMilliseconds(duration),
+                animationKey: animationKey);
     }
 
-    internal static void AnimateSvgIconBrushTo(SvgIcon svgIcon, ModBase.MyColor color, int duration)
+    internal static void AnimateSvgIconBrushTo(
+        SvgIcon svgIcon,
+        ModBase.MyColor color,
+        int duration,
+        string? animationKey = null)
     {
         if (svgIcon.Visibility == Visibility.Visible)
-            svgIcon.AnimateIconBrushTo(new NColor((Color)color), TimeSpan.FromMilliseconds(duration));
+            svgIcon.AnimateIconBrushTo(
+                new NColor((Color)color),
+                TimeSpan.FromMilliseconds(duration),
+                animationKey: animationKey);
     }
 
     private static NColor ResolveResourceColor(string resourceKey)

@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using PCL.Core.Logging;
 
 namespace PCL.Core.UI.Controls.SvgIcon;
 
@@ -21,7 +22,11 @@ public static class SvgIconLoader
     {
         var key = SvgIconKey.TryParse(icon, defaultPack ?? DefaultIconPack);
         if (key is null)
+        {
+            if (!string.IsNullOrWhiteSpace(icon))
+                _LogDebug($"无效的 SVG 图标标识：{icon}");
             return null;
+        }
 
         var cacheKey = key.Value.ToString();
         return _Cache.GetOrAdd(cacheKey, _ => new Lazy<SvgIconModel?>(() => _LoadCore(key.Value))).Value;
@@ -41,17 +46,31 @@ public static class SvgIconLoader
                 UriKind.Absolute);
             var info = Application.GetResourceStream(uri);
             if (info is null)
+            {
+                _LogDebug($"缺少 SVG 图标资源：{key} ({uri})");
                 return null;
+            }
 
             using var stream = info.Stream;
             using var reader = new StreamReader(stream, Encoding.UTF8, true);
             var svg = reader.ReadToEnd();
             return SvgIconParser.Parse(svg);
         }
-        catch
+        catch (Exception ex)
         {
+            _LogDebug($"加载 SVG 图标失败：{key}", ex);
             return null;
         }
+    }
+
+    private static void _LogDebug(string message, Exception? ex = null)
+    {
+#if DEBUG
+        if (ex is null)
+            LogWrapper.Debug("SvgIcon", message);
+        else
+            LogWrapper.Debug(ex, "SvgIcon", message);
+#endif
     }
 
     private readonly record struct SvgIconKey(string Pack, string Name)

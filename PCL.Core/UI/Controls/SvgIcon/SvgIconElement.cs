@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Media;
 
 namespace PCL.Core.UI.Controls.SvgIcon;
@@ -22,13 +22,7 @@ internal sealed class SvgIconElement
         if (fill is null && pen is null)
             return;
 
-        if (Style.Opacity < 1D)
-            context.PushOpacity(Math.Clamp(Style.Opacity, 0D, 1D));
-
         context.DrawGeometry(fill, pen, Geometry);
-
-        if (Style.Opacity < 1D)
-            context.Pop();
     }
 
     private Brush? _ResolveFill(SvgIconPaintOptions options)
@@ -36,6 +30,7 @@ internal sealed class SvgIconElement
         var hasFill = _HasPaint(Style.Fill);
         var hasStroke = _HasPaint(Style.Stroke);
         var explicitlyNoFill = _IsNone(Style.Fill);
+        Brush? brush;
 
         if (!options.UseOriginalColor)
         {
@@ -45,25 +40,29 @@ internal sealed class SvgIconElement
             if (!hasFill && (hasStroke || PreferStrokeByDefault))
                 return null;
 
-            return options.IconBrush;
+            brush = options.IconBrush;
+        }
+        else
+        {
+            if (explicitlyNoFill)
+                return null;
+
+            if (hasFill)
+                brush = SvgPaintParser.ParseBrush(Style.Fill, options.IconBrush);
+            else if (!hasStroke && !PreferStrokeByDefault)
+                brush = Brushes.Black;
+            else
+                return null;
         }
 
-        if (explicitlyNoFill)
-            return null;
-
-        if (hasFill)
-            return SvgPaintParser.ParseBrush(Style.Fill, options.IconBrush);
-
-        if (!hasStroke && !PreferStrokeByDefault)
-            return Brushes.Black;
-
-        return null;
+        return _ApplyOpacity(brush, Style.Opacity * Style.FillOpacity);
     }
 
     private Pen? _ResolvePen(SvgIconPaintOptions options)
     {
         var hasStroke = _HasPaint(Style.Stroke);
         var explicitlyNoStroke = _IsNone(Style.Stroke);
+        Brush? brush;
 
         if (!options.UseOriginalColor)
         {
@@ -73,19 +72,23 @@ internal sealed class SvgIconElement
             if (!hasStroke && !PreferStrokeByDefault)
                 return null;
 
-            return _CreatePen(options.IconBrush, options.StrokeThickness);
+            brush = options.IconBrush;
+        }
+        else
+        {
+            if (explicitlyNoStroke)
+                return null;
+
+            if (hasStroke)
+                brush = SvgPaintParser.ParseBrush(Style.Stroke, options.IconBrush);
+            else if (PreferStrokeByDefault)
+                brush = Brushes.Black;
+            else
+                return null;
         }
 
-        if (explicitlyNoStroke)
-            return null;
-
-        if (hasStroke)
-            return _CreatePen(SvgPaintParser.ParseBrush(Style.Stroke, options.IconBrush), options.StrokeThickness);
-
-        if (PreferStrokeByDefault)
-            return _CreatePen(Brushes.Black, options.StrokeThickness);
-
-        return null;
+        return _CreatePen(_ApplyOpacity(brush, Style.Opacity * Style.StrokeOpacity),
+            Style.StrokeWidth ?? options.StrokeThickness);
     }
 
     private Pen? _CreatePen(Brush? brush, double thickness)
@@ -99,6 +102,25 @@ internal sealed class SvgIconElement
             EndLineCap = _ParseLineCap(Style.StrokeLineCap),
             LineJoin = _ParseLineJoin(Style.StrokeLineJoin)
         };
+    }
+
+    private static Brush? _ApplyOpacity(Brush? brush, double opacity)
+    {
+        if (brush is null)
+            return null;
+
+        opacity = Math.Clamp(opacity, 0D, 1D);
+        if (opacity <= 0D)
+            return null;
+
+        if (Math.Abs(opacity - 1D) < 0.0001D)
+            return brush;
+
+        var clone = brush.CloneCurrentValue();
+        clone.Opacity *= opacity;
+        if (clone.CanFreeze)
+            clone.Freeze();
+        return clone;
     }
 
     private static bool _HasPaint(string? value)

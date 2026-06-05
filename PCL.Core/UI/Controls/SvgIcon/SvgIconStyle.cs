@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -13,6 +13,8 @@ internal sealed record SvgIconStyle
     public string? FillRule { get; init; }
     public double? StrokeWidth { get; init; }
     public double Opacity { get; init; } = 1D;
+    public double FillOpacity { get; init; } = 1D;
+    public double StrokeOpacity { get; init; } = 1D;
 
     public SvgIconStyle Merge(XElement element)
     {
@@ -31,10 +33,9 @@ internal sealed record SvgIconStyle
             FillRule = _GetAttributeOrStyle(element, inlineStyle, "fill-rule") ?? FillRule,
             StrokeWidth = SvgNumberParser.TryParseNullable(
                 _GetAttributeOrStyle(element, inlineStyle, "stroke-width")) ?? StrokeWidth,
-            Opacity = Opacity
-                      * SvgNumberParser.TryParse(opacity, 1D)
-                      * SvgNumberParser.TryParse(fillOpacity, 1D)
-                      * SvgNumberParser.TryParse(strokeOpacity, 1D)
+            Opacity = Opacity * SvgNumberParser.TryParse(opacity, 1D),
+            FillOpacity = SvgNumberParser.TryParseNullable(fillOpacity) ?? FillOpacity,
+            StrokeOpacity = SvgNumberParser.TryParseNullable(strokeOpacity) ?? StrokeOpacity
         };
     }
 

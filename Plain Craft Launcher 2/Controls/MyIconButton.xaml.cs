@@ -146,13 +146,13 @@ public partial class MyIconButton
     private void AnimateActiveSvgIconBrush(string resourceKey, int duration)
     {
         if (IsUsingSvgIcon)
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration);
+            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, ColorAnimationKey);
     }
 
     private void AnimateActiveSvgIconBrush(ModBase.MyColor color, int duration)
     {
         if (IsUsingSvgIcon)
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, color, duration);
+            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, color, duration, ColorAnimationKey);
     }
 
     private void SetActiveIconResource(string resourceKey)

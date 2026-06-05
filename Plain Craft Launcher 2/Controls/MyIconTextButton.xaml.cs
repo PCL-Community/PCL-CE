@@ -178,8 +178,9 @@ public partial class MyIconTextButton
     {
         if (IsUsingSvgIcon)
         {
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration);
-            ModAnimation.AniStart(ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
+            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, CheckedAnimationKey);
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
                 CheckedAnimationKey);
         }
         else
