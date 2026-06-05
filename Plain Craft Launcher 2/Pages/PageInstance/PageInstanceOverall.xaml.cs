@@ -370,9 +370,9 @@ public partial class PageInstanceOverall
             }
 
             // 替换实例设置文件中的路径
-            if (File.Exists(Path.Combine(newPath, @"PCL\Setup.ini")))
-                ModBase.WriteFile(Path.Combine(newPath, @"PCL\Setup.ini"),
-                    ModBase.ReadFile(Path.Combine(newPath, @"PCL\Setup.ini")).Replace(oldPath, newPath));
+            if (File.Exists(Path.Combine(newPath, "PCL", "Setup.ini")))
+                ModBase.WriteFile(Path.Combine(newPath, "PCL", "Setup.ini"),
+                    ModBase.ReadFile(Path.Combine(newPath, "PCL", "Setup.ini")).Replace(oldPath, newPath));
             // 更改已选中的实例
             if ((ModBase.ReadIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
                 ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", newName);
