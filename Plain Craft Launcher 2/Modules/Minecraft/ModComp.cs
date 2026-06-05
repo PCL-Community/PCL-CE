@@ -2199,7 +2199,7 @@ public static class ModComp
     /// <summary>host 等于 domain 或为其子域，避免 evilcurseforge.com 之类的伪装域名。</summary>
     private static bool IsHostOf(string host, string domain) =>
         host.Equals(domain, StringComparison.OrdinalIgnoreCase) ||
-        host.EndsWith("." + domain, StringComparison.OrdinalIgnoreCase);
+        host.EndsWith($".{domain}", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>从文本中找出首个可识别的资源链接 token，找不到返回 null。</summary>
     private static string? FindFirstResourceLinkToken(string? text)
