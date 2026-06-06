@@ -120,6 +120,12 @@ namespace PCL
             写入变量
         }
 
+        private static readonly HashSet<string> SecuritySensitiveSettingKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "LaunchAdvanceRun",
+            "VersionAdvanceRun"
+        };
+
         public EventType Type { get; set; } = EventType.None;
         public string Data { get; set; }
 
@@ -320,7 +326,11 @@ namespace PCL
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
+                        {
+                            if (!CanWriteSettingFromCustomEvent(args[0]))
+                                return;
                             item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
+                        }
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;
@@ -427,6 +437,16 @@ namespace PCL
             }
 
             return new[] { location, workingDir };
+        }
+
+        private static bool CanWriteSettingFromCustomEvent(string key)
+        {
+            if (!SecuritySensitiveSettingKeys.Contains(key))
+                return true;
+
+            ModBase.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", ModBase.LogLevel.Developer);
+            ModMain.Hint($"自定义主页不能写入高危设置：{key}", ModMain.HintType.Critical);
+            return false;
         }
 
         private static bool EventSafetyConfirm(string message)
