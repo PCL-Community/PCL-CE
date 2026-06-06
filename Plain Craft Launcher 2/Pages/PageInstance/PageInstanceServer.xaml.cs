@@ -76,7 +76,7 @@ public partial class PageInstanceServer : MyPageRight
         // Read NBT file
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
             ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
@@ -89,7 +89,7 @@ public partial class PageInstanceServer : MyPageRight
 
         // Write back to NBT file
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
             ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
@@ -111,7 +111,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat"),
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
@@ -137,7 +137,7 @@ public partial class PageInstanceServer : MyPageRight
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
             ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
             return;
@@ -223,7 +223,7 @@ public partial class PageInstanceServer : MyPageRight
 
             await serverCard.RefreshServerStatus(false);
 
-            var serversDatPath = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
+            var serversDatPath = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
 
             NbtList nbtData;
             if (!File.Exists(serversDatPath))
@@ -269,7 +269,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         serverList.Clear();
 
-        var serversFile = Path.Combine(PageInstanceLeft.instance.PathIndie, "servers.dat");
+        var serversFile = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 

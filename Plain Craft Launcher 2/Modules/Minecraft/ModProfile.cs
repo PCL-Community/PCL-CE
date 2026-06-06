@@ -1057,7 +1057,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
                 if (selectedProfile.Username.Contains("\""))
                     return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
-                if (ModMinecraft.McInstanceSelected is not null && ModMinecraft.McInstanceSelected.Info.Drop >= 203 &&
+                if (ModInstanceList.McMcInstanceSelected is not null && ModInstanceList.McMcInstanceSelected.Info.Drop >= 203 &&
                     selectedProfile.Username.Trim().Length > 16) return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
                 return "";
             }
@@ -1095,7 +1095,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             return;
         }
 
-        var skinInfo = ModMinecraft.McSkinSelect();
+        var skinInfo = ModSkin.McSkinSelect();
         if (!skinInfo.IsVaild)
             return;
         ModMain.Hint("正在更改皮肤……");

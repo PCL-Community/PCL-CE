@@ -364,18 +364,6 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
                         </local:MyComboBox>
                     </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Grid.Column="0" Margin="0,10,0,0"
-                                    HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GetMore}" />
-                        <local:MyIconTextButton x:Name="BtnGotoHomepageMarket" Grid.Column="1" Margin="10,10,0,0"
-                                                HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GoToMarket}"
-                                                SvgIcon="lucide/external-link"
-                                                Click="BtnHomepageMarket_Click" />
-                    </Grid>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">

@@ -6,7 +6,7 @@ public sealed record MinecraftCrashSession
 {
     public required string Id { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
-    public ModMinecraft.Instance? Instance { get; init; }
+    public McInstance? Instance { get; init; }
     public required CrashAnalysisRequest Request { get; init; }
     public required CrashAnalysisResult Result { get; init; }
     public required CrashPresentationModel Presentation { get; init; }

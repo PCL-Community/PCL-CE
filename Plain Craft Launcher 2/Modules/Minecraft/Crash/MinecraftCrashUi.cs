@@ -101,7 +101,7 @@ public static class MinecraftCrashUi
             case CrashPresentationActionKind.OpenInstanceSettings:
                 if (session.Instance is not null)
                 {
-                    PageInstanceLeft.instance = session.Instance;
+                    PageInstanceLeft.McInstance = session.Instance;
                     ModMain.frmMain?.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
                 }
                 break;

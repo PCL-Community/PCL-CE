@@ -109,7 +109,6 @@
     <sys:String x:Key="Main.Title.InstanceSetup">Properties - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">Resource download - {0}</sys:String>
     <sys:String x:Key="Main.Title.SaveManagement">Save management - {0}</sys:String>
-    <sys:String x:Key="Main.Title.HomePageMarket">Homepage Market</sys:String>
 
     <!-- Main.Extra Buttons -->
 
@@ -1578,8 +1577,6 @@
     <sys:String x:Key="Setup.Ui.Initialized">The personalization settings have been initialized.</sys:String>
     <sys:String x:Key="Setup.Ui.Error.InitFailed">Failed to initialize the personalization settings.</sys:String>
     <sys:String x:Key="Setup.Ui.Slider.Pixel">{0}px</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.Loading">Loading Homepage Market...</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.LoadFailed">Failed to load Homepage Market</sys:String>
 
     <!-- Setup.Launch.Options -->
 

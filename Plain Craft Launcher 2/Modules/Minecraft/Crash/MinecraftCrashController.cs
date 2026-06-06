@@ -47,7 +47,7 @@ public sealed class MinecraftCrashController
         _AnalyzeAndNavigate(analysisRequest, request.Instance, reportFiles);
     }
 
-    private static CrashRuntimeContext _Create(ModMinecraft.Instance? instance, string? launchScript)
+    private static CrashRuntimeContext _Create(McInstance? instance, string? launchScript)
     {
         var info = instance?.Info;
         return new CrashRuntimeContext
@@ -81,7 +81,7 @@ public sealed class MinecraftCrashController
         };
     }
 
-    private static string? _GetLoaderName(ModMinecraft.McInstanceInfo? info)
+    private static string? _GetLoaderName(McInstanceInfo? info)
     {
         if (info is null) return null;
         if (info.HasFabric) return "Fabric " + info.Fabric;
@@ -114,7 +114,7 @@ public sealed class MinecraftCrashController
 
     private void _AnalyzeAndNavigate(
         CrashAnalysisRequest request,
-        ModMinecraft.Instance? instance,
+        McInstance? instance,
         IReadOnlyList<string> extraReportFiles)
     {
         var result = _analyzer.Analyze(request);
@@ -162,7 +162,7 @@ public sealed class MinecraftCrashController
 
 public sealed record MinecraftCrashUiRequest
 {
-    public ModMinecraft.Instance? Instance { get; init; }
+    public McInstance? Instance { get; init; }
     public string? VersionPath { get; init; }
     public IReadOnlyList<string> LatestOutputLines { get; init; } = [];
     public IReadOnlyList<string> ExtraReportFiles { get; init; } = [];
