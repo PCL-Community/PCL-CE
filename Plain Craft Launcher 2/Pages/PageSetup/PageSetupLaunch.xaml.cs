@@ -24,7 +24,7 @@ public partial class PageSetupLaunch
         // 重复加载部分
         PanBack.ScrollToHome();
         RefreshRam(false);
-        if (ModMinecraft.McInstanceSelected is null)
+        if (ModInstanceList.McMcInstanceSelected is null)
             BtnSwitch.Visibility = Visibility.Collapsed;
         else
             BtnSwitch.Visibility = Visibility.Visible;
@@ -189,8 +189,8 @@ public partial class PageSetupLaunch
     // 切换到实例独立设置
     private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMinecraft.McInstanceSelected.Load();
-        PageInstanceLeft.instance = ModMinecraft.McInstanceSelected;
+        ModInstanceList.McMcInstanceSelected.Load();
+        PageInstanceLeft.McInstance = ModInstanceList.McMcInstanceSelected;
         ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
@@ -224,7 +224,7 @@ public partial class PageSetupLaunch
             ModMain.frmSetupLeft.pageID != FormMain.PageSubType.SetupLaunch)
             return;
         // 获取内存情况
-        var ramGame = Math.Round(GetRam(ModMinecraft.McInstanceSelected, false), 5);
+        var ramGame = Math.Round(GetRam(ModInstanceList.McMcInstanceSelected, false), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
         var ramTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
         var ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
@@ -403,7 +403,7 @@ public partial class PageSetupLaunch
     /// <summary>
     ///     获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
-    public static double GetRam(ModMinecraft.Instance version, bool useVersionJavaSetup, bool? is32BitJava = default)
+    public static double GetRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
         // ------------------------------------------
         // 修改下方代码时需要一并修改 PageInstanceSetup

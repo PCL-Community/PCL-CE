@@ -1105,7 +1105,7 @@ public static class ModComp
                 result.ModLoaders.AddRange(newFile.ModLoaders);
 
                 var gameVersions = file["gameVersions"]?.ToObject<List<string>>() ?? [];
-                if (!gameVersions.Any(ModMinecraft.McInstanceInfo.IsFormatFit))
+                if (!gameVersions.Any(McInstanceInfo.IsFormatFit))
                     continue;
 
                 files.Add(new KeyValuePair<int, List<string>>((int)file["id"], gameVersions));
@@ -1114,7 +1114,7 @@ public static class ModComp
             files.AddRange(
                 from File in (data["latestFilesIndexes"] as JsonArray) ?? []
                 let GameVersion = File["gameVersion"]?.ToString() ?? ""
-                where ModMinecraft.McInstanceInfo.IsFormatFit(GameVersion)
+                where McInstanceInfo.IsFormatFit(GameVersion)
                 select new KeyValuePair<int, List<string>>((int)File["fileId"], new[] { GameVersion }.ToList())
             );
 
@@ -1125,7 +1125,7 @@ public static class ModComp
 
             result.Drops = files
                 .SelectMany(f => f.Value)
-                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop(v))
+                .Select(v => McInstanceInfo.VersionToDrop(v))
                 .Where(v => v > 0)
                 .Distinct()
                 .OrderByDescending(v => v)
@@ -1186,7 +1186,7 @@ public static class ModComp
             // GameVersions
             // 搜索结果的键为 versions，获取特定工程的键为 game_versions
             result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
-                .Select(v => ModMinecraft.McInstanceInfo.VersionToDrop((string)v))
+                .Select(v => McInstanceInfo.VersionToDrop((string)v))
                 .Where(v => v > 0)
                 .Distinct()
                 .OrderByDescending(v => v)
@@ -1575,8 +1575,8 @@ public static class ModComp
                     }
 
                     // 将段转为文本的逻辑
-                    var startName = ModMinecraft.McInstanceInfo.DropToVersion(startDrop);
-                    var endName = ModMinecraft.McInstanceInfo.DropToVersion(endDrop);
+                    var startName = McInstanceInfo.DropToVersion(startDrop);
+                    var endName = McInstanceInfo.DropToVersion(endDrop);
 
                     if (startDrop == endDrop)
                     {
@@ -2227,7 +2227,7 @@ public static class ModComp
 
         // 拒绝不支持的版本
         if (request.modLoader == CompLoaderType.Quilt &&
-            ModMinecraft.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
+            McVersionComparer.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
                 throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.gameVersion));
 
         #endregion
@@ -2373,7 +2373,7 @@ public static class ModComp
 
             // 1.14 以下 Forge 筛选处理
             var isOldForgeRequest = request.modLoader == CompLoaderType.Forge &&
-                                    ModMinecraft.McInstanceInfo.VersionToDrop(request.gameVersion, true) < 140;
+                                    McInstanceInfo.VersionToDrop(request.gameVersion, true) < 140;
             if (isOldForgeRequest) request.modLoader = CompLoaderType.Any;
             var curseForgeUrl = request.GetCurseForgeAddress();
             var modrinthUrl = request.GetModrinthAddress();
@@ -2739,11 +2739,11 @@ public static class ModComp
 
                     // GameVersions
                     RawGameVersions = data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
-                    GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
+                    GameVersions = RawGameVersions.Where(v => McInstanceInfo.IsFormatFit(v))
                         .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
                         if (Type == CompType.ModPack)
                             GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 "支持" 一个版本
                     }
@@ -2884,7 +2884,7 @@ public static class ModComp
                         v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
                         if (Type == CompType.ModPack)
                             GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 “支持” 一个版本
                     }
