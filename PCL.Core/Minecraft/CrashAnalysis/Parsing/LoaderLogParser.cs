@@ -88,6 +88,8 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
         _AppendDependencyFacts(facts, document, window, lineNumber, dependencyProperties);
         _AppendConflictFacts(facts, document, window, lineNumber, dependencyProperties);
+        _AppendForgeFacts(facts, document, window, lineNumber, dependencyProperties);
+        _AppendLoaderVersionFacts(facts, document, window, lineNumber, dependencyProperties);
         _AppendDuplicateModFact(facts, document, window, lineNumber);
         _AppendMixinFact(facts, document, window, lineNumber);
         _AppendTransformFact(facts, document, window, lineNumber);
@@ -138,6 +140,74 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
         facts.Add(CrashFactFactory.Create(
             CrashFactKind.ModVersionConflictDetected,
+            _Summary(window),
+            document,
+            window,
+            lineNumber,
+            dependencyProperties,
+            visibility: CrashFactVisibility.Main));
+    }
+
+    private static void _AppendForgeFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string window,
+        int lineNumber,
+        IReadOnlyDictionary<string, string> dependencyProperties)
+    {
+        if (_ForgeModLoadingErrorRegex().IsMatch(window))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.ForgeModLoadingErrorDetected,
+                _Summary(window),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
+
+        if (_ForgeModLoadingErrorRegex().IsMatch(window) || _LoaderModLoadingFailedRegex().IsMatch(window))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.LoaderModLoadingFailed,
+                _Summary(window),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
+
+        if (_ForgeMissingMandatoryDependencyRegex().IsMatch(window))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.ForgeMissingMandatoryDependencyDetected,
+                _Summary(window),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
+
+        if (_ForgeLanguageProviderRegex().IsMatch(window))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.ForgeLanguageProviderMissingDetected,
+                _Summary(window),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
+    }
+
+    private static void _AppendLoaderVersionFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string window,
+        int lineNumber,
+        IReadOnlyDictionary<string, string> dependencyProperties)
+    {
+        if (!_LoaderVersionRequirementRegex().IsMatch(window) && !_IncompatibleRegex().IsMatch(window))
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.LoaderVersionRequirementDetected,
             _Summary(window),
             document,
             window,
@@ -370,4 +440,21 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
     private static partial Regex _FabricFixAddRegex();
+
+    [GeneratedRegex(
+        @"(?i)Mod loading error has occurred|net\.minecraftforge\.fml\.ModLoadingException|net\.neoforged\.fml\.ModLoadingException|failed to load mod file|error loading mods")]
+    private static partial Regex _ForgeModLoadingErrorRegex();
+
+    [GeneratedRegex(@"(?i)failed to load mod file|Mod loading error has occurred|error loading mods|ModLoadingException")]
+    private static partial Regex _LoaderModLoadingFailedRegex();
+
+    [GeneratedRegex(@"(?i)Missing mandatory dependencies|missing mandatory dependency|requires.*(?:forge|minecraft|neoforge).*(?:missing|not found)")]
+    private static partial Regex _ForgeMissingMandatoryDependencyRegex();
+
+    [GeneratedRegex(@"(?i)needs language provider|missing language provider|language provider\s+(?:javafml|fmlcore|fmlmod)")]
+    private static partial Regex _ForgeLanguageProviderRegex();
+
+    [GeneratedRegex(
+        @"(?i)requires\s+(?:minecraft|forge|neoforge|fabric|quilt)\s*(?:version)?|wrong\s+(?:minecraft|loader)\s+version|incompatible.*(?:minecraft|loader|forge|fabric|neoforge)|needs.*(?:minecraft|forge|neoforge).*(?:version|\[)")]
+    private static partial Regex _LoaderVersionRequirementRegex();
 }

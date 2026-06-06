@@ -54,7 +54,7 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
         string line,
         int lineNumber)
     {
-        if (!_Contains(line, "failed to load") || !_Contains(line, ".jar"))
+        if (!_ModFileIssueRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -72,11 +72,18 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
         string line,
         int lineNumber)
     {
-        if (!_Contains(line, "config") || (!_Contains(line, "parse") && !_Contains(line, "invalid")))
+        if (!_ConfigParseRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
             CrashFactKind.ConfigParseIssueDetected,
+            line.Trim(),
+            document,
+            line,
+            lineNumber,
+            confidence: CrashFactConfidence.Medium));
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.ModConfigParseFailed,
             line.Trim(),
             document,
             line,
@@ -118,4 +125,12 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
 
     [GeneratedRegex(@"(?i)Mod\s+'(?<display>[^']+)'\s+\((?<id>[a-z0-9_.-]+)\)")]
     private static partial Regex _FabricModDisplayRegex();
+
+    [GeneratedRegex(
+        @"(?i)failed to load.*\.jar|invalid mod file|failed to load mod file|zip END header not found|invalid CEN header|error in opening zip file|unable to read mod metadata|no mods\.toml found|invalid fabric\.mod\.json|fabric\.mod\.json.*(?:missing|invalid)")]
+    private static partial Regex _ModFileIssueRegex();
+
+    [GeneratedRegex(
+        @"(?i)(?:config|\.toml|\.json|nightconfig|JsonSyntaxException|ParsingException).*?(?:parse|parsing|invalid|malformed|failed|error)|(?:parse|parsing|invalid|malformed|failed|error).*?(?:config|\.toml|\.json|nightconfig)")]
+    private static partial Regex _ConfigParseRegex();
 }

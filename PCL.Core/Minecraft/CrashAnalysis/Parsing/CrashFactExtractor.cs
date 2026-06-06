@@ -9,6 +9,7 @@ public sealed class CrashFactExtractor
         new LoaderLogParser(),
         new ModMetadataParser(),
         new NativeCrashParser(),
+        new FileSystemCrashParser(),
         new SystemInfoParser()
     ];
 

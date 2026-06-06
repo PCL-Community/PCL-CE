@@ -45,6 +45,8 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
             _AppendMainExceptionFact(facts, document, line, lineNumber);
             _AppendWorldIssueFacts(facts, document, line, lineNumber);
             _AppendClientContentIssueFacts(facts, document, line, lineNumber);
+            _AppendDataPackFacts(facts, document, line, lineNumber);
+            _AppendRegistryFacts(facts, document, line, lineNumber);
         }
     }
 
@@ -162,6 +164,40 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 confidence: CrashFactConfidence.Medium));
     }
 
+    private static void _AppendDataPackFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        if (!_DataPackFailureRegex().IsMatch(line))
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.DataPackLoadFailed,
+            line.Trim(),
+            document,
+            line,
+            lineNumber));
+    }
+
+    private static void _AppendRegistryFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        if (!_RegistryIssueRegex().IsMatch(line))
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.RegistryEntryMissingDetected,
+            line.Trim(),
+            document,
+            line,
+            lineNumber));
+    }
+
     private static bool _Contains(string value, string keyword)
     {
         return value.Contains(keyword, StringComparison.OrdinalIgnoreCase);
@@ -188,4 +224,12 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
     [GeneratedRegex(
         @"(?i)shader (?:compile|compilation|link) (?:failed|error)|failed to compile shader|OpenGL error 1282.*(?:shader|render)|(?:shader|render).*OpenGL error 1282")]
     private static partial Regex _ShaderFailureRegex();
+
+    [GeneratedRegex(
+        @"(?i)failed to load datapacks|errors in currently selected datapacks|data pack validation failed|datapack.*(?:failed|error)|failed to validate datapack")]
+    private static partial Regex _DataPackFailureRegex();
+
+    [GeneratedRegex(
+        @"(?i)missing registry|unknown registry key|unbound values in registry|registry remapping failed|missing key in ResourceKey|unknown registry element|failed to parse registry")]
+    private static partial Regex _RegistryIssueRegex();
 }

@@ -13,10 +13,18 @@ public static class CrashDiagnosisRuleCatalog
             new GraphicsDriverNativeCrashRule(),
             new GameResourceOrShaderRule(),
             new LoaderDependencyRule(),
+            new LoaderVersionRule(),
+            new ForgeModLoadingRule(),
             new MixinTransformRule(),
             new DuplicateModRule(),
             new ModFileRule(),
+            new ModConfigRule(),
             new WorldContentRule(),
+            new DataPackRule(),
+            new RegistryRule(),
+            new GameFileIntegrityRule(),
+            new LibraryOrNativeRule(),
+            new FileSystemRule(),
             new NativeJvmRule()
         ];
     }
@@ -302,6 +310,15 @@ public static class CrashDiagnosisRuleCatalog
             }
 
             foreach (var fact in facts
+                         .Find(CrashFactKind.ForgeMissingMandatoryDependencyDetected)
+                         .Take(1))
+            {
+                score += 70;
+                evidence.Add(Evidence(fact, 70));
+                _CopyDependencyParameters(fact, parameters);
+            }
+
+            foreach (var fact in facts
                          .Find(CrashFactKind.LoaderDependencyError)
                          .Take(1))
             {
@@ -354,6 +371,75 @@ public static class CrashDiagnosisRuleCatalog
         {
             foreach (var pair in fact.Properties)
                 parameters.TryAdd(pair.Key, pair.Value);
+        }
+    }
+
+    private sealed class LoaderVersionRule : CrashDiagnosisRule
+    {
+        public override string Id => "loader.version_incompatible";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.LoaderVersionIncompatible;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.ModLoader;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            if (facts.Has(CrashFactKind.MissingModDependencyDetected))
+                return null;
+
+            var related = facts
+                .Find(CrashFactKind.LoaderVersionRequirementDetected)
+                .Concat(facts.Find(CrashFactKind.ModVersionConflictDetected))
+                .Take(3)
+                .ToList();
+            if (related.Count == 0) return null;
+
+            return Create(
+                Math.Min(85, 60 + related.Count * 15),
+                related
+                    .Select(fact => Evidence(fact, 60))
+                    .ToList(),
+                actions: [CrashPresentationActionKind.OpenInstanceSettings],
+                nature: CrashDiagnosisNature.RootCause);
+        }
+    }
+
+    private sealed class ForgeModLoadingRule : CrashDiagnosisRule
+    {
+        public override string Id => "loader.mod_loading_failed";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.LoaderModLoadingFailed;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.ModLoader;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            if (facts.Has(CrashFactKind.MissingModDependencyDetected) ||
+                facts.Has(CrashFactKind.ForgeMissingMandatoryDependencyDetected) ||
+                facts.Has(CrashFactKind.LoaderVersionRequirementDetected))
+                return null;
+
+            var related = facts
+                .Find(CrashFactKind.ForgeModLoadingErrorDetected)
+                .Concat(facts.Find(CrashFactKind.LoaderModLoadingFailed))
+                .Concat(facts.Find(CrashFactKind.ForgeLanguageProviderMissingDetected))
+                .Take(3)
+                .ToList();
+            if (related.Count == 0) return null;
+
+            return Create(
+                Math.Min(80, 55 + related.Count * 15),
+                related
+                    .Select(fact => Evidence(fact, 55))
+                    .ToList(),
+                actions:
+                [
+                    CrashPresentationActionKind.OpenInstanceModsFolder,
+                    CrashPresentationActionKind.ExportMarkdown
+                ],
+                nature: CrashDiagnosisNature.ProbableCause);
         }
     }
 
@@ -466,6 +552,34 @@ public static class CrashDiagnosisRuleCatalog
         }
     }
 
+    private sealed class ModConfigRule : CrashDiagnosisRule
+    {
+        public override string Id => "mod.config_invalid";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.ModConfigInvalid;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.Mod;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var related = facts
+                .Find(CrashFactKind.ModConfigParseFailed)
+                .Concat(facts.Find(CrashFactKind.ConfigParseIssueDetected))
+                .Take(3)
+                .ToList();
+            return related.Count == 0
+                ? null
+                : Create(
+                    70,
+                    related
+                        .Select(fact => Evidence(fact, 70))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.OpenInstanceModsFolder],
+                    nature: CrashDiagnosisNature.ProbableCause);
+        }
+    }
+
     private sealed class WorldContentRule : CrashDiagnosisRule
     {
         public override string Id => "game.world_content";
@@ -505,6 +619,191 @@ public static class CrashDiagnosisRuleCatalog
                     {
                         Code = CrashDiagnosisCode.GameWorldEntityCorrupted
                     };
+        }
+    }
+
+    private sealed class DataPackRule : CrashDiagnosisRule
+    {
+        public override string Id => "game.datapack_failed";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.GameDataPackFailed;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.GameContent;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var related = facts
+                .Find(CrashFactKind.DataPackLoadFailed)
+                .Take(3)
+                .ToList();
+            return related.Count == 0
+                ? null
+                : Create(
+                    75,
+                    related
+                        .Select(fact => Evidence(fact, 75))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.ProbableCause);
+        }
+    }
+
+    private sealed class RegistryRule : CrashDiagnosisRule
+    {
+        public override string Id => "game.registry_mismatch";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.GameRegistryMismatch;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.GameContent;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var related = facts
+                .Find(CrashFactKind.RegistryEntryMissingDetected)
+                .Take(3)
+                .ToList();
+            return related.Count == 0
+                ? null
+                : Create(
+                    72,
+                    related
+                        .Select(fact => Evidence(fact, 72))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.ProbableCause);
+        }
+    }
+
+    private sealed class GameFileIntegrityRule : CrashDiagnosisRule
+    {
+        public override string Id => "game.file_integrity";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.GameFileIntegrityIssue;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.GameContent;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var integrity = facts
+                .Find(CrashFactKind.GameJarMissingDetected)
+                .Concat(facts.Find(CrashFactKind.ChecksumMismatchDetected))
+                .ToList();
+            if (integrity.Count > 0)
+                return Create(
+                    82,
+                    integrity
+                        .Take(3)
+                        .Select(fact => Evidence(fact, 82))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.RootCause);
+
+            var assets = facts
+                .Find(CrashFactKind.AssetMissingDetected)
+                .Take(3)
+                .ToList();
+            return assets.Count == 0
+                ? null
+                : Create(
+                        68,
+                        assets
+                            .Select(fact => Evidence(fact, 68))
+                            .ToList(),
+                        actions: [CrashPresentationActionKind.ExportMarkdown],
+                        nature: CrashDiagnosisNature.ProbableCause) with
+                    {
+                        Code = CrashDiagnosisCode.AssetMissingOrCorrupted
+                    };
+        }
+    }
+
+    private sealed class LibraryOrNativeRule : CrashDiagnosisRule
+    {
+        public override string Id => "runtime.library_or_native_missing";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.LibraryOrNativeMissing;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.Runtime;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var related = facts
+                .Find(CrashFactKind.NativeLibraryMissingDetected)
+                .Concat(facts.Find(CrashFactKind.LibraryMissingDetected))
+                .Take(3)
+                .ToList();
+            return related.Count == 0
+                ? null
+                : Create(
+                    80,
+                    related
+                        .Select(fact => Evidence(fact, 80))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.RootCause);
+        }
+    }
+
+    private sealed class FileSystemRule : CrashDiagnosisRule
+    {
+        public override string Id => "launcher.file_system";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.FileAccessOrPermissionIssue;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.Launcher;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var diskFull = facts
+                .Find(CrashFactKind.DiskFullDetected)
+                .Take(2)
+                .ToList();
+            if (diskFull.Count > 0)
+                return Create(
+                        88,
+                        diskFull
+                            .Select(fact => Evidence(fact, 88))
+                            .ToList(),
+                        actions: [CrashPresentationActionKind.ExportMarkdown],
+                        nature: CrashDiagnosisNature.RootCause) with
+                    {
+                        Code = CrashDiagnosisCode.DiskSpaceInsufficient
+                    };
+
+            var pathTooLong = facts
+                .Find(CrashFactKind.PathTooLongDetected)
+                .Take(2)
+                .ToList();
+            if (pathTooLong.Count > 0)
+                return Create(
+                        76,
+                        pathTooLong
+                            .Select(fact => Evidence(fact, 76))
+                            .ToList(),
+                        actions: [CrashPresentationActionKind.ExportMarkdown],
+                        nature: CrashDiagnosisNature.ProbableCause) with
+                    {
+                        Code = CrashDiagnosisCode.PathOrFolderEnvironmentIssue
+                    };
+
+            var accessDenied = facts
+                .Find(CrashFactKind.AccessDeniedDetected)
+                .Take(3)
+                .ToList();
+            return accessDenied.Count == 0
+                ? null
+                : Create(
+                    78,
+                    accessDenied
+                        .Select(fact => Evidence(fact, 78))
+                        .ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.ProbableCause);
         }
     }
 
