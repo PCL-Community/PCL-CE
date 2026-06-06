@@ -14,9 +14,16 @@ public sealed class CrashDiagnosisEngine
             .ToList();
 
         diagnoses = _ApplyConflictPolicy(diagnoses);
-        return diagnoses
+        diagnoses = diagnoses
             .Where(static diagnosis => diagnosis.Score > 0)
-            .OrderByDescending(static diagnosis => diagnosis.Score)
+            .ToList();
+
+        if (diagnoses.Count == 0 && bundle.HasUsefulLog)
+            diagnoses.Add(_CreateInconclusiveDiagnosis());
+
+        return diagnoses
+            .OrderBy(static diagnosis => _NatureOrder(diagnosis.Nature))
+            .ThenByDescending(static diagnosis => diagnosis.Score)
             .ThenBy(static diagnosis => diagnosis.Code)
             .Take(5)
             .ToList();
@@ -55,6 +62,35 @@ public sealed class CrashDiagnosisEngine
                     ? _AdjustScore(d, -35, new CrashDiagnosisNote { Key = "Crash.Note.GraphicsOverridesNativeJvm" })
                     : d).ToList();
         return diagnoses;
+    }
+
+    private static CrashDiagnosis _CreateInconclusiveDiagnosis()
+    {
+        const int score = 25;
+        return new CrashDiagnosis
+        {
+            RuleId = "analysis.inconclusive",
+            Code = CrashDiagnosisCode.AnalysisInconclusive,
+            Category = CrashDiagnosisCategory.Unknown,
+            Severity = CrashDiagnosisSeverity.Warning,
+            Nature = CrashDiagnosisNature.Context,
+            Score = score,
+            Confidence = CrashScore.ToConfidence(score),
+            SuggestedActionKinds =
+                [CrashPresentationActionKind.ExportMarkdown, CrashPresentationActionKind.ExportReport]
+        };
+    }
+
+    private static int _NatureOrder(CrashDiagnosisNature nature)
+    {
+        return nature switch
+        {
+            CrashDiagnosisNature.RootCause => 0,
+            CrashDiagnosisNature.ProbableCause => 1,
+            CrashDiagnosisNature.Symptom => 2,
+            CrashDiagnosisNature.Context => 3,
+            _ => 4
+        };
     }
 
     private static CrashDiagnosis _AdjustScore(CrashDiagnosis diagnosis, int delta, CrashDiagnosisNote note)

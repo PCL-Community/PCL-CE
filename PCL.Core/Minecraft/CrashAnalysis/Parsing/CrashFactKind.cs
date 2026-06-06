@@ -8,6 +8,8 @@ public enum CrashFactKind
     JavaFatalErrorDetected,
     JavaOutOfMemoryDetected,
     JavaUnsupportedClassVersionDetected,
+    JavaClassFileMajorVersionDetected,
+    JavaRequiredVersionDetected,
     JavaModuleAccessErrorDetected,
     NativeAccessViolationDetected,
     NativeLibraryInCrashFrame,

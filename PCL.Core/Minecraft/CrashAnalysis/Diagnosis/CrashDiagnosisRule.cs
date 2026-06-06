@@ -5,7 +5,10 @@ public abstract class CrashDiagnosisRule
     public abstract string Id { get; }
     public abstract CrashDiagnosisCode Code { get; }
     public abstract CrashDiagnosisCategory Category { get; }
-    public abstract CrashDiagnosis? Evaluate(CrashLogBundle bundle, CrashFactSet facts, CrashAnalysisRequest request);
+    public abstract CrashDiagnosis? Evaluate(
+        CrashLogBundle bundle,
+        CrashFactSet facts,
+        CrashAnalysisRequest request);
 
     protected static CrashDiagnosisEvidence Evidence(CrashFact fact, int weight)
     {
@@ -45,7 +48,8 @@ public abstract class CrashDiagnosisRule
         IReadOnlyList<CrashDiagnosisEvidence> evidence,
         IReadOnlyDictionary<string, string>? parameters = null,
         IReadOnlyList<CrashPresentationActionKind>? actions = null,
-        CrashDiagnosisSeverity severity = CrashDiagnosisSeverity.Error)
+        CrashDiagnosisSeverity severity = CrashDiagnosisSeverity.Error,
+        CrashDiagnosisNature nature = CrashDiagnosisNature.ProbableCause)
     {
         score = CrashScore.Clamp(score);
         return new CrashDiagnosis
@@ -54,6 +58,7 @@ public abstract class CrashDiagnosisRule
             Code = Code,
             Category = Category,
             Severity = severity,
+            Nature = nature,
             Score = score,
             Confidence = CrashScore.ToConfidence(score),
             Evidence = evidence,

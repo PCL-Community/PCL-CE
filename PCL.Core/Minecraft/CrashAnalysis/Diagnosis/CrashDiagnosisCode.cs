@@ -26,7 +26,8 @@ public enum CrashDiagnosisCode
     GameResourcePackFailed,
     GameShaderFailed,
     NativeJvmCrash,
-    LauncherCapturedNoUsefulLog
+    LauncherCapturedNoUsefulLog,
+    AnalysisInconclusive
 }
 
 public enum CrashDiagnosisCategory
@@ -54,4 +55,12 @@ public enum CrashDiagnosisSeverity
     Info,
     Warning,
     Error
+}
+
+public enum CrashDiagnosisNature
+{
+    RootCause,
+    ProbableCause,
+    Symptom,
+    Context
 }

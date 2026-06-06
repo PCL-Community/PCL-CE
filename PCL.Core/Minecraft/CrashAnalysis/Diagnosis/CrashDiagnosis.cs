@@ -9,6 +9,7 @@ public sealed record CrashDiagnosis
     public required CrashDiagnosisCode Code { get; init; }
     public required CrashDiagnosisCategory Category { get; init; }
     public CrashDiagnosisSeverity Severity { get; init; } = CrashDiagnosisSeverity.Error;
+    public CrashDiagnosisNature Nature { get; init; } = CrashDiagnosisNature.ProbableCause;
     public CrashDiagnosisConfidence Confidence { get; init; }
     public int Score { get; init; }
     public IReadOnlyList<CrashDiagnosisEvidence> Evidence { get; init; } = [];

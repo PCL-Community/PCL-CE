@@ -3431,4 +3431,12 @@
     <sys:String x:Key="Crash.Action.Description.PreviewMarkdown">在启动器内预览即将导出的 Markdown 报告内容。</sys:String>
     <sys:String x:Key="Crash.Action.Description.ShowTechnicalDetails">显示更多技术细节和原始诊断数据。</sys:String>
 
+    <sys:String x:Key="Crash.Diagnosis.Title.AnalysisInconclusive">未能确定明确原因</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL 读取到了日志，但没有找到足够明确、可以可靠归因的错误特征。&#x0A;&#x0A;这通常表示日志中只有通用异常、退出信息或环境信息，缺少能直接指向 Java、显卡、加载器、Mod、存档或文件问题的强证据。&#x0A;&#x0A;你仍可以查看本页的日志、证据和环境信息，或导出完整报告发给他人进一步分析。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Cause.AnalysisInconclusive">PCL 读取到了日志，但没有找到足够明确、可以可靠归因的错误特征。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Impact.AnalysisInconclusive">这不代表没有错误，而是当前日志不足以支持某个具体结论。强行给出原因可能会误导排查方向。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">请查看日志页和证据页中的摘要，或导出完整报告发给他人进一步分析。</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">日志中出现了类文件版本信息</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaRequiredVersionDetected">日志显示需要更高版本的 Java</sys:String>
+
 </ResourceDictionary>

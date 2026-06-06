@@ -3431,4 +3431,16 @@
     <sys:String x:Key="Crash.Action.Description.PreviewMarkdown">Preview the Markdown report before exporting it.</sys:String>
     <sys:String x:Key="Crash.Action.Description.ShowTechnicalDetails">Show more technical details and raw diagnosis data.</sys:String>
 
+    <sys:String x:Key="Crash.Diagnosis.Title.AnalysisInconclusive">Analysis inconclusive</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL was able to read the logs, but did not find enough clear evidence to reliably identify a specific cause.
+
+This usually means the logs only contain generic exceptions, exit information, or environment details, without strong evidence pointing to Java, graphics, the mod loader, mods, world data, or file issues.
+
+You can still review the logs, evidence, and environment details on this page, or export a full report for further analysis.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Cause.AnalysisInconclusive">PCL was able to read the logs, but did not find enough clear evidence to reliably identify a specific cause.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Impact.AnalysisInconclusive">This does not mean there was no error. It means the current logs are not strong enough to support a specific conclusion, and guessing could lead troubleshooting in the wrong direction.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">Review the log and evidence summaries, or export a full report for further analysis.</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">A class file version was found in the log</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaRequiredVersionDetected">The log indicates that a newer Java version is required</sys:String>
+
 </ResourceDictionary>

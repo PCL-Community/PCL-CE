@@ -27,6 +27,7 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
 
             _AppendJavaErrorFacts(facts, document, line, lineNumber);
             _AppendJavaVersionFact(facts, document, line, lineNumber);
+            _AppendClassFileMajorFacts(facts, document, line, lineNumber);
             _AppendArchitectureFact(facts, document, line, lineNumber);
         }
     }
@@ -38,10 +39,14 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         if (string.IsNullOrWhiteSpace(javaInfo))
             return;
 
+        var properties = new Dictionary<string, string>();
+        if (_TryExtractJavaMajor(javaInfo, out var major))
+            properties["JavaMajor"] = major.ToString();
+
         facts.Add(CrashFactFactory.CreateFromContext(
             CrashFactKind.JavaVersionDetected,
             javaInfo,
-            visibility: CrashFactVisibility.Technical));
+            properties));
     }
 
     private static void _AppendJavaErrorFacts(
@@ -85,7 +90,7 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         string line,
         int lineNumber)
     {
-        if (_Contains(line, ".java:"))
+        if (_IsStackTraceSourceLine(line))
             return;
 
         var match = _JavaVersionRegex().Match(line);
@@ -93,13 +98,62 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         if (!match.Success)
             return;
 
+        var value = match.Groups["value"].Value;
+        var properties = new Dictionary<string, string>();
+        if (_TryExtractJavaMajor(value, out var major))
+            properties["JavaMajor"] = major.ToString();
+
         facts.Add(CrashFactFactory.Create(
             CrashFactKind.JavaVersionDetected,
-            match.Groups["value"].Value,
+            value,
             document,
             line,
             lineNumber,
+            properties,
             visibility: CrashFactVisibility.Technical));
+    }
+
+    private static void _AppendClassFileMajorFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        var match = _ClassFileMajorRegex().Match(line);
+
+        if (!match.Success || !int.TryParse(match.Groups["major"].Value, out var classMajor))
+            return;
+
+        var requiredJava = _ClassFileMajorToJavaMajor(classMajor);
+        var properties = new Dictionary<string, string>
+        {
+            ["ClassFileMajor"] = classMajor.ToString()
+        };
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.JavaClassFileMajorVersionDetected,
+            classMajor.ToString(),
+            document,
+            line,
+            lineNumber,
+            properties));
+
+        if (requiredJava <= 0)
+            return;
+
+        properties = new Dictionary<string, string>
+        {
+            ["ClassFileMajor"] = classMajor.ToString(),
+            ["RequiredJavaMajor"] = requiredJava.ToString()
+        };
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.JavaRequiredVersionDetected,
+            requiredJava.ToString(),
+            document,
+            line,
+            lineNumber,
+            properties));
     }
 
     private static void _AppendArchitectureFact(
@@ -141,14 +195,44 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         return value.Contains(keyword, StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool _IsStackTraceSourceLine(string line)
+    {
+        return line.Contains(".java:", StringComparison.OrdinalIgnoreCase)
+               || line.TrimStart().StartsWith("at ", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool _TryExtractJavaMajor(string value, out int major)
+    {
+        major = 0;
+        var match = _JavaVersionValueRegex().Match(value);
+        if (!match.Success || !int.TryParse(match.Groups["major"].Value, out var parsed))
+            return false;
+
+        major = parsed == 1 && int.TryParse(match.Groups["legacy"].Value, out var legacy)
+            ? legacy
+            : parsed;
+        return major > 0;
+    }
+
+    private static int _ClassFileMajorToJavaMajor(int classMajor)
+    {
+        return classMajor >= 49 ? classMajor - 44 : 0;
+    }
+
     private static string _TrimValue(string value)
     {
         value = value.Trim();
         return value.Length > MaxValueLength ? value[..MaxValueLength] : value;
     }
 
-    [GeneratedRegex("""(?im)^\s*(?:java version|jre version|java runtime|java:)\s*["']?(?<value>\d+(?:\.\d+){0,3})""")]
+    [GeneratedRegex("""(?im)^\s*(?:java version|jre version|java runtime|java:)\s*[\"']?(?<value>\d+(?:\.\d+){0,3})""")]
     private static partial Regex _JavaVersionRegex();
+
+    [GeneratedRegex(@"(?i)(?:class file version|class version|major version)\s+(?<major>\d{2,3})")]
+    private static partial Regex _ClassFileMajorRegex();
+
+    [GeneratedRegex(@"(?<major>\d+)(?:\.(?<legacy>\d+))?")]
+    private static partial Regex _JavaVersionValueRegex();
 
     [GeneratedRegex(@"(?i)\b(?<arch>x86|amd64|x86_64|aarch64|arm64)\b")]
     private static partial Regex _ArchitectureRegex();

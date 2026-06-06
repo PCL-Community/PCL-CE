@@ -38,7 +38,7 @@ public sealed class CrashPresentationBuilder
             };
 
         var top = diagnoses.FirstOrDefault();
-        if (top is null || top.Code == CrashDiagnosisCode.Unknown)
+        if (top is null || top.Code is CrashDiagnosisCode.Unknown or CrashDiagnosisCode.AnalysisInconclusive)
             return new CrashPresentationSummary
             {
                 Severity = CrashPresentationSeverity.Warning,

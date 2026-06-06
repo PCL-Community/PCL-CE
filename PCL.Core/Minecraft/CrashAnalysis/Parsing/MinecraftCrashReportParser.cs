@@ -127,7 +127,23 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
         string line,
         int lineNumber)
     {
-        if (_Contains(line, "resource pack"))
+        if (_OpenGlInitializationRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.OpenGlInitializationFailed,
+                line.Trim(),
+                document,
+                line,
+                lineNumber));
+
+        if (_LwjglInitializationRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.LwjglInitializationFailed,
+                line.Trim(),
+                document,
+                line,
+                lineNumber));
+
+        if (_ResourcePackFailureRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ResourcePackIssueDetected,
                 line.Trim(),
@@ -136,7 +152,7 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 lineNumber,
                 confidence: CrashFactConfidence.Medium));
 
-        if (_Contains(line, "shader") || _Contains(line, "OpenGL error 1282"))
+        if (_ShaderFailureRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ShaderIssueDetected,
                 line.Trim(),
@@ -156,4 +172,20 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
 
     [GeneratedRegex(@"(?<type>[a-zA-Z_][\w\.]+(?:Exception|Error))(?::|$)")]
     private static partial Regex _ExceptionLineRegex();
+
+    [GeneratedRegex(
+        @"(?i)GLFW error 65542|driver does not appear to support OpenGL|pixel format not accelerated|failed to create (?:window|OpenGL context)|no OpenGL context")]
+    private static partial Regex _OpenGlInitializationRegex();
+
+    [GeneratedRegex(
+        @"(?i)LWJGLException|UnsatisfiedLinkError:.*(?:lwjgl|org\.lwjgl)|failed to load.*lwjgl|no lwjgl.*java\.library\.path")]
+    private static partial Regex _LwjglInitializationRegex();
+
+    [GeneratedRegex(
+        @"(?i)resource reload failed|failed to reload resources|stitcherexception|texture atlas too large|out of memory.*texture|could not load texture")]
+    private static partial Regex _ResourcePackFailureRegex();
+
+    [GeneratedRegex(
+        @"(?i)shader (?:compile|compilation|link) (?:failed|error)|failed to compile shader|OpenGL error 1282.*(?:shader|render)|(?:shader|render).*OpenGL error 1282")]
+    private static partial Regex _ShaderFailureRegex();
 }
