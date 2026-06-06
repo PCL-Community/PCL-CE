@@ -928,7 +928,7 @@ public static class ModDownload
         {
             if (version != other.version) return version.CompareTo(other.version);
 
-            return ModMinecraft.CompareVersion(VersionName, other.VersionName);
+            return McVersionComparer.CompareVersion(VersionName, other.VersionName);
         }
     }
 

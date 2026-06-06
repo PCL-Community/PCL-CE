@@ -1276,9 +1276,9 @@ public class CrashAnalyzer
                             if (fileEncoding is null)
                                 fileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
                             var fileContent = ModBase.ReadFile(OutputFile, fileEncoding);
-                            fileContent = ModMinecraft.FilterAccessToken(fileContent,
+                            fileContent = McLogFilter.FilterAccessToken(fileContent,
                                 fileName == "启动脚本.bat" ? 'F' : '*');
-                            fileContent = ModMinecraft.FilterUserName(fileContent, '*');
+                            fileContent = McLogFilter.FilterUserName(fileContent, '*');
                             ModBase.WriteFile(Path.Combine(tempFolder, "Report", fileName), fileContent, encoding: fileEncoding);
                             ModBase.Log($"[Crash] 导出文件：{fileName}，编码：{fileEncoding.HeaderName}");
                         }

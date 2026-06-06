@@ -1934,7 +1934,7 @@ public static class ModDownloadLib
                 task.Progress = 0.8d;
                 // 查找对应版本
                 foreach (var ForgeVersion in forgeLoader.output)
-                    if (ModMinecraft.CompareVersion(ForgeVersion.version.ToString(), loaderVersion) == 0)
+                    if (McVersionComparer.CompareVersion(ForgeVersion.version.ToString(), loaderVersion) == 0)
                     {
                         info = ForgeVersion;
                         return;

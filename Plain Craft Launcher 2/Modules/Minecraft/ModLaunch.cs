@@ -275,7 +275,7 @@ public static class ModLaunch
     /// </summary>
     public static void McLaunchLog(string text)
     {
-        text = ModMinecraft.FilterUserName(ModMinecraft.FilterAccessToken(text, '*'), '*');
+        text = McLogFilter.FilterUserName(McLogFilter.FilterAccessToken(text, '*'), '*');
         ModBase.RunInUi(() =>
             ModMain.frmLaunchRight.LabLog.Text += "\r\n" + "[" + TimeUtils.GetTimeNow() + "] " + text);
         ModBase.Log("[Launch] " + text);
@@ -1904,8 +1904,8 @@ public static class ModLaunch
                 minVer = new Version(1, 8, 0, 0) > minVer ? new Version(1, 8, 0, 0) : minVer;
                 maxVer = new Version(1, 15, 999, 999) < maxVer ? new Version(1, 15, 999, 999) : maxVer;
             }
-            else if (ModMinecraft.CompareVersionGe(ModMinecraft.McMcInstanceSelected.Info.Forge, "34.0.0") &&
-                     ModMinecraft.CompareVersionGe("36.2.25", ModMinecraft.McMcInstanceSelected.Info.Forge))
+            else if (McVersionComparer.CompareVersionGe(ModMinecraft.McMcInstanceSelected.Info.Forge, "34.0.0") &&
+                     McVersionComparer.CompareVersionGe("36.2.25", ModMinecraft.McMcInstanceSelected.Info.Forge))
             {
                 // 1.16，Forge 34.X ~ 36.2.25：最高 Java 8u321
                 maxVer = new Version(1, 8, 0, 320) < maxVer ? new Version(1, 8, 0, 321) : maxVer;
@@ -3318,7 +3318,7 @@ public static class ModLaunch
                 $"\"{mcLaunchJavaSelected.Installation.JavaExePath}\" {mcLaunchArgument}" + "\r\n" +
                 "echo 游戏已退出。" + "\r\n" + "pause";
             ModBase.WriteFile(currentLaunchOptions.SaveBatch ?? ModBase.exePath + @"PCL\LatestLaunch.bat",
-                ModMinecraft.FilterAccessToken(cmdString, 'F'),
+                McLogFilter.FilterAccessToken(cmdString, 'F'),
                 encoding: mcLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default);
             if (currentLaunchOptions.SaveBatch is not null)
             {

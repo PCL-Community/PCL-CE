@@ -1095,7 +1095,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             return;
         }
 
-        var skinInfo = ModMinecraft.McSkinSelect();
+        var skinInfo = ModSkin.McSkinSelect();
         if (!skinInfo.IsVaild)
             return;
         ModMain.Hint("正在更改皮肤……");

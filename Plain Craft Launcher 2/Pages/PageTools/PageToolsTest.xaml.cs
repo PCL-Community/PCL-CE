@@ -412,8 +412,8 @@ public partial class PageToolsTest
                 else
                 {
                     var result = (string)ModProfile.McLoginMojangUuid(id, true);
-                    result = ModMinecraft.McSkinGetAddress(result, "Mojang");
-                    result = ModMinecraft.McSkinDownload(result);
+                    result = ModSkin.McSkinGetAddress(result, "Mojang");
+                    result = ModSkin.McSkinDownload(result);
                     ModBase.RunInUi(() =>
                     {
                         var path = SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Skin.Save"), $"{id}.png", Lang.Text("Tools.Test.Skin.FileFilter"));

@@ -2227,7 +2227,7 @@ public static class ModComp
 
         // 拒绝不支持的版本
         if (request.modLoader == CompLoaderType.Quilt &&
-            ModMinecraft.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
+            McVersionComparer.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
                 throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.gameVersion));
 
         #endregion
@@ -2743,7 +2743,7 @@ public static class ModComp
                         .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
                         if (Type == CompType.ModPack)
                             GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 "支持" 一个版本
                     }
@@ -2884,7 +2884,7 @@ public static class ModComp
                         v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
-                        GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
+                        GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
                         if (Type == CompType.ModPack)
                             GameVersions = new List<string> { GameVersions[0] }; // 整合包理应只 “支持” 一个版本
                     }

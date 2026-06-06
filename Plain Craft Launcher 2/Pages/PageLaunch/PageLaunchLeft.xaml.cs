@@ -834,7 +834,7 @@ public partial class PageLaunchLeft
 
         if (string.IsNullOrEmpty(userName))
         {
-            data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
+            data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
                           ".png";
             ModBase.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
             goto Finish;
@@ -842,10 +842,10 @@ public partial class PageLaunchLeft
 
         try
         {
-            var result = ModMinecraft.McSkinGetAddress(uuid, "Ms");
+            var result = ModSkin.McSkinGetAddress(uuid, "Ms");
             if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
-            result = ModMinecraft.McSkinDownload(result);
+            result = ModSkin.McSkinDownload(result);
             if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
             data.output = result;
@@ -862,19 +862,19 @@ public partial class PageLaunchLeft
             if (ex.ToString().Contains("429"))
             {
                 data.output = ModBase.pathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
+                              ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log(Lang.Text("Launch.Skin.Error.MsRateLimited", userName), ModBase.LogLevel.Hint);
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
                 data.output = ModBase.pathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
+                              ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
                 data.output = ModBase.pathImage + "Skins/" +
-                              ModMinecraft.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
+                              ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
                 ModBase.Log(ex, Lang.Text("Launch.Skin.Error.MsGet", userName), ModBase.LogLevel.Hint);
             }
         }
@@ -906,7 +906,7 @@ public partial class PageLaunchLeft
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
-        data.output = ModBase.pathImage + "Skins/" + ModMinecraft.McSkinSex(data.input[1]) + ".png";
+        data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(() => ModMain.frmLoginProfileSkin.Skin.Load());
@@ -946,10 +946,10 @@ public partial class PageLaunchLeft
 
         try
         {
-            var result = ModMinecraft.McSkinGetAddress(uuid, "Auth");
+            var result = ModSkin.McSkinGetAddress(uuid, "Auth");
             if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
-            result = ModMinecraft.McSkinDownload(result);
+            result = ModSkin.McSkinDownload(result);
             if (data.IsAborted)
                 throw new ThreadInterruptedException("当前任务已取消：" + userName);
             data.output = result;

@@ -604,7 +604,7 @@ public partial class PageInstanceOverall
         {
             var currentVersion = PageInstanceLeft.McInstance.Info;
             if (!(currentVersion.Drop == 99) &&
-                ModMinecraft.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
+                McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
             {
                 ModMain.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
                 return;

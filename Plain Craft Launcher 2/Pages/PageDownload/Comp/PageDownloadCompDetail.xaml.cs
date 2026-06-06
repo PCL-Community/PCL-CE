@@ -650,12 +650,12 @@ public partial class PageDownloadCompDetail
             if (isYSpecial)
                 return -1;
             // 比较版本号
-            var versionCodeSort = -ModMinecraft.CompareVersion(x.Replace(x.BeforeFirst(" ") + " ", ""),
+            var versionCodeSort = -McVersionComparer.CompareVersion(x.Replace(x.BeforeFirst(" ") + " ", ""),
                 y.Replace(y.BeforeFirst(" ") + " ", ""));
             if (versionCodeSort != 0)
                 return versionCodeSort;
             // 比较全部
-            return -ModMinecraft.CompareVersion(x, y);
+            return -McVersionComparer.CompareVersion(x, y);
         }
     }
 
@@ -697,7 +697,7 @@ public partial class PageDownloadCompDetail
         {
             instanceFilters = results.SelectMany(v => v.GameVersions)
                 .Select(v => GetGroupedVersionName(v, groupedDrop, groupedOld)).Distinct()
-                .OrderByDescending(s => s, new ModMinecraft.VersionComparer()).ToList();
+                .OrderByDescending(s => s, new McVersionComparer.VersionComparer()).ToList();
             modLoaderFilters = results.SelectMany(v => v.ModLoaders).Select(l => l.ToString()).Distinct()
                 .OrderByDescending(s => s).ToList();
         }
