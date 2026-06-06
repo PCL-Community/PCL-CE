@@ -1208,24 +1208,6 @@ public partial class FormMain
                 }
             }
 
-            if (new[] { "zip", "rar" }.Any(t => (t ?? "") == (extension ?? "")))
-            {
-                ModBase.Log("[System] 文件为压缩包，尝试作为存档分析");
-                try
-                {
-                    ModWorld.ReadWorld(filePath);
-                    return;
-                }
-                catch (ModBase.CancelledException ex)
-                {
-                    return; // 是存档，但是损坏了
-                }
-                catch (Exception ex)
-                {
-                    // 不是存档（或遇到了其他问题），继续往后尝试
-                }
-            }
-
             // 错误报告分析
             do
             {
