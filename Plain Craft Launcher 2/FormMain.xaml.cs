@@ -1424,11 +1424,6 @@ public partial class FormMain
         ///     存档详细管理，这是一个副页面。
         /// </summary>
         VersionSaves = 12,
-
-        /// <summary>
-        ///     主页市场，这是一个副页面。
-        /// </summary>
-        HomePageMarket = 13
     }
 
     /// <summary>
@@ -1523,10 +1518,6 @@ public partial class FormMain
             case PageType.VersionSaves:
             {
                 return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
-            }
-            case PageType.HomePageMarket:
-            {
-                return Lang.Text("Main.Title.HomePageMarket");
             }
 
             default:
@@ -1937,12 +1928,6 @@ public partial class FormMain
                         PageInstanceSavesLeft.currentSave = stack.additional.Value.SavePath;
                         PageChangeAnim(ModMain.frmInstanceSavesLeft,
                             (FrameworkElement)ModMain.frmInstanceSavesLeft.PageGet(subType));
-                        break;
-                    }
-                case PageType.HomePageMarket: // 主页市场
-                    {
-                        ModMain.frmHomePageMarket = ModMain.frmHomePageMarket ?? new PageHomePageMarket();
-                        PageChangeAnim(new MyPageLeft(), ModMain.frmHomePageMarket);
                         break;
                     }
             }

@@ -226,12 +226,6 @@ namespace PCL
                         }
                         break;
 
-                    case EventType.刷新主页市场:
-                        ModMain.frmHomePageMarket?.Refresh();
-                        if (args[0] == "")
-                            ModMain.Hint("已刷新主页市场！", ModMain.HintType.Finish);
-                        break;
-
                     case EventType.刷新帮助:
                         ModBase.RunInUiWait(() => PageToolsLeft.RefreshHelp());
                         if (string.IsNullOrEmpty(arg))

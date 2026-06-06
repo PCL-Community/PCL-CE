@@ -62,7 +62,6 @@ public static class ModMain
     public static PageSetupGameManage? frmSetupGameManage;
     public static PageSetupUpdate? frmSetupUpdate;
     public static PageSetupJava? frmSetupJava;
-    public static PageHomePageMarket? frmHomePageMarket;
     public static PageSetupAbout? frmSetupAbout;
     public static PageSetupLog? frmSetupLog;
     public static PageSetupFeedback? frmSetupFeedback;
