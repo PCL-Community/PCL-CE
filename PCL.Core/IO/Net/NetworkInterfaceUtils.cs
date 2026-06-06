@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -25,38 +25,34 @@ public static class NetworkInterfaceUtils
 
     public static IPv6Status GetIPv6Status()
     {
+        var hasPublic = false;
+        var hasRfc4193 = false;
+        var hasAny = false;
+
         foreach (var iface in GetAvailableInterface())
         {
-            var ipv6Addresses = iface.GetIPProperties().UnicastAddresses
-                .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetworkV6)
-                .Select(addr => addr.Address)
-                .ToArray();
-
-            if (ipv6Addresses.Length == 0)
+            foreach (var addr in iface.GetIPProperties().UnicastAddresses)
             {
-                return IPv6Status.Unavailable;
-            }
+                if (addr.Address.AddressFamily != AddressFamily.InterNetworkV6) continue;
 
-            foreach (var ip in ipv6Addresses)
-            {
-                if (_IsPublicIPv6(ip))
-                {
-                    return IPv6Status.Public;
-                }
-                if (_IsUniqueLocalIPv6(ip))
-                {
-                    return IPv6Status.RFC4193;
-                }
-            }
+                hasAny = true;
+                if (_IsLinkLocalIPv6(addr.Address))
+                    continue; // 跳过链路本地地址 FE80::/10
 
+                if (_IsPublicIPv6(addr.Address))
+                    hasPublic = true;
+                else if (_IsUniqueLocalIPv6(addr.Address))
+                    hasRfc4193 = true;
+            }
         }
 
-        return IPv6Status.Unknown;
+        if (hasPublic) return IPv6Status.Public;
+        if (hasRfc4193) return IPv6Status.RFC4193;
+        return hasAny ? IPv6Status.Unknown : IPv6Status.Unavailable;
     }
 
     private static bool _IsVirtualInterface(NetworkInterface iface)
     {
-        // 常见的虚拟接口类型和名称关键词
         var virtualTypes = new[] {
             NetworkInterfaceType.Loopback,
             NetworkInterfaceType.Tunnel,
@@ -83,15 +79,19 @@ public static class NetworkInterfaceUtils
 
     private static bool _IsPublicIPv6(IPAddress ip)
     {
-        byte[] addressBytes = ip.GetAddressBytes();
-        // 公网IPv6地址范围：2000::/3（即首字节在0x20到0x3F之间）
-        return addressBytes[0] >= 0x20 && addressBytes[0] <= 0x3F;
+        var bytes = ip.GetAddressBytes();
+        return bytes[0] >= 0x20 && bytes[0] <= 0x3F;
     }
 
     private static bool _IsUniqueLocalIPv6(IPAddress ip)
     {
-        byte[] addressBytes = ip.GetAddressBytes();
-        // 唯一本地地址范围：FC00::/7（即首字节为0xFC或0xFD）
-        return addressBytes[0] == 0xFC || addressBytes[0] == 0xFD;
+        var bytes = ip.GetAddressBytes();
+        return bytes[0] == 0xFC || bytes[0] == 0xFD;
+    }
+
+    private static bool _IsLinkLocalIPv6(IPAddress ip)
+    {
+        var bytes = ip.GetAddressBytes();
+        return bytes.Length >= 2 && bytes[0] == 0xFE && (bytes[1] & 0xC0) == 0x80;
     }
 }

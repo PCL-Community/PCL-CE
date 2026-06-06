@@ -45,7 +45,7 @@ public partial class PageComp
             var isRightEnabled = storage.results.Count > pageSize * (page + 1) ||
                                  storage.curseForgeOffset < storage.curseForgeTotal ||
                                  storage.modrinthOffset <
-                                 storage.modrinthTotal; // 由于 WPF 的未知 bug，读取到的 IsEnabled 可能是错误的值（#3319）
+                                 storage.modrinthTotal;
             BtnPageRight.IsEnabled = isRightEnabled;
             BtnPageRight.Opacity = isRightEnabled ? 1d : 0.2d;
             // 错误信息

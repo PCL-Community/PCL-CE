@@ -1415,7 +1415,17 @@ public partial class FormMain
         /// <summary>
         ///     主页市场，这是一个副页面。
         /// </summary>
-        HomePageMarket = 13
+        HomePageMarket = 13,
+
+        /// <summary>
+        ///     实例模组浏览，在实例设置页内打开，不跳转标签。
+        /// </summary>
+        InstanceModBrowser = 14,
+
+        /// <summary>
+        ///     实例模组详情，仅在实例模组浏览中打开。
+        /// </summary>
+        InstanceModDetail = 15
     }
 
     /// <summary>
@@ -1443,6 +1453,7 @@ public partial class FormMain
         DownloadLabyMod = 17,
         DownloadLegacyFabric = 18,
         DownloadResources = 19,
+        DownloadInstanceMod = 20,
 
         SetupLaunch = 0,
         SetupUI = 1,
@@ -1513,6 +1524,14 @@ public partial class FormMain
             case PageType.HomePageMarket:
             {
                 return Lang.Text("Main.Title.HomePageMarket");
+            }
+            case PageType.InstanceModBrowser:
+            {
+                return "下载新模组";
+            }
+            case PageType.InstanceModDetail:
+            {
+                return "模组详情";
             }
 
             default:
@@ -1986,6 +2005,18 @@ public partial class FormMain
                         if (ModMain.frmDownloadCompDetail is null)
                             ModMain.frmDownloadCompDetail = new PageDownloadCompDetail();
                         PageChangeAnim(new MyPageLeft(), ModMain.frmDownloadCompDetail);
+                        break;
+                    }
+                case PageType.InstanceModBrowser: // 实例模组浏览
+                    {
+                        ModMain.frmInstanceModBrowser ??= new PageInstanceModBrowser();
+                        PageChangeAnim(new MyPageLeft(), ModMain.frmInstanceModBrowser);
+                        break;
+                    }
+                case PageType.InstanceModDetail: // 实例模组详情
+                    {
+                        ModMain.frmInstanceModDetail = new PageInstanceModDetail();
+                        PageChangeAnim(new MyPageLeft(), ModMain.frmInstanceModDetail);
                         break;
                     }
                 case PageType.HelpDetail: // 帮助详情

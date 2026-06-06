@@ -1,12 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
-using PCL.Core.App.Localization;
+using PCL.Network;
 
 namespace PCL;
 
@@ -298,50 +304,29 @@ public partial class MyLocalCompItem
     // 触发更新
     private void BtnUpdate_Click(object sender, EventArgs e)
     {
-        switch (ModMain.MyMsgBox(
-                    $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
-                    Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
-                    Lang.Text("Instance.Resource.Item.Update"), Lang.Text("Instance.Resource.Item.ViewChangelog"), Lang.Text("Common.Action.Cancel")))
+        switch (Entry.Comp.Type)
         {
-            case 1: // 更新
+            case ModComp.CompType.Mod:
             {
-                switch (Entry.Comp.Type)
-                {
-                    case ModComp.CompType.Mod:
-                    {
-                        ModMain.frmInstanceMod ??= new PageInstanceCompResource(ModComp.CompType.Mod);
-                        ModMain.frmInstanceMod.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.ResourcePack:
-                    {
-                        ModMain.frmInstanceResourcePack ??= new PageInstanceCompResource(ModComp.CompType.ResourcePack);
-                        ModMain.frmInstanceResourcePack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.Shader:
-                    {
-                        ModMain.frmInstanceShader ??= new PageInstanceCompResource(ModComp.CompType.Shader);
-                        ModMain.frmInstanceShader.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.DataPack:
-                    {
-                        ModMain.frmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
-                        ModMain.frmInstanceSavesDatapack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                }
-
+                UpdateModWithDepsStatic(Entry);
                 break;
             }
-            case 2: // 查看更新日志
+            case ModComp.CompType.ResourcePack:
             {
-                ShowUpdateLog();
+                ModMain.frmInstanceResourcePack ??= new PageInstanceCompResource(ModComp.CompType.ResourcePack);
+                ModMain.frmInstanceResourcePack.UpdateResource(new[] { Entry });
                 break;
             }
-            case 3: // 取消
+            case ModComp.CompType.Shader:
             {
+                ModMain.frmInstanceShader ??= new PageInstanceCompResource(ModComp.CompType.Shader);
+                ModMain.frmInstanceShader.UpdateResource(new[] { Entry });
+                break;
+            }
+            case ModComp.CompType.DataPack:
+            {
+                ModMain.frmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
+                ModMain.frmInstanceSavesDatapack.UpdateResource(new[] { Entry });
                 break;
             }
         }
@@ -880,4 +865,123 @@ public partial class MyLocalCompItem
     }
 
     #endregion
+
+    public static void UpdateModWithDepsStatic(ModLocalComp.LocalCompFile entry)
+    {
+        var file = entry.UpdateFile;
+        var project = entry.Comp;
+        var instance = PageInstanceLeft.McInstance;
+        if (file is null || !file.Available || project is null || instance is null) return;
+
+        var modsFolder = Path.Combine(instance.PathIndie, "mods");
+        Directory.CreateDirectory(modsFolder);
+
+        var vanillaName = instance.Info.VanillaName;
+        var loaders = new List<ModComp.CompLoaderType>();
+        if (instance.Info.HasFabric) loaders.Add(ModComp.CompLoaderType.Fabric);
+        if (instance.Info.HasForge) loaders.Add(ModComp.CompLoaderType.Forge);
+        if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
+        if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
+
+        ModMain.Hint($"正在更新 {entry.Name}...", ModMain.HintType.Finish);
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                var deps = new List<DownloadFile>();
+                if ((file.Dependencies is { Count: > 0 } || file.RawDependencies is { Count: > 0 }) && !string.IsNullOrEmpty(vanillaName))
+                {
+                    try
+                    {
+                        var request = ModCompDependency.BuildRequest(file, project, vanillaName, loaders, modsFolder);
+                        // 强制重新检查已安装前置：清空已安装列表，确保旧版也会被更新
+                        request.InstalledMods.Clear();
+                        var resolver = new ModDependencyResolver();
+                        var result = resolver.Resolve(request);
+                        if (result.ToInstall is { Count: > 0 })
+                        {
+                            ModBase.RunInUi(() => ModMain.Hint($"正在下载 {result.ToInstall.Count} 个前置...", ModMain.HintType.Finish));
+                            deps = ModCompDependency.BuildDependencyDownloads(result, modsFolder);
+                        }
+                    }
+                    catch (Exception ex) { ModBase.Log(ex, "[UpdateMod] 前置解析失败"); }
+                }
+
+                // 删除旧版文件
+                try { File.Delete(entry.path); } catch { }
+
+                // 下载新文件 + 前置
+                var localPath = Path.Combine(modsFolder, file.FileName);
+                FileDownloader.Download(file.DownloadUrls, localPath).GetAwaiter().GetResult();
+                foreach (var dl in deps)
+                    FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
+
+                // 清理前置旧版
+                var cleaned = 0;
+                foreach (var dl in deps)
+                {
+                    var depName = Path.GetFileName(dl.LocalPath);
+                    if (!string.IsNullOrEmpty(depName))
+                        cleaned += CleanOldVersions(modsFolder, depName);
+                }
+
+                ModBase.RunInUi(() => ModMain.Hint(
+                    $"{entry.Name} 更新完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
+                    ModMain.HintType.Finish));
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, $"更新 {entry.Name} 失败");
+                ModBase.RunInUi(() => ModMain.Hint("更新失败", ModMain.HintType.Critical));
+            }
+        });
+    }
+
+    private static int CleanOldVersions(string modsFolder, string newFileName)
+    {
+        if (!Directory.Exists(modsFolder)) return 0;
+        var cleaned = 0;
+        var prefix = GetNamePrefix(newFileName);
+        var shortPrefix = prefix.Contains('-') ? prefix[..prefix.LastIndexOf('-')] : prefix;
+        if (string.IsNullOrEmpty(prefix) || prefix.Length < 2) return 0;
+
+        try
+        {
+            var files = Directory.GetFiles(modsFolder, "*.jar")
+                .Where(f =>
+                {
+                    var n = Path.GetFileName(f).ToLower();
+                    return n.StartsWith(prefix.ToLower() + "-") ||
+                           n.StartsWith(prefix.ToLower() + ".") ||
+                           n.StartsWith(shortPrefix.ToLower() + "-") ||
+                           n.StartsWith(shortPrefix.ToLower() + ".");
+                });
+
+            foreach (var f in files)
+            {
+                var n = Path.GetFileName(f);
+                if (string.Equals(n, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
+                try { File.Delete(f); cleaned++; ModBase.Log($"[UpdateMod] 清理旧版: {n}"); } catch { }
+            }
+        }
+        catch { }
+
+        return cleaned;
+    }
+
+    private static string GetNamePrefix(string fileName)
+    {
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        var start = 0;
+        while (start < name.Length && name[start] > 127) start++;
+        if (start >= name.Length) start = 0;
+        name = name[start..];
+
+        for (var i = name.Length - 1; i >= 0; i--)
+        {
+            if (char.IsDigit(name[i]) && i > 0 && (name[i - 1] == '-' || name[i - 1] == '_'))
+                return name[..(i - 1)].TrimEnd('-', '_', '.');
+        }
+        return name;
+    }
 }

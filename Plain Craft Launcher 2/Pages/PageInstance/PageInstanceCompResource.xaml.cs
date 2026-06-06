@@ -1374,22 +1374,23 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             case ModComp.CompType.Mod:
             {
-                ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                PageInstanceModBrowser.SetContext(PageInstanceLeft.McInstance);
+                ModMain.frmMain.PageChange(FormMain.PageType.InstanceModBrowser);
                 break;
             }
             case ModComp.CompType.ResourcePack:
             {
-                ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                PageComp.targetVersion = PageInstanceLeft.McInstance;
+                ModMain.frmMain.PageChange(FormMain.PageType.Resources, FormMain.PageSubType.DownloadResourcePack);
                 break;
             }
             case ModComp.CompType.Shader:
             {
-                ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                PageComp.targetVersion = PageInstanceLeft.McInstance;
+                ModMain.frmMain.PageChange(FormMain.PageType.Resources, FormMain.PageSubType.DownloadShader);
                 break;
             }
         }
-
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -1952,7 +1953,17 @@ public partial class PageInstanceCompResource : IRefreshable
             .Where(m => selectedMods.Contains(m.RawPath) && m.CanUpdate).ToList();
         if (!updateList.Any())
             return;
-        UpdateResource(updateList);
+
+        // Mod 类型走新的依赖+清理流程
+        var modEntries = updateList.Where(m => m.Comp?.Type == ModComp.CompType.Mod).ToList();
+        var otherEntries = updateList.Except(modEntries).ToList();
+
+        foreach (var entry in modEntries)
+            MyLocalCompItem.UpdateModWithDepsStatic(entry);
+
+        if (otherEntries.Any())
+            UpdateResource(otherEntries);
+
         ChangeAllSelected(false);
     }
 
@@ -2329,17 +2340,9 @@ public partial class PageInstanceCompResource : IRefreshable
 
             if (modEntry.Comp is not null)
             {
-                // 跳转到 Mod 下载页面
-                ModMain.frmMain.PageChange(new FormMain.PageStackData
-                {
-                    page = FormMain.PageType.CompDetail,
-                    additional = (modEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
-                        PageInstanceLeft.McInstance.Info.HasForge ? ModComp.CompLoaderType.Forge :
-                        PageInstanceLeft.McInstance.Info.HasNeoForge ? ModComp.CompLoaderType.NeoForge :
-                        PageInstanceLeft.McInstance.Info.HasFabric || moddedLabyMod ? ModComp.CompLoaderType.Fabric :
-                        ModComp.CompLoaderType.Any,
-                        currentCompType, null, null, null)
-                });
+                // 跳转到实例模组详情页
+                PageInstanceModDetail.SetContext(modEntry.Comp, PageInstanceLeft.McInstance);
+                ModMain.frmMain.PageChange(FormMain.PageType.InstanceModDetail);
             }
             else
             {

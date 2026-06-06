@@ -1,12 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PCL.Network;
 
 namespace PCL;
 
 public partial class MyCompItem
 {
+    /// <summary>
+    ///     设为 true 时，点击项目将跳过默认的 CompDetail 导航
+    ///     （由实例模组浏览页面自行处理）。
+    /// </summary>
+    public bool SkipDefaultNavigation;
+
     private string stateLast;
 
     /// <summary>
@@ -160,6 +171,23 @@ public partial class MyCompItem
         // Handles
         LabInfo.MouseEnter += LabInfo_MouseEnter;
         BtnDelete.Click += BtnDelete_Click;
+        // 实例模组浏览按钮
+        BtnInstDownload.Click += BtnInstDownload_Click;
+        BtnInstFavorite.Click += BtnInstFavorite_Click;
+        BtnInstVersion.Click += BtnInstVersion_Click;
+    }
+
+    /// <summary>
+    ///     是否显示实例模组浏览按钮组（下载/收藏/版本选择）。
+    /// </summary>
+    public bool ShowInstanceButtons
+    {
+        get => PanInstanceButtons.Visibility == Visibility.Visible;
+        set
+        {
+            PanInstanceButtons.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+            if (value) PanButtons.Visibility = Visibility.Collapsed;
+        }
     }
 
     // 指向时扩展描述
@@ -253,8 +281,111 @@ public partial class MyCompItem
         }
     }
 
+    private void BtnInstDownload_Click(object sender, EventArgs e)
+    {
+        if (Tag is not ModComp.CompProject project) return;
+        var instance = PageInstanceLeft.McInstance;
+        if (instance is null) return;
+        var vanillaName = instance.Info.VanillaName;
+        var loaders = new List<ModComp.CompLoaderType>();
+        if (instance.Info.HasFabric) loaders.Add(ModComp.CompLoaderType.Fabric);
+        if (instance.Info.HasForge) loaders.Add(ModComp.CompLoaderType.Forge);
+        if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
+        if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
+
+        ModMain.Hint($"正在下载 {project.RawName}...", ModMain.HintType.Finish);
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                var files = ModComp.CompFilesGet(project.Id, project.FromCurseForge);
+                var best = files?
+                    .Where(f => f.GameVersions is not null && f.GameVersions.Contains(vanillaName))
+                    .Where(f => f.ModLoaders is null || f.ModLoaders.Count == 0 ||
+                                loaders.Count == 0 || f.ModLoaders.Any(l => loaders.Contains(l)))
+                    .MaxBy(f => f.ReleaseDate);
+
+                if (best is null)
+                {
+                    ModMain.Hint($"未找到 {project.RawName} 兼容版本", ModMain.HintType.Critical);
+                    return;
+                }
+
+                var modsFolder = Path.Combine(instance.PathIndie, "mods");
+                Directory.CreateDirectory(modsFolder);
+
+                // 解析并下载前置
+                var deps = new List<DownloadFile>();
+                if ((best.Dependencies is { Count: > 0 } || best.RawDependencies is { Count: > 0 }) && !string.IsNullOrEmpty(vanillaName))
+                {
+                    try
+                    {
+                        var request = ModCompDependency.BuildRequest(best, project, vanillaName, loaders, modsFolder);
+                        request.InstalledMods.Clear();
+                        var resolver = new PCL.Core.Minecraft.ResourceProject.ModDependencyResolver();
+                        var result = resolver.Resolve(request);
+                        if (result.ToInstall is { Count: > 0 })
+                        {
+                            ModBase.RunInUi(() => ModMain.Hint(
+                                $"正在下载 {result.ToInstall.Count} 个前置...", ModMain.HintType.Finish));
+                            deps = ModCompDependency.BuildDependencyDownloads(result, modsFolder);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ModBase.Log(ex, "[QuickDownload] 前置解析失败，继续下载主文件");
+                    }
+                }
+
+                var localPath = Path.Combine(modsFolder, best.FileName);
+                var allUrls = new List<IEnumerable<string>> { best.DownloadUrls };
+                var allPaths = new List<string> { localPath };
+                foreach (var dl in deps)
+                {
+                    allUrls.Add(dl.Urls);
+                    allPaths.Add(dl.LocalPath);
+                }
+                for (var i = 0; i < allUrls.Count; i++)
+                    FileDownloader.Download(allUrls[i], allPaths[i]).GetAwaiter().GetResult();
+
+                // 清理同模组的旧版本文件（主文件 + 每个前置）
+                var cleaned = CleanOldVersions(modsFolder, best.FileName);
+                foreach (var dl in deps)
+                {
+                    var depName = Path.GetFileName(dl.LocalPath);
+                    if (!string.IsNullOrEmpty(depName))
+                        cleaned += CleanOldVersions(modsFolder, depName);
+                }
+                ModBase.RunInUi(() => ModMain.Hint(
+                    $"{project.RawName} 下载完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
+                    ModMain.HintType.Finish));
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, $"下载 {project.RawName} 失败");
+                ModMain.Hint($"下载失败", ModMain.HintType.Critical);
+            }
+        });
+    }
+
+    private void BtnInstFavorite_Click(object sender, EventArgs e)
+    {
+        if (Tag is not ModComp.CompProject project) return;
+        ModComp.CompFavorites.ShowMenu(project, (UIElement)sender, RefreshFavoriteStatus);
+    }
+
+    private void BtnInstVersion_Click(object sender, EventArgs e)
+    {
+        if (Tag is not ModComp.CompProject project) return;
+        var instance = PageInstanceLeft.McInstance;
+        PageInstanceModDetail.SetContext(project, instance!);
+        ModMain.frmMain.PageChange(FormMain.PageType.InstanceModDetail);
+    }
+
     private void MyCompItem_Click(MyCompItem sender, EventArgs e)
     {
+        if (SkipDefaultNavigation) return;
+
         // 记录当前展开的卡片标题（#2712）
         var titles = new List<string>();
         if (ModMain.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
@@ -431,4 +562,67 @@ public partial class MyCompItem
     }
 
     #endregion
+
+    /// <summary>
+    ///     清理同模组旧版本文件（基于文件名前缀匹配）。
+    /// </summary>
+    private static int CleanOldVersions(string modsFolder, string newFileName)
+    {
+        if (!Directory.Exists(modsFolder)) return 0;
+        var cleaned = 0;
+        var prefix = GetNamePrefix(newFileName);
+        // 同时尝试更短的前缀（去掉 loader 后缀，如 "iris-fabric" → "iris"）
+        var shortPrefix = prefix.Contains('-') ? prefix[..prefix.LastIndexOf('-')] : prefix;
+        if (string.IsNullOrEmpty(prefix) || prefix.Length < 2) return 0;
+
+        try
+        {
+            var files = Directory.GetFiles(modsFolder, "*.jar")
+                .Where(f =>
+                {
+                    var name = Path.GetFileName(f);
+                    var nameLower = name.ToLower();
+                    return (nameLower.StartsWith(prefix.ToLower() + "-") ||
+                            nameLower.StartsWith(prefix.ToLower() + ".") ||
+                            nameLower.StartsWith(shortPrefix.ToLower() + "-") ||
+                            nameLower.StartsWith(shortPrefix.ToLower() + "."));
+                });
+
+            foreach (var file in files)
+            {
+                var name = Path.GetFileName(file);
+                if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
+                try { File.Delete(file); cleaned++; ModBase.Log($"[QuickDownload] 清理旧版: {name}"); }
+                catch { }
+            }
+        }
+        catch (Exception ex) { ModBase.Log(ex, "[QuickDownload] 清理旧版失败"); }
+
+        return cleaned;
+    }
+
+    /// <summary>
+    ///     从文件名提取前缀（截止到版本号前）。
+    ///     例如 "iris-fabric-1.10.9+mc26.1.1.jar" → "iris-fabric"
+    /// </summary>
+    private static string GetNamePrefix(string fileName)
+    {
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        // 跳过文件名开头的非 ASCII 字符（中文译名）
+        var start = 0;
+        while (start < name.Length && name[start] > 127)
+            start++;
+        if (start >= name.Length) start = 0;
+        name = name[start..];
+
+        // 从末尾向前扫描，找到 "-数字" 或 "_数字" 的位置
+        for (var i = name.Length - 1; i >= 0; i--)
+        {
+            if (char.IsDigit(name[i]) && i > 0 && (name[i - 1] == '-' || name[i - 1] == '_'))
+            {
+                return name[..(i - 1)].TrimEnd('-', '_', '.');
+            }
+        }
+        return name;
+    }
 }
