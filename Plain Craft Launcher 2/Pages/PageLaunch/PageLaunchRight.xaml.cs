@@ -720,9 +720,8 @@ public partial class PageLaunchRight : IRefreshable
                 _TrySetElementProperty(element, property.Name, property.Value?.ToString() ?? "");
         }
 
-        var childrenXaml = _TryGetString(patch, "childrenXaml", "ChildrenXaml");
-        if (!string.IsNullOrEmpty(childrenXaml) && element is Panel panel)
-            _ReplacePanelChildren(panel, childrenXaml);
+        if (_TryGetString(patch, "childrenXaml", "ChildrenXaml") is not null)
+            ModBase.Log("[Page] Skipped unsupported live patch field childrenXaml", ModBase.LogLevel.Developer);
     }
 
     private static void _SetPropertyIfPresent(FrameworkElement element, JObject patch, string jsonName, string propertyName)
@@ -777,24 +776,6 @@ public partial class PageLaunchRight : IRefreshable
             ModBase.Log(ex, $"[Page] Failed to set live patch property {propertyName}", ModBase.LogLevel.Developer);
             return false;
         }
-    }
-
-    private static void _ReplacePanelChildren(Panel panel, string childrenXaml)
-    {
-        var content = ModMain.ArgumentReplace(childrenXaml);
-        while (content.Contains("xmlns"))
-            content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
-
-        var wrapped =
-            $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
-
-        if (ModBase.GetObjectFromXML(wrapped) is not Panel parsedPanel) return;
-
-        var children = parsedPanel.Children.OfType<UIElement>().ToList();
-        parsedPanel.Children.Clear();
-        panel.Children.Clear();
-        foreach (var child in children)
-            panel.Children.Add(child);
     }
 
     private static IEnumerable<FrameworkElement> _FindElementsByTag(DependencyObject root, string tag)
