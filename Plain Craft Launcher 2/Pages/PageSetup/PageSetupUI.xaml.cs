@@ -767,7 +767,6 @@ public partial class PageSetupUI
                     : Visibility.Visible;
                 ModMain.FrmMain.BtnTitleSelect2.Visibility =
                     !HiddenForceShow && conf.PageSetup ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.FrmMain.BtnTitleSelect3.Visibility = Visibility.Collapsed;
             }
 
             // 功能隐藏设置卡片

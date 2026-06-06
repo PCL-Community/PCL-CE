@@ -55,6 +55,7 @@ public static class ModMain
     public static PageDownloadResourcePack? FrmDownloadResourcePack;
     public static PageDownloadWorld? FrmDownloadWorld;
     public static PageDownloadCompFavorites? FrmDownloadCompFavorites;
+    public static PageCommunityLeft? FrmCommunityLeft;
     public static PageSetupLeft? FrmSetupLeft;
     public static PageSetupLaunch? FrmSetupLaunch;
     public static PageSetupUI? FrmSetupUI;

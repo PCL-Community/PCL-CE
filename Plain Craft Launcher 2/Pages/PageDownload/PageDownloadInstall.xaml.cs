@@ -24,6 +24,7 @@ public partial class PageDownloadInstall
         InitializeComponent();
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         BtnBack.Click += (_, _) => ExitSelectPage();
+        TextSearchVersion.TextChanged += (_, _) => TextSearchVersion_TextChanged(null, EventArgs.Empty);
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
         CardForge.Swap += (_, _) => ReloadSelected();
@@ -181,6 +182,7 @@ public partial class PageDownloadInstall
         if (IsInSelectPage)
             return;
         IsInSelectPage = true;
+        SearchBarSpace.Height = new GridLength(0, GridUnitType.Pixel);
 
         PanInner.Margin = new Thickness(25d, 10d, 25d, 40d);
 
@@ -191,6 +193,7 @@ public partial class PageDownloadInstall
         PanSelect.Visibility = Visibility.Visible;
         PanSelect.IsHitTestVisible = true;
         PanMinecraft.IsHitTestVisible = false;
+        TextSearchVersion.Visibility = Visibility.Collapsed;
         PanBack.IsHitTestVisible = false;
         PanBack.ScrollToHome();
 
@@ -304,17 +307,89 @@ public partial class PageDownloadInstall
         }, "FrmDownloadInstall SelectPageSwitch", true);
     }
 
+    /// <summary>
+    ///     应用版本筛选器过滤显示——筛选"其他版本"列表中的单个版本项。
+    /// </summary>
+    private void TextSearchVersion_TextChanged(object sender, EventArgs e)
+    {
+        var search = TextSearchVersion.Text?.Trim() ?? "";
+        foreach (var child in PanMinecraft.Children)
+        {
+            if (child is not MyCard card) continue;
+            foreach (var panel in card.Children)
+            {
+                if (panel is not StackPanel stack) continue;
+                foreach (var item in stack.Children)
+                {
+                    if (item is not MyListItem listItem) continue;
+                    if (string.IsNullOrEmpty(search))
+                    {
+                        // 空白搜索：恢复筛选器控制的可见性
+                        if (listItem.Tag is McVersionCategory)
+                            continue; // 交给 ApplyVersionFilter 处理
+                        listItem.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        var versionId = (listItem.Tag is JsonObject jo ? jo["id"]?.ToString() : "") ?? "";
+                        var title = listItem.Title?.ToString() ?? "";
+                        var match = versionId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                                    title.Contains(search, StringComparison.OrdinalIgnoreCase);
+                        listItem.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                }
+            }
+        }
+    }
+
+    public void ApplyVersionFilter(string filter)
+    {
+        _currentFilter = filter;
+        foreach (var child in PanMinecraft.Children)
+        {
+            if (child is not MyCard card) continue;
+            foreach (var panel in card.Children)
+            {
+                if (panel is not StackPanel stack) continue;
+                foreach (var item in stack.Children)
+                {
+                    if (item is not MyListItem listItem || listItem.Tag is not McVersionCategory cat) continue;
+                    var shouldShow = filter switch
+                    {
+                        "all" => true,
+                        "release" => cat == McVersionCategory.Release,
+                        "snapshot" => cat == McVersionCategory.Snapshot,
+                        "beforerelease" => cat == McVersionCategory.BeforeRelease,
+                        "aprilfools" => cat == McVersionCategory.AprilFools,
+                        _ => true
+                    };
+                    listItem.Visibility = shouldShow ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
+        }
+    }
+
+    private string _currentFilter = "all";
+
+    public new void PageOnEnter()
+    {
+        base.PageOnEnter();
+        if (IsInSelectPage) ExitSelectPage();
+    }
+
     public void ExitSelectPage()
     {
         if (!IsInSelectPage)
             return;
         IsInSelectPage = false;
+        SearchBarSpace.Height = new GridLength(54, GridUnitType.Pixel);
 
         PanInner.Margin = new Thickness(25d, 10d, 25d, 25d);
 
         DisabledPageAnimControls.Add(BtnStart);
         BtnStart.Show = false;
         ClearSelected(); // 清除已选择项
+        TextSearchVersion.Visibility = Visibility.Visible;
         PanMinecraft.Visibility = Visibility.Visible;
         PanSelect.IsHitTestVisible = false;
         PanMinecraft.IsHitTestVisible = true;
@@ -1093,28 +1168,60 @@ public partial class PageDownloadInstall
         Dictionary<McVersionCategory, List<JsonObject>> dict,
         IEnumerable<McVersionCategory> categoryOrder)
     {
+        // 合并所有版本到一个列表，按发布时间降序排序
+        var allVersions = new List<JsonObject>();
         foreach (var category in categoryOrder)
         {
-            var versions = dict[category];
-            if (versions.Count == 0)
-                continue;
-
-            var card = new MyCard
+            foreach (var v in dict[category])
             {
-                Title = $"{McVersionClassifier.GetCategoryDisplayName(category)} ({versions.Count})",
-                Margin = new Thickness(0d, 0d, 0d, 15d)
-            };
+                v["__category"] = (int)category;
+                allVersions.Add(v);
+            }
+        }
+        if (allVersions.Count == 0) return;
+        allVersions = allVersions.OrderByDescending(McVersionClassifier.GetReleaseTime).ToList();
 
-            var stack = _CreateVersionStack(versions);
+        var card = new MyCard
+        {
+            Title = Lang.Text("Download.Version.Other.Title"),
+            Margin = new Thickness(0d, 0d, 0d, 15d)
+        };
 
-            card.Children.Add(stack);
-            card.SwapControl = stack;
+        var panInfo = _CreateVersionStack(allVersions);
+        MyCard.StackInstall(ref panInfo, _OtherStackInstall);
 
-            // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
-            card.InstallMethod = _StackInstall;
-            card.IsSwapped = true;
+        card.Children.Add(panInfo);
+        PanMinecraft.Children.Add(card);
+    }
 
-            PanMinecraft.Children.Add(card);
+    private void _OtherStackInstall(StackPanel stack)
+    {
+        foreach (var item in (IEnumerable)stack.Tag)
+        {
+            var listItem = ModDownloadLib.McDownloadListItem(
+                (JsonObject)item,
+                (sender, e) => ModMain.FrmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
+                false
+            );
+            listItem.Tag = (McVersionCategory)(int)((JsonObject)item)["__category"];
+            if (_currentFilter != "all")
+            {
+                var cat = (McVersionCategory)listItem.Tag;
+                var show = _currentFilter switch
+                {
+                    "release" => cat == McVersionCategory.Release,
+                    "snapshot" => cat == McVersionCategory.Snapshot,
+                    "beforerelease" => cat == McVersionCategory.BeforeRelease,
+                    "aprilfools" => cat == McVersionCategory.AprilFools,
+                    _ => true
+                };
+                if (!show)
+                {
+                    listItem.Opacity = 0d;
+                    listItem.Visibility = Visibility.Collapsed;
+                }
+            }
+            stack.Children.Add(listItem);
         }
     }
 

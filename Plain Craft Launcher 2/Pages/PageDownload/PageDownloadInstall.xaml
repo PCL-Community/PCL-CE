@@ -6,9 +6,16 @@
     mc:Ignorable="d" x:Class="PCL.PageDownloadInstall">
     <Grid>
         <Grid Name="PanAllBack">
-            <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="54" Name="SearchBarSpace" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <!-- 搜索栏 -->
+            <local:MySearchBar x:Name="TextSearchVersion" Grid.Row="0" Margin="25,10,25,0"
+                               HintText="{DynamicResource Download.Install.SearchVersion}" />
+            <local:MyScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   x:Name="PanBack">
-                <Grid Margin="25,10,25,25" Name="PanInner">
+                <Grid Margin="25,0,25,25" Name="PanInner">
                     <StackPanel Grid.Row="1" Name="PanMinecraft" Grid.IsSharedSizeScope="True" Margin="0,0,0,-10">
                         <StackPanel.RenderTransform>
                             <TranslateTransform />
@@ -405,7 +412,7 @@
             </local:MyScrollViewer>
             <local:MyExtraTextButton x:Name="BtnStart" Text="{DynamicResource Download.Install.StartDownload}"
                                      HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                     LogoScale="0.95"
+                                     LogoScale="0.95" Grid.Row="1" Margin="10 25 10 25"
                                      Logo="M955 610h-59c-15 0-29 13-29 29v196c0 15-13 29-29 29h-649c-15 0-29-13-29-29v-196c0-15-13-29-29-29h-59c-15 0-29 13-29 29V905c0 43 35 78 78 78h787c43 0 78-35 78-78V640c0-15-13-29-29-29zM492 740c11 11 29 11 41 0l265-265c11-11 11-29 0-41l-41-41c-11-11-29-11-41 0l-110 110c-11 11-33 3-33-13V68C571 53 555 39 541 39h-59c-15 0-29 13-29 29v417c0 17-21 25-33 13l-110-110c-11-11-29-11-41 0L226 433c-11 11-11 29 0 41L492 740z" />
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"

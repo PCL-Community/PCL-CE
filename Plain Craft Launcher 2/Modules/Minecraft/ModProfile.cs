@@ -438,19 +438,8 @@ public static class ModProfile
         int? selectedAuthTypeNum = default; // 验证类型序号
         ModBase.RunInUiWait(() =>
         {
-            List<IMyRadio> authTypeList;
-#if DEBUG || DEBUGCI
-            authTypeList = _GetAvailableProfileSelection(true);
-#else
-            var HasMinecraftAccount = ProfileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
-            var Restricted = RegionUtils.IsRestrictedFeatAllowed && ProfileList.Count > 0;
-            var HasNetwork = NetworkHelper.IsNetworkAvailable();
-            if (HasMinecraftAccount || Restricted || !HasNetwork)
-                authTypeList = _GetAvailableProfileSelection(true);
-            else
-                authTypeList = _GetAvailableProfileSelection(false);
-            
-#endif
+            // 始终允许离线和第三方档案，添加时弹窗提示正版账号
+            var authTypeList = _GetAvailableProfileSelection(true);
         
             selectedAuthTypeNum = ModMain.MyMsgBoxSelect(authTypeList, Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
         });

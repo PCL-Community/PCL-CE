@@ -1353,12 +1353,15 @@ public partial class FormMain
         /// </summary>
         Download = 1,
 
-        Tools = 3,
+        /// <summary>
+        ///     社区资源。
+        /// </summary>
+        Resources = 2,
 
         /// <summary>
         ///     设置。
         /// </summary>
-        Setup = 2,
+        Setup = 3,
 
         /// <summary>
         ///     实例选择。这是一个副页面。
@@ -1425,6 +1428,7 @@ public partial class FormMain
         DownloadLiteLoader = 16,
         DownloadLabyMod = 17,
         DownloadLegacyFabric = 18,
+        DownloadResources = 19,
 
         SetupLaunch = 0,
         SetupUI = 1,
@@ -1552,6 +1556,13 @@ public partial class FormMain
                     if (ModMain.FrmSetupLeft is null)
                         ModMain.FrmSetupLeft = new PageSetupLeft();
                     return ModMain.FrmSetupLeft.PageID;
+                }
+
+                case PageType.Resources:
+                {
+                    if (ModMain.FrmCommunityLeft is null)
+                        ModMain.FrmCommunityLeft = new PageCommunityLeft();
+                    return ModMain.FrmCommunityLeft.PageID;
                 }
 
                 case PageType.InstanceSetup:
@@ -1688,6 +1699,19 @@ public partial class FormMain
                     if (ModMain.FrmSetupLeft.PanItem.Children[(int)SubType] is MyListItem)
                         ((MyListItem)ModMain.FrmSetupLeft.PanItem.Children[(int)SubType]).SetChecked(true, true,
                             Stack == PageCurrent);
+                    break;
+                }
+                case PageType.Resources:
+                {
+                    if (ModMain.FrmCommunityLeft is null)
+                        ModMain.FrmCommunityLeft = new PageCommunityLeft();
+                    foreach (var item in ModMain.FrmCommunityLeft.PanItem.Children)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)SubType)
+                        {
+                            listItem.SetChecked(true, true, Stack == PageCurrent);
+                            break;
+                        }
                     break;
                 }
             }
@@ -1895,11 +1919,11 @@ public partial class FormMain
                         PageChangeAnim(ModMain.FrmDownloadLeft, (FrameworkElement)ModMain.FrmDownloadLeft.PageGet(SubType));
                         break;
                     }
-                case PageType.Tools:
+                case PageType.Resources:
                     {
-                        ModMain.FrmToolsLeft ??= new PageToolsLeft();
-                        SubType = ModMain.FrmToolsLeft.PageID;
-                        PageChangeAnim(ModMain.FrmToolsLeft, (FrameworkElement)ModMain.FrmToolsLeft.PageGet(SubType));
+                        ModMain.FrmCommunityLeft ??= new PageCommunityLeft();
+                        SubType = ModMain.FrmCommunityLeft.PageID;
+                        PageChangeAnim(ModMain.FrmCommunityLeft, (FrameworkElement)ModMain.FrmCommunityLeft.PageGet(SubType));
                         break;
                     }
                 case PageType.Setup: // 设置

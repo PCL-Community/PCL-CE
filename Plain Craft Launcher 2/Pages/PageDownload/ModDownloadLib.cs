@@ -310,11 +310,13 @@ public static class ModDownloadLib
         };
         if (Entry["lore"] is null)
         {
+            var rtStr = Entry["releaseTime"]?.GetValue<string>();
+            var releaseTime = rtStr is not null && DateTime.TryParse(rtStr, out var dt) ? dt : DateTime.MinValue;
             if (FormattedVersion != (string)Entry["id"])
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g") + " | " +
+                NewItem.Info = Lang.Date(releaseTime, "g") + " | " +
                                Entry["id"];
             else
-                NewItem.Info = Lang.Date(Entry["releaseTime"].GetValue<DateTime>(), "g");
+                NewItem.Info = Lang.Date(releaseTime, "g");
         }
         else if (FormattedVersion != (string)Entry["id"])
         {

@@ -6,7 +6,12 @@
       "PowerShell(Stop-Process *)",
       "Bash(python *)",
       "PowerShell(Get-Process *)",
-      "Bash(dotnet clean *)"
+      "Bash(dotnet clean *)",
+      "WebSearch",
+      "Bash(dotnet --version)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(dotnet nuget *)",
+      "Bash(dotnet package *)"
     ]
   }
 }

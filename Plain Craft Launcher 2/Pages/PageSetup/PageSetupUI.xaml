@@ -375,7 +375,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
+            <!--<local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
                 <StackPanel Margin="25,38,15,15">
                     <TextBlock Margin="0,1,0,1" Text="{DynamicResource Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
                     <Grid>
@@ -484,7 +484,7 @@
                                           Change="CheckBoxChange" />
                     </Grid>
                 </StackPanel>
-            </local:MyCard>
+            </local:MyCard>-->
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

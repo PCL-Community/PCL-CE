@@ -100,7 +100,8 @@
     <!-- Main.Title / Navigation -->
 
     <sys:String x:Key="Main.TopTitle.Launch">Launch</sys:String>
-    <sys:String x:Key="Main.TopTitle.Download">Download</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">Install</sys:String>
+    <sys:String x:Key="Main.TopTitle.Community">Resources</sys:String>
     <sys:String x:Key="Main.TopTitle.Settings">Settings</sys:String>
     <sys:String x:Key="Main.TopTitle.Tools">Tools</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">Selection</sys:String>
@@ -760,6 +761,14 @@
     <sys:String x:Key="Download.Left.Hint.Refreshing">Refreshing...</sys:String>
     <sys:String x:Key="Download.Left.Error.UnknownSubPageType">Unknown download subpage type: {0}</sys:String>
 
+    <sys:String x:Key="Download.Left.Filter.VersionType">Version Type</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.All">All</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.Release">Release</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.BeforRelease">Before Release</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.AprilFools">April Fools'</sys:String>
+    <sys:String x:Key="Download.Install.SearchVersion">Search Minecraft versions...</sys:String>
+
     <!-- Download.Version -->
 
     <sys:String x:Key="Download.Version.VersionList">Version list</sys:String>
@@ -803,6 +812,7 @@
     <sys:String x:Key="Download.Version.Latest.Title">Latest version</sys:String>
     <sys:String x:Key="Download.Version.Latest.Release">Latest release, released on {0}</sys:String>
     <sys:String x:Key="Download.Version.Latest.Development">Latest development, released on {0}</sys:String>
+    <sys:String x:Key="Download.Version.Other.Title">Other Versions</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">Release</sys:String>
     <sys:String x:Key="Download.Version.Type.Development">Development</sys:String>
     <sys:String x:Key="Download.Version.Type.BeforeRelease">Before-release</sys:String>

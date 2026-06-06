@@ -100,7 +100,8 @@
     <!-- Main.Title / Navigation -->
 
     <sys:String x:Key="Main.TopTitle.Launch">启动</sys:String>
-    <sys:String x:Key="Main.TopTitle.Download">下载</sys:String>
+    <sys:String x:Key="Main.TopTitle.Download">安装</sys:String>
+    <sys:String x:Key="Main.TopTitle.Community">资源</sys:String>
     <sys:String x:Key="Main.TopTitle.Settings">设置</sys:String>
     <sys:String x:Key="Main.TopTitle.Tools">工具</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">实例选择</sys:String>
@@ -760,6 +761,14 @@
     <sys:String x:Key="Download.Left.Hint.Refreshing">正在刷新……</sys:String>
     <sys:String x:Key="Download.Left.Error.UnknownSubPageType">未知的下载子页面种类：{0}</sys:String>
 
+    <sys:String x:Key="Download.Left.Filter.VersionType">版本类型</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.All">全部</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.Release">正式版</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.Snapshot">快照版</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.BeforRelease">远古版</sys:String>
+    <sys:String x:Key="Download.Left.Filter.VersionType.AprilFools">愚人节版</sys:String>
+    <sys:String x:Key="Download.Install.SearchVersion">搜索 Minecraft 版本...</sys:String>
+
     <!-- Download.Version -->
 
     <sys:String x:Key="Download.Version.VersionList">版本列表</sys:String>
@@ -803,6 +812,7 @@
     <sys:String x:Key="Download.Version.Latest.Title">最新版本</sys:String>
     <sys:String x:Key="Download.Version.Latest.Release">最新正式版，发布于 {0}</sys:String>
     <sys:String x:Key="Download.Version.Latest.Development">最新预览版，发布于 {0}</sys:String>
+    <sys:String x:Key="Download.Version.Other.Title">其他版本</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">正式版</sys:String>
     <sys:String x:Key="Download.Version.Type.Development">预览版</sys:String>
     <sys:String x:Key="Download.Version.Type.BeforeRelease">远古版</sys:String>
