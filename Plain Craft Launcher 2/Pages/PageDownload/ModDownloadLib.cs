@@ -266,7 +266,7 @@ public static class ModDownloadLib
         {
             ModLoader.LoaderBase argprogressFeed = task;
             task.output =
-                ModMinecraft.McAssetsFixList(new McInstance(instanceFolder), true, ref argprogressFeed);
+                ModAssets.McAssetsFixList(new McInstance(instanceFolder), true, ref argprogressFeed);
             task = (ModLoader.LoaderTask<string, List<DownloadFile>>)argprogressFeed;
         })
         {
@@ -3509,7 +3509,7 @@ public static class ModDownloadLib
         {
             ModLoader.LoaderBase argprogressFeed = task;
             task.output =
-                ModMinecraft.McAssetsFixList(new McInstance(versionFolder), true, ref argprogressFeed);
+                ModAssets.McAssetsFixList(new McInstance(versionFolder), true, ref argprogressFeed);
             task = (ModLoader.LoaderTask<string, List<DownloadFile>>)argprogressFeed;
         })
         {

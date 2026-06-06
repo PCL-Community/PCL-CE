@@ -2879,7 +2879,7 @@ public static class ModLaunch
         gameArguments.Add("${game_assets}",
             ModBase.ShortenPath(ModFolder.mcFolderSelected +
                                 @"assets\virtual\legacy")); // 1.5.2 的 pre-1.6 资源索引应与 legacy 合并
-        gameArguments.Add("${assets_index_name}", ModMinecraft.McAssetsGetIndexName(instance));
+        gameArguments.Add("${assets_index_name}", ModAssets.McAssetsGetIndexName(instance));
 
         // 支持库参数
         var libList = ModMinecraft.McLibListGet(instance, true);
@@ -3478,7 +3478,7 @@ public static class ModLaunch
         McLaunchLog("PCL 版本：" + ModBase.versionBaseName + " (" + ModBase.versionCode + ")");
         McLaunchLog(
             $"游戏版本：{ModMinecraft.McMcInstanceSelected.Info.VanillaName}（{ModMinecraft.McMcInstanceSelected.Info.vanilla}，Drop {ModMinecraft.McMcInstanceSelected.Info.Drop}{(ModMinecraft.McMcInstanceSelected.Info.Reliable ? "" : "，无法完全确定")}）");
-        McLaunchLog("资源版本：" + ModMinecraft.McAssetsGetIndexName(ModMinecraft.McMcInstanceSelected));
+        McLaunchLog("资源版本：" + ModAssets.McAssetsGetIndexName(ModMinecraft.McMcInstanceSelected));
         McLaunchLog("实例继承：" + (string.IsNullOrEmpty(ModMinecraft.McMcInstanceSelected.InheritInstanceName)
             ? "无"
             : ModMinecraft.McMcInstanceSelected.InheritInstanceName));

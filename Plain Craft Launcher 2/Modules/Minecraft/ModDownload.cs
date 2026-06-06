@@ -57,7 +57,7 @@ public static class ModDownload
         while (!string.IsNullOrEmpty(version.InheritInstanceName))
             version = new McInstance(version.InheritInstanceName);
         // 获取信息
-        var indexInfo = ModMinecraft.McAssetsGetIndex(version, true, true);
+        var indexInfo = ModAssets.McAssetsGetIndex(version, true, true);
         var indexAddress = Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexInfo["id"] + ".json");
         ModBase.Log("[Download] 实例 " + version.Name + " 对应的资源文件索引为 " + indexInfo["id"]);
         var indexUrl = (string)(indexInfo["url"] ?? "");
@@ -173,7 +173,7 @@ public static class ModDownload
                 Lang.Text("Minecraft.Download.Stage.AnalyzeMissingAssets"), task =>
             {
                 ModLoader.LoaderBase argprogressFeed = task;
-                task.output = ModMinecraft.McAssetsFixList(version, checkAssetsHash, ref argprogressFeed);
+                task.output = ModAssets.McAssetsFixList(version, checkAssetsHash, ref argprogressFeed);
                 task = (ModLoader.LoaderTask<string, List<DownloadFile>>)argprogressFeed;
             })
             {
