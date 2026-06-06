@@ -123,12 +123,47 @@ public partial class PageLoginProfileSkin
     private void Skin_Click(object sender, RoutedEventArgs e)
     {
         if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Ms)
+        {
             ModProfile.ChangeSkinMs();
+        }
         else if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Auth)
+        {
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
+        }
         else
-                ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
+        {
+            var msProfiles = ModProfile.profileList.Where(p => p.Type == ModLaunch.McLoginType.Ms).ToList();
+            if (msProfiles.Count == 0)
+            {
+                ModMain.Hint("没有可用的正版档案，请先登录正版账号");
+                return;
+            }
+            var items = new List<IMyRadio>();
+            items.Add(new MyRadioBox { Text = Lang.Text("Common.Option.Default") });
+            foreach (var p in msProfiles)
+                items.Add(new MyRadioBox { Text = p.Username });
+            var sel = ModMain.MyMsgBoxSelect(items, "选择正版皮肤", Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
+            if (sel is >= 0)
+            {
+                var wasBorrowing = !string.IsNullOrEmpty(ModProfile.selectedProfile.skinSourceUuid);
+                var newSkinSource = sel == 0 ? "" : msProfiles[sel.Value - 1].Uuid;
+                // 从不借用切换到借用时提示需要 CustomSkinLoader
+                if (!wasBorrowing && sel > 0 &&
+                    ModMain.MyMsgBox(
+                        "PCL 将自动下载 CustomSkinLoader 模组（!skinsupport.jar）到 mods 文件夹，使离线档案的借用皮肤在游戏中显示。",
+                        "需要安装 CustomSkinLoader 模组",
+                        "确定使用", "取消", isWarn: true, forceWait: true) == 2)
+                    return;
+
+                ModProfile.selectedProfile.skinSourceUuid = newSkinSource;
+                if (sel > 0)
+                    ModProfile.selectedProfile.SkinHeadId = msProfiles[sel.Value - 1].SkinHeadId;
+                ModProfile.SaveProfile();
+                ModMain.Hint("皮肤源已更新，下次启动生效");
+                Skin.loader.Start(isForceRestart: true);
+            }
+        }
     }
 
     // 保存皮肤

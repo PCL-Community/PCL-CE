@@ -38,6 +38,8 @@ public static class ModLocalComp
             if (path is null || !path.Contains("."))
                 return false;
             path = path.ToLower();
+            if (Path.GetFileName(path).StartsWith("!skinsupport"))
+                return false;
             if (path.EndsWithF(".jar", true) || path.EndsWithF(".zip", true) || path.EndsWithF(".litemod", true) ||
                 path.EndsWithF(".jar.disabled", true) || path.EndsWithF(".zip.disabled", true) ||
                 path.EndsWithF(".litemod.disabled", true) || path.EndsWithF(".jar.old", true) ||

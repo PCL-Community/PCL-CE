@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Windows;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
@@ -10,6 +11,11 @@ public partial class PageLoginOffline
     {
         // Handles
         InitializeComponent();
+        // Populate skin source combo
+        ComboSkinSource.Items.Clear();
+        ComboSkinSource.Items.Add(new MyComboBoxItem { Content = "不使用" });
+        foreach (var p in ModProfile.profileList.Where(x => x.Type == ModLaunch.McLoginType.Ms))
+            ComboSkinSource.Items.Add(new MyComboBoxItem { Content = p.Username, Tag = p.Uuid });
         BtnBack.Click += BtnBack_Click;
         RadioUuidCustom.Check += RadioUuid_Checked;
         RadioUuidStandard.Check += RadioUuid_Checked;
@@ -86,13 +92,32 @@ public partial class PageLoginOffline
             userUuid = ModProfile.GetOfflineUuid(username);
         }
 
+        // 获取借用皮肤来源
+        var skinSource = (ComboSkinSource.SelectedItem as MyComboBoxItem)?.Tag?.ToString() ?? "";
+        var skinHeadId = "";
+        if (!string.IsNullOrEmpty(skinSource))
+        {
+            if (ModMain.MyMsgBox(
+                    "你即将借用正版皮肤。\n\n要在游戏内显示皮肤，需要为你的 Minecraft 实例安装 CustomSkinLoader 模组。\n该模组会从实例目录下的 CustomSkinLoader/LocalSkin/skins/ 文件夹自动加载皮肤。\n\n你可以从以下渠道下载：\n- CurseForge 或 Modrinth 搜索 \"CustomSkinLoader\"\n- MCBBS / 我的世界中文论坛",
+                    "需要安装 CustomSkinLoader 模组",
+                    "确定使用", "取消",
+                    isWarn: true, forceWait: true) == 2)
+                return;
+
+            var sourceProfile = ModProfile.profileList.FirstOrDefault(p => p.Uuid == skinSource);
+            if (sourceProfile is not null)
+                skinHeadId = sourceProfile.SkinHeadId;
+        }
+
         // 创建档案
         var newProfile = new ModProfile.McProfile
         {
             Type = ModLaunch.McLoginType.Legacy,
             Uuid = userUuid,
             Username = username,
-            Desc = ""
+            Desc = "",
+            SkinHeadId = skinHeadId,
+            skinSourceUuid = skinSource
         };
         ModProfile.profileList.Add(newProfile);
         ModProfile.SaveProfile();

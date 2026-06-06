@@ -19,6 +19,7 @@ using PCL.Network;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 using System.Globalization;
+using System.Linq;
 
 namespace PCL;
 
@@ -195,6 +196,141 @@ public static class ModLaunch
 
     #endregion
 
+    #region 皮肤支持模组
+
+    /// <summary>
+    ///     在启动前检查并下载 CustomSkinLoader 模组（!skinsupport.jar），
+    ///     或在使用正版/第三方登录时禁用它。
+    /// </summary>
+    private static void EnsureSkinSupport()
+    {
+        var instance = ModInstanceList.McMcInstanceSelected;
+        var modsFolder = Path.Combine(instance.PathInstance, "mods");
+        var skinSupportPath = Path.Combine(modsFolder, "!skinsupport.jar");
+        var skinSupportDisabledPath = skinSupportPath + ".disabled";
+
+        // 正版或第三方登录：自动禁用皮肤支持模组
+        if (ModProfile.selectedProfile.Type is McLoginType.Ms or McLoginType.Auth)
+        {
+            if (File.Exists(skinSupportPath))
+            {
+                try
+                {
+                    if (File.Exists(skinSupportDisabledPath))
+                        File.Delete(skinSupportDisabledPath);
+                    File.Move(skinSupportPath, skinSupportDisabledPath);
+                    ModBase.Log("[Skin] 已禁用 !skinsupport.jar（正版/第三方登录）");
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "[Skin] 禁用 !skinsupport.jar 失败");
+                }
+            }
+            return;
+        }
+
+        // 只有离线档案且借用了正版皮肤才需要检查
+        if (ModProfile.selectedProfile.Type != McLoginType.Legacy ||
+            string.IsNullOrEmpty(ModProfile.selectedProfile.skinSourceUuid))
+            return;
+
+        // 重新启用之前禁用的模组
+        if (File.Exists(skinSupportDisabledPath) && !File.Exists(skinSupportPath))
+        {
+            try
+            {
+                File.Move(skinSupportDisabledPath, skinSupportPath);
+                ModBase.Log("[Skin] 已重新启用 !skinsupport.jar");
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[Skin] 重新启用 !skinsupport.jar 失败");
+            }
+        }
+
+        // 模组已存在，无需下载
+        if (File.Exists(skinSupportPath))
+            return;
+
+        // 下载 CustomSkinLoader
+        var vanillaVersion = instance.Info.VanillaName;
+        var loaderType = GetCompLoaderType(instance);
+        if (string.IsNullOrEmpty(vanillaVersion))
+        {
+            ShowSkinSupportUnavailable();
+            return;
+        }
+
+        McLaunchLog("正在下载 CustomSkinLoader...");
+        try
+        {
+            var files = ModComp.CompFilesGet("customskinloader", false);
+            if (files is null || files.Count == 0)
+            {
+                ShowSkinSupportUnavailable();
+                return;
+            }
+
+            // 筛选兼容当前版本和加载器的文件
+            var compatible = files.Where(f =>
+                {
+                    if (f.GameVersions is null || !f.GameVersions.Contains(vanillaVersion))
+                        return false;
+                    if (loaderType is not null && f.ModLoaders is not null && f.ModLoaders.Count > 0 &&
+                        !f.ModLoaders.Contains(loaderType.Value))
+                        return false;
+                    return true;
+                })
+                .OrderByDescending(f => f.ReleaseDate)
+                .ToList();
+
+            if (compatible.Count == 0)
+            {
+                ShowSkinSupportUnavailable();
+                return;
+            }
+
+            var best = compatible.First();
+            Directory.CreateDirectory(modsFolder);
+            var netFile = best.ToNetFile(modsFolder);
+            // Rename to !skinsupport.jar
+            FileDownloader.Download(netFile.Urls, skinSupportPath + ModNet.netDownloadEnd).GetAwaiter().GetResult();
+            if (File.Exists(skinSupportPath))
+                File.Delete(skinSupportPath);
+            File.Move(skinSupportPath + ModNet.netDownloadEnd, skinSupportPath);
+            ModBase.Log("[Skin] CustomSkinLoader 已下载为 !skinsupport.jar");
+            McLaunchLog("CustomSkinLoader 下载完成");
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Skin] 下载 CustomSkinLoader 失败");
+            ShowSkinSupportUnavailable();
+        }
+    }
+
+    private static ModComp.CompLoaderType? GetCompLoaderType(McInstance instance)
+    {
+        if (instance.Info.HasFabric) return ModComp.CompLoaderType.Fabric;
+        if (instance.Info.HasForge) return ModComp.CompLoaderType.Forge;
+        if (instance.Info.HasNeoForge) return ModComp.CompLoaderType.NeoForge;
+        if (instance.Info.HasQuilt) return ModComp.CompLoaderType.Quilt;
+        return null;
+    }
+
+    private static void ShowSkinSupportUnavailable()
+    {
+        ModBase.RunInUiWait(() =>
+        {
+            if (ModMain.MyMsgBox(
+                    "当前版本暂不支持自动下载 CustomSkinLoader。\n\n皮肤文件将在启动前下载，但若无 CustomSkinLoader 模组，游戏内无法显示皮肤。\n你可手动从 CurseForge / Modrinth 搜索 \"CustomSkinLoader\" 安装。",
+                    "皮肤模组不可用",
+                    "仍然启动", "取消", isWarn: true, forceWait: true) == 2)
+                throw new Exception("$$");
+        });
+    }
+
+    #endregion
+
     #region 开始
 
     public static bool isLaunching;
@@ -340,6 +476,7 @@ public static class ModLaunch
         try
         {
             McLaunchPrecheck();
+            EnsureSkinSupport();
             McLaunchLog("预检测已通过");
         }
         catch (Exception ex)
@@ -2309,6 +2446,41 @@ public static class ModLaunch
     // 主方法，合并 Jvm、Game、Replace 三部分的参数数据
     private static void McLaunchArgumentMain(ModLoader.LoaderTask<string, List<ModLibrary.McLibToken>> loader)
     {
+        // 离线档案借用正版皮肤：下载皮肤到 CustomSkinLoader 文件夹
+        if (ModProfile.selectedProfile is not null &&
+            ModProfile.selectedProfile.Type == McLoginType.Legacy &&
+            !string.IsNullOrEmpty(ModProfile.selectedProfile.skinSourceUuid))
+        {
+            var msProfile = ModProfile.profileList.FirstOrDefault(p =>
+                p.Type == McLoginType.Ms && p.Uuid == ModProfile.selectedProfile.skinSourceUuid);
+            if (msProfile is not null && !string.IsNullOrEmpty(msProfile.RawJson))
+            {
+                try
+                {
+                    var rawJson = (JsonObject)ModBase.GetJson(msProfile.RawJson);
+                    // RawJson 是 Minecraft Profile API 响应: { "skins": [{ "state": "ACTIVE", "url": "..." }] }
+                    var skinsArr = rawJson["skins"]?.AsArray();
+                    var activeSkin = skinsArr?.FirstOrDefault(s => (string)s["state"] == "ACTIVE");
+                    var skinUrl = activeSkin?["url"]?.ToString();
+                    if (!string.IsNullOrEmpty(skinUrl))
+                    {
+                        var skinFileName = ModProfile.selectedProfile.Username + ".png";
+                        var skinPath = Path.Combine(
+                            ModInstanceList.McMcInstanceSelected.PathInstance,
+                            "CustomSkinLoader", "LocalSkin", "skins", skinFileName);
+                        Directory.CreateDirectory(Path.GetDirectoryName(skinPath)!);
+                        using var wc = new WebClient();
+                        wc.DownloadFile(skinUrl, skinPath);
+                        ModBase.Log("[Skin] 离线皮肤已下载: " + skinPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "下载借用皮肤失败", ModBase.LogLevel.Hint);
+                }
+            }
+        }
+
         McLaunchLog("开始获取 Minecraft 启动参数");
         // 获取基准字符串与参数信息
         string arguments;
@@ -2495,6 +2667,7 @@ public static class ModLaunch
                 "-javaagent:\"" + mesaLoaderWindowsTargetFile + "\"=" +
                 (renderer == 1 ? "llvmpipe" : renderer == 2 ? "d3d12" : "zink"));
 
+
         // 设置代理
         if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
             !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
@@ -2510,6 +2683,8 @@ public static class ModLaunch
             {
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
+
+        // 皮肤代理
 
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
@@ -2616,6 +2791,7 @@ public static class ModLaunch
                 "-javaagent:\"" + mesaLoaderWindowsTargetFile + "\"=" +
                 (renderer == 1 ? "llvmpipe" : renderer == 2 ? "d3d12" : "zink"));
 
+
         // 设置代理
         if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
             !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
@@ -2631,6 +2807,8 @@ public static class ModLaunch
             {
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
+
+        // 皮肤代理
 
         // 添加 RetroWrapper 相关参数
         if (McLaunchNeedsRetroWrapper(instance))
@@ -3560,6 +3738,8 @@ public static class ModLaunch
     private static void McLaunchEnd()
     {
         McLaunchLog("开始启动结束处理");
+
+        // 停止皮肤代理
 
         // 暂停或开始音乐播放
         if (Config.Preference.Music.StopInGame)

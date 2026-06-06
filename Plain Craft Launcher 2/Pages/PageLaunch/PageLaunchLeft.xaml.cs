@@ -895,7 +895,7 @@ public partial class PageLaunchLeft
     private static ModBase.EqualableList<string> SkinLegacyInput()
     {
         return new ModBase.EqualableList<string>
-            { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
+            { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid, ModProfile.selectedProfile?.skinSourceUuid ?? "" };
     }
 
     private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
@@ -906,7 +906,35 @@ public partial class PageLaunchLeft
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
+        // 离线档案借用正版皮肤
+        var skinSourceUuid = data.input.Count > 2 ? data.input[2] : "";
+        if (!string.IsNullOrEmpty(skinSourceUuid))
+        {
+            var msProfile = ModProfile.profileList.FirstOrDefault(p =>
+                p.Type == ModLaunch.McLoginType.Ms && p.Uuid == skinSourceUuid);
+            if (msProfile is not null)
+            {
+                try
+                {
+                    var result = ModSkin.McSkinGetAddress(msProfile.Uuid, "Ms");
+                    if (!data.IsAborted)
+                    {
+                        result = ModSkin.McSkinDownload(result);
+                        if (!data.IsAborted)
+                        {
+                            data.output = result;
+                            goto Refresh;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "[Skin] 借用正版皮肤失败，回退到离线皮肤");
+                }
+            }
+        }
         data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
+        Refresh:
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(() => ModMain.frmLoginProfileSkin.Skin.Load());

@@ -257,6 +257,11 @@ public static class ModProfile
         public string SkinHeadId;
 
         /// <summary>
+        ///     离线档案借用皮肤的正版档案 UUID
+        /// </summary>
+        public string skinSourceUuid;
+
+        /// <summary>
         ///     档案类型
         /// </summary>
         public ModLaunch.McLoginType Type;
@@ -334,7 +339,8 @@ public static class ModProfile
                         Uuid = (string)Profile["uuid"],
                         Username = (string)Profile["username"],
                         Desc = (string)Profile["desc"],
-                        SkinHeadId = (string)Profile["skinHeadId"]
+                        SkinHeadId = (string)Profile["skinHeadId"],
+                        skinSourceUuid = (string)Profile["skinSourceUuid"]
                     };
                 profileList.Add(newProfile);
             }
@@ -401,7 +407,8 @@ public static class ModProfile
                         profileJobj = new JsonObject
                         {
                             { "type", "offline" }, { "uuid", Profile.Uuid }, { "username", Profile.Username },
-                            { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }
+                            { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId },
+                            { "skinSourceUuid", Profile.skinSourceUuid }
                         };
                     list.Add(profileJobj);
                 }
