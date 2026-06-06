@@ -36,7 +36,6 @@ public class DefaultPathsScanner : IJavaScanner
         {
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             Path.Combine(Basics.ExecutableDirectory, "PCL")
         };
 
