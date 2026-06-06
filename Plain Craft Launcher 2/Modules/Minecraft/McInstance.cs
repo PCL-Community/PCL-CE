@@ -542,9 +542,9 @@ public class McInstance
         {
             get
             {
-                if (!ModMinecraft._JsonVersion_jsonVersionInited)
+                if (!ModInstanceList._JsonVersion_jsonVersionInited)
                 {
-                    ModMinecraft._JsonVersion_jsonVersionInited = true;
+                    ModInstanceList._JsonVersion_jsonVersionInited = true;
                     do
                     {
                         try

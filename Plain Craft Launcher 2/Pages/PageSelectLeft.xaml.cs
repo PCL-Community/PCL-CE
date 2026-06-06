@@ -289,7 +289,7 @@ public partial class PageSelectLeft : IRefreshable
         }
         finally
         {
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader,
                 ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.RunOnUpdated,
                 1,
@@ -652,7 +652,7 @@ public partial class PageSelectLeft : IRefreshable
     {
         ModBase.WriteIni(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
         if (folder == ModFolder.mcFolderSelected)
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
@@ -720,7 +720,7 @@ public partial class PageSelectLeft : IRefreshable
         // 更换
         States.Game.SelectedFolder = ((ModFolder.McFolder)sender.Tag).Location.Replace(ModBase.exePath, "$");
         ModFolder.mcFolderListLoader.Start(isForceRestart: true);
-        ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\"); // 刷新实例列表
     }
 

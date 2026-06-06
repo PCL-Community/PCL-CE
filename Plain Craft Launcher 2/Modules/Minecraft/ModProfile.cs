@@ -1057,7 +1057,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
                 if (selectedProfile.Username.Contains("\""))
                     return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
-                if (ModMinecraft.McMcInstanceSelected is not null && ModMinecraft.McMcInstanceSelected.Info.Drop >= 203 &&
+                if (ModInstanceList.McMcInstanceSelected is not null && ModInstanceList.McMcInstanceSelected.Info.Drop >= 203 &&
                     selectedProfile.Username.Trim().Length > 16) return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
                 return "";
             }

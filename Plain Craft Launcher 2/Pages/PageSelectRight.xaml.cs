@@ -44,7 +44,7 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
@@ -81,7 +81,7 @@ public partial class PageSelectRight
         var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
         var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModMinecraft.mcInstanceListLoader.State == ModBase.LoadState.Finished &&
+        if (elapsed >= currentDelay && ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Finished &&
             !isRefreshing)
         {
             isRefreshing = true;
@@ -89,7 +89,7 @@ public partial class PageSelectRight
             // 确保在UI线程执行刷新
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                McInstanceListUI(ModMinecraft.mcInstanceListLoader);
+                McInstanceListUI(ModInstanceList.mcInstanceListLoader);
                 isRefreshing = false;
             }));
             reloadTimer.Stop();
@@ -109,15 +109,15 @@ public partial class PageSelectRight
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.mcInstanceListLoader,
+        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModInstanceList.mcInstanceListLoader,
             a => this.McInstanceListUI((ModLoader.LoaderTask<string, int>)a),
             autoRun: false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMinecraft.mcInstanceListLoader.State == ModBase.LoadState.Failed)
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        if (ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Failed)
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
@@ -134,12 +134,12 @@ public partial class PageSelectRight
             var hasVisibleFolders = false;
             var searchText = PanVerSearchBox.Text.Trim().ToLower(); // 获取搜索框文本
             var hasAnyResults = false;
-            var originalHasInstances = ModMinecraft.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
+            var originalHasInstances = ModInstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
 
             // 搜索无结果时显示 PanEmptySearch
             PanEmptySearch.Visibility = Visibility.Collapsed; // 默认隐藏
 
-            foreach (var Card in ModMinecraft.mcInstanceList.ToArray())
+            foreach (var Card in ModInstanceList.mcInstanceList.ToArray())
             {
                 if ((Card.Key == McInstanceCardType.Hidden) ^ showHidden)
                     continue;
@@ -319,7 +319,7 @@ public partial class PageSelectRight
                     }
                 }
                 // 有实例但搜索无结果的情况
-                else if (showHidden && ModMinecraft.mcInstanceList.ToArray().Any(c =>
+                else if (showHidden && ModInstanceList.mcInstanceList.ToArray().Any(c =>
                              c.Key == McInstanceCardType.Hidden && c.Value.Count > 0))
                 {
                     // 有隐藏实例但搜索无结果 - 显示搜索无结果提示
@@ -442,8 +442,8 @@ public partial class PageSelectRight
         btnStar.Click += (_, _) =>
         {
             States.Instance.Starred[version.PathInstance] = !version.IsStar;
-            ModMinecraft.mcInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModInstanceList.mcInstanceListForceRefresh = true;
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
         var btnOpenFolder = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/folder-open" };
@@ -501,8 +501,8 @@ public partial class PageSelectRight
         if (new McInstance(instance.PathInstance).Check())
         {
             // 正常实例
-            ModMinecraft.McMcInstanceSelected = instance;
-            States.Game.SelectedInstance = ModMinecraft.McMcInstanceSelected.Name;
+            ModInstanceList.McMcInstanceSelected = instance;
+            States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
             ModMain.frmMain.PageBack();
         }
         else
@@ -572,24 +572,24 @@ public partial class PageSelectRight
                     card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
                         Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
                     parent.Children.Remove(item);
-                    if (ModMinecraft.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
-                        (ModMinecraft.McMcInstanceSelected.PathInstance ?? ""))
+                    if (ModInstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
+                        (ModInstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        ModMinecraft.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
-                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                        ModInstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }
                 else
                 {
                     // 删除后没剩了
-                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
                 }
             }
             else
             {
                 // 同时出现在当前卡片与收藏夹
-                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
         }

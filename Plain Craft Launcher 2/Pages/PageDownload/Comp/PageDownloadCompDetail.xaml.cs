@@ -161,27 +161,27 @@ public partial class PageDownloadCompDetail
             if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
             {
                 defaultFolder = cachedFolder.GetOrDefault(file.Type,
-                    ModMinecraft.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
+                    ModInstanceList.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
                 ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
             }
-            else if (ModMinecraft.McMcInstanceSelected is not null && isVersionSuitable(ModMinecraft.McMcInstanceSelected))
+            else if (ModInstanceList.McMcInstanceSelected is not null && isVersionSuitable(ModInstanceList.McMcInstanceSelected))
             {
-                defaultFolder = $"{ModMinecraft.McMcInstanceSelected.PathIndie}{subFolder}";
+                defaultFolder = $"{ModInstanceList.McMcInstanceSelected.PathIndie}{subFolder}";
                 Directory.CreateDirectory(defaultFolder);
                 ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{defaultFolder}");
             }
             else
             {
                 // 查找所有可能的实例
-                var needLoad = ModMinecraft.mcInstanceListLoader.State != ModBase.LoadState.Finished;
+                var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                 if (needLoad)
                 {
                     ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
-                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 }
 
-                var suitableVersions = ModMinecraft.mcInstanceList.Values.SelectMany(l => l)
+                var suitableVersions = ModInstanceList.mcInstanceList.Values.SelectMany(l => l)
                     .Where(v => isVersionSuitable(v)).Select(v => new DirectoryInfo($"{v.PathIndie}{subFolder}"));
                 if (suitableVersions.Any())
                 {
@@ -310,28 +310,28 @@ public partial class PageDownloadCompDetail
                     if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
                     {
                         defaultFolder = cachedFolder.GetOrDefault(file.Type,
-                            ModMinecraft.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
+                            ModInstanceList.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
                     }
-                    else if (ModMinecraft.McMcInstanceSelected is not null &&
-                             isVersionSuitable(ModMinecraft.McMcInstanceSelected))
+                    else if (ModInstanceList.McMcInstanceSelected is not null &&
+                             isVersionSuitable(ModInstanceList.McMcInstanceSelected))
                     {
-                        defaultFolder = $"{ModMinecraft.McMcInstanceSelected.PathIndie}{subFolder}";
+                        defaultFolder = $"{ModInstanceList.McMcInstanceSelected.PathIndie}{subFolder}";
                         Directory.CreateDirectory(defaultFolder);
                         ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{defaultFolder}");
                     }
                     else
                     {
                         // 查找所有可能的实例
-                        var needLoad = ModMinecraft.mcInstanceListLoader.State != ModBase.LoadState.Finished;
+                        var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                         if (needLoad)
                         {
                             ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
-                            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                                 ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
                         }
 
-                        var suitableVersions = ModMinecraft.mcInstanceList.Values.SelectMany(l => l)
+                        var suitableVersions = ModInstanceList.mcInstanceList.Values.SelectMany(l => l)
                             .Where(v => isVersionSuitable(v))
                             .Select(v => new DirectoryInfo($"{v.PathIndie}{subFolder}"));
 
@@ -389,12 +389,12 @@ public partial class PageDownloadCompDetail
                         {
                             McInstance? targetInstance = null;
                             var knownInstances = new List<McInstance>();
-                            if (ModMinecraft.McMcInstanceSelected is not null)
+                            if (ModInstanceList.McMcInstanceSelected is not null)
                             {
-                                knownInstances.Add(ModMinecraft.McMcInstanceSelected);
+                                knownInstances.Add(ModInstanceList.McMcInstanceSelected);
                             }
 
-                            knownInstances.AddRange(ModMinecraft.mcInstanceList.Values.SelectMany(list => list)
+                            knownInstances.AddRange(ModInstanceList.mcInstanceList.Values.SelectMany(list => list)
                                 .Where(instance => instance is not null));
                             targetInstance = knownInstances
                                 .Distinct()

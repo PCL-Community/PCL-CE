@@ -24,7 +24,7 @@ public partial class PageSetupLaunch
         // 重复加载部分
         PanBack.ScrollToHome();
         RefreshRam(false);
-        if (ModMinecraft.McMcInstanceSelected is null)
+        if (ModInstanceList.McMcInstanceSelected is null)
             BtnSwitch.Visibility = Visibility.Collapsed;
         else
             BtnSwitch.Visibility = Visibility.Visible;
@@ -189,8 +189,8 @@ public partial class PageSetupLaunch
     // 切换到实例独立设置
     private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMinecraft.McMcInstanceSelected.Load();
-        PageInstanceLeft.McInstance = ModMinecraft.McMcInstanceSelected;
+        ModInstanceList.McMcInstanceSelected.Load();
+        PageInstanceLeft.McInstance = ModInstanceList.McMcInstanceSelected;
         ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
@@ -224,7 +224,7 @@ public partial class PageSetupLaunch
             ModMain.frmSetupLeft.pageID != FormMain.PageSubType.SetupLaunch)
             return;
         // 获取内存情况
-        var ramGame = Math.Round(GetRam(ModMinecraft.McMcInstanceSelected, false), 5);
+        var ramGame = Math.Round(GetRam(ModInstanceList.McMcInstanceSelected, false), 5);
         var phyRam = KernelInterop.GetPhysicalMemoryBytes();
         var ramTotal = Math.Round((double)phyRam.Total / 1024 / 1024 / 1024, 1);
         var ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);

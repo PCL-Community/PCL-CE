@@ -664,7 +664,7 @@ public class ModSetup
         if (PageInstanceLeft.McInstance is null)
             return;
         PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
-        ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
