@@ -1425,6 +1425,7 @@
     <sys:String x:Key="Setup.Ui.ThemeColor.CatBlue">龙猫蓝</sys:String>
     <sys:String x:Key="Setup.Ui.ThemeColor.CrashBlue">死机蓝</sys:String>
     <sys:String x:Key="Setup.Ui.ThemeColor.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.ThemeColor.SystemAccent">跟随系统</sys:String>
 
     <!-- Setup.Ui.Background / Logo / Music -->
 

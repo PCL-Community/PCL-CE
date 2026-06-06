@@ -11,10 +11,29 @@ namespace PCL;
 
 public partial class PageSetupUI
 {
-    public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue"), Lang.Text("Setup.Ui.ThemeColor.Hmcl")]
-        : [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue")];
-    
+    private static readonly ColorTheme[] _ThemeOrder =
+        [ColorTheme.SystemAccent, ColorTheme.SkyBlue, ColorTheme.CatBlue, ColorTheme.DeathBlue];
+
+    private static readonly ColorTheme[] _ThemeOrderApril =
+        [ColorTheme.SystemAccent, ColorTheme.SkyBlue, ColorTheme.CatBlue, ColorTheme.DeathBlue, ColorTheme.HmclBlue];
+
+    public string[] ThemeColors => (Basics.IsAprilFool ? _ThemeOrderApril : _ThemeOrder)
+        .Select(t => t switch
+        {
+            ColorTheme.SystemAccent => Lang.Text("Setup.Ui.ThemeColor.SystemAccent"),
+            ColorTheme.SkyBlue => Lang.Text("Setup.Ui.ThemeColor.SkyBlue"),
+            ColorTheme.CatBlue => Lang.Text("Setup.Ui.ThemeColor.CatBlue"),
+            ColorTheme.DeathBlue => Lang.Text("Setup.Ui.ThemeColor.CrashBlue"),
+            ColorTheme.HmclBlue => Lang.Text("Setup.Ui.ThemeColor.Hmcl"),
+            _ => ""
+        }).ToArray();
+
+    private static int _ThemeIndex(ColorTheme theme)
+    {
+        var order = Basics.IsAprilFool ? _ThemeOrderApril : _ThemeOrder;
+        return Math.Max(0, Array.IndexOf(order, theme));
+    }
+
     public new bool IsLoaded;
 
     public PageSetupUI()
@@ -39,8 +58,6 @@ public partial class PageSetupUI
         IsLoaded = true;
 
         SliderLoad();
-
-        PanLauncherHide.Visibility = Visibility.Visible;
     }
 
     public void Reload()
@@ -51,8 +68,8 @@ public partial class PageSetupUI
             SliderLauncherOpacity.Value = Config.Preference.Theme.WindowOpacity;
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
             ComboDarkMode.SelectedIndex = (int)Config.Preference.Theme.ColorMode;
-            ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
-            ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
+            ComboDarkColor.SelectedIndex = _ThemeIndex(Config.Preference.Theme.DarkColor);
+            ComboLightColor.SelectedIndex = _ThemeIndex(Config.Preference.Theme.LightColor);
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
             // 字体设置
@@ -242,8 +259,12 @@ public partial class PageSetupUI
             case "UiLogoLeft": Config.Preference.TopBarLeftAlign = (bool)value; break;
 
             case "UiDarkMode": Config.Preference.Theme.ColorMode = (ColorMode)(int)value; break;
-            case "UiDarkColor": Config.Preference.Theme.DarkColor = (ColorTheme)(int)value; break;
-            case "UiLightColor": Config.Preference.Theme.LightColor = (ColorTheme)(int)value; break;
+            case "UiDarkColor":
+                Config.Preference.Theme.DarkColor = _ThemeOrder[Math.Min((int)value, _ThemeOrder.Length - 1)];
+                break;
+            case "UiLightColor":
+                Config.Preference.Theme.LightColor = _ThemeOrder[Math.Min((int)value, _ThemeOrder.Length - 1)];
+                break;
             case "UiBlurType": Config.Preference.Blur.KernelType = (int)value; break;
             case "UiBackgroundSuit": Config.Preference.Background.WallpaperSuitMode = (int)value; break;
             case "UiCustomPreset": Config.Preference.Homepage.SelectedPreset = (int)value; break;
@@ -682,6 +703,7 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
+        ModBase.Log($"[Theme] 选择主题色: tag={sender.Tag}, index={sender.SelectedIndex}");
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
     }
@@ -772,9 +794,10 @@ public partial class PageSetupUI
             // 功能隐藏设置卡片
             if (ModMain.FrmSetupUI is not null)
             {
-                ModMain.FrmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
+                //ModMain.FrmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
+                //    ? Visibility.Collapsed
+                //    : Visibility.Visible;
+                ModMain.FrmSetupUI.CardSwitch.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.CardSwitch.Title = HiddenForceShow ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled") : Lang.Text("Setup.Ui.FeatureHide.Title");
             }
 

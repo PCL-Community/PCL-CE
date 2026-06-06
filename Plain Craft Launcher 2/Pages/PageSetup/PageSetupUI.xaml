@@ -32,16 +32,6 @@
                                             Tag="UiLauncherTransparent" MaxValue="600" ValueByKey="10" Grid.Column="1"
                                             Change="SliderChange" />
                         </Grid>
-                        <Border Background="{DynamicResource ColorBrushToolTip}" Margin="0,5,0,12" CornerRadius="4"
-                                Name="PanLauncherHide" Visibility="Collapsed">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-                                <TextBlock Text="{DynamicResource Setup.Ui.Basic.BlueHint}" FontSize="13" Margin="0,0,0,0"
-                                           TextWrapping="Wrap" />
-                                <local:MyButton Height="35" x:Name="BtnLauncherDonate" MinWidth="140" Text="{DynamicResource Setup.Ui.Basic.GetSnapshot}"
-                                                Padding="13,0" HorizontalAlignment="Center" Margin="0,9,0,0"
-                                                ColorType="Highlight" Click="BtnLauncherDonate_Click" />
-                            </StackPanel>
-                        </Border>
                         <Grid Height="28" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
@@ -375,7 +365,7 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <!--<local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
+            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
                 <StackPanel Margin="25,38,15,15">
                     <TextBlock Margin="0,1,0,1" Text="{DynamicResource Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
                     <Grid>
@@ -484,7 +474,7 @@
                                           Change="CheckBoxChange" />
                     </Grid>
                 </StackPanel>
-            </local:MyCard>-->
+            </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

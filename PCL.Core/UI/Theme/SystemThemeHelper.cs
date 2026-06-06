@@ -33,4 +33,34 @@ public static class SystemThemeHelper {
 
     [Obsolete("Use ThemeService.IsDarkMode instead")]
     public static bool IsDarkMode() => ThemeService.IsDarkMode;
+
+    /// <summary>
+    /// 获取 Windows 系统强调色 (RGB)。
+    /// </summary>
+    public static (byte R, byte G, byte B) GetSystemAccentColor()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");
+            var value = key?.GetValue("AccentColor") as int?;
+            if (value.HasValue && value.Value != 0)
+            {
+                // DWM AccentColor 是 ABGR 格式 (0xAABBGGRR)，按小端序读取后:
+                // 低字节=RR, 次低字节=GG, 次高字节=BB, 高字节=AA
+                var color = (uint)value.Value;
+                byte r = (byte)color;          // 低字节 = Red
+                byte g = (byte)(color >> 8);   // Green
+                byte b = (byte)(color >> 16);  // Blue
+                byte a = (byte)(color >> 24);  // Alpha
+                LogWrapper.Debug($"System accent: A={a} R={r} G={g} B={b}");
+                if (a > 0) return (r, g, b);
+            }
+            LogWrapper.Warn("System accent color not found or transparent, using default");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Failed to read system accent color");
+        }
+        return (0, 120, 212);
+    }
 }

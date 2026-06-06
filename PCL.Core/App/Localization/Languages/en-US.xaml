@@ -1425,6 +1425,7 @@
     <sys:String x:Key="Setup.Ui.ThemeColor.CatBlue">LTCat Blue</sys:String>
     <sys:String x:Key="Setup.Ui.ThemeColor.CrashBlue">Crash Blue</sys:String>
     <sys:String x:Key="Setup.Ui.ThemeColor.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.ThemeColor.SystemAccent">System Accent</sys:String>
 
     <!-- Setup.Ui.Background / Logo / Music -->
 

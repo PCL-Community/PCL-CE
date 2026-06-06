@@ -157,12 +157,41 @@ public sealed partial class ThemeService
             ColorTheme.CatBlue => (255, 0, -0.2),
             ColorTheme.DeathBlue => (268, -0.05, -0.1),
             ColorTheme.HmclBlue => (275, -0.03, -0.35),
+            ColorTheme.SystemAccent => _GetSystemAccentArgs(),
 #if DEBUG
             _ => ((int)theme, 0, 0)
 #else
             _ => throw new IndexOutOfRangeException($"Invalid theme index: {(int)theme}")
 #endif
         };
+    }
+
+    private static (int Hue, double LightAdjust, double ChromaAdjust) _GetSystemAccentArgs()
+    {
+        var (r, g, b) = SystemThemeHelper.GetSystemAccentColor();
+        var hue = _RgbToHue(r, g, b);
+        var max = Math.Max(r, Math.Max(g, b)) / 255.0;
+        var lightAdjust = (max - 0.5) * 0.6;
+        Context.Info($"系统强调色: R={r} G={g} B={b}, Hue={hue}, LightAdjust={lightAdjust}");
+        return ((int)hue, lightAdjust, 0);
+    }
+
+    private static double _RgbToHue(byte r, byte g, byte b)
+    {
+        var rf = r / 255.0;
+        var gf = g / 255.0;
+        var bf = b / 255.0;
+        var max = Math.Max(rf, Math.Max(gf, bf));
+        var min = Math.Min(rf, Math.Min(gf, bf));
+        var delta = max - min;
+        if (delta == 0) return 0;
+        double hue;
+        if (max == rf) hue = ((gf - bf) / delta) % 6;
+        else if (max == gf) hue = (bf - rf) / delta + 2;
+        else hue = (rf - gf) / delta + 4;
+        hue *= 60;
+        if (hue < 0) hue += 360;
+        return hue;
     }
 
     private static double _AdjustLinear(double value, double adjustment)
