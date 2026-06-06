@@ -163,7 +163,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
     {
         var res = new ModLocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.instance;
+        res.gameVersion = PageInstanceLeft.McInstance;
         res.frm = this;
         var requireLoaders = new List<ModComp.CompLoaderType>();
         switch (currentCompType)
@@ -195,9 +195,9 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         res.loaders = requireLoaders;
-        res.compPath = PageInstanceLeft.instance.PathIndie +
-                       (PageInstanceLeft.instance.Info.HasLabyMod
-                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+        res.compPath = PageInstanceLeft.McInstance.PathIndie +
+                       (PageInstanceLeft.McInstance.Info.HasLabyMod
+                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                            : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
         res.compType = currentCompType;
         return res;
@@ -336,9 +336,9 @@ public partial class PageInstanceCompResource : IRefreshable
         string loadPath;
         if (string.IsNullOrEmpty(CurrentFolderPath))
             // 加载根目录
-            loadPath = PageInstanceLeft.instance.PathIndie +
-                       (PageInstanceLeft.instance.Info.HasLabyMod
-                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+            loadPath = PageInstanceLeft.McInstance.PathIndie +
+                       (PageInstanceLeft.McInstance.Info.HasLabyMod
+                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                            : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
         else
             // 加载当前文件夹
@@ -407,9 +407,9 @@ public partial class PageInstanceCompResource : IRefreshable
         try
         {
             // 获取根路径
-            var rootPath = PageInstanceLeft.instance.PathIndie +
-                           (PageInstanceLeft.instance.Info.HasLabyMod
-                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+            var rootPath = PageInstanceLeft.McInstance.PathIndie +
+                           (PageInstanceLeft.McInstance.Info.HasLabyMod
+                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                                : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
             rootPath = Path.GetFullPath(rootPath.TrimEnd('\\'));
 
@@ -436,9 +436,9 @@ public partial class PageInstanceCompResource : IRefreshable
         string loadPath;
         if (string.IsNullOrEmpty(CurrentFolderPath))
             // 返回到根目录
-            loadPath = PageInstanceLeft.instance.PathIndie +
-                       (PageInstanceLeft.instance.Info.HasLabyMod
-                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+            loadPath = PageInstanceLeft.McInstance.PathIndie +
+                       (PageInstanceLeft.McInstance.Info.HasLabyMod
+                           ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                            : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
         else
             // 加载当前文件夹
@@ -484,7 +484,7 @@ public partial class PageInstanceCompResource : IRefreshable
                 // 检查是否为投影文件类型且schematics文件夹不存在
                 if (currentCompType == ModComp.CompType.Schematic)
                 {
-                    var schematicsPath = PageInstanceLeft.instance.PathIndie + @"schematics\";
+                    var schematicsPath = PageInstanceLeft.McInstance.PathIndie + @"schematics\";
                     if (!Directory.Exists(schematicsPath))
                     {
                         PanSchematicEmpty.Visibility = Visibility.Visible;
@@ -531,9 +531,9 @@ public partial class PageInstanceCompResource : IRefreshable
 
             // 修改缓存
             modItems.Clear();
-            var rootPath = PageInstanceLeft.instance.PathIndie +
-                           (PageInstanceLeft.instance.Info.HasLabyMod
-                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+            var rootPath = PageInstanceLeft.McInstance.PathIndie +
+                           (PageInstanceLeft.McInstance.Info.HasLabyMod
+                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                                : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
             rootPath = Path.GetFullPath(rootPath.TrimEnd('\\'));
 
@@ -936,9 +936,9 @@ public partial class PageInstanceCompResource : IRefreshable
             // 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
             if (string.IsNullOrEmpty(CurrentFolderPath))
                 // 打开根目录
-                compFilePath = PageInstanceLeft.instance.PathIndie +
-                               (PageInstanceLeft.instance.Info.HasLabyMod
-                                   ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+                compFilePath = PageInstanceLeft.McInstance.PathIndie +
+                               (PageInstanceLeft.McInstance.Info.HasLabyMod
+                                   ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                                    : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
             else
                 // 打开当前子文件夹
@@ -1024,8 +1024,8 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 3. Determine target instance
-        var targetInstance = ModMinecraft.McInstanceSelected;
-        if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup) targetInstance = PageInstanceLeft.instance;
+        var targetInstance = ModInstanceList.McMcInstanceSelected;
+        if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup) targetInstance = PageInstanceLeft.McInstance;
 
         // 4. Validate instance status
         if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSelect || targetInstance is null ||
@@ -1051,14 +1051,14 @@ public partial class PageInstanceCompResource : IRefreshable
         return true;
     }
 
-    private static void ExecuteModInstallation(ModMinecraft.Instance targetInstance, IEnumerable<string> filePathList,
+    private static void ExecuteModInstallation(McInstance targetMcInstance, IEnumerable<string> filePathList,
         bool refreshList)
     {
         // Path resolution logic
-        var modPathSuffix = targetInstance.Info.HasLabyMod
-            ? $@"labymod-neo\fabric\{targetInstance.Info.VanillaName}\"
+        var modPathSuffix = targetMcInstance.Info.HasLabyMod
+            ? $@"labymod-neo\fabric\{targetMcInstance.Info.VanillaName}\"
             : "";
-        var modFolder = $@"{targetInstance.PathIndie}{modPathSuffix}mods\";
+        var modFolder = $@"{targetMcInstance.PathIndie}{modPathSuffix}mods\";
 
         try
         {
@@ -1121,9 +1121,9 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 获取并检查目标实例
-        var targetInstance = ModMinecraft.McInstanceSelected;
+        var targetInstance = ModInstanceList.McMcInstanceSelected;
         if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup)
-            targetInstance = PageInstanceLeft.instance;
+            targetInstance = PageInstanceLeft.McInstance;
 
         // 根据组件类型设置相关参数
         switch (compType)
@@ -1348,7 +1348,7 @@ public partial class PageInstanceCompResource : IRefreshable
                 var exportContent = new List<string>();
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(ModEntity.FileName);
-                ExportText(exportContent.Join("\r\n"), PageInstanceLeft.instance.Name + "已安装的资源信息.txt");
+                ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.txt");
                 break;
             }
 
@@ -1359,7 +1359,7 @@ public partial class PageInstanceCompResource : IRefreshable
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(
                         $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.compFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.path).Length},{ModEntity.path}");
-                ExportText(exportContent.Join("\r\n"), PageInstanceLeft.instance.Name + "已安装的资源信息.csv");
+                ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.csv");
                 break;
             }
         }
@@ -1389,7 +1389,7 @@ public partial class PageInstanceCompResource : IRefreshable
             }
         }
 
-        PageComp.targetVersion = PageInstanceLeft.instance; // 将当前实例设置为筛选器
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -1398,7 +1398,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private void BtnSchematicDownloadMod_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-        PageComp.targetVersion = PageInstanceLeft.instance; // 将当前实例设置为筛选器
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -2074,10 +2074,10 @@ public partial class PageInstanceCompResource : IRefreshable
             // 结束处理
             var loader =
                 new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
-                    "资源更新：" + PageInstanceLeft.instance.Name, installLoaders);
-            var pathMods = PageInstanceLeft.instance.PathIndie +
-                           (PageInstanceLeft.instance.Info.HasLabyMod
-                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.instance.Info.VanillaName)
+                    "资源更新：" + PageInstanceLeft.McInstance.Name, installLoaders);
+            var pathMods = PageInstanceLeft.McInstance.PathIndie +
+                           (PageInstanceLeft.McInstance.Info.HasLabyMod
+                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
                                : "") + ModLocalComp.GetPathNameByCompType(currentCompType) + @"\";
             loader.OnStateChanged = _ =>
             {
@@ -2317,7 +2317,7 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             var modEntry = ((MyLocalCompItem)(sender is MyIconButton iconButton ? iconButton.Tag : sender)).Entry;
             // 判断该 LabyMod 是否支持安装 Fabric Mod
-            var moddedLabyMod = PageInstanceLeft.instance.Info.HasLabyMod && PageInstanceLeft.instance.Modable;
+            var moddedLabyMod = PageInstanceLeft.McInstance.Info.HasLabyMod && PageInstanceLeft.McInstance.Modable;
             // 加载失败信息
             if (modEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
@@ -2333,10 +2333,10 @@ public partial class PageInstanceCompResource : IRefreshable
                 ModMain.frmMain.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (modEntry.Comp, new List<string>(), PageInstanceLeft.instance.Info.VanillaName,
-                        PageInstanceLeft.instance.Info.HasForge ? ModComp.CompLoaderType.Forge :
-                        PageInstanceLeft.instance.Info.HasNeoForge ? ModComp.CompLoaderType.NeoForge :
-                        PageInstanceLeft.instance.Info.HasFabric || moddedLabyMod ? ModComp.CompLoaderType.Fabric :
+                    additional = (modEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
+                        PageInstanceLeft.McInstance.Info.HasForge ? ModComp.CompLoaderType.Forge :
+                        PageInstanceLeft.McInstance.Info.HasNeoForge ? ModComp.CompLoaderType.NeoForge :
+                        PageInstanceLeft.McInstance.Info.HasFabric || moddedLabyMod ? ModComp.CompLoaderType.Fabric :
                         ModComp.CompLoaderType.Any,
                         currentCompType, null, null, null)
                 });

@@ -193,19 +193,19 @@ namespace PCL
                     case EventType.启动游戏:
                         if (args[0] == "\\current")
                         {
-                            if (ModMinecraft.McInstanceSelected is null)
+                            if (ModInstanceList.McMcInstanceSelected is null)
                             {
                                 ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
                                 return;
                             }
-                            args[0] = ModMinecraft.McInstanceSelected.Name;
+                            args[0] = ModInstanceList.McMcInstanceSelected.Name;
                         }
                         ModBase.RunInUi(() =>
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
                                 ServerIp = args.Length >= 2 ? args[1] : null,
-                                instance = new ModMinecraft.Instance(args[0])
+                                instance = new McInstance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
