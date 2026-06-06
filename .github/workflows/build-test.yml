@@ -35,4 +35,3 @@ jobs:
     with:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
-    secrets: inherit
