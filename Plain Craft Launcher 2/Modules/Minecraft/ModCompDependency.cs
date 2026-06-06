@@ -202,11 +202,50 @@ public static class ModCompDependency
                 continue;
             }
 
-            var targetPath = Path.Combine(targetModsFolder ?? string.Empty, ModComp.CompFileNameGet(depProject, depCompFile));
+            var targetPath = BuildSafeDependencyTargetPath(targetModsFolder, ModComp.CompFileNameGet(depProject, depCompFile));
             downloads.Add(depCompFile.ToNetFile(targetPath));
         }
 
         return downloads;
+    }
+
+    private static string BuildSafeDependencyTargetPath(string targetModsFolder, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(targetModsFolder))
+        {
+            throw new IOException("依赖下载路径无效");
+        }
+
+        var safeFileName = SanitizeDependencyFileName(fileName);
+        var targetRoot = Path.GetFullPath(targetModsFolder);
+        var targetPath = Path.GetFullPath(Path.Combine(targetRoot, safeFileName));
+        var normalizedRoot = targetRoot.EndsWith(Path.DirectorySeparatorChar) || targetRoot.EndsWith(Path.AltDirectorySeparatorChar)
+            ? targetRoot
+            : targetRoot + Path.DirectorySeparatorChar;
+
+        if (!targetPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new IOException("依赖下载路径无效");
+        }
+
+        return targetPath;
+    }
+
+    private static string SanitizeDependencyFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return "dependency.jar";
+        }
+
+        var invalidChars = Path.GetInvalidFileNameChars()
+            .Concat(new[] { '/', '\\', ':', '*', '?', '"', '<', '>', '|' })
+            .ToHashSet();
+        var safeChars = fileName
+            .Select(ch => invalidChars.Contains(ch) || char.IsControl(ch) ? '_' : ch)
+            .ToArray();
+        var safeFileName = new string(safeChars).Trim();
+        return string.IsNullOrWhiteSpace(safeFileName) ? "dependency.jar" : safeFileName;
     }
 
     /// <summary>
