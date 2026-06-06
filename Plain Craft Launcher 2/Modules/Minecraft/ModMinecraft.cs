@@ -2845,8 +2845,8 @@ public static class ModMinecraft
                             init.Url = (string)(rootUrl ?? library["downloads"]["artifact"]["url"]),
                             init.LocalPath = library["downloads"]["artifact"]["path"] is null
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                : Path.Combine(customMcFolder, "libraries", library["downloads"]["artifact"]["path"].ToString()
-                                    .Replace("/", @"\")),
+                                : McLibManifestPathGet(customMcFolder,
+                                    library["downloads"]["artifact"]["path"].ToString()),
                             init.size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
@@ -2885,9 +2885,8 @@ public static class ModMinecraft
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                     .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : Path.Combine(customMcFolder, "libraries",
-                                  library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
-                                      .Replace("/", @"\")),
+                                : McLibManifestPathGet(customMcFolder,
+                                    library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()),
                             size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
@@ -3187,6 +3186,22 @@ public static class ModMinecraft
 
         // 去重并返回
         return result.Distinct((a, b) => (a.LocalPath ?? "") == (b.LocalPath ?? ""));
+    }
+
+    /// <summary>
+    ///     获取版本 JSON 中声明的支持库文件地址。
+    /// </summary>
+    private static string McLibManifestPathGet(string customMcFolder, string manifestPath)
+    {
+        if (string.IsNullOrWhiteSpace(manifestPath))
+            throw new ArgumentException("支持库路径为空", nameof(manifestPath));
+
+        var relativePath = manifestPath.Replace("/", @"\");
+        if (Path.IsPathRooted(relativePath) || Regex.IsMatch(relativePath, @"^(?:[a-zA-Z]:|\\)") ||
+            relativePath.Split('\\').Any(part => part == ".." || part == "."))
+            throw new ArgumentException("支持库路径必须是相对路径: " + manifestPath, nameof(manifestPath));
+
+        return Path.Combine(customMcFolder, "libraries", relativePath);
     }
 
     /// <summary>
