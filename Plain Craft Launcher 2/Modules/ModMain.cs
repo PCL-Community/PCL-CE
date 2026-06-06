@@ -348,11 +348,11 @@ public static class ModMain
                                     ModAnimation.aniSpeed;
                         ModAnimation.AniStart(new[]
                             {
-                                ModAnimation.AaX(doubleStack, slideSign * 12 - doubleStack.Margin.Left, 50,
+                                ModAnimation.AaX(doubleStack, alignRight ? doubleStack.Margin.Right + 12 : -12 - doubleStack.Margin.Left, 50,
                                     ease: new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 50, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaX(doubleStack, -slideSign * 8d, 50, 100, new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 150, new ModAnimation.AniEaseInFluent()),
+                                ModAnimation.AaX(doubleStack, -slideSign * 8, 50, 50, new ModAnimation.AniEaseInFluent()),
+                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 100, new ModAnimation.AniEaseOutFluent()),
+                                ModAnimation.AaX(doubleStack, -slideSign * 8, 50, 150, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaDouble(i =>
                                 {
                                     percent += (double)i;
