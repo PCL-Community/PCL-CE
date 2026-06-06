@@ -2813,8 +2813,8 @@ public static class ModLaunch
         // 基础参数
         gameArguments.Add("${classpath_separator}", ";");
         gameArguments.Add("${natives_directory}", ModBase.ShortenPath(GetNativesFolder()));
-        gameArguments.Add("${library_directory}", ModBase.ShortenPath(ModMinecraft.mcFolderSelected + "libraries"));
-        gameArguments.Add("${libraries_directory}", ModBase.ShortenPath(ModMinecraft.mcFolderSelected + "libraries"));
+        gameArguments.Add("${library_directory}", ModBase.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
+        gameArguments.Add("${libraries_directory}", ModBase.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
         gameArguments.Add("${launcher_name}", "PCLCE");
         gameArguments.Add("${launcher_version}", ModBase.versionCode.ToString());
         gameArguments.Add("${version_name}", instance.Name);
@@ -2825,7 +2825,7 @@ public static class ModLaunch
                 : argumentInfo);
         gameArguments.Add("${game_directory}",
             ModBase.ShortenPath(ModMinecraft.McMcInstanceSelected.PathIndie[..^1]));
-        gameArguments.Add("${assets_root}", ModBase.ShortenPath(ModMinecraft.mcFolderSelected + "assets"));
+        gameArguments.Add("${assets_root}", ModBase.ShortenPath(ModFolder.mcFolderSelected + "assets"));
         gameArguments.Add("${user_properties}", "{}");
         gameArguments.Add("${auth_player_name}", mcLoginLoader.output.Name);
         gameArguments.Add("${auth_uuid}", mcLoginLoader.output.Uuid);
@@ -2877,7 +2877,7 @@ public static class ModLaunch
 
         // Assets 相关参数
         gameArguments.Add("${game_assets}",
-            ModBase.ShortenPath(ModMinecraft.mcFolderSelected +
+            ModBase.ShortenPath(ModFolder.mcFolderSelected +
                                 @"assets\virtual\legacy")); // 1.5.2 的 pre-1.6 资源索引应与 legacy 合并
         gameArguments.Add("${assets_index_name}", ModMinecraft.McAssetsGetIndexName(instance));
 
@@ -2890,7 +2890,7 @@ public static class ModLaunch
         // RetroWrapper 释放
         if (McLaunchNeedsRetroWrapper(instance))
         {
-            var wrapperPath = ModMinecraft.mcFolderSelected + @"libraries\retrowrapper\RetroWrapper.jar";
+            var wrapperPath = ModFolder.mcFolderSelected + @"libraries\retrowrapper\RetroWrapper.jar";
             try
             {
                 ModBase.WriteFile(wrapperPath, ModBase.GetResourceStream("Resources/retro-wrapper.jar"));
@@ -3095,7 +3095,7 @@ public static class ModLaunch
                 // 确保可用
                 if (mcLoginLoader.output.Type != "Microsoft")
                     break;
-                ModMinecraft.McFolderLauncherProfilesJsonCreate(ModMinecraft.mcFolderSelected);
+                ModFolder.McFolderLauncherProfilesJsonCreate(ModFolder.mcFolderSelected);
                 // 构建需要替换的 Json 对象
                 var replaceJsonString = @"
             {
@@ -3119,9 +3119,9 @@ public static class ModLaunch
                 // 更新文件
                 var profiles =
                     (JsonObject)ModBase.GetJson(
-                        ModBase.ReadFile(ModMinecraft.mcFolderSelected + "launcher_profiles.json"));
+                        ModBase.ReadFile(ModFolder.mcFolderSelected + "launcher_profiles.json"));
                 profiles.Merge(replaceJson);
-                ModBase.WriteFile(ModMinecraft.mcFolderSelected + "launcher_profiles.json", profiles.ToString(),
+                ModBase.WriteFile(ModFolder.mcFolderSelected + "launcher_profiles.json", profiles.ToString(),
                     encoding: Encoding.GetEncoding("GB18030"));
                 McLaunchLog("已更新 launcher_profiles.json");
             }
@@ -3130,8 +3130,8 @@ public static class ModLaunch
                 ModBase.Log(ex, "更新 launcher_profiles.json 失败，将在删除文件后重试");
                 try
                 {
-                    File.Delete(ModMinecraft.mcFolderSelected + "launcher_profiles.json");
-                    ModMinecraft.McFolderLauncherProfilesJsonCreate(ModMinecraft.mcFolderSelected);
+                    File.Delete(ModFolder.mcFolderSelected + "launcher_profiles.json");
+                    ModFolder.McFolderLauncherProfilesJsonCreate(ModFolder.mcFolderSelected);
                     // 构建需要替换的 Json 对象
                     var replaceJsonString = @"
                     {
@@ -3155,9 +3155,9 @@ public static class ModLaunch
                     // 更新文件
                     var profiles =
                         (JsonObject)ModBase.GetJson(
-                            ModBase.ReadFile(ModMinecraft.mcFolderSelected + "launcher_profiles.json"));
+                            ModBase.ReadFile(ModFolder.mcFolderSelected + "launcher_profiles.json"));
                     profiles.Merge(replaceJson);
-                    ModBase.WriteFile(ModMinecraft.mcFolderSelected + "launcher_profiles.json", profiles.ToString(),
+                    ModBase.WriteFile(ModFolder.mcFolderSelected + "launcher_profiles.json", profiles.ToString(),
                         encoding: Encoding.GetEncoding("GB18030"));
                     McLaunchLog("已在删除后更新 launcher_profiles.json");
                 }
@@ -3345,7 +3345,7 @@ public static class ModLaunch
             {
                 customProcess.StartInfo.FileName = "cmd.exe";
                 customProcess.StartInfo.Arguments = "/c \"" + customCommandGlobal + "\"";
-                customProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.mcFolderSelected);
+                customProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModFolder.mcFolderSelected);
                 customProcess.StartInfo.UseShellExecute = false;
                 customProcess.StartInfo.CreateNoWindow = true;
                 customProcess.Start();
@@ -3375,7 +3375,7 @@ public static class ModLaunch
             {
                 customProcess.StartInfo.FileName = "cmd.exe";
                 customProcess.StartInfo.Arguments = "/c \"" + customCommandVersion + "\"";
-                customProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.mcFolderSelected);
+                customProcess.StartInfo.WorkingDirectory = ModBase.ShortenPath(ModFolder.mcFolderSelected);
                 customProcess.StartInfo.UseShellExecute = false;
                 customProcess.StartInfo.CreateNoWindow = true;
                 customProcess.Start();
@@ -3413,7 +3413,7 @@ public static class ModLaunch
         var paths = new List<string>(startInfo.EnvironmentVariables["Path"].Split(";"));
         paths.Add(ModBase.ShortenPath(mcLaunchJavaSelected.Installation.JavaFolder));
         startInfo.EnvironmentVariables["Path"] = paths.Distinct().ToList().Join(";");
-        startInfo.EnvironmentVariables["appdata"] = ModBase.ShortenPath(ModMinecraft.mcFolderSelected);
+        startInfo.EnvironmentVariables["appdata"] = ModBase.ShortenPath(ModFolder.mcFolderSelected);
 
         // 设置其他参数
         startInfo.WorkingDirectory = ModBase.ShortenPath(ModMinecraft.McMcInstanceSelected.PathIndie);
@@ -3487,7 +3487,7 @@ public static class ModLaunch
         McLaunchLog("分配的内存：" +
                     launchRamGb.ToString("N1", CultureInfo.InvariantCulture) + " GB（" +
                     Math.Round(launchRamGb * 1024d).ToString("N0", CultureInfo.InvariantCulture) + " MB）");
-        McLaunchLog("MC 文件夹：" + ModMinecraft.mcFolderSelected);
+        McLaunchLog("MC 文件夹：" + ModFolder.mcFolderSelected);
         McLaunchLog("实例文件夹：" + ModMinecraft.McMcInstanceSelected.PathInstance);
         McLaunchLog("版本隔离：" + ((ModMinecraft.McMcInstanceSelected.PathIndie ?? "") ==
                                (ModMinecraft.McMcInstanceSelected.PathInstance ?? "")));
@@ -3638,7 +3638,7 @@ public static class ModLaunch
 
         // Minecraft
         text = text.Replace("{java}", replacer(mcLaunchJavaSelected?.Installation.JavaFolder));
-        text = text.Replace("{minecraft}", replacer(ModMinecraft.mcFolderSelected));
+        text = text.Replace("{minecraft}", replacer(ModFolder.mcFolderSelected));
         if (ModMinecraft.McMcInstanceSelected?.IsLoaded == true)
         {
             text = text.Replace("{version_path}", replacer(ModMinecraft.McMcInstanceSelected.PathInstance));

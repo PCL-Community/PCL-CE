@@ -66,7 +66,7 @@ public partial class PageDownloadCompDetail
             var packName = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "")
                 .Replace(@"\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜")
                     .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
-            var validate = new FolderNameValidator(ModMinecraft.mcFolderSelected + "versions");
+            var validate = new FolderNameValidator(ModFolder.mcFolderSelected + "versions");
             if (!validate.Validate(packName).IsValid)
                 packName = "";
             var instanceName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Detail.InputInstanceName"), "", packName, [validate]);
@@ -76,7 +76,7 @@ public partial class PageDownloadCompDetail
             // 构造步骤加载器
             var loaders = new List<ModLoader.LoaderBase>();
             var target =
-                $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
+                $@"{ModFolder.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"), new List<DownloadFile> { file.ToNetFile(target) })
                 { ProgressWeight = 10d, block = true });
@@ -111,7 +111,7 @@ public partial class PageDownloadCompDetail
                     ModDownloadLib.McInstallFailedClearFolder(myLoader);
                 }
             };
-            loader.Start(Path.Combine(ModMinecraft.mcFolderSelected, "versions", instanceName));
+            loader.Start(Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName));
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
             ModMain.frmMain.BtnExtraDownload.Ribble();
@@ -177,7 +177,7 @@ public partial class PageDownloadCompDetail
                 if (needLoad)
                 {
                     ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
-                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 }
 
@@ -195,7 +195,7 @@ public partial class PageDownloadCompDetail
                 }
                 else
                 {
-                    defaultFolder = ModMinecraft.mcFolderSelected;
+                    defaultFolder = ModFolder.mcFolderSelected;
                     if (needLoad)
                         ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                     else
@@ -327,7 +327,7 @@ public partial class PageDownloadCompDetail
                         if (needLoad)
                         {
                             ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
-                            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
                                 ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
                         }
 
@@ -347,7 +347,7 @@ public partial class PageDownloadCompDetail
                         }
                         else
                         {
-                            defaultFolder = ModMinecraft.mcFolderSelected;
+                            defaultFolder = ModFolder.mcFolderSelected;
                             if (needLoad)
                                 ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                             else

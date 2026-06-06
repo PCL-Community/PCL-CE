@@ -1495,7 +1495,7 @@ public static class ModMain
     
     // Minecraft
     text = text.Replace("{java}", replacer(ModLaunch.mcLaunchJavaSelected?.Installation.JavaFolder));
-    text = text.Replace("{minecraft}", replacer(ModMinecraft.mcFolderSelected));
+    text = text.Replace("{minecraft}", replacer(ModFolder.mcFolderSelected));
     
     if (ModMinecraft.McMcInstanceSelected is not null)
     {

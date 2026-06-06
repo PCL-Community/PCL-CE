@@ -151,7 +151,7 @@ public partial class FormMain
         if (ModBase.modeDebug)
             ModMain.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
-        ModMinecraft.mcFolderListLoader
+        ModFolder.mcFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
@@ -776,7 +776,7 @@ public partial class FormMain
         if (e.Key == Key.F11 && pageCurrent == PageType.InstanceSelect)
         {
             ModMain.frmSelectRight.showHidden = !ModMain.frmSelectRight.showHidden;
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             return;
         }
@@ -871,7 +871,7 @@ public partial class FormMain
             else if (pageCurrent == PageType.InstanceSelect)
             {
                 // 实例选择自动刷新
-                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
             }
             else if (ModMain.frmMain.pageRight is PageInstanceSavesDatapack &&

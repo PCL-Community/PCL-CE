@@ -46,7 +46,7 @@ public class McInstance
         /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
         public McInstance(string name)
         {
-            PathInstance = (name.Contains(":") ? name : Path.Combine(ModMinecraft.mcFolderSelected, "versions", name)) + (name.EndsWithF(@"\") ? "" : @"\");
+            PathInstance = (name.Contains(":") ? name : Path.Combine(ModFolder.mcFolderSelected, "versions", name)) + (name.EndsWithF(@"\") ? "" : @"\");
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ public class McInstance
                     Config.Instance.IndieV2[PathInstance] = ShouldBeIndie();
                 }
 
-                return Config.Instance.IndieV2[PathInstance] ? PathInstance : ModMinecraft.mcFolderSelected;
+                return Config.Instance.IndieV2[PathInstance] ? PathInstance : ModFolder.mcFolderSelected;
             }
         }
 

@@ -207,7 +207,7 @@ public partial class PageToolsTest
                         return;
                     }
 
-                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.Start();
+                    if (!ModFolder.mcFolderList.Any()) ModFolder.mcFolderListLoader.Start();
                     if (States.Hint.CleanJunkFile <= 2)
                     {
                         if (ModMain.MyMsgBox(
@@ -221,8 +221,8 @@ public partial class PageToolsTest
 
                     var num = 0;
                     var cleanMcFolderList = new List<DirectoryInfo>();
-                    if (!ModMinecraft.mcFolderList.Any()) ModMinecraft.mcFolderListLoader.WaitForExit();
-                    foreach (var mcFolder in ModMinecraft.mcFolderList)
+                    if (!ModFolder.mcFolderList.Any()) ModFolder.mcFolderListLoader.WaitForExit();
+                    foreach (var mcFolder in ModFolder.mcFolderList)
                     {
                         cleanMcFolderList.Add(new DirectoryInfo(mcFolder.Location));
                         var dirInfo = new DirectoryInfo(mcFolder.Location + "versions");

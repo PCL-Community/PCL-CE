@@ -111,7 +111,7 @@ public partial class PageDownloadInstall
         ModDownload.dlLegacyFabricListLoader.Start();
 
         // 重载预览
-        TextSelectName.ValidateRules = [new FolderNameValidator(ModMinecraft.mcFolderSelected + "versions")];
+        TextSelectName.ValidateRules = [new FolderNameValidator(ModFolder.mcFolderSelected + "versions")];
         TextSelectName.Validate();
         ReloadSelected();
 
@@ -2549,7 +2549,7 @@ public partial class PageDownloadInstall
         var request = new ModDownloadLib.McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}\",
             minecraftJson = _vanillaData?["url"].ToString(),
             minecraftName = _vanillaName,
             optiFineEntry = selectedOptiFine,

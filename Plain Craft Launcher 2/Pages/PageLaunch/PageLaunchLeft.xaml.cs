@@ -72,7 +72,7 @@ public partial class PageLaunchLeft
 
         // 开始按钮
         ModMinecraft.mcInstanceListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
-        ModMinecraft.mcFolderListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
+        ModFolder.mcFolderListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
         RefreshButtonsUI();
 
         // 初始化档案
@@ -98,30 +98,30 @@ public partial class PageLaunchLeft
                 {
                     Directory.CreateDirectory(ModBase.exePath + @".minecraft\");
                     Directory.CreateDirectory(ModBase.exePath + @".minecraft\versions\");
-                    ModMinecraft.McFolderLauncherProfilesJsonCreate(ModBase.exePath + @".minecraft\");
+                    ModFolder.McFolderLauncherProfilesJsonCreate(ModBase.exePath + @".minecraft\");
                 }
 
                 PageSelectLeft.AddFolder(ModBase.exePath + @".minecraft\",
                     ModBase.GetFolderNameFromPath(ModBase.exePath), false);
-                ModMinecraft.mcFolderListLoader.WaitForExit();
+                ModFolder.mcFolderListLoader.WaitForExit();
             }
 
             // 确认 Minecraft 文件夹存在
-            ModMinecraft.mcFolderSelected =
+            ModFolder.mcFolderSelected =
                 States.Game.SelectedFolder.ToString().Replace("$", ModBase.exePath);
-            if (string.IsNullOrEmpty(ModMinecraft.mcFolderSelected) || !Directory.Exists(ModMinecraft.mcFolderSelected))
+            if (string.IsNullOrEmpty(ModFolder.mcFolderSelected) || !Directory.Exists(ModFolder.mcFolderSelected))
             {
                 // 无效的文件夹
-                if (string.IsNullOrEmpty(ModMinecraft.mcFolderSelected))
+                if (string.IsNullOrEmpty(ModFolder.mcFolderSelected))
                     ModBase.Log("[Launch] 没有已储存的 Minecraft 文件夹");
                 else
-                    ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModMinecraft.mcFolderSelected,
+                    ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModFolder.mcFolderSelected,
                         ModBase.LogLevel.Debug);
-                ModMinecraft.mcFolderListLoader.WaitForExit(isForceRestart: true);
-                States.Game.SelectedFolder = ModMinecraft.mcFolderList[0].Location.Replace(ModBase.exePath, "$");
+                ModFolder.mcFolderListLoader.WaitForExit(isForceRestart: true);
+                States.Game.SelectedFolder = ModFolder.mcFolderList[0].Location.Replace(ModBase.exePath, "$");
             }
 
-            ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.mcFolderSelected);
+            ModBase.Log("[Launch] Minecraft 文件夹：" + ModFolder.mcFolderSelected);
             if (Config.Debug.AddRandomDelay)
                 Thread.Sleep(RandomUtils.NextInt(500, 3000));
             // 自动整合包安装
@@ -150,14 +150,14 @@ public partial class PageLaunchLeft
             // 确认 Minecraft 版本实例
             var selection = States.Game.SelectedInstance;
             var instance = selection == "" ? null : new McInstance(selection);
-            if (instance is null || !instance.PathInstance.StartsWithF(ModMinecraft.mcFolderSelected) ||
+            if (instance is null || !instance.PathInstance.StartsWithF(ModFolder.mcFolderSelected) ||
                 !instance.Check())
             {
                 // 无效的实例
                 ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
                     instance is null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
                 if (ModMinecraft.mcInstanceListLoader.State != ModBase.LoadState.Finished)
-                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (ModMinecraft.mcInstanceList.Count == 0 ||
                     ModMinecraft.mcInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
@@ -246,7 +246,7 @@ public partial class PageLaunchLeft
         // 获取当前状态
         int currentState;
         if (!isLoadFinished || ModMinecraft.mcInstanceListLoader.State == ModBase.LoadState.Loading ||
-            ModMinecraft.mcFolderListLoader.State == ModBase.LoadState.Loading)
+            ModFolder.mcFolderListLoader.State == ModBase.LoadState.Loading)
         {
             currentState = 0;
         }

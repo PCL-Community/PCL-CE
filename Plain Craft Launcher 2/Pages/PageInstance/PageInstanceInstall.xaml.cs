@@ -145,7 +145,7 @@ public partial class PageInstanceInstall
         var request = new ModDownloadLib.McInstallRequest
         {
             targetInstanceName = PageInstanceLeft.McInstance.Name,
-            targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
+            targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
             minecraftJson = _vanillaData?["url"].ToString(),
             minecraftName = _vanillaName,
             optiFineEntry = selectedOptiFine,
