@@ -329,7 +329,7 @@ namespace PCL
                         {
                             if (!ConfirmSecuritySensitiveSettingWrite(args[0], args[1]))
                                 return;
-                            item.SetValueNoType(args[1], ModMinecraft.McInstanceSelected?.PathInstance);
+                            item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         }
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
