@@ -120,6 +120,12 @@ namespace PCL
             写入变量
         }
 
+        private static readonly HashSet<string> SecuritySensitiveSettingKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "LaunchAdvanceRun",
+            "VersionAdvanceRun"
+        };
+
         public EventType Type { get; set; } = EventType.None;
         public string Data { get; set; }
 
@@ -320,7 +326,11 @@ namespace PCL
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
+                        {
+                            if (!ConfirmSecuritySensitiveSettingWrite(args[0], args[1]))
+                                return;
                             item.SetValueNoType(args[1], ModMinecraft.McInstanceSelected?.PathInstance);
+                        }
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;
@@ -427,6 +437,14 @@ namespace PCL
             }
 
             return new[] { location, workingDir };
+        }
+
+        private static bool ConfirmSecuritySensitiveSettingWrite(string key, string value)
+        {
+            if (!SecuritySensitiveSettingKeys.Contains(key))
+                return true;
+
+            return EventSafetyConfirm($"即将写入可能在启动游戏时执行命令的设置：\r\n{key} → {value}");
         }
 
         private static bool EventSafetyConfirm(string message)
