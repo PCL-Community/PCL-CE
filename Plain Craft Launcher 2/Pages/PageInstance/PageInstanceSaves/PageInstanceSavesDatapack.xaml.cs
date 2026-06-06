@@ -94,7 +94,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private ModLocalComp.CompLocalLoaderData GetRequireLoaderData()
     {
         var res = new ModLocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.instance;
+        res.gameVersion = PageInstanceLeft.McInstance;
         res.frm = null;
         res.loaders = new[] { ModComp.CompLoaderType.Minecraft }.ToList();
         res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
@@ -651,7 +651,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
-        PageComp.targetVersion = PageInstanceLeft.instance; // 将当前实例设置为筛选器
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -1465,7 +1465,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 ModMain.frmMain.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.instance.Info.VanillaName,
+                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
                         ModComp.CompLoaderType.Minecraft, ModComp.CompType.DataPack, null, null, null)
                 });
             }

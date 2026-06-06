@@ -19,13 +19,13 @@ public static class ModDownload
     ///     返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
     ///     失败则抛出异常，不需要下载则返回 Nothing。
     /// </summary>
-    public static DownloadFile DlClientJarGet(ModMinecraft.Instance version, bool returnNothingOnFileUseable)
+    public static DownloadFile DlClientJarGet(McInstance version, bool returnNothingOnFileUseable)
     {
         // 获取底层继承实例
         try
         {
             while (!string.IsNullOrEmpty(version.InheritInstanceName))
-                version = new ModMinecraft.Instance(version.InheritInstanceName);
+                version = new McInstance(version.InheritInstanceName);
         }
         catch (Exception ex)
         {
@@ -51,11 +51,11 @@ public static class ModDownload
     ///     返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
     ///     若未找到，则会返回 Legacy 资源文件或 Nothing。
     /// </summary>
-    public static DownloadFile DlClientAssetIndexGet(ModMinecraft.Instance version)
+    public static DownloadFile DlClientAssetIndexGet(McInstance version)
     {
         // 获取底层继承实例
         while (!string.IsNullOrEmpty(version.InheritInstanceName))
-            version = new ModMinecraft.Instance(version.InheritInstanceName);
+            version = new McInstance(version.InheritInstanceName);
         // 获取信息
         var indexInfo = ModMinecraft.McAssetsGetIndex(version, true, true);
         var indexAddress = Path.Combine(ModMinecraft.mcFolderSelected, "assets", "indexes", indexInfo["id"] + ".json");
@@ -70,7 +70,7 @@ public static class ModDownload
     /// <summary>
     ///     构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。
     /// </summary>
-    public static List<ModLoader.LoaderBase> DlClientFix(ModMinecraft.Instance version, bool checkAssetsHash,
+    public static List<ModLoader.LoaderBase> DlClientFix(McInstance version, bool checkAssetsHash,
         AssetsIndexExistsBehaviour assetsIndexBehaviour)
     {
         var loaders = new List<ModLoader.LoaderBase>();
@@ -316,7 +316,7 @@ public static class ModDownload
         // 提取所有 Drop 序数
         var drops = new List<int>();
         foreach (JsonObject version in loader.output.Value["versions"].AsArray())
-            drops.Add(ModMinecraft.McInstanceInfo.VersionToDrop((string)version["id"]));
+            drops.Add(McInstanceInfo.VersionToDrop((string)version["id"]));
         AllDrops = drops.Distinct().OrderByDescending(d => d).ToList();
     }
 

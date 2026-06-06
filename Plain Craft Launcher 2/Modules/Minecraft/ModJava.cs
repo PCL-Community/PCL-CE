@@ -32,7 +32,7 @@ public static class ModJava
     ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
     public static JavaEntry JavaSelect(string cancelException, Version minVersion = null, Version maxVersion = null,
-        ModMinecraft.Instance relatedInstance = null)
+        McInstance relatedInstance = null)
     {
         ModBase.Log(
             $"[Java] 要求选择合适 Java，要求最低版本 {(minVersion is not null ? minVersion.ToString() : "未指定")}，要求选择的最高版本 {(maxVersion is not null ? maxVersion.ToString() : "未指定")}，关联实例 {(relatedInstance is not null ? relatedInstance.Name : "未指定")}");
@@ -173,7 +173,7 @@ public static class ModJava
         return ret;
     }
 
-    public static JavaPreference GetInstanceJavaPreference(ModMinecraft.Instance instance)
+    public static JavaPreference GetInstanceJavaPreference(McInstance instance)
     {
         var rawPreference = Config.Instance.SelectedJava[instance.PathInstance];
 
@@ -234,7 +234,7 @@ public static class ModJava
     /// <summary>
     ///     是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
     /// </summary>
-    public static bool IsGameSet64BitJava(ModMinecraft.Instance relatedVersion = null)
+    public static bool IsGameSet64BitJava(McInstance relatedVersion = null)
     {
         try
         {

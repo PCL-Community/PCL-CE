@@ -16,7 +16,7 @@ public partial class PageLaunchLeft
     private double actualUsedHeight;
     private double actualUsedWidth;
     private int btnLaunchState;
-    private ModMinecraft.Instance btnLaunchVersion;
+    private McInstance btnLaunchVersion;
     private bool isHeightAnimating;
     public interface ILoginPage { void Reload(); }
 
@@ -149,7 +149,7 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 版本实例
             var selection = States.Game.SelectedInstance;
-            var instance = selection == "" ? null : new ModMinecraft.Instance(selection);
+            var instance = selection == "" ? null : new McInstance(selection);
             if (instance is null || !instance.PathInstance.StartsWithF(ModMinecraft.mcFolderSelected) ||
                 !instance.Check())
             {
@@ -176,7 +176,7 @@ public partial class PageLaunchLeft
 
             ModBase.RunInUi(() =>
             {
-                ModMinecraft.McInstanceSelected = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
+                ModMinecraft.McMcInstanceSelected = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
                 isLoadFinished = true;
                 RefreshButtonsUI();
                 RefreshPage(false); // 有可能选择的版本变化了，需要重新刷新
@@ -222,7 +222,7 @@ public partial class PageLaunchLeft
         {
             case LaunchButtonAction.Launch:
             {
-                if (File.Exists(ModMinecraft.McInstanceSelected.PathInstance + ".pclignore"))
+                if (File.Exists(ModMinecraft.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
                     ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), ModMain.HintType.Critical);
                     return;
@@ -250,7 +250,7 @@ public partial class PageLaunchLeft
         {
             currentState = 0;
         }
-        else if (ModMinecraft.McInstanceSelected is null)
+        else if (ModMinecraft.McMcInstanceSelected is null)
         {
             if (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow)
                 currentState = 1;
@@ -264,10 +264,10 @@ public partial class PageLaunchLeft
 
         // 更新状态
         if (currentState == btnLaunchState &&
-            ((ModMinecraft.McInstanceSelected is null ? "" : ModMinecraft.McInstanceSelected.PathInstance) ?? "") ==
+            ((ModMinecraft.McMcInstanceSelected is null ? "" : ModMinecraft.McMcInstanceSelected.PathInstance) ?? "") ==
             ((btnLaunchVersion is null ? "" : btnLaunchVersion.PathInstance) ?? ""))
             goto ExitRefresh;
-        btnLaunchVersion = ModMinecraft.McInstanceSelected;
+        btnLaunchVersion = ModMinecraft.McMcInstanceSelected;
         btnLaunchState = currentState;
         switch (currentState)
         {
@@ -307,14 +307,14 @@ public partial class PageLaunchLeft
             case 3:
             {
                 _launchButtonAction = LaunchButtonAction.Launch;
-                ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModMinecraft.McInstanceSelected.PathInstance);
+                ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModMinecraft.McMcInstanceSelected.PathInstance);
                 ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                 ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
                 if (ModProfile.selectedProfile is not null)
                     BtnLaunch.IsEnabled = true;
                 else
                     BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.Text = ModMinecraft.McInstanceSelected.Name;
+                ModMain.frmLaunchLeft.LabVersion.Text = ModMinecraft.McMcInstanceSelected.Name;
                 break;
             }
             // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
@@ -357,9 +357,9 @@ public partial class PageLaunchLeft
     {
         if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
             return;
-        ModMinecraft.McInstanceSelected.Load();
-        PageInstanceLeft.instance = ModMinecraft.McInstanceSelected;
-        if (File.Exists(ModMinecraft.McInstanceSelected.PathInstance + ".pclignore"))
+        ModMinecraft.McMcInstanceSelected.Load();
+        PageInstanceLeft.McInstance = ModMinecraft.McMcInstanceSelected;
+        if (File.Exists(ModMinecraft.McMcInstanceSelected.PathInstance + ".pclignore"))
         {
             ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), ModMain.HintType.Critical);
             return;
@@ -567,7 +567,7 @@ public partial class PageLaunchLeft
         }
 
         // 初始化页面
-        LabLaunchingName.Text = ModMinecraft.McInstanceSelected.Name;
+        LabLaunchingName.Text = ModMinecraft.McMcInstanceSelected.Name;
         LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
         LabLaunchingTitle.Text = ModLaunch.currentLaunchOptions?.SaveBatch is null
             ? Lang.Text("Launch.Status.Title.Launching")

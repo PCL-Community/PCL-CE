@@ -661,9 +661,9 @@ public class ModSetup
             return;
         // 为第三方登录清空缓存以更新描述
         ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", "");
-        if (PageInstanceLeft.instance is null)
+        if (PageInstanceLeft.McInstance is null)
             return;
-        PageInstanceLeft.instance = new ModMinecraft.Instance(PageInstanceLeft.instance.Name).Load();
+        PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
         ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }

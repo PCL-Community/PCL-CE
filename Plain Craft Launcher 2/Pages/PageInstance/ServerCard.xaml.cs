@@ -149,7 +149,7 @@ public partial class ServerCard
             var launchOptions = new ModLaunch.McLaunchOptions
             {
                 ServerIp = server.Address,
-                instance = PageInstanceLeft.instance
+                instance = PageInstanceLeft.McInstance
             };
             ModLaunch.McLaunchStart(launchOptions);
             ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });

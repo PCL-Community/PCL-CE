@@ -73,7 +73,7 @@ public partial class PageInstanceExport : IRefreshable
     private void PageInstanceExport_Loaded()
     {
         ModAnimation.AniControlEnabled += 1;
-        if ((currentVersion ?? "") != (PageInstanceLeft.instance.PathInstance ?? ""))
+        if ((currentVersion ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
         CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json");
         ModAnimation.AniControlEnabled -= 1;
@@ -83,15 +83,15 @@ public partial class PageInstanceExport : IRefreshable
     {
         ModBase.Log("[Export] 刷新导出页面");
         HintOptiFine.Visibility =
-            PageInstanceLeft.instance.Info.HasOptiFine ? Visibility.Visible : Visibility.Collapsed;
-        currentVersion = PageInstanceLeft.instance.PathInstance;
+            PageInstanceLeft.McInstance.Info.HasOptiFine ? Visibility.Visible : Visibility.Collapsed;
+        currentVersion = PageInstanceLeft.McInstance.PathInstance;
         TextExportName.Text = "";
-        TextExportName.HintText = PageInstanceLeft.instance.Name;
+        TextExportName.HintText = PageInstanceLeft.McInstance.Name;
         TextExportVersion.Text = "";
         TextExportVersion.HintText = "1.0.0";
         CheckAdvancedInclude.Checked = false;
         CheckAdvancedModrinth.Checked = false;
-        GetExportOption(CheckOptionsBasic).Description = PageInstanceLeft.instance.GetDefaultDescription();
+        GetExportOption(CheckOptionsBasic).Description = PageInstanceLeft.McInstance.GetDefaultDescription();
         ResetConfigOverrides();
         ReloadAllSubOptions();
         RefreshAllOptionsUI();
@@ -144,7 +144,7 @@ public partial class PageInstanceExport : IRefreshable
         panel.Children.Clear();
         foreach (var Folder in folders)
         {
-            var targetFolder = new DirectoryInfo(PageInstanceLeft.instance.PathIndie + Folder);
+            var targetFolder = new DirectoryInfo(PageInstanceLeft.McInstance.PathIndie + Folder);
             if (!targetFolder.Exists)
                 continue;
             // 查找文件夹下的对应项
@@ -245,7 +245,7 @@ public partial class PageInstanceExport : IRefreshable
 
         ; // 检查文件夹不为空
         // 一般是由于无法访问，或是一个指向已不存在的文件夹的链接（例如使用 mklink 创造的 resource 文件夹链接）
-        var pathInfo = new DirectoryInfo(PageInstanceLeft.instance.PathIndie);
+        var pathInfo = new DirectoryInfo(PageInstanceLeft.McInstance.PathIndie);
         allEntries.AddRange(pathInfo.EnumerateFiles().Select(f => f.Name));
         foreach (var SubFolder in pathInfo.EnumerateDirectories().Where(IsValidDirectory))
         {
@@ -261,12 +261,12 @@ public partial class PageInstanceExport : IRefreshable
         bool IsVisible(ExportOption targetOption)
         {
             // 检查需要 OptiFine 或 Mod 加载器
-            if (targetOption.RequireOptiFine && !PageInstanceLeft.instance.Info.HasOptiFine)
+            if (targetOption.RequireOptiFine && !PageInstanceLeft.McInstance.Info.HasOptiFine)
                 return false;
-            if (targetOption.RequireModLoader && !PageInstanceLeft.instance.Modable)
+            if (targetOption.RequireModLoader && !PageInstanceLeft.McInstance.Modable)
                 return false;
-            if (targetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.instance.Info.HasOptiFine &&
-                !PageInstanceLeft.instance.Modable)
+            if (targetOption.RequireModLoaderOrOptiFine && !PageInstanceLeft.McInstance.Info.HasOptiFine &&
+                !PageInstanceLeft.McInstance.Modable)
                 return false;
             // 粗略检查是否可能有符合规则的文件/文件夹
             return StandardizeLines((targetOption.Rules ?? targetOption.ShowRules).Split('|'), true).Any(rule =>
@@ -290,9 +290,9 @@ public partial class PageInstanceExport : IRefreshable
                 if (rule.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Count() >= 3)
                 {
                     if (rule.EndsWithF(@"\"))
-                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.instance.PathIndie + rule)); // 文件夹有效
+                        return IsValidDirectory(new DirectoryInfo(PageInstanceLeft.McInstance.PathIndie + rule)); // 文件夹有效
 
-                    return File.Exists(PageInstanceLeft.instance.PathIndie + rule);
+                    return File.Exists(PageInstanceLeft.McInstance.PathIndie + rule);
                     // 文件有效
                 }
 
@@ -751,7 +751,7 @@ public partial class PageInstanceExport : IRefreshable
         // 缓存所需参数
         var cacheFolder = ModMain.RequestTaskTempFolder();
         var overridesFolder = Path.Combine(cacheFolder, "modpack", "overrides");
-        var mcInstance = PageInstanceLeft.instance;
+        var mcInstance = PageInstanceLeft.McInstance;
         var pathIndie = mcInstance.PathIndie;
         var checkHostedAssets = (bool)!CheckAdvancedInclude.Checked;
         var modrinthUploadMode = (bool)CheckAdvancedModrinth.Checked;

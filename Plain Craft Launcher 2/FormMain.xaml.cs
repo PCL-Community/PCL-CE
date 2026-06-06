@@ -1085,7 +1085,7 @@ public partial class FormMain
                 {
                     case PageSubType.VersionWorld:
                     {
-                        var destFolder = PageInstanceLeft.instance.PathIndie + @"saves\" +
+                        var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
                                          ModBase.GetFileNameWithoutExtentionFromPath(filePath);
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
@@ -1135,7 +1135,7 @@ public partial class FormMain
                     }
                     case PageSubType.VersionResourcePack:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"resourcepacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
@@ -1151,7 +1151,7 @@ public partial class FormMain
                     }
                     case PageSubType.VersionShader:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"shaderpacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
@@ -1172,7 +1172,7 @@ public partial class FormMain
                 new[] { "litematic", "nbt", "schematic", "schem" }.Contains(extension) &&
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
-                var destFile = PageInstanceLeft.instance.PathIndie + @"schematics\" +
+                var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
                                ModBase.GetFileNameFromPath(filePath);
                 if (File.Exists(destFile))
                 {
@@ -1180,7 +1180,7 @@ public partial class FormMain
                     return;
                 }
 
-                Directory.CreateDirectory(PageInstanceLeft.instance.PathIndie + @"schematics\");
+                Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
                 ModBase.CopyFile(filePath, destFile);
                 ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
                 if (ModMain.frmInstanceSchematic is not null)
@@ -1528,7 +1528,7 @@ public partial class FormMain
             }
             case PageType.InstanceSetup:
             {
-                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.instance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.instance.Name);
+                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.McInstance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.McInstance.Name);
             }
             case PageType.CompDetail:
             {

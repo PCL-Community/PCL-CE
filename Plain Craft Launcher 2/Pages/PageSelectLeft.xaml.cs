@@ -460,7 +460,7 @@ public partial class PageSelectLeft : IRefreshable
                 if (!(versionFolder.Exists && versionFolder.EnumerateDirectories().Count() <= 3)) return;
                 foreach (var VersionPath in versionFolder.EnumerateDirectories())
                 {
-                    var version = new ModMinecraft.Instance(VersionPath.FullName);
+                    var version = new McInstance(VersionPath.FullName);
                     version.Load();
                     if (!version.Modable) continue;
                     var modIndieFolder = new DirectoryInfo(version.PathInstance + @"mods\");

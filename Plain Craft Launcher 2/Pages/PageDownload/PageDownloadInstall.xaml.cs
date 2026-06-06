@@ -223,7 +223,7 @@ public partial class PageDownloadInstall
         }
 
         // 启动 Forge 加载
-        if (ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (McInstanceInfo.IsFormatFit(_vanillaName))
         {
             var forgeLoader =
                 new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
@@ -353,7 +353,7 @@ public partial class PageDownloadInstall
     private string? _vanillaName;
     private JsonObject? _vanillaData;
     private string? _vanillaIcon;
-    private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
+    private int VanillaDrop => McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
@@ -471,7 +471,7 @@ public partial class PageDownloadInstall
         }
 
         // Forge
-        if (!ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (!McInstanceInfo.IsFormatFit(_vanillaName))
         {
             CardForge.Visibility = Visibility.Collapsed;
         }
