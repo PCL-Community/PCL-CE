@@ -466,7 +466,7 @@
                 </StackPanel>
 
                 <controls:BlurBorder x:Name="PanMsgBackground" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Background="#00000000"
-
+                                     Panel.ZIndex="99"
                                      Visibility="Collapsed">
 
                     <Grid x:Name="PanMsg" Background="#00000000" MouseLeftButtonDown="FormDragMove" />

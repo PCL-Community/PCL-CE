@@ -130,7 +130,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(ModMain.frmMain.pageCurrentSub);
     }
 
     public void Refresh(FormMain.PageSubType subType)

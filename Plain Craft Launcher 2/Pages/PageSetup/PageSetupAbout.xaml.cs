@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -27,9 +28,9 @@ public partial class PageSetupAbout
             return;
         isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", Basics.VersionName)
+            .Replace("%VERSIONCODE%", Basics.VersionCode.ToString()).Replace("%BRANCH%", Basics.VersionBranch)
+            .Replace("%COMMIT_HASH%", Secrets.CommitHash);
     }
 
     private void ImgPCLCommunity_Click(object sender, MouseButtonEventArgs e)

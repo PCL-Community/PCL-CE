@@ -34,10 +34,10 @@ public static class ModMain
     public static PageSpeedLeft? frmSpeedLeft;
     public static PageSpeedRight? frmSpeedRight;
     public static PageToolsLeft? frmToolsLeft;
-    public static PageToolsGameLink? frmToolsGameLink;
     public static PageToolsHelp? frmToolsHelp;
     public static PageToolsTest? frmToolsTest;
     public static PageDownloadLeft? frmDownloadLeft;
+    public static PageCommunityLeft? frmCommunityLeft;
     public static PageDownloadInstall? frmDownloadInstall;
     public static PageDownloadClient? frmDownloadClient;
     public static PageDownloadOptiFine? frmDownloadOptiFine;
@@ -66,7 +66,6 @@ public static class ModMain
     public static PageSetupAbout? frmSetupAbout;
     public static PageSetupLog? frmSetupLog;
     public static PageSetupFeedback? frmSetupFeedback;
-    public static PageSetupGameLink? frmSetupGameLink;
     public static PageSetupLauncherLanguage? frmSetupLauncherLanguage;
     public static PageSetupLauncherMisc? frmSetupLauncherMisc;
     public static PageLoginAuth? frmLoginAuth;
@@ -532,7 +531,7 @@ public static class ModMain
         /// </summary>
         public bool IsExited = false;
 
-        public bool IsWarn;
+        public bool isWarn;
 
         /// <summary>
         ///     输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
@@ -592,7 +591,7 @@ public static class ModMain
         var converter = new MyMsgBoxConverter
         {
             Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
+            isWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
             Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
@@ -687,7 +686,7 @@ public static class ModMain
         var converter = new MyMsgBoxConverter
         {
             Type = MyMsgBoxType.Markdown, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
+            isWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
             Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
@@ -780,7 +779,7 @@ public static class ModMain
         {
             Text = text, HintText = hintText, Type = MyMsgBoxType.Input,
             ValidateRules = validateRules ?? [], Button1 = button1, Button2 = button2,
-            Content = defaultInput, IsWarn = isWarn, Title = title
+            Content = defaultInput, isWarn = isWarn, Title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
@@ -815,7 +814,7 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Select, Button1 = button1, Button2 = button2, Content = selections, IsWarn = isWarn,
+            Type = MyMsgBoxType.Select, Button1 = button1, Button2 = button2, Content = selections, isWarn = isWarn,
             Title = title
         };
         WaitingMyMsgBox.Add(converter);

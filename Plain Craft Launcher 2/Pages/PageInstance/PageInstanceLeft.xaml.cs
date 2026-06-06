@@ -20,7 +20,7 @@ public partial class PageInstanceLeft : IRefreshable
 
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(ModMain.frmMain.pageCurrentSub);
     }
 
     public void RefreshModDisabled()

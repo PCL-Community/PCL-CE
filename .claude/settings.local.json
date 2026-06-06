@@ -11,7 +11,8 @@
       "Bash(dotnet --version)",
       "Bash(dotnet --list-sdks)",
       "Bash(dotnet nuget *)",
-      "Bash(dotnet package *)"
+      "Bash(dotnet package *)",
+      "Bash(xargs grep *)"
     ]
   }
 }

@@ -14,11 +14,7 @@ public static class UpdateManager
 
     public static UpdatesWrapperModel remoteServer = new(new List<IUpdateSource>
     {
-        //new UpdatesRandomModel(new[]
-        //{
-        //    new UpdatesMinioModel("https://s3.pysio.online/pcl2-ce/", "Pysio"),
-        //    new UpdatesMinioModel("https://staticassets.naids.com/resources/pclce/", "Naids")
-        //}),
+        new UpdatesMinioModel("http://120.26.17.161/pcl_ne/", "官方服务器"),
         new UpdatesMinioModel("https://github.com/MuXue1230-owo/PCL2_N_Server/raw/main/", "GitHub")
     });
 

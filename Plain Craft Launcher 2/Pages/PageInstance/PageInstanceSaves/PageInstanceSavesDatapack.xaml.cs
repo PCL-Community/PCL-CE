@@ -603,7 +603,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         // 确认安装
         if (!(ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-              ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
+              ModMain.frmMain.pageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
             if (ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Install.Message"),
                     Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
                     Lang.Text("Common.Action.Cancel")) != 1)
@@ -634,7 +634,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
+                ModMain.frmMain.pageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
                 if (ModMain.frmInstanceSavesDatapack is not null)
                     ModMain.frmInstanceSavesDatapack.ReloadDatapackFileList(true);
         }

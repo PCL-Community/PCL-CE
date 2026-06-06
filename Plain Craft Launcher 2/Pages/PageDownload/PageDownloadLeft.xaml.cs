@@ -8,7 +8,7 @@ public partial class PageDownloadLeft : IRefreshable
 {
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(ModMain.frmMain.pageCurrentSub);
     }
 
     // 强制刷新
@@ -37,12 +37,11 @@ public partial class PageDownloadLeft : IRefreshable
                 ModDownload.dlQSLLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
-                ItemInstall.Checked = true;
                 break;
             }
         }
 
-        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), Log: false);
+        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), log: false);
     }
 
     // 点击返回
@@ -50,7 +49,7 @@ public partial class PageDownloadLeft : IRefreshable
     {
         if (!ItemAll.Checked)
             return;
-        ModMain.FrmDownloadInstall.ExitSelectPage();
+        ModMain.frmDownloadInstall.ExitSelectPage();
     }
 
     // 版本筛选回调
@@ -70,7 +69,7 @@ public partial class PageDownloadLeft : IRefreshable
                 "4" => "aprilfools",
                 _ => "all"
             };
-            ModMain.FrmDownloadInstall?.ApplyVersionFilter(VersionFilter);
+            ModMain.frmDownloadInstall?.ApplyVersionFilter(VersionFilter);
         }
     }
 
@@ -94,9 +93,9 @@ public partial class PageDownloadLeft : IRefreshable
 
     public object PageGet(FormMain.PageSubType ID)
     {
-        if (id == default)
-            id = pageID;
-        switch (id)
+        if (ID == default)
+            ID = pageID;
+        switch (ID)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
@@ -107,7 +106,7 @@ public partial class PageDownloadLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)id));
+                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)ID));
             }
         }
     }

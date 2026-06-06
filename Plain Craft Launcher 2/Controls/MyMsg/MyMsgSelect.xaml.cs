@@ -23,7 +23,7 @@ public partial class MyMsgSelect
             AppendUniqueNameSuffix(Btn2);
             myConverter = converter;
             LabTitle.Text = converter.Title;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigurePrimaryButton(converter.Button1, converter.isWarn);
             ConfigureSecondaryButton(converter.Button2);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
             InitializeSelectionList(converter.Content);
@@ -103,7 +103,7 @@ public partial class MyMsgSelect
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myConverter.isWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");

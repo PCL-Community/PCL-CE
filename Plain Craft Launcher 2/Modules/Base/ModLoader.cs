@@ -198,7 +198,7 @@ public static class ModLoader
         public bool hasOnStateChangedThread;
 
         /// <summary>
-        ///     当前加载器是否由 IsForceRestart 强制调起。
+        ///     当前加载器是否由 isForceRestart 强制调起。
         ///     这个属性自身不会干任何事，而是提供给加载器执行的函数，使得加载器调用另一个加载器时，可以继承强制重启属性。
         /// </summary>
         public bool isForceRestarting;

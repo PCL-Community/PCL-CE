@@ -591,7 +591,7 @@ public partial class FormMain
         bool force = true, bool isUpdating = false)
     {
         // On Error Resume Next
-        ModBase.IsProgramEnded = true;
+        ModBase.isProgramEnded = true;
         ModAnimation.AniControlEnabled += 1;
         if (UpdateManager.isUpdateWaitingRestart && !isUpdating)
             UpdateManager.UpdateRestart(false, false);
@@ -815,10 +815,10 @@ public partial class FormMain
 
     private void TriggerPageBack()
     {
-        if (pageCurrent == PageType.Download && PageCurrentSub == PageSubType.DownloadInstall &&
+        if (pageCurrent == PageType.Download && pageCurrentSub == PageSubType.DownloadInstall &&
             ModMain.frmDownloadInstall.isInSelectPage)
             ModMain.frmDownloadInstall.ExitSelectPage();
-        else if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionInstall &&
+        else if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionInstall &&
                  ModMain.frmInstanceInstall.isInSelectPage)
             ModMain.frmInstanceInstall.ExitSelectPage();
         else
@@ -832,24 +832,24 @@ public partial class FormMain
         {
             if (Config.Download.Comp.ReadClipboard)
                 ModComp.CompClipboard.GetClipboardResource();
-            if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionMod)
+            if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionMod)
             {
                 // Mod 管理自动刷新
                 ModMain.frmInstanceMod.ReloadCompFileList();
             }
-            else if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionResourcePack)
+            else if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionResourcePack)
             {
                 // 资源包管理自动刷新
                 if (ModMain.frmInstanceResourcePack is not null)
                     ModMain.frmInstanceResourcePack.ReloadCompFileList();
             }
-            else if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionShader)
+            else if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionShader)
             {
                 // 光影包管理自动刷新
                 if (ModMain.frmInstanceShader is not null)
                     ModMain.frmInstanceShader.ReloadCompFileList();
             }
-            else if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSchematic)
+            else if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionSchematic)
             {
                 // 投影原理图管理自动刷新
                 if (ModMain.frmInstanceSchematic is not null)
@@ -951,7 +951,7 @@ public partial class FormMain
                             PageLoginAuth.draggedAuthServer = authlibServer;
                             ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth);
                         });
-                        if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSetup)
+                        if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionSetup)
                             // 正在服务器选项页，需要刷新设置项显示
                             ModMain.frmInstanceSetup.Reload();
                     }
@@ -1058,7 +1058,7 @@ public partial class FormMain
                 ModBase.Log($"[System] 文件为 {extension} 格式，尝试作为原理图安装");
                 // 获取当前文件夹路径（如果在资源管理页面）
                 string targetFolderPath = null;
-                if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSchematic &&
+                if (pageCurrent == PageType.InstanceSetup && pageCurrentSub == PageSubType.VersionSchematic &&
                     ModMain.frmInstanceSchematic is not null &&
                     ModMain.frmInstanceSchematic is PageInstanceCompResource)
                     targetFolderPath = ModMain.frmInstanceSchematic.CurrentFolderPath;
@@ -1068,7 +1068,7 @@ public partial class FormMain
 
             // 处理资源安装
             if (pageCurrent == PageType.InstanceSetup && new[] { "zip" }.Any(i => (i ?? "") == (extension ?? "")))
-                switch (PageCurrentSub)
+                switch (pageCurrentSub)
                 {
                     case PageSubType.VersionWorld:
                     {
@@ -1157,7 +1157,7 @@ public partial class FormMain
             // 处理投影文件
             if (pageCurrent == PageType.InstanceSetup &&
                 new[] { "litematic", "nbt", "schematic", "schem" }.Contains(extension) &&
-                PageCurrentSub == PageSubType.VersionSchematic)
+                pageCurrentSub == PageSubType.VersionSchematic)
             {
                 var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
                                ModBase.GetFileNameFromPath(filePath);
@@ -1552,7 +1552,7 @@ public partial class FormMain
     /// <summary>
     ///     当前的子页面。
     /// </summary>
-    public PageSubType PageCurrentSub
+    public PageSubType pageCurrentSub
     {
         get
         {
@@ -1574,9 +1574,9 @@ public partial class FormMain
 
                 case PageType.Resources:
                 {
-                    if (ModMain.FrmCommunityLeft is null)
-                        ModMain.FrmCommunityLeft = new PageCommunityLeft();
-                    return ModMain.FrmCommunityLeft.PageID;
+                    if (ModMain.frmCommunityLeft is null)
+                        ModMain.frmCommunityLeft = new PageCommunityLeft();
+                    return ModMain.frmCommunityLeft.PageID;
                 }
 
                 case PageType.InstanceSetup:
@@ -1686,9 +1686,9 @@ public partial class FormMain
         {
             // 切换到主页面
             PageChangeExit();
-            isChangingPage = true; // 防止下面的勾选直接触发了 PageChangeActual
-            ((MyRadioButton)PanTitleSelect.Children[(int)stack.page]).SetChecked(true, true,
-                string.IsNullOrEmpty(PageNameGet(pageCurrent)));
+            isChangingPage = true;
+            if (PanTitleSelect.Children[(int)stack.page] is MyListItem navItem)
+                navItem.Checked = true;
             isChangingPage = false;
             switch (stack.page)
             {
@@ -1717,13 +1717,13 @@ public partial class FormMain
                 }
                 case PageType.Resources:
                 {
-                    if (ModMain.FrmCommunityLeft is null)
-                        ModMain.FrmCommunityLeft = new PageCommunityLeft();
-                    foreach (var item in ModMain.FrmCommunityLeft.PanItem.Children)
+                    if (ModMain.frmCommunityLeft is null)
+                        ModMain.frmCommunityLeft = new PageCommunityLeft();
+                    foreach (var item in ModMain.frmCommunityLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)SubType)
+                            ModBase.Val(listItem.Tag) == (double)subType)
                         {
-                            listItem.SetChecked(true, true, Stack == PageCurrent);
+                            listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
                         }
                     break;
@@ -1819,7 +1819,7 @@ public partial class FormMain
 
     private void BtnNavItem_Click(object sender, MouseButtonEventArgs e)
     {
-        if (IsChangingPage)
+        if (isChangingPage)
             return;
         var item = (MyListItem)sender;
         var pageType = (PageType)int.Parse(item.Tag.ToString());
@@ -1856,7 +1856,7 @@ public partial class FormMain
     /// </summary>
     private void PageChangeActual(PageStackData stack, PageSubType subType)
     {
-        if (pageCurrent == stack && (PageCurrentSub == subType || (int)subType == -1))
+        if (pageCurrent == stack && (pageCurrentSub == subType || (int)subType == -1))
             return;
         ModAnimation.AniControlEnabled += 1;
         try
@@ -1935,9 +1935,9 @@ public partial class FormMain
                     }
                 case PageType.Resources:
                     {
-                        ModMain.FrmCommunityLeft ??= new PageCommunityLeft();
-                        SubType = ModMain.FrmCommunityLeft.PageID;
-                        PageChangeAnim(ModMain.FrmCommunityLeft, (FrameworkElement)ModMain.FrmCommunityLeft.PageGet(SubType));
+                        ModMain.frmCommunityLeft ??= new PageCommunityLeft();
+                        subType = ModMain.frmCommunityLeft.PageID;
+                        PageChangeAnim(ModMain.frmCommunityLeft, (FrameworkElement)ModMain.frmCommunityLeft.PageGet(subType));
                         break;
                     }
                 case PageType.Setup: // 设置

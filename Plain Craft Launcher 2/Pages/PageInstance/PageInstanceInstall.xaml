@@ -28,20 +28,20 @@
                                       x:Name="HintLegacyFabricAPI" Theme="Red" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}"
                                        Margin="0,1,0,7"
-                                       x:Name="HintFabricAPI" IsWarn="True" />
+                                       x:Name="HintFabricAPI" isWarn="True" />
                         <local:MyHint
                             Text="{DynamicResource Download.Install.Warning.Qsl}"
-                            Margin="0,1,0,7" x:Name="HintQSL" IsWarn="True" />
+                            Margin="0,1,0,7" x:Name="HintQSL" isWarn="True" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricApi}"
-                                      Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" IsWarn="False" />
+                                      Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" isWarn="False" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}"
                                       Margin="0,1,0,7"
-                                      x:Name="HintOptiFabric" IsWarn="True" />
+                                      x:Name="HintOptiFabric" isWarn="True" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabricOld}"
-                                      Margin="0,1,0,7" x:Name="HintOptiFabricOld" IsWarn="False" />
+                                      Margin="0,1,0,7" x:Name="HintOptiFabricOld" isWarn="False" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,1,0,7"
                                       x:Name="HintModOptiFine"
-                                      IsWarn="False" />
+                                      isWarn="False" />
                         <local:MyCard Margin="0,15,0,0" UseAnimation="False">
                             <StackPanel Margin="15,7,15,7">
                                 <local:MyListItem x:Name="ItemSelect" IsHitTestVisible="False" Margin="-7,0,0,0"

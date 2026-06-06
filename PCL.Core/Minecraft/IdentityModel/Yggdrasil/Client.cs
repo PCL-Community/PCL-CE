@@ -57,7 +57,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         {
             AccessToken = options.AccessToken
         };
-        if (seleectedProfile is not null) refreshData.SelectedProfile = seleectedProfile;
+        if (seleectedProfile is not null) refreshData.selectedProfile = seleectedProfile;
 
         var address = $"{options.YggdrasilApiLocation}/authserver/refresh";
 

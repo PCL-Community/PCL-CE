@@ -410,11 +410,11 @@
                     </StackPanel>
                 </Grid>
             </local:MyScrollViewer>
-            <local:MyExtraTextButton x:Name="BtnStart" Text="{DynamicResource Download.Install.StartDownload}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                     LogoScale="0.95"
-                                     SvgIcon="lucide/download" />
         </Grid>
+        <local:MyExtraTextButton x:Name="BtnStart" Text="{DynamicResource Download.Install.StartDownload}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                 Margin="0,0,25,20" LogoScale="0.95"
+                                 SvgIcon="lucide/download" />
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False">
             <local:MyLoading Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"

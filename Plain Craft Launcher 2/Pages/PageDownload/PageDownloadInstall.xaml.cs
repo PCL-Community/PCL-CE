@@ -181,7 +181,7 @@ public partial class PageDownloadInstall
     {
         if (isInSelectPage)
             return;
-        IsInSelectPage = true;
+        isInSelectPage = true;
         SearchBarSpace.Height = new GridLength(0, GridUnitType.Pixel);
 
         PanInner.Margin = new Thickness(25d, 10d, 25d, 40d);
@@ -374,14 +374,14 @@ public partial class PageDownloadInstall
     public new void PageOnEnter()
     {
         base.PageOnEnter();
-        if (IsInSelectPage) ExitSelectPage();
+        if (isInSelectPage) ExitSelectPage();
     }
 
     public void ExitSelectPage()
     {
         if (!isInSelectPage)
             return;
-        IsInSelectPage = false;
+        isInSelectPage = false;
         SearchBarSpace.Height = new GridLength(54, GridUnitType.Pixel);
 
         PanInner.Margin = new Thickness(25d, 10d, 25d, 25d);
@@ -1200,7 +1200,7 @@ public partial class PageDownloadInstall
         {
             var listItem = ModDownloadLib.McDownloadListItem(
                 (JsonObject)item,
-                (sender, e) => ModMain.FrmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
+                (sender, e) => ModMain.frmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
                 false
             );
             listItem.Tag = (McVersionCategory)(int)((JsonObject)item)["__category"];

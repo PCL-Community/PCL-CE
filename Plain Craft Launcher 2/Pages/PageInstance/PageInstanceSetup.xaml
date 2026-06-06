@@ -192,11 +192,11 @@
             <local:MyCard x:Name="CardServer" Margin="0,0,0,15" Title="{DynamicResource Instance.Setup.Server.Title}">
                 <StackPanel Margin="25,42,25,18">
                     <local:MyHint x:Name="HintServerLoginLock"
-                                  Text="{DynamicResource Instance.Setup.Server.LoginLockHint}" IsWarn="True"
+                                  Text="{DynamicResource Instance.Setup.Server.LoginLockHint}" isWarn="True"
                                   Margin="0,0,0,13" Visibility="Collapsed" />
                     <local:MyHint x:Name="LabServerAuthServerSecurityVerify"
                                   Text="{DynamicResource Instance.Setup.Server.SslWarning}"
-                                  IsWarn="False" Visibility="Collapsed" />
+                                  isWarn="False" Visibility="Collapsed" />
                     <local:MyHint x:Name="LabServerAuthServerSecurity"
                                   Text="{DynamicResource Instance.Setup.Server.HttpWarning}"
                                   Visibility="Collapsed" />

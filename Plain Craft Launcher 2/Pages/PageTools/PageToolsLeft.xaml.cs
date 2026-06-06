@@ -95,7 +95,7 @@ public partial class PageToolsLeft
 
     public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = id ?? pageID;
+        var targetID = id ?? PageID;
         switch (id)
         {
             case FormMain.PageSubType.ToolsTest:
@@ -123,14 +123,14 @@ public partial class PageToolsLeft
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == id)
+        if (PageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         isPageSwitched = true;
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
-            pageID = id;
+            PageID = id;
         }
         catch (Exception ex)
         {

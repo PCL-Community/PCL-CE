@@ -39,7 +39,7 @@ public partial class PageLogLeft
         {
             if (shownLogs.Count == 0)
             {
-                ModMain.frmMain.PageChange((FormMain.PageType)ModMain.frmMain.PageCurrentSub);
+                ModMain.frmMain.PageChange((FormMain.PageType)ModMain.frmMain.pageCurrentSub);
                 return;
             }
 

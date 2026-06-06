@@ -31,7 +31,7 @@ public record YggdrasilAuthenticateResult
     /// <summary>
     /// 选择的档案
     /// </summary>
-    [JsonPropertyName("selectedProfile")] public Profile? SelectedProfile { get; init; }
+    [JsonPropertyName("selectedProfile")] public Profile? selectedProfile { get; init; }
     /// <summary>
     /// 可用档案
     /// </summary>
@@ -45,5 +45,5 @@ public record YggdrasilAuthenticateResult
 public record YggdrasilRefresh
 {
     [JsonPropertyName("accessToken")] public required string AccessToken { get; set; }
-    [JsonPropertyName("selectedProfile")] public Profile? SelectedProfile { get; set; }
+    [JsonPropertyName("selectedProfile")] public Profile? selectedProfile { get; set; }
 }

@@ -53,9 +53,9 @@ public partial class PageSetupUI
         ModAnimation.AniControlEnabled -= 1;
 
         // 非重复加载部分
-        if (isLoaded)
+        if (IsLoaded)
             return;
-        isLoaded = true;
+        IsLoaded = true;
 
         SliderLoad();
     }
@@ -777,7 +777,7 @@ public partial class PageSetupUI
             // 顶部栏：下载、设置
             var IsAllTitleHidden = !HiddenForceShow && conf.PageDownload && conf.PageSetup;
 
-            if (isAllTitleHidden)
+            if (IsAllTitleHidden)
             {
                 ModMain.frmMain.PanTitleSelect.Visibility = Visibility.Collapsed;
             }
@@ -794,7 +794,7 @@ public partial class PageSetupUI
             // 功能隐藏设置卡片
             if (ModMain.frmSetupUI is not null)
             {
-                //ModMain.FrmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
+                //ModMain.frmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
                 //    ? Visibility.Collapsed
                 //    : Visibility.Visible;
                 ModMain.frmSetupUI.CardSwitch.Visibility = Visibility.Collapsed;
@@ -821,7 +821,7 @@ public partial class PageSetupUI
                     !HiddenForceShow && conf.SetupJava ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.frmSetupLeft.ItemUpdate.Visibility =
                     !HiddenForceShow && conf.SetupUpdate ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.FrmSetupLeft.ItemAbout.Visibility =
+                ModMain.frmSetupLeft.ItemAbout.Visibility =
                     !HiddenForceShow && conf.SetupAbout ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.frmSetupLeft.ItemFeedback.Visibility = !HiddenForceShow && conf.SetupFeedback
                     ? Visibility.Collapsed

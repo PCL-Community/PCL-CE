@@ -1037,7 +1037,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 5. Check if user confirmation is required
         var isModPage = ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                        ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionMod;
+                        ModMain.frmMain.pageCurrentSub == FormMain.PageSubType.VersionMod;
 
         if (!isModPage)
         {
@@ -1222,7 +1222,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         if (!(ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-              ModMain.frmMain.PageCurrentSub == currentPage))
+              ModMain.frmMain.pageCurrentSub == currentPage))
             if (ModMain.MyMsgBox(
                     Lang.Text("Instance.Resource.Install.GenericConfirm.Message", compTypeName, targetInstance.Name),
                     Lang.Text("Instance.Resource.Install.GenericConfirm.Title", compTypeName), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) != 1)
@@ -1257,7 +1257,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                ModMain.frmMain.PageCurrentSub == currentPage)
+                ModMain.frmMain.pageCurrentSub == currentPage)
                 switch (compType)
                 {
                     case ModComp.CompType.Mod:
@@ -1292,7 +1292,7 @@ public partial class PageInstanceCompResource : IRefreshable
     /// </summary>
     private static PageInstanceCompResource GetCurrentCompResourceForm()
     {
-        switch (ModMain.frmMain.PageCurrentSub)
+        switch (ModMain.frmMain.pageCurrentSub)
         {
             case FormMain.PageSubType.VersionMod:
             {

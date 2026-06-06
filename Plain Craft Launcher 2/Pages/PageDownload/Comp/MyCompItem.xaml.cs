@@ -273,7 +273,7 @@ public partial class MyCompItem
         var targetLoader = ModComp.CompLoaderType.Any;
         if (ModMain.frmMain.pageCurrent.page == FormMain.PageType.Download)
         {
-            if (ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.DownloadCompFavorites)
+            if (ModMain.frmMain.pageCurrentSub == FormMain.PageSubType.DownloadCompFavorites)
             {
                 targetVersion = "";
                 targetLoader = ModComp.CompLoaderType.Any;
@@ -281,7 +281,7 @@ public partial class MyCompItem
             else
             {
                 // 从下载页进入
-                switch (ModMain.frmMain.PageCurrentSub)
+                switch (ModMain.frmMain.pageCurrentSub)
                 {
                     case FormMain.PageSubType.DownloadMod:
                     {
@@ -331,10 +331,13 @@ public partial class MyCompItem
         else
         {
             // 从详情页进入（查看前置）
-            targetType = ModComp.CompType.Any; // 允许任意类别
-            var additional = ModMain.frmMain.pageCurrent.additional.Value;
-            targetVersion = additional.TargetVersion;
-            targetLoader = additional.TargetLoader;
+            targetType = ModComp.CompType.Any;
+            var additional = ModMain.frmMain.pageCurrent.additional;
+            if (additional.HasValue)
+            {
+                targetVersion = additional.Value.TargetVersion;
+                targetLoader = additional.Value.TargetLoader;
+            }
         }
 
         ModMain.frmMain.PageChange(new FormMain.PageStackData

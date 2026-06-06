@@ -20,7 +20,7 @@ public partial class MyHint
         Yellow = 2
     }
 
-    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
+    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("isWarn", typeof(bool),
         typeof(MyHint),
         new PropertyMetadata(true,
             (d, e) =>
@@ -79,8 +79,8 @@ public partial class MyHint
         }
     } = Themes.Red;
 
-    [Obsolete("IsWarn 已过时。请换用 Theme 属性。")]
-    public bool IsWarn
+    [Obsolete("isWarn 已过时。请换用 Theme 属性。")]
+    public bool isWarn
     {
         get => Theme == Themes.Red;
         set => Theme = value ? Themes.Red : Themes.Blue;

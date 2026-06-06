@@ -468,13 +468,13 @@ public class ModSetup
         {
             case 0: // 无
             {
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                if (ModMain.FrmSetupUI is not null)
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                if (ModMain.frmSetupUI is not null)
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Visible;
                     ModMain.frmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -485,12 +485,12 @@ public class ModSetup
             }
             case 1: // 默认
             {
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
-                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                if (ModMain.FrmSetupUI is not null)
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
+                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                if (ModMain.frmSetupUI is not null)
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.frmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -501,12 +501,12 @@ public class ModSetup
             }
             case 2: // 文本
             {
-                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
-                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                if (ModMain.FrmSetupUI is not null)
+                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
+                ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                if (ModMain.frmSetupUI is not null)
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.frmSetupUI.PanLogoText.Visibility = Visibility.Visible;
@@ -518,13 +518,13 @@ public class ModSetup
             }
             case 3: // 图片
             {
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
-                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
-                if (ModMain.FrmSetupUI is not null)
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Visible;
+                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
+                if (ModMain.frmSetupUI is not null)
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.frmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
@@ -544,13 +544,13 @@ public class ModSetup
                 break;
             }
             case 4: //HMCL (愚人节)
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible;
-                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
-                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
-                if (ModMain.FrmSetupUI is not null) 
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible;
+                ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Visible;
+                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
+                if (ModMain.frmSetupUI is not null) 
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
                     ModMain.frmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;

@@ -319,7 +319,7 @@ public static class ModJava
     }
 
     /// <summary>
-    ///     获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
+    ///     获取下载 Java 的加载器。需要开启 isForceRestart 以正常刷新 Java 列表。
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {

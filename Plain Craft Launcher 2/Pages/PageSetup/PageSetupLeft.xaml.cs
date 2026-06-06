@@ -196,7 +196,7 @@ public partial class PageSetupLeft
         else if (!hideCfg.SetupJava)
             pageID = FormMain.PageSubType.SetupJava;
         else if (!hideCfg.SetupGameManage)
-            PageID = FormMain.PageSubType.SetupGameManage;
+            pageID = FormMain.PageSubType.SetupGameManage;
         else if (!hideCfg.SetupUi)
             pageID = FormMain.PageSubType.SetupUI;
         else if (!hideCfg.SetupLauncherLanguage)

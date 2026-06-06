@@ -22,7 +22,7 @@ public partial class MyMsgText
             myConverter = converter;
             LabTitle.Text = converter.Title;
             LabCaption.Text = converter.Text;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigurePrimaryButton(converter.Button1, converter.isWarn);
             ConfigureSecondaryButton(Btn2, converter.Button2);
             ConfigureSecondaryButton(Btn3, converter.Button3);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
@@ -69,7 +69,7 @@ public partial class MyMsgText
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myConverter.isWarn
                         ? new ModBase.MyColor(140d, 80d, 0d, 0d)
                         : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
