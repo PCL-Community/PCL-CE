@@ -109,7 +109,6 @@
     <sys:String x:Key="Main.Title.InstanceSetup">实例设置 - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">资源下载 - {0}</sys:String>
     <sys:String x:Key="Main.Title.SaveManagement">存档管理 - {0}</sys:String>
-    <sys:String x:Key="Main.Title.HomePageMarket">主页市场</sys:String>
 
     <!-- Main.Extra Buttons -->
 
@@ -1578,8 +1577,6 @@
     <sys:String x:Key="Setup.Ui.Initialized">已初始化个性化设置</sys:String>
     <sys:String x:Key="Setup.Ui.Error.InitFailed">初始化个性化设置失败</sys:String>
     <sys:String x:Key="Setup.Ui.Slider.Pixel">{0} 像素</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.Loading">正在加载主页市场</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.LoadFailed">加载主页市场失败</sys:String>
 
     <!-- Setup.Launch.Options -->
 

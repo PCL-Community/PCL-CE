@@ -122,15 +122,15 @@ public partial class PageInstanceInstall
                 return;
 
         // 删除 LabyMod Neo 文件
-        if ((PageInstanceLeft.instance.PathIndie ?? "") != (PageInstanceLeft.instance.PathInstance ?? "") &&
-            PageInstanceLeft.instance.Info.HasLabyMod)
-            Directory.Delete(System.IO.Path.Combine(PageInstanceLeft.instance.PathIndie, "labymod-neo"), true);
+        if ((PageInstanceLeft.McInstance.PathIndie ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? "") &&
+            PageInstanceLeft.McInstance.Info.HasLabyMod)
+            Directory.Delete(System.IO.Path.Combine(PageInstanceLeft.McInstance.PathIndie, "labymod-neo"), true);
         // 备份实例核心文件
-        ModBase.CopyFile(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name + ".json",
-            PageInstanceLeft.instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.instance.Name + ".json");
-        if (File.Exists(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name + ".jar"))
-            ModBase.CopyFile(PageInstanceLeft.instance.PathInstance + PageInstanceLeft.instance.Name + ".jar",
-                PageInstanceLeft.instance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.instance.Name +
+        ModBase.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json",
+            PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name + ".json");
+        if (File.Exists(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar"))
+            ModBase.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar",
+                PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
                 ".jar");
         // 确认独立 API (如 Fabric API 等) 是否需要被修改
         if (selectedFabricApi?.Equals(_currentFabricApi) == true)
@@ -144,8 +144,8 @@ public partial class PageInstanceInstall
         // 提交安装申请
         var request = new ModDownloadLib.McInstallRequest
         {
-            targetInstanceName = PageInstanceLeft.instance.Name,
-            targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{PageInstanceLeft.instance.Name}\",
+            targetInstanceName = PageInstanceLeft.McInstance.Name,
+            targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
             minecraftJson = _vanillaData?["url"].ToString(),
             minecraftName = _vanillaName,
             optiFineEntry = selectedOptiFine,
@@ -262,7 +262,7 @@ public partial class PageInstanceInstall
         }
 
         // 启动 Forge 加载
-        if (ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (McInstanceInfo.IsFormatFit(_vanillaName))
         {
             var forgeLoader =
                 new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
@@ -392,7 +392,7 @@ public partial class PageInstanceInstall
     private string? _vanillaName;
     private JsonObject? _vanillaData;
     private string? _vanillaIcon;
-    private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
+    private int VanillaDrop => McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
@@ -459,7 +459,7 @@ public partial class PageInstanceInstall
         _ReloadSelected_Ongoing = true;
         var selectedInfo = GetSelectInfo();
         // 主预览
-        ItemSelect.Title = PageInstanceLeft.instance.Name;
+        ItemSelect.Title = PageInstanceLeft.McInstance.Name;
         ItemSelect.Logo = GetSelectLogo();
         BtnSelectStart.IsEnabled = true;
         if ((selectedInfo ?? "") == (currentInfo ?? ""))
@@ -532,7 +532,7 @@ public partial class PageInstanceInstall
         }
 
         // Forge
-        if (!ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (!McInstanceInfo.IsFormatFit(_vanillaName))
         {
             CardForge.Visibility = Visibility.Collapsed;
         }
@@ -1054,7 +1054,7 @@ public partial class PageInstanceInstall
         var loaderOutput = ModDownload.dlFabricApiLoader.output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
-        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.instance,
+        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance,
             new[] { "fabric-api", "fabric" }, "fabric", "api");
         if (localComp is null)
             return null;
@@ -1076,7 +1076,7 @@ public partial class PageInstanceInstall
         var loaderOutput = ModDownload.dlLegacyFabricApiLoader.output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
-        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.instance,
+        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance,
             new[] { "legacy-fabric-api", "legacy-fabric" }, "legacy-fabric", "api");
         if (localComp is null)
             return null;
@@ -1098,11 +1098,11 @@ public partial class PageInstanceInstall
         var loaderOutput = ModDownload.dlQSLLoader.output;
         if (loaderOutput is null)
             return null;
-        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.instance, "quilted_fabric_api", "qsl",
+        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance, "quilted_fabric_api", "qsl",
             "qf", "fabric", "api");
         // 兼容测试版的文件名 没错这玩意测试版命名方式甚至与正式版不一样
         if (localComp is null)
-            localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.instance, "quilted_fabric_api",
+            localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance, "quilted_fabric_api",
                 "quilted-fabric-api");
         if (localComp is null)
             return null;
@@ -1125,7 +1125,7 @@ public partial class PageInstanceInstall
         if (loaderOutput is null)
             return null;
         var localComp =
-            ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.instance, "optifabric", "optifabric", "opti");
+            ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance, "optifabric", "optifabric", "opti");
         if (localComp is null)
             return null;
         var result = loaderOutput.FirstOrDefault(comp => (comp.Hash ?? "") == (localComp.ModrinthHash ?? ""));
@@ -1143,7 +1143,7 @@ public partial class PageInstanceInstall
     {
         ClearSelected();
         BtnSelectStart.IsEnabled = true;
-        var currentInstance = PageInstanceLeft.instance.Info;
+        var currentInstance = PageInstanceLeft.McInstance.Info;
         _vanillaName = currentInstance.VanillaName;
         if (currentInstance.HasLiteLoader)
             selectedLiteLoader = new ModDownload.DlLiteLoaderListEntry { Inherit = currentInstance.VanillaName };
@@ -1442,10 +1442,10 @@ public partial class PageInstanceInstall
         if (selectedCleanroom is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithCleanroom");
         // 检查 Forge 1.13 - 1.14.3：全部不兼容
-        if (selectedLoaderName == "Forge" && ModMinecraft.CompareVersion(_vanillaName, "1.13") >= 0 &&
-            ModMinecraft.CompareVersion("1.14.3", _vanillaName) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
+        if (selectedLoaderName == "Forge" && McVersionComparer.CompareVersion(_vanillaName, "1.13") >= 0 &&
+            McVersionComparer.CompareVersion("1.14.3", _vanillaName) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
         // 检查 Fabric 1.20.5+: 全部不兼容
-        if (selectedFabric is not null && ModMinecraft.CompareVersion(_vanillaName, "1.20.4") > 0)
+        if (selectedFabric is not null && McVersionComparer.CompareVersion(_vanillaName, "1.20.4") > 0)
             return Lang.Text("Download.Install.Compat.IncompatibleWithFabric");
         // 检查 Loader
         if (GetLoaderError(LoadOptiFine) is not null)
@@ -1484,7 +1484,7 @@ public partial class PageInstanceInstall
         if (string.IsNullOrWhiteSpace(optiFine.RequiredForgeVersion))
             return true; // #4183
         if (optiFine.RequiredForgeVersion.Contains(".")) // XX.X.XXX
-            return ModMinecraft.CompareVersion(forge.version.ToString(), optiFine.RequiredForgeVersion) == 0;
+            return McVersionComparer.CompareVersion(forge.version.ToString(), optiFine.RequiredForgeVersion) == 0;
 
         // XXXX
         return forge.version.Revision == Convert.ToDouble(optiFine.RequiredForgeVersion);
@@ -1527,7 +1527,7 @@ public partial class PageInstanceInstall
                     return true;
                 if (left.IsPreview && !right.IsPreview)
                     return false;
-                return ModMinecraft.CompareVersion(left.DisplayName, right.DisplayName) != 0;
+                return McVersionComparer.CompareVersion(left.DisplayName, right.DisplayName) != 0;
             });
             // 可视化
             PanOptiFine.Children.Clear();
@@ -1646,7 +1646,7 @@ public partial class PageInstanceInstall
     /// </summary>
     private string LoadForgeGetError()
     {
-        if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName) && ModMinecraft.CompareVersionGe(_vanillaName, "1.1"))
+        if (McVersionComparer.CompareVersionGe("1.5.1", _vanillaName) && McVersionComparer.CompareVersionGe(_vanillaName, "1.1"))
             return Lang.Text("Download.Install.State.NoVersion");
                 
         if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Forge"))
@@ -1667,8 +1667,8 @@ public partial class PageInstanceInstall
                 return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", "NeoForge");
             if (selectedFabric is not null)
                 return Lang.Text("Download.Install.Compat.IncompatibleWithFabric");
-            if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
-                ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
+            if (selectedOptiFine is not null && McVersionComparer.CompareVersionGe(_vanillaName, "1.13") &&
+                McVersionComparer.CompareVersionGe("1.14.3", _vanillaName))
                 return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine"); // 1.13 ~ 1.14.3 OptiFine 检查
             if (selectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(selectedOptiFine, Version))
                 continue;
@@ -1917,7 +1917,7 @@ public partial class PageInstanceInstall
     private string LoadFabricGetError()
     {
         // 检查 OptiFine 1.20.5+：没有 OptiFabric 故全部不兼容
-        if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.20.5"))
+        if (selectedOptiFine is not null && McVersionComparer.CompareVersionGe(_vanillaName, "1.20.5"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
         // 检查 Loader
         if (GetLoaderError(LoadFabric) is not null)

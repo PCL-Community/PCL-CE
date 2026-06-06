@@ -111,7 +111,7 @@ public partial class PageDownloadInstall
         ModDownload.dlLegacyFabricListLoader.Start();
 
         // 重载预览
-        TextSelectName.ValidateRules = [new FolderNameValidator(ModMinecraft.mcFolderSelected + "versions")];
+        TextSelectName.ValidateRules = [new FolderNameValidator(ModFolder.mcFolderSelected + "versions")];
         TextSelectName.Validate();
         ReloadSelected();
 
@@ -223,7 +223,7 @@ public partial class PageDownloadInstall
         }
 
         // 启动 Forge 加载
-        if (ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (McInstanceInfo.IsFormatFit(_vanillaName))
         {
             var forgeLoader =
                 new ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>(
@@ -353,7 +353,7 @@ public partial class PageDownloadInstall
     private string? _vanillaName;
     private JsonObject? _vanillaData;
     private string? _vanillaIcon;
-    private int VanillaDrop => ModMinecraft.McInstanceInfo.VersionToDrop(_vanillaName, true);
+    private int VanillaDrop => McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
@@ -471,7 +471,7 @@ public partial class PageDownloadInstall
         }
 
         // Forge
-        if (!ModMinecraft.McInstanceInfo.IsFormatFit(_vanillaName))
+        if (!McInstanceInfo.IsFormatFit(_vanillaName))
         {
             CardForge.Visibility = Visibility.Collapsed;
         }
@@ -1165,10 +1165,10 @@ public partial class PageDownloadInstall
         if (selectedCleanroom is not null)
             return Lang.Text("Download.Install.Compat.IncompatibleWithCleanroom");
         // 检查 Forge 1.13 - 1.14.3：全部不兼容
-        if (selectedLoaderName == "Forge" && ModMinecraft.CompareVersion(_vanillaName, "1.13") >= 0 &&
-            ModMinecraft.CompareVersion("1.14.3", _vanillaName) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
+        if (selectedLoaderName == "Forge" && McVersionComparer.CompareVersion(_vanillaName, "1.13") >= 0 &&
+            McVersionComparer.CompareVersion("1.14.3", _vanillaName) >= 0) return Lang.Text("Download.Install.Compat.IncompatibleWithForge");
         // 检查 Fabric 1.20.5+: 全部不兼容
-        if (selectedFabric is not null && ModMinecraft.CompareVersion(_vanillaName, "1.20.4") > 0)
+        if (selectedFabric is not null && McVersionComparer.CompareVersion(_vanillaName, "1.20.4") > 0)
             return Lang.Text("Download.Install.Compat.IncompatibleWithFabric");
         // 检查 Loader
         if (GetLoaderError(LoadOptiFine) is not null)
@@ -1207,7 +1207,7 @@ public partial class PageDownloadInstall
         if (string.IsNullOrWhiteSpace(optiFine.RequiredForgeVersion))
             return true; // #4183
         if (optiFine.RequiredForgeVersion.Contains(".")) // XX.X.XXX
-            return ModMinecraft.CompareVersion(forge.version.ToString(), optiFine.RequiredForgeVersion) == 0;
+            return McVersionComparer.CompareVersion(forge.version.ToString(), optiFine.RequiredForgeVersion) == 0;
 
         // XXXX
         return forge.version.Revision == Convert.ToDouble(optiFine.RequiredForgeVersion);
@@ -1250,7 +1250,7 @@ public partial class PageDownloadInstall
                     return true;
                 if (left.IsPreview && !right.IsPreview)
                     return false;
-                return ModMinecraft.CompareVersionGe(left.DisplayName, right.DisplayName);
+                return McVersionComparer.CompareVersionGe(left.DisplayName, right.DisplayName);
             });
             // 可视化
             PanOptiFine.Children.Clear();
@@ -1369,7 +1369,7 @@ public partial class PageDownloadInstall
     /// </summary>
     private string LoadForgeGetError()
     {
-        if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName) && ModMinecraft.CompareVersionGe(_vanillaName, "1.1"))
+        if (McVersionComparer.CompareVersionGe("1.5.1", _vanillaName) && McVersionComparer.CompareVersionGe(_vanillaName, "1.1"))
             return Lang.Text("Download.Install.State.NoVersion");
         
         if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Forge"))
@@ -1388,8 +1388,8 @@ public partial class PageDownloadInstall
                 continue; // 跳过无法自动安装的版本
             if (selectedNeoForge is not null || selectedFabric is not null || selectedQuilt is not null)
                 return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-            if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.13") &&
-                ModMinecraft.CompareVersionGe("1.14.3", _vanillaName))
+            if (selectedOptiFine is not null && McVersionComparer.CompareVersionGe(_vanillaName, "1.13") &&
+                McVersionComparer.CompareVersionGe("1.14.3", _vanillaName))
                 return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine"); // 1.13 ~ 1.14.3 OptiFine 检查
             if (selectedOptiFine is not null && !(bool)IsOptiFineSuitForForge(selectedOptiFine, Version))
                 continue;
@@ -1638,7 +1638,7 @@ public partial class PageDownloadInstall
     private string LoadFabricGetError()
     {
         // 检查 OptiFine 1.20.5+：没有 OptiFabric 故全部不兼容
-        if (selectedOptiFine is not null && ModMinecraft.CompareVersionGe(_vanillaName, "1.20.5"))
+        if (selectedOptiFine is not null && McVersionComparer.CompareVersionGe(_vanillaName, "1.20.5"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
         // 检查 Loader
         if (GetLoaderError(LoadFabric) is not null)
@@ -2549,7 +2549,7 @@ public partial class PageDownloadInstall
         var request = new ModDownloadLib.McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{ModMinecraft.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}\",
             minecraftJson = _vanillaData?["url"].ToString(),
             minecraftName = _vanillaName,
             optiFineEntry = selectedOptiFine,

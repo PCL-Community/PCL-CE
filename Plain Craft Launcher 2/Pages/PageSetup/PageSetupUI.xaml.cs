@@ -712,11 +712,6 @@ public partial class PageSetupUI
         SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
     }
 
-    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
-    {
-        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.HomePageMarket });
-    }
-
     private void CheckMusicStart_OnChange(object sender, bool user)
     {
         CheckBoxChange(sender, user);
