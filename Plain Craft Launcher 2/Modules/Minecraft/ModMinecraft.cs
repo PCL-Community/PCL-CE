@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
+using PCL.Core.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -2845,8 +2846,7 @@ public static class ModMinecraft
                             init.Url = (string)(rootUrl ?? library["downloads"]["artifact"]["url"]),
                             init.LocalPath = library["downloads"]["artifact"]["path"] is null
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                : Path.Combine(customMcFolder, "libraries", library["downloads"]["artifact"]["path"].ToString()
-                                    .Replace("/", @"\")),
+                                : McLibGetSafeDownloadPath(customMcFolder, library["downloads"]["artifact"]["path"]),
                             init.size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
@@ -2885,9 +2885,8 @@ public static class ModMinecraft
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                     .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : Path.Combine(customMcFolder, "libraries",
-                                  library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
-                                      .Replace("/", @"\")),
+                                : McLibGetSafeDownloadPath(customMcFolder,
+                                    library["downloads"]["classifiers"]["natives-windows"]["path"]),
                             size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
@@ -3098,6 +3097,31 @@ public static class ModMinecraft
         }
 
         return result;
+    }
+
+    /// <summary>
+    ///     根据下载元数据中的相对路径获取支持库下载地址，并阻止路径逃逸 libraries 文件夹。
+    /// </summary>
+    private static string McLibGetSafeDownloadPath(string customMcFolder, JsonNode pathNode)
+    {
+        var rawPath = pathNode?.ToString();
+        if (string.IsNullOrWhiteSpace(rawPath))
+            throw new IOException("支持库下载路径无效");
+
+        var normalizedPath = rawPath.Replace("/", @"\");
+        if (Path.IsPathRooted(normalizedPath) || normalizedPath.StartsWith(@"\") ||
+            Regex.IsMatch(normalizedPath, @"^[A-Za-z]:"))
+            throw new IOException($"支持库下载路径不能为绝对路径：{rawPath}");
+
+        if (normalizedPath.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries).Any(x => x == ".."))
+            throw new IOException($"支持库下载路径不能包含上级目录：{rawPath}");
+
+        var librariesFolder = Path.Combine(customMcFolder, "libraries");
+        var localPath = Path.GetFullPath(Path.Combine(librariesFolder, normalizedPath));
+        if (!Files.IsPathWithinDirectory(localPath, librariesFolder))
+            throw new IOException($"支持库下载路径不在 libraries 文件夹内：{rawPath}");
+
+        return localPath;
     }
 
     /// <summary>
