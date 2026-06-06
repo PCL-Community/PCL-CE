@@ -12,9 +12,9 @@ namespace PCL;
 
 public partial class PageSetupLauncherMisc
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupLauncherMisc()
     {
@@ -29,9 +29,9 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         SliderLoad();
@@ -136,15 +136,15 @@ public partial class PageSetupLauncherMisc
     // 滑动条
     private void SliderLoad()
     {
-        SliderDebugAnim.GetHintText = new Func<object, object>(v =>
+        SliderDebugAnim.getHintText = new Func<object, object>(v =>
             (int)v > 29
                 ? Lang.Text("Common.Action.Close")
                 : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
+        SliderAniFPS.getHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
-        SliderMaxLog.GetHintText = new Func<object, object>(v =>
+        SliderMaxLog.getHintText = new Func<object, object>(v =>
         {
             var val = Convert.ToInt32(v);
             return val switch
@@ -167,7 +167,7 @@ public partial class PageSetupLauncherMisc
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), Log: false);
+            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
@@ -181,7 +181,7 @@ public partial class PageSetupLauncherMisc
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
+                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -208,7 +208,7 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.exePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
@@ -222,7 +222,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), button1: Lang.Text("Setup.Misc.Import.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }

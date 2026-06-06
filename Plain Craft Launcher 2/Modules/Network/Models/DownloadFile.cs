@@ -30,7 +30,7 @@ public class DownloadFile
                 NetState.WaitingToDownload => 0.01,
                 NetState.Connecting => 0.02,
                 NetState.Reading => 0.04,
-                NetState.Downloading when TotalSize > 0 => Math.Clamp((double)DownloadedBytes / TotalSize, 0.05, 0.98),
+                NetState.Downloading when TotalSize > 0 => Math.Clamp((double)DownloadedBytes / TotalSize, 0.05, 1),
                 NetState.Downloading => 0.5,
                 NetState.Merging => 0.99,
                 NetState.Finished or NetState.Interrupted => 1,

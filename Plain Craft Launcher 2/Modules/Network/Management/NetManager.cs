@@ -17,19 +17,18 @@ public sealed class NetManager
                 return Files.Values.Count(file => file.State != NetState.Finished);
         }
     }
-    private long _downloadDone;
     public object LockDone { get; } = new();
     public long DownloadDone
     {
         get
         {
             lock (LockDone)
-                return _downloadDone;
+                return field;
         }
         set
         {
             lock (LockDone)
-                _downloadDone = value;
+                field = value;
         }
     }
 
@@ -57,7 +56,7 @@ public sealed class NetManager
         {
             Tasks.Remove(task);
             Tasks.Add(task);
-            foreach (var file in task.Files)
+            foreach (var file in task.files)
                 Files[file.LocalPath] = file;
         }
     }
@@ -67,7 +66,7 @@ public sealed class NetManager
         lock (LockFiles)
         {
             Tasks.Remove(task);
-            foreach (var file in task.Files)
+            foreach (var file in task.files)
                 Files.Remove(file.LocalPath);
         }
     }

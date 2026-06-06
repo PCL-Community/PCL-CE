@@ -10,7 +10,7 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     当前显示设置的 MC 实例。
     /// </summary>
-    public static ModMinecraft.McInstance Instance = null;
+    public static McInstance McInstance = null;
 
     public PageInstanceLeft()
     {
@@ -20,14 +20,14 @@ public partial class PageInstanceLeft : IRefreshable
 
     public void Refresh()
     {
-        Refresh(ModMain.FrmMain.PageCurrentSub);
+        Refresh(ModMain.frmMain.PageCurrentSub);
     }
 
     public void RefreshModDisabled()
     {
         var hide = Config.Preference.Hide;
 
-        if (Instance is not null && Instance.Modable)
+        if (McInstance is not null && McInstance.Modable)
         {
             ItemMod.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceMod
                 ? Visibility.Collapsed
@@ -45,22 +45,22 @@ public partial class PageInstanceLeft : IRefreshable
         // 功能隐藏
         if (!PageSetupUI.HiddenForceShow)
         {
-            var DisableCount = 0;
+            var disableCount = 0;
             if (hide.InstanceSave)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceScreenshot)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceMod)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceResourcePack)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceShader)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceSchematic)
-                DisableCount += 1;
+                disableCount += 1;
             if (hide.InstanceServer)
-                DisableCount += 1;
-            if (DisableCount == 7)
+                disableCount += 1;
+            if (disableCount == 7)
                 TextResource.Visibility = Visibility.Collapsed;
             else
                 TextResource.Visibility = Visibility.Visible;
@@ -101,9 +101,9 @@ public partial class PageInstanceLeft : IRefreshable
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
 
-    public void Refresh(FormMain.PageSubType SubType)
+    public void Refresh(FormMain.PageSubType subType)
     {
-        switch (SubType)
+        switch (subType)
         {
             case FormMain.PageSubType.VersionMod:
             {
@@ -137,32 +137,32 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionInstall:
             {
-                ModDownload.DlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.DlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.DlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.DlLabyModListLoader.Start(IsForceRestart: true);
+                ModDownload.dlClientListLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
+                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
+                ModDownload.dlQSLLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
+                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
-                ModMain.FrmInstanceInstall.GetCurrentInfo();
+                ModMain.frmInstanceInstall.GetCurrentInfo();
                 break;
             }
             case FormMain.PageSubType.VersionExport:
             {
-                if (ModMain.FrmInstanceExport is not null)
-                    ModMain.FrmInstanceExport.RefreshAll();
+                if (ModMain.frmInstanceExport is not null)
+                    ModMain.frmInstanceExport.RefreshAll();
                 ItemExport.Checked = true;
                 break;
             }
             case FormMain.PageSubType.VersionServer:
             {
-                if (ModMain.FrmInstanceServer is not null)
-                    ModMain.FrmInstanceServer.RefreshServers();
+                if (ModMain.frmInstanceServer is not null)
+                    ModMain.frmInstanceServer.RefreshServers();
                 ItemServer.Checked = true;
                 break;
             }
@@ -173,13 +173,13 @@ public partial class PageInstanceLeft : IRefreshable
     {
         if (ModMain.MyMsgBox(Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
                 Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
-                Button2: Lang.Text("Common.Action.Cancel"),
-                IsWarn: true)
+                button2: Lang.Text("Common.Action.Cancel"),
+                isWarn: true)
             == 1)
         {
-            if (ModMain.FrmInstanceSetup is null)
-                ModMain.FrmInstanceSetup = new PageInstanceSetup();
-            ModMain.FrmInstanceSetup.Reset();
+            if (ModMain.frmInstanceSetup is null)
+                ModMain.frmInstanceSetup = new PageInstanceSetup();
+            ModMain.frmInstanceSetup.Reset();
             ItemSetup.Checked = true;
         }
     }
@@ -189,7 +189,7 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     当前页面的编号。从 0 开始计算。
     /// </summary>
-    public FormMain.PageSubType PageID = FormMain.PageSubType.Default;
+    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
 
     /// <summary>
     ///     勾选事件改变页面。
@@ -200,88 +200,88 @@ public partial class PageInstanceLeft : IRefreshable
             PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
     }
 
-    public object PageGet(FormMain.PageSubType ID)
+    public object PageGet(FormMain.PageSubType id)
     {
-        if ((int)ID == -1)
-            ID = PageID;
-        switch (ID)
+        if ((int)id == -1)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.VersionOverall:
             {
-                if (ModMain.FrmInstanceOverall is null)
-                    ModMain.FrmInstanceOverall = new PageInstanceOverall();
-                return ModMain.FrmInstanceOverall;
+                if (ModMain.frmInstanceOverall is null)
+                    ModMain.frmInstanceOverall = new PageInstanceOverall();
+                return ModMain.frmInstanceOverall;
             }
             case FormMain.PageSubType.VersionMod:
             {
-                if (ModMain.FrmInstanceMod is null)
-                    ModMain.FrmInstanceMod = new PageInstanceCompResource(ModComp.CompType.Mod);
-                return ModMain.FrmInstanceMod;
+                if (ModMain.frmInstanceMod is null)
+                    ModMain.frmInstanceMod = new PageInstanceCompResource(ModComp.CompType.Mod);
+                return ModMain.frmInstanceMod;
             }
             case FormMain.PageSubType.VersionModDisabled:
             {
-                if (ModMain.FrmInstanceModDisabled is null)
-                    ModMain.FrmInstanceModDisabled = new PageInstanceModDisabled();
-                return ModMain.FrmInstanceModDisabled;
+                if (ModMain.frmInstanceModDisabled is null)
+                    ModMain.frmInstanceModDisabled = new PageInstanceModDisabled();
+                return ModMain.frmInstanceModDisabled;
             }
             case FormMain.PageSubType.VersionSetup:
             {
-                if (ModMain.FrmInstanceSetup is null)
-                    ModMain.FrmInstanceSetup = new PageInstanceSetup();
-                return ModMain.FrmInstanceSetup;
+                if (ModMain.frmInstanceSetup is null)
+                    ModMain.frmInstanceSetup = new PageInstanceSetup();
+                return ModMain.frmInstanceSetup;
             }
             case FormMain.PageSubType.VersionWorld:
             {
-                if (ModMain.FrmInstanceSaves is null)
-                    ModMain.FrmInstanceSaves = new PageInstanceSaves();
-                return ModMain.FrmInstanceSaves;
+                if (ModMain.frmInstanceSaves is null)
+                    ModMain.frmInstanceSaves = new PageInstanceSaves();
+                return ModMain.frmInstanceSaves;
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                if (ModMain.FrmInstanceScreenshot is null)
-                    ModMain.FrmInstanceScreenshot = new PageInstanceScreenshot();
-                return ModMain.FrmInstanceScreenshot;
+                if (ModMain.frmInstanceScreenshot is null)
+                    ModMain.frmInstanceScreenshot = new PageInstanceScreenshot();
+                return ModMain.frmInstanceScreenshot;
             }
             case FormMain.PageSubType.VersionResourcePack:
             {
-                if (ModMain.FrmInstanceResourcePack is null)
-                    ModMain.FrmInstanceResourcePack = new PageInstanceCompResource(ModComp.CompType.ResourcePack);
-                return ModMain.FrmInstanceResourcePack;
+                if (ModMain.frmInstanceResourcePack is null)
+                    ModMain.frmInstanceResourcePack = new PageInstanceCompResource(ModComp.CompType.ResourcePack);
+                return ModMain.frmInstanceResourcePack;
             }
             case FormMain.PageSubType.VersionShader:
             {
-                if (ModMain.FrmInstanceShader is null)
-                    ModMain.FrmInstanceShader = new PageInstanceCompResource(ModComp.CompType.Shader);
-                return ModMain.FrmInstanceShader;
+                if (ModMain.frmInstanceShader is null)
+                    ModMain.frmInstanceShader = new PageInstanceCompResource(ModComp.CompType.Shader);
+                return ModMain.frmInstanceShader;
             }
             case FormMain.PageSubType.VersionSchematic:
             {
-                if (ModMain.FrmInstanceSchematic is null)
-                    ModMain.FrmInstanceSchematic = new PageInstanceCompResource(ModComp.CompType.Schematic);
-                return ModMain.FrmInstanceSchematic;
+                if (ModMain.frmInstanceSchematic is null)
+                    ModMain.frmInstanceSchematic = new PageInstanceCompResource(ModComp.CompType.Schematic);
+                return ModMain.frmInstanceSchematic;
             }
             case FormMain.PageSubType.VersionInstall:
             {
-                if (ModMain.FrmInstanceInstall is null)
-                    ModMain.FrmInstanceInstall = new PageInstanceInstall();
-                return ModMain.FrmInstanceInstall;
+                if (ModMain.frmInstanceInstall is null)
+                    ModMain.frmInstanceInstall = new PageInstanceInstall();
+                return ModMain.frmInstanceInstall;
             }
             case FormMain.PageSubType.VersionExport:
             {
-                if (ModMain.FrmInstanceExport is null)
-                    ModMain.FrmInstanceExport = new PageInstanceExport();
-                return ModMain.FrmInstanceExport;
+                if (ModMain.frmInstanceExport is null)
+                    ModMain.frmInstanceExport = new PageInstanceExport();
+                return ModMain.frmInstanceExport;
             }
             case FormMain.PageSubType.VersionServer:
             {
-                if (ModMain.FrmInstanceServer is null)
-                    ModMain.FrmInstanceServer = new PageInstanceServer();
-                return ModMain.FrmInstanceServer;
+                if (ModMain.frmInstanceServer is null)
+                    ModMain.frmInstanceServer = new PageInstanceServer();
+                return ModMain.frmInstanceServer;
             }
 
             default:
             {
-                throw new Exception("未知的实例设置子页面种类：" + (int)ID);
+                throw new Exception("未知的实例设置子页面种类：" + (int)id);
             }
         }
     }
@@ -289,19 +289,19 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (PageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            PageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -309,26 +309,26 @@ public partial class PageInstanceLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.FrmMain.PageRight = Target;
-        ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnExit();
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
-                ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.FrmMain.PanMainRight.Child = ModMain.FrmMain.PageRight;
-                ModMain.FrmMain.PageRight.Opacity = 0d;
+                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+                ModMain.frmMain.pageRight.Opacity = 0d;
             }, 130),
             ModAnimation.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.FrmMain.PageRight.Opacity = 1d;
-                ModMain.FrmMain.PageRight.PageOnEnter();
+                ModMain.frmMain.pageRight.Opacity = 1d;
+                ModMain.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }

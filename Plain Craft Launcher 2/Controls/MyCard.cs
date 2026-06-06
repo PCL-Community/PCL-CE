@@ -12,19 +12,18 @@ namespace PCL;
 public class MyCard : AnimatedBackgroundGrid
 {
     // 动画
-    private const double DropShadowIdleOpacity = 0.07d;
-    private const double DropShadowHoverOpacity = 0.4d;
+    private const double dropShadowIdleOpacity = 0.07d;
+    private const double dropShadowHoverOpacity = 0.4d;
 
     public static readonly DependencyProperty TitleProperty =
         DependencyProperty.Register("Title", typeof(string), typeof(MyCard), new PropertyMetadata(""));
 
-    private readonly BlurBorder MainBorder;
+    private readonly BlurBorder mainBorder;
 
     // 控件
-    private readonly Grid MainGrid;
-    private Path _MainSwap;
+    private readonly Grid mainGrid;
     private TextBlock _MainTextBlock;
-    private bool IsLoad;
+    private bool isLoad;
 
     // UI 建立
     public MyCard() : base(BlurBorder.BackgroundProperty)
@@ -55,8 +54,8 @@ public class MyCard : AnimatedBackgroundGrid
 
     public UIElement BorderChild
     {
-        get => MainBorder.Child;
-        set => MainBorder.Child = value;
+        get => mainBorder.Child;
+        set => mainBorder.Child = value;
     }
 
     public TextBlock MainTextBlock
@@ -74,9 +73,9 @@ public class MyCard : AnimatedBackgroundGrid
         get
         {
             Init();
-            return _MainSwap;
+            return field;
         }
-        set => _MainSwap = value;
+        set => field = value;
     }
 
     // 属性
@@ -88,7 +87,7 @@ public class MyCard : AnimatedBackgroundGrid
         set
         {
             MainChrome.CornerRadius = value;
-            MainBorder.CornerRadius = value;
+            mainBorder.CornerRadius = value;
         }
     }
 
@@ -105,18 +104,18 @@ public class MyCard : AnimatedBackgroundGrid
 
     protected override SolidColorBrush AnimatableBrush
     {
-        get => (SolidColorBrush)MainBorder.Background;
-        set => MainBorder.Background = value;
+        get => (SolidColorBrush)mainBorder.Background;
+        set => mainBorder.Background = value;
     }
 
-    protected override FrameworkElement AnimatableElement => MainBorder;
+    protected override FrameworkElement AnimatableElement => mainBorder;
     public bool HasMouseAnimation { get; set; } = true;
 
     private void Init()
     {
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
         // AddHandler ThemeChanged, AddressOf _BackgroundBrushChanged '已在依赖属性中实现
         // 初次加载限定
         if (MainTextBlock is null)
@@ -130,7 +129,7 @@ public class MyCard : AnimatedBackgroundGrid
             MainTextBlock.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
             MainTextBlock.SetBinding(TextBlock.TextProperty,
                 new Binding("Title") { Source = this, Mode = BindingMode.OneWay });
-            MainGrid.Children.Add(MainTextBlock);
+            mainGrid.Children.Add(MainTextBlock);
         }
 
         if (CanSwap || SwapControl is not null)
@@ -146,7 +145,7 @@ public class MyCard : AnimatedBackgroundGrid
                 RenderTransform = new RotateTransform(180d), RenderTransformOrigin = new Point(0.5d, 0.5d)
             };
             MainSwap.SetResourceReference(Shape.FillProperty, "ColorBrush1");
-            MainGrid.Children.Add(MainSwap);
+            mainGrid.Children.Add(MainSwap);
         }
 
         // 改变默认的折叠
@@ -155,12 +154,12 @@ public class MyCard : AnimatedBackgroundGrid
             MainSwap.RenderTransform = new RotateTransform(SwapLogoRight ? 270 : 0);
             SwapControl.Visibility = Visibility.Collapsed;
             // 取消由于高度变化被迫触发的高度动画
-            var RawUseAnimation = UseAnimation;
+            var rawUseAnimation = UseAnimation;
             UseAnimation = false;
             Height = SwapedHeight;
-            ModAnimation.AniStop("MyCard Height " + Uuid);
-            IsHeightAnimating = false;
-            ModBase.RunInUi(() => UseAnimation = RawUseAnimation, true);
+            ModAnimation.AniStop("MyCard Height " + uuid);
+            isHeightAnimating = false;
+            ModBase.RunInUi(() => UseAnimation = rawUseAnimation, true);
         }
     }
 
@@ -193,36 +192,36 @@ public class MyCard : AnimatedBackgroundGrid
     {
         if (!HasMouseAnimation)
             return;
-        var AniList = new List<ModAnimation.AniData>();
+        var aniList = new List<ModAnimation.AniData>();
         if (MainTextBlock is not null)
-            AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90));
+            aniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90));
         if (MainSwap is not null)
-            AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush2", 90));
-        AniList.AddRange(new[]
+            aniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush2", 90));
+        aniList.AddRange(new[]
         {
             ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
-            ModAnimation.AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
+            ModAnimation.AaOpacity(MainChrome, dropShadowHoverOpacity - MainChrome.Opacity, 90)
         });
         if (!IsAnimating)
-            ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
+            ModAnimation.AniStart(aniList, "MyCard Mouse " + uuid);
     }
 
     private void MyCard_MouseLeave(object sender, MouseEventArgs e)
     {
         if (!HasMouseAnimation)
             return;
-        var AniList = new List<ModAnimation.AniData>();
+        var aniList = new List<ModAnimation.AniData>();
         if (MainTextBlock is not null)
-            AniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90));
+            aniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90));
         if (MainSwap is not null)
-            AniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush1", 90));
-        AniList.AddRange(new[]
+            aniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush1", 90));
+        aniList.AddRange(new[]
         {
             ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
-            ModAnimation.AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
+            ModAnimation.AaOpacity(MainChrome, dropShadowIdleOpacity - MainChrome.Opacity, 90)
         });
         if (!IsAnimating)
-            ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
+            ModAnimation.AniStart(aniList, "MyCard Mouse " + uuid);
     }
 
     #region 高度改变动画
@@ -232,88 +231,88 @@ public class MyCard : AnimatedBackgroundGrid
     /// </summary>
     public bool UseAnimation { get; set; } = true;
 
-    private bool IsHeightAnimating;
-    private double ActualUsedHeight; // 回滚实际高度（例如 NaN）
+    private bool isHeightAnimating;
+    private double actualUsedHeight; // 回滚实际高度（例如 NaN）
 
     private void MySizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (!UseAnimation)
             return;
-        var DeltaHeight = (IsSwapped ? SwapedHeight : e.NewSize.Height) - e.PreviousSize.Height;
+        var deltaHeight = (IsSwapped ? SwapedHeight : e.NewSize.Height) - e.PreviousSize.Height;
         // 卡片的进入时动画已被页面通用切换动画替代
-        if (e.PreviousSize.Height == 0d || IsHeightAnimating || Math.Abs(DeltaHeight) < 1d || ActualHeight == 0d)
+        if (e.PreviousSize.Height == 0d || isHeightAnimating || Math.Abs(deltaHeight) < 1d || ActualHeight == 0d)
             return;
-        StartHeightAnimation(DeltaHeight, e.PreviousSize.Height, false);
+        StartHeightAnimation(deltaHeight, e.PreviousSize.Height, false);
     }
 
     /// <summary>
     ///     启动卡片高度变化的动画效果
     ///     根据变化距离的大小采用不同的动画策略：短距离使用简单缓动，长距离使用分段动画
     /// </summary>
-    /// <param name="Delta">高度变化量</param>
-    /// <param name="PreviousHeight">之前的高度</param>
-    /// <param name="IsLoadAnimation">是否为加载动画</param>
-    private void StartHeightAnimation(double Delta, double PreviousHeight, bool IsLoadAnimation)
+    /// <param name="delta">高度变化量</param>
+    /// <param name="previousHeight">之前的高度</param>
+    /// <param name="isLoadAnimation">是否为加载动画</param>
+    private void StartHeightAnimation(double delta, double previousHeight, bool isLoadAnimation)
     {
-        if (IsHeightAnimating || ModMain.FrmMain is null)
+        if (isHeightAnimating || ModMain.frmMain is null)
             return; // 避免 XAML 设计器出错
 
-        var AnimList = new List<ModAnimation.AniData>();
-        var AbsDelta = Math.Abs(Delta);
+        var animList = new List<ModAnimation.AniData>();
+        var absDelta = Math.Abs(delta);
 
-        if (AbsDelta <= 800d)
+        if (absDelta <= 800d)
         {
             // 短距离，直接使用 150ms 的缓动动画
-            AnimList.Add(ModAnimation.AaHeight(this, Delta, 150,
-                Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
+            animList.Add(ModAnimation.AaHeight(this, delta, 150,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
         }
         else
         {
-            var EaseLength = default(int);
-            int EaseTime;
-            int InitSpeed; // 到达缓动区前的初速度
-            if (Delta < 0d && AbsDelta - EaseLength > 5000d * 0.1d)
+            var easeLength = default(int);
+            int easeTime;
+            int initSpeed; // 到达缓动区前的初速度
+            if (delta < 0d && absDelta - easeLength > 5000d * 0.1d)
             {
                 // 收回距离过长 (>0.1s)，强制以 100ms 完成匀速段，然后让减速段更长
-                EaseLength = 200;
-                EaseTime = 150;
-                InitSpeed = (int)Math.Round((AbsDelta - EaseLength) / 0.1d);
+                easeLength = 200;
+                easeTime = 150;
+                initSpeed = (int)Math.Round((absDelta - easeLength) / 0.1d);
             }
-            else if (Delta > 0d && AbsDelta - EaseLength > 5000d * 0.6d)
+            else if (delta > 0d && absDelta - easeLength > 5000d * 0.6d)
             {
                 // 展开距离过长 (>0.6s)，以 5000 速度展示 300ms 匀速段，剩下的距离全部归入减速段
-                InitSpeed = 5000;
-                EaseLength = (int)Math.Round(AbsDelta - InitSpeed * 0.3d);
-                EaseTime = 400;
+                initSpeed = 5000;
+                easeLength = (int)Math.Round(absDelta - initSpeed * 0.3d);
+                easeTime = 400;
             }
             else
             {
                 // 中程，匀速地快速展开（或收回）
-                EaseLength = 150;
-                EaseTime = 200;
-                InitSpeed = 4000;
+                easeLength = 150;
+                easeTime = 200;
+                initSpeed = 4000;
             }
 
             // 匀速段
-            AnimList.Add(ModAnimation.AaHeight(this, (AbsDelta - EaseLength) * Math.Sign(Delta),
-                (int)Math.Round((AbsDelta - EaseLength) / InitSpeed * 1000d)));
+            animList.Add(ModAnimation.AaHeight(this, (absDelta - easeLength) * Math.Sign(delta),
+                (int)Math.Round((absDelta - easeLength) / initSpeed * 1000d)));
             // 减速段
-            AnimList.Add(ModAnimation.AaHeight(this, EaseLength * Math.Sign(Delta), EaseTime,
-                Ease: new ModAnimation.AniEaseOutFluentWithInitial(InitSpeed, EaseTime / 1000d, EaseLength),
-                After: true));
+            animList.Add(ModAnimation.AaHeight(this, easeLength * Math.Sign(delta), easeTime,
+                ease: new ModAnimation.AniEaseOutFluentWithInitial(initSpeed, easeTime / 1000d, easeLength),
+                after: true));
         }
 
-        AnimList.Add(ModAnimation.AaCode(() =>
+        animList.Add(ModAnimation.AaCode(() =>
         {
-            IsHeightAnimating = false;
-            Height = ActualUsedHeight;
+            isHeightAnimating = false;
+            Height = actualUsedHeight;
             if (IsSwapped && SwapControl is not null)
                 SwapControl.Visibility = Visibility.Collapsed;
-        }, After: true));
-        ModAnimation.AniStart(AnimList, "MyCard Height " + Uuid);
-        IsHeightAnimating = true;
-        ActualUsedHeight = IsSwapped ? SwapedHeight : Height;
-        Height = PreviousHeight;
+        }, after: true));
+        ModAnimation.AniStart(animList, "MyCard Height " + uuid);
+        isHeightAnimating = true;
+        actualUsedHeight = IsSwapped ? SwapedHeight : Height;
+        Height = previousHeight;
     }
 
     /// <summary>
@@ -322,8 +321,8 @@ public class MyCard : AnimatedBackgroundGrid
     public void TriggerForceResize()
     {
         Height = IsSwapped ? SwapedHeight : double.NaN;
-        ModAnimation.AniStop("MyCard Height " + Uuid);
-        IsHeightAnimating = false;
+        ModAnimation.AniStop("MyCard Height " + uuid);
+        isHeightAnimating = false;
     }
 
     #endregion
@@ -346,12 +345,12 @@ public class MyCard : AnimatedBackgroundGrid
     /// </summary>
     public bool IsSwapped
     {
-        get => _IsSwapped;
+        get => field;
         set
         {
-            if (_IsSwapped == value)
+            if (field == value)
                 return;
-            _IsSwapped = value;
+            field = value;
             if (SwapControl is null)
                 return;
 
@@ -376,13 +375,11 @@ public class MyCard : AnimatedBackgroundGrid
             // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
             ModAnimation.AniStart(
                 ModAnimation.AaRotateTransform(MainSwap,
-                    (_IsSwapped ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
-                    250, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                "MyCard Swap " + Uuid, true);
+                    (field ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
+                    250, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                "MyCard Swap " + uuid, true);
         }
     }
-
-    private bool _IsSwapped;
 
     /// <summary>
     ///     是否已被折叠。(已过时，请使用 IsSwapped)
@@ -395,8 +392,8 @@ public class MyCard : AnimatedBackgroundGrid
     }
 
     public bool SwapLogoRight { get; set; } = false;
-    private bool IsSwapMouseDown = false; //用于触发卡片展开/折叠的 MouseDown
-    private bool IsCustomMouseDown = false; //用于触发自定义事件的 MouseDown
+    private bool isSwapMouseDown = false; //用于触发卡片展开/折叠的 MouseDown
+    private bool isCustomMouseDown = false; //用于触发自定义事件的 MouseDown
     public event PreviewSwapEventHandler? PreviewSwap;
 
     public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
@@ -409,33 +406,33 @@ public class MyCard : AnimatedBackgroundGrid
 
     private void MyCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        double Pos = Mouse.GetPosition(this).Y;
-        if (!IsSwapped && (Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+        double pos = Mouse.GetPosition(this).Y;
+        if (!IsSwapped && (pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (pos == 0 && !IsMouseDirectlyOver)))
             return;
-        IsCustomMouseDown = true;
-        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+        isCustomMouseDown = true;
+        if (!IsSwapped && (SwapControl is null || pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (pos == 0 && !IsMouseDirectlyOver)))
             return;
-        IsSwapMouseDown = true;
+        isSwapMouseDown = true;
     }
 
     private void MyCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsCustomMouseDown) return;
-        IsCustomMouseDown = false;
+        if (!isCustomMouseDown) return;
+        isCustomMouseDown = false;
         ModMain.RaiseCustomEvent(this);
 
-        if (!IsSwapMouseDown) return;
-        IsSwapMouseDown = false;
+        if (!isSwapMouseDown) return;
+        isSwapMouseDown = false;
 
-        double Pos = Mouse.GetPosition(this).Y;
-        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+        double pos = Mouse.GetPosition(this).Y;
+        if (!IsSwapped && (SwapControl is null || pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (pos == 0 && !IsMouseDirectlyOver)))
             return; // 检测点击位置；或已经不在可视树上的误判
 
         var e2 = new ModBase.RouteEventArgs(true);
         PreviewSwap?.Invoke(this, e2);
-        if (e2.Handled)
+        if (e2.handled)
         {
-            IsSwapMouseDown = false;
+            isSwapMouseDown = false;
             return;
         }
 
@@ -446,7 +443,7 @@ public class MyCard : AnimatedBackgroundGrid
 
     private void MyCard_MouseLeave_Swap(object sender, MouseEventArgs e)
     {
-        IsSwapMouseDown = false;
+        isSwapMouseDown = false;
     }
 
     #endregion
@@ -454,49 +451,49 @@ public class MyCard : AnimatedBackgroundGrid
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyCard Control, bool RemoveFromChildren, ParameterizedThreadStart CallBack = null)
+    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
     {
-        if (Control.IsHitTestVisible)
+        if (control.IsHitTestVisible)
         {
-            Control.IsHitTestVisible = false;
+            control.IsHitTestVisible = false;
             AniStart(new[]
             {
-                AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
-                AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),
-                AaHeight(Control, -Control.ActualHeight, 150, 100, new AniEaseOutFluent()),
+                AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
+                AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
+                AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
                 AaCode(() =>
                 {
-                    if (RemoveFromChildren)
+                    if (removeFromChildren)
                     {
-                        if (Control.Parent is null)
+                        if (control.Parent is null)
                             return;
-                        ((Panel)Control.Parent).Children.Remove(Control);
+                        ((Panel)control.Parent).Children.Remove(control);
                     }
                     else
                     {
-                        Control.Visibility = Visibility.Collapsed;
+                        control.Visibility = Visibility.Collapsed;
                     }
 
-                    if (CallBack is not null)
-                        CallBack(Control);
-                }, After: true)
-            }, "MyCard Dispose " + Control.Uuid);
+                    if (callBack is not null)
+                        callBack(control);
+                }, after: true)
+            }, "MyCard Dispose " + control.uuid);
         }
         else
         {
-            if (RemoveFromChildren)
+            if (removeFromChildren)
             {
-                if (Control.Parent is null)
+                if (control.Parent is null)
                     return;
-                ((Panel)Control.Parent).Children.Remove(Control);
+                ((Panel)control.Parent).Children.Remove(control);
             }
             else
             {
-                Control.Visibility = Visibility.Collapsed;
+                control.Visibility = Visibility.Collapsed;
             }
 
-            if (CallBack is not null)
-                CallBack(Control);
+            if (callBack is not null)
+                callBack(control);
         }
     }
 }

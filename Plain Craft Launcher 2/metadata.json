@@ -3,15 +3,15 @@
   "version": {
     "base": "1.0.2",
     "upstream": "2.12.1",
-    "suffix": "",
-    "code": 0
+    "suffix": "beta",
+    "code": 4
   },
   "licenses": [
     {
       "name": "PCL.Core",
-      "info": "Copyright © MUXUE1230",
-      "website": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/PCL.Core",
-      "license": "https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE"
+      "info": "Copyright © PCL Community",
+      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
     },
     {
       "name": "Java Launch Wrapper",
@@ -108,6 +108,18 @@
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
+    },
+    {
+      "name": "DotNet.Glob",
+      "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
+      "website": "https://github.com/dazinator/DotNet.Glob",
+      "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
     }
   ]
 }

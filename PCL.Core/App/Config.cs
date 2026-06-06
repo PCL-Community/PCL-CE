@@ -82,6 +82,7 @@ public static partial class Config
             [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
             [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
             [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadAutoInstallDependencies", true)] public partial bool AutoInstallDependencies { get; set; }
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
@@ -135,6 +136,11 @@ public static partial class Config
         /// 在启动游戏时显示你知道吗。
         /// </summary>
         [ConfigItem<bool>("UiShowLaunchingHint", true, ConfigSource.Local)] public partial bool ShowLaunchingHint { get; set; }
+
+        /// <summary>
+        /// 提示气泡靠右弹出。
+        /// </summary>
+        [ConfigItem<bool>("UiHintAlignRight", false, ConfigSource.Local)] public partial bool HintAlignRight { get; set; }
 
         /// <summary>
         /// 标题内容类型。

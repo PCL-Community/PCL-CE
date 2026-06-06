@@ -8,7 +8,7 @@ public partial class PageDownloadLeft : IRefreshable
 {
     public void Refresh()
     {
-        Refresh(ModMain.FrmMain.PageCurrentSub);
+        Refresh(ModMain.frmMain.PageCurrentSub);
     }
 
     // 强制刷新
@@ -17,27 +17,27 @@ public partial class PageDownloadLeft : IRefreshable
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
 
-    public void Refresh(FormMain.PageSubType SubType)
+    public void Refresh(FormMain.PageSubType subType)
     {
-        switch (SubType)
+        switch (subType)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                ModDownload.DlClientListLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFineListLoader.Start(IsForceRestart: true);
-                ModDownload.DlForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlNeoForgeListLoader.Start(IsForceRestart: true);
-                ModDownload.DlCleanroomListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLiteLoaderListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlLegacyFabricListLoader.Start(IsForceRestart: true);
-                ModDownload.DlFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlLegacyFabricApiLoader.Start(IsForceRestart: true);
-                ModDownload.DlQuiltListLoader.Start(IsForceRestart: true);
-                ModDownload.DlQSLLoader.Start(IsForceRestart: true);
-                ModDownload.DlOptiFabricLoader.Start(IsForceRestart: true);
-                ModDownload.DlLabyModListLoader.Start(IsForceRestart: true);
-                ItemAll.Checked = true;
+                ModDownload.dlClientListLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
+                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
+                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
+                ModDownload.dlQSLLoader.Start(isForceRestart: true);
+                ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
+                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
+                ItemInstall.Checked = true;
                 break;
             }
         }
@@ -79,7 +79,7 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     当前页面的编号。
     /// </summary>
-    public FormMain.PageSubType PageID = FormMain.PageSubType.DownloadInstall;
+    public FormMain.PageSubType pageID = FormMain.PageSubType.DownloadInstall;
 
     public PageDownloadLeft()
     {
@@ -94,20 +94,20 @@ public partial class PageDownloadLeft : IRefreshable
 
     public object PageGet(FormMain.PageSubType ID)
     {
-        if (ID == default)
-            ID = PageID;
-        switch (ID)
+        if (id == default)
+            id = pageID;
+        switch (id)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                if (ModMain.FrmDownloadInstall is null)
-                    ModMain.FrmDownloadInstall = new PageDownloadInstall();
-                return ModMain.FrmDownloadInstall;
+                if (ModMain.frmDownloadInstall is null)
+                    ModMain.frmDownloadInstall = new PageDownloadInstall();
+                return ModMain.frmDownloadInstall;
             }
 
             default:
             {
-                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)ID));
+                throw new Exception(Lang.Text("Download.Left.Error.UnknownSubPageType", (int)id));
             }
         }
     }
@@ -115,19 +115,19 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     切换现有页面。
     /// </summary>
-    public void PageChange(FormMain.PageSubType ID)
+    public void PageChange(FormMain.PageSubType id)
     {
-        if (PageID == ID)
+        if (pageID == id)
             return;
         ModAnimation.AniControlEnabled += 1;
         try
         {
-            PageChangeRun((MyPageRight)PageGet(ID));
-            PageID = ID;
+            PageChangeRun((MyPageRight)PageGet(id));
+            pageID = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)ID + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
         }
         finally
         {
@@ -135,26 +135,26 @@ public partial class PageDownloadLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight Target)
+    private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        if (Target.Parent is not null)
-            Target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.FrmMain.PageRight = Target;
-        ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnExit();
+        if (target.Parent is not null)
+            target.SetValue(ContentPresenter.ContentProperty, null);
+        ModMain.frmMain.pageRight = target;
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
-                ((MyPageRight)ModMain.FrmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.FrmMain.PanMainRight.Child = ModMain.FrmMain.PageRight;
-                ModMain.FrmMain.PageRight.Opacity = 0d;
+                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+                ModMain.frmMain.pageRight.Opacity = 0d;
             }, 130),
             ModAnimation.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.FrmMain.PageRight.Opacity = 1d;
-                ModMain.FrmMain.PageRight.PageOnEnter();
+                ModMain.frmMain.pageRight.Opacity = 1d;
+                ModMain.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }

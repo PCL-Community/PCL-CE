@@ -36,10 +36,8 @@ public partial class MyHint
             f.LabText.Text = (string)e.NewValue;
         }));
 
-    private Themes _ColorType = Themes.Red;
-
     // 触发点击事件
-    private bool IsMouseDown;
+    private bool isMouseDown;
     public int Uuid = ModBase.GetUuid();
 
     public MyHint()
@@ -61,22 +59,25 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d),
-                    ModBase.GetWPFSize(1d));
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d))
+                    : new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
             else
-                BorderThickness = new Thickness(3d, 0d, 0d, 0d);
+                BorderThickness = Config.Preference.HintAlignRight
+                    ? new Thickness(0d, 0d, 3d, 0d)
+                    : new Thickness(3d, 0d, 0d, 0d);
         }
     }
 
     public Themes Theme
     {
-        get => _ColorType;
+        get => field;
         set
         {
-            _ColorType = value;
+            field = value;
             UpdateUI();
         }
-    }
+    } = Themes.Red;
 
     [Obsolete("IsWarn 已过时。请换用 Theme 属性。")]
     public bool IsWarn
@@ -130,6 +131,10 @@ public partial class MyHint
         BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
         BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+
+        // 根据提示气泡对齐方向刷新边框
+        // 此处依赖 HasBorder 的副作用进行范围检查
+        HasBorder = HasBorder;
     }
 
     private void MyHint_Loaded(object sender, RoutedEventArgs e)
@@ -148,9 +153,9 @@ public partial class MyHint
 
     private void MyHint_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
-        IsMouseDown = false;
+        isMouseDown = false;
         ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
@@ -158,12 +163,12 @@ public partial class MyHint
 
     private void MyHint_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        IsMouseDown = true;
+        isMouseDown = true;
     }
 
     private void MyHint_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
     }
 
     private void _ThemeChanged(bool isDarkMode, ColorTheme theme)
@@ -179,25 +184,25 @@ public partial class MyHint
 
 public static partial class ModAnimation
 {
-    public static void AniDispose(MyHint Control, bool RemoveFromChildren, ParameterizedThreadStart CallBack = null)
+    public static void AniDispose(MyHint control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
     {
-        if (!Control.IsHitTestVisible)
+        if (!control.IsHitTestVisible)
             return;
-        Control.IsHitTestVisible = false;
+        control.IsHitTestVisible = false;
         AniStart(new[]
         {
-            AaScaleTransform(Control, -0.08d, 200, Ease: new AniEaseInFluent()),
-            AaOpacity(Control, -1, 200, Ease: new AniEaseOutFluent()),
-            AaHeight(Control, -Control.ActualHeight, 150, 100, new AniEaseOutFluent()),
+            AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
+            AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
+            AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
             AaCode(() =>
             {
-                if (RemoveFromChildren)
-                    ((Panel)Control.Parent).Children.Remove(Control);
+                if (removeFromChildren)
+                    ((Panel)control.Parent).Children.Remove(control);
                 else
-                    Control.Visibility = Visibility.Collapsed;
-                if (CallBack is not null)
-                    CallBack(Control);
-            }, After: true)
-        }, "MyCard Dispose " + Control.Uuid);
+                    control.Visibility = Visibility.Collapsed;
+                if (callBack is not null)
+                    callBack(control);
+            }, after: true)
+        }, "MyCard Dispose " + control.Uuid);
     }
 }

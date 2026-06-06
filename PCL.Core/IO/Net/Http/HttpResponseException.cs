@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+using System;
 using System.Net.Http;
 
 namespace PCL.Core.IO.Net.Http;
@@ -23,7 +22,8 @@ public class HttpResponseException:HttpRequestException,IDisposable
         
     }
 
-    public HttpResponseException(HttpResponseMessage? response):this($"{(int?)response?.StatusCode} {response?.ReasonPhrase ?? Enum.GetName(response.StatusCode)}")
+    public HttpResponseException(HttpResponseMessage? response) : this(
+        $"{(int?)response?.StatusCode} {response?.ReasonPhrase ?? (response is null ? "undefined" : Enum.GetName(response.StatusCode))})")
     {
         Response = response;
     }

@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Management;
-using System.Runtime.InteropServices;
 using PCL.Core.Logging;
 
 namespace PCL.Core.Utils.OS;
 
 public static class HardwareInfo
 {
-    private static readonly object _lock = new();
+    private static readonly object _Lock = new();
     
     /// <summary>
     /// 系统 CPU 信息
@@ -72,7 +71,7 @@ public static class HardwareInfo
             LogWrapper.Warn(ex, "获取 GPU 信息时出错");
         }
 
-        lock (_lock)
+        lock (_Lock)
         {
             if (cpuName is not null)
                 CPUName = cpuName;

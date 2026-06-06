@@ -12,7 +12,7 @@ public class HttpValidator(bool allowNullOrEmpty) : AbstractValidator<string>
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x =>
@@ -28,7 +28,7 @@ public class HttpValidator(bool allowNullOrEmpty) : AbstractValidator<string>
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }

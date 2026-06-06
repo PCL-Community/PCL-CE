@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
+using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
@@ -25,9 +26,9 @@ public record OpenIdOptions
         get;
         set;
     }
-    
+
     // 为了让 YggdrasilConnect Client 复用代码做的逻辑
-    
+
     /// <summary>
     /// 是否只使用设备代码流授权
     /// </summary>
@@ -52,7 +53,7 @@ public record OpenIdOptions
     /// OpenId 元数据，请勿自行设置此属性，而是应该调用 <see cref="InitializeAsync"/>
     /// </summary>
     public OpenIdMetadata? Meta { get; internal set; }
-    
+
     /// <summary>
     /// 从互联网拉取 OpenID 配置信息
     /// </summary>
@@ -75,32 +76,34 @@ public record OpenIdOptions
     /// <param name="kid">密钥 ID</param>
     /// <param name="token"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
-    /// <exception cref="FormatException">找不到 Jwk 或 Jwk 配置无效</exception>
+    /// <exception cref="IdentityModelConfigurationException">未调用 <see cref="InitializeAsync"/>，或找不到匹配的 Jwk</exception>
     public async Task<JsonWebKey> GetSignatureKeyAsync(string kid,CancellationToken token)
     {
-        if (Meta?.JwksUri is null) throw new InvalidOperationException();
+        if (Meta?.JwksUri is null) throw new IdentityModelConfigurationException("请先调用 InitializeAsync() 加载 OpenID 元数据");
         using var response = await HttpRequest.Create(Meta.JwksUri)
             .WithHeaders(Headers ?? [])
-            .SendAsync(GetClient.Invoke())
+            .SendAsync(GetClient.Invoke(), cancellationToken: token)
             .ConfigureAwait(false);
 
         var result = await response
             .AsJsonAsync<JsonWebKeys>(cancellationToken: token)
             .ConfigureAwait(false);
-        return result?.Keys.Single(k => k.Kid == kid) 
-               ?? throw new FormatException();
+        return result?.Keys.SingleOrDefault(k => k.Kid == kid)
+               ?? throw new IdentityModelConfigurationException($"找不到匹配的 Jwk：{kid}");
     }
     /// <summary>
     /// 构建 OAuth 客户端配置
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException">未调用 <see cref="InitializeAsync"/></exception>
+    /// <exception cref="IdentityModelConfigurationException">未调用 <see cref="InitializeAsync"/> 或缺少授权所需配置</exception>
     public virtual async Task<OAuthClientOptions> BuildOAuthOptionsAsync(CancellationToken token)
     {
-        if (Meta is null) throw new InvalidOperationException();
-        if(!OnlyDeviceAuthorize) ArgumentException.ThrowIfNullOrEmpty(RedirectUri);
+        if (Meta is null) throw new IdentityModelConfigurationException("请先调用 InitializeAsync() 加载 OpenID 元数据");
+        if (string.IsNullOrEmpty(Meta.TokenEndpoint))
+            throw new IdentityModelConfigurationException("OpenID 元数据缺少 TokenEndpoint");
+        if (!OnlyDeviceAuthorize && string.IsNullOrEmpty(RedirectUri))
+            throw new IdentityModelConfigurationException("授权代码流需要设置 RedirectUri");
         return new OAuthClientOptions
         {
             GetClient = GetClient,

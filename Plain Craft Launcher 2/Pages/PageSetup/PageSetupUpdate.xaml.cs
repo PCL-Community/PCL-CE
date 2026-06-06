@@ -10,7 +10,7 @@ namespace PCL;
 
 public partial class PageSetupUpdate
 {
-    public VersionDataModel UpdateInfo;
+    public VersionDataModel updateInfo;
 
     public PageSetupUpdate()
     {
@@ -25,7 +25,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL N " + VersionNameFormat(ModBase.VersionBaseName);
+        TextCurrentVersion.Text = "PCL N " + VersionNameFormat(ModBase.versionBaseName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
     }
@@ -35,12 +35,12 @@ public partial class PageSetupUpdate
         try
         {
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.VersionBaseName)
-            if (await UpdateManager.RemoteServer.IsLatestAsync(
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.versionBaseName)
+            if (await UpdateManager.remoteServer.IsLatestAsync(
                     UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
-                    SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode))
+                    SemVer.Parse(ModBase.versionBaseName),
+                    ModBase.versionCode))
             {
                 ModBase.Log("[Update] 已是最新版本");
                 return UpdateStatus.Latest;
@@ -70,13 +70,13 @@ public partial class PageSetupUpdate
                 Exception checkUpdateEx = null;
                 try
                 {
-                    UpdateInfo = UpdateManager.RemoteServer.GetLatestVersion(
+                    updateInfo = UpdateManager.remoteServer.GetLatestVersion(
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL N " + VersionNameFormat(UpdateInfo.VersionName);
-                    var summary = UpdateInfo.Changelog.Between("<summary>", "</summary>");
-                    if (!UpdateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
+                    TextUpdateName.Text = "PCL N " + VersionNameFormat(updateInfo.VersionName);
+                    var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
+                    if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
                         TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
                     else
                         TextChangelog.Text = summary;
@@ -87,7 +87,7 @@ public partial class PageSetupUpdate
                 }
 
                 BtnCheckAgain.IsEnabled = true;
-                if (UpdateInfo is null)
+                if (updateInfo is null)
                 {
                     TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
@@ -97,12 +97,12 @@ public partial class PageSetupUpdate
                     return;
                 }
 
-                if (UpdateManager.UpdateLoader is not null && UpdateManager.UpdateLoader.State == ModBase.LoadState.Loading)
+                if (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == ModBase.LoadState.Loading)
                 {
                     BtnUpdate_Timer();
                     BtnUpdate.IsEnabled = false;
                 }
-                else if (UpdateManager.IsUpdateWaitingRestart)
+                else if (UpdateManager.isUpdateWaitingRestart)
                 {
                     BtnUpdate.Text = Lang.Text("Setup.Update.RestartInstall");
                     BtnUpdate.IsEnabled = true;
@@ -138,9 +138,9 @@ public partial class PageSetupUpdate
 
     public void BtnUpdate_Timer()
     {
-        while (UpdateManager.UpdateLoader is not null && UpdateManager.UpdateLoader.State == ModBase.LoadState.Loading)
+        while (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == ModBase.LoadState.Loading)
         {
-            ModBase.RunInUi(() => BtnUpdate.Text = Lang.Number(UpdateManager.UpdateLoader.Progress, "P2"));
+            ModBase.RunInUi(() => BtnUpdate.Text = Lang.Number(UpdateManager.updateLoader.Progress, "P2"));
             Thread.Sleep(200);
         }
     }
@@ -148,30 +148,30 @@ public partial class PageSetupUpdate
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
-        if (!UpdateInfo.VersionName.StartsWithF("2.13.") && !ModBase
+        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
                 .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {
             ModMain.MyMsgBox(
-                Lang.Text("Setup.Update.DotNetMissing.Message", UpdateInfo.VersionName,
+                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
                     SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                Button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), ForceWait: true);
+                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
             return;
         }
 
-        if (UpdateManager.IsUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
+        if (UpdateManager.isUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
         // 开始更新流程
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
     }
 
     private void BtnChangelogDetail_Click(object sender, EventArgs e)
     {
-        if (UpdateInfo is null)
+        if (updateInfo is null)
             ModMain.MyMsgBox(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
         else
-            ModMain.MyMsgBoxMarkdown(UpdateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+            ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
     }
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -185,7 +185,7 @@ public partial class PageSetupUpdate
         if (ModAnimation.AniControlEnabled != 0)
             return;
 
-        var IsCancelled = false;
+        var isCancelled = false;
         switch (ComboSystemUpdateChannel.SelectedIndex)
         {
             case 0:
@@ -197,8 +197,8 @@ public partial class PageSetupUpdate
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
-                    IsCancelled = true;
+                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                    isCancelled = true;
                 else
                     CheckUpdate();
                 break;
@@ -208,9 +208,9 @@ public partial class PageSetupUpdate
                 if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
                         Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), IsWarn: true) == 2)
+                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                 {
-                    IsCancelled = true;
+                    isCancelled = true;
                     break;
                 }
 
@@ -218,8 +218,8 @@ public partial class PageSetupUpdate
                 var ret = ModMain.MyMsgBoxInput(
                     Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
                     Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
-                    Button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
-                    Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true);
+                    button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
+                    button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
     
                 if (ret == confirmText)
                 {
@@ -228,13 +228,13 @@ public partial class PageSetupUpdate
                 else
                 {
                     ModMain.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
-                    IsCancelled = true;
+                    isCancelled = true;
                 }
                 break;
             }
         }
 
-        if (IsCancelled)
+        if (isCancelled)
         {
             ModAnimation.AniControlEnabled += 1;
             ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
@@ -248,7 +248,7 @@ public partial class PageSetupUpdate
 
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/releases/v" + ModBase.VersionBaseName);
+        ModBase.OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/releases/v" + ModBase.versionBaseName);
     }
 
     public string VersionNameFormat(string str)

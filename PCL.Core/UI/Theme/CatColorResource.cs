@@ -1,5 +1,4 @@
 ﻿using System.Windows.Media;
-using PCL.Core.App;
 using PCL.Core.App.IoC;
 
 namespace PCL.Core.UI.Theme;

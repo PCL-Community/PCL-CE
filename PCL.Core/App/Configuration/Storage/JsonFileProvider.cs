@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -15,16 +16,11 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
 {
     private readonly JsonObject _rootElement;
 
-    private static readonly JsonDocumentOptions _DocumentOptions = new()
-    {
-        AllowTrailingCommas = true,
-        CommentHandling = JsonCommentHandling.Skip
-    };
+    private static readonly JsonDocumentOptions _DocumentOptions = JsonCompat.DocumentOptions;
 
-    private static readonly JsonSerializerOptions _SerializerOptions = new()
+    private static readonly JsonSerializerOptions _SerializerOptions = new(JsonCompat.SerializerOptions)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        AllowTrailingCommas = true,
         AllowOutOfOrderMetadataProperties = true,
     };
 
@@ -40,7 +36,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
             if (File.Exists(path))
             {
                 using var stream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                var parseResult = JsonNode.Parse(stream, documentOptions: _DocumentOptions);
+                var parseResult = JsonNode.Parse(stream, JsonCompat.NodeOptions, _DocumentOptions);
                 if (parseResult is not JsonObject root)
                     throw new ConfigFileInitException(path,
                         $"Invalid root element type: {parseResult?.GetValueKind().ToString() ?? "Empty"}");
@@ -66,7 +62,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
         if (result is null) throw new KeyNotFoundException($"Not found: '{key}'");
         try
         {
-            var r = result.Deserialize<T>();
+            var r = result.Deserialize<T>(_SerializerOptions);
             return r ?? throw GetNullException();
         }
         catch (JsonException)
@@ -76,7 +72,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
             if (type == typeof(string)) fallback = (T)(object)result.ToString();
             else
             {
-                var jsonStr = result.Deserialize<string>()!;
+                var jsonStr = result.Deserialize<string>(_SerializerOptions)!;
                 if (type == typeof(bool)) fallback = (T)(object)(jsonStr.ToLowerInvariant() is "true" or "1");
                 else fallback = JsonSerializer.Deserialize<T>(jsonStr, _SerializerOptions) ?? throw GetNullException();
             }
@@ -88,7 +84,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
 
     public override void Set<T>(string key, T value)
     {
-        _rootElement[key] = JsonSerializer.SerializeToNode(value);
+        _rootElement[key] = JsonSerializer.SerializeToNode(value, _SerializerOptions);
     }
 
     public override bool Exists(string key)

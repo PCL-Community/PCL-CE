@@ -7,9 +7,9 @@ namespace PCL;
 public partial class PageSetupAbout
 {
     // 彩蛋
-    private int ClickCount;
+    private int clickCount;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupAbout()
     {
@@ -23,9 +23,9 @@ public partial class PageSetupAbout
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
             .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
@@ -39,10 +39,10 @@ public partial class PageSetupAbout
 
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ClickCount < 200)
+        if (clickCount < 200)
         {
-            ClickCount += 1;
-            switch (ClickCount)
+            clickCount += 1;
+            switch (clickCount)
             {
                 case 5:
                 {

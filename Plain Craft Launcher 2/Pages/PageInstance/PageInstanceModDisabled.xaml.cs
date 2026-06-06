@@ -15,26 +15,26 @@ public partial class PageInstanceModDisabled
 
     private void BtnDownload_Click(object sender, EventArgs e)
     {
-        ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
 
     private void BtnVersion_Click(object sender, EventArgs e)
     {
-        ModMain.FrmMain.PageChange(FormMain.PageType
+        ModMain.frmMain.PageChange(FormMain.PageType
             .Launch); // 在实例选择页面选定实例的时候只会返回一层，因此如果不先锚定 Launch，在选择实例后会回退到实例设置的这个页面
-        ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSelect);
+        ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
 
     public void BtnDownload_Loaded(object? sender = null, RoutedEventArgs? e = null)
     {
-        var NewVisibility =
+        var newVisibility =
             (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) ||
-            (ModMain.FrmSelectRight is not null && ModMain.FrmSelectRight.ShowHidden)
+            (ModMain.frmSelectRight is not null && ModMain.frmSelectRight.showHidden)
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-        if (BtnDownload.Visibility != NewVisibility)
+        if (BtnDownload.Visibility != newVisibility)
         {
-            BtnDownload.Visibility = NewVisibility;
+            BtnDownload.Visibility = newVisibility;
             PanMain.TriggerForceResize();
         }
     }

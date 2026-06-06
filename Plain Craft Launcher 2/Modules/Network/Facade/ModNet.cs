@@ -5,7 +5,7 @@ namespace PCL.Network;
 
 public static class ModNet
 {
-    public const string NetDownloadEnd = ".PCLDownloading";
+    public const string netDownloadEnd = ".PCLDownloading";
     public static int NetTaskThreadLimit { get; set; } = 16;
     public static long NetTaskSpeedLimitLow { get; set; } = 256 * 1024L;
     public static long NetTaskSpeedLimitHigh { get; set; } = -1;
@@ -13,51 +13,69 @@ public static class ModNet
     public static int NetTaskThreadCount { get; set; }
     public static NetManager NetManager => NetManager.Instance;
 
-    public static object NetGetCodeByRequestRetry(string url, Encoding? Encode = null, string Accept = "",
-        bool IsJson = false, string? BackupUrl = null, bool UseBrowserUserAgent = false)
+    public static object NetGetCodeByRequestRetry(string url, Encoding? encode = null, string accept = "",
+        bool isJson = false, string? backupUrl = null, bool useBrowserUserAgent = false)
     {
         var param = new RequestParam
         {
-            Encoding = Encode,
-            Accept = Accept,
-            FallbackUrl = BackupUrl,
-            UseBrowserUserAgent = UseBrowserUserAgent,
+            Encoding = encode,
+            Accept = accept,
+            FallbackUrl = backupUrl,
+            UseBrowserUserAgent = useBrowserUserAgent,
             Timeout = 30000,
             Retries = 3
         };
         var result = Requester.FetchString(url, param);
-        return IsJson ? ModBase.GetJson(result) : result;
+        return isJson ? (object)ModBase.GetJson(result) : result;
     }
 
-    public static object NetGetCodeByRequestOnce(string url, Encoding? Encode = null, int Timeout = 30000,
-        bool IsJson = false, string Accept = "", bool UseBrowserUserAgent = false)
+    public static object NetGetCodeByRequestOnce(string url, Encoding? encode = null, int timeout = 30000,
+        bool isJson = false, string accept = "", bool useBrowserUserAgent = false)
     {
         var param = new RequestParam
         {
-            Encoding = Encode,
-            Accept = Accept,
-            UseBrowserUserAgent = UseBrowserUserAgent,
-            Timeout = Timeout,
+            Encoding = encode,
+            Accept = accept,
+            UseBrowserUserAgent = useBrowserUserAgent,
+            Timeout = timeout,
             Retries = 1
         };
         var result = Requester.FetchString(url, param);
-        return IsJson ? ModBase.GetJson(result) : result;
+        return isJson ? (object)ModBase.GetJson(result) : result;
     }
 
-    public static string NetGetCodeByLoader(string url, int Timeout = 45000, bool IsJson = false,
-        bool UseBrowserUserAgent = false)
+    public static string NetGetCodeByLoader(string url, int timeout = 45000, bool isJson = false,
+        bool useBrowserUserAgent = false)
     {
-        return NetGetCodeByLoader(new[] { url }, Timeout, IsJson, UseBrowserUserAgent);
+        return NetGetCodeByLoader(new[] { url }, timeout, isJson, useBrowserUserAgent);
     }
 
-    public static string NetGetCodeByLoader(IEnumerable<string> urls, int Timeout = 45000, bool IsJson = false,
-        bool UseBrowserUserAgent = false)
+    public static string NetGetCodeByLoader(IEnumerable<string> urls, int timeout = 45000, bool isJson = false,
+        bool useBrowserUserAgent = false)
     {
-        var temp = ModMain.RequestTaskTempFolder() + "download.txt";
-        FileDownloader.Download(urls, temp, UseBrowserUserAgent).GetAwaiter().GetResult();
-        var content = ModBase.ReadFile(temp);
-        File.Delete(temp);
-        return IsJson ? ModBase.GetJson(content).ToString() : content;
+        Exception? lastException = null;
+
+        foreach (var url in urls)
+        {
+            try
+            {
+                var content = Requester.Fetch(url, new FetchParam
+                {
+                    Method = "GET",
+                    Timeout = timeout,
+                    UseBrowserUserAgent = useBrowserUserAgent
+                });
+                
+                return isJson ? ModBase.GetJson(content).ToString() : content;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                ModBase.Log(ex, $"[Fetch] 获取文件内容失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+            }
+        }
+
+        throw new Exception("无法获取文件内容", lastException);
     }
 
     public static string NetRequestRetry(string url, string method, string data = "", string? contentType = null,
@@ -99,12 +117,12 @@ public static class ModNet
         FileDownloader.Download(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
-    public static bool HasDownloadingTask(bool IgnoreCustomDownload = false)
+    public static bool HasDownloadingTask(bool ignoreCustomDownload = false)
     {
-        foreach (var task in ModLoader.LoaderTaskbar.ToList())
+        foreach (var task in ModLoader.loaderTaskbar.ToList())
         {
-            if (task.Show && task.State == ModBase.LoadState.Loading &&
-                (!IgnoreCustomDownload || !task.Name.Contains("自定义下载")))
+            if (task.show && task.State == ModBase.LoadState.Loading &&
+                (!ignoreCustomDownload || !task.name.Contains("自定义下载")))
                 return true;
         }
         return false;

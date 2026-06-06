@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -26,7 +27,7 @@ public static class JsonToYamlConverter
         if (!jsonInput.CanRead) throw new ArgumentException("must be readable", nameof(jsonInput));
         if (!yamlOutput.CanWrite) throw new ArgumentException("must be writable", nameof(yamlOutput));
 
-        using var doc = JsonDocument.Parse(jsonInput);
+        using var doc = JsonDocument.Parse(jsonInput, JsonCompat.DocumentOptions);
         var obj = _ConvertElement(doc.RootElement);
 
         var serializer = new SerializerBuilder().Build();
@@ -48,7 +49,7 @@ public static class JsonToYamlConverter
         if (!jsonInput.CanRead) throw new ArgumentException("jsonInput must be readable", nameof(jsonInput));
         if (!yamlOutput.CanWrite) throw new ArgumentException("yamlOutput must be writable", nameof(yamlOutput));
 
-        using var doc = await JsonDocument.ParseAsync(jsonInput).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(jsonInput, JsonCompat.DocumentOptions).ConfigureAwait(false);
         var obj = _ConvertElement(doc.RootElement);
 
         var serializer = new SerializerBuilder().Build();

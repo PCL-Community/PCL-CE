@@ -1,4 +1,4 @@
-﻿<Grid x:Class="PCL.MySkin"
+<Grid x:Class="PCL.MySkin"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PCL"

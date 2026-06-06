@@ -1,4 +1,4 @@
-using PCL.Core.Logging;
+﻿using PCL.Core.Logging;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft;
 
@@ -47,7 +48,7 @@ public class JavaManager
                     Source = x.Value.Source
                 })
                 .ToArray();
-            States.Game.JavaList = JsonSerializer.Serialize(items);
+            States.Game.JavaList = JsonSerializer.Serialize(items, JsonCompat.SerializerOptions);
         }
         catch(Exception ex)
         {
@@ -59,7 +60,7 @@ public class JavaManager
     {
         try
         {
-            var items = JsonSerializer.Deserialize<JavaStorageItem[]>(States.Game.JavaList);
+            var items = JsonSerializer.Deserialize<JavaStorageItem[]>(States.Game.JavaList, JsonCompat.SerializerOptions);
             if (items is null) return;
 
             var itemsAdded = new List<JavaEntry>();

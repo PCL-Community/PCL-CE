@@ -26,7 +26,7 @@ public partial class PageLoginProfile
     public void Reload()
     {
         RefreshProfileList();
-        ModMain.FrmLoginProfileSkin = null;
+        ModMain.frmLoginProfileSkin = null;
         // RunInNewThread(Sub()
         // Thread.Sleep(800)
         // RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
@@ -43,7 +43,7 @@ public partial class PageLoginProfile
         ModProfile.GetProfile();
         try
         {
-            foreach (var Profile in ModProfile.ProfileList)
+            foreach (var Profile in ModProfile.profileList)
                 ProfileCollection.Add(new ProfileItem(Profile));
             ModBase.Log("[Profile] 档案列表刷新完成");
         }
@@ -52,7 +52,7 @@ public partial class PageLoginProfile
             ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
         }
 
-        if (!ModProfile.ProfileList.Any())
+        if (!ModProfile.profileList.Any())
         {
             States.Hint.LaunchWithProfile = true;
             HintCreate.Visibility = Visibility.Visible;
@@ -69,14 +69,22 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = (string)ModProfile.GetProfileInfo(profile);
-            var LogoPath = ModBase.PathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
-            if (!(File.Exists(LogoPath) && !(new FileInfo(LogoPath).Length == 0L)))
-                LogoPath = Icon.IconButtonUser;
-            Logo = LogoPath;
+            var logoPath = ModBase.pathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
+            if (File.Exists(logoPath) && new FileInfo(logoPath).Length != 0L)
+            {
+                Logo = logoPath;
+                SvgIcon = string.Empty;
+            }
+            else
+            {
+                Logo = string.Empty;
+                SvgIcon = "lucide/user";
+            }
         }
 
         public string Info { get; private set; }
-        public string Logo { get; private set; }
+        public string Logo { get; private set; } = string.Empty;
+        public string SvgIcon { get; private set; } = string.Empty;
         public ModProfile.McProfile Profile { get; }
         public string Username => Profile.Username;
     }
@@ -87,21 +95,21 @@ public partial class PageLoginProfile
     {
         var item = (MyListItem)sender;
         var tag = (ModProfile.McProfile)item.Tag;
-        ModProfile.SelectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
+        ModProfile.selectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
         ModBase.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
-        ModProfile.LastUsedProfile =
-            ModProfile.ProfileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
+        ModProfile.lastUsedProfile =
+            ModProfile.profileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
         ModProfile.SaveProfile(); // 保存档案配置，确保切换后的档案被正确保存
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.McLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.McLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginMsLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginAuthLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginLegacyLoader.State = ModBase.LoadState.Waiting;
 
         ModBase.RunInUi(() =>
         {
-            ModMain.FrmLaunchLeft.RefreshPage(true);
-            ModMain.FrmLaunchLeft.BtnLaunch.IsEnabled = true;
+            ModMain.frmLaunchLeft.RefreshPage(true);
+            ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
         });
     }
 
@@ -109,27 +117,27 @@ public partial class PageLoginProfile
     {
         // 更改 UUID
         var btnEditUuid = new MyIconButton
-            { Logo = Icon.IconButtonEdit, ToolTip = Lang.Text("Launch.Account.Profile.ChangeUuid"), Tag = sender.Tag };
+            { SvgIcon = "lucide/pencil", ToolTip = Lang.Text("Launch.Account.Profile.ChangeUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2d);
         btnEditUuid.Click += EditProfileUuid;
         // 复制 UUID
         var btnCopyUuid = new MyIconButton
-            { Logo = Icon.IconButtonCopy, ToolTip = Lang.Text("Launch.Account.Profile.CopyUuid"), Tag = sender.Tag };
+            { SvgIcon = "lucide/copy", ToolTip = Lang.Text("Launch.Account.Profile.CopyUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnCopyUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2d);
         btnCopyUuid.Click += CopyProfileUuid;
         // 更改验证服务器名称
         var btnEditServerName = new MyIconButton
-            { Logo = Icon.IconButtonInfo, ToolTip = Lang.Text("Launch.Account.Profile.ChangeAuthServerName"), Tag = sender.Tag };
+            { SvgIcon = "lucide/info", ToolTip = Lang.Text("Launch.Account.Profile.ChangeAuthServerName"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditServerName, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditServerName, 30d);
         ToolTipService.SetHorizontalOffset(btnEditServerName, 2d);
         btnEditServerName.Click += EditProfileServer;
         // 删除档案
-        var btnDelete = new MyIconButton { Logo = Icon.IconButtonDelete, ToolTip = Lang.Text("Launch.Account.Profile.Delete"), Tag = sender.Tag };
+        var btnDelete = new MyIconButton { SvgIcon = "lucide/trash-2", ToolTip = Lang.Text("Launch.Account.Profile.Delete"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
@@ -173,8 +181,8 @@ public partial class PageLoginProfile
     // 删除档案
     private void DeleteProfile(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), IsWarn: true,
-                ForceWait: true) == 2)
+        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true,
+                forceWait: true) == 2)
             return;
         ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);
         ModBase.RunInUi(() => RefreshProfileList());

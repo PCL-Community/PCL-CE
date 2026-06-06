@@ -24,8 +24,8 @@ public partial class MyIconTextButton
 
     // 动画
 
-    private const int AnimationTimeOfMouseIn = 100; // 鼠标指向动画长度
-    private const int AnimationTimeOfMouseOut = 150; // 鼠标移出动画长度
+    private const int animationTimeOfMouseIn = 100; // 鼠标指向动画长度
+    private const int animationTimeOfMouseOut = 150; // 鼠标移出动画长度
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyIconTextButton), new PropertyMetadata((sender, e) =>
@@ -36,8 +36,8 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
-    private double _LogoScale = 1d;
-    private bool IsMouseDown;
+    private bool _hasLegacyLogo;
+    private bool isMouseDown;
 
     // 基础
 
@@ -46,6 +46,7 @@ public partial class MyIconTextButton
     public MyIconTextButton()
     {
         InitializeComponent();
+        RefreshLogoHostVisibility();
 
         MouseLeftButtonUp += (_, _) => MyIconTextButton_MouseUp();
         MouseLeftButtonDown += (_, _) => MyIconTextButton_MouseDown();
@@ -59,24 +60,84 @@ public partial class MyIconTextButton
 
     public string Logo
     {
-        get => ShapeLogo.Data.ToString();
+        get => ShapeLogo.Data?.ToString() ?? string.Empty;
         set
         {
             if (ShapeLogo is null) return;
-            ShapeLogo.Data = (Geometry)new GeometryConverter().ConvertFromString(value)!;
+            _hasLegacyLogo = !string.IsNullOrWhiteSpace(value);
+            ShapeLogo.Data = _hasLegacyLogo
+                ? (Geometry)new GeometryConverter().ConvertFromString(value)!
+                : null;
+            SvgIconControlHelper.ApplyVisibility(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshLogoHostVisibility();
+        }
+    }
+
+    public string SvgIcon
+    {
+        get;
+        set
+        {
+            value ??= string.Empty;
+            if (value == field)
+                return;
+            field = value;
+            if (ShapeLogo is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(ShapeLogo, ShapeSvgIcon, field);
+            ApplyLogoScale();
+            RefreshLogoHostVisibility();
+            RefreshColor();
+        }
+    } = string.Empty;
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private bool HasAnyIcon => IsUsingSvgIcon || _hasLegacyLogo;
+
+    private void ApplyLogoScale()
+    {
+        LogoHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshLogoHostVisibility()
+    {
+        if (LogoHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            LogoHost.Visibility = Visibility.Visible;
+            LogoHost.Width = 16;
+            LogoHost.Height = 16;
+            LogoHost.Margin = new Thickness(12, 0, 0, 0);
+            LabText.Margin = new Thickness(7, 0, 12, 1);
+        }
+        else
+        {
+            LogoHost.Visibility = Visibility.Collapsed;
+            LogoHost.Width = 0;
+            LogoHost.Height = 16;
+            LogoHost.Margin = new Thickness(0);
+            LabText.Margin = new Thickness(12, 0, 12, 1);
         }
     }
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get;
         set
         {
-            _LogoScale = value;
-            if (ShapeLogo is not null)
-                ShapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     public InlineCollection Inlines => LabText.Inlines;
 
@@ -115,12 +176,22 @@ public partial class MyIconTextButton
 
     private void StartForegroundAnimation(string resourceKey, int duration)
     {
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
-                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
-            }, CheckedAnimationKey);
+        if (IsUsingSvgIcon)
+        {
+            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, CheckedAnimationKey);
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
+                CheckedAnimationKey);
+        }
+        else
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
+                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
+                }, CheckedAnimationKey);
+        }
     }
 
     private void StartBackgroundAnimation(string resourceKey, int duration)
@@ -135,10 +206,10 @@ public partial class MyIconTextButton
 
     private void MyIconTextButton_MouseUp()
     {
-        if (!IsMouseDown)
+        if (!isMouseDown)
             return;
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
-        IsMouseDown = false;
+        isMouseDown = false;
         Click?.Invoke(this, new ModBase.RouteEventArgs(true));
         ModMain.RaiseCustomEvent(this);
         RefreshColor();
@@ -146,13 +217,13 @@ public partial class MyIconTextButton
 
     private void MyIconTextButton_MouseDown()
     {
-        IsMouseDown = true;
+        isMouseDown = true;
         RefreshColor();
     }
 
     private void MyIconTextButton_MouseLeave()
     {
-        IsMouseDown = false;
+        isMouseDown = false;
         RefreshColor();
     }
 
@@ -162,24 +233,24 @@ public partial class MyIconTextButton
         {
             if (ControlVisualHelpers.ShouldAnimate(this, e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
             {
-                if (IsMouseDown)
+                if (isMouseDown)
                 {
                     StartBackgroundAnimation("ColorBrush6", 70);
                 }
                 else if (IsMouseOver)
                 {
-                    StartForegroundAnimation("ColorBrush3", AnimationTimeOfMouseIn);
-                    StartBackgroundAnimation("ColorBrushBg1", AnimationTimeOfMouseIn);
+                    StartForegroundAnimation("ColorBrush3", animationTimeOfMouseIn);
+                    StartBackgroundAnimation("ColorBrushBg1", animationTimeOfMouseIn);
                 }
                 else if (IsEnabled)
                 {
-                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), AnimationTimeOfMouseOut);
-                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
+                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), animationTimeOfMouseOut);
+                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
                 }
                 else
                 {
                     StartForegroundAnimation("ColorBrushGray5", 100);
-                    StartBackgroundAnimation(ThemeManager.ColorSemiTransparent - Background, AnimationTimeOfMouseOut);
+                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
                 }
             }
 
@@ -188,9 +259,9 @@ public partial class MyIconTextButton
                 // 不使用动画
                 ModAnimation.AniStop(CheckedAnimationKey);
                 ModAnimation.AniStop(ColorAnimationKey);
-                Background = ThemeManager.ColorSemiTransparent;
+                Background = ThemeManager.colorSemiTransparent;
                 var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
-                ShapeLogo.SetResourceReference(Shape.FillProperty, foregroundKey);
+                SvgIconControlHelper.SetIconResource(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon, foregroundKey);
                 LabText.SetResourceReference(TextBlock.ForegroundProperty, foregroundKey);
             }
         }

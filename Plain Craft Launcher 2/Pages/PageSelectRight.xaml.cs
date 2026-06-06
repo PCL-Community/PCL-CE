@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,18 +19,18 @@ namespace PCL;
 
 public partial class PageSelectRight
 {
-    private const int NormalDelay = 75; // 正常输入延迟0.075秒
-    private const int QuickDelay = 50; // 清空搜索框延迟0.05秒
-    private bool IsRefreshing;
+    private const int normalDelay = 75; // 正常输入延迟0.075秒
+    private const int quickDelay = 50; // 清空搜索框延迟0.05秒
+    private bool isRefreshing;
 
-    private DateTime LastInputTime = DateTime.MinValue;
-    private DispatcherTimer ReloadTimer;
+    private DateTime lastInputTime = DateTime.MinValue;
+    private DispatcherTimer reloadTimer;
 
     // 窗口属性
     /// <summary>
     ///     是否显示隐藏的 Minecraft 实例。
     /// </summary>
-    public bool ShowHidden = false;
+    public bool showHidden = false;
 
     public PageSelectRight()
     {
@@ -44,104 +44,104 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
-        ReloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(NormalDelay) };
-        ReloadTimer.Tick += ReloadTimer_Tick;
+        reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
+        reloadTimer.Tick += ReloadTimer_Tick;
     }
 
     private void PanVerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         // 记录最后一次输入时间
-        LastInputTime = DateTime.Now;
+        lastInputTime = DateTime.Now;
 
-        IsRefreshing = false;
+        isRefreshing = false;
 
         // 动态调整延迟时间
         if (string.IsNullOrWhiteSpace(PanVerSearchBox.Text))
         {
-            if (ReloadTimer.Interval.TotalMilliseconds != QuickDelay)
-                ReloadTimer.Interval = TimeSpan.FromMilliseconds(QuickDelay);
+            if (reloadTimer.Interval.TotalMilliseconds != quickDelay)
+                reloadTimer.Interval = TimeSpan.FromMilliseconds(quickDelay);
         }
-        else if (ReloadTimer.Interval.TotalMilliseconds != NormalDelay)
+        else if (reloadTimer.Interval.TotalMilliseconds != normalDelay)
         {
-            ReloadTimer.Interval = TimeSpan.FromMilliseconds(NormalDelay);
+            reloadTimer.Interval = TimeSpan.FromMilliseconds(normalDelay);
         }
 
 
-        if (!ReloadTimer.IsEnabled) ReloadTimer.Start();
+        if (!reloadTimer.IsEnabled) reloadTimer.Start();
     }
 
     private void ReloadTimer_Tick(object sender, EventArgs e)
     {
         // 检查是否超过当前设定的延迟时间没有新输入
-        var elapsed = (DateTime.Now - LastInputTime).TotalMilliseconds;
-        var currentDelay = ReloadTimer.Interval.TotalMilliseconds;
+        var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
+        var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Finished &&
-            !IsRefreshing)
+        if (elapsed >= currentDelay && ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Finished &&
+            !isRefreshing)
         {
-            IsRefreshing = true;
+            isRefreshing = true;
 
             // 确保在UI线程执行刷新
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                McInstanceListUI(ModMinecraft.McInstanceListLoader);
-                IsRefreshing = false;
+                McInstanceListUI(ModInstanceList.mcInstanceListLoader);
+                isRefreshing = false;
             }));
-            ReloadTimer.Stop();
+            reloadTimer.Stop();
         }
     }
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
         // 清理计时器
-        if (ReloadTimer is not null)
+        if (reloadTimer is not null)
         {
-            ReloadTimer.Stop();
-            ReloadTimer.Tick -= ReloadTimer_Tick;
-            ReloadTimer = null;
+            reloadTimer.Stop();
+            reloadTimer.Tick -= ReloadTimer_Tick;
+            reloadTimer = null;
         }
     }
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModMinecraft.McInstanceListLoader,
+        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModInstanceList.mcInstanceListLoader,
             a => this.McInstanceListUI((ModLoader.LoaderTask<string, int>)a),
-            AutoRun: false);
+            autoRun: false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMinecraft.McInstanceListLoader.State == ModBase.LoadState.Failed)
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+        if (ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Failed)
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
     #region 结果 UI 化
 
-    private void McInstanceListUI(ModLoader.LoaderTask<string, int> Loader)
+    private void McInstanceListUI(ModLoader.LoaderTask<string, int> loader)
     {
         try
         {
-            var Path = Loader.Input;
+            var path = loader.input;
             // 加载 UI
             PanMain.Children.Clear();
 
             var hasVisibleFolders = false;
             var searchText = PanVerSearchBox.Text.Trim().ToLower(); // 获取搜索框文本
             var hasAnyResults = false;
-            var originalHasInstances = ModMinecraft.McInstanceList.ToArray().Any(c => c.Value.Count > 0);
+            var originalHasInstances = ModInstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
 
             // 搜索无结果时显示 PanEmptySearch
             PanEmptySearch.Visibility = Visibility.Collapsed; // 默认隐藏
 
-            foreach (var Card in ModMinecraft.McInstanceList.ToArray())
+            foreach (var Card in ModInstanceList.mcInstanceList.ToArray())
             {
-                if ((Card.Key == ModMinecraft.McInstanceCardType.Hidden) ^ ShowHidden)
+                if ((Card.Key == McInstanceCardType.Hidden) ^ showHidden)
                     continue;
                 var filteredInstances = Card.Value.Where(v =>
                 {
@@ -162,87 +162,87 @@ public partial class PageSelectRight
 
                 #region 确认卡片名称
 
-                var CardName = "";
+                var cardName = "";
                 switch (Card.Key)
                 {
-                    case ModMinecraft.McInstanceCardType.OriginalLike:
+                    case McInstanceCardType.OriginalLike:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.Regular");
+                        cardName = Lang.Text("Select.Instance.Card.Regular");
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.API:
+                    case McInstanceCardType.API:
                     {
-                        var IsForgeExists = false;
-                        var IsNeoForgeExists = false;
-                        var IsFabricExists = false;
-                        var IsQuiltExists = false;
-                        var IsLiteExists = false;
-                        var IsCleanroomExists = false;
-                        var IsLabyModExists = false;
+                        var isForgeExists = false;
+                        var isNeoForgeExists = false;
+                        var isFabricExists = false;
+                        var isQuiltExists = false;
+                        var isLiteExists = false;
+                        var isCleanroomExists = false;
+                        var isLabyModExists = false;
                         foreach (var instance in Card.Value)
                         {
                             if (!instance.IsLoaded)
                                 instance.Load();
                             if (instance.Info.HasFabric)
-                                IsFabricExists = true;
+                                isFabricExists = true;
                             if (instance.Info.HasQuilt)
-                                IsQuiltExists = true;
+                                isQuiltExists = true;
                             if (instance.Info.HasLiteLoader)
-                                IsLiteExists = true;
+                                isLiteExists = true;
                             if (instance.Info.HasForge)
-                                IsForgeExists = true;
+                                isForgeExists = true;
                             if (instance.Info.HasNeoForge)
-                                IsNeoForgeExists = true;
+                                isNeoForgeExists = true;
                             if (instance.Info.HasCleanroom)
-                                IsCleanroomExists = true;
+                                isCleanroomExists = true;
                             if (instance.Info.HasLabyMod)
-                                IsLabyModExists = true;
+                                isLabyModExists = true;
                         }
 
-                        if ((IsLiteExists ? 1 : 0) + (IsForgeExists ? 1 : 0) + (IsFabricExists ? 1 : 0) +
-                            (IsNeoForgeExists ? 1 : 0) + (IsQuiltExists ? 1 : 0) + (IsCleanroomExists ? 1 : 0) +
-                            (IsLabyModExists ? 1 : 0) > 1)
-                            CardName = Lang.Text("Select.Instance.Card.Modable");
-                        else if (IsForgeExists)
-                            CardName = Lang.Text("Select.Instance.Card.Forge");
-                        else if (IsNeoForgeExists)
-                            CardName = Lang.Text("Select.Instance.Card.NeoForge");
-                        else if (IsCleanroomExists)
-                            CardName = Lang.Text("Select.Instance.Card.Cleanroom");
-                        else if (IsLabyModExists)
-                            CardName = Lang.Text("Select.Instance.Card.LabyMod");
-                        else if (IsLiteExists)
-                            CardName = Lang.Text("Select.Instance.Card.LiteLoader");
-                        else if (IsQuiltExists)
-                            CardName = Lang.Text("Select.Instance.Card.Quilt");
+                        if ((isLiteExists ? 1 : 0) + (isForgeExists ? 1 : 0) + (isFabricExists ? 1 : 0) +
+                            (isNeoForgeExists ? 1 : 0) + (isQuiltExists ? 1 : 0) + (isCleanroomExists ? 1 : 0) +
+                            (isLabyModExists ? 1 : 0) > 1)
+                            cardName = Lang.Text("Select.Instance.Card.Modable");
+                        else if (isForgeExists)
+                            cardName = Lang.Text("Select.Instance.Card.Forge");
+                        else if (isNeoForgeExists)
+                            cardName = Lang.Text("Select.Instance.Card.NeoForge");
+                        else if (isCleanroomExists)
+                            cardName = Lang.Text("Select.Instance.Card.Cleanroom");
+                        else if (isLabyModExists)
+                            cardName = Lang.Text("Select.Instance.Card.LabyMod");
+                        else if (isLiteExists)
+                            cardName = Lang.Text("Select.Instance.Card.LiteLoader");
+                        else if (isQuiltExists)
+                            cardName = Lang.Text("Select.Instance.Card.Quilt");
                         else
-                            CardName = Lang.Text("Select.Instance.Card.Fabric");
+                            cardName = Lang.Text("Select.Instance.Card.Fabric");
 
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.Error:
+                    case McInstanceCardType.Error:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.Error");
+                        cardName = Lang.Text("Select.Instance.Card.Error");
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.Hidden:
+                    case McInstanceCardType.Hidden:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.Hidden");
+                        cardName = Lang.Text("Select.Instance.Card.Hidden");
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.Rubbish:
+                    case McInstanceCardType.Rubbish:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.LessUsed");
+                        cardName = Lang.Text("Select.Instance.Card.LessUsed");
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.Star:
+                    case McInstanceCardType.Star:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.Favorites");
+                        cardName = Lang.Text("Select.Instance.Card.Favorites");
                         break;
                     }
-                    case ModMinecraft.McInstanceCardType.Fool:
+                    case McInstanceCardType.Fool:
                     {
-                        CardName = Lang.Text("Select.Instance.Card.AprilFools");
+                        cardName = Lang.Text("Select.Instance.Card.AprilFools");
                         break;
                     }
 
@@ -255,36 +255,36 @@ public partial class PageSelectRight
                 #endregion
 
                 // 建立控件
-                var CardTitle = $"{CardName}{(Card.Key == ModMinecraft.McInstanceCardType.Star ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
-                var NewCard = new MyCard { Title = CardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
-                var NewStack = new StackPanel
+                var cardTitle = $"{cardName}{(Card.Key == McInstanceCardType.Star ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
+                var newCard = new MyCard { Title = cardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
                     Tag = filteredInstances
                 };
-                NewCard.Children.Add(NewStack);
-                NewCard.SwapControl = NewStack;
-                PanMain.Children.Add(NewCard);
+                newCard.Children.Add(newStack);
+                newCard.SwapControl = newStack;
+                PanMain.Children.Add(newCard);
 
                 // 确定卡片是否展开
-                void PutMethod(StackPanel Stack)
+                void PutMethod(StackPanel stack)
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(McVersionListItem((ModMinecraft.McInstance)item));
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(McVersionListItem((McInstance)item));
                 }
 
                 ;
-                if (Card.Key == ModMinecraft.McInstanceCardType.Rubbish ||
-                    Card.Key == ModMinecraft.McInstanceCardType.Error ||
-                    Card.Key == ModMinecraft.McInstanceCardType.Fool)
+                if (Card.Key == McInstanceCardType.Rubbish ||
+                    Card.Key == McInstanceCardType.Error ||
+                    Card.Key == McInstanceCardType.Fool)
                 {
-                    NewCard.IsSwapped = true;
-                    NewCard.InstallMethod = PutMethod;
+                    newCard.IsSwapped = true;
+                    newCard.InstallMethod = PutMethod;
                 }
                 else
                 {
-                    MyCard.StackInstall(ref NewStack, PutMethod);
+                    MyCard.StackInstall(ref newStack, PutMethod);
                 }
             }
 
@@ -302,7 +302,7 @@ public partial class PageSelectRight
                     // 完全没有实例的情况
                     PanEmpty.Visibility = Visibility.Visible;
                     PanBack.Visibility = Visibility.Collapsed;
-                    if (ShowHidden)
+                    if (showHidden)
                     {
                         LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
                         LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
@@ -319,8 +319,8 @@ public partial class PageSelectRight
                     }
                 }
                 // 有实例但搜索无结果的情况
-                else if (ShowHidden && ModMinecraft.McInstanceList.ToArray().Any(c =>
-                             c.Key == ModMinecraft.McInstanceCardType.Hidden && c.Value.Count > 0))
+                else if (showHidden && ModInstanceList.mcInstanceList.ToArray().Any(c =>
+                             c.Key == McInstanceCardType.Hidden && c.Value.Count > 0))
                 {
                     // 有隐藏实例但搜索无结果 - 显示搜索无结果提示
                     PanVerSearchBox.Visibility = Visibility.Visible;
@@ -332,7 +332,7 @@ public partial class PageSelectRight
                         ? Lang.Text("Select.Instance.Search.EmptyInput")
                         : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
                 }
-                else if (ShowHidden)
+                else if (showHidden)
                 {
                     // 无隐藏实例 - 显示"无隐藏实例"提示
                     PanEmpty.Visibility = Visibility.Visible;
@@ -370,14 +370,14 @@ public partial class PageSelectRight
         }
     }
 
-    public static MyListItem McVersionListItem(ModMinecraft.McInstance instance)
+    public static MyListItem McVersionListItem(McInstance mcInstance)
     {
-        var NewItem = new MyListItem
+        var newItem = new MyListItem
         {
-            Title = instance.Name, Info = instance.Desc, Height = 42d, Tag = instance, SnapsToDevicePixels = true,
+            Title = mcInstance.Name, Info = mcInstance.Desc, Height = 42d, Tag = mcInstance, SnapsToDevicePixels = true,
             Type = MyListItem.CheckType.Clickable
         };
-        var instanceInfo = instance.Info;
+        var instanceInfo = mcInstance.Info;
         var tags = new List<string>();
         tags.Add(instanceInfo.VanillaName);
         if (instanceInfo.HasForge)
@@ -395,98 +395,98 @@ public partial class PageSelectRight
             tags.Add("LiteLoader");
         if (instanceInfo.HasOptiFine)
             tags.Add("OptiFine " + instanceInfo.OptiFine);
-        NewItem.Tags = tags;
+        newItem.Tags = tags;
         try
         {
-            if (instance.Logo.EndsWith(@"PCL\Logo.png"))
-                NewItem.Logo = instance.PathInstance + @"PCL\Logo.png"; // 修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
+            if (mcInstance.Logo.EndsWith(@"PCL\Logo.png"))
+                newItem.Logo = mcInstance.PathInstance + @"PCL\Logo.png"; // 修复老版本中，存储的自定义 Logo 使用完整路径，导致移动后无法加载的 Bug
             else
-                NewItem.Logo = instance.Logo;
+                newItem.Logo = mcInstance.Logo;
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Select.Instance.Error.IconLoad"), ModBase.LogLevel.Hint);
-            NewItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
+            newItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
-        NewItem.ContentHandler = McVersionListContent;
-        return NewItem;
+        newItem.ContentHandler = McVersionListContent;
+        return newItem;
     }
 
     private static void McVersionListContent(MyListItem sender, EventArgs e)
     {
-        var Version = (ModMinecraft.McInstance)sender.Tag;
+        var version = (McInstance)sender.Tag;
         // 注册点击事件
         sender.Click += (a, b) => Item_Click((MyListItem)a, b);
         // 图标按钮
-        var BtnStar = new MyIconButton();
-        if (Version.IsStar)
+        var btnStar = new MyIconButton();
+        if (version.IsStar)
         {
-            BtnStar.ToolTip = Lang.Text("Select.Instance.Unfavorite");
-            ToolTipService.SetPlacement(BtnStar, PlacementMode.Center);
-            ToolTipService.SetVerticalOffset(BtnStar, 30d);
-            ToolTipService.SetHorizontalOffset(BtnStar, 2d);
-            BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = Icon.IconButtonLikeFill;
+            btnStar.ToolTip = Lang.Text("Select.Instance.Unfavorite");
+            ToolTipService.SetPlacement(btnStar, PlacementMode.Center);
+            ToolTipService.SetVerticalOffset(btnStar, 30d);
+            ToolTipService.SetHorizontalOffset(btnStar, 2d);
+            btnStar.LogoScale = 1.1d;
+            btnStar.SvgIcon = "lucide/heart-filled";
         }
         else
         {
-            BtnStar.ToolTip = Lang.Text("Select.Instance.Favorite");
-            ToolTipService.SetPlacement(BtnStar, PlacementMode.Center);
-            ToolTipService.SetVerticalOffset(BtnStar, 30d);
-            ToolTipService.SetHorizontalOffset(BtnStar, 2d);
-            BtnStar.LogoScale = 1.1d;
-            BtnStar.Logo = Icon.IconButtonLikeLine;
+            btnStar.ToolTip = Lang.Text("Select.Instance.Favorite");
+            ToolTipService.SetPlacement(btnStar, PlacementMode.Center);
+            ToolTipService.SetVerticalOffset(btnStar, 30d);
+            ToolTipService.SetHorizontalOffset(btnStar, 2d);
+            btnStar.LogoScale = 1.1d;
+            btnStar.SvgIcon = "lucide/heart";
         }
 
-        BtnStar.Click += (_, _) =>
+        btnStar.Click += (_, _) =>
         {
-            States.Instance.Starred[Version.PathInstance] = !Version.IsStar;
-            ModMinecraft.McInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+            States.Instance.Starred[version.PathInstance] = !version.IsStar;
+            ModInstanceList.mcInstanceListForceRefresh = true;
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
-        var BtnOpenFolder = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonOpen };
-        BtnOpenFolder.ToolTip = Lang.Text("Select.Instance.OpenFolder");
-        ToolTipService.SetPlacement(BtnOpenFolder, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(BtnOpenFolder, 30d);
-        ToolTipService.SetHorizontalOffset(BtnOpenFolder, 2d);
-        BtnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-        var BtnDel = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonDelete };
-        BtnDel.ToolTip = Lang.Text("Common.Action.Delete");
-        ToolTipService.SetPlacement(BtnDel, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(BtnDel, 30d);
-        ToolTipService.SetHorizontalOffset(BtnDel, 2d);
-        BtnDel.Click += (_, _) => DeleteVersion(sender, Version);
-        if (Version.State != ModMinecraft.McInstanceState.Error)
+        var btnOpenFolder = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/folder-open" };
+        btnOpenFolder.ToolTip = Lang.Text("Select.Instance.OpenFolder");
+        ToolTipService.SetPlacement(btnOpenFolder, PlacementMode.Center);
+        ToolTipService.SetVerticalOffset(btnOpenFolder, 30d);
+        ToolTipService.SetHorizontalOffset(btnOpenFolder, 2d);
+        btnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
+        var btnDel = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/trash-2" };
+        btnDel.ToolTip = Lang.Text("Common.Action.Delete");
+        ToolTipService.SetPlacement(btnDel, PlacementMode.Center);
+        ToolTipService.SetVerticalOffset(btnDel, 30d);
+        ToolTipService.SetHorizontalOffset(btnDel, 2d);
+        btnDel.Click += (_, _) => DeleteVersion(sender, version);
+        if (version.state != McInstanceState.Error)
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.1d, Logo = Icon.IconButtonSetup };
-            BtnCont.ToolTip = Lang.Text("Select.Instance.Settings");
-            ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
-            ToolTipService.SetVerticalOffset(BtnCont, 30d);
-            ToolTipService.SetHorizontalOffset(BtnCont, 2d);
-            BtnCont.Click += (_, _) =>
+            var btnCont = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/settings" };
+            btnCont.ToolTip = Lang.Text("Select.Instance.Settings");
+            ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
+            ToolTipService.SetVerticalOffset(btnCont, 30d);
+            ToolTipService.SetHorizontalOffset(btnCont, 2d);
+            btnCont.Click += (_, _) =>
             {
-                PageInstanceLeft.Instance = Version;
-                ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup);
+                PageInstanceLeft.McInstance = version;
+                ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
             sender.MouseRightButtonUp += (_, _) =>
             {
-                PageInstanceLeft.Instance = Version;
-                ModMain.FrmMain.PageChange(FormMain.PageType.InstanceSetup);
+                PageInstanceLeft.McInstance = version;
+                ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
-            sender.Buttons = new[] { BtnStar, BtnOpenFolder, BtnDel, BtnCont };
+            sender.Buttons = new[] { btnStar, btnOpenFolder, btnDel, btnCont };
         }
         else
         {
-            var BtnCont = new MyIconButton { LogoScale = 1.15d, Logo = Icon.IconButtonOpen };
-            BtnCont.ToolTip = Lang.Text("Common.Action.OpenFolder");
-            ToolTipService.SetPlacement(BtnCont, PlacementMode.Center);
-            ToolTipService.SetVerticalOffset(BtnCont, 30d);
-            ToolTipService.SetHorizontalOffset(BtnCont, 2d);
-            BtnCont.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-            sender.MouseRightButtonUp += (_, _) => PageInstanceOverall.OpenVersionFolder(Version);
-            sender.Buttons = new[] { BtnStar, BtnOpenFolder, BtnDel, BtnCont };
+            var btnCont = new MyIconButton { LogoScale = 1.15d, SvgIcon = "lucide/folder-open" };
+            btnCont.ToolTip = Lang.Text("Common.Action.OpenFolder");
+            ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
+            ToolTipService.SetVerticalOffset(btnCont, 30d);
+            ToolTipService.SetHorizontalOffset(btnCont, 2d);
+            btnCont.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
+            sender.MouseRightButtonUp += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
+            sender.Buttons = new[] { btnStar, btnOpenFolder, btnDel, btnCont };
         }
     }
 
@@ -497,13 +497,13 @@ public partial class PageSelectRight
     // 点击选项
     public static void Item_Click(MyListItem sender, EventArgs e)
     {
-        var instance = (ModMinecraft.McInstance)sender.Tag;
-        if (new ModMinecraft.McInstance(instance.PathInstance).Check())
+        var instance = (McInstance)sender.Tag;
+        if (new McInstance(instance.PathInstance).Check())
         {
             // 正常实例
-            ModMinecraft.McInstanceSelected = instance;
-            States.Game.SelectedInstance = ModMinecraft.McInstanceSelected.Name;
-            ModMain.FrmMain.PageBack();
+            ModInstanceList.McMcInstanceSelected = instance;
+            States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
+            ModMain.frmMain.PageBack();
         }
         else
         {
@@ -514,41 +514,41 @@ public partial class PageSelectRight
 
     private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.FrmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
 
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码
-    public static void DeleteVersion(MyListItem item, ModMinecraft.McInstance instance)
+    public static void DeleteVersion(MyListItem item, McInstance mcInstance)
     {
         try
         {
-            var IsShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-            var IsHintIndie = instance.State != ModMinecraft.McInstanceState.Error &&
-                              (instance.PathIndie ?? "") != (ModMinecraft.McFolderSelected ?? "");
-            var confirmMsg = IsShiftPressed
-                ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", instance.Name)
-                : Lang.Text("Select.Instance.Delete.ConfirmMessage", instance.Name);
+            var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+            var isHintIndie = mcInstance.state != McInstanceState.Error &&
+                              (mcInstance.PathIndie ?? "") != (ModFolder.mcFolderSelected ?? "");
+            var confirmMsg = isShiftPressed
+                ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", mcInstance.Name)
+                : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
-                                 (IsHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
+                                 (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
             switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
-                        Button2: Lang.Text("Common.Action.Cancel"), IsWarn: true))
+                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
             {
                 case 1:
                 {
-                    ModBase.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
+                    ModBase.IniClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
-                        instance.PathInstance);
-                    if (IsShiftPressed)
+                        mcInstance.PathInstance);
+                    if (isShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instance.PathInstance);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", instance.Name),
+                        ModBase.DeleteDirectory(mcInstance.PathInstance);
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
                             ModMain.HintType.Finish);
                     }
                     else
                     {
-                        FileSystem.DeleteDirectory(instance.PathInstance, UIOption.AllDialogs,
+                        FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name),
+                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
                             ModMain.HintType.Finish);
                     }
 
@@ -561,56 +561,56 @@ public partial class PageSelectRight
             }
 
             // 从 UI 中移除
-            if (instance.DisplayType == ModMinecraft.McInstanceCardType.Hidden || !instance.IsStar)
+            if (mcInstance.displayType == McInstanceCardType.Hidden || !mcInstance.IsStar)
             {
                 // 仅出现在当前卡片
-                var Parent = (StackPanel)item.Parent;
-                if (Parent.Children.Count > 2) // 当前的项目与一个占位符
+                var parent = (StackPanel)item.Parent;
+                if (parent.Children.Count > 2) // 当前的项目与一个占位符
                 {
                     // 删除后还有剩
-                    var Card = (MyCard)Parent.Parent;
-                    Card.Title = Card.Title.Replace(Lang.Number(Parent.Children.Count - 1, "N0"),
-                        Lang.Number(Parent.Children.Count - 2, "N0")); // 有一个占位符
-                    Parent.Children.Remove(item);
-                    if (ModMinecraft.McInstanceSelected is not null && (instance.PathInstance ?? "") ==
-                        (ModMinecraft.McInstanceSelected.PathInstance ?? ""))
+                    var card = (MyCard)parent.Parent;
+                    card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
+                        Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
+                    parent.Children.Remove(item);
+                    if (ModInstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
+                        (ModInstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        ModMinecraft.McInstanceSelected = (ModMinecraft.McInstance)((MyListItem)Parent.Children[0]).Tag;
-                    ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                        ModInstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }
                 else
                 {
                     // 删除后没剩了
-                    ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
                 }
             }
             else
             {
                 // 同时出现在当前卡片与收藏夹
-                ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, $"删除实例 {instance.Name} 被主动取消");
+            ModBase.Log(ex, $"删除实例 {mcInstance.Name} 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", instance.Name), ModBase.LogLevel.Msgbox);
+            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", mcInstance.Name), ModBase.LogLevel.Msgbox);
         }
     }
 
     public void BtnEmptyDownload_Loaded()
     {
-        var NewVisibility = (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) || ShowHidden
+        var newVisibility = (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) || showHidden
             ? Visibility.Collapsed
             : Visibility.Visible;
-        if (BtnEmptyDownload.Visibility != NewVisibility)
+        if (BtnEmptyDownload.Visibility != newVisibility)
         {
-            BtnEmptyDownload.Visibility = NewVisibility;
+            BtnEmptyDownload.Visibility = newVisibility;
             PanLoad.TriggerForceResize();
         }
     }

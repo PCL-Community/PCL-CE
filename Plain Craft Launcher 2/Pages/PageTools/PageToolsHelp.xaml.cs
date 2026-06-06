@@ -23,60 +23,60 @@ public partial class PageToolsHelp : IRefreshable
     /// <summary>
     ///     将帮助列表对象实例化为主页 UI。
     /// </summary>
-    private void HelpListLoad(ModLoader.LoaderTask<int, List<ModMain.HelpEntry>> Loader)
+    private void HelpListLoad(ModLoader.LoaderTask<int, List<ModMain.HelpEntry>> loader)
     {
         try
         {
             // 初始化
             PanList.Children.Clear();
             PanBack.ScrollToHome();
-            var HelpItems = Loader.Output;
+            var helpItems = loader.output;
             // 获取全部分类
-            var Types = new List<string>();
-            foreach (var Item in HelpItems)
+            var types = new List<string>();
+            foreach (var Item in helpItems)
             foreach (var Type in Item.Types)
-                if (!Types.Contains(Type))
-                    Types.Add(Type);
+                if (!types.Contains(Type))
+                    types.Add(Type);
 
             // 将指南页面置顶
-            if (Types.Contains("指南"))
+            if (types.Contains("指南"))
             {
-                Types.Remove("指南");
-                Types.Insert(0, "指南");
+                types.Remove("指南");
+                types.Insert(0, "指南");
             }
 
             // 转化为 UI
-            foreach (var Type in Types)
+            foreach (var Type in types)
             {
                 // 确认所属该分类的项目
-                var TypeItems = new List<ModMain.HelpEntry>();
-                foreach (var Item in HelpItems)
+                var typeItems = new List<ModMain.HelpEntry>();
+                foreach (var Item in helpItems)
                     if (Item.Types.Contains(Type))
-                        TypeItems.Add(Item);
+                        typeItems.Add(Item);
                 // 增加卡片
-                var NewCard = new MyCard { Title = Type, Margin = new Thickness(0d, 0d, 0d, 15d) };
-                var NewStack = new StackPanel
+                var newCard = new MyCard { Title = Type, Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
                     VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
-                    Tag = TypeItems
+                    Tag = typeItems
                 };
-                NewCard.Children.Add(NewStack);
-                NewCard.SwapControl = NewStack;
+                newCard.Children.Add(newStack);
+                newCard.SwapControl = newStack;
 
-                void PutMethod(StackPanel Stack)
+                void PutMethod(StackPanel stack)
                 {
-                    foreach (var item in (IEnumerable)Stack.Tag)
-                        Stack.Children.Add(((ModMain.HelpEntry)item).ToListItem());
+                    foreach (var item in (IEnumerable)stack.Tag)
+                        stack.Children.Add(((ModMain.HelpEntry)item).ToListItem());
                 }
 
                 ;
-                NewCard.InstallMethod = PutMethod;
+                newCard.InstallMethod = PutMethod;
                 if (Type == "指南")
-                    MyCard.StackInstall(ref NewStack, PutMethod);
+                    MyCard.StackInstall(ref newStack, PutMethod);
                 else
-                    NewCard.IsSwapped = true;
-                PanList.Children.Add(NewCard);
+                    newCard.IsSwapped = true;
+                PanList.Children.Add(newCard);
             }
         }
 
@@ -89,14 +89,14 @@ public partial class PageToolsHelp : IRefreshable
     /// <summary>
     ///     帮助项目的点击事件。
     /// </summary>
-    public static void OnItemClick(ModMain.HelpEntry Entry)
+    public static void OnItemClick(ModMain.HelpEntry entry)
     {
         try
         {
-            if (Entry.IsEvent)
-                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(Entry.EventType), Entry.EventData);
+            if (entry.IsEvent)
+                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(entry.EventType), entry.EventData);
             else
-                EnterHelpPage(Entry);
+                EnterHelpPage(entry);
         }
         catch (Exception ex)
         {
@@ -104,49 +104,49 @@ public partial class PageToolsHelp : IRefreshable
         }
     }
 
-    public static void EnterHelpPage(string Location)
+    public static void EnterHelpPage(string location)
     {
         ModBase.RunInThread(() =>
         {
-            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
-            var Entry = new ModMain.HelpEntry(Location);
+            if (ModMain.helpLoader.State != ModBase.LoadState.Finished)
+                ModMain.helpLoader.WaitForExit(ModBase.GetUuid());
+            var entry = new ModMain.HelpEntry(location);
             ModBase.RunInUi(() =>
             {
-                var FrmHelpDetail = new PageOtherHelpDetail();
-                if (FrmHelpDetail.Init(Entry))
-                    ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
+                var frmHelpDetail = new PageOtherHelpDetail();
+                if (frmHelpDetail.Init(entry))
+                    ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        { page = FormMain.PageType.HelpDetail, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, entry, frmHelpDetail, null) });
                 else
                     ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
             });
         });
     }
 
-    public static void EnterHelpPage(ModMain.HelpEntry Entry)
+    public static void EnterHelpPage(ModMain.HelpEntry entry)
     {
         ModBase.RunInThread(() =>
         {
-            if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
-                ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
+            if (ModMain.helpLoader.State != ModBase.LoadState.Finished)
+                ModMain.helpLoader.WaitForExit(ModBase.GetUuid());
             ModBase.RunInUi(() =>
             {
-                var FrmHelpDetail = new PageOtherHelpDetail();
-                if (FrmHelpDetail.Init(Entry))
-                    ModMain.FrmMain.PageChange(new FormMain.PageStackData
-                        { Page = FormMain.PageType.HelpDetail, Additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, Entry, FrmHelpDetail, null) });
+                var frmHelpDetail = new PageOtherHelpDetail();
+                if (frmHelpDetail.Init(entry))
+                    ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        { page = FormMain.PageType.HelpDetail, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, entry, frmHelpDetail, null) });
                 else
                     ModBase.Log("[Help] 已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃", ModBase.LogLevel.Debug);
             });
         });
     }
 
-    public static PageOtherHelpDetail GetHelpPage(string Location)
+    public static PageOtherHelpDetail GetHelpPage(string location)
     {
-        if (ModMain.HelpLoader.State != ModBase.LoadState.Finished)
-            ModMain.HelpLoader.WaitForExit(ModBase.GetUuid());
-        var FrmHelpDetail = new PageOtherHelpDetail();
-        if (FrmHelpDetail.Init(new ModMain.HelpEntry(Location))) return FrmHelpDetail;
+        if (ModMain.helpLoader.State != ModBase.LoadState.Finished)
+            ModMain.helpLoader.WaitForExit(ModBase.GetUuid());
+        var frmHelpDetail = new PageOtherHelpDetail();
+        if (frmHelpDetail.Init(new ModMain.HelpEntry(location))) return frmHelpDetail;
 
         throw new Exception("已取消进入帮助项目，这一般是由于 xaml 初始化失败，且用户在弹窗中手动放弃");
     }
@@ -167,47 +167,49 @@ public partial class PageToolsHelp : IRefreshable
                     PanSearch.Height = 0d;
                     PanSearch.Visibility = Visibility.Collapsed;
                     PanList.Visibility = Visibility.Visible;
-                }, After: true),
+                }, after: true),
                 ModAnimation.AaOpacity(PanList, 1d - PanList.Opacity, 150, 30)
             }, "FrmOtherHelp Search Switch");
         }
         else
         {
             // 构造请求
-            var QueryList = new List<ModBase.SearchEntry<ModMain.HelpEntry>>();
-            foreach (var Entry in ModMain.HelpLoader.Output)
+            var queryList = new List<ModBase.SearchEntry<ModMain.HelpEntry>>();
+            foreach (var Entry in ModMain.helpLoader.output)
             {
-                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.VersionBranchCode) == 50d && !Entry.ShowInPublic))
+                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.versionBranchCode) == 50d && !Entry.ShowInPublic))
                     continue;
-                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.VersionBranchCode) != 50d && !Entry.ShowInSnapshot))
+                if (!Entry.ShowInSearch || (ModBase.Val(ModBase.versionBranchCode) != 50d && !Entry.ShowInSnapshot))
                     continue;
-                QueryList.Add(new ModBase.SearchEntry<ModMain.HelpEntry>
+                queryList.Add(new ModBase.SearchEntry<ModMain.HelpEntry>
                 {
-                    Item = Entry,
-                    SearchSource = new List<ModBase.SearchSource>
+                    item = Entry,
+                    searchSource = new List<ModBase.SearchSource>
                         { new(Entry.Title, 1d), new(Entry.Desc, 0.5d), new(Entry.Search, 1.5d) }
                 });
                 // New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
             }
 
             // 进行搜索，构造列表
-            var SearchResult = ModBase.Search(QueryList, SearchBox.Text, 5, 0.08d);
+            var searchResult = ModBase.Search(queryList, SearchBox.Text, 5, 0.08d);
             PanSearchList.Children.Clear();
-            if (!SearchResult.Any())
+            if (!searchResult.Any())
             {
-                PanSearch.Title = "无搜索结果";
+                PanSearch.Title = Lang.Text("Tools.Help.Search.NoResults");
                 PanSearchList.Visibility = Visibility.Collapsed;
             }
             else
             {
-                PanSearch.Title = "搜索结果";
-                foreach (var Result in SearchResult)
+                PanSearch.Title = Lang.Text("Tools.Help.Search.Results");
+                foreach (var Result in searchResult)
                 {
-                    var Item = Result.Item.ToListItem();
-                    if (ModBase.ModeDebug)
-                        Item.Info = (Result.AbsoluteRight ? "完全匹配，" : "") + "相似度：" +
-                                    Lang.Number(Math.Round(Result.Similarity, 3), "N3") + "，" + Item.Info;
-                    PanSearchList.Children.Add(Item);
+                    var item = Result.item.ToListItem();
+                    if (ModBase.modeDebug)
+                        item.Info = Lang.Text(
+                            Result.absoluteRight ? "Tools.Help.Search.ExactMatch" : "Tools.Help.Search.Similarity",
+                            Lang.Number(Math.Round(Result.similarity, 3), "N3"),
+                            item.Info);
+                    PanSearchList.Children.Add(item);
                 }
 
                 PanSearchList.Visibility = Visibility.Visible;
@@ -222,7 +224,7 @@ public partial class PageToolsHelp : IRefreshable
                     PanList.Visibility = Visibility.Collapsed;
                     PanSearch.Visibility = Visibility.Visible;
                     PanSearch.TriggerForceResize();
-                }, After: true),
+                }, after: true),
                 ModAnimation.AaOpacity(PanSearch, 1d - PanSearch.Opacity, 150, 30)
             }, "FrmOtherHelp Search Switch");
         }
@@ -239,7 +241,7 @@ public partial class PageToolsHelp : IRefreshable
     // 初始化加载器信息
     private void PageOther_Inited(object sender, EventArgs e)
     {
-        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.HelpLoader,
+        PageLoaderInit(Load, PanLoad, PanBack, null, ModMain.helpLoader,
             a => this.HelpListLoad((ModLoader.LoaderTask<int, List<ModMain.HelpEntry>>)a));
     }
 
