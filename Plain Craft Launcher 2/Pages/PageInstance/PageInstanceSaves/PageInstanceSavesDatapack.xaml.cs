@@ -1153,6 +1153,35 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     public static List<string> updatingVersions = new();
 
+    private static bool TryGetSafeDatapackUpdateFileName(ModComp.CompFile file, out string fileName)
+    {
+        fileName = file.FileName?.Trim() ?? "";
+        if (string.IsNullOrEmpty(fileName))
+            return false;
+
+        if (!fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0)
+            return false;
+
+        if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return false;
+
+        return fileName == Path.GetFileName(fileName) && fileName != "." && fileName != "..";
+    }
+
+    private static bool TryBuildDatapackUpdatePath(string rootPath, string fileName, out string fullPath)
+    {
+        var fullRootPath = Path.GetFullPath(rootPath);
+        if (!fullRootPath.EndsWith(Path.DirectorySeparatorChar.ToString()) &&
+            !fullRootPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            fullRootPath += Path.DirectorySeparatorChar;
+
+        fullPath = Path.GetFullPath(Path.Combine(fullRootPath, fileName));
+        return fullPath.StartsWith(fullRootPath, StringComparison.OrdinalIgnoreCase);
+    }
+
     public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> datapackList)
     {
         // 更新前警告
@@ -1172,29 +1201,46 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             datapackList = datapackList.ToList(); // 防止刷新影响迭代器
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
+            var updateEntryList = new List<ModLocalComp.LocalCompFile>();
+            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp");
+            var datapackRoot = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+            var skippedUnsafeFileCount = 0;
             foreach (var Entry in datapackList)
             {
                 var file = Entry.UpdateFile;
                 if (!file.Available)
                     continue;
+                if (!TryGetSafeDatapackUpdateFileName(file, out var safeFileName) ||
+                    !TryBuildDatapackUpdatePath(tempRoot, safeFileName, out var tempAddress) ||
+                    !TryBuildDatapackUpdatePath(datapackRoot, safeFileName, out var realAddress))
+                {
+                    skippedUnsafeFileCount++;
+                    ModBase.Log($"[DatapackUpdate] 已跳过不安全的数据包更新文件名：{file.FileName}", ModBase.LogLevel.Debug);
+                    continue;
+                }
+
                 // 添加到下载列表
-                var tempAddress = ModBase.pathTemp + @"DownloadedComp\" + file.FileName;
-                var realAddress = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks", file.FileName);
                 fileList.Add(file.ToNetFile(tempAddress));
                 fileCopyList[tempAddress] = realAddress;
+                updateEntryList.Add(Entry);
             }
+
+            if (skippedUnsafeFileCount > 0)
+                ModMain.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", ModMain.HintType.Critical);
+            if (!fileList.Any())
+                return;
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
-                { ProgressWeight = datapackList.Count() * 1.5d });
+                { ProgressWeight = updateEntryList.Count * 1.5d });
 
             installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
             {
                 try
                 {
-                    foreach (var Entry in datapackList)
+                    foreach (var Entry in updateEntryList)
                         if (File.Exists(Entry.path))
                             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
                                 RecycleOption.SendToRecycleBin);
