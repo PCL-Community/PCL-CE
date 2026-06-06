@@ -82,7 +82,7 @@ public record OpenIdOptions
         if (Meta?.JwksUri is null) throw new IdentityModelConfigurationException("请先调用 InitializeAsync() 加载 OpenID 元数据");
         using var response = await HttpRequest.Create(Meta.JwksUri)
             .WithHeaders(Headers ?? [])
-            .SendAsync(GetClient.Invoke())
+            .SendAsync(GetClient.Invoke(), cancellationToken: token)
             .ConfigureAwait(false);
 
         var result = await response
