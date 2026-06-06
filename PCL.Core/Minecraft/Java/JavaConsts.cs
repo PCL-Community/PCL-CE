@@ -13,7 +13,7 @@ public class JavaConsts
     public static readonly string[] PossibleKeywords =
     [
         "environment", "env", "runtime", "x86_64", "amd64", "arm64",
-        "pcl", "hmcl", "baka", "minecraft"
+        "pcl", "hmcl", "baka"
     ];
 
     public static readonly string[] AllKeyworkds = [.. PossibleKeywords, .. MostPossibleKeywords];
