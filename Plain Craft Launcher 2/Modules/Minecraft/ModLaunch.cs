@@ -345,9 +345,9 @@ public static class ModLaunch
                         ModDownload.DlClientFix(ModInstanceList.McMcInstanceSelected, false,
                             ModDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
                     { ProgressWeight = 15d, show = false },
-                new ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>>(Lang.Text("Minecraft.Launch.Stage.GetArguments"), McLaunchArgumentMain)
+                new ModLoader.LoaderTask<string, List<ModLibrary.McLibToken>>(Lang.Text("Minecraft.Launch.Stage.GetArguments"), McLaunchArgumentMain)
                     { ProgressWeight = 2d },
-                new ModLoader.LoaderTask<List<ModMinecraft.McLibToken>, int>(Lang.Text("Minecraft.Launch.Stage.ExtractNatives"), McLaunchNatives)
+                new ModLoader.LoaderTask<List<ModLibrary.McLibToken>, int>(Lang.Text("Minecraft.Launch.Stage.ExtractNatives"), McLaunchNatives)
                     { ProgressWeight = 2d },
                 new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.PreLaunch"), _ => McLaunchPrerun()) { ProgressWeight = 1d },
                 new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.CustomCommand"), McLaunchCustom) { ProgressWeight = 1d },
@@ -2255,7 +2255,7 @@ public static class ModLaunch
     /// </summary>
     private static string McLaunchGetLwjglVersion(McInstance mc)
     {
-        foreach (ModMinecraft.McLibToken library in ModMinecraft.McLibListGet(mc, false))
+        foreach (ModLibrary.McLibToken library in ModLibrary.McLibListGet(mc, false))
         {
             if (string.IsNullOrWhiteSpace(library.OriginalName))
                 continue;
@@ -2291,7 +2291,7 @@ public static class ModLaunch
     }
 
     // 主方法，合并 Jvm、Game、Replace 三部分的参数数据
-    private static void McLaunchArgumentMain(ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>> loader)
+    private static void McLaunchArgumentMain(ModLoader.LoaderTask<string, List<ModLibrary.McLibToken>> loader)
     {
         McLaunchLog("开始获取 Minecraft 启动参数");
         // 获取基准字符串与参数信息
@@ -2530,7 +2530,7 @@ public static class ModLaunch
                         dataList.Add(subJson.ToString());
                     }
                     // 非字符串类型
-                    else if (ModMinecraft.McJsonRuleCheck(subJson["rules"]))
+                    else if (ModLibrary.McJsonRuleCheck(subJson["rules"]))
                     {
                         // 满足准则
                         if (subJson["value"].GetValueKind() == JsonValueKind.String)
@@ -2731,7 +2731,7 @@ public static class ModLaunch
                         dataList.Add(subJson.ToString());
                     }
                     // 非字符串类型
-                    else if (ModMinecraft.McJsonRuleCheck(subJson["rules"]))
+                    else if (ModLibrary.McJsonRuleCheck(subJson["rules"]))
                     {
                         // 满足准则
                         if (subJson["value"].GetValueKind() == JsonValueKind.String)
@@ -2806,7 +2806,7 @@ public static class ModLaunch
 
     // 替换 Arguments
     private static Dictionary<string, string> McLaunchArgumentsReplace(McInstance instance,
-        ref ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>> loader)
+        ref ModLoader.LoaderTask<string, List<ModLibrary.McLibToken>> loader)
     {
         var gameArguments = new Dictionary<string, string>();
 
@@ -2882,7 +2882,7 @@ public static class ModLaunch
         gameArguments.Add("${assets_index_name}", ModAssets.McAssetsGetIndexName(instance));
 
         // 支持库参数
-        var libList = ModMinecraft.McLibListGet(instance, true);
+        var libList = ModLibrary.McLibListGet(instance, true);
         loader.output = libList;
         var cpStrings = new List<string>();
         string optiFineCp = null;
@@ -2951,7 +2951,7 @@ public static class ModLaunch
 
     #region 解压 Natives
 
-    private static void McLaunchNatives(ModLoader.LoaderTask<List<ModMinecraft.McLibToken>, int> loader)
+    private static void McLaunchNatives(ModLoader.LoaderTask<List<ModLibrary.McLibToken>, int> loader)
     {
         // 创建文件夹
         var target = GetNativesFolder() + @"\";

@@ -545,7 +545,7 @@ public partial class PageInstanceOverall
         try
         {
             // 忽略文件检查提示
-            if ((bool)ModMinecraft.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
+            if ((bool)ModLibrary.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
             {
                 ModMain.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
                 return;

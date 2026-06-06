@@ -134,7 +134,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeCoreJarUrl"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 0.5d, show = false });
             // 下载支持库文件
             loaders.Add(
@@ -214,7 +214,7 @@ public static class ModDownloadLib
                     ModBase.Log("[Download] 替换 Authlib 版本失败: " + ex.Message);
                 }
 
-            task.output = ModMinecraft.McLibNetFilesFromInstance(new McInstance(instanceFolder));
+            task.output = ModLibrary.McLibNetFilesFromInstance(new McInstance(instanceFolder));
         })
         {
             ProgressWeight = 1d,
@@ -1069,7 +1069,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeOptiFineLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadOptiFineLibraries"),
                     new List<DownloadFile>())
@@ -1444,7 +1444,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeLiteLoaderLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLiteLoaderLibraries"),
                     new List<DownloadFile>())
@@ -2005,7 +2005,7 @@ public static class ModDownloadLib
         if (forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge || Convert.ToDouble(loaderVersion.BeforeFirst(".")) >= 20d)
         {
             ModBase.Log($"[Download] 检测为{(forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + forgeType)}：" + loaderVersion);
-            List<ModMinecraft.McLibToken> libs = null;
+            List<ModLibrary.McLibToken> libs = null;
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.AnalyzeLoaderLibraries", loaderName), task =>
             {
@@ -2029,7 +2029,7 @@ public static class ModDownloadLib
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
                                 "bbd00ca33b052f73a6312254780fc580d2da3535").Replace("76328", "87662"));
                     // 获取 Lib 下载信息
-                    libs = ModMinecraft.McLibListGetWithJson(json, true);
+                    libs = ModLibrary.McLibListGetWithJson(json, true);
                     // 添加 Mappings 下载信息
                     if (json["data"] is not null && json["data"]["MOJMAPS"] is not null)
                     {
@@ -2041,11 +2041,11 @@ public static class ModDownloadLib
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
                         var originalName = json["data"]["MOJMAPS"]["client"].ToString().Trim("[]".ToCharArray())
                             .BeforeFirst("@");
-                        var address = ModMinecraft.McLibGet(originalName).Replace(".jar",
+                        var address = ModLibrary.McLibGet(originalName).Replace(".jar",
                             "-mappings." + json["data"]["MOJMAPS"]["client"].ToString().Trim("[]".ToCharArray())
                                 .Split("@")[1]);
                         var clientMappings = rawJson["downloads"]["client_mappings"];
-                        libs.Add(new ModMinecraft.McLibToken
+                        libs.Add(new ModLibrary.McLibToken
                         {
                             IsNatives = false,
                             LocalPath = address,
@@ -2070,7 +2070,7 @@ public static class ModDownloadLib
                             break;
                         }
 
-                    task.output = ModMinecraft.McLibNetFilesFromTokens(libs);
+                    task.output = ModLibrary.McLibNetFilesFromTokens(libs);
                 }
                 catch (Exception ex)
                 {
@@ -2302,7 +2302,7 @@ public static class ModDownloadLib
                             // 旧版：Legacy 方式 2
                             ModBase.Log("[Download] 开始进行 Forge 安装，Legacy 方式 2：" + installerAddress);
                             // 解压 Jar 文件
-                            var jarAddress = ModMinecraft.McLibGet((string)json["install"]["path"],
+                            var jarAddress = ModLibrary.McLibGet((string)json["install"]["path"],
                                 customMcFolder: mcFolder);
                             if (File.Exists(jarAddress))
                                 File.Delete(jarAddress);
@@ -2894,7 +2894,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeFabricLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(
                 new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLabyModClientJson"),
@@ -2999,7 +2999,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeLegacyFabricLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(new LoaderDownload(
                     Lang.Text("Minecraft.Download.Stage.DownloadLoaderLibraries", "Legacy Fabric"),
@@ -3223,7 +3223,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeQuiltLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLoaderLibraries", "Quilt"),
                     new List<DownloadFile>())
@@ -3429,7 +3429,7 @@ public static class ModDownloadLib
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeLabyModLibraries"),
                     task => task.output =
-                        ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder)))
+                        ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder)))
                 { ProgressWeight = 1d, show = false });
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLoaderLibraries", "LabyMod"),
                     new List<DownloadFile>())
@@ -3458,7 +3458,7 @@ public static class ModDownloadLib
         {
             ModBase.WaitForFileReady(Path.Combine(versionFolder, versionName + ".json"));
             ModBase.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + versionFolder);
-            task.output = ModMinecraft.McLibNetFilesFromInstance(new McInstance(versionFolder));
+            task.output = ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder));
         })
         {
             ProgressWeight = 1d,
@@ -4200,7 +4200,7 @@ public static class ModDownloadLib
                 loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                         Lang.Text("Minecraft.Download.Stage.AnalyzeGameLibrariesSide"),
                         task => task.output =
-                            ModMinecraft.McLibNetFilesFromInstance(new McInstance(instanceFolder)))
+                            ModLibrary.McLibNetFilesFromInstance(new McInstance(instanceFolder)))
                     { ProgressWeight = 1d, show = false });
                 loadersLib.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadGameLibrariesSide"),
                         new List<DownloadFile>())

@@ -77,7 +77,7 @@ public static class ModDownload
 
         #region 下载支持库文件
 
-        if (ModMinecraft.ShouldIgnoreFileCheck(version))
+        if (ModLibrary.ShouldIgnoreFileCheck(version))
         {
             ModBase.Log("[Download] 已跳过所有 Libraries 检查");
         }
@@ -87,7 +87,7 @@ public static class ModDownload
             {
                 new ModLoader.LoaderTask<string, List<DownloadFile>>(
                     Lang.Text("Minecraft.Download.Stage.AnalyzeMissingLibraries"),
-                    task => task.output = ModMinecraft.McLibNetFilesFromInstance(version)) { ProgressWeight = 1d },
+                    task => task.output = ModLibrary.McLibNetFilesFromInstance(version)) { ProgressWeight = 1d },
                 new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLibraries"), new List<DownloadFile>())
                     { ProgressWeight = 15d }
             };
@@ -102,7 +102,7 @@ public static class ModDownload
 
         #region 下载资源文件
 
-        if (ModMinecraft.ShouldIgnoreFileCheck(version))
+        if (ModLibrary.ShouldIgnoreFileCheck(version))
         {
             ModBase.Log("[Download] 已跳过所有 Assets 检查");
         }
