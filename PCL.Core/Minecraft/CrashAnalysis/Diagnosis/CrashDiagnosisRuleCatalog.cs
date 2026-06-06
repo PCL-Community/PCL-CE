@@ -15,6 +15,7 @@ public static class CrashDiagnosisRuleCatalog
             new LoaderDependencyRule(),
             new LoaderVersionRule(),
             new ForgeModLoadingRule(),
+            new CrashReportSuspectedModRule(),
             new MixinTransformRule(),
             new DuplicateModRule(),
             new ModFileRule(),
@@ -435,6 +436,41 @@ public static class CrashDiagnosisRuleCatalog
                     .Select(fact => Evidence(fact, 55))
                     .ToList(),
                 actions:
+                [
+                    CrashPresentationActionKind.OpenInstanceModsFolder,
+                    CrashPresentationActionKind.ExportMarkdown
+                ],
+                nature: CrashDiagnosisNature.ProbableCause);
+        }
+    }
+
+    private sealed class CrashReportSuspectedModRule : CrashDiagnosisRule
+    {
+        public override string Id => "mod.crash_report_suspected";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.ModLikelyCausedCrash;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.Mod;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var suspected = facts
+                .Find(CrashFactKind.CrashReportSuspectedModDetected)
+                .Take(2)
+                .ToList();
+            if (suspected.Count == 0) return null;
+
+            var parameters = new Dictionary<string, string>();
+            foreach (var pair in suspected.SelectMany(fact => fact.Properties))
+                parameters.TryAdd(pair.Key, pair.Value);
+
+            return Create(
+                Math.Min(78, 58 + suspected.Count * 12),
+                suspected
+                    .Select(fact => Evidence(fact, 70))
+                    .ToList(),
+                parameters,
                 [
                     CrashPresentationActionKind.OpenInstanceModsFolder,
                     CrashPresentationActionKind.ExportMarkdown

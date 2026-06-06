@@ -1,0 +1,179 @@
+namespace PCL.Core.Minecraft.CrashAnalysis;
+
+/// <summary>
+///     解析 Fabric / Quilt 的 resolution error 区域。它们通常包含缺失前置、版本要求和
+///     Loader 给出的修复建议，逐行扫描容易把后续 Mixin 错误误认为首要原因。
+/// </summary>
+internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
+{
+    public IReadOnlyList<CrashFact> Parse(CrashLogBundle bundle, CrashAnalysisRequest request)
+    {
+        var facts = new List<CrashFact>();
+
+        foreach (var document in bundle.Documents)
+            _AppendDocumentFacts(facts, document);
+
+        return facts;
+    }
+
+    private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
+    {
+        var lines = CrashText.ReadLines(document.Text);
+        for (var index = 0; index < lines.Count; index++)
+        {
+            var line = lines[index];
+            if (!_LooksLikeFabricResolutionLine(line))
+                continue;
+
+            var block = _ReadResolutionBlock(lines, index);
+            var properties = _ExtractProperties(block);
+            var lineNumber = index + 1;
+
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.LoaderResolutionError,
+                _Summary(block),
+                document,
+                block,
+                lineNumber,
+                properties,
+                visibility: CrashFactVisibility.Main));
+
+            if (properties.ContainsKey("MissingModId") || _MissingDependencyRegex().IsMatch(block))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.MissingModDependencyDetected,
+                    _DependencySummary(block, properties),
+                    document,
+                    block,
+                    lineNumber,
+                    properties,
+                    visibility: CrashFactVisibility.Main));
+
+            if (_FixRegex().IsMatch(block))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.LoaderProvidedSolutionDetected,
+                    _Summary(_FixRegex().Match(block).Value),
+                    document,
+                    block,
+                    lineNumber,
+                    properties,
+                    confidence: CrashFactConfidence.Medium,
+                    visibility: CrashFactVisibility.Technical));
+        }
+    }
+
+    private static bool _LooksLikeFabricResolutionLine(string line)
+    {
+        return _ResolutionStartRegex().IsMatch(line) ||
+               _FabricMissingDependencyRegex().IsMatch(line) ||
+               _HardDependencyRegex().IsMatch(line);
+    }
+
+    private static string _ReadResolutionBlock(IReadOnlyList<string> lines, int startIndex)
+    {
+        var start = Math.Max(0, startIndex - 3);
+        var end = startIndex;
+        for (var index = startIndex; index < Math.Min(lines.Count, startIndex + 18); index++)
+        {
+            var line = lines[index];
+            if (index > startIndex && _HardStopRegex().IsMatch(line))
+                break;
+            end = index;
+        }
+
+        return string.Join("\n", lines.Skip(start).Take(end - start + 1));
+    }
+
+    private static IReadOnlyDictionary<string, string> _ExtractProperties(string block)
+    {
+        var properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        var precise = _FabricMissingDependencyRegex().Match(block);
+        if (precise.Success)
+        {
+            properties["AffectedMod"] = precise.Groups["display"].Value.Trim();
+            properties["AffectedModId"] = precise.Groups["affected"].Value.Trim();
+            properties["AffectedModVersion"] = precise.Groups["affectedVersion"].Value.Trim();
+            properties["MissingModId"] = precise.Groups["missing"].Value.Trim();
+            properties["RequiredVersion"] = _NormalizeRequirement(precise.Groups["requirement"].Value);
+        }
+
+        var hard = _HardDependencyRegex().Match(block);
+        if (hard.Success)
+        {
+            properties.TryAdd("AffectedModId", hard.Groups["affected"].Value.Trim());
+            properties.TryAdd("MissingModId", hard.Groups["missing"].Value.Trim());
+            properties.TryAdd("RequiredVersion", hard.Groups["version"].Value.Trim());
+        }
+
+        var fix = _FixAddRegex().Match(block);
+        if (fix.Success)
+        {
+            properties.TryAdd("MissingModId", fix.Groups["missing"].Value.Trim());
+            properties.TryAdd("RequiredVersion", _NormalizeFabricFixVersion(fix.Groups["version"].Value));
+        }
+
+        properties.TryAdd("LoaderName", "Fabric / Quilt");
+        return properties;
+    }
+
+    private static string _DependencySummary(string block, IReadOnlyDictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("AffectedMod", out var affected) &&
+            properties.TryGetValue("MissingModId", out var missing) &&
+            properties.TryGetValue("RequiredVersion", out var version))
+            return affected + " requires " + missing + " " + version + ", but it is missing.";
+
+        if (properties.TryGetValue("AffectedModId", out var affectedId) &&
+            properties.TryGetValue("MissingModId", out var missingId))
+            return affectedId + " requires " + missingId + ", but it is missing.";
+
+        return _Summary(block);
+    }
+
+    private static string _Summary(string value)
+    {
+        var line = CrashText.ReadLines(value)
+            .Select(static item => item.Trim())
+            .FirstOrDefault(static item => !string.IsNullOrWhiteSpace(item) &&
+                                           !item.StartsWith("at ", StringComparison.OrdinalIgnoreCase));
+        line ??= value.Trim();
+        return line.Length > 220 ? line[..220] + "..." : line;
+    }
+
+    private static string _NormalizeRequirement(string value)
+    {
+        value = value.Trim();
+        value = value.Replace("any ", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("version", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("versions", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Trim();
+        return string.IsNullOrWhiteSpace(value) ? "compatible version" : value;
+    }
+
+    private static string _NormalizeFabricFixVersion(string value)
+    {
+        value = value.Trim();
+        return value.EndsWith('-') ? value.TrimEnd('-') + ".x" : value;
+    }
+
+    [GeneratedRegex(@"(?i)Mod resolution failed|HARD_DEP_NO_CANDIDATE|could not resolve|failed to resolve")]
+    private static partial Regex _ResolutionStartRegex();
+
+    [GeneratedRegex(@"(?i)Mod\s+'(?<display>[^']+)'\s+\((?<affected>[a-z0-9_.-]+)\)\s+(?<affectedVersion>[^\s]+)\s+requires\s+(?<requirement>.+?)\s+version\s+of\s+(?<missing>[a-z0-9_.-]+),\s+which\s+is\s+missing")]
+    private static partial Regex _FabricMissingDependencyRegex();
+
+    [GeneratedRegex(@"(?i)HARD_DEP(?:_NO_CANDIDATE)?\s+(?<affected>[a-z0-9_.-]+)\s+[^\{\]]*\{depends\s+(?<missing>[a-z0-9_.-]+)\s+@\s+\[(?<version>[^\]]+)\]")]
+    private static partial Regex _HardDependencyRegex();
+
+    [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
+    private static partial Regex _FixAddRegex();
+
+    [GeneratedRegex(@"(?i)^\s*Fix:\s*(?<value>.+)$")]
+    private static partial Regex _FixRegex();
+
+    [GeneratedRegex(@"(?i)which\s+is\s+missing|missing dependency|requires.*missing")]
+    private static partial Regex _MissingDependencyRegex();
+
+    [GeneratedRegex(@"^\s*(?:at\s|Caused by:|Exception in thread|--\s|\[\d{2}:\d{2}:\d{2})")]
+    private static partial Regex _HardStopRegex();
+}

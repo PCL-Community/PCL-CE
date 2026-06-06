@@ -5,9 +5,13 @@ public sealed class CrashFactExtractor
     private readonly IReadOnlyList<ICrashLogParser> _parsers =
     [
         new JavaCrashParser(),
+        new CrashReportSectionParser(),
         new MinecraftCrashReportParser(),
+        new FabricResolutionErrorParser(),
+        new ForgeErrorSectionParser(),
         new LoaderLogParser(),
         new ModMetadataParser(),
+        new HsErrProblematicFrameParser(),
         new NativeCrashParser(),
         new FileSystemCrashParser(),
         new SystemInfoParser()

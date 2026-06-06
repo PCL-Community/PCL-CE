@@ -42,8 +42,12 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
             var lineNumber = index + 1;
 
             _AppendMinecraftVersionFact(facts, document, line, lineNumber);
-            _AppendMainExceptionFact(facts, document, line, lineNumber);
-            _AppendWorldIssueFacts(facts, document, line, lineNumber);
+            if (document.Kind != CrashLogKind.MinecraftCrashReport)
+            {
+                _AppendMainExceptionFact(facts, document, line, lineNumber);
+                _AppendWorldIssueFacts(facts, document, line, lineNumber);
+            }
+
             _AppendClientContentIssueFacts(facts, document, line, lineNumber);
             _AppendDataPackFacts(facts, document, line, lineNumber);
             _AppendRegistryFacts(facts, document, line, lineNumber);
