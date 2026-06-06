@@ -3213,6 +3213,20 @@ public static class ModBase
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
+
+        // 自定义主页 XAML 被视为不受信任内容；禁止引用 WPF Behaviors 中可调用方法/改写属性的通用动作。
+        foreach (var blockedXamlNamespace in new[]
+                 {
+                     "Microsoft.Xaml.Behaviors",
+                     "Microsoft.Xaml.Behaviors.Core",
+                     "Microsoft.Xaml.Interactions.Core",
+                     "http://schemas.microsoft.com/xaml/behaviors"
+                 })
+        {
+            if (str.Contains(blockedXamlNamespace, StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException($"不允许使用 {blockedXamlNamespace} 命名空间。");
+        }
+
         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {
             // 类型检查
