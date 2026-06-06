@@ -709,10 +709,6 @@ public static class MinecraftCrashVisualFactory
                 "lucide/settings",
             CrashPresentationActionKind.OpenResourcePackFolder =>
                 "lucide/image",
-            CrashPresentationActionKind.CopyDiagnosisSummary =>
-                "lucide/copy",
-            CrashPresentationActionKind.PreviewMarkdown =>
-                "lucide/view",
             _ => "lucide/external-link"
         };
     }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using PCL.Core.Minecraft.CrashAnalysis;
 using PCL.Core.UI;
 
@@ -83,5 +84,22 @@ public static class MinecraftCrashReportExportService
         if (!string.IsNullOrWhiteSpace(session.Request.RuntimeContext.InstancePath))
             values.Add(session.Request.RuntimeContext.InstancePath);
         return values;
+    }
+
+    public static void ExportCurrentMarkdown()
+    {
+        var markdown = MinecraftCrashSessionStore.Current.Markdown;
+        string? path = null;
+        ModBase.RunInUiWait(() =>
+        {
+            path = SystemDialogs.SelectSaveFile(
+                MinecraftCrashUi.Text("Crash.Export.Markdown.Title"),
+                markdown.FileName,
+                MinecraftCrashUi.Text("Crash.Export.Markdown.Filter"));
+        });
+        if (string.IsNullOrWhiteSpace(path)) return;
+        File.WriteAllText(path, markdown.Content, Encoding.UTF8);
+        ModMain.Hint(MinecraftCrashUi.Text("Crash.Export.Markdown.Success"), ModMain.HintType.Finish);
+        ModBase.OpenExplorer(path);
     }
 }

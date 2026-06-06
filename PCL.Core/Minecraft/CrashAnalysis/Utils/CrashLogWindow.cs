@@ -13,7 +13,7 @@ public sealed record CrashLogWindow
 
     public static CrashLogWindow Create(CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
         var errors = lines
             .Select((line, index) => new { line, index })
             .Where(item => item.line.Contains("ERROR", StringComparison.OrdinalIgnoreCase) ||

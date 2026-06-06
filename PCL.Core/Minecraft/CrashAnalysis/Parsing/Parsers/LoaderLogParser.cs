@@ -16,15 +16,18 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
 
         for (var index = 0; index < lines.Count; index++)
         {
             var line = lines[index];
             var lineNumber = index + 1;
-            var window = CrashText.GetWindow(lines, index, 3, 3);
 
             _AppendLoaderFact(facts, document, line, lineNumber);
+            if (!_MayContainDetailedLoaderSignal(line))
+                continue;
+
+            var window = CrashText.GetWindow(lines, index, 3, 3);
             _AppendWindowFacts(facts, document, line, window, lineNumber);
         }
     }
@@ -60,6 +63,19 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 lineNumber,
                 confidence: CrashFactConfidence.High,
                 visibility: CrashFactVisibility.Technical));
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.LoaderVersionDetected,
+                match.Groups["version"].Value.Trim(),
+                document,
+                line,
+                lineNumber,
+                new Dictionary<string, string>
+                {
+                    ["LoaderName"] = match.Groups["loader"].Value.Trim(),
+                    ["LoaderVersion"] = match.Groups["version"].Value.Trim()
+                },
+                confidence: CrashFactConfidence.High,
+                visibility: CrashFactVisibility.Technical));
             return;
         }
 
@@ -91,6 +107,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         _AppendConflictFacts(facts, document, line, window, lineNumber, dependencyProperties);
         _AppendForgeFacts(facts, document, line, window, lineNumber, dependencyProperties);
         _AppendLoaderVersionFacts(facts, document, line, window, lineNumber, dependencyProperties);
+        _AppendModSetConflictFact(facts, document, line, window, lineNumber, dependencyProperties);
         _AppendDuplicateModFact(facts, document, line, window, lineNumber);
         _AppendMixinFact(facts, document, line, window, lineNumber);
         _AppendTransformFact(facts, document, line, window, lineNumber);
@@ -108,6 +125,8 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                                    || _FabricHardDependencyRegex().IsMatch(line)
                                    || (dependencyProperties.ContainsKey("MissingModId") && _IsDependencyWindow(line));
 
+        var hasDependencyWindow = _IsDependencyWindow(line);
+
         if (_ResolutionFailedRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LoaderResolutionError,
@@ -118,7 +137,17 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 dependencyProperties,
                 visibility: CrashFactVisibility.Main));
 
-        if (!hasPreciseDependency && !_IsDependencyWindow(line))
+        if (hasPreciseDependency || hasDependencyWindow)
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.LoaderDependencyError,
+                _DependencySummary(window, dependencyProperties),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
+
+        if (!hasPreciseDependency && !hasDependencyWindow)
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -232,6 +261,27 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 visibility: CrashFactVisibility.Main));
     }
 
+    private static void _AppendModSetConflictFact(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        string window,
+        int lineNumber,
+        IReadOnlyDictionary<string, string> dependencyProperties)
+    {
+        if (!_ModSetConflictRegex().IsMatch(line))
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.ModSetConflictDetected,
+            _Summary(window),
+            document,
+            window,
+            lineNumber,
+            dependencyProperties,
+            visibility: CrashFactVisibility.Main));
+    }
+
     private static void _AppendDuplicateModFact(
         List<CrashFact> facts,
         CrashLogDocument document,
@@ -290,8 +340,33 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     private static bool _IsDependencyWindow(string window)
     {
-        return (_MissingDependencyRegex().IsMatch(window) || _RequiresRegex().IsMatch(window))
-               && (_MissingTokenRegex().IsMatch(window) || _InstallTokenRegex().IsMatch(window));
+        return (_MissingDependencyRegex().IsMatch(window) || _ResolutionFailedRegex().IsMatch(window))
+               && (_MissingTokenRegex().IsMatch(window) || _ResolutionFailedRegex().IsMatch(window));
+    }
+
+    private static bool _MayContainDetailedLoaderSignal(string line)
+    {
+        return line.Contains("dependency", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("depends", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("requires", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("missing", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("not found", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("absent", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("incompatible", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("wrong", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("mod", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("mixin", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("transform", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("error", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("exception", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("forge", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("neoforge", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("fabric", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("quilt", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("HARD_DEP", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("conflict", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("conflicts", StringComparison.OrdinalIgnoreCase);
     }
 
     private static IReadOnlyDictionary<string, string> _ExtractDependencyProperties(string window)
@@ -484,6 +559,10 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     [GeneratedRegex(@"(?i)\btransform(er|ation)?\b.*\b(fail|error|exception)\b")]
     private static partial Regex _TransformFailureRegex();
+
+    [GeneratedRegex(
+        @"(?i)\bconflicts?\s+with\b|\bconflicting\s+mods?\b|\b(?:mod|mods?|addon|plugin)\b.*\bconflicts?\b|\bincompatible\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b|breaks\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b")]
+    private static partial Regex _ModSetConflictRegex();
 
     [GeneratedRegex(
         @"(?i)found\s+duplicate\s+mods?|duplicate\s+mods?\s+found|duplicate\s+mod\s+id|\bmod\b.*\bis\s+present\b.*\band\b")]

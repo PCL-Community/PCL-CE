@@ -22,10 +22,10 @@ public sealed class CrashAnalyzer(
     public CrashAnalysisResult Analyze(CrashAnalysisRequest request)
     {
         var stopwatch = Stopwatch.StartNew();
-        var bundle = CrashInputReader.Read(request);
+        var bundle = inputReader.Read(request);
         var facts = factExtractor.Extract(bundle, request);
         var diagnoses = diagnosisEngine.Diagnose(bundle, facts, request);
-        var presentation = CrashPresentationBuilder.Build(bundle, facts, diagnoses, request, stopwatch.Elapsed);
+        var presentation = presentationBuilder.Build(bundle, facts, diagnoses, request, stopwatch.Elapsed);
         stopwatch.Stop();
 
         return new CrashAnalysisResult

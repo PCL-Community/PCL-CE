@@ -13,6 +13,6 @@ public sealed record CrashLogDocument
     public DateTimeOffset? LastWriteTime { get; init; }
     public long? OriginalLength { get; init; }
     public required string Text { get; init; }
-
+    public IReadOnlyList<string> Lines => field ??= CrashText.ReadLines(Text);
     public bool IsEmpty => string.IsNullOrWhiteSpace(Text);
 }

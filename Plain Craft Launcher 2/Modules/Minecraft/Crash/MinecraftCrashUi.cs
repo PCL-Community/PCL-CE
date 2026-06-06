@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App.Localization;
@@ -7,7 +6,7 @@ using PCL.Core.Minecraft.CrashAnalysis;
 
 namespace PCL;
 
-public static partial class MinecraftCrashUi
+public static class MinecraftCrashUi
 {
     public static string Text(string key, IReadOnlyDictionary<string, string>? parameters = null)
     {
@@ -90,16 +89,10 @@ public static partial class MinecraftCrashUi
                     _OpenPreferredLog(session);
                 break;
             case CrashPresentationActionKind.ExportMarkdown:
-                MinecraftCrashMarkdownService.ExportCurrent();
+                MinecraftCrashReportExportService.ExportCurrentMarkdown();
                 break;
             case CrashPresentationActionKind.ExportReport:
                 MinecraftCrashReportExportService.ExportCurrent();
-                break;
-            case CrashPresentationActionKind.CopyDiagnosisSummary:
-                MinecraftCrashMarkdownService.CopyCurrentSummary();
-                break;
-            case CrashPresentationActionKind.PreviewMarkdown:
-                MinecraftCrashMarkdownService.PreviewCurrent();
                 break;
             case CrashPresentationActionKind.OpenJavaSettings:
                 ModMain.frmMain?.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupJava);
@@ -111,7 +104,6 @@ public static partial class MinecraftCrashUi
                     PageInstanceLeft.instance = session.Instance;
                     ModMain.frmMain?.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
                 }
-
                 break;
             case CrashPresentationActionKind.OpenInstanceModsFolder:
                 if (session.Instance is not null)
@@ -126,7 +118,11 @@ public static partial class MinecraftCrashUi
 
     public static void OpenLog(CrashPresentationLogSource log)
     {
-        OpenPathOrText(log.FullPath, log.Preview, log.Name);
+        var session = MinecraftCrashSessionStore.TryGetCurrent();
+        var document = session?.Result.LogBundle.Documents.FirstOrDefault(document =>
+            document.Kind == log.Kind &&
+            string.Equals(document.Name, log.Name, StringComparison.OrdinalIgnoreCase));
+        OpenPathOrText(log.FullPath, document?.Text ?? log.Preview, log.Name);
     }
 
     public static void CopyLogPreview(CrashPresentationLogSource log)
@@ -164,7 +160,4 @@ public static partial class MinecraftCrashUi
         ModBase.WriteFile(path, fallbackText);
         ModBase.ShellOnly(path);
     }
-
-    [GeneratedRegex(@"\{(?<name>[A-Za-z][A-Za-z0-9_.-]*)\}")]
-    private static partial Regex _NamedPlaceholderRegex();
 }

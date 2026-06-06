@@ -19,7 +19,7 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
         if (lines.Count == 0) return;
 
         facts.Add(CrashFactFactory.Create(
@@ -102,6 +102,17 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
                 confidence: CrashFactConfidence.High,
                 visibility: CrashFactVisibility.Main));
 
+            if (exception.Contains("ReportedException", StringComparison.OrdinalIgnoreCase) ||
+                line.Contains("Reported exception", StringComparison.OrdinalIgnoreCase))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.MinecraftReportedException,
+                    CrashText.SummarizeEvidence(line),
+                    document,
+                    line,
+                    index + 1,
+                    confidence: CrashFactConfidence.High,
+                    visibility: CrashFactVisibility.Technical));
+
             if (_ManualDebugCrashRegex().IsMatch(line))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.ManualDebugCrashDetected,
@@ -154,11 +165,15 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
         {
             if (section.Name.Contains("suspected mods", StringComparison.OrdinalIgnoreCase))
                 _AppendSuspectedMods(facts, document, section);
-            if (section.Name.Contains("entity being ticked", StringComparison.OrdinalIgnoreCase))
-                _AppendEntitySection(facts, document, section);
-            if (section.Name.Contains("block entity being ticked", StringComparison.OrdinalIgnoreCase) ||
-                section.Name.Contains("ticking block entity", StringComparison.OrdinalIgnoreCase))
+
+            var isBlockEntity =
+                section.Name.Contains("block entity being ticked", StringComparison.OrdinalIgnoreCase) ||
+                section.Name.Contains("block being ticked", StringComparison.OrdinalIgnoreCase) ||
+                section.Name.Contains("ticking block entity", StringComparison.OrdinalIgnoreCase);
+            if (isBlockEntity)
                 _AppendBlockEntitySection(facts, document, section);
+            else if (section.Name.Contains("entity being ticked", StringComparison.OrdinalIgnoreCase))
+                _AppendEntitySection(facts, document, section);
         }
     }
 
@@ -266,11 +281,12 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
             system.StartLine,
             visibility: CrashFactVisibility.Technical));
 
-        foreach (var item in system.Lines)
+        for (var index = 0; index < system.Lines.Count; index++)
         {
-            var line = item.Trim();
-            var lineNumber = system.StartLine + system.Lines.IndexOf(item);
+            var line = system.Lines[index].Trim();
+            var lineNumber = system.StartLine + index;
             _AppendSystemVersionFact(facts, document, line, lineNumber);
+            _AppendModListFact(facts, document, system, index, line, lineNumber);
         }
     }
 
@@ -299,6 +315,36 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
                 lineNumber,
                 _JavaProperties(java.Groups["version"].Value),
                 visibility: CrashFactVisibility.Technical));
+    }
+
+    private static void _AppendModListFact(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        CrashReportSection system,
+        int index,
+        string line,
+        int lineNumber)
+    {
+        if (!_ModListHeaderRegex().IsMatch(line))
+            return;
+
+        var excerptLines = system.Lines
+            .Skip(index)
+            .Take(12)
+            .ToList();
+        var summary = _Summary(excerptLines);
+        if (string.IsNullOrWhiteSpace(summary))
+            summary = "Mod list detected";
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.ModListDetected,
+            summary,
+            document,
+            string.Join("\n", excerptLines),
+            lineNumber,
+            visibility: CrashFactVisibility.Technical,
+            strength: CrashFactStrength.Weak,
+            scope: CrashFactScope.Context));
     }
 
     private static IReadOnlyDictionary<string, string> _JavaProperties(string value)
@@ -386,6 +432,9 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
 
     [GeneratedRegex(@"^\s*(?<key>[A-Za-z0-9 _/.-]{2,40})\s*:\s*(?<value>.+)\s*$")]
     private static partial Regex _KeyValueRegex();
+
+    [GeneratedRegex(@"(?i)^\s*(?:Mod List|Mods|Loaded Mods)\s*:")]
+    private static partial Regex _ModListHeaderRegex();
 
     [GeneratedRegex(@"(?i)^\s*Minecraft\s+Version\s*:\s*(?<version>[0-9][0-9A-Za-z_.+-]*)")]
     private static partial Regex _MinecraftVersionRegex();

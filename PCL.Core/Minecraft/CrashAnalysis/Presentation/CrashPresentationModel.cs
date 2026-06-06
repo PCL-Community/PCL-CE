@@ -69,10 +69,7 @@ public enum CrashPresentationActionKind
     OpenMemorySettings,
     OpenInstanceModsFolder,
     OpenInstanceSettings,
-    OpenResourcePackFolder,
-    CopyDiagnosisSummary,
-    PreviewMarkdown,
-    ShowTechnicalDetails
+    OpenResourcePackFolder
 }
 
 public enum CrashActionPriority

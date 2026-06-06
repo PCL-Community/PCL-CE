@@ -27,11 +27,10 @@ public static class CrashText
         if (lines.Count <= headLines + tailLines)
             return string.Join("\n", lines.Where(static line => !string.IsNullOrWhiteSpace(line)));
 
-        var result = new List<string>(headLines + tailLines + 1);
+        var result = new List<string>(headLines + tailLines);
         var seen = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var line in lines.Take(headLines)) Add(line);
-        result.Add("...");
         foreach (var line in lines.Skip(Math.Max(0, lines.Count - tailLines))) Add(line);
         return string.Join("\n", result);
 

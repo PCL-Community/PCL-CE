@@ -18,7 +18,7 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
 
         for (var index = 0; index < lines.Count; index++)
         {
@@ -29,8 +29,10 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             _AppendJavaErrorFacts(facts, document, line, lineNumber);
             _AppendJavaLaunchFacts(facts, document, line, lineNumber);
             _AppendJavaVersionFact(facts, document, line, lineNumber);
+            _AppendJavaVendorFact(facts, document, line, lineNumber);
             _AppendClassFileMajorFacts(facts, document, line, lineNumber);
             _AppendArchitectureFact(facts, document, line, lineNumber);
+            _AppendMinecraftExitCodeFact(facts, document, line, lineNumber);
         }
     }
 
@@ -49,6 +51,12 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             CrashFactKind.JavaVersionDetected,
             javaInfo,
             properties));
+
+        if (_JavaVendorRegex().Match(javaInfo) is { Success: true } vendor)
+            facts.Add(CrashFactFactory.CreateFromContext(
+                CrashFactKind.JavaVendorDetected,
+                vendor.Groups["vendor"].Value,
+                visibility: CrashFactVisibility.Technical));
     }
 
     private static void _AppendManualDebugCrashFact(
@@ -119,6 +127,17 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
                 document,
                 line,
                 lineNumber));
+
+        if (_GenericJavaThrowableRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.MinecraftMainException,
+                _TrimValue(line),
+                document,
+                line,
+                lineNumber,
+                visibility: CrashFactVisibility.Technical,
+                strength: CrashFactStrength.Medium,
+                scope: CrashFactScope.Symptom));
     }
 
     private static void _AppendJavaLaunchFacts(
@@ -163,6 +182,25 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             visibility: CrashFactVisibility.Technical));
     }
 
+    private static void _AppendJavaVendorFact(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        var match = _JavaVendorRegex().Match(line);
+        if (!match.Success)
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.JavaVendorDetected,
+            match.Groups["vendor"].Value,
+            document,
+            line,
+            lineNumber,
+            visibility: CrashFactVisibility.Technical));
+    }
+
     private static void _AppendClassFileMajorFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
@@ -204,6 +242,29 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             line,
             lineNumber,
             properties));
+    }
+
+    private static void _AppendMinecraftExitCodeFact(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        var match = _MinecraftExitCodeRegex().Match(line);
+        if (!match.Success)
+            return;
+
+        var code = match.Groups["code"].Value.Trim();
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.MinecraftExitCodeDetected,
+            code,
+            document,
+            line,
+            lineNumber,
+            new Dictionary<string, string> { ["ExitCode"] = code },
+            visibility: CrashFactVisibility.Technical,
+            strength: CrashFactStrength.Weak,
+            scope: CrashFactScope.Symptom));
     }
 
     private static void _AppendArchitectureFact(
@@ -290,6 +351,10 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
     [GeneratedRegex(@"(?i)Manually triggered debug crash|F3\s*\+\s*C")]
     private static partial Regex _ManualDebugCrashRegex();
 
+    [GeneratedRegex(
+        @"(?i)(?:exit(?:ed)?\s+(?:with\s+)?(?:code|value)|exit\s+code|process\s+crashed\s+with\s+exit\s+code)\s*[:=]?\s*(?<code>-?\d+)")]
+    private static partial Regex _MinecraftExitCodeRegex();
+
     [GeneratedRegex(@"(?i)CreateProcess error=2|java(?:\.exe)?(?:'|\s)*(?:not found|does not exist|cannot find|找不到)")]
     private static partial Regex _JavaExecutableMissingRegex();
 
@@ -304,9 +369,15 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
     [GeneratedRegex(@"(?i)(?:class file version|class version|major version)\s+(?<major>\d{2,3})")]
     private static partial Regex _ClassFileMajorRegex();
 
+    [GeneratedRegex(@"(?i)\b(?<vendor>OpenJ9|HotSpot|GraalVM|OpenJDK|Oracle)\b")]
+    private static partial Regex _JavaVendorRegex();
+
     [GeneratedRegex(@"(?<major>\d+)(?:\.(?<legacy>\d+))?")]
     private static partial Regex _JavaVersionValueRegex();
 
     [GeneratedRegex(@"(?i)\b(?<arch>x86|amd64|x86_64|aarch64|arm64)\b")]
     private static partial Regex _ArchitectureRegex();
+
+    [GeneratedRegex(@"^\s*(?:[A-Za-z_$][A-Za-z0-9_$]*\.)+[A-Za-z_$][A-Za-z0-9_$]*(?:Exception|Error)(?::|\b)")]
+    private static partial Regex _GenericJavaThrowableRegex();
 }

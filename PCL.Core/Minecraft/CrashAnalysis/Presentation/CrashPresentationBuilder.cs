@@ -2,7 +2,7 @@ namespace PCL.Core.Minecraft.CrashAnalysis;
 
 public sealed class CrashPresentationBuilder
 {
-    public static CrashPresentationModel Build(
+    public CrashPresentationModel Build(
         CrashLogBundle bundle,
         CrashFactSet facts,
         IReadOnlyList<CrashDiagnosis> diagnoses,
@@ -182,7 +182,11 @@ public sealed class CrashPresentationBuilder
             if (actions.All(existing => existing.Kind != action.Kind))
                 actions.Add(action);
 
-        if (bundle.PreferredOpenDocument?.FullPath is { Length: > 0 } logPath)
+        if (bundle.PreferredOpenDocument is { } preferredLog)
+        {
+            var logPath = !string.IsNullOrWhiteSpace(preferredLog.FullPath) && File.Exists(preferredLog.FullPath)
+                ? preferredLog.FullPath
+                : null;
             actions.Add(new CrashPresentationAction
             {
                 Kind = CrashPresentationActionKind.OpenLog,
@@ -192,6 +196,7 @@ public sealed class CrashPresentationBuilder
                 Group = CrashActionGroup.Investigate,
                 TargetPath = logPath
             });
+        }
 
         actions.Add(new CrashPresentationAction
         {
@@ -274,10 +279,10 @@ public sealed class CrashPresentationBuilder
             "Crash.Environment.Item.AllocatedMemory",
             context.AllocatedMemory, false);
         Add("Crash.Environment.Group.System",
-            "Crash.Environment.Item.OS",
+            "Crash.Environment.Item.Os",
             context.OperatingSystem, false);
         Add("Crash.Environment.Group.System",
-            "Crash.Environment.Item.CPU",
+            "Crash.Environment.Item.Cpu",
             context.CpuName, false);
         Add("Crash.Environment.Group.System",
             "Crash.Environment.Item.Memory",
@@ -287,7 +292,7 @@ public sealed class CrashPresentationBuilder
 
         foreach (var gpu in context.Gpus)
             Add("Crash.Environment.Group.System",
-                "Crash.Environment.Item.GPU",
+                "Crash.Environment.Item.Gpu",
                 gpu.Name, false);
         return items;
 

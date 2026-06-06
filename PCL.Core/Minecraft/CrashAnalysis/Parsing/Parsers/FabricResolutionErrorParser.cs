@@ -18,7 +18,7 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
         for (var index = 0; index < lines.Count; index++)
         {
             var line = lines[index];

@@ -40,9 +40,9 @@ public sealed class CrashFixtureDiagnosisTests
     }
 
     [TestMethod]
-    [DataRow("oom_heap.txt", CrashDiagnosisCode.RuntimeMemoryExhausted, CrashDiagnosisConfidence.High,
+    [DataRow("oom_heap.txt", CrashDiagnosisCode.RuntimeMemoryHeapExhausted, CrashDiagnosisConfidence.High,
         "JavaOutOfMemoryDetected", 2, "", "")]
-    [DataRow("oom_metaspace.txt", CrashDiagnosisCode.RuntimeMemoryExhausted, CrashDiagnosisConfidence.High,
+    [DataRow("oom_metaspace.txt", CrashDiagnosisCode.RuntimeMemoryMetaspaceExhausted, CrashDiagnosisConfidence.High,
         "JavaOutOfMemoryDetected", 2, "", "")]
     [DataRow("java_too_old_class61.txt", CrashDiagnosisCode.RuntimeJavaTooOld, CrashDiagnosisConfidence.High,
         "JavaUnsupportedClassVersionDetected", 2, "LoaderMixinFailure;ModLikelyCausedCrash", "Java 8")]
@@ -64,7 +64,8 @@ public sealed class CrashFixtureDiagnosisTests
         "OpenGlInitializationFailed", 2, "GraphicsDriverNativeCrash;NativeJvmCrash", "")]
     [DataRow("gpu_native_nvidia.txt", CrashDiagnosisCode.GraphicsDriverNativeCrash, CrashDiagnosisConfidence.High,
         "GpuDriverIssueHint", 4, "GraphicsOpenGlUnavailable;NativeJvmCrash", "")]
-    [DataRow("lwjgl_native_missing.txt", CrashDiagnosisCode.LibraryOrNativeMissing, CrashDiagnosisConfidence.High,
+    [DataRow("lwjgl_native_missing.txt", CrashDiagnosisCode.GraphicsLwjglNativeLoadFailed,
+        CrashDiagnosisConfidence.High,
         "NativeLibraryMissingDetected", 2, "GraphicsOpenGlUnavailable", "")]
     [DataRow("ticking_entity.txt", CrashDiagnosisCode.GameWorldEntityCorrupted, CrashDiagnosisConfidence.Medium,
         "WorldEntityIssueDetected", 2, "GameWorldBlockEntityCorrupted", "")]

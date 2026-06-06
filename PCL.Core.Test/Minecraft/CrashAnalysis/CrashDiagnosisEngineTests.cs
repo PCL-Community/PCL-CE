@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.CrashAnalysis;
 
@@ -16,8 +15,8 @@ public sealed class CrashDiagnosisEngineTests
             CapturedOutputLines = ["java.lang.OutOfMemoryError: Java heap space"]
         });
 
-        Assert.IsTrue(result.Diagnoses.Any(static diagnosis =>
-            diagnosis.Code == CrashDiagnosisCode.RuntimeMemoryExhausted));
+        Assert.Contains(static diagnosis =>
+            diagnosis.Code == CrashDiagnosisCode.RuntimeMemoryHeapExhausted, result.Diagnoses);
     }
 
     [TestMethod]

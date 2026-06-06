@@ -5,17 +5,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.CrashAnalysis;
 
 namespace PCL.Core.Test.Minecraft.CrashAnalysis;
 
 [TestClass]
-public sealed class CrashLocalizationTests
+public sealed partial class CrashLocalizationTests
 {
-    private static readonly string[] LanguageCodes = LocalizationService.SupportedLanguages
-        .Select(static language => language.Code)
-        .ToArray();
+    private static readonly string[] LanguageCodes = _GetAvailableLanguageCodes();
 
     [TestMethod]
     public void AllCrashDiagnosisCodesHaveLocalizationKey()
@@ -63,6 +60,23 @@ public sealed class CrashLocalizationTests
         }
     }
 
+    [TestMethod]
+    public void CrashLocalizationKeysAreSorted()
+    {
+        foreach (var languageCode in LanguageCodes)
+        {
+            var sections = _LoadCrashKeySections(languageCode);
+            for (var index = 0; index < sections.Count; index++)
+            {
+                var crashKeys = sections[index].ToArray();
+                CollectionAssert.AreEqual(
+                    crashKeys.OrderBy(static key => key, StringComparer.Ordinal).ToArray(),
+                    crashKeys,
+                    languageCode + $" 的第 {index + 1} 个 Crash 语言键分组没有按字典序排列");
+            }
+        }
+    }
+
     private static Dictionary<string, string> _LoadResources(string languageCode)
     {
         var filePath = Path.Combine(_GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages",
@@ -78,9 +92,49 @@ public sealed class CrashLocalizationTests
             .ToDictionary(static item => item.Key!, static item => item.Value);
     }
 
+    private static string[] _GetAvailableLanguageCodes()
+    {
+        var languageDirectory = Path.Combine(_GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages");
+        return Directory.GetFiles(languageDirectory, "*.xaml")
+            .Select(static path => Path.GetFileNameWithoutExtension(path))
+            .Where(static code => !string.IsNullOrWhiteSpace(code))
+            .Select(static code => code!)
+            .OrderBy(static code => code, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<IReadOnlyList<string>> _LoadCrashKeySections(string languageCode)
+    {
+        var filePath = Path.Combine(_GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages",
+            languageCode + ".xaml");
+        var sections = new List<List<string>>();
+        var current = new List<string>();
+
+        foreach (var line in File.ReadLines(filePath))
+        {
+            if (line.Contains("<!--", StringComparison.Ordinal) &&
+                line.Contains("Crash.", StringComparison.Ordinal))
+            {
+                if (current.Count > 0)
+                    sections.Add(current);
+                current = [];
+                continue;
+            }
+
+            var match = Regex.Match(line, "x:Key=\"(?<key>Crash\\.[^\"]+)\"");
+            if (match.Success)
+                current.Add(match.Groups["key"].Value);
+        }
+
+        if (current.Count > 0)
+            sections.Add(current);
+
+        return sections;
+    }
+
     private static string[] _GetPlaceholders(string value)
     {
-        return Regex.Matches(value, @"\{[A-Za-z][A-Za-z0-9_]*\}|\{\d+(?::[^}]*)?\}")
+        return PlaceholdersRegex().Matches(value)
             .Select(static match => match.Value)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static placeholder => placeholder, StringComparer.Ordinal)
@@ -99,4 +153,7 @@ public sealed class CrashLocalizationTests
         Assert.Fail("无法定位仓库根目录");
         return string.Empty;
     }
+
+    [GeneratedRegex(@"\{[A-Za-z][A-Za-z0-9_]*\}|\{\d+(?::[^}]*)?\}")]
+    private static partial Regex PlaceholdersRegex();
 }

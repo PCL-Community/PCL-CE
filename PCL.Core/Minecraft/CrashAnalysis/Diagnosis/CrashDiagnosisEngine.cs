@@ -61,7 +61,8 @@ public sealed class CrashDiagnosisEngine
 
         if (diagnoses.Any(static d =>
                 d.Code is CrashDiagnosisCode.LoaderDependencyMissing
-                    or CrashDiagnosisCode.LoaderDependencyVersionConflict))
+                    or CrashDiagnosisCode.LoaderDependencyVersionConflict
+                    or CrashDiagnosisCode.ModSetConflict))
             diagnoses = diagnoses.Select(static d =>
                 d.Code == CrashDiagnosisCode.ModLikelyCausedCrash
                     ? _AdjustScore(d, -30, new CrashDiagnosisNote { Key = "Crash.Note.DependencyOverridesMixin" })

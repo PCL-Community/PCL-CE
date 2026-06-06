@@ -11,7 +11,6 @@ public sealed class CrashFactExtractor
         new ForgeErrorSectionParser(),
         new LoaderLogParser(),
         new ModMetadataParser(),
-        new HsErrProblematicFrameParser(),
         new NativeCrashParser(),
         new FileSystemCrashParser(),
         new SystemInfoParser()
@@ -59,6 +58,7 @@ public sealed class CrashFactExtractor
                         }
                     )
                     .Select(static item => item.First())
+                    .OrderBy(evidence => _SourcePriority(best.Kind, evidence.SourceKind))
                     .Take(5)
                     .ToList()
             }).ToList();
@@ -68,7 +68,28 @@ public sealed class CrashFactExtractor
 
     private static int _SourcePriority(CrashFact fact)
     {
-        return fact.Evidence.FirstOrDefault()?.SourceKind switch
+        return _SourcePriority(fact.Kind, fact.Evidence.FirstOrDefault()?.SourceKind);
+    }
+
+    private static int _SourcePriority(CrashFactKind factKind, CrashLogKind? sourceKind)
+    {
+        if (factKind is CrashFactKind.NativeProblematicFrameDetected
+            or CrashFactKind.NativeLibraryInCrashFrame
+            or CrashFactKind.GpuDriverIssueHint
+            or CrashFactKind.GpuNativeLibraryCrashDetected
+            or CrashFactKind.JavaFatalErrorDetected
+            or CrashFactKind.NativeAccessViolationDetected)
+            return sourceKind switch
+            {
+                CrashLogKind.JavaFatalErrorLog => 0,
+                CrashLogKind.CapturedGameOutput => 1,
+                CrashLogKind.MinecraftCrashReport => 2,
+                CrashLogKind.MinecraftLatestLog => 3,
+                CrashLogKind.MinecraftDebugLog => 4,
+                _ => 10
+            };
+
+        return sourceKind switch
         {
             CrashLogKind.CapturedGameOutput => 0,
             CrashLogKind.MinecraftCrashReport => 1,
@@ -100,7 +121,13 @@ public sealed class CrashFactExtractor
             or CrashFactKind.LoaderVersionDetected
             or CrashFactKind.MinecraftVersionDetected
             or CrashFactKind.JavaVersionDetected
-            or CrashFactKind.JavaArchitectureDetected)
+            or CrashFactKind.JavaArchitectureDetected
+            or CrashFactKind.NativeProblematicFrameDetected
+            or CrashFactKind.NativeLibraryInCrashFrame
+            or CrashFactKind.GpuDriverIssueHint
+            or CrashFactKind.GpuNativeLibraryCrashDetected
+            or CrashFactKind.JavaFatalErrorDetected
+            or CrashFactKind.NativeAccessViolationDetected)
             return kind + "|" + CrashText.NormalizeEvidence(fact.Value);
 
         return kind + "|" + CrashText.NormalizeEvidence(fact.Value) + "|" + SourceKey(fact);
@@ -189,6 +216,8 @@ internal static class CrashFactFactory
                 or CrashFactKind.ManualDebugCrashDetected
                 or CrashFactKind.NativeProblematicFrameDetected
                 or CrashFactKind.MissingModDependencyDetected
+                or CrashFactKind.LoaderDependencyError
+                or CrashFactKind.ModSetConflictDetected
                 or CrashFactKind.ForgeMissingMandatoryDependencyDetected
                 or CrashFactKind.OpenGlInitializationFailed
                 or CrashFactKind.GpuDriverIssueHint
@@ -223,13 +252,15 @@ internal static class CrashFactFactory
                 or CrashFactKind.MemoryAllocationDetected
                 or CrashFactKind.OsVersionDetected
                 or CrashFactKind.ProcessBitnessDetected
-                or CrashFactKind.LaunchArgumentDetected => CrashFactScope.Context,
+                or CrashFactKind.LaunchArgumentDetected
+                or CrashFactKind.ModListDetected => CrashFactScope.Context,
 
             CrashFactKind.LoaderMixinError
                 or CrashFactKind.LoaderTransformError
                 or CrashFactKind.NativeAccessViolationDetected
                 or CrashFactKind.NativeProblematicFrameDetected
                 or CrashFactKind.MinecraftMainException
+                or CrashFactKind.MinecraftReportedException
                 or CrashFactKind.MinecraftExitCodeDetected
                 or CrashFactKind.ShaderIssueDetected => CrashFactScope.Symptom,
 

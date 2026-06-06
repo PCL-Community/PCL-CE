@@ -14,7 +14,7 @@ internal sealed partial class FileSystemCrashParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
 
         for (var index = 0; index < lines.Count; index++)
         {

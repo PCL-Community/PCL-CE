@@ -34,7 +34,7 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 document.Name,
                 document));
 
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
 
         for (var index = 0; index < lines.Count; index++)
         {
@@ -99,13 +99,24 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
         if (!match.Success)
             return;
 
+        var exceptionType = match.Groups["type"].Value;
         facts.Add(CrashFactFactory.Create(
             CrashFactKind.MinecraftMainException,
-            match.Groups["type"].Value,
+            exceptionType,
             document,
             line,
             lineNumber,
             visibility: CrashFactVisibility.Technical));
+
+        if (exceptionType.Contains("ReportedException", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("Reported exception", StringComparison.OrdinalIgnoreCase))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.MinecraftReportedException,
+                CrashText.SummarizeEvidence(line),
+                document,
+                line,
+                lineNumber,
+                visibility: CrashFactVisibility.Technical));
     }
 
     private static void _AppendWorldIssueFacts(
@@ -114,17 +125,19 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
         string line,
         int lineNumber)
     {
-        if (_Contains(line, "Ticking entity") || _Contains(line, "Entity being ticked"))
+        var isBlockEntityIssue = _Contains(line, "Block entity being ticked") ||
+                                 _Contains(line, "Block being ticked") ||
+                                 _Contains(line, "Block location");
+        if (isBlockEntityIssue)
             facts.Add(CrashFactFactory.Create(
-                CrashFactKind.WorldEntityIssueDetected,
+                CrashFactKind.WorldBlockEntityIssueDetected,
                 line.Trim(),
                 document,
                 line,
                 lineNumber));
-
-        if (_Contains(line, "Block entity being ticked") || _Contains(line, "Block location"))
+        else if (_Contains(line, "Ticking entity") || _Contains(line, "Entity being ticked"))
             facts.Add(CrashFactFactory.Create(
-                CrashFactKind.WorldBlockEntityIssueDetected,
+                CrashFactKind.WorldEntityIssueDetected,
                 line.Trim(),
                 document,
                 line,

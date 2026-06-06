@@ -28,7 +28,7 @@ public partial class PageCrashLeft : IRefreshable
     private static void BtnExportMarkdown_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        MinecraftCrashMarkdownService.ExportCurrent();
+        MinecraftCrashReportExportService.ExportCurrentMarkdown();
     }
 
     private static void BtnExportReport_Click(object sender, MouseButtonEventArgs e)

@@ -7,7 +7,14 @@ namespace PCL.Core.Minecraft.CrashAnalysis;
 /// </summary>
 public sealed partial class CrashInputReader
 {
-    public static CrashLogBundle Read(CrashAnalysisRequest request)
+    public const long MaxSingleLogBytes = 32L * 1024L * 1024L;
+    public const long MaxArchiveBytes = 128L * 1024L * 1024L;
+    public const int MaxArchiveLogCount = 128;
+    public const int MaxLiveCandidateCount = 64;
+    public const int MaxRecentSubDirectories = 48;
+    public static readonly TimeSpan RecentLogWindow = TimeSpan.FromMinutes(3);
+    
+    public CrashLogBundle Read(CrashAnalysisRequest request)
     {
         var documents = request.Source switch
         {
@@ -22,7 +29,7 @@ public sealed partial class CrashInputReader
             .Select(static group => group.First())
             .ToList();
 
-        ordered = request.Source == CrashAnalysisSource.LiveGame || _LooksLikePclCrashReportBundle(ordered)
+        ordered = _ShouldAssignCurrentCrashRoles(ordered, request)
             ? _AssignLiveAnalysisRoles(ordered, request)
             : ordered.Select(static document => document with { AnalysisRole = CrashLogAnalysisRole.Primary }).ToList();
 
@@ -62,7 +69,8 @@ public sealed partial class CrashInputReader
             });
 
         result.AddRange(_DiscoverLivePaths(request)
-            .Take(CrashInputOptions.MaxLiveCandidateCount)
+            .OrderByDescending(_SafeLastWriteTime)
+            .Take(MaxLiveCandidateCount)
             .Select(path => _ReadFile(path, CrashLogOrigin.FileSystem, _ClassifyByName(path)))
             .OfType<CrashLogDocument>());
 
@@ -79,6 +87,28 @@ public sealed partial class CrashInputReader
                    or CrashLogKind.JavaFatalErrorLog);
     }
 
+    private static bool _ShouldAssignCurrentCrashRoles(
+        IReadOnlyList<CrashLogDocument> documents,
+        CrashAnalysisRequest request)
+    {
+        return request.Source == CrashAnalysisSource.LiveGame
+               || _LooksLikePclCrashReportBundle(documents)
+               || _LooksLikeImportedDiagnosticBundle(documents, request);
+    }
+
+    private static bool _LooksLikeImportedDiagnosticBundle(
+        IReadOnlyList<CrashLogDocument> documents,
+        CrashAnalysisRequest request)
+    {
+        if (request.Source != CrashAnalysisSource.ImportedFile)
+            return false;
+        if (documents.All(static document => document.Origin != CrashLogOrigin.ImportedArchive))
+            return false;
+
+        return documents.Count(static document => document.Kind is CrashLogKind.MinecraftCrashReport
+            or CrashLogKind.JavaFatalErrorLog) > 1;
+    }
+
     private static List<CrashLogDocument> _AssignLiveAnalysisRoles(
         IReadOnlyList<CrashLogDocument> documents,
         CrashAnalysisRequest request)
@@ -89,13 +119,13 @@ public sealed partial class CrashInputReader
         var currentHsErrName = referencedNames
             .FirstOrDefault(static name => name.StartsWith("hs_err", StringComparison.OrdinalIgnoreCase));
 
-        var fallbackCrashReport = currentCrashName is null && currentHsErrName is null
-            ? _SelectFallbackCurrentCrashReport(documents, request)
+        var fallbackDiagnosticDocument = currentCrashName is null && currentHsErrName is null
+            ? _SelectFallbackCurrentDiagnosticDocument(documents, request)
             : null;
 
         return documents.Select(document =>
         {
-            var role = _DetermineRole(document, currentCrashName, currentHsErrName, fallbackCrashReport);
+            var role = _DetermineRole(document, currentCrashName, currentHsErrName, fallbackDiagnosticDocument);
             return document with { AnalysisRole = role };
         }).ToList();
     }
@@ -104,7 +134,7 @@ public sealed partial class CrashInputReader
         CrashLogDocument document,
         string? currentCrashName,
         string? currentHsErrName,
-        CrashLogDocument? fallbackCrashReport)
+        CrashLogDocument? fallbackDiagnosticDocument)
     {
         return document.Kind switch
         {
@@ -117,11 +147,11 @@ public sealed partial class CrashInputReader
             CrashLogKind.MinecraftCrashReport when _NameEquals(document, currentCrashName) =>
                 CrashLogAnalysisRole.Primary,
             CrashLogKind.MinecraftCrashReport =>
-                ReferenceEquals(document, fallbackCrashReport)
+                ReferenceEquals(document, fallbackDiagnosticDocument)
                     ? CrashLogAnalysisRole.Primary
                     : CrashLogAnalysisRole.ReportOnly,
             CrashLogKind.JavaFatalErrorLog =>
-                _NameEquals(document, currentHsErrName)
+                _NameEquals(document, currentHsErrName) || ReferenceEquals(document, fallbackDiagnosticDocument)
                     ? CrashLogAnalysisRole.Primary
                     : CrashLogAnalysisRole.ReportOnly,
             _ => document.Origin == CrashLogOrigin.Generated
@@ -130,12 +160,13 @@ public sealed partial class CrashInputReader
         };
     }
 
-    private static CrashLogDocument? _SelectFallbackCurrentCrashReport(
+    private static CrashLogDocument? _SelectFallbackCurrentDiagnosticDocument(
         IReadOnlyList<CrashLogDocument> documents,
         CrashAnalysisRequest request)
     {
         var candidates = documents
-            .Where(static document => document.Kind == CrashLogKind.MinecraftCrashReport)
+            .Where(static document => document.Kind is CrashLogKind.MinecraftCrashReport
+                or CrashLogKind.JavaFatalErrorLog)
             .Select(document => new { Document = document, Time = _CrashReportSortTime(document) })
             .Where(item => item.Time is not null)
             .OrderByDescending(static item => item.Time)
@@ -149,7 +180,7 @@ public sealed partial class CrashInputReader
 
         var now = request.Now;
         return candidates
-            .FirstOrDefault(item => now - item.Time!.Value <= CrashInputOptions.RecentLogWindow)
+            .FirstOrDefault(item => now - item.Time!.Value <= RecentLogWindow)
             ?.Document;
     }
 
@@ -162,7 +193,7 @@ public sealed partial class CrashInputReader
                 out var nameTime))
             return nameTime;
 
-        foreach (var line in CrashText.ReadLines(document.Text).Take(12))
+        foreach (var line in document.Lines.Take(12))
         {
             var timeMatch = _CrashReportTimeRegex().Match(line);
             if (timeMatch.Success && DateTimeOffset.TryParse(timeMatch.Groups["time"].Value, out var reportTime))
@@ -242,44 +273,47 @@ public sealed partial class CrashInputReader
     {
         var result = new List<CrashLogDocument>();
         var totalBytes = 0L;
-        var targetRoot = string.IsNullOrWhiteSpace(tempDirectory)
-            ? Path.Combine(Path.GetTempPath(), "pcl-crash-import-" + Guid.NewGuid().ToString("N"))
-            : Path.Combine(tempDirectory, "crash-import-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(targetRoot);
 
         using var archive = ZipFile.OpenRead(archivePath);
-        foreach (var entry in archive.Entries)
+        foreach (var entry in archive.Entries
+                     .Where(static entry => !string.IsNullOrWhiteSpace(entry.Name))
+                     .Where(static entry => _IsReadableLog(entry.FullName))
+                     .OrderByDescending(static entry => entry.LastWriteTime))
         {
-            if (string.IsNullOrWhiteSpace(entry.Name)) continue;
-            if (!_IsReadableLog(entry.FullName)) continue;
-            if (result.Count >= CrashInputOptions.MaxArchiveLogCount) break;
-            if (entry.Length > CrashInputOptions.MaxSingleLogBytes) continue;
+            if (result.Count >= MaxArchiveLogCount) break;
+            if (entry.Length is <= 0 or > MaxSingleLogBytes) continue;
             totalBytes += entry.Length;
-            if (totalBytes > CrashInputOptions.MaxArchiveBytes) break;
+            if (totalBytes > MaxArchiveBytes) break;
 
-            var targetPath = Path.GetFullPath(Path.Combine(targetRoot, entry.FullName));
-            if (!_IsSubPathOf(targetPath, targetRoot)) continue;
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            entry.ExtractToFile(targetPath, true);
-            var document = _ReadFile(targetPath, CrashLogOrigin.ImportedArchive, _ClassifyByName(entry.FullName));
-            if (document is not null)
-                result.Add(document with
-                {
-                    Name = entry.FullName.Replace('\\', '/'),
-                    LastWriteTime = entry.LastWriteTime
-                });
+            var text = _ReadZipEntryText(entry);
+            if (string.IsNullOrWhiteSpace(text)) continue;
+
+            result.Add(new CrashLogDocument
+            {
+                Kind = _ClassifyByName(entry.FullName),
+                Name = entry.FullName.Replace('\\', '/'),
+                FullPath = "archive://" + entry.FullName.Replace('\\', '/'),
+                Origin = CrashLogOrigin.ImportedArchive,
+                LastWriteTime = entry.LastWriteTime,
+                OriginalLength = entry.Length,
+                Text = text
+            });
         }
 
         return result;
     }
 
-    private static bool _IsSubPathOf(string childPath, string parentPath)
+    private static string? _ReadZipEntryText(ZipArchiveEntry entry)
     {
-        var child = Path.GetFullPath(childPath)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        var parent = Path.GetFullPath(parentPath)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        return child.StartsWith(parent, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            using var stream = entry.Open();
+            return _ReadTextWithFallback(stream);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static CrashLogDocument? _ReadFile(string path, CrashLogOrigin origin, CrashLogKind kind)
@@ -287,7 +321,7 @@ public sealed partial class CrashInputReader
         try
         {
             var info = new FileInfo(path);
-            if (!info.Exists || info.Length <= 0 || info.Length > CrashInputOptions.MaxSingleLogBytes) return null;
+            if (!info.Exists || info.Length <= 0 || info.Length > MaxSingleLogBytes) return null;
             if (!_IsReadableLog(path)) return null;
             return new CrashLogDocument
             {
@@ -297,13 +331,106 @@ public sealed partial class CrashInputReader
                 Origin = origin,
                 LastWriteTime = info.LastWriteTime,
                 OriginalLength = info.Length,
-                Text = File.ReadAllText(info.FullName, Encoding.UTF8)
+                Text = _ReadTextWithFallback(info.FullName)
             };
         }
         catch
         {
             return null;
         }
+    }
+
+    private static string _ReadTextWithFallback(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return _ReadTextWithFallback(stream) ?? string.Empty;
+    }
+
+    private static string? _ReadTextWithFallback(Stream stream)
+    {
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+        var bytes = memory.ToArray();
+        if (bytes.Length == 0) return string.Empty;
+
+        var bomEncoding = _DetectBomEncoding(bytes, out var bomLength);
+        if (bomEncoding is not null)
+            return _NormalizeNewLines(bomEncoding.GetString(bytes, bomLength, bytes.Length - bomLength));
+
+        var strictUtf8 = new UTF8Encoding(false, true);
+        try
+        {
+            return _NormalizeNewLines(strictUtf8.GetString(bytes));
+        }
+        catch (DecoderFallbackException)
+        {
+            foreach (var encoding in _FallbackEncodings())
+                try
+                {
+                    return _NormalizeNewLines(encoding.GetString(bytes));
+                }
+                catch (DecoderFallbackException)
+                {
+                    // Try the next encoding.
+                }
+
+            return _NormalizeNewLines(Encoding.UTF8.GetString(bytes));
+        }
+    }
+
+    private static Encoding? _DetectBomEncoding(byte[] bytes, out int bomLength)
+    {
+        switch (bytes.Length)
+        {
+            case >= 3 when bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF:
+                bomLength = 3;
+                return Encoding.UTF8;
+            case >= 2 when bytes[0] == 0xFF && bytes[1] == 0xFE:
+                bomLength = 2;
+                return Encoding.Unicode;
+            case >= 2 when bytes[0] == 0xFE && bytes[1] == 0xFF:
+                bomLength = 2;
+                return Encoding.BigEndianUnicode;
+            default:
+                bomLength = 0;
+                return null;
+        }
+    }
+
+    private static IEnumerable<Encoding> _FallbackEncodings()
+    {
+        try
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+        catch
+        {
+            // Code page provider is optional on some runtimes.
+        }
+
+        foreach (var name in new[] { "GB18030", "GBK", "GB2312", "windows-936" })
+        {
+            Encoding encoding;
+            try
+            {
+                encoding = Encoding.GetEncoding(name, EncoderFallback.ExceptionFallback,
+                    DecoderFallback.ExceptionFallback);
+            }
+            catch
+            {
+                continue;
+            }
+
+            yield return encoding;
+        }
+
+        yield return Encoding.Default;
+    }
+
+    private static string _NormalizeNewLines(string text)
+    {
+        return text.Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
     }
 
     private static CrashLogKind _ClassifyByName(string path)
@@ -348,7 +475,7 @@ public sealed partial class CrashInputReader
         try
         {
             var time = new FileInfo(path).LastWriteTime;
-            return now - time <= CrashInputOptions.RecentLogWindow;
+            return now - time <= RecentLogWindow;
         }
         catch
         {
@@ -366,7 +493,7 @@ public sealed partial class CrashInputReader
                 yield return path;
 
         foreach (var subDirectory in _EnumerateDirectories(directory)
-                     .Take(CrashInputOptions.MaxRecentSubDirectories))
+                     .Take(MaxRecentSubDirectories))
         foreach (var path in _Enumerate(subDirectory, pattern))
             if (_IsRecent(path, now))
                 yield return path;
@@ -425,17 +552,4 @@ public sealed partial class CrashInputReader
     [GeneratedRegex(
         @"(?i)(?<name>crash-\d{4}-\d{2}-\d{2}_\d{2}\.\d{2}\.\d{2}-(?:client|server)\.txt|hs_err_pid\d+\.log)")]
     private static partial Regex _ReferencedReportNameRegex();
-
-    /// <summary>
-    ///     崩溃输入读取的安全与性能限制。
-    /// </summary>
-    private sealed record CrashInputOptions
-    {
-        public const long MaxSingleLogBytes = 32L * 1024L * 1024L;
-        public const long MaxArchiveBytes = 128L * 1024L * 1024L;
-        public const int MaxArchiveLogCount = 128;
-        public const int MaxLiveCandidateCount = 64;
-        public const int MaxRecentSubDirectories = 48;
-        public static readonly TimeSpan RecentLogWindow = TimeSpan.FromMinutes(3);
-    }
 }

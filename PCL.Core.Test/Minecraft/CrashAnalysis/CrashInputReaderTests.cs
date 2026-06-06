@@ -22,7 +22,7 @@ public sealed class CrashInputReaderTests
             writer.Write("hello");
         }
 
-        var bundle = CrashInputReader.Read(new CrashAnalysisRequest
+        var bundle = new CrashInputReader().Read(new CrashAnalysisRequest
         {
             Source = CrashAnalysisSource.ImportedFile,
             ImportedFilePath = zipPath,

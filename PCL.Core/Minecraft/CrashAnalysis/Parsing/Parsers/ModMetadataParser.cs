@@ -19,7 +19,7 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
 
     private static void _AppendDocumentFacts(List<CrashFact> facts, CrashLogDocument document)
     {
-        var lines = CrashText.ReadLines(document.Text);
+        var lines = document.Lines;
 
         for (var index = 0; index < lines.Count; index++)
         {
@@ -77,6 +77,15 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
         if (_ModMetadataInvalidRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ModMetadataInvalidDetected,
+                line.Trim(),
+                document,
+                line,
+                lineNumber,
+                confidence: CrashFactConfidence.High));
+
+        if (_ModFileNameInvalidRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.ModFileNameInvalid,
                 line.Trim(),
                 document,
                 line,
@@ -145,7 +154,7 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
     private static partial Regex _FabricModDisplayRegex();
 
     [GeneratedRegex(
-        @"(?i)failed to load.*\.jar|invalid mod file|failed to load mod file|zip END header not found|invalid CEN header|error in opening zip file|unable to read mod metadata|no mods\.toml found|invalid fabric\.mod\.json|fabric\.mod\.json.*(?:missing|invalid)")]
+        @"(?i)failed to load.*\.jar|invalid mod file|invalid mod file name|mod file name.*(?:invalid|unsupported)|failed to load mod file|zip END header not found|invalid CEN header|error in opening zip file|unable to read mod metadata|no mods\.toml found|invalid fabric\.mod\.json|fabric\.mod\.json.*(?:missing|invalid)")]
     private static partial Regex _ModFileIssueRegex();
 
     [GeneratedRegex(
@@ -155,6 +164,9 @@ internal sealed partial class ModMetadataParser : ICrashLogParser
     [GeneratedRegex(
         @"(?i)unable to read mod metadata|no mods\.toml found|invalid fabric\.mod\.json|fabric\.mod\.json.*(?:missing|invalid)|mod metadata.*(?:missing|invalid)")]
     private static partial Regex _ModMetadataInvalidRegex();
+
+    [GeneratedRegex(@"(?i)invalid mod file name|mod file name.*(?:invalid|unsupported)|invalid file name.*(?:mod|jar)")]
+    private static partial Regex _ModFileNameInvalidRegex();
 
     [GeneratedRegex(
         @"(?i)(?:config|\.toml|\.json|nightconfig|JsonSyntaxException|ParsingException).*?(?:parse|parsing|invalid|malformed|failed|error)|(?:parse|parsing|invalid|malformed|failed|error).*?(?:config|\.toml|\.json|nightconfig)")]
