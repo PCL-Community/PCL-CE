@@ -182,14 +182,13 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (o is not MyRadioBox radioBox) return;
+        if (o is not MyRadioBox { Tag: string tag }) return;
 
-        var parts = radioBox.Tag?.ToString()?.Split('/');
-        if (parts is null || parts.Length is not 2) return;
+        var slash = tag.IndexOf('/');
+        if (slash < 0) return;
 
-        var tag = parts[0];
-        var value = int.Parse(parts[1]);
-        ArgConfig<int> setting = tag switch
+        var value = int.Parse(tag[(slash + 1)..]);
+        ArgConfig<int> setting = tag[..slash] switch
         {
             "VersionRamType" => Config.Instance.MemorySolution,
             _ => throw new ArgumentOutOfRangeException()
