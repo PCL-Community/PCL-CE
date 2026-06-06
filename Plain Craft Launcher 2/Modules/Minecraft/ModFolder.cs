@@ -134,9 +134,9 @@ public static class ModFolder
 
             ModBase.Log(cacheMcFolderList.Count + " 个自定义文件夹，" + originalMcFolderList.Count + " 个原始文件夹");
 
-            var unAdded = false;
             foreach (var newOriginalFolder in originalMcFolderList)
             {
+                var unAdded = true;
                 foreach (var cacheFolder in cacheMcFolderList)
                     if ((cacheFolder.Location ?? "") == (newOriginalFolder.Location ?? ""))
                     {
@@ -144,10 +144,10 @@ public static class ModFolder
                             cacheFolder.type = McFolder.Types.RenamedOriginal;
                         else
                             cacheFolder.type = McFolder.Types.Original;
-                        unAdded = true;
+                        unAdded = false;
                     }
 
-                if (!unAdded)
+                if (unAdded)
                     cacheMcFolderList.Add(newOriginalFolder); // 如果没有重命名，则添加当前文件夹
             }
 

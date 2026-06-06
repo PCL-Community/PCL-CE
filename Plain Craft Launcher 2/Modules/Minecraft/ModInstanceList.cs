@@ -39,8 +39,6 @@ public static class ModInstanceList
         }
     }
 
-    internal static bool _JsonVersion_jsonVersionInited;
-
     /// <summary>
     ///     当前按卡片分类的所有版本列表。
     /// </summary>
