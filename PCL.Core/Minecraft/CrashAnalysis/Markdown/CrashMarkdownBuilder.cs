@@ -1,6 +1,6 @@
 namespace PCL.Core.Minecraft.CrashAnalysis;
 
-public sealed class CrashMarkdownBuilder
+public static class CrashMarkdownBuilder
 {
     private const int MaxKeyEvidence = 8;
     private const int MaxDetailedEvidence = 6;

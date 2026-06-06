@@ -2,7 +2,7 @@ using System.Windows.Controls;
 
 namespace PCL;
 
-public partial class PageCrashOverview : PageCrashRightBase
+public partial class PageCrashOverview
 {
     public PageCrashOverview()
     {
@@ -15,12 +15,9 @@ public partial class PageCrashOverview : PageCrashRightBase
 
         if (session is null)
         {
-            PanMain.Children.Add(MinecraftCrashUi.CreateCard(
-                "Crash.Overview.Card.Hero",
-                MinecraftCrashVisualFactory.CreateHint(
-                    MinecraftCrashUi.Text("Crash.Page.NoSession"),
-                    MyHint.Themes.Yellow
-                )));
+            PanMain.Children.Add(MinecraftCrashVisualFactory.CreateHint(
+                MinecraftCrashUi.Text("Crash.Page.NoSession"),
+                MyHint.Themes.Yellow));
             return;
         }
 
@@ -31,13 +28,9 @@ public partial class PageCrashOverview : PageCrashRightBase
         if (top is not null)
             PanMain.Children.Add(MinecraftCrashVisualFactory.CreateDiagnosisCard(top, true));
         else
-            PanMain.Children.Add(MinecraftCrashUi.CreateCard(
-                "Crash.Overview.Card.TopDiagnosis",
-                MinecraftCrashVisualFactory.CreateHint(
-                    MinecraftCrashUi.Text("Crash.Overview.NoTopDiagnosis"),
-                    MyHint.Themes.Yellow
-                )
-            ));
+            PanMain.Children.Add(MinecraftCrashVisualFactory.CreateHint(
+                MinecraftCrashUi.Text("Crash.Overview.NoTopDiagnosis"),
+                MyHint.Themes.Yellow));
 
         if (presentation.Metrics.Count > 0)
             PanMain.Children.Add(MinecraftCrashVisualFactory.CreateMetricGrid(presentation.Metrics));

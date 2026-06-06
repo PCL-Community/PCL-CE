@@ -90,16 +90,16 @@ public static partial class MinecraftCrashUi
                     _OpenPreferredLog(session);
                 break;
             case CrashPresentationActionKind.ExportMarkdown:
-                MinecraftCrashMarkdownExportService.ExportCurrent();
+                MinecraftCrashMarkdownService.ExportCurrent();
                 break;
             case CrashPresentationActionKind.ExportReport:
                 MinecraftCrashReportExportService.ExportCurrent();
                 break;
             case CrashPresentationActionKind.CopyDiagnosisSummary:
-                MinecraftCrashMarkdownExportService.CopyCurrentSummary();
+                MinecraftCrashMarkdownService.CopyCurrentSummary();
                 break;
             case CrashPresentationActionKind.PreviewMarkdown:
-                MinecraftCrashMarkdownPreviewService.PreviewCurrent();
+                MinecraftCrashMarkdownService.PreviewCurrent();
                 break;
             case CrashPresentationActionKind.OpenJavaSettings:
                 ModMain.frmMain?.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupJava);

@@ -14,13 +14,9 @@ public partial class PageCrashSuggestions
         PanMain.Children.Clear();
         if (session is null) return;
 
-        PanMain.Children.Add(MinecraftCrashUi.CreateCard(
-            "Crash.Suggestions.Overview",
-            MinecraftCrashVisualFactory.CreateHint(
-                MinecraftCrashUi.Text("Crash.Suggestions.Hint"),
-                MyHint.Themes.Blue
-            )
-        ));
+        PanMain.Children.Add(MinecraftCrashVisualFactory.CreateHint(
+            MinecraftCrashUi.Text("Crash.Suggestions.Hint"),
+            MyHint.Themes.Blue));
 
         foreach (var group in session.Presentation.Actions
                      .GroupBy(static action => action.Group)

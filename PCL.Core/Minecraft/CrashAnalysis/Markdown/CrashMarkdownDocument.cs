@@ -14,4 +14,6 @@ public sealed record CrashMarkdownExportOptions
     public bool IncludeLogs { get; init; } = true;
 }
 
-public delegate string CrashMarkdownLocalizer(string key, IReadOnlyDictionary<string, string> parameters);
+public delegate string CrashMarkdownLocalizer(
+    string key,
+    IReadOnlyDictionary<string, string> parameters);

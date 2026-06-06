@@ -15,8 +15,9 @@ public partial class PageCrashDiagnoses
         PanMain.Children.Clear();
         if (session is null) return;
 
-        PanMain.Children.Add(MinecraftCrashUi.CreateCard("Crash.Diagnoses.Overview",
-            MinecraftCrashVisualFactory.CreateHint(MinecraftCrashUi.Text("Crash.Diagnoses.Hint"), MyHint.Themes.Blue)));
+        PanMain.Children.Add(MinecraftCrashVisualFactory.CreateHint(
+            MinecraftCrashUi.Text("Crash.Diagnoses.Hint"),
+            MyHint.Themes.Blue));
 
         var diagnoses = session.Presentation.Diagnoses;
         var primary = diagnoses.FirstOrDefault();

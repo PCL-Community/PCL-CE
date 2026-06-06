@@ -3000,8 +3000,8 @@
     <sys:String x:Key="Watcher.Log.CrashDetected">识别为崩溃的 Log：{0}</sys:String>
     <sys:String x:Key="Watcher.Crash.Suspected">Minecraft 尚未加载完成，可能已崩溃</sys:String>
     <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft 返回值异常，可能已崩溃</sys:String>
-    <sys:String x:Key="Watcher.Crash.Detected">Minecraft 已崩溃，将在 2 秒后开始崩溃分析</sys:String>
-    <sys:String x:Key="Watcher.Crash.AnalysisStart">崩溃分析开始</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft 出现错误，将在 2 秒后开始错误分析</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">错误分析开始</sys:String>
     <sys:String x:Key="Watcher.Crash.Hint">检测到 Minecraft 出现错误，错误分析已开始……</sys:String>
     <sys:String x:Key="Watcher.Kill.Attempt">尝试强制结束 Minecraft 进程</sys:String>
     <sys:String x:Key="Watcher.Kill.TaskkillAttempt">进程仍未退出，尝试使用 taskkill.exe</sys:String>
@@ -3066,61 +3066,11 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">大厅界面初始化</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
 
-    <!-- Crash.Dialog -->
-
-    <sys:String x:Key="Crash.Dialog.AutoTitle">Minecraft 出现错误</sys:String>
-    <sys:String x:Key="Crash.Dialog.ManualTitle">错误报告分析结果</sys:String>
-    <sys:String x:Key="Crash.Dialog.ViewLog">查看日志</sys:String>
-    <sys:String x:Key="Crash.Dialog.ExportReport">导出错误报告</sys:String>
-    <sys:String x:Key="Crash.Dialog.GoToModify">前往修改</sys:String>
-    <sys:String x:Key="Crash.Dialog.OpenJavaSettings">打开 Java 设置</sys:String>
-    <sys:String x:Key="Crash.Dialog.OpenMemorySettings">打开内存设置</sys:String>
-
-    <!-- Crash.Export -->
-
-    <sys:String x:Key="Crash.Export.SelectSaveTitle">选择保存位置</sys:String>
-    <sys:String x:Key="Crash.Export.DefaultFileName">错误报告-{0}.zip</sys:String>
-    <sys:String x:Key="Crash.Export.FileFilter">Minecraft 错误报告 (*.zip)|*.zip</sys:String>
-    <sys:String x:Key="Crash.Export.File.LaunchScript">启动脚本.bat</sys:String>
-    <sys:String x:Key="Crash.Export.File.RawOutput">游戏崩溃前的输出.txt</sys:String>
-    <sys:String x:Key="Crash.Export.File.LauncherLog">PCL 启动器日志.txt</sys:String>
-    <sys:String x:Key="Crash.Export.File.Environment">环境与启动信息.txt</sys:String>
-    <sys:String x:Key="Crash.Export.Success">错误报告已导出！</sys:String>
-    <sys:String x:Key="Crash.Export.Failed">导出错误报告失败</sys:String>
-
-    <!-- Crash.Result -->
-
-    <sys:String x:Key="Crash.Result.Unknown.Manual">很抱歉，PCL 无法确定错误原因。</sys:String>
-    <sys:String x:Key="Crash.Result.Unknown.Automatic">很抱歉，你的游戏出现了一些问题……&#x0a;如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。</sys:String>
-    <sys:String x:Key="Crash.Result.NoAnalyzableLog">你的游戏出现了一些问题，但 PCL 未能找到相关记录文件，因此无法进行分析。</sys:String>
-    <sys:String x:Key="Crash.Result.Joiner">&#x0a;&#x0a;此外，</sys:String>
-    <sys:String x:Key="Crash.Result.Footer.RequestReport">&#x0a;&#x0a;如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。</sys:String>
-    <sys:String x:Key="Crash.Result.Footer.LauncherOutdated">&#x0a;&#x0a;此外，你正在使用老版本 PCL，更新 PCL 或许也能解决这个问题。&#x0a;你可以点击 设置 → 启动器 → 检查更新 来更新 PCL。</sys:String>
-
-    <!-- Crash.Environment -->
-
-    <sys:String x:Key="Crash.Environment.LauncherVersion">PCL CE 版本：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.LauncherId">识别码：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.ProfileTitle">- 档案信息 -</sys:String>
-    <sys:String x:Key="Crash.Environment.ProfileName">档案名称：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.AuthType">验证方式：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.InstanceTitle">- 实例信息 -</sys:String>
-    <sys:String x:Key="Crash.Environment.Java">选定的 Java 虚拟机：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.Log4jNoLookups">Log4j2 NoLookups：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.MinecraftFolder">MC 文件夹：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.AllocatedMemory">内存分配：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.SystemTitle">- 环境信息 -</sys:String>
-    <sys:String x:Key="Crash.Environment.OperatingSystem">操作系统：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.SystemArchitecture">系统架构：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.Cpu">CPU：{0}</sys:String>
-    <sys:String x:Key="Crash.Environment.Memory">已安装物理内存：{0} MB</sys:String>
-    <sys:String x:Key="Crash.Environment.Gpu">显卡 {0}：{1} ({2} MB, {3})</sys:String>
-    
     <!-- Crash.Finding -->
 
-    <sys:String x:Key="Main.Title.CrashAnalysis">崩溃分析</sys:String>
-    <sys:String x:Key="Crash.Page.NoSession">当前没有可显示的崩溃分析结果。请先启动一次游戏或导入崩溃日志。</sys:String>
-    <sys:String x:Key="Crash.Left.Title">崩溃分析</sys:String>
+    <sys:String x:Key="Main.Title.CrashAnalysis">错误分析</sys:String>
+    <sys:String x:Key="Crash.Page.NoSession">当前没有可显示的错误分析结果。请先启动一次游戏或导入错误日志。</sys:String>
+    <sys:String x:Key="Crash.Left.Title">错误分析</sys:String>
     <sys:String x:Key="Crash.Left.Overview">概览</sys:String>
     <sys:String x:Key="Crash.Left.Diagnoses">诊断</sys:String>
     <sys:String x:Key="Crash.Left.Suggestions">建议</sys:String>
@@ -3129,15 +3079,15 @@
     <sys:String x:Key="Crash.Left.Environment">环境</sys:String>
     <sys:String x:Key="Crash.Left.Export">导出</sys:String>
     <sys:String x:Key="Crash.Left.QuickActions">快捷操作</sys:String>
-    <sys:String x:Key="Crash.Left.UnknownSubPage">未知的崩溃分析页面：{0}</sys:String>
-    <sys:String x:Key="Crash.Left.SwitchFailed">切换崩溃分析页面失败：{0}</sys:String>
-    <sys:String x:Key="Crash.Overview.Card.Summary">崩溃概览</sys:String>
+    <sys:String x:Key="Crash.Left.UnknownSubPage">未知的错误分析页面：{0}</sys:String>
+    <sys:String x:Key="Crash.Left.SwitchFailed">切换错误分析页面失败：{0}</sys:String>
+    <sys:String x:Key="Crash.Overview.Card.Summary">错误概览</sys:String>
     <sys:String x:Key="Crash.Overview.Card.TopDiagnosis">最可能原因</sys:String>
     <sys:String x:Key="Crash.Overview.Card.QuickActions">推荐操作</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft 启动失败</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft 启动失败</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft 启动失败</sys:String>
-    <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL 没有找到足够的崩溃日志，因此暂时无法判断具体原因。</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft 出现错误</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft 出现错误</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft 出现错误</sys:String>
+    <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL 没有找到足够的错误日志，因此暂时无法判断具体原因。</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.Unknown">PCL 暂时无法确定具体原因，但已经整理出可用于求助和排查的信息。</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL 找到了 {DiagnosisCount} 个可能原因，并记录了 {EvidenceCount} 条关键证据。</sys:String>
     <sys:String x:Key="Crash.Overview.ConfidenceLine">置信度：{0}，评分：{1}</sys:String>
@@ -3161,10 +3111,10 @@
     <sys:String x:Key="Crash.Action.OpenResourcePackFolder">打开资源包文件夹</sys:String>
     <sys:String x:Key="Crash.Action.CopyDiagnosisSummary">复制诊断摘要</sys:String>
     <sys:String x:Key="Crash.Action.ShowTechnicalDetails">查看技术细节</sys:String>
-    <sys:String x:Key="Crash.Export.Markdown.Title">导出 Markdown 崩溃分析报告</sys:String>
+    <sys:String x:Key="Crash.Export.Markdown.Title">导出 Markdown 错误分析报告</sys:String>
     <sys:String x:Key="Crash.Export.Markdown.Filter">Markdown 文件|*.md</sys:String>
     <sys:String x:Key="Crash.Export.Markdown.Success">Markdown 报告已导出！</sys:String>
-    <sys:String x:Key="Crash.Export.Markdown.Copied">崩溃分析摘要已复制！</sys:String>
+    <sys:String x:Key="Crash.Export.Markdown.Copied">错误分析摘要已复制！</sys:String>
     <sys:String x:Key="Crash.Export.Full.Title">导出完整崩溃报告</sys:String>
     <sys:String x:Key="Crash.Export.Full.DefaultFileName">crash-report-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Export.Full.Filter">Zip 压缩包|*.zip</sys:String>
@@ -3188,7 +3138,7 @@
     <sys:String x:Key="Crash.Environment.Item.Memory">系统内存</sys:String>
     <sys:String x:Key="Crash.Environment.Item.GPU">显卡</sys:String>
     <sys:String x:Key="Crash.Environment.Sensitive">&lt;已隐藏&gt;</sys:String>
-    <sys:String x:Key="Crash.Markdown.Title">Minecraft 崩溃分析报告</sys:String>
+    <sys:String x:Key="Crash.Markdown.Title">Minecraft 错误分析报告</sys:String>
     <sys:String x:Key="Crash.Markdown.GeneratedAt">生成时间：{Time}</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Overview">概览</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Diagnoses">诊断结果</sys:String>
@@ -3298,7 +3248,7 @@
     <sys:String x:Key="Crash.Action.ShowEvidence">查看证据</sys:String>
     <sys:String x:Key="Crash.Action.ShowSensitiveInfo">显示敏感信息</sys:String>
     <sys:String x:Key="Crash.Action.HideSensitiveInfo">隐藏敏感信息</sys:String>
-    <sys:String x:Key="Crash.Overview.Card.Hero">崩溃概览</sys:String>
+    <sys:String x:Key="Crash.Overview.Card.Hero">错误概览</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Metrics">分析摘要</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Actions">推荐操作</sys:String>
     <sys:String x:Key="Crash.Overview.Card.RelatedLogs">相关日志</sys:String>
@@ -3333,7 +3283,7 @@
     <sys:String x:Key="Crash.Note.DependencyOverridesMixin">检测到明确的缺失依赖信息，因此将 Mixin 失败视为后续症状，而不是主要原因。</sys:String>
     <sys:String x:Key="Crash.Note.JavaOverridesStack">检测到 Java 兼容性问题，因此降低了基于堆栈猜测 Mod 的优先级。</sys:String>
     <sys:String x:Key="Crash.Note.GraphicsOverridesNativeJvm">原生崩溃指向图形组件，因此降低了一般 JVM 原生崩溃诊断的优先级。</sys:String>
-    <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown 预览</sys:String>
+    <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown 错误分析报告预览</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Metric">指标</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Value">值</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Weight">权重</sys:String>
@@ -3341,7 +3291,7 @@
 
     <sys:String x:Key="Crash.Markdown.Field.Category">分类</sys:String>
 
-    <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">最可能的原因是 {Diagnosis}。建议先阅读“诊断”和“建议”页，再修改实例配置或删除文件。</sys:String>
+    <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">最可能的原因是 {Diagnosis}。</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.PrimaryDiagnosis">最可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.OtherDiagnoses">其他可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">详细证据</sys:String>
@@ -3450,7 +3400,7 @@
     <sys:String x:Key="Crash.Severity.Warning">警告</sys:String>
     <sys:String x:Key="Crash.Severity.Error">错误</sys:String>
 
-    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">暂时没有找到明确的崩溃原因。你仍可以查看日志、证据和环境信息，或导出报告寻求帮助。</sys:String>
+    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">暂时没有找到明确的错误原因。你仍可以查看日志、证据和环境信息，或导出报告寻求帮助。</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Overview">诊断说明</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Hint">这里会按置信度展示所有可能原因。首个诊断通常是最值得优先处理的问题，后面的诊断可能是伴随症状或进一步排查方向。</sys:String>
     <sys:String x:Key="Crash.Diagnoses.SuppressedHint">以下说明用于解释某些诊断为何被降权或视为后续症状。请优先处理主要诊断。</sys:String>

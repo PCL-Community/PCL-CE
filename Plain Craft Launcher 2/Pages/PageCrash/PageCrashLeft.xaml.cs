@@ -18,8 +18,6 @@ public partial class PageCrashLeft : IRefreshable
         ItemEnvironment.Check += PageCheck;
         BtnExportMarkdown.Click += BtnExportMarkdown_Click;
         BtnExportReport.Click += BtnExportReport_Click;
-        BtnCopySummary.Click += BtnCopySummary_Click;
-        BtnPreviewMarkdown.Click += BtnPreviewMarkdown_Click;
     }
 
     public void Refresh()
@@ -30,7 +28,7 @@ public partial class PageCrashLeft : IRefreshable
     private static void BtnExportMarkdown_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        MinecraftCrashMarkdownExportService.ExportCurrent();
+        MinecraftCrashMarkdownService.ExportCurrent();
     }
 
     private static void BtnExportReport_Click(object sender, MouseButtonEventArgs e)
@@ -39,17 +37,6 @@ public partial class PageCrashLeft : IRefreshable
         MinecraftCrashReportExportService.ExportCurrent();
     }
 
-    private static void BtnCopySummary_Click(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        MinecraftCrashMarkdownExportService.CopyCurrentSummary();
-    }
-
-    private static void BtnPreviewMarkdown_Click(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        MinecraftCrashMarkdownPreviewService.PreviewCurrent();
-    }
 
     private void PageCheck(object sender, ModBase.RouteEventArgs e)
     {

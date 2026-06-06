@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.CrashAnalysis;
 using PCL.Core.UI;
 
@@ -12,7 +11,6 @@ public static class MinecraftCrashReportExportService
     public static void ExportCurrent()
     {
         var session = MinecraftCrashSessionStore.Current;
-        var builder = new CrashReportBuilder();
         var package = CrashReportBuilder.Build(session.Result, new CrashReportBuildOptions
         {
             Markdown = session.Markdown,
@@ -52,9 +50,9 @@ public static class MinecraftCrashReportExportService
                 filePath = SystemDialogs.SelectSaveFile(
                     MinecraftCrashUi.Text("Crash.Export.Full.Title"),
                     MinecraftCrashUi.Text("Crash.Export.Full.DefaultFileName", new Dictionary<string, string>
-                        {
-                            ["0"] = DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss", CultureInfo.InvariantCulture)
-                        }),
+                    {
+                        ["0"] = DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss", CultureInfo.InvariantCulture)
+                    }),
                     MinecraftCrashUi.Text("Crash.Export.Full.Filter"));
             });
             if (string.IsNullOrWhiteSpace(filePath)) return;

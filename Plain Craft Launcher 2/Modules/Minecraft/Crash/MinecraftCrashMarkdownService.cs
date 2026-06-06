@@ -1,12 +1,11 @@
 using System.IO;
 using System.Text;
 using System.Windows;
-using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
 namespace PCL;
 
-public static class MinecraftCrashMarkdownExportService
+public static class MinecraftCrashMarkdownService
 {
     public static void ExportCurrent()
     {
@@ -29,5 +28,19 @@ public static class MinecraftCrashMarkdownExportService
     {
         Clipboard.SetText(MinecraftCrashSessionStore.Current.Markdown.Content);
         ModMain.Hint(MinecraftCrashUi.Text("Crash.Export.Markdown.Copied"), ModMain.HintType.Finish);
+    }
+
+    public static void PreviewCurrent()
+    {
+        var session = MinecraftCrashSessionStore.TryGetCurrent();
+        if (session is null)
+        {
+            ModMain.Hint(MinecraftCrashUi.Text("Crash.Page.NoSession"), ModMain.HintType.Critical);
+            return;
+        }
+
+        ModMain.MyMsgBoxMarkdown(
+            session.Markdown.Content,
+            MinecraftCrashUi.Text("Crash.Markdown.Preview.Title"));
     }
 }

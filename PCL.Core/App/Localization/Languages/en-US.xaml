@@ -3000,8 +3000,8 @@
     <sys:String x:Key="Watcher.Log.CrashDetected">Detected crash log: {0}</sys:String>
     <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading and may have crashed.</sys:String>
     <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exited with an abnormal code and may have crashed.</sys:String>
-    <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed. Crash analysis will start in 2 seconds.</sys:String>
-    <sys:String x:Key="Watcher.Crash.AnalysisStart">Crash analysis started</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft encountered an error. Error analysis will start in 2 seconds.</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">Error analysis started</sys:String>
     <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected. Starting analysis...</sys:String>
     <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force-kill the Minecraft process</sys:String>
     <sys:String x:Key="Watcher.Kill.TaskkillAttempt">Process is still alive. Trying taskkill.exe</sys:String>
@@ -3066,66 +3066,11 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
 
-    <!-- Crash.Dialog -->
-
-    <sys:String x:Key="Crash.Dialog.AutoTitle">Minecraft crashed</sys:String>
-    <sys:String x:Key="Crash.Dialog.ManualTitle">Crash analysis result</sys:String>
-    <sys:String x:Key="Crash.Dialog.ViewLog">View log</sys:String>
-    <sys:String x:Key="Crash.Dialog.ExportReport">Export report</sys:String>
-    <sys:String x:Key="Crash.Dialog.GoToModify">Open settings</sys:String>
-    <sys:String x:Key="Crash.Dialog.OpenJavaSettings">Open Java settings</sys:String>
-    <sys:String x:Key="Crash.Dialog.OpenMemorySettings">Open memory settings</sys:String>
-
-    <!-- Crash.Export -->
-
-    <sys:String x:Key="Crash.Export.SelectSaveTitle">Export crash report</sys:String>
-    <sys:String x:Key="Crash.Export.DefaultFileName">crash-report-{0}.zip</sys:String>
-    <sys:String x:Key="Crash.Export.FileFilter">Zip archive|*.zip</sys:String>
-    <sys:String x:Key="Crash.Export.File.LaunchScript">launch-script.bat</sys:String>
-    <sys:String x:Key="Crash.Export.File.RawOutput">game-output.txt</sys:String>
-    <sys:String x:Key="Crash.Export.File.LauncherLog">launcher-log.txt</sys:String>
-    <sys:String x:Key="Crash.Export.File.Environment">environment.txt</sys:String>
-    <sys:String x:Key="Crash.Export.Success">Crash report exported.</sys:String>
-    <sys:String x:Key="Crash.Export.Failed">Failed to export crash report.</sys:String>
-
-    <!-- Crash.Result -->
-
-    <sys:String x:Key="Crash.Result.Unknown.Manual">PCL could not determine the cause.</sys:String>
-    <sys:String x:Key="Crash.Result.Unknown.Automatic">Minecraft failed, but PCL could not determine the exact cause. Export the report if you need help.</sys:String>
-    <sys:String x:Key="Crash.Result.NoAnalyzableLog">Minecraft failed, but PCL could not find useful logs for analysis.</sys:String>
-    <sys:String x:Key="Crash.Result.Joiner">
-
-Additionally, </sys:String>
-    <sys:String x:Key="Crash.Result.Footer.RequestReport">
-If you need help, send the exported report instead of a screenshot.</sys:String>
-    <sys:String x:Key="Crash.Result.Footer.LauncherOutdated">
-
-You are using an old PCL version. Updating PCL may also help.</sys:String>
-
-    <!-- Crash.Environment -->
-
-    <sys:String x:Key="Crash.Environment.LauncherVersion">Launcher version</sys:String>
-    <sys:String x:Key="Crash.Environment.LauncherId">Launcher ID</sys:String>
-    <sys:String x:Key="Crash.Environment.ProfileTitle">Profile</sys:String>
-    <sys:String x:Key="Crash.Environment.ProfileName">Profile name</sys:String>
-    <sys:String x:Key="Crash.Environment.AuthType">Authentication type</sys:String>
-    <sys:String x:Key="Crash.Environment.InstanceTitle">Instance</sys:String>
-    <sys:String x:Key="Crash.Environment.Java">Java runtime</sys:String>
-    <sys:String x:Key="Crash.Environment.Log4jNoLookups">Log4j2 NoLookups</sys:String>
-    <sys:String x:Key="Crash.Environment.MinecraftFolder">Minecraft folder</sys:String>
-    <sys:String x:Key="Crash.Environment.AllocatedMemory">Allocated memory</sys:String>
-    <sys:String x:Key="Crash.Environment.SystemTitle">System</sys:String>
-    <sys:String x:Key="Crash.Environment.OperatingSystem">Operating system</sys:String>
-    <sys:String x:Key="Crash.Environment.SystemArchitecture">System architecture</sys:String>
-    <sys:String x:Key="Crash.Environment.Cpu">CPU</sys:String>
-    <sys:String x:Key="Crash.Environment.Memory">Memory</sys:String>
-    <sys:String x:Key="Crash.Environment.Gpu">GPU</sys:String>
-
     <!-- Crash.Finding -->
 
-    <sys:String x:Key="Main.Title.CrashAnalysis">崩溃分析</sys:String>
-    <sys:String x:Key="Crash.Page.NoSession">No crash analysis session is available. Start the game once or import a crash log first.</sys:String>
-    <sys:String x:Key="Crash.Left.Title">Crash analysis</sys:String>
+    <sys:String x:Key="Main.Title.CrashAnalysis">Error analysis</sys:String>
+    <sys:String x:Key="Crash.Page.NoSession">There is no error analysis result to display. Start the game once or import an error log first.</sys:String>
+    <sys:String x:Key="Crash.Left.Title">Error analysis</sys:String>
     <sys:String x:Key="Crash.Left.Overview">Overview</sys:String>
     <sys:String x:Key="Crash.Left.Diagnoses">Diagnoses</sys:String>
     <sys:String x:Key="Crash.Left.Suggestions">Suggestions</sys:String>
@@ -3134,15 +3079,15 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Left.Environment">Environment</sys:String>
     <sys:String x:Key="Crash.Left.Export">Export</sys:String>
     <sys:String x:Key="Crash.Left.QuickActions">Quick actions</sys:String>
-    <sys:String x:Key="Crash.Left.UnknownSubPage">Unknown crash analysis page: {0}</sys:String>
-    <sys:String x:Key="Crash.Left.SwitchFailed">Failed to switch crash analysis page: {0}</sys:String>
-    <sys:String x:Key="Crash.Overview.Card.Summary">Crash overview</sys:String>
+    <sys:String x:Key="Crash.Left.UnknownSubPage">Unknown error analysis page: {0}</sys:String>
+    <sys:String x:Key="Crash.Left.SwitchFailed">Failed to switch error analysis page: {0}</sys:String>
+    <sys:String x:Key="Crash.Overview.Card.Summary">Error overview</sys:String>
     <sys:String x:Key="Crash.Overview.Card.TopDiagnosis">Most likely cause</sys:String>
     <sys:String x:Key="Crash.Overview.Card.QuickActions">Recommended actions</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft failed to start</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft failed to start</sys:String>
-    <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft failed to start</sys:String>
-    <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL could not find enough crash logs to determine the cause.</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft encountered an error</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft encountered an error</sys:String>
+    <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft encountered an error</sys:String>
+    <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL could not find enough error logs to determine the cause.</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.Unknown">PCL could not determine a specific cause, but it collected useful information for troubleshooting.</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL found {DiagnosisCount} possible cause(s) and recorded {EvidenceCount} key evidence item(s).</sys:String>
     <sys:String x:Key="Crash.Overview.ConfidenceLine">Confidence: {0}, score: {1}</sys:String>
@@ -3166,10 +3111,10 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Action.OpenResourcePackFolder">Open resource packs folder</sys:String>
     <sys:String x:Key="Crash.Action.CopyDiagnosisSummary">Copy diagnosis summary</sys:String>
     <sys:String x:Key="Crash.Action.ShowTechnicalDetails">Show technical details</sys:String>
-    <sys:String x:Key="Crash.Export.Markdown.Title">Export Markdown crash analysis report</sys:String>
+    <sys:String x:Key="Crash.Export.Markdown.Title">Export Markdown error analysis report</sys:String>
     <sys:String x:Key="Crash.Export.Markdown.Filter">Markdown file|*.md</sys:String>
     <sys:String x:Key="Crash.Export.Markdown.Success">Markdown report exported.</sys:String>
-    <sys:String x:Key="Crash.Export.Markdown.Copied">Crash diagnosis summary copied.</sys:String>
+    <sys:String x:Key="Crash.Export.Markdown.Copied">Error analysis summary copied.</sys:String>
     <sys:String x:Key="Crash.Export.Full.Title">Export full crash report</sys:String>
     <sys:String x:Key="Crash.Export.Full.DefaultFileName">crash-report-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Export.Full.Filter">Zip archive|*.zip</sys:String>
@@ -3193,7 +3138,7 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Environment.Item.Memory">System memory</sys:String>
     <sys:String x:Key="Crash.Environment.Item.GPU">GPU</sys:String>
     <sys:String x:Key="Crash.Environment.Sensitive">&lt;hidden&gt;</sys:String>
-    <sys:String x:Key="Crash.Markdown.Title">Minecraft crash analysis report</sys:String>
+    <sys:String x:Key="Crash.Markdown.Title">Minecraft error analysis report</sys:String>
     <sys:String x:Key="Crash.Markdown.GeneratedAt">Generated at: {Time}</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Overview">Overview</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Diagnoses">Diagnoses</sys:String>
@@ -3303,7 +3248,7 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Action.ShowEvidence">Show evidence</sys:String>
     <sys:String x:Key="Crash.Action.ShowSensitiveInfo">Show sensitive information</sys:String>
     <sys:String x:Key="Crash.Action.HideSensitiveInfo">Hide sensitive information</sys:String>
-    <sys:String x:Key="Crash.Overview.Card.Hero">Crash overview</sys:String>
+    <sys:String x:Key="Crash.Overview.Card.Hero">Error overview</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Metrics">Analysis summary</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Actions">Recommended actions</sys:String>
     <sys:String x:Key="Crash.Overview.Card.RelatedLogs">Related logs</sys:String>
@@ -3338,7 +3283,7 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Note.DependencyOverridesMixin">A clear dependency problem was detected, so Mixin failures are treated as follow-up symptoms instead of the primary cause.</sys:String>
     <sys:String x:Key="Crash.Note.JavaOverridesStack">A Java compatibility problem was detected, so stack-trace-based mod guesses were lowered in priority.</sys:String>
     <sys:String x:Key="Crash.Note.GraphicsOverridesNativeJvm">The native crash points to graphics components, so the generic JVM-native diagnosis was lowered in priority.</sys:String>
-    <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown preview</sys:String>
+    <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown error analysis report preview</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Metric">Metric</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Value">Value</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Weight">Weight</sys:String>
@@ -3346,7 +3291,7 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
 
     <sys:String x:Key="Crash.Markdown.Field.Category">Category</sys:String>
 
-    <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">The most likely cause is {Diagnosis}. Read the diagnosis and suggestions before changing instance settings or removing files.</sys:String>
+    <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">The most likely cause is {Diagnosis}.</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.PrimaryDiagnosis">Most likely cause</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.OtherDiagnoses">Other possible causes</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">Detailed evidence</sys:String>
@@ -3455,7 +3400,7 @@ You are using an old PCL version. Updating PCL may also help.</sys:String>
     <sys:String x:Key="Crash.Severity.Warning">Warning</sys:String>
     <sys:String x:Key="Crash.Severity.Error">Error</sys:String>
 
-    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">No clear crash cause was found yet. You can still review logs, evidence and environment details, or export a report for help.</sys:String>
+    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">No clear error cause was found yet. You can still review logs, evidence and environment details, or export a report for help.</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Overview">Diagnosis notes</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Hint">This page lists possible causes ordered by confidence. The first diagnosis is usually the issue to fix first; later ones may be symptoms or follow-up checks.</sys:String>
     <sys:String x:Key="Crash.Diagnoses.SuppressedHint">These notes explain why some diagnoses were downgraded or treated as follow-up symptoms. Handle the primary diagnosis first.</sys:String>

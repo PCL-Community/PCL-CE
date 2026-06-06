@@ -206,24 +206,6 @@ public sealed class CrashPresentationBuilder
             Group = CrashActionGroup.AskForHelp,
             Order = 91
         });
-        actions.Add(new CrashPresentationAction
-        {
-            Kind = CrashPresentationActionKind.CopyDiagnosisSummary,
-            TitleKey = CrashDiagnosisLocalizer.ActionTitleKey(CrashPresentationActionKind.CopyDiagnosisSummary),
-            DescriptionKey = CrashDiagnosisLocalizer.ActionDescriptionKey(CrashPresentationActionKind.CopyDiagnosisSummary),
-            Priority = CrashActionPriority.More,
-            Group = CrashActionGroup.AskForHelp,
-            Order = 92
-        });
-        actions.Add(new CrashPresentationAction
-        {
-            Kind = CrashPresentationActionKind.PreviewMarkdown,
-            TitleKey = CrashDiagnosisLocalizer.ActionTitleKey(CrashPresentationActionKind.PreviewMarkdown),
-            DescriptionKey = CrashDiagnosisLocalizer.ActionDescriptionKey(CrashPresentationActionKind.PreviewMarkdown),
-            Priority = CrashActionPriority.More,
-            Group = CrashActionGroup.AskForHelp,
-            Order = 93
-        });
 
         return actions
             .GroupBy(static action => action.Kind)
@@ -244,9 +226,7 @@ public sealed class CrashPresentationBuilder
                 CrashPresentationActionKind.OpenInstanceSettings or
                 CrashPresentationActionKind.OpenResourcePackFolder => CrashActionGroup.FixNow,
             CrashPresentationActionKind.ExportMarkdown or
-                CrashPresentationActionKind.ExportReport or
-                CrashPresentationActionKind.CopyDiagnosisSummary or
-                CrashPresentationActionKind.PreviewMarkdown => CrashActionGroup.AskForHelp,
+                CrashPresentationActionKind.ExportReport => CrashActionGroup.AskForHelp,
             _ => CrashActionGroup.Investigate
         };
     }
