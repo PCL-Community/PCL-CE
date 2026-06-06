@@ -451,8 +451,11 @@ public class McInstance
                             foreach (var SubjsonNode in field["patches"].AsArray()) { var subjson = SubjsonNode.AsObject();
                                 subjsonList.Add(subjson); }
                             subjsonList.Sort((left, right) =>
-                                (int)(ModBase.Val((left["priority"] ?? "0").ToString()) -
-                                      ModBase.Val((right["priority"] ?? "0").ToString())));
+                            {
+                                var leftVal = ModBase.Val((left["priority"] ?? "0").ToString());
+                                var rightVal = ModBase.Val((right["priority"] ?? "0").ToString());
+                                return leftVal.CompareTo(rightVal);
+                            });
                             foreach (var Subjson in subjsonList)
                             {
                                 var id = (string)Subjson["id"];
