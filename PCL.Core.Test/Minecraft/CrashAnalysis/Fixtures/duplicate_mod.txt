@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Duplicate mod scan
+Found duplicate mods: examplemod is present in examplemod-1.0.jar and examplemod-1.1.jar

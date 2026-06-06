@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Saving world
+java.io.IOException: There is not enough space on the disk

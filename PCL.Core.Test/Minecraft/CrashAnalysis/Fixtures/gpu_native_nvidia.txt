@@ -1,0 +1,4 @@
+# A fatal error has been detected by the Java Runtime Environment:
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffb12345678, pid=1234, tid=5678
+# Problematic frame:
+C  [nvoglv64.dll+0x123456]

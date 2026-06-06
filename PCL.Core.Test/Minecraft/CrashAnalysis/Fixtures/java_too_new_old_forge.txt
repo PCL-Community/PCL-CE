@@ -1,0 +1,3 @@
+[12:00:00] [main/INFO]: Launching legacy Forge
+java.lang.reflect.InaccessibleObjectException: Unable to make field private final java.lang.Class java.lang.ClassLoader.defineClass accessible: module java.base does not open java.lang to unnamed module
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)

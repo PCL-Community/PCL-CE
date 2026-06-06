@@ -1,0 +1,2 @@
+[12:00:00] [Render thread/ERROR]: Creating window
+GLFW error 65542: WGL: The driver does not appear to support OpenGL

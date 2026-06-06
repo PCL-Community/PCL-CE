@@ -273,10 +273,7 @@ public static class MinecraftCrashVisualFactory
 
         var tags = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right };
         tags.Children.Add(Tag(log.Kind.ToString(), false));
-        tags.Children.Add(Tag(
-            MinecraftCrashUi.Text(log.UsedForAnalysis ? "Crash.Logs.Used" : "Crash.Logs.NotUsed"),
-            log.UsedForAnalysis
-        ));
+        tags.Children.Add(Tag(_LogRoleText(log), log.UsedForAnalysis));
         Grid.SetColumn(tags, 1);
         head.Children.Add(tags);
         root.Children.Add(head);
@@ -330,15 +327,20 @@ public static class MinecraftCrashVisualFactory
             MinPaddingRight = 35,
             SvgIcon = "lucide/scroll-text",
             Title = log.Name,
-            Info = $"{log.Kind} · {_FormatLogState(log)} · {MinecraftCrashUi.FormatBytes(log.Length ?? 0)}"
+            Info = $"{log.Kind} · {_LogRoleText(log)} · {MinecraftCrashUi.FormatBytes(log.Length ?? 0)}"
         };
         item.Click += (_, _) => MinecraftCrashUi.OpenLog(log);
         return item;
     }
 
-    private static string _FormatLogState(CrashPresentationLogSource log)
+    private static string _LogRoleText(CrashPresentationLogSource log)
     {
-        return MinecraftCrashUi.Text(log.UsedForAnalysis ? "Crash.Logs.Used" : "Crash.Logs.NotUsed");
+        return log.AnalysisRole switch
+        {
+            CrashLogAnalysisRole.Primary => MinecraftCrashUi.Text("Crash.Logs.Primary"),
+            CrashLogAnalysisRole.Supporting => MinecraftCrashUi.Text("Crash.Logs.Supporting"),
+            _ => MinecraftCrashUi.Text("Crash.Logs.ReportOnly")
+        };
     }
 
     public static MyCard CreateEnvironmentGroup(

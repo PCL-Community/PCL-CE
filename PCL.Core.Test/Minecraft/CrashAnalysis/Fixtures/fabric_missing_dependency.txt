@@ -1,0 +1,4 @@
+[12:00:00] [main/ERROR]: Mod resolution failed
+Mod 'Iris' (iris) 1.10.7+mc1.21.11 requires any 0.8.x version of sodium, which is missing!
+Fix: add [add:sodium 0.8- ([[0.8-,0.9-)])]
+Mixin apply failed for iris.mixins.json: net.minecraft.client.renderer.GameRenderer

@@ -1,0 +1,3 @@
+[12:00:00] [main/ERROR]: Loading errors encountered
+Missing mandatory dependencies: examplemod requires forge [47.2.0,)
+Mod File 'Example Mod' (examplemod) requires forge [47.2.0,)

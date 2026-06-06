@@ -56,6 +56,17 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
                 lines[index],
                 index + 1,
                 visibility: CrashFactVisibility.Main));
+
+            if (_ManualDebugCrashRegex().IsMatch(description))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.ManualDebugCrashDetected,
+                    description,
+                    document,
+                    lines[index],
+                    index + 1,
+                    visibility: CrashFactVisibility.Main,
+                    strength: CrashFactStrength.Direct,
+                    scope: CrashFactScope.RootCause));
             return;
         }
     }
@@ -90,6 +101,17 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
                 index + 1,
                 confidence: CrashFactConfidence.High,
                 visibility: CrashFactVisibility.Main));
+
+            if (_ManualDebugCrashRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.ManualDebugCrashDetected,
+                    line,
+                    document,
+                    line,
+                    index + 1,
+                    visibility: CrashFactVisibility.Main,
+                    strength: CrashFactStrength.Direct,
+                    scope: CrashFactScope.RootCause));
             return;
         }
     }
@@ -347,6 +369,9 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
         return value.Length > 220 ? value[..220] + "..." : value;
     }
 
+    [GeneratedRegex(@"(?i)Manually triggered debug crash|F3\s*\+\s*C")]
+    private static partial Regex _ManualDebugCrashRegex();
+
     [GeneratedRegex(@"(?i)^\s*Description:\s*(?<value>.+)\s*$")]
     private static partial Regex _DescriptionRegex();
 
@@ -362,7 +387,7 @@ internal sealed partial class CrashReportSectionParser : ICrashLogParser
     [GeneratedRegex(@"^\s*(?<key>[A-Za-z0-9 _/.-]{2,40})\s*:\s*(?<value>.+)\s*$")]
     private static partial Regex _KeyValueRegex();
 
-    [GeneratedRegex(@"(?i)Minecraft(?:\sVersion| version)?\s*:\s*(?<version>[0-9][0-9A-Za-z_.+-]*)")]
+    [GeneratedRegex(@"(?i)^\s*Minecraft\s+Version\s*:\s*(?<version>[0-9][0-9A-Za-z_.+-]*)")]
     private static partial Regex _MinecraftVersionRegex();
 
     [GeneratedRegex(@"(?i)Java(?:\sVersion| version)?\s*:\s*(?<version>\d+(?:\.\d+){0,3})")]

@@ -1,0 +1,3 @@
+[12:00:00] [main/ERROR]: Forge startup failed
+Mod loading error has occurred
+net.minecraftforge.fml.ModLoadingException: Example Mod failed during common_setup event

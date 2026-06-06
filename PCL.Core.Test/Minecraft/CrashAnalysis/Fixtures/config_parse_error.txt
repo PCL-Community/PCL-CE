@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Loading config file
+com.electronwill.nightconfig.core.io.ParsingException: Failed parsing config/examplemod.toml at line 4

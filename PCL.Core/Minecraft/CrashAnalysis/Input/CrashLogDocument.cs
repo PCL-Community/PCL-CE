@@ -9,6 +9,7 @@ public sealed record CrashLogDocument
     public required string Name { get; init; }
     public string? FullPath { get; init; }
     public CrashLogOrigin Origin { get; init; }
+    public CrashLogAnalysisRole AnalysisRole { get; init; } = CrashLogAnalysisRole.Supporting;
     public DateTimeOffset? LastWriteTime { get; init; }
     public long? OriginalLength { get; init; }
     public required string Text { get; init; }

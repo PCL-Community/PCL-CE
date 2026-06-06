@@ -7,6 +7,7 @@ public static class CrashDiagnosisRuleCatalog
         return
         [
             new NoUsefulLogRule(),
+            new ManualDebugCrashRule(),
             new MemoryRule(),
             new JavaCompatibilityRule(),
             new GraphicsOpenGlRule(),
@@ -46,6 +47,31 @@ public static class CrashDiagnosisRuleCatalog
                 : Create(70, [], actions: [CrashPresentationActionKind.ExportReport],
                     severity: CrashDiagnosisSeverity.Warning,
                     nature: CrashDiagnosisNature.Context);
+        }
+    }
+
+    private sealed class ManualDebugCrashRule : CrashDiagnosisRule
+    {
+        public override string Id => "runtime.manual_debug_crash";
+        public override CrashDiagnosisCode Code => CrashDiagnosisCode.ManualDebugCrash;
+        public override CrashDiagnosisCategory Category => CrashDiagnosisCategory.Runtime;
+
+        public override CrashDiagnosis? Evaluate(
+            CrashLogBundle bundle,
+            CrashFactSet facts,
+            CrashAnalysisRequest request)
+        {
+            var related = facts
+                .Find(CrashFactKind.ManualDebugCrashDetected)
+                .Take(3)
+                .ToList();
+            return related.Count == 0
+                ? null
+                : Create(
+                    100,
+                    related.Select(fact => Evidence(fact, 100)).ToList(),
+                    actions: [CrashPresentationActionKind.ExportMarkdown],
+                    nature: CrashDiagnosisNature.RootCause);
         }
     }
 
@@ -189,9 +215,12 @@ public static class CrashDiagnosisRuleCatalog
             CrashFactSet facts,
             CrashAnalysisRequest request)
         {
+            if (facts.Has(CrashFactKind.NativeLibraryMissingDetected) ||
+                facts.Has(CrashFactKind.LibraryMissingDetected))
+                return null;
+
             var related = facts
                 .Find(CrashFactKind.OpenGlInitializationFailed)
-                .Concat(facts.Find(CrashFactKind.LwjglInitializationFailed))
                 .ToList();
             if (related.Count == 0) return null;
 
@@ -386,7 +415,8 @@ public static class CrashDiagnosisRuleCatalog
             CrashFactSet facts,
             CrashAnalysisRequest request)
         {
-            if (facts.Has(CrashFactKind.MissingModDependencyDetected))
+            if (facts.Has(CrashFactKind.MissingModDependencyDetected) ||
+                facts.Has(CrashFactKind.ForgeMissingMandatoryDependencyDetected))
                 return null;
 
             var related = facts
@@ -627,6 +657,12 @@ public static class CrashDiagnosisRuleCatalog
             CrashFactSet facts,
             CrashAnalysisRequest request)
         {
+            if (facts.Has(CrashFactKind.JavaOutOfMemoryDetected) ||
+                facts.Has(CrashFactKind.JavaFatalErrorDetected) ||
+                facts.Has(CrashFactKind.NativeAccessViolationDetected) ||
+                facts.Has(CrashFactKind.ManualDebugCrashDetected))
+                return null;
+
             var block = facts.Find(CrashFactKind.WorldBlockEntityIssueDetected).ToList();
             if (block.Count > 0)
                 return Create(
@@ -855,22 +891,32 @@ public static class CrashDiagnosisRuleCatalog
             CrashAnalysisRequest request)
         {
             var fatal = facts
-                .Find(CrashFactKind.JavaFatalErrorDetected)
+                .Find(CrashFactKind.NativeProblematicFrameDetected)
                 .Concat(facts.Find(CrashFactKind.NativeAccessViolationDetected))
+                .Concat(facts.Find(CrashFactKind.JavaFatalErrorDetected))
+                .Take(4)
                 .ToList();
-            return fatal.Count == 0
-                ? null
-                : Create(
-                    55,
+            if (fatal.Count == 0)
+                return null;
+
+            var hasManualDebugCrash = facts.Has(CrashFactKind.ManualDebugCrashDetected);
+            var score = hasManualDebugCrash ? 45 : 60;
+            var nature = hasManualDebugCrash ? CrashDiagnosisNature.Symptom : CrashDiagnosisNature.ProbableCause;
+
+            return Create(
+                    score,
                     fatal
-                        .Select(f => Evidence(f, 55))
+                        .Select(f => Evidence(f, f.Kind == CrashFactKind.NativeProblematicFrameDetected ? 70 : 55))
                         .ToList(),
                     actions:
                     [
                         CrashPresentationActionKind.OpenJavaSettings,
                         CrashPresentationActionKind.ExportReport
                     ],
-                    nature: CrashDiagnosisNature.ProbableCause);
+                    nature: nature) with
+                {
+                    Severity = hasManualDebugCrash ? CrashDiagnosisSeverity.Warning : CrashDiagnosisSeverity.Error
+                };
         }
     }
 }

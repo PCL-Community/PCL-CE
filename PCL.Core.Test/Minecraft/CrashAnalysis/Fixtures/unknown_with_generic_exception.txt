@@ -1,0 +1,3 @@
+[12:00:00] [main/ERROR]: Unexpected failure while running game loop
+java.lang.RuntimeException: Something went wrong in an unknown subsystem
+	at example.Unknown.run(Unknown.java:12)

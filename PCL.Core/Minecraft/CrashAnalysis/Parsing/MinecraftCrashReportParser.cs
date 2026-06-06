@@ -91,6 +91,9 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
         string line,
         int lineNumber)
     {
+        if (!_LooksLikeCrashExceptionLine(line))
+            return;
+
         var match = _ExceptionLineRegex().Match(line);
 
         if (!match.Success)
@@ -101,7 +104,8 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
             match.Groups["type"].Value,
             document,
             line,
-            lineNumber));
+            lineNumber,
+            visibility: CrashFactVisibility.Technical));
     }
 
     private static void _AppendWorldIssueFacts(
@@ -125,6 +129,22 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 document,
                 line,
                 lineNumber));
+
+        if (_WorldChunkFailureRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.WorldChunkLoadFailed,
+                line.Trim(),
+                document,
+                line,
+                lineNumber));
+
+        if (_WorldNbtFailureRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.WorldNbtReadFailed,
+                line.Trim(),
+                document,
+                line,
+                lineNumber));
     }
 
     private static void _AppendClientContentIssueFacts(
@@ -134,6 +154,7 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
         int lineNumber)
     {
         if (_OpenGlInitializationRegex().IsMatch(line))
+        {
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.OpenGlInitializationFailed,
                 line.Trim(),
@@ -141,7 +162,22 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 line,
                 lineNumber));
 
+            if (_GlfwErrorRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.GlfwErrorDetected, line.Trim(), document, line,
+                    lineNumber));
+            if (_OpenGlContextRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.OpenGlContextCreationFailed, line.Trim(), document,
+                    line, lineNumber));
+            if (_OpenGlVersionRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.OpenGlVersionTooLowDetected, line.Trim(), document,
+                    line, lineNumber));
+            if (_PixelFormatRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.PixelFormatNotAcceleratedDetected, line.Trim(),
+                    document, line, lineNumber));
+        }
+
         if (_LwjglInitializationRegex().IsMatch(line))
+        {
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LwjglInitializationFailed,
                 line.Trim(),
@@ -149,7 +185,13 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 line,
                 lineNumber));
 
+            if (_LwjglNativeLoadRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.LwjglNativeLoadFailed, line.Trim(), document, line,
+                    lineNumber));
+        }
+
         if (_ResourcePackFailureRegex().IsMatch(line))
+        {
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ResourcePackIssueDetected,
                 line.Trim(),
@@ -158,7 +200,13 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 lineNumber,
                 confidence: CrashFactConfidence.Medium));
 
+            if (_TextureAtlasRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.TextureAtlasTooLargeDetected, line.Trim(), document,
+                    line, lineNumber));
+        }
+
         if (_ShaderFailureRegex().IsMatch(line))
+        {
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ShaderIssueDetected,
                 line.Trim(),
@@ -166,6 +214,11 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
                 line,
                 lineNumber,
                 confidence: CrashFactConfidence.Medium));
+
+            if (_ShaderCompileRegex().IsMatch(line))
+                facts.Add(CrashFactFactory.Create(CrashFactKind.ShaderCompileFailedDetected, line.Trim(), document,
+                    line, lineNumber));
+        }
     }
 
     private static void _AppendDataPackFacts(
@@ -202,12 +255,22 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
             lineNumber));
     }
 
+    private static bool _LooksLikeCrashExceptionLine(string line)
+    {
+        return line.Contains("Reported exception thrown", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("Caused by:", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("[FATAL]", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("/FATAL", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("Exception in thread", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("ReportedException", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool _Contains(string value, string keyword)
     {
         return value.Contains(keyword, StringComparison.OrdinalIgnoreCase);
     }
 
-    [GeneratedRegex(@"(?i)(?:minecraft version|version:)\s*(?<version>\d+\.\d+(?:\.\d+)?)")]
+    [GeneratedRegex(@"(?i)^\s*Minecraft\s+Version\s*:\s*(?<version>\d+\.\d+(?:\.\d+)?)\b")]
     private static partial Regex _MinecraftVersionRegex();
 
     [GeneratedRegex(@"(?<type>[a-zA-Z_][\w\.]+(?:Exception|Error))(?::|$)")]
@@ -228,6 +291,36 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
     [GeneratedRegex(
         @"(?i)shader (?:compile|compilation|link) (?:failed|error)|failed to compile shader|OpenGL error 1282.*(?:shader|render)|(?:shader|render).*OpenGL error 1282")]
     private static partial Regex _ShaderFailureRegex();
+
+    [GeneratedRegex(@"(?i)GLFW error")]
+    private static partial Regex _GlfwErrorRegex();
+
+    [GeneratedRegex(
+        @"(?i)failed to create (?:window|OpenGL context)|no OpenGL context|could not create OpenGL context")]
+    private static partial Regex _OpenGlContextRegex();
+
+    [GeneratedRegex(
+        @"(?i)OpenGL (?:version|profile).*too (?:old|low)|requires OpenGL|driver does not appear to support OpenGL")]
+    private static partial Regex _OpenGlVersionRegex();
+
+    [GeneratedRegex(@"(?i)pixel format not accelerated")]
+    private static partial Regex _PixelFormatRegex();
+
+    [GeneratedRegex(
+        @"(?i)UnsatisfiedLinkError:.*(?:lwjgl|org\.lwjgl)|failed to load.*lwjgl|no lwjgl.*java\.library\.path")]
+    private static partial Regex _LwjglNativeLoadRegex();
+
+    [GeneratedRegex(@"(?i)shader (?:compile|compilation|link) (?:failed|error)|failed to compile shader")]
+    private static partial Regex _ShaderCompileRegex();
+
+    [GeneratedRegex(@"(?i)stitcherexception|texture atlas too large|out of memory.*texture")]
+    private static partial Regex _TextureAtlasRegex();
+
+    [GeneratedRegex(@"(?i)Exception loading chunk|Couldn't load chunk|failed to load chunk|chunk.*(?:failed|error)")]
+    private static partial Regex _WorldChunkFailureRegex();
+
+    [GeneratedRegex(@"(?i)NBTException|Failed to load level data|Unable to read NBT|nbt.*(?:failed|error)")]
+    private static partial Regex _WorldNbtFailureRegex();
 
     [GeneratedRegex(
         @"(?i)failed to load datapacks|errors in currently selected datapacks|data pack validation failed|datapack.*(?:failed|error)|failed to validate datapack")]

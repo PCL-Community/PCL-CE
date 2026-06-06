@@ -11,11 +11,6 @@ internal sealed partial class NativeCrashParser : ICrashLogParser
             if (!_IsNativeCrashDocument(document))
                 continue;
 
-            facts.Add(CrashFactFactory.Create(
-                CrashFactKind.JavaFatalErrorDetected,
-                document.Name,
-                document));
-
             _AppendLineFacts(facts, document);
         }
 
@@ -53,11 +48,19 @@ internal sealed partial class NativeCrashParser : ICrashLogParser
             return;
 
         facts.Add(CrashFactFactory.Create(
+            CrashFactKind.JavaFatalErrorDetected,
+            line.Trim(),
+            document,
+            line,
+            lineNumber,
+            visibility: CrashFactVisibility.Main));
+        facts.Add(CrashFactFactory.Create(
             CrashFactKind.NativeAccessViolationDetected,
             line.Trim(),
             document,
             line,
-            lineNumber));
+            lineNumber,
+            visibility: CrashFactVisibility.Main));
     }
 
     private static void _AddProblematicFrameFactIfMatched(
@@ -75,6 +78,16 @@ internal sealed partial class NativeCrashParser : ICrashLogParser
                 return;
 
             var (line, lineNumber) = frameLine.Value;
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.NativeProblematicFrameDetected,
+                line.Trim(),
+                document,
+                line,
+                lineNumber,
+                visibility: CrashFactVisibility.Main,
+                strength: CrashFactStrength.Direct,
+                scope: CrashFactScope.Symptom));
+
             var match = _NativeLibraryRegex().Match(line);
             if (!match.Success)
                 return;
@@ -96,6 +109,12 @@ internal sealed partial class NativeCrashParser : ICrashLogParser
                 document,
                 line,
                 lineNumber));
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.GpuNativeLibraryCrashDetected,
+                library,
+                document,
+                line,
+                lineNumber));
             return;
         }
     }
@@ -106,10 +125,12 @@ internal sealed partial class NativeCrashParser : ICrashLogParser
     {
         for (var index = headerIndex + 1; index < Math.Min(lines.Count, headerIndex + 6); index++)
         {
-            var line = lines[index];
+            var line = lines[index].Trim();
             if (string.IsNullOrWhiteSpace(line))
                 continue;
-            if (_NativeLibraryRegex().IsMatch(line))
+            if (line.StartsWith('#'))
+                line = line.TrimStart('#').Trim();
+            if (!string.IsNullOrWhiteSpace(line))
                 return (line, index + 1);
         }
 

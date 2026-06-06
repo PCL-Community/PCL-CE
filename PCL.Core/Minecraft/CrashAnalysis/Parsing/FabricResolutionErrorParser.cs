@@ -26,38 +26,38 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
                 continue;
 
             var block = _ReadResolutionBlock(lines, index);
-            var properties = _ExtractProperties(block);
+            var properties = _ExtractProperties(block.Text);
             var lineNumber = index + 1;
 
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LoaderResolutionError,
-                _Summary(block),
+                _Summary(block.Text),
                 document,
-                block,
+                block.Text,
                 lineNumber,
                 properties,
                 visibility: CrashFactVisibility.Main));
 
-            if (properties.ContainsKey("MissingModId") || _MissingDependencyRegex().IsMatch(block))
+            if (properties.ContainsKey("MissingModId") || _MissingDependencyRegex().IsMatch(block.Text))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.MissingModDependencyDetected,
-                    _DependencySummary(block, properties),
+                    _DependencySummary(block.Text, properties),
                     document,
-                    block,
-                    lineNumber,
+                    block.Text,
+                    _FindDependencyLineNumber(lines, block.StartIndex, block.EndIndex) ?? lineNumber,
                     properties,
                     visibility: CrashFactVisibility.Main));
 
-            if (_FixRegex().IsMatch(block))
+            if (_FixRegex().IsMatch(block.Text))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.LoaderProvidedSolutionDetected,
-                    _Summary(_FixRegex().Match(block).Value),
+                    _Summary(_FixRegex().Match(block.Text).Value),
                     document,
-                    block,
-                    lineNumber,
+                    block.Text,
+                    _FindFixLineNumber(lines, block.StartIndex, block.EndIndex) ?? lineNumber,
                     properties,
-                    confidence: CrashFactConfidence.Medium,
-                    visibility: CrashFactVisibility.Technical));
+                    CrashFactConfidence.Medium,
+                    CrashFactVisibility.Technical));
         }
     }
 
@@ -68,7 +68,7 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
                _HardDependencyRegex().IsMatch(line);
     }
 
-    private static string _ReadResolutionBlock(IReadOnlyList<string> lines, int startIndex)
+    private static ResolutionBlock _ReadResolutionBlock(IReadOnlyList<string> lines, int startIndex)
     {
         var start = Math.Max(0, startIndex - 3);
         var end = startIndex;
@@ -80,7 +80,30 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
             end = index;
         }
 
-        return string.Join("\n", lines.Skip(start).Take(end - start + 1));
+        return new ResolutionBlock(
+            string.Join("\n", lines.Skip(start).Take(end - start + 1)),
+            start,
+            end);
+    }
+
+    private static int? _FindDependencyLineNumber(IReadOnlyList<string> lines, int startIndex, int endIndex)
+    {
+        for (var index = startIndex; index <= endIndex && index < lines.Count; index++)
+            if (_FabricMissingDependencyRegex().IsMatch(lines[index]) ||
+                _HardDependencyRegex().IsMatch(lines[index]) ||
+                _MissingDependencyRegex().IsMatch(lines[index]))
+                return index + 1;
+
+        return null;
+    }
+
+    private static int? _FindFixLineNumber(IReadOnlyList<string> lines, int startIndex, int endIndex)
+    {
+        for (var index = startIndex; index <= endIndex && index < lines.Count; index++)
+            if (_FixRegex().IsMatch(lines[index]))
+                return index + 1;
+
+        return null;
     }
 
     private static IReadOnlyDictionary<string, string> _ExtractProperties(string block)
@@ -159,10 +182,12 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
     [GeneratedRegex(@"(?i)Mod resolution failed|HARD_DEP_NO_CANDIDATE|could not resolve|failed to resolve")]
     private static partial Regex _ResolutionStartRegex();
 
-    [GeneratedRegex(@"(?i)Mod\s+'(?<display>[^']+)'\s+\((?<affected>[a-z0-9_.-]+)\)\s+(?<affectedVersion>[^\s]+)\s+requires\s+(?<requirement>.+?)\s+version\s+of\s+(?<missing>[a-z0-9_.-]+),\s+which\s+is\s+missing")]
+    [GeneratedRegex(
+        @"(?i)Mod\s+'(?<display>[^']+)'\s+\((?<affected>[a-z0-9_.-]+)\)\s+(?<affectedVersion>[^\s]+)\s+requires\s+(?<requirement>.+?)\s+version\s+of\s+(?<missing>[a-z0-9_.-]+),\s+which\s+is\s+missing")]
     private static partial Regex _FabricMissingDependencyRegex();
 
-    [GeneratedRegex(@"(?i)HARD_DEP(?:_NO_CANDIDATE)?\s+(?<affected>[a-z0-9_.-]+)\s+[^\{\]]*\{depends\s+(?<missing>[a-z0-9_.-]+)\s+@\s+\[(?<version>[^\]]+)\]")]
+    [GeneratedRegex(
+        @"(?i)HARD_DEP(?:_NO_CANDIDATE)?\s+(?<affected>[a-z0-9_.-]+)\s+[^\{\]]*\{depends\s+(?<missing>[a-z0-9_.-]+)\s+@\s+\[(?<version>[^\]]+)\]")]
     private static partial Regex _HardDependencyRegex();
 
     [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
@@ -176,4 +201,6 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
 
     [GeneratedRegex(@"^\s*(?:at\s|Caused by:|Exception in thread|--\s|\[\d{2}:\d{2}:\d{2})")]
     private static partial Regex _HardStopRegex();
+
+    private sealed record ResolutionBlock(string Text, int StartIndex, int EndIndex);
 }

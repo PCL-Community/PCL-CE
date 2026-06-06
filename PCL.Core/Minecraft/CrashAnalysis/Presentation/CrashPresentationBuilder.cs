@@ -59,7 +59,8 @@ public sealed class CrashPresentationBuilder
                 ["Diagnosis"] = CrashDiagnosisLocalizer.TitleKey(top.Code),
                 ["DiagnosisCode"] = top.Code.ToString(),
                 ["DiagnosisCount"] = diagnoses.Count.ToString(),
-                ["EvidenceCount"] = top.Evidence.Count.ToString()
+                ["EvidenceCount"] = Math.Min(8, diagnoses.SelectMany(static diagnosis => diagnosis.Evidence).Count())
+                    .ToString()
             }
         };
     }
@@ -147,7 +148,11 @@ public sealed class CrashPresentationBuilder
     private static IReadOnlyList<CrashPresentationFact> _BuildFacts(CrashFactSet facts)
     {
         return facts.Facts
-            .Where(static fact => fact.Visibility != CrashFactVisibility.Hidden)
+            .Where(static fact => fact.Visibility == CrashFactVisibility.Main
+                                  || fact.Kind is CrashFactKind.JavaVersionDetected
+                                      or CrashFactKind.MinecraftVersionDetected
+                                      or CrashFactKind.LoaderDetected
+                                      or CrashFactKind.LoaderVersionDetected)
             .OrderBy(static fact => fact.Visibility)
             .ThenBy(static fact => fact.Kind)
             .Take(30)
@@ -239,7 +244,8 @@ public sealed class CrashPresentationBuilder
             Name = document.Name,
             FullPath = document.FullPath,
             Length = document.OriginalLength,
-            UsedForAnalysis = bundle.Windows.Any(window => window.SourceName == document.Name),
+            AnalysisRole = document.AnalysisRole,
+            UsedForAnalysis = document.AnalysisRole != CrashLogAnalysisRole.ReportOnly,
             Preview = CrashText.TrimPreview(
                 bundle.Windows.FirstOrDefault(window => window.SourceName == document.Name)?.ErrorWindow ??
                 document.Text, 100, 20 * 1024)

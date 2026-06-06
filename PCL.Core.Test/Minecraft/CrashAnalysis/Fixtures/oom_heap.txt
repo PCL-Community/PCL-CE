@@ -1,0 +1,3 @@
+[12:00:00] [Render thread/INFO]: Starting minimal OOM fixture
+java.lang.OutOfMemoryError: Java heap space
+	at net.minecraft.client.Minecraft.run(Minecraft.java:123)

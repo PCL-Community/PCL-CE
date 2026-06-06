@@ -34,6 +34,16 @@ internal sealed partial class HsErrProblematicFrameParser : ICrashLogParser
             if (frame is null) return;
 
             var (line, lineNumber) = frame.Value;
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.NativeProblematicFrameDetected,
+                line.Trim(),
+                document,
+                line,
+                lineNumber,
+                visibility: CrashFactVisibility.Main,
+                strength: CrashFactStrength.Direct,
+                scope: CrashFactScope.Symptom));
+
             var match = _NativeLibraryRegex().Match(line);
             if (!match.Success) return;
 
@@ -56,6 +66,14 @@ internal sealed partial class HsErrProblematicFrameParser : ICrashLogParser
                 lineNumber,
                 confidence: CrashFactConfidence.High,
                 visibility: CrashFactVisibility.Main));
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.GpuNativeLibraryCrashDetected,
+                library,
+                document,
+                line,
+                lineNumber,
+                confidence: CrashFactConfidence.High,
+                visibility: CrashFactVisibility.Main));
             return;
         }
     }
@@ -64,9 +82,11 @@ internal sealed partial class HsErrProblematicFrameParser : ICrashLogParser
     {
         for (var index = headerIndex + 1; index < Math.Min(lines.Count, headerIndex + 8); index++)
         {
-            var line = lines[index];
+            var line = lines[index].Trim();
             if (string.IsNullOrWhiteSpace(line)) continue;
-            if (_NativeLibraryRegex().IsMatch(line)) return (line, index + 1);
+            if (line.StartsWith('#'))
+                line = line.TrimStart('#').Trim();
+            if (!string.IsNullOrWhiteSpace(line)) return (line, index + 1);
         }
 
         return null;

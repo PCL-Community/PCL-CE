@@ -16,11 +16,12 @@ public static class CrashMarkdownBuilder
 
         var text = new CrashTextLocalizer(localize);
         var builder = new StringBuilder();
-        var title = text.Text("Crash.Markdown.Title", null);
+        var title = text.Text("Crash.Markdown.Title");
 
         builder.AppendLine("# " + title);
         builder.AppendLine();
-        IReadOnlyDictionary<string, string>? parameters = _Args(("Time", result.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
+        IReadOnlyDictionary<string, string>? parameters =
+            _Args(("Time", result.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
         builder.AppendLine(text.Text("Crash.Markdown.GeneratedAt", parameters));
         builder.AppendLine();
 
@@ -53,7 +54,7 @@ public static class CrashMarkdownBuilder
         CrashPresentationModel presentation,
         CrashTextLocalizer text)
     {
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Overview", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Overview"));
 
         builder.AppendLine(text.Text(presentation.Summary.TitleKey, presentation.Summary.Parameters));
         builder.AppendLine();
@@ -80,24 +81,24 @@ public static class CrashMarkdownBuilder
         {
             _AppendTableRow(
                 builder,
-                text.Text("Crash.Markdown.Metric.TopDiagnosis", null),
+                text.Text("Crash.Markdown.Metric.TopDiagnosis"),
                 text.Text(top.TitleKey, top.Parameters));
 
             _AppendTableRow(
                 builder,
-                text.Text("Crash.Markdown.Field.Confidence.Name", null),
-                text.Text($"Crash.Confidence.{top.Confidence}", null));
+                text.Text("Crash.Markdown.Field.Confidence.Name"),
+                text.Text($"Crash.Confidence.{top.Confidence}"));
 
             _AppendTableRow(
                 builder,
-                text.Text("Crash.Markdown.Field.Score.Name", null),
+                text.Text("Crash.Markdown.Field.Score.Name"),
                 top.Score.ToString());
         }
 
         foreach (var metric in presentation.Metrics)
             _AppendTableRow(
                 builder,
-                text.Text(metric.TitleKey, null),
+                text.Text(metric.TitleKey),
                 metric.Value);
 
         builder.AppendLine();
@@ -112,13 +113,13 @@ public static class CrashMarkdownBuilder
 
         if (top is null)
         {
-            _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Diagnoses", null));
-            builder.AppendLine(text.Text("Crash.Markdown.Empty.Diagnoses", null));
+            _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Diagnoses"));
+            builder.AppendLine(text.Text("Crash.Markdown.Empty.Diagnoses"));
             builder.AppendLine();
             return;
         }
 
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.PrimaryDiagnosis", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.PrimaryDiagnosis"));
         _AppendDiagnosis(builder, top, text);
     }
 
@@ -132,7 +133,7 @@ public static class CrashMarkdownBuilder
         if (diagnoses.Count == 0)
             return;
 
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.OtherDiagnoses", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.OtherDiagnoses"));
 
         foreach (var diagnosis in diagnoses)
             _AppendDiagnosis(builder, diagnosis, text);
@@ -156,34 +157,34 @@ public static class CrashMarkdownBuilder
 
         _AppendTableRow(
             builder,
-            text.Text("Crash.Markdown.Field.Confidence.Name", null),
-            text.Text($"Crash.Confidence.{diagnosis.Confidence}", null));
+            text.Text("Crash.Markdown.Field.Confidence.Name"),
+            text.Text($"Crash.Confidence.{diagnosis.Confidence}"));
 
         _AppendTableRow(
             builder,
-            text.Text("Crash.Markdown.Field.Score.Name", null),
+            text.Text("Crash.Markdown.Field.Score.Name"),
             diagnosis.Score.ToString());
 
         _AppendTableRow(
             builder,
-            text.Text("Crash.Markdown.Field.Category", null),
-            text.Text($"Crash.Category.{diagnosis.Category}", null));
+            text.Text("Crash.Markdown.Field.Category"),
+            text.Text($"Crash.Category.{diagnosis.Category}"));
 
         builder.AppendLine();
 
         _AppendDescriptionPart(
             builder,
-            text.Text("Crash.Diagnosis.Part.Cause", null),
+            text.Text("Crash.Diagnosis.Part.Cause"),
             text.Text(diagnosis.CauseKey, diagnosis.Parameters));
 
         _AppendDescriptionPart(
             builder,
-            text.Text("Crash.Diagnosis.Part.Impact", null),
+            text.Text("Crash.Diagnosis.Part.Impact"),
             text.Text(diagnosis.ImpactKey, diagnosis.Parameters));
 
         _AppendDescriptionPart(
             builder,
-            text.Text("Crash.Diagnosis.Part.Recommendation", null),
+            text.Text("Crash.Diagnosis.Part.Recommendation"),
             text.Text(diagnosis.RecommendationKey, diagnosis.Parameters));
 
         _AppendDiagnosisParameters(builder, diagnosis, text);
@@ -242,7 +243,7 @@ public static class CrashMarkdownBuilder
         CrashPresentationModel presentation,
         CrashTextLocalizer text)
     {
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Suggestions", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Suggestions"));
 
         var index = 1;
 
@@ -250,7 +251,7 @@ public static class CrashMarkdownBuilder
                      .GroupBy(static action => action.Group)
                      .OrderBy(static group => group.Key))
         {
-            _AppendHeading(builder, 3, text.Text($"Crash.Suggestions.Group.{group.Key}", null));
+            _AppendHeading(builder, 3, text.Text($"Crash.Suggestions.Group.{group.Key}"));
 
             foreach (var action in group.OrderBy(static action => action.Order))
             {
@@ -272,7 +273,7 @@ public static class CrashMarkdownBuilder
         CrashPresentationModel presentation,
         CrashTextLocalizer text)
     {
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Evidence", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Evidence"));
 
         var evidence = presentation.Evidence
             .OrderByDescending(static item => item.Weight)
@@ -281,7 +282,7 @@ public static class CrashMarkdownBuilder
 
         if (evidence.Count == 0)
         {
-            builder.AppendLine(text.Text("Crash.Markdown.Empty.Evidence", null));
+            builder.AppendLine(text.Text("Crash.Markdown.Empty.Evidence"));
             builder.AppendLine();
             return;
         }
@@ -315,7 +316,7 @@ public static class CrashMarkdownBuilder
         _AppendHeading(
             builder,
             2,
-            text.Text("Crash.Markdown.Section.DetailedEvidence", null));
+            text.Text("Crash.Markdown.Section.DetailedEvidence"));
 
         var index = 1;
 
@@ -353,11 +354,11 @@ public static class CrashMarkdownBuilder
         CrashPresentationModel presentation,
         CrashTextLocalizer text)
     {
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Environment", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Environment"));
 
         foreach (var group in presentation.Environment.GroupBy(static item => item.GroupKey))
         {
-            _AppendHeading(builder, 3, text.Text(group.Key, null));
+            _AppendHeading(builder, 3, text.Text(group.Key));
 
             _AppendTableHeader(
                 builder,
@@ -368,12 +369,12 @@ public static class CrashMarkdownBuilder
             foreach (var item in group)
             {
                 var value = item.IsSensitive
-                    ? text.Text("Crash.Environment.Sensitive", null)
+                    ? text.Text("Crash.Environment.Sensitive")
                     : item.Value;
 
                 _AppendTableRow(
                     builder,
-                    text.Text(item.NameKey, null),
+                    text.Text(item.NameKey),
                     value);
             }
 
@@ -386,7 +387,7 @@ public static class CrashMarkdownBuilder
         CrashPresentationModel presentation,
         CrashTextLocalizer text)
     {
-        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Logs", null));
+        _AppendHeading(builder, 2, text.Text("Crash.Markdown.Section.Logs"));
 
         _AppendTableHeader(
             builder,
@@ -400,9 +401,12 @@ public static class CrashMarkdownBuilder
                 builder,
                 log.Name,
                 $"`{log.Kind}`",
-                log.UsedForAnalysis
-                    ? text.Text("Crash.Logs.Used", null)
-                    : text.Text("Crash.Logs.NotUsed", null));
+                log.AnalysisRole switch
+                {
+                    CrashLogAnalysisRole.Primary => text.Text("Crash.Logs.Primary"),
+                    CrashLogAnalysisRole.Supporting => text.Text("Crash.Logs.Supporting"),
+                    _ => text.Text("Crash.Logs.ReportOnly")
+                });
 
         builder.AppendLine();
     }
@@ -418,9 +422,10 @@ public static class CrashMarkdownBuilder
         _AppendHeading(
             builder,
             2,
-            text.Text("Crash.Markdown.Section.TechnicalAppendix", null));
+            text.Text("Crash.Markdown.Section.TechnicalAppendix"));
 
-        IReadOnlyDictionary<string, string>? parameters = _Args(("Count", Math.Min(MaxFactAppendix, presentation.Facts.Count).ToString()));
+        IReadOnlyDictionary<string, string>? parameters =
+            _Args(("Count", Math.Min(MaxFactAppendix, presentation.Facts.Count).ToString()));
         builder.AppendLine(text.Text("Crash.Markdown.Appendix.FactsShown", parameters));
         builder.AppendLine();
 
@@ -434,7 +439,7 @@ public static class CrashMarkdownBuilder
         foreach (var fact in presentation.Facts.Take(MaxFactAppendix))
             _AppendTableRow(
                 builder,
-                text.Text(fact.TitleKey, null),
+                text.Text(fact.TitleKey),
                 fact.Value,
                 fact.SourceName ?? fact.SourceKind.ToString());
 
@@ -455,7 +460,7 @@ public static class CrashMarkdownBuilder
         builder.Append("| ");
 
         foreach (var column in columns)
-            builder.Append(CrashText.EscapeMarkdownCell(text.Text(column.Key, null))).Append(" | ");
+            builder.Append(CrashText.EscapeMarkdownCell(text.Text(column.Key))).Append(" | ");
 
         builder.AppendLine();
 

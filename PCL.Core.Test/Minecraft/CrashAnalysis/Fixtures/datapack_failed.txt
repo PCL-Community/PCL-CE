@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Reloading datapacks
+Failed to load datapacks: Errors in currently selected datapacks prevented world from loading

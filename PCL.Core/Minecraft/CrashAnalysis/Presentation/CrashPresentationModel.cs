@@ -126,6 +126,7 @@ public sealed record CrashPresentationLogSource
     public required string Name { get; init; }
     public string? FullPath { get; init; }
     public long? Length { get; init; }
+    public CrashLogAnalysisRole AnalysisRole { get; init; }
     public bool UsedForAnalysis { get; init; }
     public string Preview { get; init; } = string.Empty;
 }

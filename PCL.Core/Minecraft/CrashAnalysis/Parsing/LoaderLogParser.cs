@@ -25,7 +25,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
             var window = CrashText.GetWindow(lines, index, 3, 3);
 
             _AppendLoaderFact(facts, document, line, lineNumber);
-            _AppendWindowFacts(facts, document, window, lineNumber);
+            _AppendWindowFacts(facts, document, line, window, lineNumber);
         }
     }
 
@@ -81,31 +81,34 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendWindowFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber)
     {
         var dependencyProperties = _ExtractDependencyProperties(window);
 
-        _AppendDependencyFacts(facts, document, window, lineNumber, dependencyProperties);
-        _AppendConflictFacts(facts, document, window, lineNumber, dependencyProperties);
-        _AppendForgeFacts(facts, document, window, lineNumber, dependencyProperties);
-        _AppendLoaderVersionFacts(facts, document, window, lineNumber, dependencyProperties);
-        _AppendDuplicateModFact(facts, document, window, lineNumber);
-        _AppendMixinFact(facts, document, window, lineNumber);
-        _AppendTransformFact(facts, document, window, lineNumber);
+        _AppendDependencyFacts(facts, document, line, window, lineNumber, dependencyProperties);
+        _AppendConflictFacts(facts, document, line, window, lineNumber, dependencyProperties);
+        _AppendForgeFacts(facts, document, line, window, lineNumber, dependencyProperties);
+        _AppendLoaderVersionFacts(facts, document, line, window, lineNumber, dependencyProperties);
+        _AppendDuplicateModFact(facts, document, line, window, lineNumber);
+        _AppendMixinFact(facts, document, line, window, lineNumber);
+        _AppendTransformFact(facts, document, line, window, lineNumber);
     }
 
     private static void _AppendDependencyFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber,
         IReadOnlyDictionary<string, string> dependencyProperties)
     {
-        var hasPreciseDependency = dependencyProperties.ContainsKey("MissingModId")
-                                   || _FabricHardDependencyRegex().IsMatch(window);
+        var hasPreciseDependency = _FabricMissingDependencyRegex().IsMatch(line)
+                                   || _FabricHardDependencyRegex().IsMatch(line)
+                                   || (dependencyProperties.ContainsKey("MissingModId") && _IsDependencyWindow(line));
 
-        if (_ResolutionFailedRegex().IsMatch(window))
+        if (_ResolutionFailedRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LoaderResolutionError,
                 _Summary(window),
@@ -115,7 +118,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 dependencyProperties,
                 visibility: CrashFactVisibility.Main));
 
-        if (!hasPreciseDependency && !_IsDependencyWindow(window))
+        if (!hasPreciseDependency && !_IsDependencyWindow(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -131,11 +134,12 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendConflictFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber,
         IReadOnlyDictionary<string, string> dependencyProperties)
     {
-        if (!_IncompatibleRegex().IsMatch(window))
+        if (!_IncompatibleRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -151,11 +155,12 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendForgeFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber,
         IReadOnlyDictionary<string, string> dependencyProperties)
     {
-        if (_ForgeModLoadingErrorRegex().IsMatch(window))
+        if (_ForgeModLoadingErrorRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ForgeModLoadingErrorDetected,
                 _Summary(window),
@@ -165,7 +170,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 dependencyProperties,
                 visibility: CrashFactVisibility.Main));
 
-        if (_ForgeModLoadingErrorRegex().IsMatch(window) || _LoaderModLoadingFailedRegex().IsMatch(window))
+        if (_ForgeModLoadingErrorRegex().IsMatch(line) || _LoaderModLoadingFailedRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LoaderModLoadingFailed,
                 _Summary(window),
@@ -175,7 +180,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 dependencyProperties,
                 visibility: CrashFactVisibility.Main));
 
-        if (_ForgeMissingMandatoryDependencyRegex().IsMatch(window))
+        if (_ForgeMissingMandatoryDependencyRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ForgeMissingMandatoryDependencyDetected,
                 _Summary(window),
@@ -185,7 +190,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                 dependencyProperties,
                 visibility: CrashFactVisibility.Main));
 
-        if (_ForgeLanguageProviderRegex().IsMatch(window))
+        if (_ForgeLanguageProviderRegex().IsMatch(line))
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ForgeLanguageProviderMissingDetected,
                 _Summary(window),
@@ -199,11 +204,12 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendLoaderVersionFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber,
         IReadOnlyDictionary<string, string> dependencyProperties)
     {
-        if (!_LoaderVersionRequirementRegex().IsMatch(window) && !_IncompatibleRegex().IsMatch(window))
+        if (!_LoaderVersionRequirementRegex().IsMatch(line) && !_IncompatibleRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -214,15 +220,26 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
             lineNumber,
             dependencyProperties,
             visibility: CrashFactVisibility.Main));
+
+        if (_ForgeVersionRequirementRegex().IsMatch(line))
+            facts.Add(CrashFactFactory.Create(
+                CrashFactKind.ForgeVersionRequirementDetected,
+                _Summary(window),
+                document,
+                window,
+                lineNumber,
+                dependencyProperties,
+                visibility: CrashFactVisibility.Main));
     }
 
     private static void _AppendDuplicateModFact(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber)
     {
-        if (!_DuplicateModRegex().IsMatch(window))
+        if (!_DuplicateModRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -236,10 +253,11 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendMixinFact(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber)
     {
-        if (!_MixinFailureRegex().IsMatch(window))
+        if (!_MixinFailureRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -254,10 +272,11 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static void _AppendTransformFact(
         List<CrashFact> facts,
         CrashLogDocument document,
+        string line,
         string window,
         int lineNumber)
     {
-        if (!_TransformFailureRegex().IsMatch(window))
+        if (!_TransformFailureRegex().IsMatch(line))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -281,6 +300,8 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
         _AppendFabricMissingDependencyProperties(properties, window);
         _AppendFabricHardDependencyProperties(properties, window);
+        _AppendForgeDependencyProperties(properties, window);
+        _AppendForgeRequiresProperties(properties, window);
         _AppendFabricFixProperties(properties, window);
         _AppendLoaderProperties(properties, window);
 
@@ -308,6 +329,37 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         string window)
     {
         var match = _FabricHardDependencyRegex().Match(window);
+
+        if (!match.Success)
+            return;
+
+        properties.TryAdd("AffectedModId", match.Groups["affected"].Value.Trim());
+        properties.TryAdd("MissingModId", match.Groups["missing"].Value.Trim());
+        properties.TryAdd("RequiredVersion", match.Groups["version"].Value.Trim());
+    }
+
+    private static void _AppendForgeDependencyProperties(
+        Dictionary<string, string> properties,
+        string window)
+    {
+        var match = _NeoForgeDependencyLineRegex().Match(window);
+
+        if (!match.Success)
+            return;
+
+        properties.TryAdd("MissingModId", match.Groups["missing"].Value.Trim());
+        properties.TryAdd("AffectedModId", match.Groups["affected"].Value.Trim());
+        properties.TryAdd("RequiredVersion", match.Groups["version"].Value.Trim());
+        var current = match.Groups["current"].Value.Trim().Trim('[', ']');
+        properties.TryAdd("CurrentVersion",
+            current.Equals("MISSING", StringComparison.OrdinalIgnoreCase) ? "missing" : current);
+    }
+
+    private static void _AppendForgeRequiresProperties(
+        Dictionary<string, string> properties,
+        string window)
+    {
+        var match = _ForgeRequiresLineRegex().Match(window);
 
         if (!match.Success)
             return;
@@ -354,10 +406,22 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     private static string _Summary(string value)
     {
-        var line = CrashText.ReadLines(value)
+        var lines = CrashText.ReadLines(value)
             .Select(static item => item.Trim())
-            .FirstOrDefault(static item => !string.IsNullOrWhiteSpace(item)
-                                           && !item.StartsWith("at ", StringComparison.OrdinalIgnoreCase));
+            .Where(static item => !string.IsNullOrWhiteSpace(item)
+                                  && !item.StartsWith("at ", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var line = lines.FirstOrDefault(static item =>
+                       item.Contains("Mod ID:", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("requires", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("Mod resolution failed", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("HARD_DEP", StringComparison.OrdinalIgnoreCase))
+                   ?? lines.FirstOrDefault(static item =>
+                       item.Contains("ERROR", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("Exception", StringComparison.OrdinalIgnoreCase))
+                   ?? lines.FirstOrDefault();
 
         line ??= value.Trim();
         return line.Length > 220 ? line[..220] + "..." : line;
@@ -421,7 +485,8 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     [GeneratedRegex(@"(?i)\btransform(er|ation)?\b.*\b(fail|error|exception)\b")]
     private static partial Regex _TransformFailureRegex();
 
-    [GeneratedRegex(@"(?i)\bduplicate\b.*\bmod\b|\bmod\b.*\bduplicate\b")]
+    [GeneratedRegex(
+        @"(?i)found\s+duplicate\s+mods?|duplicate\s+mods?\s+found|duplicate\s+mod\s+id|\bmod\b.*\bis\s+present\b.*\band\b")]
     private static partial Regex _DuplicateModRegex();
 
     [GeneratedRegex(@"(?i)\bmissing\b|which\s+is\s+missing|not\s+installed|install\s+it")]
@@ -438,6 +503,14 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         @"(?i)HARD_DEP(?:_NO_CANDIDATE)?\s+(?<affected>[a-z0-9_.-]+)\s+[^\{\]]*\{depends\s+(?<missing>[a-z0-9_.-]+)\s+@\s+\[(?<version>[^\]]+)\]")]
     private static partial Regex _FabricHardDependencyRegex();
 
+    [GeneratedRegex(
+        @"(?i)Mod ID:\s*'(?<missing>[a-z0-9_.-]+)'\s*,\s*Requested by:\s*'(?<affected>[a-z0-9_.-]+)'\s*,\s*Expected range:\s*'(?<version>[^']+)'\s*,\s*Actual version:\s*'(?<current>[^']+)'")]
+    private static partial Regex _NeoForgeDependencyLineRegex();
+
+    [GeneratedRegex(
+        @"(?i)Mod\s+(?<affected>[a-z0-9_.-]+)\s+requires\s+(?<missing>[a-z0-9_.-]+)\s+(?<version>.+?)(?:$|Currently|Reason)")]
+    private static partial Regex _ForgeRequiresLineRegex();
+
     [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
     private static partial Regex _FabricFixAddRegex();
 
@@ -445,16 +518,22 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         @"(?i)Mod loading error has occurred|net\.minecraftforge\.fml\.ModLoadingException|net\.neoforged\.fml\.ModLoadingException|failed to load mod file|error loading mods")]
     private static partial Regex _ForgeModLoadingErrorRegex();
 
-    [GeneratedRegex(@"(?i)failed to load mod file|Mod loading error has occurred|error loading mods|ModLoadingException")]
+    [GeneratedRegex(
+        @"(?i)failed to load mod file|Mod loading error has occurred|error loading mods|ModLoadingException")]
     private static partial Regex _LoaderModLoadingFailedRegex();
 
-    [GeneratedRegex(@"(?i)Missing mandatory dependencies|missing mandatory dependency|requires.*(?:forge|minecraft|neoforge).*(?:missing|not found)")]
+    [GeneratedRegex(
+        @"(?i)Missing(?: or unsupported)? mandatory dependencies|missing mandatory dependency|requires.*(?:forge|minecraft|neoforge).*(?:missing|not found)")]
     private static partial Regex _ForgeMissingMandatoryDependencyRegex();
 
-    [GeneratedRegex(@"(?i)needs language provider|missing language provider|language provider\s+(?:javafml|fmlcore|fmlmod)")]
+    [GeneratedRegex(
+        @"(?i)needs language provider|missing language provider|language provider\s+(?:javafml|fmlcore|fmlmod)")]
     private static partial Regex _ForgeLanguageProviderRegex();
 
     [GeneratedRegex(
         @"(?i)requires\s+(?:minecraft|forge|neoforge|fabric|quilt)\s*(?:version)?|wrong\s+(?:minecraft|loader)\s+version|incompatible.*(?:minecraft|loader|forge|fabric|neoforge)|needs.*(?:minecraft|forge|neoforge).*(?:version|\[)")]
     private static partial Regex _LoaderVersionRequirementRegex();
+
+    [GeneratedRegex(@"(?i)requires\s+(?:forge|neoforge)|needs.*(?:forge|neoforge).*(?:version|\[)")]
+    private static partial Regex _ForgeVersionRequirementRegex();
 }

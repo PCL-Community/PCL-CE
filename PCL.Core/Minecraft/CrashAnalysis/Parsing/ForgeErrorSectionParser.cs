@@ -27,55 +27,84 @@ internal sealed partial class ForgeErrorSectionParser : ICrashLogParser
 
             var block = _ReadForgeBlock(lines, index);
             var properties = _ExtractProperties(block);
-            var lineNumber = index + 1;
+            var loadingLine = _FindBestLine(lines, index, _ForgeErrorStartRegex()) ?? (line, index + 1);
+            var dependencyLine = _FindBestLine(lines, index, _NeoForgeDependencyLineRegex()) ??
+                                 _FindBestLine(lines, index, _ForgeRequiresLineRegex()) ??
+                                 _FindBestLine(lines, index, _MandatoryDependencyRegex());
 
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.ForgeModLoadingErrorDetected,
-                _Summary(block),
+                _Trim(loadingLine.Line),
                 document,
-                block,
-                lineNumber,
+                loadingLine.Line,
+                loadingLine.LineNumber,
                 properties,
                 visibility: CrashFactVisibility.Main));
             facts.Add(CrashFactFactory.Create(
                 CrashFactKind.LoaderModLoadingFailed,
-                _Summary(block),
+                _Trim(loadingLine.Line),
                 document,
-                block,
-                lineNumber,
+                loadingLine.Line,
+                loadingLine.LineNumber,
                 properties,
                 visibility: CrashFactVisibility.Main));
 
-            if (_MandatoryDependencyRegex().IsMatch(block))
+            if (_MandatoryDependencyRegex().IsMatch(block) || dependencyLine is not null)
+            {
+                var evidenceLine = dependencyLine ?? loadingLine;
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.ForgeMissingMandatoryDependencyDetected,
-                    _Summary(block),
+                    _DependencySummary(properties, evidenceLine.Line),
                     document,
                     block,
-                    lineNumber,
+                    evidenceLine.LineNumber,
                     properties,
                     visibility: CrashFactVisibility.Main));
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.MissingModDependencyDetected,
+                    _DependencySummary(properties, evidenceLine.Line),
+                    document,
+                    block,
+                    evidenceLine.LineNumber,
+                    properties,
+                    visibility: CrashFactVisibility.Main));
+            }
 
             if (_LanguageProviderRegex().IsMatch(block))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.ForgeLanguageProviderMissingDetected,
-                    _Summary(block),
+                    _Trim(_FindBestLine(lines, index, _LanguageProviderRegex())?.Line ?? loadingLine.Line),
                     document,
                     block,
-                    lineNumber,
+                    (_FindBestLine(lines, index, _LanguageProviderRegex()) ?? loadingLine).LineNumber,
                     properties,
                     visibility: CrashFactVisibility.Main));
 
             if (_VersionRequirementRegex().IsMatch(block))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.LoaderVersionRequirementDetected,
-                    _Summary(block),
+                    _Trim(_FindBestLine(lines, index, _VersionRequirementRegex())?.Line ?? loadingLine.Line),
                     document,
                     block,
-                    lineNumber,
+                    (_FindBestLine(lines, index, _VersionRequirementRegex()) ?? loadingLine).LineNumber,
                     properties,
                     visibility: CrashFactVisibility.Main));
         }
+    }
+
+    private static (string Line, int LineNumber)? _FindBestLine(
+        IReadOnlyList<string> lines,
+        int startIndex,
+        Regex regex)
+    {
+        for (var index = startIndex; index < Math.Min(lines.Count, startIndex + 24); index++)
+        {
+            var line = lines[index];
+            if (regex.IsMatch(line))
+                return (line.Trim(), index + 1);
+        }
+
+        return null;
     }
 
     private static bool _LooksLikeForgeErrorStart(string line)
@@ -107,6 +136,23 @@ internal sealed partial class ForgeErrorSectionParser : ICrashLogParser
             ["LoaderName"] = block.Contains("neoforge", StringComparison.OrdinalIgnoreCase) ? "NeoForge" : "Forge"
         };
 
+        var neoforgeDependency = _NeoForgeDependencyLineRegex().Match(block);
+        if (neoforgeDependency.Success)
+        {
+            properties.TryAdd("MissingModId", neoforgeDependency.Groups["missing"].Value.Trim());
+            properties.TryAdd("AffectedModId", neoforgeDependency.Groups["affected"].Value.Trim());
+            properties.TryAdd("RequiredVersion", neoforgeDependency.Groups["version"].Value.Trim());
+            properties.TryAdd("CurrentVersion", _NormalizeCurrentVersion(neoforgeDependency.Groups["current"].Value));
+        }
+
+        var forgeRequires = _ForgeRequiresLineRegex().Match(block);
+        if (forgeRequires.Success)
+        {
+            properties.TryAdd("AffectedModId", forgeRequires.Groups["affected"].Value.Trim());
+            properties.TryAdd("MissingModId", forgeRequires.Groups["missing"].Value.Trim());
+            properties.TryAdd("RequiredVersion", forgeRequires.Groups["version"].Value.Trim());
+        }
+
         var quoted = _QuotedModRegex().Match(block);
         if (quoted.Success)
         {
@@ -131,7 +177,38 @@ internal sealed partial class ForgeErrorSectionParser : ICrashLogParser
         if (version.Success)
             properties.TryAdd("RequiredVersion", version.Groups["version"].Value.Trim());
 
+        if (properties.TryGetValue("AffectedModId", out var affectedModId))
+            properties.TryAdd("AffectedMod", affectedModId);
+
         return properties;
+    }
+
+    private static string _DependencySummary(
+        IReadOnlyDictionary<string, string> properties,
+        string fallbackLine)
+    {
+        if (properties.TryGetValue("AffectedMod", out var affected) &&
+            properties.TryGetValue("MissingModId", out var missing) &&
+            properties.TryGetValue("RequiredVersion", out var version))
+            return affected + " requires " + missing + " " + version + ", but it is missing.";
+
+        if (properties.TryGetValue("AffectedModId", out var affectedId) &&
+            properties.TryGetValue("MissingModId", out var missingId))
+            return affectedId + " requires " + missingId + ", but it is missing.";
+
+        return _Trim(fallbackLine);
+    }
+
+    private static string _NormalizeCurrentVersion(string value)
+    {
+        value = value.Trim().Trim('[', ']');
+        return value.Equals("MISSING", StringComparison.OrdinalIgnoreCase) ? "missing" : value;
+    }
+
+    private static string _Trim(string value)
+    {
+        value = value.Trim();
+        return value.Length > 220 ? value[..220] + "..." : value;
     }
 
     private static string _Summary(string value)
@@ -145,11 +222,19 @@ internal sealed partial class ForgeErrorSectionParser : ICrashLogParser
     }
 
     [GeneratedRegex(
+        @"(?i)Mod ID:\s*'(?<missing>[a-z0-9_.-]+)'\s*,\s*Requested by:\s*'(?<affected>[a-z0-9_.-]+)'\s*,\s*Expected range:\s*'(?<version>[^']+)'\s*,\s*Actual version:\s*'(?<current>[^']+)'")]
+    private static partial Regex _NeoForgeDependencyLineRegex();
+
+    [GeneratedRegex(
+        @"(?i)Mod\s+(?<affected>[a-z0-9_.-]+)\s+requires\s+(?<missing>[a-z0-9_.-]+)\s+(?<version>.+?)(?:$|Currently|Reason)")]
+    private static partial Regex _ForgeRequiresLineRegex();
+
+    [GeneratedRegex(
         @"(?i)Mod loading error has occurred|ModLoadingException|error loading mods|failed to load mod file")]
     private static partial Regex _ForgeErrorStartRegex();
 
     [GeneratedRegex(
-        @"(?i)Missing mandatory dependencies|missing mandatory dependency|requires.*(?:forge|minecraft|neoforge).*(?:missing|not found)")]
+        @"(?i)Missing(?: or unsupported)? mandatory dependencies|missing mandatory dependency|requires.*(?:forge|minecraft|neoforge).*(?:missing|not found)")]
     private static partial Regex _MandatoryDependencyRegex();
 
     [GeneratedRegex(

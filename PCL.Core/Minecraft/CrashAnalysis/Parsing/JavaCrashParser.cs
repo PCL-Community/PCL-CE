@@ -25,7 +25,9 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             var line = lines[index];
             var lineNumber = index + 1;
 
+            _AppendManualDebugCrashFact(facts, document, line, lineNumber);
             _AppendJavaErrorFacts(facts, document, line, lineNumber);
+            _AppendJavaLaunchFacts(facts, document, line, lineNumber);
             _AppendJavaVersionFact(facts, document, line, lineNumber);
             _AppendClassFileMajorFacts(facts, document, line, lineNumber);
             _AppendArchitectureFact(facts, document, line, lineNumber);
@@ -49,6 +51,26 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             properties));
     }
 
+    private static void _AppendManualDebugCrashFact(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        if (!_ManualDebugCrashRegex().IsMatch(line))
+            return;
+
+        facts.Add(CrashFactFactory.Create(
+            CrashFactKind.ManualDebugCrashDetected,
+            line.Trim(),
+            document,
+            line,
+            lineNumber,
+            visibility: CrashFactVisibility.Main,
+            strength: CrashFactStrength.Direct,
+            scope: CrashFactScope.RootCause));
+    }
+
     private static void _AppendJavaErrorFacts(
         List<CrashFact> facts,
         CrashLogDocument document,
@@ -56,11 +78,26 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         int lineNumber)
     {
         if (_Contains(line, "OutOfMemoryError"))
+        {
             facts.Add(_CreateLineFact(
                 CrashFactKind.JavaOutOfMemoryDetected,
                 document,
                 line,
                 lineNumber));
+
+            if (_Contains(line, "Java heap space"))
+                facts.Add(_CreateLineFact(CrashFactKind.JavaHeapSpaceOutOfMemoryDetected, document, line, lineNumber));
+            if (_Contains(line, "Metaspace"))
+                facts.Add(_CreateLineFact(CrashFactKind.JavaMetaspaceOutOfMemoryDetected, document, line, lineNumber));
+            if (_Contains(line, "Direct buffer memory"))
+                facts.Add(
+                    _CreateLineFact(CrashFactKind.JavaDirectBufferOutOfMemoryDetected, document, line, lineNumber));
+            if (_Contains(line, "unable to create native thread"))
+                facts.Add(
+                    _CreateLineFact(CrashFactKind.JavaNativeThreadOutOfMemoryDetected, document, line, lineNumber));
+            if (_Contains(line, "GC overhead limit exceeded"))
+                facts.Add(_CreateLineFact(CrashFactKind.JavaGcOverheadDetected, document, line, lineNumber));
+        }
 
         if (_Contains(line, "UnsupportedClassVersionError"))
             facts.Add(_CreateLineFact(
@@ -82,6 +119,19 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
                 document,
                 line,
                 lineNumber));
+    }
+
+    private static void _AppendJavaLaunchFacts(
+        List<CrashFact> facts,
+        CrashLogDocument document,
+        string line,
+        int lineNumber)
+    {
+        if (_JavaExecutableMissingRegex().IsMatch(line))
+            facts.Add(_CreateLineFact(CrashFactKind.JavaExecutableMissingDetected, document, line, lineNumber));
+
+        if (_JavaMainClassMissingRegex().IsMatch(line))
+            facts.Add(_CreateLineFact(CrashFactKind.JavaMainClassMissingDetected, document, line, lineNumber));
     }
 
     private static void _AppendJavaVersionFact(
@@ -162,6 +212,9 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         string line,
         int lineNumber)
     {
+        if (!_LooksLikeJavaArchitectureLine(line))
+            return;
+
         var match = _ArchitectureRegex().Match(line);
 
         if (!match.Success)
@@ -188,6 +241,15 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
             document,
             line,
             lineNumber);
+    }
+
+    private static bool _LooksLikeJavaArchitectureLine(string line)
+    {
+        return line.Contains("Java VM", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("JVM", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("OpenJDK", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("Java architecture", StringComparison.OrdinalIgnoreCase)
+               || line.Contains("VM info", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool _Contains(string value, string keyword)
@@ -225,7 +287,18 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         return value.Length > MaxValueLength ? value[..MaxValueLength] : value;
     }
 
-    [GeneratedRegex("""(?im)^\s*(?:java version|jre version|java runtime|java:)\s*[\"']?(?<value>\d+(?:\.\d+){0,3})""")]
+    [GeneratedRegex(@"(?i)Manually triggered debug crash|F3\s*\+\s*C")]
+    private static partial Regex _ManualDebugCrashRegex();
+
+    [GeneratedRegex(@"(?i)CreateProcess error=2|java(?:\.exe)?(?:'|\s)*(?:not found|does not exist|cannot find|找不到)")]
+    private static partial Regex _JavaExecutableMissingRegex();
+
+    [GeneratedRegex(
+        @"(?i)Could not find or load main class|ClassNotFoundException:\s*net\.minecraft\.client\.main\.Main")]
+    private static partial Regex _JavaMainClassMissingRegex();
+
+    [GeneratedRegex(
+        """(?im)^\s*#?\s*(?:java version|jre version|java runtime|java:)\s*:?\s*[^\d\r\n]*(?<value>\d+(?:\.\d+){0,3})""")]
     private static partial Regex _JavaVersionRegex();
 
     [GeneratedRegex(@"(?i)(?:class file version|class version|major version)\s+(?<major>\d{2,3})")]

@@ -1,0 +1,3 @@
+[12:00:00] [main/INFO]: Loading classes
+java.lang.OutOfMemoryError: Metaspace
+	at java.base/java.lang.ClassLoader.defineClass1(Native Method)

@@ -31,6 +31,24 @@ public sealed class CrashDiagnosisEngine
 
     private static List<CrashDiagnosis> _ApplyConflictPolicy(List<CrashDiagnosis> diagnoses)
     {
+        if (diagnoses.Any(static d => d.Code == CrashDiagnosisCode.ManualDebugCrash))
+            diagnoses = diagnoses
+                .Where(static d => d.Code is CrashDiagnosisCode.ManualDebugCrash
+                    or CrashDiagnosisCode.NativeJvmCrash
+                    or CrashDiagnosisCode.GraphicsDriverNativeCrash)
+                .Select(static d => d.Code == CrashDiagnosisCode.NativeJvmCrash
+                    ? _AdjustScore(d, -15, new CrashDiagnosisNote
+                        {
+                            Key = "Crash.Note.ManualDebugCrashWithNative",
+                            Level = CrashDiagnosisNoteLevel.Info
+                        }) with
+                        {
+                            Nature = CrashDiagnosisNature.Symptom
+                        }
+                    : d)
+                .ToList();
+
+
         if (diagnoses.Any(static d => d.Code == CrashDiagnosisCode.LoaderDependencyMissing))
             diagnoses = diagnoses.Select(static d =>
                 d.Code == CrashDiagnosisCode.LoaderMixinFailure
@@ -59,7 +77,7 @@ public sealed class CrashDiagnosisEngine
         if (diagnoses.Any(static d => d.Code == CrashDiagnosisCode.GraphicsDriverNativeCrash))
             diagnoses = diagnoses.Select(static d =>
                 d.Code == CrashDiagnosisCode.NativeJvmCrash
-                    ? _AdjustScore(d, -35, new CrashDiagnosisNote { Key = "Crash.Note.GraphicsOverridesNativeJvm" })
+                    ? _AdjustScore(d, -80, new CrashDiagnosisNote { Key = "Crash.Note.GraphicsOverridesNativeJvm" })
                     : d).ToList();
         return diagnoses;
     }

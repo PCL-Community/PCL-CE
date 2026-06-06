@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Writing options
+java.nio.file.AccessDeniedException: C:\\Games\\Minecraft\\instances\\Example\\options.txt

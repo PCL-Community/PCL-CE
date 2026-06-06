@@ -1,0 +1,2 @@
+[12:00:00] [main/ERROR]: Scanning mod files
+Invalid mod file found: badmod.jar (zip END header not found)

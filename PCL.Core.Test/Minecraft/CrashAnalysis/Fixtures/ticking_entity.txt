@@ -1,0 +1,3 @@
+---- Minecraft Crash Report ----
+Entity being ticked: Zombie['Zombie'/42, l='ServerLevel[world]', x=12.0, y=64.0, z=-8.0]
+java.lang.NullPointerException: Cannot read field while ticking entity
