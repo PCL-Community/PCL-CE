@@ -3068,7 +3068,7 @@
 
     <sys:String x:Key="Crash.Left.Diagnoses">诊断</sys:String>
     <sys:String x:Key="Crash.Left.Environment">环境</sys:String>
-    <sys:String x:Key="Crash.Left.Evidence">证据</sys:String>
+    <sys:String x:Key="Crash.Left.Evidence">依据</sys:String>
     <sys:String x:Key="Crash.Left.Export">导出</sys:String>
     <sys:String x:Key="Crash.Left.Logs">日志</sys:String>
     <sys:String x:Key="Crash.Left.Overview">概览</sys:String>
@@ -3098,7 +3098,7 @@
     <sys:String x:Key="Crash.Action.OpenLog">查看日志</sys:String>
     <sys:String x:Key="Crash.Action.OpenMemorySettings">打开内存设置</sys:String>
     <sys:String x:Key="Crash.Action.OpenResourcePackFolder">打开资源包文件夹</sys:String>
-    <sys:String x:Key="Crash.Action.ShowEvidence">查看证据</sys:String>
+    <sys:String x:Key="Crash.Action.ShowEvidence">查看分析依据</sys:String>
     <sys:String x:Key="Crash.Action.ShowSensitiveInfo">显示敏感信息</sys:String>
 
     <!-- Crash.Category -->
@@ -3114,32 +3114,32 @@
 
     <!-- Crash.Confidence -->
 
-    <sys:String x:Key="Crash.Confidence.Certain">确定</sys:String>
-    <sys:String x:Key="Crash.Confidence.High">高</sys:String>
-    <sys:String x:Key="Crash.Confidence.Low">低</sys:String>
-    <sys:String x:Key="Crash.Confidence.Medium">中</sys:String>
+    <sys:String x:Key="Crash.Confidence.Certain">明确</sys:String>
+    <sys:String x:Key="Crash.Confidence.High">较高</sys:String>
+    <sys:String x:Key="Crash.Confidence.Low">较低</sys:String>
+    <sys:String x:Key="Crash.Confidence.Medium">一般</sys:String>
 
     <!-- Crash.Serverity -->
 
     <sys:String x:Key="Crash.Severity.Error">错误</sys:String>
-    <sys:String x:Key="Crash.Severity.Info">信息</sys:String>
+    <sys:String x:Key="Crash.Severity.Info">提示</sys:String>
     <sys:String x:Key="Crash.Severity.Warning">警告</sys:String>
 
     <!-- Crash.Diagnoses -->
 
-    <sys:String x:Key="Crash.Diagnoses.Card">诊断结果</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Category">分类</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.EvidenceCount">诊断依据：{0} 条</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Hint">这里会按置信度展示所有可能原因。首个诊断通常是最值得优先处理的问题，后面的诊断可能是伴随症状或进一步排查方向。</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Meta">置信度：{0}，评分：{1}，分类：{2}</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Overview">诊断说明</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Parameter">参数</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Primary">主要诊断</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.RelatedEvidence">{Count} 条证据</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Score">评分</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Card">可能原因</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Category">类型</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.EvidenceCount">分析依据：{0} 条</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Hint">这里会按可能性列出所有可能原因。排在最前面的通常最值得优先处理，后面的可能是伴随症状或后续排查方向。</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Meta">判断把握：{0}，排查优先级：{1}，类型：{2}</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Overview">原因说明</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Parameter">相关信息</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Primary">最可能原因</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.RelatedEvidence">{Count} 条分析依据</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Score">排查优先级</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Secondary">其他可能原因</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.SuppressedHint">以下说明用于解释某些诊断为何被降权或视为后续症状。请优先处理主要诊断。</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.SuppressedSymptoms">伴随症状</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.SuppressedHint">下面这些说明用于解释某些诊断为什么会被降低优先级，或为什么更像后续症状。请优先处理主要诊断。</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.SuppressedSymptoms">伴随现象</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Part.Cause">原因</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Part.Impact">影响</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Part.Recommendation">建议</sys:String>
@@ -3188,11 +3188,11 @@
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryHeapExhausted">日志显示 Java 堆内存耗尽，通常会出现 Java heap space。 Java 堆内存用于存放游戏、Mod、世界和资源加载时创建的大量对象。日志明确显示这部分内存已经耗尽。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryMetaspaceExhausted">日志显示 Java Metaspace 耗尽，通常与大量类加载、Mixin 或 Mod 数量有关。 Metaspace 用于保存 Java 类元数据。大型整合包、复杂 Mixin 或大量 Mod 可能使这部分内存不足。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryNativeThreadExhausted">日志显示 Java 无法创建新的 native thread，通常与系统资源、线程数量或系统限制有关。 每个 Java 线程都需要系统层面的线程资源。大型整合包、后台程序过多或系统限制可能导致线程创建失败。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Cause.Unknown">PCL 已经读取到日志，但现有证据还不足以判断唯一原因。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Cause.Unknown">PCL 已经读取到日志，但现有依据还不足以判断唯一原因。</sys:String>
 
     <!-- Crash.Diagnoses.Description -->
 
-    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL 读取到了日志，但没有找到足够明确、可以可靠归因的错误特征。&#x0A;&#x0A;这通常表示日志中只有通用异常、退出信息或环境信息，缺少能直接指向 Java、显卡、加载器、Mod、存档或文件问题的强证据。&#x0A;&#x0A;你仍可以查看本页的日志、证据和环境信息，或导出完整报告发给他人进一步分析。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL 读取到了日志，但没有找到足够明确、可以可靠归因的错误特征。&#x0A;&#x0A;这通常表示日志中只有通用异常、退出信息或环境信息，缺少能直接指向 Java、显卡、加载器、Mod、存档或文件问题的明确线索。&#x0A;&#x0A;你仍可以查看本页的日志、分析依据和环境信息，或导出完整报告发给他人进一步分析。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.AssetMissingOrCorrupted">Minecraft 资源文件可能缺失或校验失败。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.DiskSpaceInsufficient">系统报告磁盘空间不足。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.FileAccessOrPermissionIssue">游戏或启动器无法访问某个必要文件。</sys:String>
@@ -3201,9 +3201,9 @@
     <sys:String x:Key="Crash.Diagnosis.Description.GameRegistryMismatch">Minecraft 注册表中存在缺失或无法识别的内容。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameResourcePackFailed">Minecraft 在资源重载或读取资源包时失败，可能是资源包损坏、格式不兼容或纹理过大。&#x0A;&#x0A;资源包错误可能阻止游戏进入主菜单、加入世界，或在切换资源包后立即崩溃。&#x0A;&#x0A;请暂时移除最近添加的资源包，确认资源包适配当前 Minecraft 版本；必要时重新下载资源包。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameShaderFailed">日志显示光影编译、链接或渲染管线初始化失败。&#x0A;&#x0A;光影错误通常与光影包版本、显卡驱动、OptiFine/Iris/Oculus 或渲染类 Mod 的兼容性有关。&#x0A;&#x0A;请先关闭光影启动游戏，再更新光影包、显卡驱动和相关渲染 Mod；确认后再逐项启用。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldBlockEntityCorrupted">crash report 指向正在 tick 的方块实体，例如箱子、机器、管道或其他带数据的方块。&#x0A;&#x0A;该位置的方块实体数据可能已损坏，或由某个 Mod 更新/移除后无法再正确读取。继续进入同一世界可能会反复崩溃。&#x0A;&#x0A;请先备份存档，再根据诊断依据中的坐标定位并移除问题方块；如果它来自某个 Mod，请检查该 Mod 是否被更换、降级或移除。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldBlockEntityCorrupted">crash report 指向正在 tick 的方块实体，例如箱子、机器、管道或其他带数据的方块。&#x0A;&#x0A;该位置的方块实体数据可能已损坏，或由某个 Mod 更新/移除后无法再正确读取。继续进入同一世界可能会反复崩溃。&#x0A;&#x0A;请先备份存档，再根据分析依据中的坐标定位并移除问题方块；如果它来自某个 Mod，请检查该 Mod 是否被更换、降级或移除。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameWorldDataCorrupted">世界或区块数据在读取时出现异常。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldEntityCorrupted">crash report 指向正在 tick 的实体，例如生物、掉落物、载具或 Mod 添加的实体。&#x0A;&#x0A;该实体的数据、AI 或关联 Mod 可能异常，导致世界加载或运行到该区域时反复崩溃。&#x0A;&#x0A;请先备份存档，再根据诊断依据中的实体名称和坐标处理问题实体；必要时临时移除相关 Mod 或使用工具清理实体。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldEntityCorrupted">crash report 指向正在 tick 的实体，例如生物、掉落物、载具或 Mod 添加的实体。&#x0A;&#x0A;该实体的数据、AI 或关联 Mod 可能异常，导致世界加载或运行到该区域时反复崩溃。&#x0A;&#x0A;请先备份存档，再根据分析依据中的实体名称和坐标处理问题实体；必要时临时移除相关 Mod 或使用工具清理实体。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GraphicsDriverNativeCrash">JVM 原生崩溃日志指向显卡驱动、LWJGL 或图形相关原生库。&#x0a;&#x0a;这通常不是普通 Mod 抛出的 Java 异常，而是显卡驱动或图形接口在原生层崩溃。它可能被光影、资源包或特定渲染 Mod 触发。&#x0a;&#x0a;请更新显卡驱动，关闭光影和高分辨率资源包，并尝试禁用渲染优化类 Mod 后重新启动。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GraphicsLwjglNativeLoadFailed">LWJGL 或其原生库没有成功加载。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GraphicsOpenGlUnavailable">日志显示 Minecraft 或 LWJGL 无法初始化 OpenGL。常见原因包括显卡驱动过旧、系统没有正确使用独立显卡、远程桌面环境不支持 OpenGL，或显卡本身不满足版本要求。&#x0a;&#x0a;Minecraft 依赖 OpenGL 渲染画面。如果 OpenGL 初始化失败，游戏通常会在窗口创建或资源加载前直接退出。&#x0a;&#x0a;请更新显卡驱动，确认游戏使用正确的显卡运行，并避免在不支持 OpenGL 的远程桌面环境中启动游戏。</sys:String>
@@ -3211,11 +3211,11 @@
     <sys:String x:Key="Crash.Diagnosis.Description.LauncherCapturedNoUsefulLog">PCL 没有找到足够的崩溃日志，因此无法给出可靠诊断。&#x0a;&#x0a;这可能是因为游戏进程过早退出、日志被清理、实例路径异常，或崩溃发生在日志系统初始化之前。&#x0a;&#x0a;请尝试重新启动一次游戏，并在问题复现后立即导出完整报告。如果仍然没有日志，请检查实例目录和启动器权限。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LibraryOrNativeMissing">Minecraft 运行所需的库文件没有成功加载。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyMissing">加载器在解析 Mod 依赖时失败。日志显示 {AffectedMod} 需要 {MissingModId} {RequiredVersion}，但当前实例中没有找到符合要求的依赖。&#x0a;&#x0a;缺少前置会阻止 Mod 加载器完成启动流程。后续日志中出现的 Mixin、Transform 或 ClassNotFound 错误通常是连锁反应，不一定是真正的首要原因。&#x0a;&#x0a;请优先安装缺失的依赖，或更换与当前 Minecraft 和加载器版本兼容的 Mod 组合。修复依赖问题后，再重新启动游戏确认是否还有其他错误。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyVersionConflict">加载器报告某个 Mod 的依赖版本不符合要求，或当前安装版本与要求范围不一致。&#x0A;&#x0A;依赖版本不匹配会阻止加载器完成解析，后续出现的 Mixin、类转换或 Mod 初始化错误通常只是连带现象。&#x0A;&#x0A;请根据诊断依据中的 Mod ID、依赖名和版本要求，更新或降级相关 Mod、加载器或 Minecraft 版本，让它们处于同一套兼容组合。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyVersionConflict">加载器报告某个 Mod 的依赖版本不符合要求，或当前安装版本与要求范围不一致。&#x0A;&#x0A;依赖版本不匹配会阻止加载器完成解析，后续出现的 Mixin、类转换或 Mod 初始化错误通常只是连带现象。&#x0A;&#x0A;请根据分析依据中的 Mod ID、依赖名和版本要求，更新或降级相关 Mod、加载器或 Minecraft 版本，让它们处于同一套兼容组合。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderInstallationIncomplete">日志显示加载器所需组件缺失，例如 Forge/NeoForge 的 language provider 或安装器生成的库文件不完整。&#x0A;&#x0A;加载器组件缺失会让 Mod 加载在很早阶段停止，通常不是单个普通 Mod 的代码错误。&#x0A;&#x0A;请重新安装或修复该实例的加载器，必要时重新补全 libraries、natives 和对应版本文件。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderMixinFailure">加载器在应用 Mixin 时失败。Mixin 是 Mod 修改 Minecraft 代码的一种机制，失败点可能来自目标类变化、依赖缺失、加载器版本不匹配或多个 Mod 同时修改同一位置。&#x0a;&#x0a;如果同时存在缺失前置或 Java 兼容性错误，Mixin 失败通常只是后续症状。只有在没有更明确根因时，才应把它作为主要排查方向。&#x0a;&#x0a;请先处理页面中置信度更高的诊断。如果只剩 Mixin 失败，尝试更新相关 Mod、加载器和前置，或临时禁用最近安装/更新的 Mod。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderMixinFailure">加载器在应用 Mixin 时失败。Mixin 是 Mod 修改 Minecraft 代码的一种机制，失败点可能来自目标类变化、依赖缺失、加载器版本不匹配或多个 Mod 同时修改同一位置。&#x0A;&#x0A;如果同时存在缺失前置或 Java 兼容性错误，Mixin 失败通常只是后续症状。只有在没有更明确根因时，才应把它作为主要排查方向。&#x0A;&#x0A;请先处理页面中更有把握的诊断。如果只剩 Mixin 失败，尝试更新相关 Mod、加载器和前置，或临时禁用最近安装/更新的 Mod。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderModLoadingFailed">加载器在加载 Mod 文件时失败。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderTransformFailure">日志显示加载器、Mixin 或转换器在修改 Minecraft/Mod 类时失败。&#x0A;&#x0A;这通常由 Mod 版本不兼容、依赖缺失、Java 版本不匹配或多个 Mod 同时修改同一段代码导致；它更像症状，不一定是最终根因。&#x0A;&#x0A;请先处理本页中更高置信度的依赖、Java 或 Mod 冲突诊断；若没有更明确结论，再更新相关 Mod、Mixin 依赖和加载器。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderTransformFailure">日志显示加载器、Mixin 或转换器在修改 Minecraft/Mod 类时失败。&#x0A;&#x0A;这通常由 Mod 版本不兼容、依赖缺失、Java 版本不匹配或多个 Mod 同时修改同一段代码导致；它更像症状，不一定是最终根因。&#x0A;&#x0A;请先处理本页中更有把握的依赖、Java 或 Mod 冲突诊断；若没有更明确结论，再更新相关 Mod、Mixin 依赖和加载器。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderVersionIncompatible">Mod 加载器报告了版本要求不匹配。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ManualDebugCrash">日志显示这次错误是由 Minecraft 的调试崩溃功能主动触发的。通常是长按 F3 + C，或在同时按下 Ctrl 时触发 JVM 原生层崩溃。&#x0A;&#x0A;这类错误不一定代表 Mod、存档或运行环境本身损坏。如果你是在测试错误报告或误按了调试快捷键，可以忽略它；如果同时出现 hs_err 日志，说明这次手动触发也让 JVM 原生层崩溃了。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ModConfigInvalid">日志显示某个 Mod 的配置文件无法解析，常见原因包括 TOML/JSON 格式错误、旧配置与新版本不兼容，或手动编辑后语法无效。&#x0A;&#x0A;配置解析失败会阻止对应 Mod 初始化，有时还会让加载器报告连带的 Mod 加载失败。&#x0A;&#x0A;请备份后删除或重命名相关配置文件，让 Mod 重新生成默认配置；如果最近更新过 Mod，请核对新旧配置格式是否兼容。</sys:String>
@@ -3223,7 +3223,7 @@
     <sys:String x:Key="Crash.Diagnosis.Description.ModFileInvalidOrCorrupted">日志显示某个 Mod 文件无法读取、不是有效的 jar，或其中的元数据/类文件损坏。&#x0a;&#x0a;损坏的 Mod 文件会中断加载器扫描流程，甚至导致后续依赖解析结果不可靠。&#x0a;&#x0a;请重新下载相关 Mod，避免使用下载中断、被解压、被杀毒软件修改或来源不明的文件。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ModLikelyCausedCrash">crash report 中的 Suspected Mods 或堆栈信息指向了一个可能相关的 Mod。&#x0A;&#x0A;这说明该 Mod 位于崩溃路径上，但它可能只是被依赖、Java、资源或存档问题牵连，不一定就是唯一根因。&#x0A;&#x0A;请先备份实例，再尝试更新、降级或暂时移除诊断依据中提到的 Mod；如果同时存在缺依赖或版本冲突，请优先处理那些问题。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ModSetConflict">日志明确提到 Mod 之间存在冲突、不兼容，或某个 Mod 不支持当前已安装的另一个 Mod。&#x0A;&#x0A;这种问题通常不是缺少单个依赖，而是当前 Mod 组合本身无法同时工作。继续只更新其中一个 Mod 可能仍会失败。&#x0A;&#x0A;请根据诊断依据定位冲突双方，优先查阅它们的兼容说明，然后更新到兼容版本或移除其中一个。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.NativeJvmCrash">日志或 hs_err 文件显示 JVM 在原生层崩溃，例如访问冲突、SIGSEGV 或 problematic frame。&#x0A;&#x0A;这类崩溃通常发生在 Java 虚拟机、显卡驱动、LWJGL、音频/输入原生库或系统层，而不是普通 Java 异常。&#x0A;&#x0A;请保留 hs_err 文件，优先更新或更换 Java 与显卡驱动；如果证据指向特定原生库，再针对对应驱动、运行库或渲染组件排查。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.NativeJvmCrash">日志或 hs_err 文件显示 JVM 在原生层崩溃，例如访问冲突、SIGSEGV 或 problematic frame。&#x0A;&#x0A;这类崩溃通常发生在 Java 虚拟机、显卡驱动、LWJGL、音频/输入原生库或系统层，而不是普通 Java 异常。&#x0A;&#x0A;请保留 hs_err 文件，优先更新或更换 Java 与显卡驱动；如果依据指向特定原生库，再针对对应驱动、运行库或渲染组件排查。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.PathOrFolderEnvironmentIssue">当前游戏路径可能导致文件访问失败。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeArchitectureMismatch">日志显示当前使用的是 32 位 Java，但系统或实例更适合使用 64 位 Java。&#x0A;&#x0A;32 位 Java 可用内存很低，也可能无法加载某些原生库，容易在大型整合包、高清资源包或光影环境下启动失败。&#x0A;&#x0A;请安装并选择 64 位 Java；如果系统本身是 32 位，建议降低内存占用或更换为 64 位系统后再启动。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaLaunchFailed">Java 进程没有正常启动。</sys:String>
@@ -3234,7 +3234,7 @@
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryHeapExhausted">日志显示 Java 堆内存耗尽，通常会出现 Java heap space。 Java 堆内存用于存放游戏、Mod、世界和资源加载时创建的大量对象。日志明确显示这部分内存已经耗尽。&#x0a;&#x0a;堆内存不足会让 Minecraft 在加载世界、资源包、光影或大型 Mod 时中断。此时堆栈中出现的某个 Mod 可能只是正在申请内存的对象，不一定是根因。&#x0a;&#x0a;可以适当增加实例的内存分配，并减少高分辨率资源包、光影或大型 Mod。修改设置后重新启动游戏，确认是否还会出现新的错误。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryMetaspaceExhausted">日志显示 Java Metaspace 耗尽，通常与大量类加载、Mixin 或 Mod 数量有关。 Metaspace 用于保存 Java 类元数据。大型整合包、复杂 Mixin 或大量 Mod 可能使这部分内存不足。&#x0a;&#x0a;Metaspace 不足会使游戏在加载类、加载 Mod 或应用 Mixin 时失败，后续异常可能表现为加载器或 Mod 错误。&#x0a;&#x0a;可以减少 Mod 数量、更新相关加载器和 Mod，或在确认需要时调整 JVM 参数。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryNativeThreadExhausted">日志显示 Java 无法创建新的 native thread，通常与系统资源、线程数量或系统限制有关。 每个 Java 线程都需要系统层面的线程资源。大型整合包、后台程序过多或系统限制可能导致线程创建失败。&#x0a;&#x0a;线程创建失败会让游戏在启动或加载过程中突然停止，且不一定伴随明确的 Mod 错误。&#x0a;&#x0a;建议关闭占用资源的后台程序，降低整合包规模，并检查系统可用内存和进程限制。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.Unknown">PCL 已经读取到日志，但现有证据还不足以判断唯一原因。&#x0A;&#x0A;问题可能来自 Java、加载器、Mod、资源包、存档或系统环境；仅凭当前日志无法安全地给出更具体结论。&#x0A;&#x0A;请导出完整报告并附上最近一次启动产生的 latest.log、crash report 和 hs_err 文件，再结合本页证据继续排查。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.Unknown">PCL 已经读取到日志，但现有依据还不足以判断唯一原因。&#x0A;&#x0A;问题可能来自 Java、加载器、Mod、资源包、存档或系统环境；仅凭当前日志无法安全地给出更具体结论。&#x0A;&#x0A;请导出完整报告并附上最近一次启动产生的 latest.log、crash report 和 hs_err 文件，再结合本页证据继续排查。</sys:String>
 
     <!-- Crash.Diagnoses.Impact -->
 
@@ -3284,7 +3284,7 @@
 
     <!-- Crash.Diagnoses.Recommendation -->
 
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">请查看日志页和证据页中的摘要，或导出完整报告发给他人进一步分析。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">请查看日志页和分析依据页中的摘要，或导出完整报告发给他人进一步分析。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.AssetMissingOrCorrupted">请检查资源文件是否完整，必要时重新下载缺失资源。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.DiskSpaceInsufficient">请清理对应磁盘空间后再启动游戏。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.FileAccessOrPermissionIssue">请检查文件是否被杀毒软件、同步软件或其他程序占用，并确认游戏目录具有读写权限。</sys:String>
@@ -3293,9 +3293,9 @@
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameRegistryMismatch">请检查最近移除或更换的 Mod / 数据包。如果问题发生在进入某个世界时，建议先备份存档。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameResourcePackFailed">请暂时移除最近添加的资源包，确认资源包适配当前 Minecraft 版本；必要时重新下载资源包。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameShaderFailed">请先关闭光影启动游戏，再更新光影包、显卡驱动和相关渲染 Mod；确认后再逐项启用。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldBlockEntityCorrupted">请先备份存档，再根据诊断依据中的坐标定位并移除问题方块；如果它来自某个 Mod，请检查该 Mod 是否被更换、降级或移除。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldBlockEntityCorrupted">请先备份存档，再根据分析依据中的坐标定位并移除问题方块；如果它来自某个 Mod，请检查该 Mod 是否被更换、降级或移除。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldDataCorrupted">建议先备份存档，再检查最近变动的 Mod 或数据包。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldEntityCorrupted">请先备份存档，再根据诊断依据中的实体名称和坐标处理问题实体；必要时临时移除相关 Mod 或使用工具清理实体。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldEntityCorrupted">请先备份存档，再根据分析依据中的实体名称和坐标处理问题实体；必要时临时移除相关 Mod 或使用工具清理实体。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsDriverNativeCrash">请更新显卡驱动，关闭光影和高分辨率资源包，并尝试禁用渲染优化类 Mod 后重新启动。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsLwjglNativeLoadFailed">可以检查游戏运行库是否完整、杀毒软件是否阻止文件解压，或重新补全实例文件。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsOpenGlUnavailable">请更新显卡驱动，确认游戏使用正确的显卡运行，并避免在不支持 OpenGL 的远程桌面环境中启动游戏。</sys:String>
@@ -3303,11 +3303,11 @@
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LauncherCapturedNoUsefulLog">请尝试重新启动一次游戏，并在问题复现后立即导出完整报告。如果仍然没有日志，请检查实例目录和启动器权限。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LibraryOrNativeMissing">请检查实例的 libraries 和 natives 文件是否完整，或重新补全实例文件。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyMissing">请优先安装缺失的依赖，或更换与当前 Minecraft 和加载器版本兼容的 Mod 组合。修复依赖问题后，再重新启动游戏确认是否还有其他错误。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyVersionConflict">请根据诊断依据中的 Mod ID、依赖名和版本要求，更新或降级相关 Mod、加载器或 Minecraft 版本，让它们处于同一套兼容组合。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyVersionConflict">请根据分析依据中的 Mod ID、依赖名和版本要求，更新或降级相关 Mod、加载器或 Minecraft 版本，让它们处于同一套兼容组合。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderInstallationIncomplete">请重新安装或修复该实例的加载器，必要时重新补全 libraries、natives 和对应版本文件。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderMixinFailure">请先处理页面中置信度更高的诊断。如果只剩 Mixin 失败，尝试更新相关 Mod、加载器和前置，或临时禁用最近安装/更新的 Mod。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderMixinFailure">请先处理页面中更有把握的诊断。如果只剩 Mixin 失败，尝试更新相关 Mod、加载器和前置，或临时禁用最近安装/更新的 Mod。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderModLoadingFailed">请优先查看诊断依据中提到的 Mod 文件或错误段落，再决定是否更换、更新或暂时移除相关 Mod。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderTransformFailure">请先处理本页中更高置信度的依赖、Java 或 Mod 冲突诊断；若没有更明确结论，再更新相关 Mod、Mixin 依赖和加载器。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderTransformFailure">请先处理本页中更有把握的依赖、Java 或 Mod 冲突诊断；若没有更明确结论，再更新相关 Mod、Mixin 依赖和加载器。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderVersionIncompatible">请核对 Minecraft 版本、加载器版本和 Mod 版本是否属于同一套兼容组合。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ManualDebugCrash">如果这是你主动测试错误分析功能导致的，可以忽略这条错误。若不是有意触发，请检查键盘输入或快捷键操作，并优先查看是否存在伴随的 JVM 原生层崩溃信息。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModConfigInvalid">请备份后删除或重命名相关配置文件，让 Mod 重新生成默认配置；如果最近更新过 Mod，请核对新旧配置格式是否兼容。</sys:String>
@@ -3315,7 +3315,7 @@
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModFileInvalidOrCorrupted">请重新下载相关 Mod，避免使用下载中断、被解压、被杀毒软件修改或来源不明的文件。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModLikelyCausedCrash">请先备份实例，再尝试更新、降级或暂时移除诊断依据中提到的 Mod；如果同时存在缺依赖或版本冲突，请优先处理那些问题。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModSetConflict">请根据诊断依据定位冲突双方，优先查阅它们的兼容说明，然后更新到兼容版本或移除其中一个。</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.NativeJvmCrash">请保留 hs_err 文件，优先更新或更换 Java 与显卡驱动；如果证据指向特定原生库，再针对对应驱动、运行库或渲染组件排查。</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.NativeJvmCrash">请保留 hs_err 文件，优先更新或更换 Java 与显卡驱动；如果依据指向特定原生库，再针对对应驱动、运行库或渲染组件排查。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.PathOrFolderEnvironmentIssue">请尝试把实例移动到更短、更普通的路径，并避免特殊字符或过深的目录层级。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeArchitectureMismatch">请安装并选择 64 位 Java；如果系统本身是 32 位，建议降低内存占用或更换为 64 位系统后再启动。</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeJavaLaunchFailed">请先检查 Java 设置和实例文件完整性；如果你不确定原因，可以导出错误报告交给他人排查。</sys:String>
@@ -3401,7 +3401,7 @@
 
     <sys:String x:Key="Crash.Evidence.AccessDeniedDetected">文件访问被拒绝</sys:String>
     <sys:String x:Key="Crash.Evidence.AssetMissingDetected">资源文件缺失</sys:String>
-    <sys:String x:Key="Crash.Evidence.Card">诊断依据</sys:String>
+    <sys:String x:Key="Crash.Evidence.Card">分析依据</sys:String>
     <sys:String x:Key="Crash.Evidence.ChecksumMismatchDetected">文件校验失败</sys:String>
     <sys:String x:Key="Crash.Evidence.ConfigParseIssueDetected">配置解析问题</sys:String>
     <sys:String x:Key="Crash.Evidence.CrashReportBlockEntityTickDetected">崩溃报告中的方块实体处理错误</sys:String>
@@ -3412,25 +3412,25 @@
     <sys:String x:Key="Crash.Evidence.CrashReportSystemDetailsDetected">崩溃报告系统详情</sys:String>
     <sys:String x:Key="Crash.Evidence.CrashReportTopExceptionDetected">崩溃报告中的顶层异常</sys:String>
     <sys:String x:Key="Crash.Evidence.DataPackLoadFailed">数据包加载失败</sys:String>
-    <sys:String x:Key="Crash.Evidence.Diagnostics">诊断依据</sys:String>
-    <sys:String x:Key="Crash.Evidence.DiagnosticsHint">诊断依据展示了每个结论的证据、来源和权重。权重越高，说明这条证据越能支持对应诊断。</sys:String>
+    <sys:String x:Key="Crash.Evidence.Diagnostics">结论依据</sys:String>
+    <sys:String x:Key="Crash.Evidence.DiagnosticsHint">分析依据会说明每个结论是如何得出的，包括来源和线索强度。数值越高，表示这条线索越能支持对应结论。</sys:String>
     <sys:String x:Key="Crash.Evidence.DiskFullDetected">磁盘空间不足</sys:String>
     <sys:String x:Key="Crash.Evidence.DuplicateModDetected">重复 Mod</sys:String>
-    <sys:String x:Key="Crash.Evidence.Excerpt">摘录</sys:String>
+    <sys:String x:Key="Crash.Evidence.Excerpt">日志摘录</sys:String>
     <sys:String x:Key="Crash.Evidence.ForgeLanguageProviderMissingDetected">Forge / NeoForge 语言提供器缺失</sys:String>
     <sys:String x:Key="Crash.Evidence.ForgeMissingMandatoryDependencyDetected">Forge / NeoForge 缺少必要依赖</sys:String>
     <sys:String x:Key="Crash.Evidence.ForgeModLoadingErrorDetected">Forge / NeoForge Mod 加载错误</sys:String>
     <sys:String x:Key="Crash.Evidence.ForgeVersionRequirementDetected">Forge / NeoForge 版本要求不匹配</sys:String>
     <sys:String x:Key="Crash.Evidence.GameJarMissingDetected">游戏主文件缺失</sys:String>
     <sys:String x:Key="Crash.Evidence.GlfwErrorDetected">GLFW 错误</sys:String>
-    <sys:String x:Key="Crash.Evidence.GpuDriverIssueHint">显卡驱动异常信号</sys:String>
+    <sys:String x:Key="Crash.Evidence.GpuDriverIssueHint">显卡驱动异常线索</sys:String>
     <sys:String x:Key="Crash.Evidence.GpuNativeLibraryCrashDetected">显卡驱动原生库崩溃</sys:String>
-    <sys:String x:Key="Crash.Evidence.GpuVendorDetected">日志中提取到事实：GpuVendorDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaArchitectureDetected">日志中提取到事实：JavaArchitectureDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">日志中出现了类文件版本信息</sys:String>
+    <sys:String x:Key="Crash.Evidence.GpuVendorDetected">显卡厂商</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaArchitectureDetected">Java 架构</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">类文件版本信息</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaDirectBufferOutOfMemoryDetected">Java 直接缓冲区内存不足</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaExecutableMissingDetected">Java 可执行文件缺失或无法启动</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaFatalErrorDetected">日志中提取到事实：JavaFatalErrorDetected</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaFatalErrorDetected">JVM 原生崩溃记录</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaGcOverheadDetected">Java GC 开销过高</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaHeapSpaceOutOfMemoryDetected">Java 堆内存不足</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaMainClassMissingDetected">Java 主类缺失</sys:String>
@@ -3439,44 +3439,44 @@
     <sys:String x:Key="Crash.Evidence.JavaNativeThreadOutOfMemoryDetected">Java 无法创建新线程</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaOutOfMemoryDetected">Java 内存不足异常</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaRequiredVersionDetected">日志显示需要更高版本的 Java</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaUnsupportedClassVersionDetected">Java 版本过低信号</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaVendorDetected">日志中提取到事实：JavaVendorDetected</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaUnsupportedClassVersionDetected">Java 版本不匹配</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaVendorDetected">Java 发行版</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaVersionDetected">Java 版本</sys:String>
     <sys:String x:Key="Crash.Evidence.LaunchArgumentDetected">启动参数</sys:String>
     <sys:String x:Key="Crash.Evidence.LibraryMissingDetected">运行库缺失</sys:String>
     <sys:String x:Key="Crash.Evidence.Line">行号</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderDependencyError">加载器依赖错误</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderDetected">加载器</sys:String>
-    <sys:String x:Key="Crash.Evidence.LoaderMixinError">Mixin 失败信号</sys:String>
+    <sys:String x:Key="Crash.Evidence.LoaderMixinError">Mixin 失败线索</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderModLoadingFailed">Mod 加载失败</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderProvidedSolutionDetected">加载器提供的处理建议</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderResolutionError">Mod 依赖解析失败</sys:String>
-    <sys:String x:Key="Crash.Evidence.LoaderTransformError">类转换失败信号</sys:String>
+    <sys:String x:Key="Crash.Evidence.LoaderTransformError">类转换失败线索</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderVersionDetected">加载器版本</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderVersionRequirementDetected">加载器或版本要求不匹配</sys:String>
     <sys:String x:Key="Crash.Evidence.LwjglInitializationFailed">LWJGL 初始化失败</sys:String>
     <sys:String x:Key="Crash.Evidence.LwjglNativeLoadFailed">LWJGL 原生库加载失败</sys:String>
     <sys:String x:Key="Crash.Evidence.ManualDebugCrashDetected">检测到手动触发的调试错误</sys:String>
     <sys:String x:Key="Crash.Evidence.MemoryAllocationDetected">内存分配信息</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftCrashReportPresent">日志中提取到事实：MinecraftCrashReportPresent</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftExitCodeDetected">日志中提取到事实：MinecraftExitCodeDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftMainException">日志中提取到事实：MinecraftMainException</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftCrashReportPresent">找到 Minecraft 崩溃报告</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftExitCodeDetected">Minecraft 退出码</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftMainException">Minecraft 主异常</sys:String>
     <sys:String x:Key="Crash.Evidence.MinecraftReportedException">Minecraft 报告的异常</sys:String>
     <sys:String x:Key="Crash.Evidence.MinecraftVersionDetected">Minecraft 版本</sys:String>
     <sys:String x:Key="Crash.Evidence.MissingModDependencyDetected">缺少 Mod 依赖</sys:String>
-    <sys:String x:Key="Crash.Evidence.ModCandidateDetected">相关 Mod 候选</sys:String>
+    <sys:String x:Key="Crash.Evidence.ModCandidateDetected">可能相关的 Mod</sys:String>
     <sys:String x:Key="Crash.Evidence.ModConfigParseFailed">Mod 配置解析失败</sys:String>
     <sys:String x:Key="Crash.Evidence.ModFileCorrupted">Mod 文件损坏</sys:String>
     <sys:String x:Key="Crash.Evidence.ModFileNameInvalid">Mod 文件名无效</sys:String>
     <sys:String x:Key="Crash.Evidence.ModJarInvalidZipDetected">Mod JAR 压缩结构无效</sys:String>
-    <sys:String x:Key="Crash.Evidence.ModListDetected">检测到 Mod 列表</sys:String>
+    <sys:String x:Key="Crash.Evidence.ModListDetected">Mod 列表</sys:String>
     <sys:String x:Key="Crash.Evidence.ModMetadataInvalidDetected">Mod 元数据无效或缺失</sys:String>
     <sys:String x:Key="Crash.Evidence.ModSetConflictDetected">检测到 Mod 组合冲突</sys:String>
     <sys:String x:Key="Crash.Evidence.ModVersionConflictDetected">Mod 版本冲突</sys:String>
     <sys:String x:Key="Crash.Evidence.NativeAccessViolationDetected">原生访问冲突</sys:String>
-    <sys:String x:Key="Crash.Evidence.NativeLibraryInCrashFrame">日志中提取到事实：NativeLibraryInCrashFrame</sys:String>
+    <sys:String x:Key="Crash.Evidence.NativeLibraryInCrashFrame">原生崩溃位置涉及的库</sys:String>
     <sys:String x:Key="Crash.Evidence.NativeLibraryMissingDetected">原生库缺失</sys:String>
-    <sys:String x:Key="Crash.Evidence.NativeProblematicFrameDetected">检测到 JVM 原生崩溃的 Problematic frame</sys:String>
+    <sys:String x:Key="Crash.Evidence.NativeProblematicFrameDetected">JVM 原生崩溃位置</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlContextCreationFailed">OpenGL 上下文创建失败</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlInitializationFailed">OpenGL 初始化失败</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlVersionTooLowDetected">OpenGL 版本过低或不可用</sys:String>
@@ -3484,15 +3484,15 @@
     <sys:String x:Key="Crash.Evidence.PathTooLongDetected">路径过长</sys:String>
     <sys:String x:Key="Crash.Evidence.PixelFormatNotAcceleratedDetected">像素格式未加速</sys:String>
     <sys:String x:Key="Crash.Evidence.ProcessBitnessDetected">进程架构</sys:String>
-    <sys:String x:Key="Crash.Evidence.RawFacts">原始事实</sys:String>
-    <sys:String x:Key="Crash.Evidence.RawFactsHint">原始事实是从日志中提取出的结构化信息。它们用于诊断评分，但不一定都需要玩家手动处理。</sys:String>
+    <sys:String x:Key="Crash.Evidence.RawFacts">日志线索</sys:String>
+    <sys:String x:Key="Crash.Evidence.RawFactsHint">日志线索是从日志中整理出的结构化信息，用来辅助判断问题原因；并非每一条都需要手动处理。</sys:String>
     <sys:String x:Key="Crash.Evidence.RegistryEntryMissingDetected">注册表内容缺失或不匹配</sys:String>
     <sys:String x:Key="Crash.Evidence.ResourcePackIssueDetected">资源包问题</sys:String>
     <sys:String x:Key="Crash.Evidence.ShaderCompileFailedDetected">光影编译失败</sys:String>
     <sys:String x:Key="Crash.Evidence.ShaderIssueDetected">光影问题</sys:String>
     <sys:String x:Key="Crash.Evidence.Source">来源</sys:String>
     <sys:String x:Key="Crash.Evidence.TextureAtlasTooLargeDetected">材质图集过大或纹理上传失败</sys:String>
-    <sys:String x:Key="Crash.Evidence.Weight">权重</sys:String>
+    <sys:String x:Key="Crash.Evidence.Weight">线索强度</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldBlockEntityIssueDetected">方块实体问题</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldChunkLoadFailed">区块加载失败</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldEntityIssueDetected">实体问题</sys:String>
@@ -3532,43 +3532,43 @@
 
     <!-- Crash.Markdown -->
 
-    <sys:String x:Key="Crash.Markdown.Appendix.FactsShown">共提取到多条事实，以下最多显示 {Count} 条代表性事实。</sys:String>
+    <sys:String x:Key="Crash.Markdown.Appendix.FactsShown">本次分析整理出了多条日志线索，以下最多显示 {Count} 条代表性线索。</sys:String>
     <sys:String x:Key="Crash.Markdown.Empty.Diagnoses">未能确定具体诊断。</sys:String>
-    <sys:String x:Key="Crash.Markdown.Empty.Evidence">未提取到关键证据。</sys:String>
-    <sys:String x:Key="Crash.Markdown.Evidence.Item">证据 {Index}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Empty.Evidence">未提取到关键分析依据。</sys:String>
+    <sys:String x:Key="Crash.Markdown.Evidence.Item">依据 {Index}</sys:String>
     <sys:String x:Key="Crash.Markdown.Evidence.SourceLine">来源：{Source}，行号：{Line}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Evidence.Weight">权重：+{Weight}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Evidence.Weight">线索强度：+{Weight}</sys:String>
     <sys:String x:Key="Crash.Markdown.Field.Category">分类</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Confidence">置信度：{Value}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Confidence.Name">置信度</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Score">评分：{Value}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Score.Name">评分</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Confidence">判断把握：{Value}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Confidence.Name">判断把握</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Score">排查优先级：{Value}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Score.Name">排查优先级</sys:String>
     <sys:String x:Key="Crash.Markdown.GeneratedAt">生成时间：{Time}</sys:String>
     <sys:String x:Key="Crash.Markdown.Metric.TopDiagnosis">最可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown 错误分析报告预览</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">详细证据</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.Diagnoses">诊断结果</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">详细依据</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.Diagnoses">可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Environment">环境信息</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.Evidence">关键证据</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.Evidence">关键依据</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Logs">日志文件</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.OtherDiagnoses">其他可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Overview">概览</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.PrimaryDiagnosis">最可能原因</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Suggestions">建议操作</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.TechnicalAppendix">技术附录</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Evidence">证据</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Fact">事实</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Evidence">依据</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Fact">日志线索</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.File">文件</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Item">项目</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Line">行号</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Metric">指标</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Parameter">参数</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Metric">项目</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Parameter">相关信息</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Source">来源</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Status">状态</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Summary">摘要</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Type">类型</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Value">值</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Weight">权重</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Weight">线索强度</sys:String>
     <sys:String x:Key="Crash.Markdown.Title">Minecraft 错误分析报告</sys:String>
 
     <!-- Crash.Note -->
@@ -3587,17 +3587,17 @@
     <sys:String x:Key="Crash.Overview.Card.RelatedLogs">相关日志</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Summary">错误概览</sys:String>
     <sys:String x:Key="Crash.Overview.Card.TopDiagnosis">最可能原因</sys:String>
-    <sys:String x:Key="Crash.Overview.ConfidenceLine">置信度：{0}，评分：{1}</sys:String>
+    <sys:String x:Key="Crash.Overview.ConfidenceLine">判断把握：{0}，排查优先级：{1}</sys:String>
     <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">最可能的原因是 {Diagnosis}。</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.AnalysisDuration">耗时</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.DiagnosisCount">诊断</sys:String>
-    <sys:String x:Key="Crash.Overview.Metric.EvidenceCount">证据</sys:String>
-    <sys:String x:Key="Crash.Overview.Metric.FactCount">事实</sys:String>
+    <sys:String x:Key="Crash.Overview.Metric.EvidenceCount">分析依据</sys:String>
+    <sys:String x:Key="Crash.Overview.Metric.FactCount">日志线索</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.LogCount">日志</sys:String>
-    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">暂时没有找到明确的错误原因。你仍可以查看日志、证据和环境信息，或导出报告寻求帮助。</sys:String>
+    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">暂时没有找到明确的错误原因。你仍可以查看日志、分析依据和环境信息，或导出报告寻求帮助。</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL 没有找到足够的错误日志，因此暂时无法判断具体原因。</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.Unknown">PCL 暂时无法确定具体原因，但已经整理出可用于求助和排查的信息。</sys:String>
-    <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL 找到了 {DiagnosisCount} 个可能原因，并记录了 {EvidenceCount} 条关键证据。</sys:String>
+    <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL 找到了 {DiagnosisCount} 个可能原因，并记录了 {EvidenceCount} 条关键依据。</sys:String>
     <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft 出现错误</sys:String>
     <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft 出现错误</sys:String>
     <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft 出现错误</sys:String>

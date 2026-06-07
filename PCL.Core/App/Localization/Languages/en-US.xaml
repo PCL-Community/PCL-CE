@@ -109,6 +109,7 @@
     <sys:String x:Key="Main.Title.InstanceSetup">Properties - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">Resource download - {0}</sys:String>
     <sys:String x:Key="Main.Title.SaveManagement">Save management - {0}</sys:String>
+    <sys:String x:Key="Main.Title.CrashAnalysis">Error analysis</sys:String>
 
     <!-- Main.Extra Buttons -->
 
@@ -3063,9 +3064,22 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
 
-    <!-- Crash.Finding -->
+    <!-- Crash.Left -->
 
-    <sys:String x:Key="Main.Title.CrashAnalysis">Error analysis</sys:String>
+    <sys:String x:Key="Crash.Left.Diagnoses">Diagnoses</sys:String>
+    <sys:String x:Key="Crash.Left.Environment">Environment</sys:String>
+    <sys:String x:Key="Crash.Left.Evidence">Clues</sys:String>
+    <sys:String x:Key="Crash.Left.Export">Export</sys:String>
+    <sys:String x:Key="Crash.Left.Logs">Logs</sys:String>
+    <sys:String x:Key="Crash.Left.Overview">Overview</sys:String>
+    <sys:String x:Key="Crash.Left.QuickActions">Quick actions</sys:String>
+    <sys:String x:Key="Crash.Left.Suggestions">Suggestions</sys:String>
+    <sys:String x:Key="Crash.Left.SwitchFailed">Failed to switch error analysis page: {0}</sys:String>
+    <sys:String x:Key="Crash.Left.Title">Error analysis</sys:String>
+    <sys:String x:Key="Crash.Left.UnknownSubPage">Unknown error analysis page: {0}</sys:String>
+
+    <!-- Crash.Action -->
+
     <sys:String x:Key="Crash.Action.CopyLogPreview">Copy log preview</sys:String>
     <sys:String x:Key="Crash.Action.Description.ExportMarkdown">Export a Markdown diagnosis report that is easy to share with others.</sys:String>
     <sys:String x:Key="Crash.Action.Description.ExportReport">Export a complete zip report containing logs, environment details and structured diagnosis data.</sys:String>
@@ -3084,8 +3098,11 @@
     <sys:String x:Key="Crash.Action.OpenLog">View log</sys:String>
     <sys:String x:Key="Crash.Action.OpenMemorySettings">Open memory settings</sys:String>
     <sys:String x:Key="Crash.Action.OpenResourcePackFolder">Open resource packs folder</sys:String>
-    <sys:String x:Key="Crash.Action.ShowEvidence">Show evidence</sys:String>
+    <sys:String x:Key="Crash.Action.ShowEvidence">Show analysis clues</sys:String>
     <sys:String x:Key="Crash.Action.ShowSensitiveInfo">Show sensitive information</sys:String>
+
+    <!-- Crash.Category -->
+
     <sys:String x:Key="Crash.Category.GameContent">Game content</sys:String>
     <sys:String x:Key="Crash.Category.Graphics">Graphics</sys:String>
     <sys:String x:Key="Crash.Category.Launcher">Launcher</sys:String>
@@ -3094,23 +3111,41 @@
     <sys:String x:Key="Crash.Category.Native">Native</sys:String>
     <sys:String x:Key="Crash.Category.Runtime">Runtime</sys:String>
     <sys:String x:Key="Crash.Category.Unknown">Unknown</sys:String>
-    <sys:String x:Key="Crash.Confidence.Certain">Certain</sys:String>
+
+    <!-- Crash.Confidence -->
+
+    <sys:String x:Key="Crash.Confidence.Certain">Clear</sys:String>
     <sys:String x:Key="Crash.Confidence.High">High</sys:String>
     <sys:String x:Key="Crash.Confidence.Low">Low</sys:String>
     <sys:String x:Key="Crash.Confidence.Medium">Medium</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Card">Diagnoses</sys:String>
+
+    <!-- Crash.Serverity -->
+
+    <sys:String x:Key="Crash.Severity.Error">Error</sys:String>
+    <sys:String x:Key="Crash.Severity.Info">Info</sys:String>
+    <sys:String x:Key="Crash.Severity.Warning">Warning</sys:String>
+
+    <!-- Crash.Diagnoses -->
+
+    <sys:String x:Key="Crash.Diagnoses.Card">Possible causes</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Category">Category</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.EvidenceCount">Evidence: {0} item(s)</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Hint">This page lists possible causes ordered by confidence. The first diagnosis is usually the issue to fix first; later ones may be symptoms or follow-up checks.</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Meta">Confidence: {0}, score: {1}, category: {2}</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Overview">Diagnosis notes</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Parameter">Parameter</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Primary">Primary diagnosis</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.RelatedEvidence">{Count} evidence item(s)</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.Score">Score</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.EvidenceCount">Supporting clues: {0}</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Hint">Possible causes are listed by likelihood. The first item is usually the best place to start; later items may be follow-up symptoms or checks.</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Meta">Likelihood: {0}, fix priority: {1}, category: {2}</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Overview">Explanation</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Parameter">Related detail</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Primary">Most likely cause</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.RelatedEvidence">{Count} supporting clue(s)</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.Score">Fix priority</sys:String>
     <sys:String x:Key="Crash.Diagnoses.Secondary">Other possible cause</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.SuppressedHint">These notes explain why some diagnoses were downgraded or treated as follow-up symptoms. Handle the primary diagnosis first.</sys:String>
-    <sys:String x:Key="Crash.Diagnoses.SuppressedSymptoms">Related symptoms</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.SuppressedHint">The notes below explain why some diagnoses were lowered in priority or treated as follow-up symptoms. Start with the main diagnosis first.</sys:String>
+    <sys:String x:Key="Crash.Diagnoses.SuppressedSymptoms">Follow-up symptoms</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Part.Cause">Cause</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Part.Impact">Impact</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Part.Recommendation">Recommendation</sys:String>
+
+    <!-- Crash.Diagnoses.Cause -->
+
     <sys:String x:Key="Crash.Diagnosis.Cause.AnalysisInconclusive">PCL was able to read the logs, but did not find enough clear evidence to reliably identify a specific cause.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.AssetMissingOrCorrupted">The log shows that an asset file is missing, failed to download, or has a mismatched hash.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.DiskSpaceInsufficient">The log shows that writing, downloading, or extracting files failed because the disk is full.</sys:String>
@@ -3153,12 +3188,11 @@
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryHeapExhausted">The log indicates that Java heap memory was exhausted, usually with Java heap space. The Java heap stores objects created while the game, mods, worlds, and resources are loading. The log explicitly reports that this memory area ran out.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryMetaspaceExhausted">The log indicates that Java Metaspace was exhausted, which is often related to class loading, Mixin, or a large number of mods. Metaspace stores Java class metadata. Large mod packs, complex Mixins, or many mods can exhaust this memory area.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Cause.RuntimeMemoryNativeThreadExhausted">The log indicates that Java could not create a new native thread, usually because of system resources, thread count, or OS limits. Each Java thread needs system-level thread resources. Large mod packs, too many background programs, or system limits may prevent new threads from being created.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Cause.Unknown">PCL found crash logs, but the available evidence is not enough to identify one specific cause.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL was able to read the logs, but did not find enough clear evidence to reliably identify a specific cause.
+    <sys:String x:Key="Crash.Diagnosis.Cause.Unknown">PCL found crash logs, but the available clues are not enough to identify one specific cause.</sys:String>
 
-This usually means the logs only contain generic exceptions, exit information, or environment details, without strong evidence pointing to Java, graphics, the mod loader, mods, world data, or file issues.
+    <!-- Crash.Diagnoses.Description -->
 
-You can still review the logs, evidence, and environment details on this page, or export a full report for further analysis.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.AnalysisInconclusive">PCL was able to read the logs, but did not find enough clear evidence to reliably identify a specific cause.&#x0A;&#x0A;This usually means the logs only contain generic exceptions, exit information, or environment details, without strong evidence pointing to Java, graphics, the mod loader, mods, world data, or file issues.&#x0A;&#x0A;You can still review the logs, evidence, and environment details on this page, or export a full report for further analysis.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.AssetMissingOrCorrupted">A Minecraft asset may be missing or failed validation.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.DiskSpaceInsufficient">The system reported insufficient disk space.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.FileAccessOrPermissionIssue">The game or launcher could not access a required file.</sys:String>
@@ -3167,40 +3201,43 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Description.GameRegistryMismatch">Minecraft found missing or unknown registry content.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameResourcePackFailed">Minecraft failed while reloading resources or reading a resource pack, possibly because the pack is corrupted, incompatible, or contains oversized textures.&#x0A;&#x0A;A resource-pack error can stop the game from reaching the main menu, entering a world, or continuing after a pack is changed.&#x0A;&#x0A;Temporarily remove recently added resource packs, verify that the pack matches the current Minecraft version, and redownload it if needed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameShaderFailed">The log shows a shader compilation, linking, or rendering-pipeline initialization failure.&#x0A;&#x0A;Shader errors are commonly related to the shader pack version, GPU driver, OptiFine/Iris/Oculus, or rendering-mod compatibility.&#x0A;&#x0A;Launch once with shaders disabled, then update the shader pack, GPU driver, and related rendering mods before enabling them again one by one.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldBlockEntityCorrupted">The crash report points to a ticking block entity, such as a chest, machine, pipe, or another data-bearing block.&#x0A;&#x0A;The block entity data at that position may be corrupted, or it may no longer be readable after a mod was updated or removed. Entering the same world can repeatedly crash.&#x0A;&#x0A;Back up the world first, then use the coordinates in the evidence to locate and remove the affected block. If it belongs to a mod, check whether that mod was changed, downgraded, or removed.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldBlockEntityCorrupted">The crash report points to a ticking block entity, such as a chest, machine, pipe, or another data-bearing block.&#x0A;&#x0A;The block entity data at that position may be corrupted, or it may no longer be readable after a mod was updated or removed. Entering the same world can repeatedly crash.&#x0A;&#x0A;Back up the world first, then use the coordinates in the clues to locate and remove the affected block. If it belongs to a mod, check whether that mod was changed, downgraded, or removed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GameWorldDataCorrupted">World or chunk data failed to load correctly.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldEntityCorrupted">The crash report points to a ticking entity, such as a mob, dropped item, vehicle, or a modded entity.&#x0A;&#x0A;The entity data, AI, or related mod may be broken and can repeatedly crash the world when the area loads or ticks.&#x0A;&#x0A;Back up the world first, then use the entity name and coordinates in the evidence to remove or repair the entity. Temporarily remove the related mod or use a world-editing tool if necessary.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GraphicsDriverNativeCrash">The JVM native crash log points to the graphics driver, LWJGL, or another graphics-related native library.&#x0a;&#x0a;This is usually not a normal Java exception thrown by a mod. It is a native crash in the graphics layer, sometimes triggered by shaders, resource packs, or rendering optimization mods.&#x0a;&#x0a;Update the graphics driver, disable shaders and high-resolution resource packs, and try starting the game without rendering optimization mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GameWorldEntityCorrupted">The crash report points to a ticking entity, such as a mob, dropped item, vehicle, or a modded entity.&#x0A;&#x0A;The entity data, AI, or related mod may be broken and can repeatedly crash the world when the area loads or ticks.&#x0A;&#x0A;Back up the world first, then use the entity name and coordinates in the clues to remove or repair the entity. Temporarily remove the related mod or use a world-editing tool if necessary.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GraphicsDriverNativeCrash">The JVM native crash log points to the graphics driver, LWJGL, or another graphics-related native library.&#x0A;&#x0A;This is usually not a normal Java exception thrown by a mod. It is a native crash in the graphics layer, sometimes triggered by shaders, resource packs, or rendering optimization mods.&#x0A;&#x0A;Update the graphics driver, disable shaders and high-resolution resource packs, and try starting the game without rendering optimization mods.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GraphicsLwjglNativeLoadFailed">LWJGL or one of its native libraries could not be loaded.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.GraphicsOpenGlUnavailable">Minecraft or LWJGL could not initialize OpenGL. Common causes include outdated graphics drivers, the wrong GPU being used, remote desktop environments without OpenGL support, or hardware below the required feature level.&#x0a;&#x0a;Minecraft needs OpenGL to create its game window and render the world. If OpenGL initialization fails, the game usually exits before normal loading can continue.&#x0a;&#x0a;Update the graphics driver, make sure the game uses the correct GPU, and avoid launching the game through remote desktop environments that do not provide OpenGL acceleration.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.GraphicsOpenGlUnavailable">Minecraft or LWJGL could not initialize OpenGL. Common causes include outdated graphics drivers, the wrong GPU being used, remote desktop environments without OpenGL support, or hardware below the required feature level.&#x0A;&#x0A;Minecraft needs OpenGL to create its game window and render the world. If OpenGL initialization fails, the game usually exits before normal loading can continue.&#x0A;&#x0A;Update the graphics driver, make sure the game uses the correct GPU, and avoid launching the game through remote desktop environments that do not provide OpenGL acceleration.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.GraphicsResourceOrShaderOverload">The log shows an error during resource reload, texture atlas creation, memory/VRAM allocation, or shader processing.&#x0A;&#x0A;High-resolution resource packs, complex shaders, or rendering mods can overload the GPU driver, OpenGL, or memory and cause startup or world loading to fail.&#x0A;&#x0A;Disable shaders and high-resolution resource packs first, then re-enable them one by one. Update the GPU driver and lower resource-pack resolution, shader quality, or render distance.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LauncherCapturedNoUsefulLog">PCL could not find enough crash logs to produce a reliable diagnosis.&#x0a;&#x0a;This may happen when the game exits too early, logs are removed, the instance path is unusual, or the crash happens before the logging system starts.&#x0a;&#x0a;Try launching the game again and export a full report immediately after the issue appears. If logs are still missing, check instance paths and launcher permissions.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LauncherCapturedNoUsefulLog">PCL could not find enough crash logs to produce a reliable diagnosis.&#x0A;&#x0A;This may happen when the game exits too early, logs are removed, the instance path is unusual, or the crash happens before the logging system starts.&#x0A;&#x0A;Try launching the game again and export a full report immediately after the issue appears. If logs are still missing, check instance paths and launcher permissions.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LibraryOrNativeMissing">A library required by Minecraft failed to load.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyMissing">The mod loader failed while resolving mod dependencies. The log indicates that {AffectedMod} requires {MissingModId} {RequiredVersion}, but no compatible dependency was found in this instance.&#x0a;&#x0a;A missing dependency prevents the mod loader from completing startup. Later Mixin, transform, or ClassNotFound errors are often follow-up symptoms rather than the primary cause.&#x0a;&#x0a;Install the missing dependency first, or use a mod combination compatible with the current Minecraft and loader versions. After fixing the dependency, start the game again to check whether any other errors remain.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyVersionConflict">The loader reports that a mod dependency is installed with an incompatible version, or the current version is outside the required range.&#x0A;&#x0A;A dependency version mismatch can stop mod resolution before normal loading starts; later Mixin, class transformation, or mod initialization errors are often follow-up symptoms.&#x0A;&#x0A;Use the mod ID, dependency name, and version range in the evidence to update or downgrade the related mod, loader, or Minecraft version so they match the same compatibility set.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyMissing">The mod loader failed while resolving mod dependencies. The log indicates that {AffectedMod} requires {MissingModId} {RequiredVersion}, but no compatible dependency was found in this instance.&#x0A;&#x0A;A missing dependency prevents the mod loader from completing startup. Later Mixin, transform, or ClassNotFound errors are often follow-up symptoms rather than the primary cause.&#x0A;&#x0A;Install the missing dependency first, or use a mod combination compatible with the current Minecraft and loader versions. After fixing the dependency, start the game again to check whether any other errors remain.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderDependencyVersionConflict">The loader reports that a mod dependency is installed with an incompatible version, or the current version is outside the required range.&#x0A;&#x0A;A dependency version mismatch can stop mod resolution before normal loading starts; later Mixin, class transformation, or mod initialization errors are often follow-up symptoms.&#x0A;&#x0A;Use the mod ID, dependency name, and version range in the clues to update or downgrade the related mod, loader, or Minecraft version so they match the same compatibility set.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderInstallationIncomplete">The log indicates that a loader component is missing, such as a Forge/NeoForge language provider or libraries generated by the loader installer.&#x0A;&#x0A;Missing loader components stop mod loading very early and are usually not caused by one ordinary mod class.&#x0A;&#x0A;Reinstall or repair the loader for this instance, and redownload the libraries, natives, and version files if needed.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderMixinFailure">The mod loader failed while applying a Mixin. Mixins allow mods to modify Minecraft code, and failures can be caused by changed target classes, missing dependencies, loader incompatibility, or multiple mods editing the same location.&#x0a;&#x0a;If a missing dependency or Java compatibility issue is also present, the Mixin failure is usually a follow-up symptom. Treat it as the primary issue only when no stronger diagnosis is available.&#x0a;&#x0a;Handle higher-confidence diagnoses first. If Mixin failure remains the only issue, update the related mods, loader, and dependencies, or temporarily disable recently installed or updated mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderMixinFailure">The mod loader failed while applying a Mixin. Mixins allow mods to modify Minecraft code, and failures can be caused by changed target classes, missing dependencies, loader incompatibility, or multiple mods editing the same location.&#x0A;&#x0A;If a missing dependency or Java compatibility issue is also present, the Mixin failure is usually a follow-up symptom. Treat it as the primary issue only when no stronger diagnosis is available.&#x0A;&#x0A;Handle more likely diagnoses first. If Mixin failure remains the only issue, update the related mods, loader, and dependencies, or temporarily disable recently installed or updated mods.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderModLoadingFailed">The mod loader failed while loading a mod file.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.LoaderTransformFailure">The log shows that the loader, Mixin, or a class transformer failed while modifying Minecraft or mod classes.&#x0A;&#x0A;This is often caused by incompatible mod versions, missing dependencies, a wrong Java version, or multiple mods changing the same code; it is usually a symptom rather than the final root cause.&#x0A;&#x0A;Resolve any higher-confidence dependency, Java, or mod-conflict diagnosis on this page first. If none exists, update the related mods, Mixin dependencies, and the loader.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.LoaderTransformFailure">The log shows that the loader, Mixin, or a class transformer failed while modifying Minecraft or mod classes.&#x0A;&#x0A;This is often caused by incompatible mod versions, missing dependencies, a wrong Java version, or multiple mods changing the same code; it is usually a symptom rather than the final root cause.&#x0A;&#x0A;Resolve any more likely dependency, Java, or mod-conflict diagnosis on this page first. If none exists, update the related mods, Mixin dependencies, and the loader.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.LoaderVersionIncompatible">The mod loader reported an incompatible version requirement.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ManualDebugCrash">The log shows that this error was triggered by Minecraft's built-in debug crash feature. This usually happens after holding F3 + C; holding Ctrl at the same time may also trigger a JVM fatal error.&#x0A;&#x0A;This does not necessarily mean that mods, world data, or the runtime environment are broken. If you were testing crash reporting or pressed the debug shortcut accidentally, this error can usually be ignored. If an hs_err log is also present, the manual trigger also caused a JVM native crash.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.ModConfigInvalid">The log shows that a mod configuration file could not be parsed, commonly because TOML/JSON syntax is invalid, an old config no longer matches the new mod version, or a manual edit broke the file.&#x0A;&#x0A;A config parsing failure can stop the mod from initializing and may also appear as a follow-up mod loading failure.&#x0A;&#x0A;Back up the config, then delete or rename the affected file so the mod can regenerate defaults. If the mod was recently updated, check whether the config format changed.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.ModDuplicateInstalled">The log indicates that the same mod or mod ID is installed more than once.&#x0a;&#x0a;Duplicate mods make it impossible for the loader to choose the correct version reliably, and can also break dependency resolution or Mixin application.&#x0a;&#x0a;Open the Mods folder and keep only one version that matches the current Minecraft and loader version. Remove duplicate or outdated copies.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.ModFileInvalidOrCorrupted">The log indicates that a mod file could not be read, is not a valid jar, or contains broken metadata or class files.&#x0a;&#x0a;A corrupted mod file can stop the loader while it scans mods and may make later dependency information unreliable.&#x0a;&#x0a;Re-download the affected mod from a trusted source. Avoid using files that were interrupted during download, extracted manually, modified by antivirus software, or obtained from unknown sources.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.ModLikelyCausedCrash">The crash report Suspected Mods section or stack trace points to a mod that may be involved.&#x0A;&#x0A;The mod is on the crash path, but it may be affected by a dependency, Java, resource, or world-data problem and may not be the only root cause.&#x0A;&#x0A;Back up the instance, then try updating, downgrading, or temporarily removing the mod named in the evidence. If a dependency or version-conflict diagnosis is also present, fix that first.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.ModSetConflict">The log explicitly mentions a conflict or incompatibility between installed mods, or that one mod does not support another installed mod.&#x0A;&#x0A;This is usually not a single missing dependency. The current combination of mods may not be able to run together, even if only one mod is updated.&#x0A;&#x0A;Use the evidence to identify both sides of the conflict, check their compatibility notes, then update to compatible versions or remove one of the conflicting mods.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.NativeJvmCrash">The log or hs_err file shows that the JVM crashed in native code, such as an access violation, SIGSEGV, or a problematic frame.&#x0A;&#x0A;This kind of crash usually occurs in the JVM, GPU driver, LWJGL, audio/input native libraries, or the operating system layer rather than as an ordinary Java exception.&#x0A;&#x0A;Keep the hs_err file, then update or switch Java and the GPU driver first. If the evidence points to a specific native library, troubleshoot the matching driver, runtime, or rendering component.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.ModDuplicateInstalled">The log indicates that the same mod or mod ID is installed more than once.&#x0A;&#x0A;Duplicate mods make it impossible for the loader to choose the correct version reliably, and can also break dependency resolution or Mixin application.&#x0A;&#x0A;Open the Mods folder and keep only one version that matches the current Minecraft and loader version. Remove duplicate or outdated copies.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.ModFileInvalidOrCorrupted">The log indicates that a mod file could not be read, is not a valid jar, or contains broken metadata or class files.&#x0A;&#x0A;A corrupted mod file can stop the loader while it scans mods and may make later dependency information unreliable.&#x0A;&#x0A;Re-download the affected mod from a trusted source. Avoid using files that were interrupted during download, extracted manually, modified by antivirus software, or obtained from unknown sources.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.ModLikelyCausedCrash">The crash report Suspected Mods section or stack trace points to a mod that may be involved.&#x0A;&#x0A;The mod is on the crash path, but it may be affected by a dependency, Java, resource, or world-data problem and may not be the only root cause.&#x0A;&#x0A;Back up the instance, then try updating, downgrading, or temporarily removing the mod named in the clues. If a dependency or version-conflict diagnosis is also present, fix that first.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.ModSetConflict">The log explicitly mentions a conflict or incompatibility between installed mods, or that one mod does not support another installed mod.&#x0A;&#x0A;This is usually not a single missing dependency. The current combination of mods may not be able to run together, even if only one mod is updated.&#x0A;&#x0A;Use the clues to identify both sides of the conflict, check their compatibility notes, then update to compatible versions or remove one of the conflicting mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.NativeJvmCrash">The log or hs_err file shows that the JVM crashed in native code, such as an access violation, SIGSEGV, or a problematic frame.&#x0A;&#x0A;This kind of crash usually occurs in the JVM, GPU driver, LWJGL, audio/input native libraries, or the operating system layer rather than as an ordinary Java exception.&#x0A;&#x0A;Keep the hs_err file, then update or switch Java and the GPU driver first. If the clues point to a specific native library, troubleshoot the matching driver, runtime, or rendering component.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.PathOrFolderEnvironmentIssue">The current game path may prevent files from being opened correctly.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeArchitectureMismatch">The log indicates that the instance is using 32-bit Java while the system or instance is expected to use 64-bit Java.&#x0A;&#x0A;32-bit Java has a much smaller memory limit and may fail to load native libraries, especially with large mod packs, high-resolution resource packs, or shaders.&#x0A;&#x0A;Install and select 64-bit Java. If the operating system itself is 32-bit, reduce memory usage or move to a 64-bit system before launching the pack.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaLaunchFailed">The Java process did not start correctly.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaTooNew">The log indicates a Java module-access or reflective-access error. This can happen when an older Forge version, older mods, or old launch arguments are used with a Java version that is too new.&#x0a;&#x0a;This usually fails before the loader finishes initialization, so later mod stack frames may not be the real cause.&#x0a;&#x0a;Choose a Java runtime that matches the Minecraft version. Older game versions usually need Java 8 or Java 11; newer versions should use Java 17 or Java 21.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaTooOld">The log indicates that a class requires a newer Java version, usually through UnsupportedClassVersionError.&#x0a;&#x0a;When Java is older than the version required by Minecraft, the loader, or a mod, the game fails during an early loading phase and later mod messages are often not useful.&#x0a;&#x0a;Select a newer compatible Java runtime in the instance settings. Recent Minecraft versions often require Java 17 or Java 21, depending on the game and loader version.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaTooNew">The log indicates a Java module-access or reflective-access error. This can happen when an older Forge version, older mods, or old launch arguments are used with a Java version that is too new.&#x0A;&#x0A;This usually fails before the loader finishes initialization, so later mod stack frames may not be the real cause.&#x0A;&#x0A;Choose a Java runtime that matches the Minecraft version. Older game versions usually need Java 8 or Java 11; newer versions should use Java 17 or Java 21.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaTooOld">The log indicates that a class requires a newer Java version, usually through UnsupportedClassVersionError.&#x0A;&#x0A;When Java is older than the version required by Minecraft, the loader, or a mod, the game fails during an early loading phase and later mod messages are often not useful.&#x0A;&#x0A;Select a newer compatible Java runtime in the instance settings. Recent Minecraft versions often require Java 17 or Java 21, depending on the game and loader version.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Description.RuntimeJavaVendorUnsupported">The log indicates that the selected Java runtime is not a common HotSpot/OpenJDK-compatible runtime, or uses a distribution with known compatibility risks.&#x0A;&#x0A;Some Minecraft versions, Forge/NeoForge builds, and mods are only stable on HotSpot/OpenJDK-compatible runtimes; an incompatible Java runtime can fail during early startup or crash unexpectedly.&#x0A;&#x0A;Switch the instance to a 64-bit HotSpot/OpenJDK-compatible runtime that matches the Minecraft version, such as Temurin, Microsoft Build of OpenJDK, Oracle, or OpenJDK.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryExhausted">The log indicates that Java or Minecraft ran out of available memory during startup or loading. Common signals include Java heap space, GC overhead, allocation failure, or output that stops abruptly.&#x0a;&#x0a;Insufficient memory can prevent worlds, resource packs, shaders, or large mod packs from loading. A mod appearing in the stack trace may simply be the component that requested memory when the failure happened.&#x0a;&#x0a;Increase the memory allocated to the game, disable high-resolution resource packs and shaders, and reduce large mods if needed. If you are using 32-bit Java, switch to 64-bit Java.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryHeapExhausted">The log indicates that Java heap memory was exhausted, usually with Java heap space. The Java heap stores objects created while the game, mods, worlds, and resources are loading. The log explicitly reports that this memory area ran out.&#x0a;&#x0a;Heap exhaustion can stop Minecraft while loading worlds, resource packs, shaders, or large mod packs. A mod in the stack trace may simply be the code that requested memory, not necessarily the root cause.&#x0a;&#x0a;Increase the instance memory allocation if appropriate, reduce high-resolution resource packs, shaders, or large mods, then start the game again to see whether a different error remains.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryMetaspaceExhausted">The log indicates that Java Metaspace was exhausted, which is often related to class loading, Mixin, or a large number of mods. Metaspace stores Java class metadata. Large mod packs, complex Mixins, or many mods can exhaust this memory area.&#x0a;&#x0a;Metaspace exhaustion can break class loading, mod loading, or Mixin application. Later errors may look like loader or mod failures.&#x0a;&#x0a;Reduce the number of mods, update the loader and related mods, or adjust JVM arguments only when you know the pack requires it.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryNativeThreadExhausted">The log indicates that Java could not create a new native thread, usually because of system resources, thread count, or OS limits. Each Java thread needs system-level thread resources. Large mod packs, too many background programs, or system limits may prevent new threads from being created.&#x0a;&#x0a;Thread creation failure can stop the game during startup or loading, and it may not include a clear mod-specific error.&#x0a;&#x0a;Close resource-heavy background programs, reduce the size of the mod pack, and check available system memory and process limits.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Description.Unknown">PCL found crash logs, but the available evidence is not enough to identify one specific cause.&#x0A;&#x0A;The problem may come from Java, the mod loader, mods, resource packs, world data, or the system environment; this log set is not specific enough for a safer conclusion.&#x0A;&#x0A;Export the full report and include the latest.log, crash report, and any hs_err file from the same launch before continuing troubleshooting.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryExhausted">The log indicates that Java or Minecraft ran out of available memory during startup or loading. Common signals include Java heap space, GC overhead, allocation failure, or output that stops abruptly.&#x0A;&#x0A;Insufficient memory can prevent worlds, resource packs, shaders, or large mod packs from loading. A mod appearing in the stack trace may simply be the component that requested memory when the failure happened.&#x0A;&#x0A;Increase the memory allocated to the game, disable high-resolution resource packs and shaders, and reduce large mods if needed. If you are using 32-bit Java, switch to 64-bit Java.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryHeapExhausted">The log indicates that Java heap memory was exhausted, usually with Java heap space. The Java heap stores objects created while the game, mods, worlds, and resources are loading. The log explicitly reports that this memory area ran out.&#x0A;&#x0A;Heap exhaustion can stop Minecraft while loading worlds, resource packs, shaders, or large mod packs. A mod in the stack trace may simply be the code that requested memory, not necessarily the root cause.&#x0A;&#x0A;Increase the instance memory allocation if appropriate, reduce high-resolution resource packs, shaders, or large mods, then start the game again to see whether a different error remains.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryMetaspaceExhausted">The log indicates that Java Metaspace was exhausted, which is often related to class loading, Mixin, or a large number of mods. Metaspace stores Java class metadata. Large mod packs, complex Mixins, or many mods can exhaust this memory area.&#x0A;&#x0A;Metaspace exhaustion can break class loading, mod loading, or Mixin application. Later errors may look like loader or mod failures.&#x0A;&#x0A;Reduce the number of mods, update the loader and related mods, or adjust JVM arguments only when you know the pack requires it.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.RuntimeMemoryNativeThreadExhausted">The log indicates that Java could not create a new native thread, usually because of system resources, thread count, or OS limits. Each Java thread needs system-level thread resources. Large mod packs, too many background programs, or system limits may prevent new threads from being created.&#x0A;&#x0A;Thread creation failure can stop the game during startup or loading, and it may not include a clear mod-specific error.&#x0A;&#x0A;Close resource-heavy background programs, reduce the size of the mod pack, and check available system memory and process limits.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Description.Unknown">PCL found crash logs, but the available clues are not enough to identify one specific cause.&#x0A;&#x0A;The problem may come from Java, the mod loader, mods, resource packs, world data, or the system environment; this log set is not specific enough for a safer conclusion.&#x0A;&#x0A;Export the full report and include the latest.log, crash report, and any hs_err file from the same launch before continuing troubleshooting.</sys:String>
+
+    <!-- Crash.Diagnoses.Impact -->
+
     <sys:String x:Key="Crash.Diagnosis.Impact.AnalysisInconclusive">This does not mean there was no error. It means the current logs are not strong enough to support a specific conclusion, and guessing could lead troubleshooting in the wrong direction.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Impact.AssetMissingOrCorrupted">Asset issues can cause startup failures or errors while loading textures, sounds, languages, or other resources.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Impact.DiskSpaceInsufficient">Insufficient disk space can break downloads, extraction, log writing, or world saving and then cause follow-up errors.</sys:String>
@@ -3244,10 +3281,10 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Impact.RuntimeMemoryMetaspaceExhausted">Metaspace exhaustion can break class loading, mod loading, or Mixin application. Later errors may look like loader or mod failures.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Impact.RuntimeMemoryNativeThreadExhausted">Thread creation failure can stop the game during startup or loading, and it may not include a clear mod-specific error.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Impact.Unknown">The problem may come from Java, the mod loader, mods, resource packs, world data, or the system environment; this log set is not specific enough for a safer conclusion.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Part.Cause">Cause</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Part.Impact">Impact</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Part.Recommendation">Recommendation</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">Review the log and evidence summaries, or export a full report for further analysis.</sys:String>
+
+    <!-- Crash.Diagnoses.Recommendation -->
+
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.AnalysisInconclusive">Review the log and clue summaries, or export a full report for further analysis.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.AssetMissingOrCorrupted">Check whether the asset files are complete and redownload missing assets if needed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.DiskSpaceInsufficient">Free space on the affected disk before launching the game again.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.FileAccessOrPermissionIssue">Check whether antivirus, sync software, or another program is locking the file, and make sure the game folder is writable.</sys:String>
@@ -3256,9 +3293,9 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameRegistryMismatch">Check recently removed or replaced mods/data packs. Back up the world before making changes.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameResourcePackFailed">Temporarily remove recently added resource packs, verify that the pack matches the current Minecraft version, and redownload it if needed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameShaderFailed">Launch once with shaders disabled, then update the shader pack, GPU driver, and related rendering mods before enabling them again one by one.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldBlockEntityCorrupted">Back up the world first, then use the coordinates in the evidence to locate and remove the affected block. If it belongs to a mod, check whether that mod was changed, downgraded, or removed.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldBlockEntityCorrupted">Back up the world first, then use the coordinates in the clues to locate and remove the affected block. If it belongs to a mod, check whether that mod was changed, downgraded, or removed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldDataCorrupted">Back up the world first, then check recent mod or data-pack changes.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldEntityCorrupted">Back up the world first, then use the entity name and coordinates in the evidence to remove or repair the entity. Temporarily remove the related mod or use a world-editing tool if necessary.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.GameWorldEntityCorrupted">Back up the world first, then use the entity name and coordinates in the clues to remove or repair the entity. Temporarily remove the related mod or use a world-editing tool if necessary.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsDriverNativeCrash">Update the graphics driver, disable shaders and high-resolution resource packs, and try starting the game without rendering optimization mods.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsLwjglNativeLoadFailed">Check whether the game libraries are complete and whether security software blocked native extraction.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.GraphicsOpenGlUnavailable">Update the graphics driver, make sure the game uses the correct GPU, and avoid launching the game through remote desktop environments that do not provide OpenGL acceleration.</sys:String>
@@ -3266,19 +3303,19 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LauncherCapturedNoUsefulLog">Try launching the game again and export a full report immediately after the issue appears. If logs are still missing, check instance paths and launcher permissions.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LibraryOrNativeMissing">Check that the libraries and natives folders are complete, or redownload the instance files.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyMissing">Install the missing dependency first, or use a mod combination compatible with the current Minecraft and loader versions. After fixing the dependency, start the game again to check whether any other errors remain.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyVersionConflict">Use the mod ID, dependency name, and version range in the evidence to update or downgrade the related mod, loader, or Minecraft version so they match the same compatibility set.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderDependencyVersionConflict">Use the mod ID, dependency name, and version range in the clues to update or downgrade the related mod, loader, or Minecraft version so they match the same compatibility set.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderInstallationIncomplete">Reinstall or repair the loader for this instance, and redownload the libraries, natives, and version files if needed.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderMixinFailure">Handle higher-confidence diagnoses first. If Mixin failure remains the only issue, update the related mods, loader, and dependencies, or temporarily disable recently installed or updated mods.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderModLoadingFailed">Review the mod file or error section mentioned in the evidence before updating, replacing, or temporarily removing related mods.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderTransformFailure">Resolve any higher-confidence dependency, Java, or mod-conflict diagnosis on this page first. If none exists, update the related mods, Mixin dependencies, and the loader.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderMixinFailure">Handle more likely diagnoses first. If Mixin failure remains the only issue, update the related mods, loader, and dependencies, or temporarily disable recently installed or updated mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderModLoadingFailed">Review the mod file or error section mentioned in the clues before updating, replacing, or temporarily removing related mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderTransformFailure">Resolve any more likely dependency, Java, or mod-conflict diagnosis on this page first. If none exists, update the related mods, Mixin dependencies, and the loader.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.LoaderVersionIncompatible">Check that the Minecraft version, loader version, and mod versions belong to the same compatible set.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ManualDebugCrash">If you triggered this intentionally to test error analysis, the error can usually be ignored. If not, check keyboard input or shortcut usage, and review any accompanying JVM native crash information first.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModConfigInvalid">Back up the config, then delete or rename the affected file so the mod can regenerate defaults. If the mod was recently updated, check whether the config format changed.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModDuplicateInstalled">Open the Mods folder and keep only one version that matches the current Minecraft and loader version. Remove duplicate or outdated copies.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.ModFileInvalidOrCorrupted">Re-download the affected mod from a trusted source. Avoid using files that were interrupted during download, extracted manually, modified by antivirus software, or obtained from unknown sources.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.ModLikelyCausedCrash">Back up the instance, then try updating, downgrading, or temporarily removing the mod named in the evidence. If a dependency or version-conflict diagnosis is also present, fix that first.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.ModSetConflict">Use the evidence to identify both sides of the conflict, check their compatibility notes, then update to compatible versions or remove one of the conflicting mods.</sys:String>
-    <sys:String x:Key="Crash.Diagnosis.Recommendation.NativeJvmCrash">Keep the hs_err file, then update or switch Java and the GPU driver first. If the evidence points to a specific native library, troubleshoot the matching driver, runtime, or rendering component.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.ModLikelyCausedCrash">Back up the instance, then try updating, downgrading, or temporarily removing the mod named in the clues. If a dependency or version-conflict diagnosis is also present, fix that first.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.ModSetConflict">Use the clues to identify both sides of the conflict, check their compatibility notes, then update to compatible versions or remove one of the conflicting mods.</sys:String>
+    <sys:String x:Key="Crash.Diagnosis.Recommendation.NativeJvmCrash">Keep the hs_err file, then update or switch Java and the GPU driver first. If the clues point to a specific native library, troubleshoot the matching driver, runtime, or rendering component.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.PathOrFolderEnvironmentIssue">Try moving the instance to a shorter, simpler path and avoid special characters or deeply nested folders.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeArchitectureMismatch">Install and select 64-bit Java. If the operating system itself is 32-bit, reduce memory usage or move to a 64-bit system before launching the pack.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeJavaLaunchFailed">Check Java settings and instance file integrity first. Export the error report if you need someone else to inspect the details.</sys:String>
@@ -3290,6 +3327,9 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeMemoryMetaspaceExhausted">Reduce the number of mods, update the loader and related mods, or adjust JVM arguments only when you know the pack requires it.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.RuntimeMemoryNativeThreadExhausted">Close resource-heavy background programs, reduce the size of the mod pack, and check available system memory and process limits.</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Recommendation.Unknown">Export the full report and include the latest.log, crash report, and any hs_err file from the same launch before continuing troubleshooting.</sys:String>
+    
+    <!-- Crash.Diagnoses.Title -->
+
     <sys:String x:Key="Crash.Diagnosis.Title.AnalysisInconclusive">Analysis inconclusive</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Title.AssetMissingOrCorrupted">Asset missing or corrupted</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Title.DiskSpaceInsufficient">Not enough disk space</sys:String>
@@ -3333,6 +3373,9 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Diagnosis.Title.RuntimeMemoryMetaspaceExhausted">Java Metaspace exhausted</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Title.RuntimeMemoryNativeThreadExhausted">Could not create Java thread</sys:String>
     <sys:String x:Key="Crash.Diagnosis.Title.Unknown">Unknown cause</sys:String>
+
+    <!-- Crash.Environment -->
+
     <sys:String x:Key="Crash.Environment.Card.Privacy">Privacy and environment details</sys:String>
     <sys:String x:Key="Crash.Environment.Group.Instance">Instance</sys:String>
     <sys:String x:Key="Crash.Environment.Group.Java">Java</sys:String>
@@ -3353,9 +3396,12 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Environment.SensitiveHint">This group contains fields that may reveal local paths or usernames, so they are hidden by default.</sys:String>
     <sys:String x:Key="Crash.Environment.ShowSensitive">Show sensitive information</sys:String>
     <sys:String x:Key="Crash.Environment.ShowSensitiveHint">Information that may include your username or local file paths is hidden by default. Exported reports are sanitized where possible.</sys:String>
+    
+    <!-- Crash.Evidence -->
+
     <sys:String x:Key="Crash.Evidence.AccessDeniedDetected">File access denied</sys:String>
     <sys:String x:Key="Crash.Evidence.AssetMissingDetected">Missing asset</sys:String>
-    <sys:String x:Key="Crash.Evidence.Card">Evidence</sys:String>
+    <sys:String x:Key="Crash.Evidence.Card">Analysis clues</sys:String>
     <sys:String x:Key="Crash.Evidence.ChecksumMismatchDetected">File checksum mismatch</sys:String>
     <sys:String x:Key="Crash.Evidence.ConfigParseIssueDetected">Configuration parse issue</sys:String>
     <sys:String x:Key="Crash.Evidence.CrashReportBlockEntityTickDetected">Block entity ticking issue from crash report</sys:String>
@@ -3366,8 +3412,8 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Evidence.CrashReportSystemDetailsDetected">Crash report system details</sys:String>
     <sys:String x:Key="Crash.Evidence.CrashReportTopExceptionDetected">Top exception in crash report</sys:String>
     <sys:String x:Key="Crash.Evidence.DataPackLoadFailed">Data pack load failure</sys:String>
-    <sys:String x:Key="Crash.Evidence.Diagnostics">Diagnostic evidence</sys:String>
-    <sys:String x:Key="Crash.Evidence.DiagnosticsHint">Diagnostic evidence shows why each conclusion was made, including its source and weight. Higher weight means stronger support for that diagnosis.</sys:String>
+    <sys:String x:Key="Crash.Evidence.Diagnostics">Why PCL suggested this</sys:String>
+    <sys:String x:Key="Crash.Evidence.DiagnosticsHint">Analysis clues explain why each conclusion was suggested, including the source and clue strength. A higher value means the clue more strongly supports that conclusion.</sys:String>
     <sys:String x:Key="Crash.Evidence.DiskFullDetected">Disk full</sys:String>
     <sys:String x:Key="Crash.Evidence.DuplicateModDetected">Duplicate mod</sys:String>
     <sys:String x:Key="Crash.Evidence.Excerpt">Excerpt</sys:String>
@@ -3377,14 +3423,14 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Evidence.ForgeVersionRequirementDetected">Forge / NeoForge version requirement mismatch</sys:String>
     <sys:String x:Key="Crash.Evidence.GameJarMissingDetected">Missing game jar</sys:String>
     <sys:String x:Key="Crash.Evidence.GlfwErrorDetected">GLFW error</sys:String>
-    <sys:String x:Key="Crash.Evidence.GpuDriverIssueHint">Graphics driver hint</sys:String>
+    <sys:String x:Key="Crash.Evidence.GpuDriverIssueHint">Graphics driver clue</sys:String>
     <sys:String x:Key="Crash.Evidence.GpuNativeLibraryCrashDetected">GPU driver native library crash</sys:String>
-    <sys:String x:Key="Crash.Evidence.GpuVendorDetected">Extracted fact: GpuVendorDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaArchitectureDetected">Extracted fact: JavaArchitectureDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">A class file version was found in the log</sys:String>
+    <sys:String x:Key="Crash.Evidence.GpuVendorDetected">GPU vendor</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaArchitectureDetected">Java architecture</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaClassFileMajorVersionDetected">Class file version</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaDirectBufferOutOfMemoryDetected">Java direct buffer memory exhausted</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaExecutableMissingDetected">Java executable missing or could not start</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaFatalErrorDetected">Extracted fact: JavaFatalErrorDetected</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaFatalErrorDetected">JVM native crash record</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaGcOverheadDetected">Java GC overhead limit exceeded</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaHeapSpaceOutOfMemoryDetected">Java heap memory exhausted</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaMainClassMissingDetected">Java main class missing</sys:String>
@@ -3393,44 +3439,44 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Evidence.JavaNativeThreadOutOfMemoryDetected">Java could not create a new thread</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaOutOfMemoryDetected">Java out-of-memory exception</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaRequiredVersionDetected">The log indicates that a newer Java version is required</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaUnsupportedClassVersionDetected">Java version requirement</sys:String>
-    <sys:String x:Key="Crash.Evidence.JavaVendorDetected">Extracted fact: JavaVendorDetected</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaUnsupportedClassVersionDetected">Java version mismatch</sys:String>
+    <sys:String x:Key="Crash.Evidence.JavaVendorDetected">Java distribution</sys:String>
     <sys:String x:Key="Crash.Evidence.JavaVersionDetected">Java version</sys:String>
     <sys:String x:Key="Crash.Evidence.LaunchArgumentDetected">Launch argument</sys:String>
     <sys:String x:Key="Crash.Evidence.LibraryMissingDetected">Missing library</sys:String>
     <sys:String x:Key="Crash.Evidence.Line">Line</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderDependencyError">Loader dependency error</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderDetected">Mod loader</sys:String>
-    <sys:String x:Key="Crash.Evidence.LoaderMixinError">Mixin failure signal</sys:String>
+    <sys:String x:Key="Crash.Evidence.LoaderMixinError">Mixin failure clue</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderModLoadingFailed">Mod loading failure</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderProvidedSolutionDetected">Loader-provided solution</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderResolutionError">Mod dependency resolution failure</sys:String>
-    <sys:String x:Key="Crash.Evidence.LoaderTransformError">Class transform failure signal</sys:String>
+    <sys:String x:Key="Crash.Evidence.LoaderTransformError">Class transform failure clue</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderVersionDetected">Loader version</sys:String>
     <sys:String x:Key="Crash.Evidence.LoaderVersionRequirementDetected">Loader or version requirement mismatch</sys:String>
     <sys:String x:Key="Crash.Evidence.LwjglInitializationFailed">LWJGL initialization failure</sys:String>
     <sys:String x:Key="Crash.Evidence.LwjglNativeLoadFailed">LWJGL native library load failed</sys:String>
     <sys:String x:Key="Crash.Evidence.ManualDebugCrashDetected">Detected a manually triggered debug crash</sys:String>
     <sys:String x:Key="Crash.Evidence.MemoryAllocationDetected">Memory allocation</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftCrashReportPresent">Extracted fact: MinecraftCrashReportPresent</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftExitCodeDetected">Extracted fact: MinecraftExitCodeDetected</sys:String>
-    <sys:String x:Key="Crash.Evidence.MinecraftMainException">Extracted fact: MinecraftMainException</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftCrashReportPresent">Minecraft crash report found</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftExitCodeDetected">Minecraft exit code</sys:String>
+    <sys:String x:Key="Crash.Evidence.MinecraftMainException">Minecraft main exception</sys:String>
     <sys:String x:Key="Crash.Evidence.MinecraftReportedException">Minecraft reported exception</sys:String>
     <sys:String x:Key="Crash.Evidence.MinecraftVersionDetected">Minecraft version</sys:String>
     <sys:String x:Key="Crash.Evidence.MissingModDependencyDetected">Missing mod dependency</sys:String>
-    <sys:String x:Key="Crash.Evidence.ModCandidateDetected">Related mod candidate</sys:String>
+    <sys:String x:Key="Crash.Evidence.ModCandidateDetected">Possibly related mod</sys:String>
     <sys:String x:Key="Crash.Evidence.ModConfigParseFailed">Mod config parse failure</sys:String>
     <sys:String x:Key="Crash.Evidence.ModFileCorrupted">Corrupted mod file</sys:String>
     <sys:String x:Key="Crash.Evidence.ModFileNameInvalid">Invalid mod file name</sys:String>
     <sys:String x:Key="Crash.Evidence.ModJarInvalidZipDetected">Invalid mod JAR archive structure</sys:String>
-    <sys:String x:Key="Crash.Evidence.ModListDetected">Detected mod list</sys:String>
+    <sys:String x:Key="Crash.Evidence.ModListDetected">Mod list</sys:String>
     <sys:String x:Key="Crash.Evidence.ModMetadataInvalidDetected">Invalid or missing mod metadata</sys:String>
     <sys:String x:Key="Crash.Evidence.ModSetConflictDetected">Detected mod conflict</sys:String>
     <sys:String x:Key="Crash.Evidence.ModVersionConflictDetected">Mod version conflict</sys:String>
     <sys:String x:Key="Crash.Evidence.NativeAccessViolationDetected">Native access violation</sys:String>
-    <sys:String x:Key="Crash.Evidence.NativeLibraryInCrashFrame">Extracted fact: NativeLibraryInCrashFrame</sys:String>
+    <sys:String x:Key="Crash.Evidence.NativeLibraryInCrashFrame">Native library in crash frame</sys:String>
     <sys:String x:Key="Crash.Evidence.NativeLibraryMissingDetected">Missing native library</sys:String>
-    <sys:String x:Key="Crash.Evidence.NativeProblematicFrameDetected">Detected the JVM native crash problematic frame</sys:String>
+    <sys:String x:Key="Crash.Evidence.NativeProblematicFrameDetected">JVM native crash frame</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlContextCreationFailed">OpenGL context creation failed</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlInitializationFailed">OpenGL initialization failure</sys:String>
     <sys:String x:Key="Crash.Evidence.OpenGlVersionTooLowDetected">OpenGL version too low or unavailable</sys:String>
@@ -3438,19 +3484,22 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Evidence.PathTooLongDetected">Path too long</sys:String>
     <sys:String x:Key="Crash.Evidence.PixelFormatNotAcceleratedDetected">Pixel format not accelerated</sys:String>
     <sys:String x:Key="Crash.Evidence.ProcessBitnessDetected">Process architecture</sys:String>
-    <sys:String x:Key="Crash.Evidence.RawFacts">Extracted facts</sys:String>
-    <sys:String x:Key="Crash.Evidence.RawFactsHint">Raw facts are structured details extracted from logs. They are used for scoring diagnoses, but not all of them require manual action.</sys:String>
+    <sys:String x:Key="Crash.Evidence.RawFacts">Log details</sys:String>
+    <sys:String x:Key="Crash.Evidence.RawFactsHint">Log details are structured information extracted from the logs. They help PCL decide what likely happened, but not every item needs manual action.</sys:String>
     <sys:String x:Key="Crash.Evidence.RegistryEntryMissingDetected">Missing or mismatched registry entry</sys:String>
     <sys:String x:Key="Crash.Evidence.ResourcePackIssueDetected">Resource pack issue</sys:String>
     <sys:String x:Key="Crash.Evidence.ShaderCompileFailedDetected">Shader compilation failed</sys:String>
     <sys:String x:Key="Crash.Evidence.ShaderIssueDetected">Shader issue</sys:String>
     <sys:String x:Key="Crash.Evidence.Source">Source</sys:String>
     <sys:String x:Key="Crash.Evidence.TextureAtlasTooLargeDetected">Texture atlas too large or texture upload failed</sys:String>
-    <sys:String x:Key="Crash.Evidence.Weight">Weight</sys:String>
+    <sys:String x:Key="Crash.Evidence.Weight">Clue strength</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldBlockEntityIssueDetected">Block entity issue</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldChunkLoadFailed">Chunk loading failed</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldEntityIssueDetected">Entity issue</sys:String>
     <sys:String x:Key="Crash.Evidence.WorldNbtReadFailed">World NBT data read failed</sys:String>
+
+    <!-- Crash.Export -->
+
     <sys:String x:Key="Crash.Export.Full.DefaultFileName">crash-report-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Export.Full.Failed">Failed to export full crash report.</sys:String>
     <sys:String x:Key="Crash.Export.Full.Filter">Zip archive|*.zip</sys:String>
@@ -3461,17 +3510,9 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Export.Markdown.Success">Markdown report exported.</sys:String>
     <sys:String x:Key="Crash.Export.Markdown.Title">Export Markdown error analysis report</sys:String>
     <sys:String x:Key="Crash.Export.Preview.Title">Title</sys:String>
-    <sys:String x:Key="Crash.Left.Diagnoses">Diagnoses</sys:String>
-    <sys:String x:Key="Crash.Left.Environment">Environment</sys:String>
-    <sys:String x:Key="Crash.Left.Evidence">Evidence</sys:String>
-    <sys:String x:Key="Crash.Left.Export">Export</sys:String>
-    <sys:String x:Key="Crash.Left.Logs">Logs</sys:String>
-    <sys:String x:Key="Crash.Left.Overview">Overview</sys:String>
-    <sys:String x:Key="Crash.Left.QuickActions">Quick actions</sys:String>
-    <sys:String x:Key="Crash.Left.Suggestions">Suggestions</sys:String>
-    <sys:String x:Key="Crash.Left.SwitchFailed">Failed to switch error analysis page: {0}</sys:String>
-    <sys:String x:Key="Crash.Left.Title">Error analysis</sys:String>
-    <sys:String x:Key="Crash.Left.UnknownSubPage">Unknown error analysis page: {0}</sys:String>
+
+    <!-- Crash.Logs -->
+
     <sys:String x:Key="Crash.Logs.Card">Log source</sys:String>
     <sys:String x:Key="Crash.Logs.CopyPreview">Copy preview</sys:String>
     <sys:String x:Key="Crash.Logs.Hint">This page shows logs used for analysis or useful for troubleshooting. Previews are trimmed to keep the page responsive. Open the original file or export a full report for complete content.</sys:String>
@@ -3488,48 +3529,57 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Logs.Size">Size</sys:String>
     <sys:String x:Key="Crash.Logs.Supporting">Supporting information</sys:String>
     <sys:String x:Key="Crash.Logs.Used">Used for analysis</sys:String>
-    <sys:String x:Key="Crash.Markdown.Appendix.FactsShown">The full analysis extracted multiple facts. Showing up to {Count} representative facts.</sys:String>
+
+    <!-- Crash.Markdown -->
+
+    <sys:String x:Key="Crash.Markdown.Appendix.FactsShown">The analysis found multiple log details. Showing up to {Count} representative items.</sys:String>
     <sys:String x:Key="Crash.Markdown.Empty.Diagnoses">No specific diagnosis could be determined.</sys:String>
-    <sys:String x:Key="Crash.Markdown.Empty.Evidence">No key evidence was extracted.</sys:String>
-    <sys:String x:Key="Crash.Markdown.Evidence.Item">Evidence {Index}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Empty.Evidence">No key analysis clues were extracted.</sys:String>
+    <sys:String x:Key="Crash.Markdown.Evidence.Item">Clue {Index}</sys:String>
     <sys:String x:Key="Crash.Markdown.Evidence.SourceLine">Source: {Source}, line {Line}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Evidence.Weight">Weight: +{Weight}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Evidence.Weight">Clue strength: +{Weight}</sys:String>
     <sys:String x:Key="Crash.Markdown.Field.Category">Category</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Confidence">Confidence: {Value}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Confidence.Name">Confidence</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Score">Score: {Value}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Field.Score.Name">Score</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Confidence">Likelihood: {Value}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Confidence.Name">Likelihood</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Score">Fix priority: {Value}</sys:String>
+    <sys:String x:Key="Crash.Markdown.Field.Score.Name">Fix priority</sys:String>
     <sys:String x:Key="Crash.Markdown.GeneratedAt">Generated at: {Time}</sys:String>
-    <sys:String x:Key="Crash.Markdown.Metric.TopDiagnosis">Top diagnosis</sys:String>
+    <sys:String x:Key="Crash.Markdown.Metric.TopDiagnosis">Most likely cause</sys:String>
     <sys:String x:Key="Crash.Markdown.Preview.Title">Markdown error analysis report preview</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">Detailed evidence</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.Diagnoses">Diagnoses</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.DetailedEvidence">Detailed clues</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.Diagnoses">Possible causes</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Environment">Environment</sys:String>
-    <sys:String x:Key="Crash.Markdown.Section.Evidence">Key evidence</sys:String>
+    <sys:String x:Key="Crash.Markdown.Section.Evidence">Key clues</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Logs">Log files</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.OtherDiagnoses">Other possible causes</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Overview">Overview</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.PrimaryDiagnosis">Most likely cause</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.Suggestions">Suggested actions</sys:String>
     <sys:String x:Key="Crash.Markdown.Section.TechnicalAppendix">Technical appendix</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Evidence">Evidence</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Fact">Fact</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Evidence">Clue</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Fact">Log detail</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.File">File</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Item">Item</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Line">Line</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Metric">Metric</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Parameter">Parameter</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Metric">Item</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Parameter">Related detail</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Source">Source</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Status">Status</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Summary">Summary</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Type">Type</sys:String>
     <sys:String x:Key="Crash.Markdown.Table.Value">Value</sys:String>
-    <sys:String x:Key="Crash.Markdown.Table.Weight">Weight</sys:String>
+    <sys:String x:Key="Crash.Markdown.Table.Weight">Clue strength</sys:String>
     <sys:String x:Key="Crash.Markdown.Title">Minecraft error analysis report</sys:String>
+
+    <!-- Crash.Note -->
+
     <sys:String x:Key="Crash.Note.DependencyOverridesMixin">A clear dependency problem was detected, so Mixin failures are treated as follow-up symptoms instead of the primary cause.</sys:String>
     <sys:String x:Key="Crash.Note.GraphicsOverridesNativeJvm">The native crash points to graphics components, so the generic JVM-native diagnosis was lowered in priority.</sys:String>
     <sys:String x:Key="Crash.Note.JavaOverridesStack">A Java compatibility problem was detected, so stack-trace-based mod guesses were lowered in priority.</sys:String>
     <sys:String x:Key="Crash.Note.ManualDebugCrashWithNative">This error was triggered by the manual debug crash feature, while the log also recorded a JVM native crash. The native crash is treated as a follow-up symptom and should not override the manual trigger as the main cause.</sys:String>
+    
+    <!-- Crash.Overview -->
+
     <sys:String x:Key="Crash.Overview.Card.Actions">Recommended actions</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Hero">Error overview</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Metrics">Analysis summary</sys:String>
@@ -3537,24 +3587,24 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Overview.Card.RelatedLogs">Related logs</sys:String>
     <sys:String x:Key="Crash.Overview.Card.Summary">Error overview</sys:String>
     <sys:String x:Key="Crash.Overview.Card.TopDiagnosis">Most likely cause</sys:String>
-    <sys:String x:Key="Crash.Overview.ConfidenceLine">Confidence: {0}, score: {1}</sys:String>
+    <sys:String x:Key="Crash.Overview.ConfidenceLine">Likelihood: {0}, fix priority: {1}</sys:String>
     <sys:String x:Key="Crash.Overview.Detail.WithDiagnosis">The most likely cause is {Diagnosis}.</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.AnalysisDuration">Analysis time</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.DiagnosisCount">Diagnoses</sys:String>
-    <sys:String x:Key="Crash.Overview.Metric.EvidenceCount">Evidence</sys:String>
-    <sys:String x:Key="Crash.Overview.Metric.FactCount">Facts</sys:String>
+    <sys:String x:Key="Crash.Overview.Metric.EvidenceCount">Clues</sys:String>
+    <sys:String x:Key="Crash.Overview.Metric.FactCount">Log details</sys:String>
     <sys:String x:Key="Crash.Overview.Metric.LogCount">Logs</sys:String>
-    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">No clear error cause was found yet. You can still review logs, evidence and environment details, or export a report for help.</sys:String>
+    <sys:String x:Key="Crash.Overview.NoTopDiagnosis">No clear error cause was found yet. You can still review logs, analysis clues and environment details, or export a report for help.</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.NoLog">PCL could not find enough error logs to determine the cause.</sys:String>
     <sys:String x:Key="Crash.Overview.Subtitle.Unknown">PCL could not determine a specific cause, but it collected useful information for troubleshooting.</sys:String>
-    <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL found {DiagnosisCount} possible cause(s) and recorded {EvidenceCount} key evidence item(s).</sys:String>
+    <sys:String x:Key="Crash.Overview.Subtitle.WithDiagnosis">PCL found {DiagnosisCount} possible cause(s) and recorded {EvidenceCount} key clue(s).</sys:String>
     <sys:String x:Key="Crash.Overview.Title.NoLog">Minecraft encountered an error</sys:String>
     <sys:String x:Key="Crash.Overview.Title.Unknown">Minecraft encountered an error</sys:String>
     <sys:String x:Key="Crash.Overview.Title.WithDiagnosis">Minecraft encountered an error</sys:String>
     <sys:String x:Key="Crash.Page.NoSession">There is no error analysis result to display. Start the game once or import an error log first.</sys:String>
-    <sys:String x:Key="Crash.Severity.Error">Error</sys:String>
-    <sys:String x:Key="Crash.Severity.Info">Info</sys:String>
-    <sys:String x:Key="Crash.Severity.Warning">Warning</sys:String>
+
+    <!-- Crash.Suggestion -->
+
     <sys:String x:Key="Crash.Suggestions.Group.AskForHelp">Ask for help</sys:String>
     <sys:String x:Key="Crash.Suggestions.Group.FixNow">Try first</sys:String>
     <sys:String x:Key="Crash.Suggestions.Group.Investigate">Investigate further</sys:String>
@@ -3563,4 +3613,5 @@ You can still review the logs, evidence, and environment details on this page, o
     <sys:String x:Key="Crash.Suggestions.Group.Secondary">Investigate further</sys:String>
     <sys:String x:Key="Crash.Suggestions.Hint">Follow the actions from top to bottom. Try-first actions are direct fixes, investigation actions help verify logs and settings, and help actions prepare a report for others.</sys:String>
     <sys:String x:Key="Crash.Suggestions.Overview">Suggested actions</sys:String>
+
 </ResourceDictionary>
