@@ -99,7 +99,9 @@ public sealed class MinecraftCrashController
         {
             var logFile = LogWrapper.CurrentLogger.CurrentLogFiles.LastOrDefault();
             if (string.IsNullOrWhiteSpace(logFile) || !File.Exists(logFile)) return null;
-            var text = ModBase.ReadFile(logFile);
+            using var stream = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(stream);
+            var text = reader.ReadToEnd();
             var start = text.IndexOf(key, StringComparison.OrdinalIgnoreCase);
             if (start < 0) return null;
             start += key.Length;
