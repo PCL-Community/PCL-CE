@@ -50,13 +50,15 @@ internal sealed partial class JavaCrashParser : ICrashLogParser
         facts.Add(CrashFactFactory.CreateFromContext(
             CrashFactKind.JavaVersionDetected,
             javaInfo,
-            properties));
+            properties,
+            sourceKind: CrashLogKind.LauncherLog));
 
         if (_JavaVendorRegex().Match(javaInfo) is { Success: true } vendor)
             facts.Add(CrashFactFactory.CreateFromContext(
                 CrashFactKind.JavaVendorDetected,
                 vendor.Groups["vendor"].Value,
-                visibility: CrashFactVisibility.Technical));
+                visibility: CrashFactVisibility.Technical,
+                sourceKind: CrashLogKind.LauncherLog));
     }
 
     private static void _AppendManualDebugCrashFact(
