@@ -68,6 +68,12 @@ public sealed class CrashDiagnosisEngine
                     ? _AdjustScore(d, -30, new CrashDiagnosisNote { Key = "Crash.Note.DependencyOverridesMixin" })
                     : d).ToList();
 
+        if (diagnoses.Any(static d => d.Code == CrashDiagnosisCode.ModSetConflict))
+            diagnoses = diagnoses
+                .Where(static d => d.Code != CrashDiagnosisCode.LoaderVersionIncompatible ||
+                                   _HasExplicitLoaderOrGameVersionEvidence(d))
+                .ToList();
+
         if (diagnoses.Any(static d =>
                 d.Code is CrashDiagnosisCode.RuntimeJavaTooOld or CrashDiagnosisCode.RuntimeJavaTooNew))
             diagnoses = diagnoses.Select(static d =>
@@ -81,6 +87,32 @@ public sealed class CrashDiagnosisEngine
                     ? _AdjustScore(d, -80, new CrashDiagnosisNote { Key = "Crash.Note.GraphicsOverridesNativeJvm" })
                     : d).ToList();
         return diagnoses;
+    }
+
+    private static bool _HasExplicitLoaderOrGameVersionEvidence(CrashDiagnosis diagnosis)
+    {
+        return diagnosis.Evidence
+            .Select(evidence => string.Join("\n", evidence.Summary, evidence.Detail, evidence.Excerpt))
+            .Where(value => !_LooksLikeModToModConflictEvidence(value))
+            .Any(value => value.Contains("minecraft", StringComparison.OrdinalIgnoreCase) ||
+                          value.Contains("loader", StringComparison.OrdinalIgnoreCase) ||
+                          value.Contains("fabric", StringComparison.OrdinalIgnoreCase) ||
+                          value.Contains("forge", StringComparison.OrdinalIgnoreCase) ||
+                          value.Contains("neoforge", StringComparison.OrdinalIgnoreCase) ||
+                          value.Contains("quilt", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool _LooksLikeModToModConflictEvidence(string value)
+    {
+        return value.Contains("NEG_HARD_DEP", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains("{breaks", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains("version of mod", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains("conflicting version is present", StringComparison.OrdinalIgnoreCase) ||
+               (value.Contains("Replace mod", StringComparison.OrdinalIgnoreCase) &&
+                value.Contains("compatible with", StringComparison.OrdinalIgnoreCase)) ||
+               (value.Contains("any version", StringComparison.OrdinalIgnoreCase) &&
+                !value.Contains("minecraft", StringComparison.OrdinalIgnoreCase) &&
+                !value.Contains("loader", StringComparison.OrdinalIgnoreCase));
     }
 
     private static CrashDiagnosis _CreateInconclusiveDiagnosis()

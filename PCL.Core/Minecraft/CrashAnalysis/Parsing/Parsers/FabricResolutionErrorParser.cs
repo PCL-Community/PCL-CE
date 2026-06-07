@@ -38,13 +38,23 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
                 properties,
                 visibility: CrashFactVisibility.Main));
 
-            if (properties.ContainsKey("MissingModId") || _MissingDependencyRegex().IsMatch(block.Text))
+            if (_IsMissingDependencyBlock(block.Text))
                 facts.Add(CrashFactFactory.Create(
                     CrashFactKind.MissingModDependencyDetected,
                     _DependencySummary(block.Text, properties),
                     document,
                     block.Text,
                     _FindDependencyLineNumber(lines, block.StartIndex, block.EndIndex) ?? lineNumber,
+                    properties,
+                    visibility: CrashFactVisibility.Main));
+
+            if (_FabricBreaksConflictRegex().IsMatch(block.Text))
+                facts.Add(CrashFactFactory.Create(
+                    CrashFactKind.ModSetConflictDetected,
+                    _ConflictSummary(block.Text, properties),
+                    document,
+                    block.Text,
+                    _FindConflictLineNumber(lines, block.StartIndex, block.EndIndex) ?? lineNumber,
                     properties,
                     visibility: CrashFactVisibility.Main));
 
@@ -106,6 +116,18 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
         return null;
     }
 
+    private static int? _FindConflictLineNumber(
+        IReadOnlyList<string> lines,
+        int startIndex,
+        int endIndex)
+    {
+        for (var index = startIndex; index <= endIndex && index < lines.Count; index++)
+            if (_FabricBreaksConflictRegex().IsMatch(lines[index]))
+                return index + 1;
+
+        return null;
+    }
+
     private static IReadOnlyDictionary<string, string> _ExtractProperties(string block)
     {
         var properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -128,11 +150,22 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
             properties.TryAdd("RequiredVersion", hard.Groups["version"].Value.Trim());
         }
 
-        var fix = _FixAddRegex().Match(block);
-        if (fix.Success)
+        var conflict = _FabricBreaksConflictRegex().Match(block);
+        if (conflict.Success)
         {
-            properties.TryAdd("MissingModId", fix.Groups["missing"].Value.Trim());
-            properties.TryAdd("RequiredVersion", _NormalizeFabricFixVersion(fix.Groups["version"].Value));
+            properties.TryAdd("ConflictModId", conflict.Groups["source"].Value.Trim());
+            properties.TryAdd("ConflictingModId", conflict.Groups["target"].Value.Trim());
+            properties.TryAdd("ConflictRange", conflict.Groups["range"].Value.Trim());
+        }
+
+        if (_IsMissingDependencyBlock(block))
+        {
+            var fix = _FixAddRegex().Match(block);
+            if (fix.Success)
+            {
+                properties.TryAdd("MissingModId", fix.Groups["missing"].Value.Trim());
+                properties.TryAdd("RequiredVersion", _NormalizeFabricFixVersion(fix.Groups["version"].Value));
+            }
         }
 
         properties.TryAdd("LoaderName", "Fabric / Quilt");
@@ -151,6 +184,22 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
             return affectedId + " requires " + missingId + ", but it is missing.";
 
         return _Summary(block);
+    }
+
+    private static string _ConflictSummary(string block, IReadOnlyDictionary<string, string> properties)
+    {
+        if (properties.TryGetValue("ConflictModId", out var source) &&
+            properties.TryGetValue("ConflictingModId", out var target))
+            return source + " breaks " + target + "; these mods cannot be loaded together.";
+
+        return _Summary(block);
+    }
+
+    private static bool _IsMissingDependencyBlock(string block)
+    {
+        return _FabricMissingDependencyRegex().IsMatch(block) ||
+               _HardDependencyRegex().IsMatch(block) ||
+               _MissingDependencyRegex().IsMatch(block);
     }
 
     private static string _Summary(string value)
@@ -192,6 +241,10 @@ internal sealed partial class FabricResolutionErrorParser : ICrashLogParser
 
     [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
     private static partial Regex _FixAddRegex();
+
+    [GeneratedRegex(
+        @"(?i)\bNEG_HARD_DEP\s+(?<source>[a-z0-9_.-]+)(?:\s+[^\{\]\s]+)?\s+\{breaks\s+(?<target>[a-z0-9_.-]+)\s+@\s+\[(?<range>[^\]]+)\]\}")]
+    private static partial Regex _FabricBreaksConflictRegex();
 
     [GeneratedRegex(@"(?i)^\s*Fix:\s*(?<value>.+)$")]
     private static partial Regex _FixRegex();

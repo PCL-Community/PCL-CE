@@ -74,8 +74,8 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
                     ["LoaderName"] = match.Groups["loader"].Value.Trim(),
                     ["LoaderVersion"] = match.Groups["version"].Value.Trim()
                 },
-                confidence: CrashFactConfidence.High,
-                visibility: CrashFactVisibility.Technical));
+                CrashFactConfidence.High,
+                CrashFactVisibility.Technical));
             return;
         }
 
@@ -238,7 +238,15 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         int lineNumber,
         IReadOnlyDictionary<string, string> dependencyProperties)
     {
-        if (!_LoaderVersionRequirementRegex().IsMatch(line) && !_IncompatibleRegex().IsMatch(line))
+        var hasLoaderOrGameVersionRequirement = _LoaderVersionRequirementRegex().IsMatch(line) ||
+                                                _ForgeVersionRequirementRegex().IsMatch(line);
+        var hasBroadIncompatibilitySignal = _IncompatibleRegex().IsMatch(line);
+
+        if (!hasLoaderOrGameVersionRequirement && !hasBroadIncompatibilitySignal)
+            return;
+
+        if (_IsModToModIncompatibilitySignal(line) ||
+            (!hasLoaderOrGameVersionRequirement && _IsModToModIncompatibilitySignal(window)))
             return;
 
         facts.Add(CrashFactFactory.Create(
@@ -340,8 +348,24 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     private static bool _IsDependencyWindow(string window)
     {
-        return (_MissingDependencyRegex().IsMatch(window) || _ResolutionFailedRegex().IsMatch(window))
-               && (_MissingTokenRegex().IsMatch(window) || _ResolutionFailedRegex().IsMatch(window));
+        return _HasMissingDependencySignal(window);
+    }
+
+    private static bool _HasMissingDependencySignal(string value)
+    {
+        return _FabricMissingDependencyRegex().IsMatch(value) ||
+               _FabricHardDependencyRegex().IsMatch(value) ||
+               _NeoForgeDependencyLineRegex().IsMatch(value) ||
+               _ForgeRequiresLineRegex().IsMatch(value) ||
+               _ForgeMissingMandatoryDependencyRegex().IsMatch(value) ||
+               _MissingDependencyRegex().IsMatch(value);
+    }
+
+    private static bool _IsModToModIncompatibilitySignal(string value)
+    {
+        return _FabricBreaksConflictRegex().IsMatch(value) ||
+               _FabricModToModIncompatibilityRegex().IsMatch(value) ||
+               _FabricConflictSolutionRegex().IsMatch(value);
     }
 
     private static bool _MayContainDetailedLoaderSignal(string line)
@@ -377,6 +401,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         _AppendFabricHardDependencyProperties(properties, window);
         _AppendForgeDependencyProperties(properties, window);
         _AppendForgeRequiresProperties(properties, window);
+        _AppendFabricBreaksConflictProperties(properties, window);
         _AppendFabricFixProperties(properties, window);
         _AppendLoaderProperties(properties, window);
 
@@ -444,8 +469,23 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
         properties.TryAdd("RequiredVersion", match.Groups["version"].Value.Trim());
     }
 
+    private static void _AppendFabricBreaksConflictProperties(Dictionary<string, string> properties, string window)
+    {
+        var match = _FabricBreaksConflictRegex().Match(window);
+
+        if (!match.Success)
+            return;
+
+        properties.TryAdd("ConflictModId", match.Groups["source"].Value.Trim());
+        properties.TryAdd("ConflictingModId", match.Groups["target"].Value.Trim());
+        properties.TryAdd("ConflictRange", match.Groups["range"].Value.Trim());
+    }
+
     private static void _AppendFabricFixProperties(Dictionary<string, string> properties, string window)
     {
+        if (!_HasMissingDependencySignal(window))
+            return;
+
         var match = _FabricFixAddRegex().Match(window);
 
         if (!match.Success)
@@ -488,6 +528,11 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
             .ToList();
 
         var line = lines.FirstOrDefault(static item =>
+                       item.Contains("NEG_HARD_DEP", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("{breaks", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("incompatible with any version of mod", StringComparison.OrdinalIgnoreCase) ||
+                       item.Contains("conflicting version is present", StringComparison.OrdinalIgnoreCase))
+                   ?? lines.FirstOrDefault(static item =>
                        item.Contains("Mod ID:", StringComparison.OrdinalIgnoreCase) ||
                        item.Contains("requires", StringComparison.OrdinalIgnoreCase) ||
                        item.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
@@ -561,7 +606,7 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
     private static partial Regex _TransformFailureRegex();
 
     [GeneratedRegex(
-        @"(?i)\bconflicts?\s+with\b|\bconflicting\s+mods?\b|\b(?:mod|mods?|addon|plugin)\b.*\bconflicts?\b|\bincompatible\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b|breaks\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b")]
+        @"(?i)\bNEG_HARD_DEP\b.*\bbreaks\b|\{breaks\s+[a-z0-9_.-]+\s+@|\bconflicts?\s+with\b|\bconflicting\s+mods?\b|\b(?:mod|mods?|addon|plugin)\b.*\bconflicts?\b|\bincompatible\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b|breaks\s+with\s+(?:mod\s+)?[a-z0-9_.-]+\b")]
     private static partial Regex _ModSetConflictRegex();
 
     [GeneratedRegex(
@@ -592,6 +637,18 @@ internal sealed partial class LoaderLogParser : ICrashLogParser
 
     [GeneratedRegex(@"(?i)add:(?<missing>[a-z0-9_.-]+)\s+(?<version>[^\]\s]+)")]
     private static partial Regex _FabricFixAddRegex();
+
+    [GeneratedRegex(
+        @"(?i)\bNEG_HARD_DEP\s+(?<source>[a-z0-9_.-]+)(?:\s+[^\{\]\s]+)?\s+\{breaks\s+(?<target>[a-z0-9_.-]+)\s+@\s+\[(?<range>[^\]]+)\]\}")]
+    private static partial Regex _FabricBreaksConflictRegex();
+
+    [GeneratedRegex(
+        @"(?i)\bincompatible\s+with\s+any\s+version\s+of\s+mod\b|\byet\s+a\s+conflicting\s+version\s+is\s+present\b")]
+    private static partial Regex _FabricModToModIncompatibilityRegex();
+
+    [GeneratedRegex(
+        @"(?i)^\s*-\s*(?:Replace\s+mod\b.+\bwith\s+any\s+version\s+that\s+is\s+compatible\s+with:|[a-z0-9_.-]+\s*,\s*any\s+version)\s*$")]
+    private static partial Regex _FabricConflictSolutionRegex();
 
     [GeneratedRegex(
         @"(?i)Mod loading error has occurred|net\.minecraftforge\.fml\.ModLoadingException|net\.neoforged\.fml\.ModLoadingException|failed to load mod file|error loading mods")]

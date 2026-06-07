@@ -18,6 +18,9 @@ public static partial class CrashDiagnosisRuleCatalog
             var parameters = new Dictionary<string, string>();
             var hasExplicitMissingDependency = facts.Has(CrashFactKind.MissingModDependencyDetected) ||
                                                facts.Has(CrashFactKind.ForgeMissingMandatoryDependencyDetected);
+            if (!hasExplicitMissingDependency && facts.Has(CrashFactKind.ModSetConflictDetected))
+                return null;
+
             var hasVersionConflict = facts.Has(CrashFactKind.ModVersionConflictDetected);
 
             foreach (var fact in facts
@@ -123,9 +126,24 @@ public static partial class CrashDiagnosisRuleCatalog
                 facts.Has(CrashFactKind.ForgeMissingMandatoryDependencyDetected))
                 return null;
 
-            var related = facts
+            var loaderVersionRequirements = facts
                 .Find(CrashFactKind.LoaderVersionRequirementDetected)
-                .Concat(facts.Find(CrashFactKind.ModVersionConflictDetected))
+                .Where(static fact => _LooksLikeLoaderOrGameVersionRequirement(fact))
+                .ToList();
+
+            var modVersionConflicts = facts
+                .Find(CrashFactKind.ModVersionConflictDetected)
+                .Where(static fact => _LooksLikeLoaderOrGameVersionRequirement(fact.Value))
+                .ToList();
+
+            if (facts.Has(CrashFactKind.ModSetConflictDetected) &&
+                !facts.Has(CrashFactKind.ForgeVersionRequirementDetected) &&
+                loaderVersionRequirements.Count == 0 &&
+                modVersionConflicts.Count == 0)
+                return null;
+
+            var related = loaderVersionRequirements
+                .Concat(modVersionConflicts)
                 .Take(3)
                 .ToList();
             if (related.Count == 0) return null;
@@ -137,6 +155,41 @@ public static partial class CrashDiagnosisRuleCatalog
                     .ToList(),
                 actions: [CrashPresentationActionKind.OpenInstanceSettings],
                 nature: CrashDiagnosisNature.RootCause);
+        }
+
+        private static bool _LooksLikeLoaderOrGameVersionRequirement(CrashFact fact)
+        {
+            var value = fact.Value + "\n" + string.Join("\n", fact.Evidence
+                .Select(static evidence => evidence.Excerpt)
+                .Where(static excerpt => !string.IsNullOrWhiteSpace(excerpt)));
+
+            return _LooksLikeLoaderOrGameVersionRequirement(value);
+        }
+
+        private static bool _LooksLikeLoaderOrGameVersionRequirement(string value)
+        {
+            if (_LooksLikeFabricModConflict(value))
+                return false;
+
+            return value.Contains("minecraft", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("loader", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("fabric", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("forge", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("neoforge", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("quilt", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool _LooksLikeFabricModConflict(string value)
+        {
+            return value.Contains("NEG_HARD_DEP", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("{breaks", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("version of mod", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("conflicting version is present", StringComparison.OrdinalIgnoreCase) ||
+                   (value.Contains("Replace mod", StringComparison.OrdinalIgnoreCase) &&
+                    value.Contains("compatible with", StringComparison.OrdinalIgnoreCase)) ||
+                   (value.Contains("any version", StringComparison.OrdinalIgnoreCase) &&
+                    !value.Contains("minecraft", StringComparison.OrdinalIgnoreCase) &&
+                    !value.Contains("loader", StringComparison.OrdinalIgnoreCase));
         }
     }
 

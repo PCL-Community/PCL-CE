@@ -59,14 +59,20 @@ public static partial class CrashDiagnosisRuleCatalog
             foreach (var pair in conflicts.SelectMany(static fact => fact.Properties))
                 parameters.TryAdd(pair.Key, pair.Value);
 
+            var score = conflicts.Any(static fact =>
+                fact.Properties.ContainsKey("ConflictModId") &&
+                fact.Properties.ContainsKey("ConflictingModId"))
+                ? 95
+                : Math.Min(92, 70 + conflicts.Count * 10);
+
             return Create(
-                Math.Min(82, 58 + conflicts.Count * 12),
+                score,
                 conflicts
-                    .Select(fact => Evidence(fact, 78))
+                    .Select(fact => Evidence(fact, 85))
                     .ToList(),
                 parameters,
                 [CrashPresentationActionKind.OpenInstanceModsFolder, CrashPresentationActionKind.ExportMarkdown],
-                nature: CrashDiagnosisNature.ProbableCause);
+                nature: CrashDiagnosisNature.RootCause);
         }
     }
 

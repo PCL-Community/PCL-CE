@@ -187,6 +187,87 @@ public sealed class CrashRegressionTests
     }
 
     [TestMethod]
+    public void FabricNegativeHardDependencyBreaksIsModSetConflictNotMissingDependency()
+    {
+        var result = new CrashAnalyzer().Analyze(new CrashAnalysisRequest
+        {
+            Source = CrashAnalysisSource.LiveGame,
+            CapturedOutputLines =
+            [
+                "[01:33:20] [main/INFO]: Loading Minecraft 26.1.2 with Fabric Loader 0.19.3",
+                "[01:33:20] [main/WARN]: Mod resolution failed",
+                "[01:33:20] [main/INFO]: Immediate reason: [NEG_HARD_DEP wi_zoom 1.7-MC26.1.2 {breaks wurst @ [*]}, ROOT_FORCELOAD_SINGLE wi_zoom 1.7-MC26.1.2, ROOT_FORCELOAD_SINGLE wurst 7.54-MC26.1.2]",
+                "[01:33:20] [main/INFO]: Reason: [NEG_HARD_DEP wi_zoom 1.7-MC26.1.2 {breaks wurst @ [*]}, NEG_HARD_DEP wurst 7.54-MC26.1.2 {breaks wi_zoom @ [*]}]",
+                "[01:33:20] [main/INFO]: Fix: add [], remove [], replace [[wi_zoom 1.7-MC26.1.2] -> add:wi_zoom 1 ([(-∞,∞)]), [wurst 7.54-MC26.1.2] -> add:wurst 1 ([(-∞,∞)])]",
+                "[01:33:20] [main/ERROR]: Incompatible mods found!",
+                "net.fabricmc.loader.impl.FormattedException: Some of your mods are incompatible with the game or each other!",
+                "A potential solution has been determined, this may resolve your problem:",
+                "\t - Replace mod 'Wurst Client' (wurst) 7.54-MC26.1.2 with any version that is compatible with:",
+                "\t\t - wi_zoom, any version",
+                "\t - Replace mod 'WI Zoom' (wi_zoom) 1.7-MC26.1.2 with any version that is compatible with:",
+                "\t\t - wurst, any version",
+                "More details:",
+                "\t - Mod 'WI Zoom' (wi_zoom) 1.7-MC26.1.2 is incompatible with any version of mod 'Wurst Client' (wurst), yet a conflicting version is present: 7.54-MC26.1.2!",
+                "\t - Mod 'Wurst Client' (wurst) 7.54-MC26.1.2 is incompatible with any version of mod 'WI Zoom' (wi_zoom), yet a conflicting version is present: 1.7-MC26.1.2!"
+            ]
+        });
+
+        Assert.AreEqual(CrashDiagnosisCode.ModSetConflict, result.TopDiagnosis?.Code,
+            string.Join("; ", result.Diagnoses.Select(static diagnosis => diagnosis.Code)));
+        Assert.IsTrue(result.Facts.Has(CrashFactKind.ModSetConflictDetected));
+        Assert.IsFalse(result.Facts.Has(CrashFactKind.MissingModDependencyDetected));
+        Assert.IsFalse(result.Facts.Has(CrashFactKind.LoaderVersionRequirementDetected));
+        Assert.DoesNotContain(static diagnosis =>
+            diagnosis.Code is CrashDiagnosisCode.LoaderDependencyMissing
+                or CrashDiagnosisCode.LoaderDependencyVersionConflict
+                or CrashDiagnosisCode.LoaderVersionIncompatible, result.Diagnoses);
+    }
+
+    [TestMethod]
+    public void FabricModToModConflictArchiveKeepsModSetConflictAsTopDiagnosis()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "pcl-crash-fabric-conflict-" + Guid.NewGuid());
+        Directory.CreateDirectory(root);
+        var zipPath = Path.Combine(root, "fabric-conflict.zip");
+        var log = string.Join("\n", "[02:11:11] [main/INFO]: Loading Minecraft 26.1.2 with Fabric Loader 0.19.3",
+            "[02:11:11] [main/WARN]: Mod resolution failed",
+            "[02:11:11] [main/INFO]: Immediate reason: [NEG_HARD_DEP wi_zoom 1.7-MC26.1.2 {breaks wurst @ [*]}, ROOT_FORCELOAD_SINGLE wi_zoom 1.7-MC26.1.2, ROOT_FORCELOAD_SINGLE wurst 7.54-MC26.1.2]",
+            "[02:11:11] [main/INFO]: Reason: [NEG_HARD_DEP wi_zoom 1.7-MC26.1.2 {breaks wurst @ [*]}, NEG_HARD_DEP wurst 7.54-MC26.1.2 {breaks wi_zoom @ [*]}]",
+            "[02:11:11] [main/INFO]: Fix: add [], remove [], replace [[wurst 7.54-MC26.1.2] -> add:wurst 1 ([(-∞,∞)]), [wi_zoom 1.7-MC26.1.2] -> add:wi_zoom 1 ([(-∞,∞)])]",
+            "[02:11:11] [main/ERROR]: Incompatible mods found!",
+            "net.fabricmc.loader.impl.FormattedException: Some of your mods are incompatible with the game or each other!",
+            "A potential solution has been determined, this may resolve your problem:",
+            "\t - Replace mod 'Wurst Client' (wurst) 7.54-MC26.1.2 with any version that is compatible with:",
+            "\t\t - wi_zoom, any version",
+            "\t - Replace mod 'WI Zoom' (wi_zoom) 1.7-MC26.1.2 with any version that is compatible with:",
+            "\t\t - wurst, any version", "More details:",
+            "\t - Mod 'WI Zoom' (wi_zoom) 1.7-MC26.1.2 is incompatible with any version of mod 'Wurst Client' (wurst), yet a conflicting version is present: 7.54-MC26.1.2!",
+            "\t - Mod 'Wurst Client' (wurst) 7.54-MC26.1.2 is incompatible with any version of mod 'WI Zoom' (wi_zoom), yet a conflicting version is present: 1.7-MC26.1.2!");
+
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            WriteEntry(archive, "logs/captured-output.log", log);
+            WriteEntry(archive, "logs/latest.log", log);
+            WriteEntry(archive, "logs/debug.log", log);
+        }
+
+        var result = new CrashAnalyzer().Analyze(new CrashAnalysisRequest
+        {
+            Source = CrashAnalysisSource.ImportedFile,
+            ImportedFilePath = zipPath,
+            TempDirectory = root
+        });
+
+        Assert.AreEqual(CrashDiagnosisCode.ModSetConflict, result.TopDiagnosis?.Code,
+            string.Join("; ", result.Diagnoses.Select(static diagnosis => diagnosis.Code)));
+        Assert.IsTrue(result.Facts.Has(CrashFactKind.ModSetConflictDetected));
+        Assert.IsFalse(result.Facts.Has(CrashFactKind.MissingModDependencyDetected));
+        Assert.DoesNotContain(static diagnosis =>
+            diagnosis.Code == CrashDiagnosisCode.LoaderVersionIncompatible, result.Diagnoses);
+    }
+
+
+    [TestMethod]
     public void CrashReportEmitsReportedExceptionAndModListFacts()
     {
         var document = new CrashLogDocument
