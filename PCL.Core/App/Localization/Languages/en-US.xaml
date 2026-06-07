@@ -2903,9 +2903,9 @@
     <sys:String x:Key="Update.Task.GetVersionInfoFailed">Failed to get version information</sys:String>
     <sys:String x:Key="Update.Task.GetAnnouncementFailed">Failed to get announcement information</sys:String>
     <sys:String x:Key="Update.Task.RefreshSettings">Refresh settings UI</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition notice</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">You are using PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#x0A;PCL-Community and its members are not affiliated with LTCat (龙腾猫跃), and do not guarantee your usage.&#x0A;&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;&#x0A;Differences from the official version:&#x0A;- Themes: only some fixed blue themes; no plans to add new themes.&#x0A;- Toolbox: some content from the official version is missing (Echo Cave, Don't Click).&#x0A;&#x0A;This message will be shown once after a launcher update.</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Confirm">I understand</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">PCL N Edition</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">Welcome to Plain Craft Launcher N Edition!&#x0A;&#x0A;PCL N is a personal fork of PCL-Community Edition, maintained by MUXUE1230.&#x0A;This version is not affiliated with the original author LTCat or PCL-Community.&#x0A;&#x0A;Key features:&#x0A;- Offline profile skin borrowing from Microsoft accounts&#x0A;- In-instance mod browser with one-click download &amp; dependency resolution&#x0A;- P2P multiplayer (IPv6 direct / UPnP port mapping)&#x0A;- Fluent Design UI&#x0A;&#x0A;Please report issues to this project's GitHub Issues.&#x0A;&#x0A;This message appears once after each update.</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">Get Started</sys:String>
 
     <!-- LogPage -->
 

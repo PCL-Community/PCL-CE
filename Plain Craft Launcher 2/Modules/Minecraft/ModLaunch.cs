@@ -441,6 +441,11 @@ public static class ModLaunch
     public static Process mcLaunchProcess;
     public static ModWatcher.Watcher mcLaunchWatcher;
 
+    internal enum RepairState { None, Finding, Downloading, Done }
+
+    internal static RepairState currentRepairState = RepairState.None;
+    private static bool pendingRestart;
+
     private static void McLaunchState(ModLoader.LoaderTask<McLaunchOptions, object> loader)
     {
         switch (mcLaunchLoader.State)
@@ -450,12 +455,23 @@ public static class ModLaunch
             case ModBase.LoadState.Waiting:
             case ModBase.LoadState.Aborted:
             {
-                ModMain.frmLaunchLeft.PageChangeToLogin();
+                ModBase.Log($"[Repair] McLaunchState: loaderState={mcLaunchLoader.State}, repairState={currentRepairState}");
+                if (currentRepairState is RepairState.None or RepairState.Done)
+                {
+                    currentRepairState = RepairState.None;
+                    if (pendingRestart)
+                    {
+                        pendingRestart = false;
+                        ModBase.Log("[Repair] 旧加载器已结束，触发重新启动");
+                        McLaunchStart();
+                    }
+                    else
+                        ModMain.frmLaunchLeft.PageChangeToLogin();
+                }
                 break;
             }
             case ModBase.LoadState.Loading:
             {
-                // 在预检测结束后再触发动画
                 ModMain.frmLaunchRight.LabLog.Text = "";
                 break;
             }
@@ -530,7 +546,8 @@ public static class ModLaunch
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), ModMain.HintType.Finish);
+                    if (!pendingRestart)
+                        ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), ModMain.HintType.Finish);
                     break;
                 }
                 case ModBase.LoadState.Aborted:
@@ -3729,10 +3746,74 @@ public static class ModLaunch
             McLaunchLog("已显示游戏实时日志");
         }
 
-        // 等待
-        while (watcher.State == ModWatcher.Watcher.MinecraftState.Loading)
+    // 等待
+    ModCrashAutoRepair.SuppressCrashPopup = false;
+    while (watcher.State == ModWatcher.Watcher.MinecraftState.Loading ||
+           watcher.State == ModWatcher.Watcher.MinecraftState.Running)
             Thread.Sleep(100);
-        if (watcher.State == ModWatcher.Watcher.MinecraftState.Crashed) throw new Exception("$$");
+        if (watcher.State == ModWatcher.Watcher.MinecraftState.Crashed)
+        {
+            // 尝试自动修复模组前置
+            var crashedVersion = ModInstanceList.McMcInstanceSelected;
+            ModBase.Log($"[AutoRepair] Crashed={watcher.State}, HasFabric={crashedVersion?.Info.HasFabric}, instance={crashedVersion?.Name}");
+            if (crashedVersion is not null &&
+                (crashedVersion.Info.HasFabric || crashedVersion.Info.HasForge ||
+                 crashedVersion.Info.HasNeoForge || crashedVersion.Info.HasQuilt ||
+                 crashedVersion.Info.HasLegacyFabric))
+            {
+                currentRepairState = RepairState.Finding;
+                McLaunchLog("游戏崩溃，正在查找缺失模组...");
+                ModMain.Hint("正在查找缺失模组...", ModMain.HintType.Finish);
+                ModBase.RunInUiWait(() => ModMain.frmLaunchLeft?.ShowRepairing());
+                // 从 watcher 内存读取游戏日志
+                var logLines = watcher.latestLog.ToArray();
+                var deps = ModCrashAutoRepair.FindMissingDeps(logLines);
+                // 去重（同一个 modid 可能被多个模组依赖）
+                deps = deps.GroupBy(d => d.MissingId).Select(g => g.First()).ToList();
+                if (deps.Count > 0)
+                {
+                    currentRepairState = RepairState.Downloading;
+                    McLaunchLog($"找到 {deps.Count} 个缺失模组，正在下载...");
+                    var repaired = ModCrashAutoRepair.DownloadDeps(deps, crashedVersion,
+                        (step, count) => ModBase.RunInUi(() =>
+                            ModMain.frmLaunchLeft?.UpdateRepairStep(step, count)));
+                    if (repaired > 0 && !loader.IsAborted)
+                    {
+                        McLaunchLog($"已自动修复 {repaired} 个模组，正在重新启动...");
+                        isLaunching = false;
+                        pendingRestart = true;
+                        currentRepairState = RepairState.None;
+                        ModBase.RunInUiWait(() =>
+                        {
+                            ModMain.frmLaunchLeft?.HideRepairing();
+                            ModMain.Hint($"已自动修复 {repaired} 个模组前置，正在重新启动游戏", ModMain.HintType.Finish);
+                        });
+                        return;
+                    }
+                    if (loader.IsAborted)
+                    {
+                        // 用户取消：立即恢复 UI，让 McLaunchState 能正常切回档案页
+                        currentRepairState = RepairState.Done;
+                        ModBase.RunInUi(() =>
+                        {
+                            ModMain.frmLaunchLeft?.HideRepairing();
+                            ModMain.frmLaunchLeft?.PageChangeToLogin();
+                        });
+                        return;
+                    }
+                }
+                currentRepairState = RepairState.Done;
+                ModCrashAutoRepair.SuppressCrashPopup = false;
+                ModBase.RunInUiWait(() => ModMain.frmLaunchLeft?.HideRepairing());
+            }
+            throw new Exception("$$");
+        }
+    }
+
+    private static string[]? TryReadLines(string path, Encoding enc)
+    {
+        try { return File.ReadAllLines(path, enc); }
+        catch { return null; }
     }
 
     private static void McLaunchEnd()

@@ -24,8 +24,6 @@ The version numbers of the N Edition do not strictly correspond to those of the 
 
 Everyone is welcome to try it out!
 
-**Developing group:** [599620549](https://qm.qq.com/q/PNQA4Md8wc) | **User group 1:** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ) | **User group 2:** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
-
 ## 💻 Supported Platforms
 
 | Operating System | Support Status | Requirements |

@@ -2903,9 +2903,9 @@
     <sys:String x:Key="Update.Task.GetVersionInfoFailed">获取版本信息失败</sys:String>
     <sys:String x:Key="Update.Task.GetAnnouncementFailed">获取公告信息失败</sys:String>
     <sys:String x:Key="Update.Task.RefreshSettings">刷新设置 UI</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Title">社区版本说明</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#x0A;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#x0A;&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#x0A;&#x0A;该版本与官方版本的特性区别：&#x0A;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#x0A;- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。&#x0A;&#x0A;此提示会在启动器更新后展示一次。</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Confirm">我知道了</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">PCL N Edition</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">欢迎使用 Plain Craft Launcher N Edition！&#x0A;&#x0A;PCL N 是基于 PCL-Community Edition 的个人定制版本，由 MUXUE1230 维护。&#x0A;本版本与原作者龙腾猫跃及 PCL-Community 均无从属关系。&#x0A;&#x0A;特色功能：&#x0A;- 离线档案可借用正版皮肤&#x0A;- 实例内模组浏览器 + 一键下载含前置整理&#x0A;- 支持 P2P 联机（IPv6 直连 / UPnP 端口映射）&#x0A;- Fluent Design 界面风格&#x0A;&#x0A;遇到问题请向本项目的 GitHub Issues 反馈。&#x0A;&#x0A;此提示仅在更新后展示一次。</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">开始使用</sys:String>
 
     <!-- LogPage -->
 

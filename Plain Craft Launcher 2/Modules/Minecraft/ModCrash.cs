@@ -1193,6 +1193,8 @@ public class CrashAnalyzer
     /// </summary>
     public void Output(bool isHandAnalyze, List<string> extraFiles = null)
     {
+        if (ModCrashAutoRepair.SuppressCrashPopup)
+            return;
         // 弹窗提示
         ModMain.frmMain.ShowWindowToTop();
         var resultText = GetAnalyzeResult(isHandAnalyze);

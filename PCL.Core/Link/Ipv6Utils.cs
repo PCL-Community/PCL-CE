@@ -36,10 +36,11 @@ public static class Ipv6Utils
     public static bool IsPublicIPv6(IPAddress ip)
     {
         if (ip.AddressFamily != AddressFamily.InterNetworkV6) return false;
+        if (ip.IsIPv6LinkLocal) return false;
+        if (ip.IsIPv6SiteLocal) return false;
         var bytes = ip.GetAddressBytes();
         if (bytes.Length < 1) return false;
         var first = bytes[0];
-        // 2000::/3: first byte in 0x20 - 0x3F
         return first is >= 0x20 and <= 0x3F;
     }
 
@@ -48,21 +49,19 @@ public static class Ipv6Utils
     /// </summary>
     public static bool IsLinkLocalIPv6(IPAddress ip)
     {
-        if (ip.AddressFamily != AddressFamily.InterNetworkV6) return false;
-        var bytes = ip.GetAddressBytes();
-        if (bytes.Length < 2) return false;
-        return bytes[0] == 0xFE && (bytes[1] & 0xC0) == 0x80;
+        return ip.AddressFamily == AddressFamily.InterNetworkV6 && ip.IsIPv6LinkLocal;
     }
 
     /// <summary>
-    ///     是否属于唯一本地地址（FC00::/7）。
+    ///     是否属于唯一本地地址（FC00::/7 或 FEC0::/10）。
     /// </summary>
     public static bool IsUniqueLocalIPv6(IPAddress ip)
     {
         if (ip.AddressFamily != AddressFamily.InterNetworkV6) return false;
         var bytes = ip.GetAddressBytes();
         if (bytes.Length < 1) return false;
-        return bytes[0] == 0xFC || bytes[0] == 0xFD;
+        // FC00::/7 (ULA) or FEC0::/10 (deprecated Site-Local)
+        return (bytes[0] & 0xFE) == 0xFC;
     }
 
     /// <summary>
@@ -76,29 +75,32 @@ public static class Ipv6Utils
     }
 
     /// <summary>
-    ///     挑选最适合联机的 IPv6 地址（优先临时地址，回退永久地址）。
+    ///     挑选最适合联机的 IPv6 地址（优先物理网卡 + 临时地址）。
     /// </summary>
     public static IPAddress? GetBestPublicIPv6()
     {
-        var result = new List<(IPAddress addr, bool isTemporary)>();
+        var result = new List<(IPAddress addr, bool isTemporary, bool isPhysical)>();
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (ni.OperationalStatus != OperationalStatus.Up) continue;
             if (IsVirtualInterface(ni)) continue;
 
+            var isPhysical = ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
+                             ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211;
+
             foreach (var addr in ni.GetIPProperties().UnicastAddresses)
             {
                 if (addr.Address.AddressFamily != AddressFamily.InterNetworkV6) continue;
                 if (!IsPublicIPv6(addr.Address)) continue;
-                result.Add((addr.Address, addr.SuffixOrigin == SuffixOrigin.LinkLayerAddress ||
-                                          addr.SuffixOrigin == SuffixOrigin.Random));
+                result.Add((addr.Address,
+                    addr.SuffixOrigin == SuffixOrigin.LinkLayerAddress || addr.SuffixOrigin == SuffixOrigin.Random,
+                    isPhysical));
             }
         }
 
-        // 优先临时地址（隐私扩展）
         return result
-            .OrderByDescending(a => a.isTemporary)
-            .ThenBy(_ => 0)
+            .OrderByDescending(a => a.isPhysical)   // 优先物理网卡
+            .ThenByDescending(a => a.isTemporary)    // 再优先临时地址
             .Select(a => a.addr)
             .FirstOrDefault();
     }

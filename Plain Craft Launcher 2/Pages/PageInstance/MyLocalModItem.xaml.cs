@@ -894,8 +894,6 @@ public partial class MyLocalCompItem
                     try
                     {
                         var request = ModCompDependency.BuildRequest(file, project, vanillaName, loaders, modsFolder);
-                        // 强制重新检查已安装前置：清空已安装列表，确保旧版也会被更新
-                        request.InstalledMods.Clear();
                         var resolver = new ModDependencyResolver();
                         var result = resolver.Resolve(request);
                         if (result.ToInstall is { Count: > 0 })
@@ -912,18 +910,13 @@ public partial class MyLocalCompItem
 
                 // 下载新文件 + 前置
                 var localPath = Path.Combine(modsFolder, file.FileName);
+                MyCompItem.DownloadedProjectIds.Add(project.Id);
                 FileDownloader.Download(file.DownloadUrls, localPath).GetAwaiter().GetResult();
                 foreach (var dl in deps)
                     FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
 
-                // 清理前置旧版
-                var cleaned = 0;
-                foreach (var dl in deps)
-                {
-                    var depName = Path.GetFileName(dl.LocalPath);
-                    if (!string.IsNullOrEmpty(depName))
-                        cleaned += CleanOldVersions(modsFolder, depName);
-                }
+                // 清理旧版（仅比新文件旧的）
+                var cleaned = CleanOldVersions(modsFolder, project.Id, file.FileName);
 
                 ModBase.RunInUi(() => ModMain.Hint(
                     $"{entry.Name} 更新完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
@@ -937,51 +930,30 @@ public partial class MyLocalCompItem
         });
     }
 
-    private static int CleanOldVersions(string modsFolder, string newFileName)
+    private static int CleanOldVersions(string modsFolder, string projectId, string newFileName)
     {
         if (!Directory.Exists(modsFolder)) return 0;
         var cleaned = 0;
-        var prefix = GetNamePrefix(newFileName);
-        var shortPrefix = prefix.Contains('-') ? prefix[..prefix.LastIndexOf('-')] : prefix;
-        if (string.IsNullOrEmpty(prefix) || prefix.Length < 2) return 0;
-
         try
         {
-            var files = Directory.GetFiles(modsFolder, "*.jar")
-                .Where(f =>
-                {
-                    var n = Path.GetFileName(f).ToLower();
-                    return n.StartsWith(prefix.ToLower() + "-") ||
-                           n.StartsWith(prefix.ToLower() + ".") ||
-                           n.StartsWith(shortPrefix.ToLower() + "-") ||
-                           n.StartsWith(shortPrefix.ToLower() + ".");
-                });
-
-            foreach (var f in files)
+            foreach (var f in Directory.GetFiles(modsFolder, "*.jar"))
             {
-                var n = Path.GetFileName(f);
-                if (string.Equals(n, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
-                try { File.Delete(f); cleaned++; ModBase.Log($"[UpdateMod] 清理旧版: {n}"); } catch { }
+                var name = Path.GetFileName(f);
+                if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    var local = new ModLocalComp.LocalCompFile(f);
+                    local.Load();
+                    if (string.Equals(local.compFile?.ProjectId ?? local.Comp?.Id, projectId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Delete(f); cleaned++;
+                        ModBase.Log($"[UpdateMod] 清理旧版: {name}");
+                    }
+                }
+                catch { }
             }
         }
         catch { }
-
         return cleaned;
-    }
-
-    private static string GetNamePrefix(string fileName)
-    {
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        var start = 0;
-        while (start < name.Length && name[start] > 127) start++;
-        if (start >= name.Length) start = 0;
-        name = name[start..];
-
-        for (var i = name.Length - 1; i >= 0; i--)
-        {
-            if (char.IsDigit(name[i]) && i > 0 && (name[i - 1] == '-' || name[i - 1] == '_'))
-                return name[..(i - 1)].TrimEnd('-', '_', '.');
-        }
-        return name;
     }
 }

@@ -18,6 +18,11 @@ public partial class MyCompItem
     /// </summary>
     public bool SkipDefaultNavigation;
 
+    /// <summary>
+    ///     正在/已下载的模组项目 ID 集合，用于下载去重和浏览器自动剔除。
+    /// </summary>
+    public static readonly HashSet<string> DownloadedProjectIds = new(StringComparer.OrdinalIgnoreCase);
+
     private string stateLast;
 
     /// <summary>
@@ -321,7 +326,6 @@ public partial class MyCompItem
                     try
                     {
                         var request = ModCompDependency.BuildRequest(best, project, vanillaName, loaders, modsFolder);
-                        request.InstalledMods.Clear();
                         var resolver = new PCL.Core.Minecraft.ResourceProject.ModDependencyResolver();
                         var result = resolver.Resolve(request);
                         if (result.ToInstall is { Count: > 0 })
@@ -337,25 +341,14 @@ public partial class MyCompItem
                     }
                 }
 
+                DownloadedProjectIds.Add(project.Id);
                 var localPath = Path.Combine(modsFolder, best.FileName);
-                var allUrls = new List<IEnumerable<string>> { best.DownloadUrls };
-                var allPaths = new List<string> { localPath };
+                FileDownloader.Download(best.DownloadUrls, localPath).GetAwaiter().GetResult();
                 foreach (var dl in deps)
-                {
-                    allUrls.Add(dl.Urls);
-                    allPaths.Add(dl.LocalPath);
-                }
-                for (var i = 0; i < allUrls.Count; i++)
-                    FileDownloader.Download(allUrls[i], allPaths[i]).GetAwaiter().GetResult();
+                    FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
 
-                // 清理同模组的旧版本文件（主文件 + 每个前置）
-                var cleaned = CleanOldVersions(modsFolder, best.FileName);
-                foreach (var dl in deps)
-                {
-                    var depName = Path.GetFileName(dl.LocalPath);
-                    if (!string.IsNullOrEmpty(depName))
-                        cleaned += CleanOldVersions(modsFolder, depName);
-                }
+                // 清理同模组的旧版本（只删比新文件旧的）
+                var cleaned = CleanOldVersions(modsFolder, project.Id, best.FileName);
                 ModBase.RunInUi(() => ModMain.Hint(
                     $"{project.RawName} 下载完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
                     ModMain.HintType.Finish));
@@ -564,65 +557,32 @@ public partial class MyCompItem
     #endregion
 
     /// <summary>
-    ///     清理同模组旧版本文件（基于文件名前缀匹配）。
+    ///     基于项目 ID 清理同模组旧版本文件（仅删除比新文件旧的）。
     /// </summary>
-    private static int CleanOldVersions(string modsFolder, string newFileName)
+    private static int CleanOldVersions(string modsFolder, string projectId, string newFileName)
     {
         if (!Directory.Exists(modsFolder)) return 0;
         var cleaned = 0;
-        var prefix = GetNamePrefix(newFileName);
-        // 同时尝试更短的前缀（去掉 loader 后缀，如 "iris-fabric" → "iris"）
-        var shortPrefix = prefix.Contains('-') ? prefix[..prefix.LastIndexOf('-')] : prefix;
-        if (string.IsNullOrEmpty(prefix) || prefix.Length < 2) return 0;
-
         try
         {
-            var files = Directory.GetFiles(modsFolder, "*.jar")
-                .Where(f =>
-                {
-                    var name = Path.GetFileName(f);
-                    var nameLower = name.ToLower();
-                    return (nameLower.StartsWith(prefix.ToLower() + "-") ||
-                            nameLower.StartsWith(prefix.ToLower() + ".") ||
-                            nameLower.StartsWith(shortPrefix.ToLower() + "-") ||
-                            nameLower.StartsWith(shortPrefix.ToLower() + "."));
-                });
-
-            foreach (var file in files)
+            foreach (var file in Directory.GetFiles(modsFolder, "*.jar"))
             {
                 var name = Path.GetFileName(file);
                 if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
-                try { File.Delete(file); cleaned++; ModBase.Log($"[QuickDownload] 清理旧版: {name}"); }
+                try
+                {
+                    var local = new ModLocalComp.LocalCompFile(file);
+                    local.Load();
+                    if (string.Equals(local.compFile?.ProjectId ?? local.Comp?.Id, projectId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Delete(file); cleaned++;
+                        ModBase.Log($"[QuickDownload] 清理旧版: {name}");
+                    }
+                }
                 catch { }
             }
         }
-        catch (Exception ex) { ModBase.Log(ex, "[QuickDownload] 清理旧版失败"); }
-
+        catch { }
         return cleaned;
-    }
-
-    /// <summary>
-    ///     从文件名提取前缀（截止到版本号前）。
-    ///     例如 "iris-fabric-1.10.9+mc26.1.1.jar" → "iris-fabric"
-    /// </summary>
-    private static string GetNamePrefix(string fileName)
-    {
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        // 跳过文件名开头的非 ASCII 字符（中文译名）
-        var start = 0;
-        while (start < name.Length && name[start] > 127)
-            start++;
-        if (start >= name.Length) start = 0;
-        name = name[start..];
-
-        // 从末尾向前扫描，找到 "-数字" 或 "_数字" 的位置
-        for (var i = name.Length - 1; i >= 0; i--)
-        {
-            if (char.IsDigit(name[i]) && i > 0 && (name[i - 1] == '-' || name[i - 1] == '_'))
-            {
-                return name[..(i - 1)].TrimEnd('-', '_', '.');
-            }
-        }
-        return name;
     }
 }

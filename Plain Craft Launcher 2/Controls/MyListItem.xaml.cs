@@ -1065,7 +1065,7 @@ public partial class MyListItem : IMyRadio
     {
         if (!isMouseDown)
             return;
-        Click?.Invoke(sender, e);
+         Click?.Invoke(sender, e);
         if (e.Handled)
             return;
         // 触发自定义事件

@@ -185,7 +185,6 @@ public partial class PageInstanceModDetail
                 if ((file.Dependencies is { Count: > 0 } || file.RawDependencies is { Count: > 0 }) && !string.IsNullOrEmpty(mcVersion))
                 {
                     var request = ModCompDependency.BuildRequest(file, project, mcVersion, loaders, modsFolder);
-                    request.InstalledMods.Clear();
                     var resolver = new ModDependencyResolver();
                     var result = resolver.Resolve(request);
                     ModBase.Log($"[ModDetail] 依赖解析结果: ToInstall={result.ToInstall?.Count ?? 0}, Unresolved={result.Unresolved?.Count ?? 0}");
@@ -203,25 +202,14 @@ public partial class PageInstanceModDetail
 
                 // 下载主文件
                 var localPath = Path.Combine(modsFolder, file.FileName);
-                var allUrls = new List<IEnumerable<string>> { file.DownloadUrls };
-                var allPaths = new List<string> { localPath };
+                FileDownloader.Download(file.DownloadUrls, localPath).GetAwaiter().GetResult();
                 foreach (var dl in deps)
-                {
-                    allUrls.Add(dl.Urls);
-                    allPaths.Add(dl.LocalPath);
-                }
-                for (var i = 0; i < allUrls.Count; i++)
-                    FileDownloader.Download(allUrls[i], allPaths[i]).GetAwaiter().GetResult();
+                    FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
 
-                // 清理主文件旧版本
-                CleanOldVersions(modsFolder, file.FileName);
-                // 清理每个前置的旧版本
-                foreach (var dl in deps)
-                {
-                    var depName = Path.GetFileName(dl.LocalPath);
-                    if (!string.IsNullOrEmpty(depName))
-                        CleanOldVersions(modsFolder, depName);
-                }
+                MyCompItem.DownloadedProjectIds.Add(_project!.Id);
+
+                // 清理旧版
+                CleanOldVersions(modsFolder, _project!.Id, file.FileName);
 
                 ModBase.RunInUi(() =>
                     ModMain.Hint($"下载完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}", ModMain.HintType.Finish));
@@ -234,52 +222,29 @@ public partial class PageInstanceModDetail
         });
     }
 
-    private static void CleanOldVersions(string modsFolder, string newFileName)
+    private static void CleanOldVersions(string modsFolder, string projectId, string newFileName)
     {
         if (!Directory.Exists(modsFolder)) return;
-        var prefix = GetNamePrefix(newFileName);
-        var shortPrefix = prefix.Contains('-') ? prefix[..prefix.LastIndexOf('-')] : prefix;
-        if (string.IsNullOrEmpty(prefix) || prefix.Length < 2) return;
-
         try
         {
-            var files = Directory.GetFiles(modsFolder, "*.jar")
-                .Where(f =>
-                {
-                    var n = Path.GetFileName(f).ToLower();
-                    return n.StartsWith(prefix.ToLower() + "-") ||
-                           n.StartsWith(prefix.ToLower() + ".") ||
-                           n.StartsWith(shortPrefix.ToLower() + "-") ||
-                           n.StartsWith(shortPrefix.ToLower() + ".");
-                });
-
-            foreach (var f in files)
+            foreach (var f in Directory.GetFiles(modsFolder, "*.jar"))
             {
-                var n = Path.GetFileName(f);
-                if (string.Equals(n, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
-                try { File.Delete(f); ModBase.Log($"[ModDetail] 清理旧版: {n}"); } catch { }
+                var name = Path.GetFileName(f);
+                if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    var local = new ModLocalComp.LocalCompFile(f);
+                    local.Load();
+                    if (string.Equals(local.compFile?.ProjectId ?? local.Comp?.Id, projectId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Delete(f);
+                        ModBase.Log($"[ModDetail] 清理旧版: {name}");
+                    }
+                }
+                catch { }
             }
         }
         catch { }
     }
 
-    private static string GetNamePrefix(string fileName)
-    {
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        // 跳过文件名开头的非 ASCII 字符（中文译名）
-        var start = 0;
-        while (start < name.Length && name[start] > 127)
-            start++;
-        if (start >= name.Length) start = 0;
-        name = name[start..];
-
-        for (var i = name.Length - 1; i >= 0; i--)
-        {
-            if (char.IsDigit(name[i]) && i > 0 && (name[i - 1] == '-' || name[i - 1] == '_'))
-            {
-                return name[..(i - 1)].TrimEnd('-', '_', '.');
-            }
-        }
-        return name;
-    }
 }

@@ -24,7 +24,7 @@ public partial class PageDownloadInstall
         InitializeComponent();
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         BtnBack.Click += (_, _) => ExitSelectPage();
-        TextSearchVersion.TextChanged += (_, _) => TextSearchVersion_TextChanged(null, EventArgs.Empty);
+        TextSearchVersion.TextChanged += (_, _) => DoSearch();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
         CardForge.Swap += (_, _) => ReloadSelected();
@@ -310,34 +310,37 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     应用版本筛选器过滤显示——筛选"其他版本"列表中的单个版本项。
     /// </summary>
-    private void TextSearchVersion_TextChanged(object sender, EventArgs e)
+    private void DoSearch()
     {
-        var search = TextSearchVersion.Text?.Trim() ?? "";
-        foreach (var child in PanMinecraft.Children)
+        var search = TextSearchVersion.TextBox.Text?.Trim() ?? "";
+        if (string.IsNullOrEmpty(search))
         {
-            if (child is not MyCard card) continue;
-            foreach (var panel in card.Children)
+            ApplyVersionFilter(_currentFilter);
+            return;
+        }
+
+        var matched = 0;
+        var total = 0;
+        SearchItems(PanMinecraft, search, ref matched, ref total);
+    }
+
+    private static void SearchItems(Panel root, string search, ref int matched, ref int total)
+    {
+        foreach (var child in root.Children)
+        {
+            if (child is MyListItem listItem)
             {
-                if (panel is not StackPanel stack) continue;
-                foreach (var item in stack.Children)
-                {
-                    if (item is not MyListItem listItem) continue;
-                    if (string.IsNullOrEmpty(search))
-                    {
-                        // 空白搜索：恢复筛选器控制的可见性
-                        if (listItem.Tag is McVersionCategory)
-                            continue; // 交给 ApplyVersionFilter 处理
-                        listItem.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        var versionId = (listItem.Tag is JsonObject jo ? jo["id"]?.ToString() : "") ?? "";
-                        var title = listItem.Title?.ToString() ?? "";
-                        var match = versionId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                    title.Contains(search, StringComparison.OrdinalIgnoreCase);
-                        listItem.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
-                    }
-                }
+                total++;
+                var versionId = (listItem.Tag is JsonObject jo ? jo["id"]?.ToString() : "") ?? "";
+                var title = listItem.Title?.ToString() ?? "";
+                var match = versionId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                            title.Contains(search, StringComparison.OrdinalIgnoreCase);
+                listItem.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
+                if (match) matched++;
+            }
+            else if (child is Panel panel)
+            {
+                SearchItems(panel, search, ref matched, ref total);
             }
         }
     }
@@ -1198,15 +1201,22 @@ public partial class PageDownloadInstall
     {
         foreach (var item in (IEnumerable)stack.Tag)
         {
+            var json = (JsonObject)item;
+            var versionData = json; // 捕获版本 JSON
             var listItem = ModDownloadLib.McDownloadListItem(
-                (JsonObject)item,
-                (sender, e) => ModMain.frmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
+                json,
+                (sender, e) =>
+                {
+                    var s = (MyListItem)sender;
+                    s.Tag = versionData; // 点击时恢复 JSON，供 MinecraftSelected 使用
+                    ModMain.frmDownloadInstall.MinecraftSelected(s, e);
+                },
                 false
             );
-            listItem.Tag = (McVersionCategory)(int)((JsonObject)item)["__category"];
+            var cat = (McVersionCategory)(int)json["__category"];
+            listItem.Tag = cat; // 保留分类标签供过滤器使用
             if (_currentFilter != "all")
             {
-                var cat = (McVersionCategory)listItem.Tag;
                 var show = _currentFilter switch
                 {
                     "release" => cat == McVersionCategory.Release,
@@ -2676,7 +2686,20 @@ public partial class PageDownloadInstall
         };
         if (!ModDownloadLib.McInstall(request))
             return;
-        // 返回，这样在再次进入安装页面时这个实例就会显示文件夹已重复
+
+        // 同时跳转到自定义 Mod 下载页面
+        if (selectedFabric is not null || selectedForge is not null ||
+            selectedNeoForge is not null || selectedQuilt is not null)
+        {
+            var loader = selectedFabric is not null ? ModComp.CompLoaderType.Fabric :
+                         selectedNeoForge is not null ? ModComp.CompLoaderType.NeoForge :
+                         selectedForge is not null ? ModComp.CompLoaderType.Forge :
+                         ModComp.CompLoaderType.Quilt;
+            PageInstanceModBrowser.SetContext(_vanillaName, instanceName, loader);
+            ModMain.frmMain.PageChange(FormMain.PageType.InstanceModBrowser);
+        }
+
+        // 返回
         ExitSelectPage();
     }
 

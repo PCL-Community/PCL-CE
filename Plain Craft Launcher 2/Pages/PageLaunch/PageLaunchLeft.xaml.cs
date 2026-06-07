@@ -377,6 +377,9 @@ public partial class PageLaunchLeft
         {
             if (ModLaunch.mcLaunchLoaderReal.State == ModBase.LoadState.Aborted)
                 return;
+            // 修复阶段不覆盖文字
+            if (ModLaunch.currentRepairState is ModLaunch.RepairState.Finding or ModLaunch.RepairState.Downloading)
+                return;
             // 阶段状态获取
             var isLaunched = false; // 是否已经启动游戏，只是在等待窗口
             do
@@ -1023,4 +1026,35 @@ public partial class PageLaunchLeft
         { skinMs, skinLegacy, skinAuth };
 
     #endregion
+
+    public void ShowRepairing()
+    {
+        LabLaunchingTitle.Text = "正在修补游戏";
+        LabLaunchingStage.Text = "正在下载缺失模组...";
+        LabLaunchingProgress.Text = Lang.Number(0d, "P2");
+        LabLaunchingProgress.Opacity = 1d;
+        ProgressLaunchingFinished.Width = new GridLength(0d, GridUnitType.Star);
+        ProgressLaunchingUnfinished.Width = new GridLength(1d, GridUnitType.Star);
+    }
+
+    public void UpdateRepairStep(int current, int total)
+    {
+        if (total == 0) return;
+        LabLaunchingStage.Text = $"正在下载缺失模组 ({current}/{total})...";
+        LabLaunchingProgress.Text = Lang.Number(current / (double)total, "P2");
+        var ratio = current / (double)total;
+        ProgressLaunchingFinished.Width = new GridLength(ratio, GridUnitType.Star);
+        ProgressLaunchingUnfinished.Width = new GridLength(1d - ratio, GridUnitType.Star);
+    }
+
+    public void HideRepairing()
+    {
+        LabLaunchingTitle.Text = ModLaunch.currentLaunchOptions?.SaveBatch is null
+            ? Lang.Text("Launch.Status.Title.Launching")
+            : Lang.Text("Launch.Status.Title.ExportingScript");
+        LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
+        ProgressLaunchingFinished.Width = new GridLength(0d, GridUnitType.Star);
+        ProgressLaunchingUnfinished.Width = new GridLength(1d, GridUnitType.Star);
+    }
+
 }
