@@ -102,8 +102,6 @@ public partial class PageCrashLeft : IRefreshable
             {
                 ModMain.frmMain.pageRight.Opacity = 1d;
                 ModMain.frmMain.pageRight.PageOnEnter();
-                if (ModMain.frmMain.pageRight is IRefreshable refreshable)
-                    refreshable.Refresh();
             }, 30, true)
         }, "PageLeft PageChange");
     }

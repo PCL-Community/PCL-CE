@@ -663,7 +663,7 @@ public class MyPageRight : AdornerDecorator
         if (!ignoreInvisibility && element.Visibility == Visibility.Collapsed)
             return;
         if (element is MyCard || element is MyHint || element is MyExtraTextButton || element is TextBlock ||
-            element is MyTextButton)
+            element is MyTextButton || element is MyIconTextButton)
         {
             allControls.Add(element);
         }
