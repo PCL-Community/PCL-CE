@@ -557,7 +557,8 @@ public static class ModDownloadLib
     public static void McUpdateLogShow(JsonNode versionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(versionJson["id"].ToString());
-        ModBase.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
+        var wikiUrl = McFormatter.GetWikiBaseUrl() + wikiName;
+        ModBase.OpenWebsite(wikiUrl);
     }
 
     #endregion
