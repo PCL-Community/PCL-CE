@@ -24,7 +24,7 @@ public partial class PageDownloadCompDetail
     private MyCompItem _compItem;
     private bool _isFirstInit = true;
 
-    private void Init()
+    private async void Init()
     {
         ModAnimation.AniControlEnabled += 1;
         _project = ModMain.frmMain.pageCurrent.additional.Value.CompProject;
@@ -48,6 +48,21 @@ public partial class PageDownloadCompDetail
         BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
         BtnIntroWiki.Visibility = _project.WikiId == 0 ? Visibility.Collapsed : Visibility.Visible;
         RefreshFavoriteButton();
+
+        // 自动加载翻译后的中文描述
+        try
+        {
+            var chineseDescription = await _project.ChineseDescription;
+            if (!string.IsNullOrWhiteSpace(chineseDescription))
+            {
+                TbTranslatedDescription.Text = chineseDescription;
+                TbTranslatedDescription.Visibility = Visibility.Visible;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "自动加载翻译描述时出现错误", ModBase.LogLevel.Hint);
+        }
 
         ModAnimation.AniControlEnabled -= 1;
     }

@@ -1694,6 +1694,38 @@ public static class ModComp
                 { Height = 64 };
         }
 
+        public MyCompGridItem ToCompGridItem()
+        {
+            var newItem = new MyCompGridItem { Tag = this };
+            ApplyLogoToMyImage(newItem.PathLogo);
+
+            var title = GetControlTitle(true);
+            newItem.Title = title.Key;
+
+            if (string.IsNullOrEmpty(title.Value))
+                newItem.LabTitleRaw.Visibility = Visibility.Collapsed;
+            else
+                newItem.SubTitle = title.Value;
+
+            newItem.Tags = Tags;
+            newItem.Description = Description.Replace("\r", "").Replace("\n", "");
+
+            newItem.LabSource.Text = FromCurseForge ? "CurseForge" : "Modrinth";
+
+            if (LastUpdate is not null)
+            {
+                newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, 1);
+            }
+            else
+            {
+                newItem.LabTime.Visibility = Visibility.Collapsed;
+            }
+
+            newItem.LabDownload.Text = Lang.CompactNumber(DownloadCount);
+
+            return newItem;
+        }
+
         public MyListItem ToListItem()
         {
             var result = new MyListItem

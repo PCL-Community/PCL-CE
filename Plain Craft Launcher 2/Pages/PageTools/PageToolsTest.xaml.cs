@@ -284,6 +284,8 @@ public partial class PageToolsTest
         }, "Rubbish Clear");
     }
 
+
+
     public static string GetRandomCave()
     {
         return Lang.Text("Tools.Test.CeNotice");

@@ -675,8 +675,7 @@ public partial class FormMain
             VideoBack.Height = formHeight;
         }
 
-        if (WindowState == WindowState.Maximized)
-            WindowState = WindowState.Normal; // 修复 #1938
+        // 移除自动将最大化改回正常的逻辑，让用户可以正常使用最大化按钮
     }
 
     // 标题栏改变大小
@@ -692,6 +691,27 @@ public partial class FormMain
     private void BtnTitleMin_Click(object sender, EventArgs e)
     {
         WindowState = WindowState.Minimized;
+    }
+    
+    // 最大化/还原
+    private void BtnTitleMax_Click(object sender, EventArgs e)
+    {
+        isSizeSaveable = false;
+        try
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
+        }
+        finally
+        {
+            isSizeSaveable = true;
+        }
     }
     
     //“帮助”

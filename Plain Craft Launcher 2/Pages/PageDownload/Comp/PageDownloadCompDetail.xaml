@@ -44,6 +44,11 @@
                                                 SvgIcon="lucide/heart"
                                                 Margin="0,0,2,0" HorizontalAlignment="Left" />
                     </StackPanel>
+                    <TextBlock x:Name="TbTranslatedDescription"
+                               Margin="0,15,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource ColorBrushGray3}"
+                               Visibility="Collapsed" />
                 </StackPanel>
             </local:MyCard>
             <StackPanel Grid.Row="1" Grid.RowSpan="2" Name="PanMain" Grid.IsSharedSizeScope="True">

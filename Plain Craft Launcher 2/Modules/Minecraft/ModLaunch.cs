@@ -866,8 +866,7 @@ public static class ModLaunch
         // 参考：https://learn.microsoft.com/zh-cn/entra/identity-platform/v2-oauth2-device-code
 
         // 初始请求
-        Retry: ;
-
+    Retry:;
         McLaunchLog("开始正版验证 Step 1/6（原始登录）");
         JsonObject prepareJson;
         var parameters = new Dictionary<string, string>
@@ -3492,7 +3491,7 @@ public static class ModLaunch
         McLaunchLog("版本隔离：" + ((ModInstanceList.McMcInstanceSelected.PathIndie ?? "") ==
                                (ModInstanceList.McMcInstanceSelected.PathInstance ?? "")));
         McLaunchLog("HMCL 格式：" + ModInstanceList.McMcInstanceSelected.IsHmclFormatJson);
-        McLaunchLog("Java 信息：" + (mcLaunchJavaSelected is not null ? mcLaunchJavaSelected.ToString() : "无可用 Java"));
+        McLaunchLog("Java 信息：" + (mcLaunchJavaSelected is not null ? mcLaunchJavaSelected.ToString : "无可用 Java"));
         // McLaunchLog("环境变量：" & If(McLaunchJavaSelected IsNot Nothing, If(McLaunchJavaSelected.HasEnvironment, "已设置", "未设置"), "未设置"))
         McLaunchLog("Natives 文件夹：" + GetNativesFolder());
         McLaunchLog("");

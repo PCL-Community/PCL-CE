@@ -121,7 +121,7 @@
                           Text="{DynamicResource Download.Comp.Hint.ModrinthUnreachable}"
                           Theme="Yellow" Margin="0,0,0,15" />
             <local:MyCard x:Name="CardProjects" UseAnimation="False">
-                <StackPanel x:Name="PanProjects" Margin="12" />
+                <WrapPanel x:Name="PanProjects" Margin="12" Orientation="Horizontal"/>
             </local:MyCard>
             <local:MyCard Margin="0,15,0,0" x:Name="CardPages" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Height="23" Margin="10,7">

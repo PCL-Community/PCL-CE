@@ -19,18 +19,16 @@ public partial class PageComp
     public ModComp.CompProjectStorage storage = new();
 
     // 结果 UI 化
-    private void Load_OnFinish()
-    {
-        try
+        private void Load_OnFinish()
         {
-            ModBase.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {storage.results.Count} 个结果，当前在第 {page + 1} 页");
-            // 列表项
-            PanProjects.Children.Clear();
-            var index = Math.Min(page * pageSize, storage.results.Count - 1);
-            foreach (var result in storage.results.GetRange(index, Math.Min(storage.results.Count - index, pageSize)))
-                PanProjects.Children.Add(result.ToCompItem(loader.input.gameVersion is null,
-                    loader.input.modLoader == ModComp.CompLoaderType.Any &&
-                    (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack)));
+            try
+            {
+                ModBase.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {storage.results.Count} 个结果，当前在第 {page + 1} 页");
+                // 列表项
+                PanProjects.Children.Clear();
+                var index = Math.Min(page * pageSize, storage.results.Count - 1);
+                foreach (var result in storage.results.GetRange(index, Math.Min(storage.results.Count - index, pageSize)))
+                    PanProjects.Children.Add(result.ToCompGridItem());
             // 页码
             CardPages.Visibility =
                 storage.results.Count > 40 || storage.curseForgeOffset < storage.curseForgeTotal ||
@@ -126,21 +124,23 @@ public partial class PageComp
     }
 
     /// <summary>
-    ///     刷新所有已显示项目的收藏状态
-    /// </summary>
-    public void RefreshAllFavoriteStatus()
-    {
-        try
+        ///     刷新所有已显示项目的收藏状态
+        /// </summary>
+        public void RefreshAllFavoriteStatus()
         {
-            foreach (var item in PanProjects.Children)
-                if (item is MyCompItem)
-                    ((MyCompItem)item).RefreshFavoriteStatus();
+            try
+            {
+                foreach (var item in PanProjects.Children)
+                {
+                    if (item is MyCompGridItem gridItem)
+                        gridItem.RefreshFavoriteStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "刷新收藏状态时出错");
+            }
         }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "刷新收藏状态时出错");
-        }
-    }
 
     #region 属性
 
