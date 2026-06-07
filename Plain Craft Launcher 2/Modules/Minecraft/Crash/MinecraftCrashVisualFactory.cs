@@ -503,7 +503,7 @@ public static class MinecraftCrashVisualFactory
             Padding = new Thickness(10d),
             VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
         };
-        box.SetResourceReference(Control.BackgroundProperty, "ColorBrush6");
+        box.SetResourceReference(Control.BackgroundProperty, "ColorBrush7");
         box.SetResourceReference(Control.ForegroundProperty, "ColorBrush1");
 
         var border = new Border
@@ -512,8 +512,8 @@ public static class MinecraftCrashVisualFactory
             BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
             CornerRadius = new CornerRadius(5d),
         };
-        border.SetResourceReference(Border.BackgroundProperty, "ColorBrush6");
-        border.SetResourceReference(Border.BorderBrushProperty, "ColorBrush5");
+        border.SetResourceReference(Border.BackgroundProperty, "ColorBrush7");
+        border.SetResourceReference(Border.BorderBrushProperty, "ColorBrush6");
 
         return border;
     }
