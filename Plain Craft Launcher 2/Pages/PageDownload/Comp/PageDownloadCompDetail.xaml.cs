@@ -10,6 +10,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -46,7 +47,12 @@ public partial class PageDownloadCompDetail
 
         // 决定按钮显示
         BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
-        BtnIntroWiki.Visibility = _project.WikiId == 0 ? Visibility.Collapsed : Visibility.Visible;
+        BtnIntroWiki.Visibility = !RegionUtils.IsRestrictedFeatAllowed || _project.WikiId == 0
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        BtnTranslate.Visibility = RegionUtils.IsRestrictedFeatAllowed
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         RefreshFavoriteButton();
 
         ModAnimation.AniControlEnabled -= 1;
