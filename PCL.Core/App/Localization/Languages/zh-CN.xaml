@@ -2714,20 +2714,6 @@
     <sys:String x:Key="Tools.Test.Avatar.GenerateFailed">生成头像失败：{0}</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.Saved">头像保存成功！</sys:String>
 
-    <!-- Tools.Test.Memory -->
-
-    <sys:String x:Key="Tools.Test.Memory.Title">内存优化</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.ToolTip">内存优化为 PCL CE 特供版，效果加强！&#xa;&#xa;将物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL 可以静默执行内存优化。</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Deprecated">内存优化功能即将被废弃。\n\n该功能依赖未文档化的 Windows NT 内核函数调用，可能在未来版本中不可用，且存在引发未定义行为的可能。\n\n建议使用 Mem Reduct 替代，这是一个专业的第三方内存管理工具。\n\n是否仍然继续使用内存优化？</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.DeprecatedTitle">功能即将废弃</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.LearnMemReduct">了解 Mem Reduct</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Optimizing">正在进行内存优化</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.StillRunning">内存优化尚未结束，请稍等！</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Result">内存优化结束，共优化 {0}，目前可用内存 {1}</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Failed">内存优化失败</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.FailedMessage">内存优化失败\n\n详细信息：{0}</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.PromoteFailed">提权进程启动失败，请允许管理员权限以使用内存优化</sys:String>
-
     <!-- Tools.Test.Clean -->
 
     <sys:String x:Key="Tools.Test.Clean.Title">清理游戏垃圾</sys:String>

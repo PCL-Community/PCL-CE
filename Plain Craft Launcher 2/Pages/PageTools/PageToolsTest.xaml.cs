@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -285,30 +284,6 @@ public partial class PageToolsTest
         }, "Rubbish Clear");
     }
 
-    [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
-    private static extern uint NtSetSystemInformation(int systemInformationClass, nint systemInformation,
-        int systemInformationLength);
-    public static bool AskTrulyWantMemoryOptimize()
-    {
-        var memLoad = KernelInterop.GetMemoryLoadPercent();
-        if (memLoad > 90) return true; // 情况不太妙啊，先别问了
-
-        var s = ModMain.MyMsgBox(
-            Lang.Text("Tools.Test.Memory.Deprecated"),
-            Lang.Text("Tools.Test.Memory.DeprecatedTitle"),
-            Lang.Text("Common.Action.Confirm"),
-            Lang.Text("Tools.Test.Memory.LearnMemReduct"),
-            Lang.Text("Common.Action.Cancel"),
-            isWarn: true,
-            button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
-        );
-        return s == 1;
-    }
-    public static void MemoryOptimize(bool showHint)
-    {
-        MemSwapService.MemorySwap(showHint);
-    }
-
     public static string GetRandomCave()
     {
         return Lang.Text("Tools.Test.CeNotice");
@@ -386,14 +361,6 @@ public partial class PageToolsTest
     private void BtnClear_Click(object sender, MouseButtonEventArgs e)
     {
         RubbishClear();
-    }
-
-    private void BtnMemory_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (AskTrulyWantMemoryOptimize())
-        {
-            ModBase.RunInThread(() => MemoryOptimize(true));
-        }
     }
 
     // 下载正版玩家皮肤

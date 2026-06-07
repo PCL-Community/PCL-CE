@@ -105,7 +105,6 @@ namespace PCL
             刷新页面,
             刷新帮助,
             今日人品,
-            内存优化,
             清理垃圾,
             弹出窗口,
             弹出提示,
@@ -233,11 +232,6 @@ namespace PCL
 
                     case EventType.今日人品:
                         PageToolsTest.Jrrp();
-                        break;
-
-                    case EventType.内存优化:
-                        if (PageToolsTest.AskTrulyWantMemoryOptimize())
-                            ModBase.RunInThread(() => PageToolsTest.MemoryOptimize(true));
                         break;
 
                     case EventType.清理垃圾:

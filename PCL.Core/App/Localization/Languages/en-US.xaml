@@ -2714,20 +2714,6 @@
     <sys:String x:Key="Tools.Test.Avatar.GenerateFailed">Failed to generate avatar: {0}</sys:String>
     <sys:String x:Key="Tools.Test.Avatar.Saved">Avatar saved!</sys:String>
 
-    <!-- Tools.Test.Memory -->
-
-    <sys:String x:Key="Tools.Test.Memory.Title">Optimize memory</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.ToolTip">Memory optimization is a PCL CE-exclusive boosted feature!&#x0A;&#x0A;It reduces physical memory usage by about 1/3, and not only for Minecraft.&#x0A;If you are using an HDD, this may cause severe lag for a short time.&#x0A;Use the --memory flag to run memory optimization silently on launch.</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Deprecated">Memory optimization will be deprecated.&#x0A;&#x0A;This feature relies on undocumented Windows NT kernel function calls, which may become unavailable in future versions or cause undefined behavior.&#x0A;&#x0A;We recommend using Mem Reduct instead, a professional third-party memory management tool.&#x0A;&#x0A;Continue using memory optimization anyway?</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.DeprecatedTitle">Memory optimization is deprecating</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.LearnMemReduct">Learn about Mem Reduct</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Optimizing">Optimizing memory...</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.StillRunning">Memory optimization is still running. Please wait!</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Result">Memory optimization complete. Freed {0}; available memory: {1}</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.Failed">Memory optimization failed</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.FailedMessage">Memory optimization failed&#xa;&#xa;Details: {0}</sys:String>
-    <sys:String x:Key="Tools.Test.Memory.PromoteFailed">Elevation failed. Please grant administrator permission to use memory optimization.</sys:String>
-
     <!-- Tools.Test.Clean -->
 
     <sys:String x:Key="Tools.Test.Clean.Title">Clean game junk</sys:String>
