@@ -95,7 +95,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.Source.PreferOfficialWithFallback}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
+                        <TextBlock Grid.Row="2" x:Name="TextFilenameFormat" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="2" x:Name="ComboDownloadTranslateV2" Grid.ColumnSpan="2"
                                           Tag="ToolDownloadTranslateV2" Grid.Column="1" SelectionChanged="ComboChange"
@@ -106,7 +106,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style3}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style4}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
+                        <TextBlock Grid.Row="4" x:Name="TextModManageStyle" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="4" x:Name="ComboModLocalNameStyle" Grid.ColumnSpan="2"
                                           Tag="ToolModLocalNameStyle" Grid.Column="1" SelectionChanged="ComboChange"
