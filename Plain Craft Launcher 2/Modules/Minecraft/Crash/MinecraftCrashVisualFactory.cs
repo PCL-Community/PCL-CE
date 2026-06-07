@@ -490,7 +490,7 @@ public static class MinecraftCrashVisualFactory
         };
     }
 
-    public static TextBox Code(string text)
+    public static FrameworkElement Code(string text)
     {
         var box = new TextBox
         {
@@ -499,17 +499,23 @@ public static class MinecraftCrashVisualFactory
             TextWrapping = TextWrapping.Wrap,
             FontFamily = new FontFamily("Consolas"),
             FontSize = 12,
-            BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+            BorderThickness = new Thickness(0),
             Padding = new Thickness(10d),
-            MaxHeight = 220d,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Margin = new Thickness(0d, 4d, 0d, 8d)
+            VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
         };
         box.SetResourceReference(Control.BackgroundProperty, "ColorBrush7");
-        box.SetResourceReference(Control.BorderBrushProperty, "ColorBrush6");
         box.SetResourceReference(Control.ForegroundProperty, "ColorBrush1");
 
-        return box;
+        var border = new Border
+        {
+            Child = new MyScrollViewer { Content = box, MaxHeight = 220d, Margin = new Thickness(0, 4, 0, 8) },
+            BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+            CornerRadius = new CornerRadius(5d),
+        };
+        border.SetResourceReference(Border.BackgroundProperty, "ColorBrush7");
+        border.SetResourceReference(Border.BorderBrushProperty, "ColorBrush6");
+
+        return border;
     }
 
     public static MyIconTextButton IconButton(string text, string svgIcon, CrashActionPriority priority)
