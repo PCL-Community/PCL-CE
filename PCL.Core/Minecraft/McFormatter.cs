@@ -1,8 +1,34 @@
-﻿namespace PCL.Core.Minecraft;
+﻿using System;
+using PCL.Core.App.Localization;
+
+namespace PCL.Core.Minecraft;
 
 public static class McFormatter {
+    /// <summary>
+    ///     根据当前 UI 语言返回 Minecraft Wiki 的基础 URL。
+    /// </summary>
+    public static string GetWikiBaseUrl() {
+        var langCode = LocalizationService.CurrentLanguage.Code;
+        var prefix = langCode switch {
+            _ when langCode.StartsWith("zh") => "zh",
+            _ when langCode.StartsWith("ja") => "ja",
+            _ when langCode.StartsWith("fr") => "fr",
+            _ when langCode.StartsWith("es") => "es",
+            _ => null
+        };
+        return prefix is null
+            ? "https://minecraft.wiki"
+            : $"https://{prefix}.minecraft.wiki";
+    }
+
     public static string GetWikiUrlSuffix(string gameVersion) {
         var formattedVersion = FormatVersion(gameVersion);
+        var langCode = LocalizationService.CurrentLanguage.Code;
+
+        // 非 zh 语言使用搜索 URL
+        if (!langCode.StartsWith("zh")) {
+            return "/w/Special:Search?search=" + Uri.EscapeDataString("Java Edition " + formattedVersion);
+        }
 
         if (gameVersion.Contains('w')) return formattedVersion;
 
