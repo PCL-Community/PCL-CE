@@ -36,6 +36,14 @@ public partial class PageSetupAbout
         ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.versionBaseName)
             .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
             .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
+
+        if (!RegionUtils.IsRestrictedFeatAllowed)
+        {
+            ItemMcmod.Visibility = Visibility.Collapsed;
+            BtnMcmod.Visibility = Visibility.Collapsed;
+            ImgMcmod.Visibility = Visibility.Collapsed;
+        }
+
         LoadContributersAsync();
     }
 
