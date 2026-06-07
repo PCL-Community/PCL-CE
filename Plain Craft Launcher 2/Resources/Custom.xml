@@ -59,7 +59,7 @@
     <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
                Text="将按钮的 EventType 属性设为 打开网页，然后在 EventData 属性中写入网址，即可通过点击按钮打开网页。"/>
     <local:MyButton Width="140" Height="35" HorizontalAlignment="Left" Padding="13,0,13,0"
-                    Text="打开 Minecraft Wiki" EventType="打开网页" EventData="https://zh.minecraft.wiki/"/>
+                    Text="打开 Minecraft Wiki" EventType="打开网页" EventData="https://minecraft.wiki/"/>
     <TextBlock TextWrapping="Wrap" Margin="0,10,0,10"
                Text="或者将 EventType 属性改为 弹出窗口，然后在 EventData 属性中写入弹窗的标题与内容……"/>
     <local:MyButton Width="140" Height="35" HorizontalAlignment="Left" Padding="13,0,13,0"
