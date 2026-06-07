@@ -1,53 +1,53 @@
-name: "[新版] Minecraft 崩溃"
-description: "新版 PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃"
+name: "[新版] Minecraft 崩溃 / [New Version] Minecraft Crash"
+description: "新版 PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃 / New version PCL CE shows 'Minecraft encountered an error', or the game crashes"
 title: "[C#]: "
-type: "崩溃"
+type: "崩溃 / Crash"
 body:
-- type: markdown
-  id: "desc"
-  attributes:
-    value: |
-      ## 感谢参与 PCL CE 新版本测试！
-      请注意您目前正在提交和新版本有关的 Minecraft 崩溃反馈
-      如果您使用的不是新版本 (2.15.x)，请到 [旧版 Minecraft 崩溃反馈区](https://github.com/PCL-Community/PCL-CE/issues/new?template=2-game_crash.yml) 提交反馈
-- type: checkboxes
-  id: "yml-1"
-  attributes:
-    label: "检查项"
-    description: "请逐个检查下列项目，并勾选确认。"
-    options:
-    - label: "**我已尝试使用 [HMCL](https://hmcl.huangyuhui.net/download) 启动，HMCL 没有出现问题**（如果 HMCL 也无法启动就一般不是 PCL CE 导致的问题，请 **不要** 提交反馈）"
+  - type: markdown
+    id: "desc"
+    attributes:
+      value: |
+        ## 感谢参与 PCL CE 新版本测试！ / Thank you for participating in the PCL CE new version testing!
+        请注意您目前正在提交和新版本有关的 Minecraft 崩溃反馈 / Please note you are submitting Minecraft crash feedback related to the new version.
+        如果您使用的不是新版本 (2.15.x)，请到 [旧版 Minecraft 崩溃反馈区](https://github.com/PCL-Community/PCL-CE/issues/new?template=2-game_crash.yml) 提交反馈 / If you are not using the new version (2.15.x), please submit feedback in the [Legacy Minecraft Crash Feedback section].
+  - type: checkboxes
+    id: "yml-1"
+    attributes:
+      label: "检查项 / Checklist"
+      description: "请逐个检查下列项目，并勾选确认 / Please review each item below and check to confirm."
+      options:
+        - label: "**我已尝试使用 [HMCL](https://hmcl.huangyuhui.net/download) 启动，HMCL 没有出现问题**（如果 HMCL 也无法启动就一般不是 PCL CE 导致的问题，请 **不要** 提交反馈） / I have tried launching with [HMCL](https://hmcl.huangyuhui.net/download) and it works fine (if HMCL also fails to launch, it is usually not caused by PCL CE, please **do not** submit feedback)."
+          required: true
+        - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) 中搜索，确认了这一 Bug 未被提交过 / I have searched the [Issues page](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) and confirmed this bug has not been submitted."
+          required: true
+        - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭 / I acknowledge that I checked all items without carefully verifying them, and agree that this Issue may be closed directly."
+          required: false
+        - label: "我确认正在使用当前更新分支的最新版 PCL CE，若不是，此 Issue 可能会被直接关闭（更新方式：启动器 `设置-关于-软件更新` 检查更新，或在 [Releases](https://github.com/PCL-Community/PCL2-CE/releases) 页面下载） / I confirm I am using the latest version of PCL CE on the current update branch; if not, this Issue may be closed (update via launcher Settings → About → Check for Updates, or download from [Releases])."
+          required: true
+        - label: "我确认会详细描述我所遇到的问题，并附上日志和截图，而不是随便填点东西敷衍了事。/ I will describe the problem in detail, including logs and screenshots, and will not submit incomplete information."
+          required: true
+  - type: textarea
+    id: "yml-2"
+    attributes:
+      label: "描述 / Description"
+      description: "详细描述具体表现 / Describe the specific behavior in detail."
+    validations:
       required: true
-    - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) 中搜索，确认了这一 Bug 未被提交过"
+  - type: textarea
+    id: "yml-3"
+    attributes:
+      label: "PCL CE 错误报告、日志与附件 / PCL CE Error Reports, Logs & Attachments"
+      description: "上传 PCL CE 提供的错误报告 (在崩溃时选择导出错误报告)。如果没有，请在游戏崩溃后不要关掉启动器，使用 `设置-查看日志-导出日志` 得到日志压缩包并上传 / Upload the error report provided by PCL CE (choose export report on crash). If unavailable, do not close the launcher after a crash, use Settings → View Logs → Export Logs and upload the zipped logs."
+      placeholder: |
+        先点击这个文本框，然后再将文件直接拖拽到文本框中以上传 / Click this textbox first, then drag and drop files here to upload.
+        如果缺少相关错误报告或日志用于分析问题，此 Issue 可能会被直接关闭 / If required error reports or logs are missing, this Issue may be closed directly.
+    validations:
       required: true
-    - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭"
+  - type: textarea
+    id: "yml-4"
+    attributes:
+      label: "HMCL 启动脚本 / HMCL Launch Script"
+      description: "在 HMCL 中进入实例列表，点击版本右侧的三个点，选择“生成启动脚本” / In HMCL, go to the instance list, click the three dots next to the version, select 'Generate Launch Script'."
+      placeholder: "先点击这个文本框，然后再将文件直接拖拽到文本框中以上传 / Click this textbox first, then drag and drop the file here to upload."
+    validations:
       required: false
-    - label: "我确认正在使用当前更新分支的最新版 PCL CE，若不是，此 Issue 可能会被直接关闭（更新方式：启动器 `设置-关于-软件更新` 检查更新，或在 [Releases](https://github.com/PCL-Community/PCL2-CE/releases) 页面下载）"
-      required: true
-    - label: "我确认会详细描述我所遇到的问题，并附上日志和截图，而不是随便填点东西敷衍了事。"
-      required: true
-- type: textarea
-  id: "yml-2"
-  attributes:
-    label: 描述
-    description: "详细描述具体表现。"
-  validations:
-    required: true
-- type: textarea
-  id: "yml-3"
-  attributes:
-    label: PCL CE 错误报告、日志与附件
-    description: "上传 PCL CE 提供的错误报告 (在崩溃时选择导出错误报告)。如果没有，请在游戏崩溃后不要关掉启动器，使用 `设置-查看日志-导出日志` 得到日志压缩包并上传。"
-    placeholder: |
-      先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。
-      如果缺少相关错误报告或日志用于分析问题，此 Issue 可能会被直接关闭。
-  validations:
-    required: true
-- type: textarea
-  id: "yml-4"
-  attributes:
-    label: HMCL 启动脚本
-    description: "在 HMCL 中进入实例列表，点击版本右侧的三个点，选择“生成启动脚本”。"
-    placeholder: "先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。"
-  validations:
-    required: false

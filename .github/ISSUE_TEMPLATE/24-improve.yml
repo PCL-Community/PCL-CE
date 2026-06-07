@@ -1,51 +1,52 @@
-name: "[新版] 优化建议"
-description: "对新版 PCL CE 已有功能的小幅度优化或改进建议。"
+name: "[新版] 优化建议 / [New Version] Improvement Suggestions"
+description: "对新版 PCL CE 已有功能的小幅度优化或改进建议 / Minor improvements or enhancement suggestions for existing features in the new PCL CE version."
 title: "[C#]: "
-type: "优化"
+type: "优化 / Improvement"
 body:
-- type: markdown
-  id: "desc"
-  attributes:
-    value: |
-      ## 感谢参与 PCL CE 新版本测试！
-      请注意您目前正在提交和新版本有关的优化建议
-      由于我们目前不受理针对旧版本的优化建议，如果您使用的不是新版本 (2.15.x)，
-      您可以尝试更新到 2.15.x 版本 (Beta 渠道)，或是在晚一些 2.15.0 推送到正式版之后再来提交反馈
-- type: checkboxes
-  id: "yml-1"
-  attributes:
-    label: "检查项"
-    description: "请逐个检查下列项目，并勾选确认。"
-    options:
-    - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) 中搜索，确认了这一建议未在社区版被提交过"
+  - type: markdown
+    id: "desc"
+    attributes:
+      value: |
+        ## 感谢参与 PCL CE 新版本测试！ / Thank you for participating in the PCL CE new version testing!
+        请注意您目前正在提交和新版本有关的优化建议 / Please note you are submitting improvement suggestions for the new version.
+        由于我们目前不受理针对旧版本的优化建议，如果您使用的不是新版本 (2.15.x)，
+        您可以尝试更新到 2.15.x 版本 (Beta 渠道)，或是在晚一些 2.15.0 推送到正式版之后再来提交反馈
+        / As we currently do not accept improvement suggestions for the legacy version, if you are not using the new version (2.15.x), you may update to 2.15.x (Beta channel), or submit feedback after 2.15.0 is officially released.
+  - type: checkboxes
+    id: "yml-1"
+    attributes:
+      label: "检查项 / Checklist"
+      description: "请逐个检查下列项目，并勾选确认 / Please review the following items and check to confirm."
+      options:
+        - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) 中搜索，确认了这一建议未在社区版被提交过 / I have searched the [Issues page](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+) and confirmed this suggestion has not been submitted in the Community Edition before"
+          required: true
+        - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭 / I acknowledge that I checked all without carefully confirming and agree that this Issue may be closed directly"
+          required: false
+        - label: "我确认我所描述的改进是现实的、有理有据的，而不是我临时起意的 / I confirm that the improvement I describe is realistic and reasonable, not a spontaneous idea"
+          required: true
+        - label: "我已知悉社区不对这类 Issue 的完成时间作出任何保证，并有足够的耐心等待社区开发者的处理，同时已知悉如果我作出催促、质问或类似的举动，这个 Issue 可能会被直接关闭 / I acknowledge that the community does not guarantee a completion time for such Issues and I am patient waiting for developer processing. I also understand that if I urge or question excessively, this Issue may be closed directly"
+          required: true
+  - type: input
+    id: "yml-2"
+    attributes:
+      label: "官方版原 Issue 编号 / Original Official Issue Number"
+      description: "如果这个 Issue 是从官方版转交过来的，请将原 Issue 标题旁的**编号**输入到下方预设文本的`#`后，不要输入任何其他非数字字符。**若不是，请清空下方输入框。** / If this Issue is transferred from the official version, enter the **number** next to the original Issue title after `#`. Do not input other characters. If not, leave blank."
+      value: "- Meloong-Git/PCL2#"
+  - type: textarea
+    id: "yml-3"
+    attributes:
+      label: 描述 / Description
+      description: "详细描述具体需要优化哪些地方，要改成怎样的 / Describe in detail what needs to be improved and how"
+    validations:
       required: true
-    - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL2-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭"
+  - type: textarea
+    id: "yml-4"
+    attributes:
+      label: 原因 / Reason
+      description: "详细描述你为什么需要这项优化，这有助于开发者评估它的优先度 / Describe why this improvement is needed to help developers assess its priority"
+      placeholder: |
+        示例 / Example：
+        这项优化让我可以更方便地 xxxx / This improvement allows me to xxxx more conveniently.
+        如果没有这项优化，我每次都必须 xxxx，让操作变得很麻烦 / Without this improvement, I have to xxxx each time, making the process cumbersome.
+    validations:
       required: false
-    - label: "我确认我所描述的改进是现实的、有理有据的，而不是我临时起意的"
-      required: true
-    - label: "我已知悉社区不对这类 Issue 的完成时间作出任何保证，并有足够的耐心等待社区开发者的处理，同时已知悉如果我作出催促、质问或类似的举动，这个 Issue 可能会被直接关闭"
-      required: true
-- type: input
-  id: "yml-2"
-  attributes:
-    label: "官方版原 Issue 编号"
-    description: "如果这个 Issue 是从官方版转交过来的，请将原 Issue 标题旁的**编号**输入到下方预设文本的`#`后，不要输入任何其他非数字字符。**若不是，请清空下方输入框。**"
-    value: "- Meloong-Git/PCL2#"
-- type: textarea
-  id: "yml-3"
-  attributes:
-    label: 描述
-    description: "详细描述具体需要优化哪些地方，要改成怎样的。"
-  validations:
-    required: true
-- type: textarea
-  id: "yml-4"
-  attributes:
-    label: 原因
-    description: "详细描述你为什么需要这项优化，这有助于开发者评估它的优先度。"
-    placeholder: |
-      示例：
-      这项优化让我可以更方便地 xxxx。
-      如果没有这项优化，我每次都必须 xxxx，让操作变得很麻烦。
-  validations:
-    required: false
