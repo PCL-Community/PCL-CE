@@ -107,6 +107,7 @@ public partial class PageInstanceSetup
             var ramType = Config.Instance.MemorySolution[PageInstanceLeft.McInstance.PathInstance];
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
+            RamType(ramType);
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
@@ -179,10 +180,20 @@ public partial class PageInstanceSetup
     // 将控件改变路由到设置改变
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
-        var sender = (MyRadioBox)o;
-        var gotCfg = sender.Tag.ToString().Split("/");
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(gotCfg[0], int.Parse(gotCfg[1]));
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (o is not MyRadioBox { Tag: string tag }) return;
+
+        var slash = tag.IndexOf('/');
+        if (slash < 0) return;
+
+        var value = int.Parse(tag[(slash + 1)..]);
+        ArgConfig<int> setting = tag[..slash] switch
+        {
+            "VersionRamType" => Config.Instance.MemorySolution,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        setting[PageInstanceLeft.McInstance.PathInstance] = value;
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -212,26 +223,34 @@ public partial class PageInstanceSetup
 
     private void SliderChange(object o, bool user)
     {
-        var sender = (MySlider)o;
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(sender.Tag?.ToString(), sender.Value);
-    }
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (o is not MySlider slider) return;
 
-    private static void ComboChange(MyComboBox sender, object e)
-    {
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(sender.Tag?.ToString(), sender.SelectedIndex);
-    }
-
-    private static void SetInstanceByTag(string tag, object value)
-    {
-        var path = PageInstanceLeft.McInstance.PathInstance;
-        switch (tag)
+        var tag = slider.Tag?.ToString();
+        var value = slider.Value;
+        ArgConfig<int> setting = tag switch
         {
-            case "VersionRamType": Config.Instance.MemorySolution[path] = (int)value; break;
-            case "VersionRamCustom": Config.Instance.CustomMemorySize[path] = (int)value; break;
-            case "VersionServerLoginRequire": Config.InstanceAuth.LoginRequirementSolution[path] = (int)value; break;
-        }
+            "VersionRamCustom" => Config.Instance.CustomMemorySize,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+    }
+
+    private void ComboChange(MyComboBox sender, object e)
+    {
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+
+        var tag = sender.Tag?.ToString();
+        var value = sender.SelectedIndex;
+        ArgConfig<int> setting = tag switch
+        {
+            "VersionServerLoginRequire" => Config.InstanceAuth.LoginRequirementSolution,
+            "VersionAdvanceRenderer" => Config.Instance.Renderer,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        setting[PageInstanceLeft.McInstance.PathInstance] = value;
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -1018,7 +1037,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
 
-        var args = (SelectionChangedEventArgs)e; // 转换事件参数
+        var args = e; // 转换事件参数
 
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
