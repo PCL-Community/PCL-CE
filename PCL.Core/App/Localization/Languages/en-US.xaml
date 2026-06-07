@@ -1669,6 +1669,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL will use java.exe to run the game, giving the game process standard input/output streams to avoid possible issues when logs are printed.&#x0a;&#x0a;Depending on the behavior of different Java distributions, java.exe may not support features that depend on operating system support, such as HDR colors. Therefore, do not enable this option if everything works normally.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#x0a;PCL uses LWJGL Unsafe Agent to fix this issue and avoid possible performance problems.&#x0a;There is generally no need to disable this option, but if you encounter additional issues, you can try temporarily disabling it for troubleshooting.&#x0a;&#x0a;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">Disable automatic crash analysis</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">When enabled, the crash analysis page will no longer automatically appear when the game crashes.&#x0a;The crash analysis page can still be opened manually.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">You can find more advanced launch options in instance settings.</sys:String>
 
     <!-- Setup.Launch.Misc -->
