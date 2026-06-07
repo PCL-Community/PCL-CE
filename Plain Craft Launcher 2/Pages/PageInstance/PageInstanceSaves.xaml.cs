@@ -58,7 +58,7 @@ public partial class PageInstanceSaves : IRefreshable
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        worldPath = PageInstanceLeft.instance.PathIndie + @"saves\";
+        worldPath = PageInstanceLeft.McInstance.PathIndie + @"saves\";
         if (!Directory.Exists(worldPath))
             Directory.CreateDirectory(worldPath);
         Reload();
@@ -191,7 +191,7 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
                         ModBase.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
@@ -286,7 +286,7 @@ public partial class PageInstanceSaves : IRefreshable
                         var launchOptions = new ModLaunch.McLaunchOptions
                         {
                             WorldName = worldName,
-                            instance = PageInstanceLeft.instance
+                            instance = PageInstanceLeft.McInstance
                         };
                         ModLaunch.McLaunchStart(launchOptions);
                         ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
@@ -312,7 +312,7 @@ public partial class PageInstanceSaves : IRefreshable
     {
         try
         {
-            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.instance);
+            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.McInstance);
             quickPlayFeature = cur.HasArguments("--quickPlaySingleplayer");
         }
         catch (Exception ex)
@@ -402,7 +402,7 @@ public partial class PageInstanceSaves : IRefreshable
                 ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), ModMain.HintType.Finish);
             ModBase.RunInUi(() => Reload());
         }));
-        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.instance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
+        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.McInstance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);

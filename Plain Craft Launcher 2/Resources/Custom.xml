@@ -122,7 +122,7 @@
                     Text="查看 PCL 源代码" EventType="打开网页"
                     EventData="https://github.com/Meloong-Git/PCL/blob/main/Plain%20Craft%20Launcher%202/FormMain.xaml.vb"/>
     <TextBlock Margin="0,0,0,4"
-               Text="· 今日人品、清理垃圾、内存优化、安装整合包：触发对应功能"/>
+               Text="· 今日人品、清理垃圾、安装整合包：触发对应功能"/>
     <TextBlock Margin="0,0,0,4"
                Text="· 复制文本：将 EventData 中的内容复制到剪贴板"/>
     <TextBlock Margin="0,0,0,4"
@@ -171,11 +171,9 @@
                         Text="复制召唤命令" EventType="复制文本"
                         EventData="/execute as @a at @s run summon Creeper ~ ~2 ~"
                         ToolTip="这条 Minecraft 命令会在每个玩家头顶召唤一只苦力怕！"/>
-        <local:MyButton Margin="0,0,10,0" Width="140" Height="35" HorizontalAlignment="Left" Padding="13,0,13,0"
-                        Text="内存优化" EventType="内存优化"/>
-        <local:MyButton Margin="0,0,10,0" Width="140" Height="35" HorizontalAlignment="Left" Padding="13,0,13,0"
-                        Text="下载百度的 Logo" EventType="下载文件"
-                        EventData="https://www.baidu.com/img/flexible/logo/pc/result.png"/>
+         <local:MyButton Margin="0,0,10,0" Width="140" Height="35" HorizontalAlignment="Left" Padding="13,0,13,0"
+                         Text="下载百度的 Logo" EventType="下载文件"
+                         EventData="https://www.baidu.com/img/flexible/logo/pc/result.png"/>
     </StackPanel>
 </StackPanel>
 </local:MyCard>

@@ -35,14 +35,14 @@ public partial class PageDownloadLiteLoader
             var dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
             for (var versionCode = 30; versionCode >= 0; versionCode -= 1)
                 dict.Add("1." + versionCode, new List<ModDownload.DlLiteLoaderListEntry>());
-            dict.Add(ModMinecraft.UNKNOWN_VERSION_KEY, []);
+            dict.Add(McVersionComparer.UNKNOWN_VERSION_KEY, []);
             foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.Value)
             {
                 var mainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (dict.ContainsKey(mainVersion))
                     dict[mainVersion].Add(Version);
                 else
-                    dict[ModMinecraft.UNKNOWN_VERSION_KEY].Add(Version);
+                    dict[McVersionComparer.UNKNOWN_VERSION_KEY].Add(Version);
             }
 
             // 清空当前
@@ -55,7 +55,7 @@ public partial class PageDownloadLiteLoader
                 // 增加卡片
                 var newCard = new MyCard
                 {
-                    Title = (Pair.Key == ModMinecraft.UNKNOWN_VERSION_KEY
+                    Title = (Pair.Key == McVersionComparer.UNKNOWN_VERSION_KEY
                         ? Lang.Text("Minecraft.Version.Unknown")
                         : Pair.Key) + " (" + Pair.Value.Count + ")",
                     Margin = new Thickness(0d, 0d, 0d, 15d)
@@ -72,7 +72,7 @@ public partial class PageDownloadLiteLoader
                 newCard.InstallMethod = stack =>
                 {
                     stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.Inherit, b.Inherit) == 1);
+                        McVersionComparer.CompareVersion(a.Inherit, b.Inherit) == 1);
                     foreach (var item in (IEnumerable)stack.Tag)
                         stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
                             (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));

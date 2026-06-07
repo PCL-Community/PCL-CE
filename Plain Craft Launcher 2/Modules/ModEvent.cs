@@ -102,11 +102,9 @@ namespace PCL
             启动游戏,
             复制文本,
             刷新主页,
-            刷新主页市场,
             刷新页面,
             刷新帮助,
             今日人品,
-            内存优化,
             清理垃圾,
             弹出窗口,
             弹出提示,
@@ -187,19 +185,19 @@ namespace PCL
                     case EventType.启动游戏:
                         if (args[0] == "\\current")
                         {
-                            if (ModMinecraft.McInstanceSelected is null)
+                            if (ModInstanceList.McMcInstanceSelected is null)
                             {
                                 ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
                                 return;
                             }
-                            args[0] = ModMinecraft.McInstanceSelected.Name;
+                            args[0] = ModInstanceList.McMcInstanceSelected.Name;
                         }
                         ModBase.RunInUi(() =>
                         {
                             var options = new ModLaunch.McLaunchOptions
                             {
                                 ServerIp = args.Length >= 2 ? args[1] : null,
-                                instance = new ModMinecraft.Instance(args[0])
+                                instance = new McInstance(args[0])
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
@@ -226,12 +224,6 @@ namespace PCL
                         }
                         break;
 
-                    case EventType.刷新主页市场:
-                        ModMain.frmHomePageMarket?.Refresh();
-                        if (args[0] == "")
-                            ModMain.Hint("已刷新主页市场！", ModMain.HintType.Finish);
-                        break;
-
                     case EventType.刷新帮助:
                         ModBase.RunInUiWait(() => PageToolsLeft.RefreshHelp());
                         if (string.IsNullOrEmpty(arg))
@@ -240,11 +232,6 @@ namespace PCL
 
                     case EventType.今日人品:
                         PageToolsTest.Jrrp();
-                        break;
-
-                    case EventType.内存优化:
-                        if (PageToolsTest.AskTrulyWantMemoryOptimize())
-                            ModBase.RunInThread(() => PageToolsTest.MemoryOptimize(true));
                         break;
 
                     case EventType.清理垃圾:
@@ -320,7 +307,7 @@ namespace PCL
                         if (args.Length == 1)
                             throw new Exception($"EventType {type} 需要至少 2 个以 | 分割的参数，例如 UiLauncherTransparent|400");
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
-                            item.SetValueNoType(args[1], ModMinecraft.McInstanceSelected?.PathInstance);
+                            item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         if (args.Length == 2)
                             ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
                         break;

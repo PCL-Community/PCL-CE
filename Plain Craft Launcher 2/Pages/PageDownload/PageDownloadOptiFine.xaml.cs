@@ -76,7 +76,7 @@ public partial class PageDownloadOptiFine
                 newCard.InstallMethod = stack =>
                 {
                     stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName) == 1);
+                        McVersionComparer.CompareVersion(a.DisplayName, b.DisplayName) == 1);
                     foreach (var item in (IEnumerable)stack.Tag)
                         stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
                             (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));

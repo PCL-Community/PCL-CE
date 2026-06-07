@@ -491,11 +491,6 @@ public static partial class Config
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
 
         /// <summary>
-        /// 启动前优化内存。
-        /// </summary>
-        [ConfigItem<bool>("LaunchArgumentRam", false)] public partial bool OptimizeMemory { get; set; }
-
-        /// <summary>
         /// 附加 JVM 参数。
         /// </summary>
         [ConfigItem<string>("LaunchAdvanceJvm", "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true", ConfigSource.Local)] public partial string JvmArgs { get; set; }
