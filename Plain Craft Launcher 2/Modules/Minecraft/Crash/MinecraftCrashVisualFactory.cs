@@ -509,7 +509,7 @@ public static class MinecraftCrashVisualFactory
         var border = new Border
         {
             Child = new MyScrollViewer { Content = box, MaxHeight = 220d, Margin = new Thickness(0, 4, 0, 8) },
-            BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+            BorderThickness = new Thickness(ModBase.GetWPFSize(2d)),
             CornerRadius = new CornerRadius(5d),
         };
         border.SetResourceReference(Border.BackgroundProperty, "ColorBrush7");

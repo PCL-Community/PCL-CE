@@ -63,7 +63,8 @@ internal sealed partial class MinecraftCrashReportParser : ICrashLogParser
 
         facts.Add(CrashFactFactory.CreateFromContext(
             CrashFactKind.MinecraftVersionDetected,
-            minecraftVersion));
+            minecraftVersion,
+            sourceKind: CrashLogKind.LauncherLog));
     }
 
     private static void _AppendMinecraftVersionFact(

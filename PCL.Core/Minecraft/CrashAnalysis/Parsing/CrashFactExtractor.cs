@@ -186,7 +186,9 @@ internal static class CrashFactFactory
         IReadOnlyDictionary<string, string>? properties = null,
         CrashFactVisibility visibility = CrashFactVisibility.Technical,
         CrashFactStrength? strength = null,
-        CrashFactScope? scope = null)
+        CrashFactScope? scope = null,
+        CrashLogKind? sourceKind = null,
+        string? sourceName = null)
     {
         return new CrashFact
         {
@@ -196,7 +198,10 @@ internal static class CrashFactFactory
             Strength = strength ?? _DefaultStrength(kind),
             Scope = scope ?? _DefaultScope(kind),
             Visibility = visibility,
-            Properties = properties ?? new Dictionary<string, string>()
+            Properties = properties ?? new Dictionary<string, string>(),
+            Evidence = sourceKind is not null
+                ? [new CrashFactEvidence { SourceKind = sourceKind.Value, SourceName = sourceName }]
+                : []
         };
     }
 
