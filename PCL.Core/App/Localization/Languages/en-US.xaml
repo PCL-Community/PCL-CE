@@ -679,14 +679,14 @@
 
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to have been banned by Microsoft and cannot log in.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register one first and then log in.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to Microsoft accounts.&#x0a;Please use an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">Microsoft account login is not available in your country or region.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 or older</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 or younger</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">Too many login attempts. Please wait a few minutes and try again!</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;If you are using a VPN or proxy, please turn it off or switch nodes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft: Java Edition, or its Xbox Game Pass may have expired.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
@@ -2783,7 +2783,7 @@
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID terms of service.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to strictly comply with relevant laws and regulations of Chinese Mainland and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to comply with applicable laws and regulations and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">I have read and agree</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Title">NAT type</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Test">Click to test</sys:String>

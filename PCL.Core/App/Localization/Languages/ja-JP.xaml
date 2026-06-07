@@ -6,4 +6,25 @@
 
     <sys:String x:Key="Localization.Meta.Code">ja-JP</sys:String>
     <sys:String x:Key="Localization.Meta.Name">日本語（日本）</sys:String>
+
+    <!-- Network / VPN overrides (remove VPN/accelerator references from zh-CN fallback) -->
+
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">ログインページが自動的に開きます。認証コード {0} を入力してください（自動的にコピーされます）。&#x0a;&#x0a;ネットワークに問題がある場合、ページが読み込まれないことがあります。その場合は再度お試しください。&#x0a;別のデバイスで {1} を開き、認証コードを手動で入力することもできます。</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">ログインページが自動的に開き、認証コードが自動入力されます。&#x0a;&#x0a;ネットワークに問題がある場合、ページが読み込まれないことがあります。その場合は再度お試しください。&#x0a;自動入力されない場合は、認証コード {0} を手動で貼り付けてください（自動的にコピーされます）。&#x0a;別のデバイスで {1} を開き、認証コードを入力することもできます。</sys:String>
+
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">お住まいの国または地域では Microsoft アカウントにログインできません。&#x0a;ネットワーク設定を確認するか、しばらくしてから再度お試しください。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">この IP からのログイン試行が異常です。&#x0a;ネットワーク設定を確認するか、しばらくしてから再度お試しください。</sys:String>
+
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">ログインに失敗しました：ログインサーバーへの接続がタイムアウトしました。&#x0a;ネットワーク接続を確認してください。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$ログインに失敗しました：ログインサーバーへの接続がタイムアウトしました。&#x0a;ネットワーク接続を確認してください。&#x0a;詳細：</sys:String>
+
+    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">Modrinth に接続できません。CurseForge のコンテンツのみ表示しています。結果が不完全な場合があります。&#x0a;ネットワーク接続を確認し、再度お試しください。</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">Modrinth に接続できません。CurseForge のコンテンツのみ表示しています。検索結果が不完全な場合があります。&#x0a;ネットワーク接続を確認し、再度お試しください。</sys:String>
+    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">CurseForge に接続できません。Modrinth のコンテンツのみ表示しています。検索結果が不完全な場合があります。&#x0a;ネットワーク接続を確認し、再度お試しください。</sys:String>
+
+    <sys:String x:Key="Setup.Left.Feedback.Message">新しいフィードバックを送信する前に、重複を避けるために類似の問題がないかリストをご確認ください。</sys:String>
+
+    <!-- Legal text override (remove Chinese Mainland law references) -->
+
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">ロビー機能を使用することにより、以下の条件に同意したものとみなされます：&#x0A;&#x0A;私は適用される法律および規則を遵守し、ロビー機能を違法または禁止された目的で使用しないことに同意します。&#x0A;私はロビー機能の使用に伴うすべてのリスクを負うことに同意します。&#x0A;私は PCL CE が処理済みのデバイス識別子、Natayark ID などの情報を収集し、必要に応じて法執行機関に提供することを承知し、同意します。&#x0A;未成年者の個人情報を保護するため、ロビーを使用する前に自分が14歳以上であることを確認します。&#x0A;&#x0A;また、PCL CE ロビーのプライバシーポリシーおよび Natayark OpenID 利用規約にも同意する必要があります。</sys:String>
 </ResourceDictionary>
