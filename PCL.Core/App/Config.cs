@@ -534,6 +534,11 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
         
         /// <summary>
         /// 渲染器。

@@ -689,6 +689,7 @@ public static class ModWatcher
             // 崩溃分析
             WatcherLog(Lang.Text("Watcher.Crash.Detected"));
             ModMain.Hint(Lang.Text("Watcher.Crash.Hint"));
+            if (Config.Launch.DisableCrashAnalysis) return;
             ModBase.FeedbackInfo();
             ModBase.RunInNewThread(() =>
             {
