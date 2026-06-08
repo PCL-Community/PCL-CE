@@ -8,7 +8,7 @@ namespace PCL;
 
 /// <summary>
 /// 轻量折叠栏：一行可点击标题 + 三角，点击切换其下内容区的显示。
-/// 无卡片外观（无阴影/边框/背景）、无高度动画，仅切换内容 Visibility 并平滑旋转三角。
+/// 无卡片外观（无阴影/边框/背景），带高度折叠动画。
 /// </summary>
 public class MyCollapseBar : StackPanel
 {
@@ -16,11 +16,12 @@ public class MyCollapseBar : StackPanel
         DependencyProperty.Register(nameof(Title), typeof(string), typeof(MyCollapseBar),
             new PropertyMetadata("", (d, e) => ((MyCollapseBar)d)._titleBlock.Text = (string)e.NewValue));
 
+    private const double HeaderHeight = 30d;
+
     private readonly int _uuid = ModBase.GetUuid();
     private readonly TextBlock _titleBlock;
     private readonly Path _triangle;
     private readonly StackPanel _contentPanel;
-    private bool _isCollapsed;
 
     public MyCollapseBar()
     {
@@ -44,7 +45,7 @@ public class MyCollapseBar : StackPanel
         };
         _triangle.SetResourceReference(Shape.FillProperty, "ColorBrush1");
 
-        var header = new Grid { Height = 30d, Background = Brushes.Transparent, Cursor = Cursors.Hand };
+        var header = new Grid { Height = HeaderHeight, Background = Brushes.Transparent, Cursor = Cursors.Hand };
         header.Children.Add(_titleBlock);
         header.Children.Add(_triangle);
         header.MouseLeftButtonUp += (_, _) => IsCollapsed = !IsCollapsed;
@@ -71,12 +72,12 @@ public class MyCollapseBar : StackPanel
     /// <summary>是否收起。</summary>
     public bool IsCollapsed
     {
-        get => _isCollapsed;
+        get;
         set
         {
-            if (_isCollapsed == value) return;
-            _isCollapsed = value;
-            _contentPanel.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
+            if (field == value) return;
+            field = value;
+
             var target = value ? 0d : 180d;
             if (IsLoaded)
                 ModAnimation.AniStart(
@@ -86,7 +87,88 @@ public class MyCollapseBar : StackPanel
                     "MyCollapseBar " + _uuid, true);
             else
                 ((RotateTransform)_triangle.RenderTransform).Angle = target;
+
+            if (IsLoaded && ActualHeight > 0)
+            {
+                if (value)
+                    CollapseWithAnimation();
+                else
+                    ExpandWithAnimation();
+            }
+            else
+            {
+                _contentPanel.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
+            }
+
             Toggled?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    private void CollapseWithAnimation()
+    {
+        ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
+
+        var parentCard = SilenceParentCard(this);
+
+        var fullHeight = ActualHeight;
+        Height = fullHeight;
+
+        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaHeight(this, HeaderHeight - fullHeight, 200,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+            ModAnimation.AaCode(() =>
+            {
+                _contentPanel.Visibility = Visibility.Collapsed;
+                Height = double.NaN;
+                RestoreParentCard(parentCard);
+            }, after: true)
+        }, "MyCollapseBar Height " + _uuid);
+    }
+
+    private void ExpandWithAnimation()
+    {
+        ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
+
+        var parentCard = SilenceParentCard(this);
+
+        _contentPanel.Visibility = Visibility.Visible;
+        Height = double.NaN;
+        Measure(new Size(ActualWidth, double.PositiveInfinity));
+        var fullHeight = DesiredSize.Height;
+        Height = HeaderHeight;
+
+        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaHeight(this, fullHeight - HeaderHeight, 200,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+            ModAnimation.AaCode(() =>
+            {
+                Height = double.NaN;
+                RestoreParentCard(parentCard);
+            }, after: true)
+        }, "MyCollapseBar Height " + _uuid);
+    }
+
+    private static (MyCard card, bool useAnimation)? SilenceParentCard(FrameworkElement? child)
+    {
+        var current = child?.Parent;
+        while (current is not null)
+        {
+            if (current is MyCard card)
+            {
+                var saved = card.UseAnimation;
+                card.UseAnimation = false;
+                return (card, saved);
+            }
+            current = current is FrameworkElement fe ? fe.Parent : null;
+        }
+        return null;
+    }
+
+    private static void RestoreParentCard((MyCard card, bool useAnimation)? state)
+    {
+        if (state is { } s)
+            s.card.UseAnimation = s.useAnimation;
     }
 }
