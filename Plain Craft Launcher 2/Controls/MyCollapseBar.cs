@@ -22,6 +22,7 @@ public class MyCollapseBar : StackPanel
     private readonly TextBlock _titleBlock;
     private readonly Path _triangle;
     private readonly StackPanel _contentPanel;
+    private (MyCard card, bool useAnimation)? _parentCardState;
 
     public MyCollapseBar()
     {
@@ -107,8 +108,8 @@ public class MyCollapseBar : StackPanel
     private void CollapseWithAnimation()
     {
         ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
-
-        var parentCard = SilenceParentCard(this);
+        RestoreParentCardOnInterrupt();
+        SilenceParentCard();
 
         var fullHeight = ActualHeight;
         Height = fullHeight;
@@ -121,7 +122,7 @@ public class MyCollapseBar : StackPanel
             {
                 _contentPanel.Visibility = Visibility.Collapsed;
                 Height = double.NaN;
-                RestoreParentCard(parentCard);
+                RestoreParentCard();
             }, after: true)
         }, "MyCollapseBar Height " + _uuid);
     }
@@ -129,8 +130,8 @@ public class MyCollapseBar : StackPanel
     private void ExpandWithAnimation()
     {
         ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
-
-        var parentCard = SilenceParentCard(this);
+        RestoreParentCardOnInterrupt();
+        SilenceParentCard();
 
         _contentPanel.Visibility = Visibility.Visible;
         Height = double.NaN;
@@ -145,30 +146,45 @@ public class MyCollapseBar : StackPanel
             ModAnimation.AaCode(() =>
             {
                 Height = double.NaN;
-                RestoreParentCard(parentCard);
+                RestoreParentCard();
             }, after: true)
         }, "MyCollapseBar Height " + _uuid);
     }
 
-    private static (MyCard card, bool useAnimation)? SilenceParentCard(FrameworkElement? child)
+    /// <summary>若上一个动画被中断且它的 RestoreParentCard 未执行，则先恢复。</summary>
+    private void RestoreParentCardOnInterrupt()
     {
-        var current = child?.Parent;
+        if (_parentCardState is { } s)
+        {
+            s.card.UseAnimation = s.useAnimation;
+            _parentCardState = null;
+        }
+    }
+
+    private void SilenceParentCard()
+    {
+        if (_parentCardState is not null)
+            return;
+
+        var current = Parent as FrameworkElement;
         while (current is not null)
         {
             if (current is MyCard card)
             {
-                var saved = card.UseAnimation;
+                _parentCardState = (card, card.UseAnimation);
                 card.UseAnimation = false;
-                return (card, saved);
+                return;
             }
-            current = current is FrameworkElement fe ? fe.Parent : null;
+            current = current.Parent as FrameworkElement;
         }
-        return null;
     }
 
-    private static void RestoreParentCard((MyCard card, bool useAnimation)? state)
+    private void RestoreParentCard()
     {
-        if (state is { } s)
+        if (_parentCardState is { } s)
+        {
             s.card.UseAnimation = s.useAnimation;
+            _parentCardState = null;
+        }
     }
 }
