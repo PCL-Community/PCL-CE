@@ -1738,6 +1738,8 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">标题显示文件名，详情显示译名</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">不显示 Quilt 加载器</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">不在社区资源的加载器展示中显示 Quilt 加载器</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">下载 Mod 时自动检查并安装必需前置</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies.ToolTip">安装 Mod 时，若检测到缺少必需前置，将列出前置列表供确认后自动下载安装（可在确认时取消）</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.Title">辅助功能</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.GameUpdateNotice">游戏更新提示</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice">正式版更新提示</sys:String>
