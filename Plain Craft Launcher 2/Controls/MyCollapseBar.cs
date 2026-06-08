@@ -27,6 +27,7 @@ public class MyCollapseBar : StackPanel
     public MyCollapseBar()
     {
         Orientation = Orientation.Vertical;
+        ClipToBounds = true;
 
         _titleBlock = new TextBlock
         {
