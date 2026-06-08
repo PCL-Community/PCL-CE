@@ -3361,36 +3361,12 @@ public static class ModComp
         var bar = new MyCollapseBar
         {
             Title = $"{title} ({projects.Count})",
-            Margin = new Thickness(0d, 0d, 0d, 8d),
             IsCollapsed = collapsed
         };
         foreach (var project in projects)
             bar.ContentPanel.Children.Add(project.ToCompItem(false, false));
 
-        bar.Toggled += _DependencyBarToggled;
         stack.Children.Add(bar);
-    }
-
-    /// <summary>
-    /// 折叠栏开合时，让其最近的 MyCard 祖先跳过高度动画、立即更新高度，
-    /// 避免内容瞬间显隐时外层卡片高度滞留产生的跳动。
-    /// </summary>
-    private static void _DependencyBarToggled(object? sender, EventArgs e)
-    {
-        if (sender is not DependencyObject element)
-            return;
-        for (var current = VisualTreeHelper.GetParent(element); current is not null;
-             current = VisualTreeHelper.GetParent(current))
-        {
-            if (current is not MyCard card)
-                continue;
-            var rawUseAnimation = card.UseAnimation;
-            card.UseAnimation = false;
-            card.TriggerForceResize();
-            card.Dispatcher.BeginInvoke(new Action(() => card.UseAnimation = rawUseAnimation),
-                System.Windows.Threading.DispatcherPriority.Loaded);
-            break;
-        }
     }
 
     #endregion
