@@ -10,10 +10,10 @@ public static class McFormatter {
     public static string GetWikiBaseUrl() {
         var langCode = LocalizationService.CurrentLanguage.Code;
         var prefix = langCode switch {
-            _ when langCode.StartsWith("zh") => "zh",
-            _ when langCode.StartsWith("ja") => "ja",
-            _ when langCode.StartsWith("fr") => "fr",
-            _ when langCode.StartsWith("es") => "es",
+            _ when langCode.StartsWith("zh", StringComparison.Ordinal) => "zh",
+            _ when langCode.StartsWith("ja", StringComparison.Ordinal) => "ja",
+            _ when langCode.StartsWith("fr", StringComparison.Ordinal) => "fr",
+            _ when langCode.StartsWith("es", StringComparison.Ordinal) => "es",
             _ => null
         };
         return prefix is null
@@ -26,8 +26,8 @@ public static class McFormatter {
         var langCode = LocalizationService.CurrentLanguage.Code;
 
         // 非 zh 语言使用搜索 URL
-        if (!langCode.StartsWith("zh")) {
-            return "/w/Special:Search?search=" + Uri.EscapeDataString("Java Edition " + formattedVersion);
+        if (!langCode.StartsWith("zh", StringComparison.Ordinal)) {
+            return $"/w/Special:Search?search={Uri.EscapeDataString($"Java Edition {formattedVersion}")}";
         }
 
         if (gameVersion.Contains('w')) return formattedVersion;
