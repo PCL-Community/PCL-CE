@@ -1,6 +1,6 @@
 ﻿namespace PCL.Core.Minecraft.Profile.Autnenrication;
 
-public class MicrosoftProvider
+public sealed class MicrosoftProvider(string accessToken, string refreshToken): IAuthenticateProvider
 {
     
 }
