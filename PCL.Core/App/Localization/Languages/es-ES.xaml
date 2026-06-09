@@ -6,25 +6,4 @@
 
     <sys:String x:Key="Localization.Meta.Code">es-ES</sys:String>
     <sys:String x:Key="Localization.Meta.Name">Español (España)</sys:String>
-
-    <!-- Network / VPN overrides (remove VPN/accelerator references from zh-CN fallback) -->
-
-    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">La página de inicio de sesión se abrirá automáticamente. Introduce el código de autorización {0} (se copiará automáticamente).&#x0a;&#x0a;Si tienes problemas de red, la página puede no cargar. Vuelve a intentarlo.&#x0a;También puedes abrir {1} en otro dispositivo e introducir el código manualmente.</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">La página de inicio de sesión se abrirá automáticamente y el código de autorización se rellenará automáticamente.&#x0a;&#x0a;Si tienes problemas de red, la página puede no cargar. Vuelve a intentarlo.&#x0a;Si el código no se rellena automáticamente, pega este código de autorización {0} manualmente (se copiará automáticamente).&#x0a;También puedes abrir {1} en otro dispositivo e introducir el código manualmente.</sys:String>
-
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">El inicio de sesión con cuenta de Microsoft no está disponible en tu país o región.&#x0a;Verifica tu configuración de red o inténtalo de nuevo más tarde.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Intentos de inicio de sesión anómalos desde esta IP.&#x0a;Verifica tu configuración de red o inténtalo de nuevo más tarde.</sys:String>
-
-    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">Error de inicio de sesión: se agotó el tiempo de conexión al servidor de autenticación.&#x0a;Por favor, verifica tu conexión de red.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$Error de inicio de sesión: se agotó el tiempo de conexión al servidor de autenticación.&#x0a;Por favor, verifica tu conexión de red.&#x0a;Detalles:</sys:String>
-
-    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">No se puede conectar a Modrinth; solo se muestra el contenido de CurseForge. Los resultados pueden estar incompletos.&#x0a;Verifica tu conexión a internet e inténtalo de nuevo.</sys:String>
-    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">No se puede conectar a Modrinth; solo se muestra el contenido de CurseForge. Los resultados de búsqueda pueden estar incompletos.&#x0a;Verifica tu conexión a internet e inténtalo de nuevo.</sys:String>
-    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">No se puede conectar a CurseForge; solo se muestra el contenido de Modrinth. Los resultados de búsqueda pueden estar incompletos.&#x0a;Verifica tu conexión a internet e inténtalo de nuevo.</sys:String>
-
-    <sys:String x:Key="Setup.Left.Feedback.Message">Por favor, revisa la lista de comentarios para problemas similares antes de enviar un nuevo comentario para evitar duplicados.</sys:String>
-
-    <!-- Legal text override (remove Chinese Mainland law references) -->
-
-    <sys:String x:Key="Tools.GameLink.Agreement.Body">Al usar la función de lobby, aceptas los siguientes términos:&#x0A;&#x0A;Acepto cumplir con las leyes y reglamentos aplicables y no usar la función de lobby con fines ilegales o prohibidos.&#x0A;Acepto asumir todos los riesgos asociados con el uso de la función de lobby.&#x0A;Reconozco y acepto que PCL CE recopila identificadores de dispositivo procesados, Natayark ID y otra información, y puede proporcionarlos a las autoridades competentes cuando sea necesario.&#x0A;Para proteger la información personal de menores, confirmo que tengo al menos 14 años antes de usar el lobby.&#x0A;&#x0A;Además, también debes aceptar la política de privacidad del lobby de PCL CE y los términos de servicio de Natayark OpenID.</sys:String>
 </ResourceDictionary>
