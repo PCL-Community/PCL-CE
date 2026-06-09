@@ -335,6 +335,10 @@ public partial class FormMain
             ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #endif
+        // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
+        if ((int)Config.Launch.GameWindowMode == 5)
+            Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
+
         // 更新后展示社区版提示
         UpdateManager.ShowCEAnnounce();
         // 输出更新日志
