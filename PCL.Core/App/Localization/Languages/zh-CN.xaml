@@ -536,7 +536,7 @@
     <sys:String x:Key="Select.Instance.EmptySearch.Title">无匹配的游戏实例</sys:String>
     <sys:String x:Key="Select.Instance.Loading">正在获取实例列表</sys:String>
     <sys:String x:Key="Select.Instance.Card.Regular">常规实例</sys:String>
-    <sys:String x:Key="Select.Instance.Card.Modable">可安装 Mod</sys:String>
+    <sys:String x:Key="Select.Instance.Card.Modable">可安装模组</sys:String>
     <sys:String x:Key="Select.Instance.Card.Forge">Forge 实例</sys:String>
     <sys:String x:Key="Select.Instance.Card.NeoForge">NeoForge 实例</sys:String>
     <sys:String x:Key="Select.Instance.Card.Cleanroom">Cleanroom 实例</sys:String>
@@ -729,7 +729,7 @@
 
     <sys:String x:Key="Minecraft.Launch.Java.NotFound.Title">未找到 Java</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.InstallManuallyHint">请自行搜索并安装</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">你需要先安装 LegacyJavaFixer Mod，或安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">你需要先安装 LegacyJavaFixer 模组，或安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">你需要安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">你需要安装 Java 8u141 ~ 8u320 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">你需要安装 Java 8u141 或更高版本的 Java 8 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
@@ -744,7 +744,7 @@
     <!-- Download.Left -->
 
     <sys:String x:Key="Download.Left.CommunityResources">社区资源</sys:String>
-    <sys:String x:Key="Download.Left.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Left.Mod">模组</sys:String>
     <sys:String x:Key="Download.Left.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Left.DataPack">数据包</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">资源包</sys:String>
@@ -777,31 +777,31 @@
     <sys:String x:Key="Download.Version.ViewAllVersions">查看全部版本</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">保存安装器</sys:String>
     <sys:String x:Key="Download.Version.Forge.Intro.Title">Forge 简介</sys:String>
-    <sys:String x:Key="Download.Version.Forge.Intro.Description">Forge 是一个 Mod 加载器，你需要先安装 Forge 才能安装各种 Forge 模组。</sys:String>
+    <sys:String x:Key="Download.Version.Forge.Intro.Description">Forge 是一个模组加载器，你需要先安装 Forge 才能安装各种 Forge 模组。</sys:String>
     <sys:String x:Key="Download.Version.Forge.LoadingList">正在获取 Forge 列表</sys:String>
     <sys:String x:Key="Download.Version.NeoForge.Intro.Title">NeoForge 简介</sys:String>
-    <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge 是 Minecraft 1.20.1+ 的 Mod 加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。&#x0a;本页面提供 NeoForge 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge 是 Minecraft 1.20.1+ 的模组加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。&#x0a;本页面提供 NeoForge 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.NeoForge.LoadingList">正在获取 NeoForge 列表</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Cleanroom 简介</sys:String>
-    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom 是针对 1.12.2 基于 Forge 二次开发的 Mod 加载器，理论上与 99% 的 Forge Mod 兼容。</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom 是针对 1.12.2 基于 Forge 二次开发的模组加载器，理论上与 99% 的 Forge 模组兼容。</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.LoadingList">正在获取 Cleanroom 列表</sys:String>
     <sys:String x:Key="Download.Version.LiteLoader.Intro.Title">LiteLoader 简介</sys:String>
     <sys:String x:Key="Download.Version.LiteLoader.Intro.Description">与 Forge 类似，LiteLoader 可以用于加载老版本 Minecraft 中的 LiteLoader 模组。</sys:String>
     <sys:String x:Key="Download.Version.LiteLoader.LoadingList">正在获取 LiteLoader 列表</sys:String>
     <sys:String x:Key="Download.Version.Fabric.Intro.Title">Fabric 简介</sys:String>
-    <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader 是新版 Minecraft 下的轻量化 Mod 加载器，你需要先安装它才能安装各种 Fabric 模组。&#x0a;本页面提供 Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader 是新版 Minecraft 下的轻量化模组加载器，你需要先安装它才能安装各种 Fabric 模组。&#x0a;本页面提供 Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.Fabric.LoadingList">正在获取 Fabric 列表</sys:String>
     <sys:String x:Key="Download.Version.LegacyFabric.Intro.Title">Legacy Fabric 简介</sys:String>
     <sys:String x:Key="Download.Version.LegacyFabric.Intro.Description">Legacy Fabric 是 Fabric 的旧版本移植，你需要先安装它才能安装各种 Legacy Fabric 模组。&#x0a;本页面提供 Legacy Fabric 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.LegacyFabric.LoadingList">正在获取 Legacy Fabric 列表</sys:String>
     <sys:String x:Key="Download.Version.Quilt.Intro.Title">Quilt 简介</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader 是新版 Minecraft 下的轻量模块化 Mod 加载器，你需要先安装它才能安装各种 Quilt 模组。&#x0a;本页面提供 Quilt 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
+    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader 是新版 Minecraft 下的轻量模块化模组加载器，你需要先安装它才能安装各种 Quilt 模组。&#x0a;本页面提供 Quilt 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.Quilt.LoadingList">正在获取 Quilt 列表</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Title">LabyMod 简介</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod 是 Minecraft 下的优化客户端。&#x0a;本页面提供 LabyMod 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.LoadingList">正在获取 LabyMod 列表</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine 简介</sys:String>
-    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与 Mod 的兼容性不佳。</sys:String>
+    <sys:String x:Key="Download.Version.Optifine.Intro.Description">OptiFine 又称为高清修复，以允许安装光影、使用高清材质、提高游戏性能，但与模组的兼容性不佳。</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">正在获取 OptiFine 列表</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Snapshot">快照版本</sys:String>
     <sys:String x:Key="Download.Version.AllVersions">全部版本 ({0})</sys:String>
@@ -832,13 +832,13 @@
 
     <!-- Download.Install -->
 
-    <sys:String x:Key="Download.Install.Warning.FabricApi">如果不安装 Fabric API，大多数 Mod 都会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.LegacyFabricApi">如果不安装 Legacy Fabric API，大多数 Mod 都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.FabricApi">如果不安装 Fabric API，大多数模组都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricApi">如果不安装 Legacy Fabric API，大多数模组都会无法使用！</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在 Mod 下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在 Mod 下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分 Mod 的兼容性不佳，请谨慎安装。</sys:String>
-    <sys:String x:Key="Download.Install.Warning.Qsl">如果不安装 QFAPI / QSL，大多数 Mod 都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在模组下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在模组下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分模组的兼容性不佳，请谨慎安装。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.Qsl">如果不安装 QFAPI / QSL，大多数模组都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
     <sys:String x:Key="Download.Install.Warning.QuiltFabricApi">你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。</sys:String>
     <sys:String x:Key="Download.Install.State.Getting">获取中……</sys:String>
     <sys:String x:Key="Download.Install.State.Loading">加载中……</sys:String>
@@ -863,7 +863,7 @@
     <sys:String x:Key="Download.Install.Compat.OptiFabricOriginsRequired">不兼容老版本 Fabric，请手动下载 OptiFabric Origins</sys:String>
     <sys:String x:Key="Download.Install.StartDownload">开始下载</sys:String>
     <sys:String x:Key="Download.Install.Hint.MinecraftBack">点击 Minecraft 项即可返回游戏主版本选择页面！</sys:String>
-    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">你尚未开启实例隔离，多个 MC 实例会共用同一个 Mod 文件夹。&#13;因此，游戏可能会因为读取到与当前实例不符的 Mod 而崩溃。&#13;推荐先在 设置 → 启动选项 → 默认实例隔离 中开启实例隔离！</sys:String>
+    <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">你尚未开启实例隔离，多个 MC 实例会共用同一个模组文件夹。&#13;因此，游戏可能会因为读取到与当前实例不符的模组而崩溃。&#13;推荐先在 设置 → 启动选项 → 默认实例隔离 中开启实例隔离！</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">实例隔离提示</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Cancel">取消下载</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Continue">继续</sys:String>
@@ -893,7 +893,7 @@
 
     <!-- Download.Comp.Type / List -->
 
-    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Mod">模组</sys:String>
     <sys:String x:Key="Download.Comp.Type.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Comp.Type.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Download.Comp.Type.Shader">光影包</sys:String>
@@ -904,7 +904,7 @@
     <sys:String x:Key="Download.Comp.Type.Unknown">未知</sys:String>
     <sys:String x:Key="Download.Comp.Type.Only">仅 {0}</sys:String>
     <sys:String x:Key="Download.Comp.Type.Any">任意</sys:String>
-    <sys:String x:Key="Download.Comp.List.Loading.Mod">正在获取 Mod 列表</sys:String>
+    <sys:String x:Key="Download.Comp.List.Loading.Mod">正在获取模组列表</sys:String>
     <sys:String x:Key="Download.Comp.List.Loading.Modpack">正在获取 整合包 列表</sys:String>
     <sys:String x:Key="Download.Comp.List.Loading.ResourcePack">正在获取 资源包 列表</sys:String>
     <sys:String x:Key="Download.Comp.List.Loading.Shader">正在获取 光影包 列表</sys:String>
@@ -913,7 +913,7 @@
     <sys:String x:Key="Download.Comp.List.Loading.World">正在获取 世界 列表</sys:String>
     <sys:String x:Key="Download.Comp.List.Loading.Schematic">正在获取 投影原理图 列表</sys:String>
     <sys:String x:Key="Download.Comp.List.Loading.Unknown">正在获取 未知 列表</sys:String>
-    <sys:String x:Key="Download.Comp.List.Search.Mod">搜索 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.List.Search.Mod">搜索模组</sys:String>
     <sys:String x:Key="Download.Comp.List.Search.Modpack">搜索 整合包</sys:String>
     <sys:String x:Key="Download.Comp.List.Search.ResourcePack">搜索 资源包</sys:String>
     <sys:String x:Key="Download.Comp.List.Search.Shader">搜索 光影包</sys:String>
@@ -980,7 +980,7 @@
     <sys:String x:Key="Download.Comp.Category.Gui">含 UI</sys:String>
     <sys:String x:Key="Download.Comp.Category.CoreShaders">核心着色器</sys:String>
     <sys:String x:Key="Download.Comp.Category.Animated">动态效果</sys:String>
-    <sys:String x:Key="Download.Comp.Category.ModSupport">兼容 Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ModSupport">兼容模组</sys:String>
     <sys:String x:Key="Download.Comp.Category.ColoredLighting">彩色光照</sys:String>
     <sys:String x:Key="Download.Comp.Category.PathTracing">路径追踪</sys:String>
     <sys:String x:Key="Download.Comp.Category.Pbr">PBR</sys:String>
@@ -989,7 +989,7 @@
     <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
     <sys:String x:Key="Download.Comp.Category.VanillaAvailable">原版可用</sys:String>
     <sys:String x:Key="Download.Comp.Category.Other">其他</sys:String>
-    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">模组</sys:String>
     <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod 相关</sys:String>
     <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">硬核</sys:String>
     <sys:String x:Key="Download.Comp.Category.Modpack.Quests">任务</sys:String>
@@ -1304,10 +1304,10 @@
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">打开整合包文件失败，文件可能损坏或为不支持的压缩包格式</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">解压整合包文件</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">获取 Mod 下载信息</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">构造 Mod 下载信息</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">下载 Mod</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">下载 Mod（主加载器）</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">获取模组下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo">构造模组下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods">下载模组</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader">下载模组（主加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.ModpackInstall">整合包安装</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.GameInstall">游戏安装</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.FinalizeFiles">最终整理文件</sys:String>
@@ -1315,8 +1315,8 @@
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractArchive">解压压缩包</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">输入实例名称</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">某项 Mod 缺少必要信息，已跳过：{0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分 Mod 版本已被 Mod 作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">某项模组缺少必要信息，已跳过：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分模组版本已被模组作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Message">是否要下载整合包中的可选文件 {0}？</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">下载可选文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Download">下载</sys:String>
@@ -1324,7 +1324,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！&#13;&#10;错误的文件：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Installing">该整合包正在安装中！</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的 Mod 加载器 {0}（版本为 {1}）！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的模组加载器 {0}（版本为 {1}）！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">该 HMCL 整合包未提供游戏版本信息，无法安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">该 MCBBS 整合包未提供游戏版本附加信息，无法安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">该整合包未提供游戏版本信息，无法安装！</sys:String>
@@ -1557,7 +1557,7 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">导出</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">存档</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Screenshot">截图</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Mod">Mod</sys:String>
+    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Mod">模组</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Shader">光影包</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Schematic">投影原理图</sys:String>
@@ -1565,7 +1565,7 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.InstanceSelect">实例管理</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip">隐藏启动按钮下方的实例选择与实例设置入口。</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.ModUpdate">Mod 更新</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip">禁止在 Mod 管理页面更新 Mod。</sys:String>
+    <sys:String x:Key="Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip">禁止在模组管理页面更新模组。</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.FeatureHide">功能隐藏</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip">仅隐藏本选项卡，设置的禁用内容依然有效。&#x0a;可以在保留个性化设置页面的情况下避免隐藏设置被修改。</sys:String>
 
@@ -1614,7 +1614,7 @@
     <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Auto">自动配置</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的 Mod 量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的模组量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GB</sys:String>
@@ -1674,13 +1674,13 @@
     <!-- Setup.Launch.Misc -->
 
     <sys:String x:Key="Setup.Launch.InstanceIsolation.Label">默认实例隔离</sys:String>
-    <sys:String x:Key="Setup.Launch.InstanceIsolation.None.ToolTip">所有实例均使用同一档案，存档、Mod、资源包等均为公用。&#x0a;若存在多个安装了 Mod 的实例，可能会导致 Mod 冲突。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.None.ToolTip">所有实例均使用同一档案，存档、Mod、资源包等均为公用。&#x0a;若存在多个安装了模组的实例，可能会导致模组冲突。</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.ToolTip">当安装新实例时，据此自动设置新实例的隔离选项。&#x0a;若想调整已有实例的隔离策略，请前往它的实例设置。</sys:String>
-    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly">隔离可安装 Mod 的实例</sys:String>
-    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip">可安装 Mod 的实例（例如 Forge、Fabric）均互相独立以避免 Mod 冲突，其他实例（例如原版）则不会被隔离。</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly">隔离可安装模组的实例</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip">可安装模组的实例（例如 Forge、Fabric）均互相独立以避免模组冲突，其他实例（例如原版）则不会被隔离。</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease">隔离非正式版</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.NonRelease.ToolTip">将 Minecraft 快照、预发布版、远古版本、愚人节版本与其他实例进行隔离</sys:String>
-    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedAndNonRelease">隔离可安装 Mod 的实例与非正式版</sys:String>
+    <sys:String x:Key="Setup.Launch.InstanceIsolation.ModdedAndNonRelease">隔离可安装模组的实例与非正式版</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.All">隔离所有实例</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.All.ToolTip">不同实例之间的存档、Mod、资源包等均不互通。&#x0a;这会导致不同原版实例间的存档不能共用，所以一般不推荐。</sys:String>
     <sys:String x:Key="Setup.Launch.InstanceIsolation.DefaultPolicyHint">默认策略只会对今后新安装的实例生效。&#x0a;已有实例的隔离策略需要在它的设置中调整。</sys:String>
@@ -1734,13 +1734,13 @@
     <sys:String x:Key="Setup.GameManage.Community.FilenameFormat.Style3">create-1.21.1-6.0.4-机械动力</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.FilenameFormat.Style4">create-1.21.1-6.0.4</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle">Mod 管理样式</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.ToolTip">在 Mod 管理页面中，Mod 项的显示方式</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.ToolTip">在模组管理页面中，Mod 项的显示方式</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleTranslation">标题显示译名，详情显示文件名</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">标题显示文件名，详情显示译名</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">不显示 Quilt 加载器</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">不在社区资源的加载器展示中显示 Quilt 加载器</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">下载 Mod 时自动检查并安装必需前置</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies.ToolTip">安装 Mod 时，若检测到缺少必需前置，将列出前置列表供确认后自动下载安装（可在确认时取消）</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">下载模组时自动检查并安装必需前置</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies.ToolTip">安装模组时，若检测到缺少必需前置，将列出前置列表供确认后自动下载安装（可在确认时取消）</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.Title">辅助功能</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.GameUpdateNotice">游戏更新提示</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice">正式版更新提示</sys:String>
@@ -1935,13 +1935,13 @@
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Emperormummy">Emperormummy</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.Bmclapi">提供 BMCLAPI 镜像源和 Forge 安装工具，详见 https://bmclapi.bangbang93.com</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.SponsorMirror">赞助镜像源</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcmod">提供了 Mod 名称的中文翻译和更多相关信息！</sys:String>
+    <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcmod">提供了模组名称的中文翻译和更多相关信息！</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.OpenMcmod">打开百科</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.Cloud">提供了 PCL CE 的相关云服务</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.GoBlog">转到博客</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.OpenWebsite">打开网站</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.LinkModule">提供了联机模块</sys:String>
-    <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcim">提供了 MCIM 中国 Mod 下载镜像源和帮助库图床！</sys:String>
+    <sys:String x:Key="Setup.About.SpecialThanks.Info.Mcim">提供了 MCIM 中国模组下载镜像源和帮助库图床！</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Info.IconDesign">设计并制作了 PCL CE 的图标</sys:String>
     <sys:String x:Key="Setup.About.Contributors.Title">贡献者们</sys:String>
     <sys:String x:Key="Setup.About.Contributors.ViewMore">查看更多</sys:String>
@@ -2162,8 +2162,8 @@
     <sys:String x:Key="Instance.Setup.Hint">这些设置只对该游戏实例生效，不影响其他实例。</sys:String>
     <sys:String x:Key="Instance.Setup.InstanceIsolation">实例隔离</sys:String>
     <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled">开启</sys:String>
-    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled.ToolTip">与其他实例的存档、Mod 等文件相互独立，互不干涉。&#x0a;这会使你无法跨实例共享存档，但可以规避 Mod 冲突问题。</sys:String>
-    <sys:String x:Key="Instance.Setup.InstanceIsolation.Disabled.ToolTip">与其余关闭隔离的实例共享存档、Mod 等文件。&#x0a;若存在多个安装了 Mod 的实例，可能会由于 Mod 冲突而导致崩溃。</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Enabled.ToolTip">与其他实例的存档、Mod 等文件相互独立，互不干涉。&#x0a;这会使你无法跨实例共享存档，但可以规避模组冲突问题。</sys:String>
+    <sys:String x:Key="Instance.Setup.InstanceIsolation.Disabled.ToolTip">与其余关闭隔离的实例共享存档、Mod 等文件。&#x0a;若存在多个安装了模组的实例，可能会由于模组冲突而导致崩溃。</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.ToolTip">自定义游戏窗口的标题，若留空则跟随全局设置的值。&#x0a;支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;注意：如果你的实例安装了 Modern UI 模组，那么这里的设置将会失效</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.Default">默认窗口标题</sys:String>
     <sys:String x:Key="Instance.Setup.WindowTitle.Default.ToolTip">游戏窗口标题是否保留默认。</sys:String>
@@ -2204,7 +2204,7 @@
     <sys:String x:Key="Instance.Install.Action.ModifyLabel">修改</sys:String>
     <sys:String x:Key="Instance.Install.NoExtraInstall">无附加安装</sys:String>
     <sys:String x:Key="Instance.Install.Reset.Title">重置此实例</sys:String>
-    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装 Mod 加载器（如有）。&#x0a;此操作不会丢失你的存档、Mod、资源包等。</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装模组加载器（如有）。&#x0a;此操作不会丢失你的存档、模组、资源包等。</sys:String>
 
     <!-- Instance.Mod -->
 
@@ -2232,14 +2232,14 @@
     <!-- Instance.Resource.Install -->
 
     <sys:String x:Key="Instance.Resource.Install.RestoreFromRecycleBin">请先将文件从回收站还原，再尝试安装！</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.SelectModableInstance">若要安装 Mod，请先选择一个可以安装 Mod 的实例！</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.SelectModableInstance">若要安装模组，请先选择一个可以安装模组的实例！</sys:String>
     <sys:String x:Key="Instance.Resource.Install.UnsupportedFormat">不支持的文件格式：{0}，{1}支持的格式：{2}</sys:String>
     <sys:String x:Key="Instance.Resource.Install.OverwriteConfirm.Title">文件覆盖确认</sys:String>
     <sys:String x:Key="Instance.Resource.Install.OverwriteConfirm.Message">已存在同名文件：{0}，是否要覆盖？</sys:String>
     <sys:String x:Key="Instance.Resource.Install.SuccessSingle">已安装 {0}！</sys:String>
     <sys:String x:Key="Instance.Resource.Install.SuccessMultiple">已安装 {0} 个{1}！</sys:String>
     <sys:String x:Key="Instance.Resource.Install.ModConfirm.Title">Mod 安装确认</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.ModConfirm.Message">是否要将这些文件作为 Mod 安装到 {0}？</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.ModConfirm.Message">是否要将这些文件作为模组安装到 {0}？</sys:String>
     <sys:String x:Key="Instance.Resource.Install.GenericConfirm.Title">{0}安装确认</sys:String>
     <sys:String x:Key="Instance.Resource.Install.GenericConfirm.Message">是否要将这些文件作为{0}安装到 {1}？</sys:String>
 
@@ -2321,8 +2321,8 @@
     <sys:String x:Key="Instance.Resource.SelectAll">全选</sys:String>
     <sys:String x:Key="Instance.Resource.ExportInfo">导出信息</sys:String>
     <sys:String x:Key="Instance.Resource.ExportInfo.ToolTip">导出详细的资源的版本信息</sys:String>
-    <sys:String x:Key="Instance.Resource.CheckMods">检查 Mod</sys:String>
-    <sys:String x:Key="Instance.Resource.CheckMods.ToolTip">快速检查 Mod 的版本要求、重复、前置缺失等问题。&#x0a;结果仅供参考，由于部分 Mod 标注的信息有误，可能并不准确。</sys:String>
+    <sys:String x:Key="Instance.Resource.CheckMods">检查模组</sys:String>
+    <sys:String x:Key="Instance.Resource.CheckMods.ToolTip">快速检查模组的版本要求、重复、前置缺失等问题。&#x0a;结果仅供参考，由于部分模组标注的信息有误，可能并不准确。</sys:String>
     <sys:String x:Key="Instance.Resource.Sort.FileName">文件名</sys:String>
     <sys:String x:Key="Instance.Resource.Sort.ResourceName">资源名称</sys:String>
     <sys:String x:Key="Instance.Resource.Sort.TagCount">标签数量</sys:String>
@@ -2336,8 +2336,8 @@
     <sys:String x:Key="Instance.Resource.EmptyFolder.Title">该文件夹为空</sys:String>
     <sys:String x:Key="Instance.Resource.EmptyFolder.Description">你可以从已经下载好的文件安装资源</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">该实例不可用投影原理图</sys:String>
-    <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">你可能需要先安装投影 Mod，如果已经安装过了投影 Mod 请先启动一次游戏。&#x0a;也可能是你选择错了实例，请点击实例选择按钮切换实例。</sys:String>
-    <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">下载投影 Mod</sys:String>
+    <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">你可能需要先安装投影模组，如果已经安装过了投影模组请先启动一次游戏。&#x0a;也可能是你选择错了实例，请点击实例选择按钮切换实例。</sys:String>
+    <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">下载投影模组</sys:String>
     <sys:String x:Key="Instance.Resource.SelectedCount">已选择 {0} 个文件</sys:String>
     <sys:String x:Key="Instance.Resource.Update">更新</sys:String>
     <sys:String x:Key="Instance.Resource.Enable">启用</sys:String>
@@ -2353,13 +2353,13 @@
     <sys:String x:Key="Instance.Resource.Delete.RecycleMultiple">已将 {0} 个项目删除到回收站！</sys:String>
     <sys:String x:Key="Instance.Resource.Delete.Failed">由于文件被占用，删除失败，请尝试关闭正在运行的游戏后再试！</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Title">Mod 更新警告</sys:String>
-    <sys:String x:Key="Instance.Resource.Update.Warning.Message">新版本 Mod 可能不兼容旧存档或者其他 Mod，这可能导致游戏崩溃，甚至永久损坏存档！&#x0a;如果你在游玩整合包，请千万不要自行更新 Mod！&#x0a;&#x0a;在更新前，请先备份存档，并检查 Mod 的更新日志。&#x0a;如果更新后出现问题，你也可以在回收站找回更新前的 Mod。</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Warning.Message">新版本模组可能不兼容旧存档或者其他模组，这可能导致游戏崩溃，甚至永久损坏存档！&#x0a;如果你在游玩整合包，请千万不要自行更新模组！&#x0a;&#x0a;在更新前，请先备份存档，并检查模组的更新日志。&#x0a;如果更新后出现问题，你也可以在回收站找回更新前的模组。</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">已成功更新 {0}！</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">已成功更新 {0} 个资源！</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Failed">资源更新失败：{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Aborted">资源更新已中止！</sys:String>
-    <sys:String x:Key="Instance.Resource.Ed.FileConflict.Message">目前同时存在启用和禁用的两个 Mod 文件：&#x0a; - {0}&#x0a; - {1}&#x0a;&#x0a;注意，这两个文件的内容并不相同。&#x0a;在手动删除或重命名其中一个文件后，才能继续操作。</sys:String>
+    <sys:String x:Key="Instance.Resource.Ed.FileConflict.Message">目前同时存在启用和禁用的两个模组文件：&#x0a; - {0}&#x0a; - {1}&#x0a;&#x0a;注意，这两个文件的内容并不相同。&#x0a;在手动删除或重命名其中一个文件后，才能继续操作。</sys:String>
 
     <!-- Instance.Saves.Datapack -->
 
@@ -2541,14 +2541,14 @@
     <sys:String x:Key="Instance.Export.Option.GameProfile">游戏本体个人信息</sys:String>
     <sys:String x:Key="Instance.Export.Option.GameProfile.Desc">命令历史、已保存的快捷栏</sys:String>
     <sys:String x:Key="Instance.Export.Option.OptiFine">OptiFine 设置</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Mod">Mod</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Mod">模组</sys:String>
     <sys:String x:Key="Instance.Export.Option.Mod.Desc">模组</sys:String>
-    <sys:String x:Key="Instance.Export.Option.DisabledMod">已禁用的 Mod</sys:String>
+    <sys:String x:Key="Instance.Export.Option.DisabledMod">已禁用的模组</sys:String>
     <sys:String x:Key="Instance.Export.Option.ImportantData">整合包重要数据</sys:String>
     <sys:String x:Key="Instance.Export.Option.ImportantData.Desc">脚本文件、内置资源包、数据包等</sys:String>
     <sys:String x:Key="Instance.Export.Option.ModSettings">Mod 设置</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps">已绘制的地图</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Maps.Desc">地图类 Mod 为现有的存档、服务器记录的地图、路标点等</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Maps.Desc">地图类模组为现有的存档、服务器记录的地图、路标点等</sys:String>
     <sys:String x:Key="Instance.Export.Option.Jei">JEI 个人信息</sys:String>
     <sys:String x:Key="Instance.Export.Option.Jei.Desc">物品收藏夹等</sys:String>
     <sys:String x:Key="Instance.Export.Option.Emi">EMI 个人信息</sys:String>
@@ -2562,7 +2562,7 @@
     <sys:String x:Key="Instance.Export.Option.Structures">导出的结构</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures.Desc">schematics 文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Replay">录像回放</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay Mod 的录像文件</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay 模组的录像文件</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
@@ -2576,9 +2576,9 @@
     <!-- Instance.Export.Advanced -->
 
     <sys:String x:Key="Instance.Export.Advanced.Title">高级选项</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.BundleHint">建议仅在无法稳定连接 CurseForge 或 Modrinth 时才打包资源文件。&#xa;请不要公开发布含资源文件的整合包，这会违反部分 Mod 的使用协议！</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.BundleHint">建议仅在无法稳定连接 CurseForge 或 Modrinth 时才打包资源文件。&#xa;请不要公开发布含资源文件的整合包，这会违反部分模组的使用协议！</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.BundleFiles">打包资源文件，以避免在导入时下载</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.BundleFiles.ToolTip">将 Mod、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。&#xa;建议仅在无法稳定连接 CurseForge 或 Modrinth 时才考虑勾选。</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.BundleFiles.ToolTip">将模组、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。&#xa;建议仅在无法稳定连接 CurseForge 或 Modrinth 时才考虑勾选。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Modrinth">Modrinth 上传模式</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">如果你想要打包上传到 Modrinth，勾选此项会生成完全符合 Modrinth 要求的整合包文件。&#xa;由于 Modrinth 要求，只能从 CurseForge 下载的资源将无法联网下载，会被直接放入整合包中。&#xa;此外，勾选后也不能在整合包中包含 PCL 启动器文件。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。&#xa;要修改这些选项，请先点击 "保存配置"，在编辑配置文件后再导入。</sys:String>
