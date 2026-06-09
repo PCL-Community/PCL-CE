@@ -1,44 +1,67 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using PCL.Core.App.Localization;
 
 namespace PCL.Core.Minecraft;
 
-public static class McFormatter {
+public static class McFormatter
+{
+    private static readonly Dictionary<string, string> _WikiPrefixMap = new(StringComparer.Ordinal)
+    {
+        ["de"] = "de",
+        ["es"] = "es",
+        ["fr"] = "fr",
+        ["it"] = "it",
+        ["ja"] = "ja",
+        ["ko"] = "ko",
+        ["lzh"] = "lzh",
+        ["nl"] = "nl",
+        ["pt"] = "pt",
+        ["ru"] = "ru",
+        ["th"] = "th",
+        ["uk"] = "uk",
+        ["zh"] = "zh"
+    };
+
     /// <summary>
     ///     根据当前 UI 语言返回 Minecraft Wiki 的基础 URL。
     /// </summary>
-    public static string GetWikiBaseUrl() {
+    public static string GetWikiBaseUrl()
+    {
         var langCode = LocalizationService.CurrentLanguage.Code;
-        var prefix = langCode switch {
-            _ when langCode.StartsWith("zh", StringComparison.Ordinal) => "zh",
-            _ when langCode.StartsWith("ja", StringComparison.Ordinal) => "ja",
-            _ when langCode.StartsWith("fr", StringComparison.Ordinal) => "fr",
-            _ when langCode.StartsWith("es", StringComparison.Ordinal) => "es",
-            _ => null
-        };
+
+        var prefix = (
+                from kvp in _WikiPrefixMap
+                where langCode.StartsWith(kvp.Key, StringComparison.Ordinal)
+                select kvp.Value)
+            .FirstOrDefault();
+
         return prefix is null
             ? "https://minecraft.wiki"
             : $"https://{prefix}.minecraft.wiki";
     }
 
-    public static string GetWikiUrlSuffix(string gameVersion) {
+    public static string GetWikiUrlSuffix(string gameVersion)
+    {
         var formattedVersion = FormatVersion(gameVersion);
         var langCode = LocalizationService.CurrentLanguage.Code;
 
         // 非 zh 语言使用搜索 URL
-        if (!langCode.StartsWith("zh", StringComparison.Ordinal)) {
+        if (!langCode.StartsWith("zh", StringComparison.Ordinal))
             return $"/w/Special:Search?search={Uri.EscapeDataString($"Java Edition {formattedVersion}")}";
-        }
 
         if (gameVersion.Contains('w')) return formattedVersion;
 
         return "Java版" + formattedVersion;
     }
 
-    public static string FormatVersion(string gameVersion) {
+    public static string FormatVersion(string gameVersion)
+    {
         var id = gameVersion.ToLowerInvariant();
 
-        switch (id) {
+        switch (id)
+        {
             case "0.30-1":
             case "0.30-2":
             case "c0.30_01c":
@@ -90,9 +113,7 @@ public static class McFormatter {
         if (id.StartsWith("a1.0.13_01")) return "Alpha_v1.0.13_01";
         if (id.StartsWith("in-20100214")) return "Indev_20100214";
 
-        if (id.Contains("experimental-snapshot")) {
-            return id.Replace("_experimental-snapshot-", "-exp");
-        }
+        if (id.Contains("experimental-snapshot")) return id.Replace("_experimental-snapshot-", "-exp");
 
         if (id.StartsWith("inf-")) return "Infdev_" + id[4..];
         if (id.StartsWith("in-")) return "Indev_" + id[3..];
