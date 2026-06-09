@@ -783,7 +783,7 @@
     <sys:String x:Key="Download.Version.NeoForge.Intro.Description">NeoForge 是 Minecraft 1.20.1+ 的模组加载器，你需要先安装它才能安装各种 NeoForge 模组，它也兼容一些 Forge 模组。&#x0a;本页面提供 NeoForge 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.NeoForge.LoadingList">正在获取 NeoForge 列表</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Cleanroom 简介</sys:String>
-    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom 是针对 1.12.2 基于 Forge 二次开发的模组加载器，理论上与 99% 的 Forge模组兼容。</sys:String>
+    <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom 是针对 1.12.2 基于 Forge 二次开发的模组加载器，理论上与 99% 的 Forge 模组兼容。</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.LoadingList">正在获取 Cleanroom 列表</sys:String>
     <sys:String x:Key="Download.Version.LiteLoader.Intro.Title">LiteLoader 简介</sys:String>
     <sys:String x:Key="Download.Version.LiteLoader.Intro.Description">与 Forge 类似，LiteLoader 可以用于加载老版本 Minecraft 中的 LiteLoader 模组。</sys:String>
@@ -2204,7 +2204,7 @@
     <sys:String x:Key="Instance.Install.Action.ModifyLabel">修改</sys:String>
     <sys:String x:Key="Instance.Install.NoExtraInstall">无附加安装</sys:String>
     <sys:String x:Key="Instance.Install.Reset.Title">重置此实例</sys:String>
-    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装模组加载器（如有）。&#x0a;此操作不会丢失你的存档、Mod、资源包等。</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装模组加载器（如有）。&#x0a;此操作不会丢失你的存档、模组、资源包等。</sys:String>
 
     <!-- Instance.Mod -->
 
