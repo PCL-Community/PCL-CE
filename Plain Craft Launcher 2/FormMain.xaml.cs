@@ -693,7 +693,12 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
+
+    private void BtnTitleHelp_Click(object sender, EventArgs e)
+    {
+        ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
+    }
+
     #endregion
 
     #region 窗体事件
