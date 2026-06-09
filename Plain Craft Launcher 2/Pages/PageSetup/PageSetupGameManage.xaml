@@ -81,10 +81,10 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="28" />
                             <RowDefinition Height="7" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="7" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="7" />
+                            <RowDefinition Height="28" x:Name="RowFilenameFormat" />
+                            <RowDefinition Height="7" x:Name="RowFilenameFormatGap" />
+                            <RowDefinition Height="28" x:Name="RowModManageStyle" />
+                            <RowDefinition Height="7" x:Name="RowModManageStyleGap" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
