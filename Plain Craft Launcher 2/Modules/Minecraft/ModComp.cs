@@ -1401,11 +1401,10 @@ public static class ModComp
         /// <summary>
         ///     翻译后的中文名。若数据库没有则等同于 RawName。
         /// </summary>
-        public string TranslatedName => (Lang.IsChineseMainland, DatabaseEntry?.ChineseName) switch
-        {
-            (true, { Length: > 0 } cn) => cn,
-            _ => RawName
-        };
+        public string TranslatedName =>
+            Lang.IsChineseMainland && DatabaseEntry?.ChineseName is { Length: > 0 } cn
+                ? cn
+                : RawName;
 
         /// <summary>
         ///     中文描述。若为 Nothing 则没有。
