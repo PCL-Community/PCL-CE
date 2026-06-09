@@ -47,10 +47,10 @@ public partial class PageDownloadCompDetail
 
         // 决定按钮显示
         BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
-        BtnIntroWiki.Visibility = !RegionUtils.IsRestrictedFeatAllowed || _project.WikiId == 0
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        BtnTranslate.Visibility = RegionUtils.IsRestrictedFeatAllowed
+        BtnIntroWiki.Visibility = Lang.IsChineseMainland && _project.WikiId != 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        BtnTranslate.Visibility = Lang.IsChineseMainland
             ? Visibility.Visible
             : Visibility.Collapsed;
         RefreshFavoriteButton();

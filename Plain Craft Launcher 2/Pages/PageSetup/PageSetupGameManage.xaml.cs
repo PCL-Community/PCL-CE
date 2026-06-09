@@ -30,7 +30,7 @@ public partial class PageSetupGameManage
         Reload();
         SliderLoad();
 
-        if (!RegionUtils.IsRestrictedFeatAllowed)
+        if (!Lang.IsChineseMainland)
         {
             TextFilenameFormat.Visibility = Visibility.Collapsed;
             ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
