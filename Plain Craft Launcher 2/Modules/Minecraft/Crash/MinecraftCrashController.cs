@@ -101,13 +101,14 @@ public sealed class MinecraftCrashController
             if (string.IsNullOrWhiteSpace(logFile) || !File.Exists(logFile)) return null;
             using var stream = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var reader = new StreamReader(stream);
+            string? result = null;
             while (reader.ReadLine() is { } line)
             {
                 var index = line.IndexOf(key, StringComparison.OrdinalIgnoreCase);
                 if (index < 0) continue;
-                return line[(index + key.Length)..].Trim();
+                result = line[(index + key.Length)..].Trim();
             }
-            return null;
+            return result;
         }
         catch
         {
