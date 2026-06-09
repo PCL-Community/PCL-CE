@@ -744,7 +744,7 @@
     <!-- Download.Left -->
 
     <sys:String x:Key="Download.Left.CommunityResources">社区资源</sys:String>
-    <sys:String x:Key="Download.Left.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Left.Mod">模组</sys:String>
     <sys:String x:Key="Download.Left.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Left.DataPack">数据包</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">资源包</sys:String>
@@ -893,7 +893,7 @@
 
     <!-- Download.Comp.Type / List -->
 
-    <sys:String x:Key="Download.Comp.Type.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Type.Mod">模组</sys:String>
     <sys:String x:Key="Download.Comp.Type.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Comp.Type.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Download.Comp.Type.Shader">光影包</sys:String>
@@ -989,7 +989,7 @@
     <sys:String x:Key="Download.Comp.Category.Optifine">OptiFine</sys:String>
     <sys:String x:Key="Download.Comp.Category.VanillaAvailable">原版可用</sys:String>
     <sys:String x:Key="Download.Comp.Category.Other">其他</sys:String>
-    <sys:String x:Key="Download.Comp.Category.Mod.Mod">Mod</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Mod.Mod">模组</sys:String>
     <sys:String x:Key="Download.Comp.Category.Mod.ModRelated">Mod 相关</sys:String>
     <sys:String x:Key="Download.Comp.Category.Modpack.Hardcore">硬核</sys:String>
     <sys:String x:Key="Download.Comp.Category.Modpack.Quests">任务</sys:String>
@@ -1557,7 +1557,7 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">导出</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">存档</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Screenshot">截图</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Mod">Mod</sys:String>
+    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Mod">模组</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Shader">光影包</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Schematic">投影原理图</sys:String>
@@ -2541,7 +2541,7 @@
     <sys:String x:Key="Instance.Export.Option.GameProfile">游戏本体个人信息</sys:String>
     <sys:String x:Key="Instance.Export.Option.GameProfile.Desc">命令历史、已保存的快捷栏</sys:String>
     <sys:String x:Key="Instance.Export.Option.OptiFine">OptiFine 设置</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Mod">Mod</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Mod">模组</sys:String>
     <sys:String x:Key="Instance.Export.Option.Mod.Desc">模组</sys:String>
     <sys:String x:Key="Instance.Export.Option.DisabledMod">已禁用的 Mod</sys:String>
     <sys:String x:Key="Instance.Export.Option.ImportantData">整合包重要数据</sys:String>
