@@ -202,10 +202,6 @@
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Disable}"
                                                 x:Name="BtnEulaStop" Click="BtnEulaStop_Click" />
-                            <TextBlock Text=" | " />
-                            <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Faq}"
-                                                local:CustomEventService.EventType="打开帮助"
-                                                local:CustomEventService.EventData="启动器/P2P 联机常见问题.json" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6"
                                     Orientation="Horizontal">

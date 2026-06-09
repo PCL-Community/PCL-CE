@@ -469,7 +469,6 @@ public class ModSetup
             case 0: // 无
             {
                 ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
@@ -487,7 +486,6 @@ public class ModSetup
             case 1: // 默认
             {
                 ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
-                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
@@ -505,7 +503,6 @@ public class ModSetup
             case 2: // 文本
             {
                 ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Visible;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
@@ -524,7 +521,6 @@ public class ModSetup
             case 3: // 图片
             {
                 ModMain.frmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Visible;
@@ -554,7 +550,6 @@ public class ModSetup
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Visible;
                 ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
                 if (ModMain.frmSetupUI is not null) 
                 {

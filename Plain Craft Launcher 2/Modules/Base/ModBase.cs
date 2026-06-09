@@ -119,7 +119,6 @@ public static class ModBase
     public static string pathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                              (versionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
 
-    public static string pathHelpFolder = pathTemp + @"CE\Help\";
 
     #endregion
 

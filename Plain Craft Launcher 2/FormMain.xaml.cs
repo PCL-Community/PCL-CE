@@ -355,11 +355,11 @@ public partial class FormMain
             ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
         }
 
-        // 解除帮助页面的隐藏
+        // 解除关于页面的隐藏
         if (lastVersionCode <= 205)
         {
             Config.Preference.Hide.SetupAbout = false;
-            ModBase.Log("[Start] 已解除帮助页面的隐藏");
+            ModBase.Log("[Start] 已解除关于页面的隐藏");
         }
 
         // 迁移旧版用户档案
@@ -694,12 +694,6 @@ public partial class FormMain
         WindowState = WindowState.Minimized;
     }
     
-    //“帮助”
-    private void BtnTitleHelp_Click(object sender, EventArgs e)
-    {
-        ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
-    }
-
     #endregion
 
     #region 窗体事件

@@ -2583,7 +2583,6 @@
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">The configuration file contains more advanced options, such as precise control over exported files and modpack storage location.&#x0a;To modify these options, click "Save config" first, then import after editing the configuration file.</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import config</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export config</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Guide">Creation guide</sys:String>
 
     <!-- Instance.Export.Network -->
 
@@ -2822,7 +2821,6 @@
     <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Privacy">Lobby Privacy Policy</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Disable">Disable lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.Faq">FAQ</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Friends">Links: </sys:String>
     <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier official website</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">Lobby information</sys:String>
@@ -2903,7 +2901,6 @@
     <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
     <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, actual: {1}</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlocked">Update failed</sys:String>
-    <sys:String x:Key="Update.Error.ViewHelp">View help</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
     <sys:String x:Key="Update.Task.Check">Verify update</sys:String>

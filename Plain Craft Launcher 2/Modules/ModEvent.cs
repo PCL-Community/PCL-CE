@@ -97,13 +97,11 @@ namespace PCL
             None = 0,
             打开网页,
             打开文件,
-            打开帮助,
             执行命令,
             启动游戏,
             复制文本,
             刷新主页,
             刷新页面,
-            刷新帮助,
             今日人品,
             清理垃圾,
             弹出窗口,
@@ -214,11 +212,6 @@ namespace PCL
                         {
                             ModMain.Hint("当前页面不支持刷新操作！", ModMain.HintType.Critical);
                         }
-                        break;
-
-                    case EventType.打开帮助:
-                    case EventType.刷新帮助:
-                        ModMain.Hint("帮助功能已移除", ModMain.HintType.Critical);
                         break;
 
                     case EventType.今日人品:
