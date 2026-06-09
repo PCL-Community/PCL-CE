@@ -639,7 +639,7 @@ public static class ModComp
                             {
                                 page = FormMain.PageType.CompDetail,
                                 additional = (compProjects.First(), new List<string>(), string.Empty, CompLoaderType.Any,
-                                    CompType.Any, null, null, null)
+                                    CompType.Any, null)
                             });
                         }
                     }));

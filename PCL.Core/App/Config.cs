@@ -449,7 +449,6 @@ public static partial class Config
 
             // 子页面 工具
             [ConfigItem<bool>("UiHiddenToolsGameLink", false, ConfigSource.Local)] public partial bool ToolsGameLink { get; set; } // 新增
-            [ConfigItem<bool>("UiHiddenToolsHelp", false, ConfigSource.Local)] public partial bool ToolsHelp { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenToolsTest", false, ConfigSource.Local)] public partial bool ToolsTest { get; set; } // 新增
 
             // 子页面 实例设置

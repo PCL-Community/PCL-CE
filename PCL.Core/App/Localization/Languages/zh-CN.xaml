@@ -1552,7 +1552,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Log">查看日志</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Lobby">联机</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Toolbox">百宝箱</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">帮助</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Edit">修改</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">导出</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">存档</sys:String>
@@ -2641,18 +2640,6 @@
     <sys:String x:Key="Tools.Left.Lobby">大厅</sys:String>
     <sys:String x:Key="Tools.Left.Utilities">奇妙小工具</sys:String>
     <sys:String x:Key="Tools.Left.Utilities.Title">百宝箱</sys:String>
-    <sys:String x:Key="Tools.Left.Help">帮助库</sys:String>
-
-    <!-- Tools.Help -->
-
-    <sys:String x:Key="Tools.Help.Search.Hint">搜索帮助</sys:String>
-    <sys:String x:Key="Tools.Help.Loading">正在加载帮助列表</sys:String>
-    <sys:String x:Key="Tools.Help.Category.Guide">指南</sys:String>
-    <sys:String x:Key="Tools.Help.Search.NoResults">无搜索结果</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Results">搜索结果</sys:String>
-    <sys:String x:Key="Tools.Help.Search.ExactMatch">完全匹配  |  相似度：{0}  |  {1}</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Similarity">相似度：{0}  |  {1}</sys:String>
-
     <!-- Tools.Test -->
 
     <sys:String x:Key="Tools.Test.Title">百宝箱</sys:String>
