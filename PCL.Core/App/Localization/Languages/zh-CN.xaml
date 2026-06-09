@@ -2562,7 +2562,7 @@
     <sys:String x:Key="Instance.Export.Option.Structures">导出的结构</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures.Desc">schematics 文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Replay">录像回放</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay模组的录像文件</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Replay.Desc">Replay 模组的录像文件</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
