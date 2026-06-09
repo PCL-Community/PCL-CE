@@ -97,13 +97,11 @@ namespace PCL
             None = 0,
             打开网页,
             打开文件,
-            打开帮助,
             执行命令,
             启动游戏,
             复制文本,
             刷新主页,
             刷新页面,
-            刷新帮助,
             今日人品,
             清理垃圾,
             弹出窗口,
@@ -154,7 +152,6 @@ namespace PCL
                         break;
 
                     case EventType.打开文件:
-                    case EventType.打开帮助:
                     case EventType.执行命令:
                         ModBase.RunInThread(() =>
                         {
@@ -164,16 +161,9 @@ namespace PCL
                                 string location = actualPaths[0], workingDir = actualPaths[1];
                                 ModBase.Log($"[Control] 打开类自定义事件实际路径：{location}，工作目录：{workingDir}");
 
-                                if (type == EventType.打开帮助)
-                                {
-                                    PageToolsHelp.EnterHelpPage(location);
-                                }
-                                else
-                                {
-                                    if (!EventSafetyConfirm($"即将执行：{location}{(args.Length >= 2 ? " " + args[1] : "")}"))
-                                        return;
-                                    ProcessInterop.Start(location, args.Length >= 2 ? args[1] : "");
-                                }
+                                if (!EventSafetyConfirm($"即将执行：{location}{(args.Length >= 2 ? " " + args[1] : "")}"))
+                                    return;
+                                ProcessInterop.Start(location, args.Length >= 2 ? args[1] : "");
                             }
                             catch (Exception ex)
                             {
@@ -222,12 +212,6 @@ namespace PCL
                         {
                             ModMain.Hint("当前页面不支持刷新操作！", ModMain.HintType.Critical);
                         }
-                        break;
-
-                    case EventType.刷新帮助:
-                        ModBase.RunInUiWait(() => PageToolsLeft.RefreshHelp());
-                        if (string.IsNullOrEmpty(arg))
-                            ModMain.Hint("已刷新！", ModMain.HintType.Finish);
                         break;
 
                     case EventType.今日人品:
@@ -338,48 +322,9 @@ namespace PCL
 
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
-            // 联网帮助页面处理
-            if (relativeUrl.StartsWithF("http", true))
-            {
-                if (ModBase.RunInUi())
-                    throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
-
-                string rawFileName;
-                try
-                {
-                    rawFileName = ModBase.GetFileNameFromPath(relativeUrl);
-                    if (!rawFileName.EndsWithF(".json", true))
-                        throw new Exception("未指向 .json 后缀的文件");
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(
-                        "联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\r\n例如：\r\n - https://www.baidu.com/test.json（填写这个路径）\r\n - https://www.baidu.com/test.xaml（同时也需要包含这个文件）",
-                        ex);
-                }
-
-                string localTemp = ModMain.RequestTaskTempFolder() + rawFileName;
-                ModBase.Log($"[Event] 转换网络资源：{relativeUrl} -> {localTemp}");
-                try
-                {
-                    // 修正：直接调用静态方法 NetDownloadByClient，而不是 .Download
-                    FileDownloader.Download(relativeUrl, localTemp).GetAwaiter().GetResult();
-                    FileDownloader.Download(relativeUrl.Replace(".json", ".xaml"), localTemp.Replace(".json", ".xaml"))
-                        .GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(
-                        "下载指定的文件失败！\r\n注意，联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\r\n例如：\r\n - https://www.baidu.com/test.json（填写这个路径）\r\n - https://www.baidu.com/test.xaml（同时也需要包含这个文件）",
-                        ex);
-                }
-                relativeUrl = localTemp;
-            }
-
             relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
 
             string location, workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL");
-            ModMain.HelpExtract();
 
             if (relativeUrl.Contains(":\\"))
             {
@@ -391,18 +336,6 @@ namespace PCL
                 location = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl);
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径{type}：{location}");
             }
-            else if (File.Exists(System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help", relativeUrl)))
-            {
-                location = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", "Help");
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 本地帮助文件夹的路径{type}：{location}");
-            }
-            else if (type == EventType.打开帮助 && File.Exists(System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl)))
-            {
-                location = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help", relativeUrl);
-                workingDir = System.IO.Path.Combine(ModBase.pathTemp, "CE", "Help");
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 自带帮助文件夹的路径{type}：{location}");
-            }
             else if (type == EventType.打开文件 || type == EventType.执行命令)
             {
                 location = relativeUrl;
@@ -410,7 +343,7 @@ namespace PCL
             }
             else
             {
-                throw new FileNotFoundException($"未找到 EventData 指向的本地 xaml 文件：{relativeUrl}", relativeUrl);
+                throw new FileNotFoundException($"未找到 EventData 指向的本地文件：{relativeUrl}", relativeUrl);
             }
 
             return new[] { location, workingDir };

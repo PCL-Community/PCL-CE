@@ -269,10 +269,6 @@
                             <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140"
                                             Text="{DynamicResource Instance.Export.Advanced.ExportConfig}"
                                             Padding="13,0" Margin="0,0,20,0" />
-                            <local:MyButton Grid.Column="2" MinWidth="140"
-                                            Text="{DynamicResource Instance.Export.Advanced.Guide}" Padding="13,0"
-                                            Margin="0,0,20,0" x:Name="BtnAdvancedHelp"
-                                            local:CustomEventService.EventType="打开帮助" />
                         </Grid>
                     </StackPanel>
                 </local:MyCard>

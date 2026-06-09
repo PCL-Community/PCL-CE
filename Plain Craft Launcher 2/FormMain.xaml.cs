@@ -355,11 +355,11 @@ public partial class FormMain
             ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
         }
 
-        // 解除帮助页面的隐藏
+        // 解除关于页面的隐藏
         if (lastVersionCode <= 205)
         {
             Config.Preference.Hide.SetupAbout = false;
-            ModBase.Log("[Start] 已解除帮助页面的隐藏");
+            ModBase.Log("[Start] 已解除关于页面的隐藏");
         }
 
         // 迁移旧版用户档案
@@ -693,8 +693,7 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
-    //“帮助”
+
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
         ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
@@ -1411,11 +1410,6 @@ public partial class FormMain
         CompDetail = 8,
 
         /// <summary>
-        ///     帮助详情。这是一个副页面。
-        /// </summary>
-        HelpDetail = 9,
-
-        /// <summary>
         ///     游戏实时日志。这是一个副页面。
         /// </summary>
         GameLog = 10,
@@ -1465,7 +1459,6 @@ public partial class FormMain
         SetupLauncherLanguage = 11,
 
         ToolsGameLink = 1,
-        ToolsLauncherHelp = 2,
         ToolsTest = 3,
 
         VersionOverall = 0,
@@ -1510,10 +1503,6 @@ public partial class FormMain
             case PageType.CompDetail:
             {
                 return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
-            }
-            case PageType.HelpDetail:
-            {
-                return stack.additional.Value.HelpEntry.Title;
             }
             case PageType.VersionSaves:
             {
@@ -1602,7 +1591,6 @@ public partial class FormMain
         /// <summary>
         /// <list type="bullet">
         ///   <item><description>CompDetail: (CompProject, ExpandedTitles, TargetVersion, TargetLoader, ResourceType)</description></item>
-        ///   <item><description>HelpDetail: (HelpEntry, HelpPage)</description></item>
         ///   <item><description>VersionSaves: SavePath</description></item>
         /// </list>
         /// </summary>
@@ -1612,8 +1600,6 @@ public partial class FormMain
             string TargetVersion,
             ModComp.CompLoaderType TargetLoader,
             ModComp.CompType ResourceType,
-            ModMain.HelpEntry HelpEntry,
-            FrameworkElement HelpPage,
             string SavePath
         )? additional;
 
@@ -1914,11 +1900,6 @@ public partial class FormMain
                         if (ModMain.frmDownloadCompDetail is null)
                             ModMain.frmDownloadCompDetail = new PageDownloadCompDetail();
                         PageChangeAnim(new MyPageLeft(), ModMain.frmDownloadCompDetail);
-                        break;
-                    }
-                case PageType.HelpDetail: // 帮助详情
-                    {
-                        PageChangeAnim(new MyPageLeft(), stack.additional.Value.HelpPage);
                         break;
                     }
                 case PageType.VersionSaves: // 存档管理

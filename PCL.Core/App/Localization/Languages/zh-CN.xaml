@@ -1552,7 +1552,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Log">查看日志</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Lobby">联机</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Toolbox">百宝箱</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">帮助</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Edit">修改</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">导出</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">存档</sys:String>
@@ -2584,7 +2583,6 @@
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。&#xa;要修改这些选项，请先点击 "保存配置"，在编辑配置文件后再导入。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">读取配置</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">保存配置</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Guide">整合包制作指南</sys:String>
 
     <!-- Instance.Export.Network -->
 
@@ -2641,18 +2639,6 @@
     <sys:String x:Key="Tools.Left.Lobby">大厅</sys:String>
     <sys:String x:Key="Tools.Left.Utilities">奇妙小工具</sys:String>
     <sys:String x:Key="Tools.Left.Utilities.Title">百宝箱</sys:String>
-    <sys:String x:Key="Tools.Left.Help">帮助库</sys:String>
-
-    <!-- Tools.Help -->
-
-    <sys:String x:Key="Tools.Help.Search.Hint">搜索帮助</sys:String>
-    <sys:String x:Key="Tools.Help.Loading">正在加载帮助列表</sys:String>
-    <sys:String x:Key="Tools.Help.Category.Guide">指南</sys:String>
-    <sys:String x:Key="Tools.Help.Search.NoResults">无搜索结果</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Results">搜索结果</sys:String>
-    <sys:String x:Key="Tools.Help.Search.ExactMatch">完全匹配  |  相似度：{0}  |  {1}</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Similarity">相似度：{0}  |  {1}</sys:String>
-
     <!-- Tools.Test -->
 
     <sys:String x:Key="Tools.Test.Title">百宝箱</sys:String>
@@ -2835,7 +2821,6 @@
     <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark Network 用户协议与隐私政策</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Privacy">大厅隐私协议</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Disable">停用联机功能</sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.Faq">常见问题解答</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Friends">友情链接：</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier 工具官网</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">大厅信息</sys:String>
@@ -2916,7 +2901,6 @@
     <sys:String x:Key="Update.Error.FileNotFound">找不到更新文件</sys:String>
     <sys:String x:Key="Update.Error.Sha256Mismatch">更新文件 SHA256 不正确，应该为 {0}，实际为 {1}</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlocked">更新失败</sys:String>
-    <sys:String x:Key="Update.Error.ViewHelp">查看帮助</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlockedMessage">由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。&#x0A;请将 PCL 所在文件夹加入白名单，或者手动用 {0}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE 服务</sys:String>
     <sys:String x:Key="Update.Task.Check">校验更新</sys:String>

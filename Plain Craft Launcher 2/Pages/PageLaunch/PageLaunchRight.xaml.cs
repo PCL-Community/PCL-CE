@@ -440,7 +440,6 @@ public partial class PageLaunchRight : IRefreshable
             var loadStartTime = DateTime.Now;
             try
             {
-                // 修改时应同时修改 PageOtherHelpDetail.Init
                 content = ModMain.ArgumentReplace(content);
                 while (content.Contains("xmlns"))
                     content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");

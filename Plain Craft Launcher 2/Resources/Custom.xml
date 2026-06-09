@@ -133,10 +133,6 @@
                     Text="下载百度的 Logo" EventType="下载文件"
                     EventData="https://www.baidu.com/img/flexible/logo/pc/result.png"/>
     <TextBlock Margin="0,4,0,4"
-               Text="· 打开帮助：跳转到 EventData 对应的帮助文件（输入相对 Help 文件夹的路径）"/>
-    <local:MyButton Margin="0,5,0,6" Width="250" Height="35"
-                    Text="打开自定义帮助页面" EventType="打开帮助" EventData="帮助/自定义帮助.json"/>
-    <TextBlock Margin="0,4,0,4"
                Text="· 切换页面：强制切换到 PCL 的某一页面（尝试切换到不太对头的页面会出现不可预知的 Bug）&#xa;  　　　　　EventData 为 页面种类|次要页面种类（PageType|PageSubType，例如 1|1）&#xa;  　　　　　点击上方的 查看 PCL 源代码 按钮，在 1000 行左右的位置即可查找到对应数值"/>
     <local:MyButton Margin="0,5,0,6" Width="250" Height="35"
                     Text="切换到下载页面" EventType="切换页面" EventData="1|1"/>
@@ -187,11 +183,6 @@
                       EventType="打开网页" EventData="https://www.baidu.com/" Type="Clickable"/>
     <TextBlock TextWrapping="Wrap" Margin="0,0,0,4"
                Text="Logo 属性为列表项的图标，指定的可以是链接也可以是文件路径；Title 是大标题，Info 是可选的小标题（详细信息）；Type 如果省略，该列表项则单纯只展示信息，仅当 Type 为 Clickable 才能触发点击效果。"/>
-    <local:MyListItem Margin="-5,2,-5,8"
-                      Logo="pack://application:,,,/images/Blocks/Grass.png"
-                      EventType="打开帮助" EventData="帮助/自定义帮助.json" Type="Clickable"/>
-    <TextBlock TextWrapping="Wrap" Margin="0,0,0,4"
-               Text="EventType、EventData 与按钮几乎一致，唯一不同的是，列表项不支持联网加载帮助文件。"/>
 </StackPanel>
 </local:MyCard>
 

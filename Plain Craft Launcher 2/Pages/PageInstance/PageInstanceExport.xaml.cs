@@ -75,7 +75,6 @@ public partial class PageInstanceExport : IRefreshable
         ModAnimation.AniControlEnabled += 1;
         if ((currentVersion ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
-        CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json");
         ModAnimation.AniControlEnabled -= 1;
     }
 
@@ -877,8 +876,6 @@ public partial class PageInstanceExport : IRefreshable
                     ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
                 if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Musics")))
                     ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
-                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Help")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Help"), Path.Combine(cacheFolder, "PCL", "Help"));
                 if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml")))
                     ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
                 if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Setup.ini")))
