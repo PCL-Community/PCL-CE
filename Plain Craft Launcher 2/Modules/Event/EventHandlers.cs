@@ -118,10 +118,13 @@ public static partial class EventHandlers
 
         var args = ParseArgs(m.Groups[3].Value);
         var method = t.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance,
-                         args.Select(a => a?.GetType() ?? typeof(object)).ToArray())
-                  ?? t.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance, [typeof(string)]);
+                         args.Select(a => a?.GetType() ?? typeof(object)).ToArray());
+        if (method is null)
+        {
+            method = t.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance, [typeof(string)]);
+            if (method?.GetParameters() is [{ ParameterType: var p }] && p == typeof(string)) args = [data];
+        }
         if (method is null) { ModMain.Hint(Lang.Text("Event.Error.MethodNotFound", $"{m.Groups[1].Value}.{m.Groups[2].Value}"), ModMain.HintType.Critical); return; }
-        if (method.GetParameters() is [{ ParameterType: var p }] && p == typeof(string)) args = [data];
 
         if (!States.Hint.HomepageCommand)
         {
