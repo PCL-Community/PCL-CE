@@ -3207,11 +3207,8 @@ public static class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str)
     {
-        str = str. // 兼容旧版自定义事件写法
-            Replace("EventType=\"", "local:CustomEventService.EventType=\"").
-            Replace("EventData=\"", "local:CustomEventService.EventData=\"").
-            Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
-            Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
+        // 将旧版中文/缩写 EventType 统一转换为 attached property 格式
+        str = LegacyEventCompat.TransformLegacyXaml(str);
         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {
             // 类型检查

@@ -3036,4 +3036,21 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
 
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">Event Execution Failed</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}. Please check the event type.</sys:String>
+    <sys:String x:Key="Event.Error.InvalidUrl">EventData must be a valid URL starting with http:// or https://. Use InvokeFunction to launch a local program.</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSelected">Please select a Minecraft version first!</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSpecified">No Minecraft instance specified.</sys:String>
+    <sys:String x:Key="Event.Error.RefreshNotSupported">The current page does not support refresh!</sys:String>
+    <sys:String x:Key="Event.Error.InvokeFunctionEmpty">InvokeFunction requires a C# method call expression.</sys:String>
+    <sys:String x:Key="Event.Error.InvokeFunctionSyntax">Invalid function call syntax: {0}. Expected format: TypeName.MethodName(args)</sys:String>
+    <sys:String x:Key="Event.Error.TypeNotFound">Type not found: {0}</sys:String>
+    <sys:String x:Key="Event.Error.MethodNotFound">Method not found: {0}</sys:String>
+    <sys:String x:Key="Event.Hint.OpeningUrl">Opening: {0}</sys:String>
+    <sys:String x:Key="Event.Hint.Launching">Launching {0}...</sys:String>
+    <sys:String x:Key="Event.Hint.Refreshed">Refreshed!</sys:String>
+    <sys:String x:Key="Event.Hint.LegacyTypeRemoved">Legacy event type "{0}" is no longer supported and has been removed from the homepage.</sys:String>
+
 </ResourceDictionary>

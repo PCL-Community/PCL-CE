@@ -3036,4 +3036,21 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">大厅界面初始化</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
 
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}，请检查事件类型填写是否正确。</sys:String>
+    <sys:String x:Key="Event.Error.InvalidUrl">EventData 必须为以 http:// 或 https:// 开头的网址。如需启动本地程序，请改用 InvokeFunction 类型。</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSelected">请先选择一个 Minecraft 版本！</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSpecified">未指定要启动的 Minecraft 实例。</sys:String>
+    <sys:String x:Key="Event.Error.RefreshNotSupported">当前页面不支持刷新操作！</sys:String>
+    <sys:String x:Key="Event.Error.InvokeFunctionEmpty">InvokeFunction 需要一个 C# 方法调用表达式。</sys:String>
+    <sys:String x:Key="Event.Error.InvokeFunctionSyntax">无效的函数调用语法：{0}，期望格式：TypeName.MethodName(args)</sys:String>
+    <sys:String x:Key="Event.Error.TypeNotFound">未找到类型：{0}</sys:String>
+    <sys:String x:Key="Event.Error.MethodNotFound">未找到方法：{0}</sys:String>
+    <sys:String x:Key="Event.Hint.OpeningUrl">正在打开网页：{0}</sys:String>
+    <sys:String x:Key="Event.Hint.Launching">正在启动 {0}……</sys:String>
+    <sys:String x:Key="Event.Hint.Refreshed">已刷新！</sys:String>
+    <sys:String x:Key="Event.Hint.LegacyTypeRemoved">旧版事件类型"{0}"已不再支持，已从主页中移除。</sys:String>
+
 </ResourceDictionary>
