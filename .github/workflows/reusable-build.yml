@@ -59,7 +59,7 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          arch=${{ inputs.architecture }}
+          arch=$(echo "${{ inputs.architecture }}" | tr '[:upper:]' '[:lower:]')
           case "$arch" in
             x64) rid=win-x64 ;;
             x86) rid=win-x86 ;;
