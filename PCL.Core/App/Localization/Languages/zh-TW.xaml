@@ -6,25 +6,4 @@
 
     <sys:String x:Key="Localization.Meta.Code">zh-TW</sys:String>
     <sys:String x:Key="Localization.Meta.Name">繁體中文（台灣）</sys:String>
-
-    <!-- Network / VPN overrides (remove VPN/accelerator references from zh-CN fallback) -->
-
-    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">登入頁面將自動開啟，請在網頁中輸入授權碼 {0}（將自動複製）。&#x0a;&#x0a;如果網路環境不佳，網頁可能一直載入不出來，請重新嘗試。&#x0a;您也可以用其他裝置開啟 {1} 並輸入上述授權碼。</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">登入頁面將自動開啟，授權碼將自動填入。&#x0a;&#x0a;如果網路環境不佳，網頁可能一直載入不出來，請重新嘗試。&#x0a;如果沒有自動填入，請在頁面內貼上此授權碼 {0}（將自動複製）。&#x0a;您也可以用其他裝置開啟 {1} 並輸入授權碼。</sys:String>
-
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">您所在的國家或地區無法登入 Microsoft 帳戶。&#x0a;請檢查您的網路設定或稍後再試。</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">此 IP 的登入嘗試異常。&#x0a;請檢查您的網路設定或稍後再試。</sys:String>
-
-    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">登入失敗：連線至登入伺服器逾時。&#x0a;請檢查您的網路連線是否正常。</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$登入失敗：連線至登入伺服器逾時。&#x0a;請檢查您的網路連線是否正常。&#x0a;詳細資訊：</sys:String>
-
-    <sys:String x:Key="Download.Comp.Hint.ModrinthUnreachable">無法連線至 Modrinth，目前僅顯示來自 CurseForge 的內容，結果可能不完整。&#x0a;請檢查您的網路連線並重試。</sys:String>
-    <sys:String x:Key="Download.Comp.List.Source.ModrinthUnavailable">無法連線至 Modrinth，目前僅顯示來自 CurseForge 的內容，搜尋結果可能不完整。&#x0a;請檢查您的網路連線並重試。</sys:String>
-    <sys:String x:Key="Download.Comp.List.Source.CurseForgeUnavailable">無法連線至 CurseForge，目前僅顯示來自 Modrinth 的內容，搜尋結果可能不完整。&#x0a;請檢查您的網路連線並重試。</sys:String>
-
-    <sys:String x:Key="Setup.Left.Feedback.Message">提交新的意見回饋前，請先檢查回饋列表中是否有類似的問題，以避免重複提交。</sys:String>
-
-    <!-- Legal text override (remove Chinese Mainland law references) -->
-
-    <sys:String x:Key="Tools.GameLink.Agreement.Body">使用大廳功能即表示您同意以下條款：&#x0A;&#x0A;本人同意遵守適用的法律法規，不會將大廳功能用於非法或禁止的目的。&#x0A;本人同意承擔使用大廳功能所產生的一切風險。&#x0A;本人知曉並同意 PCL CE 收集處理後的裝置識別碼、Natayark ID 及其他資訊，並可能在必要時提供給執法機關。&#x0A;為保護未成年人個人資訊，本人確認在使用大廳前已年滿十四歲。&#x0A;&#x0A;此外，您還需同意 PCL CE 大廳隱私權政策及 Natayark OpenID 服務條款。</sys:String>
 </ResourceDictionary>

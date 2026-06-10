@@ -140,7 +140,7 @@ public static class ModLaunch
         // 正版购买提示
         if (!ModProfile.profileList.Any(x => x.Type == McLoginType.Ms))
         {
-            if (RegionUtils.IsRestrictedFeatAllowed)
+            if (Lang.IsFeaturesUnrestricted)
             {
                 if (ModMain.MyMsgBox(
                         Lang.Text("Minecraft.Launch.PurchaseHint.Message"),

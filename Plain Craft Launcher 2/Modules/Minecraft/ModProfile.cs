@@ -345,7 +345,7 @@ public static class ModProfile
             authTypeList = _GetAvailableProfileSelection(true);
 #else
             var hasMinecraftAccount = profileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
-            var restricted = RegionUtils.IsRestrictedFeatAllowed && profileList.Count > 0;
+            var restricted = Lang.IsFeaturesUnrestricted && profileList.Count > 0;
             var hasNetwork = NetworkHelper.IsNetworkAvailable();
             if (hasMinecraftAccount || restricted || !hasNetwork)
                 authTypeList = _GetAvailableProfileSelection(true);

@@ -1401,11 +1401,10 @@ public static class ModComp
         /// <summary>
         ///     翻译后的中文名。若数据库没有则等同于 RawName。
         /// </summary>
-        public string TranslatedName => !RegionUtils.IsRestrictedFeatAllowed
-            ? RawName
-            : DatabaseEntry is null || string.IsNullOrEmpty(DatabaseEntry.ChineseName)
-                ? RawName
-                : DatabaseEntry.ChineseName;
+        public string TranslatedName =>
+            Lang.IsChineseMainland && DatabaseEntry?.ChineseName is { Length: > 0 } cn
+                ? cn
+                : RawName;
 
         /// <summary>
         ///     中文描述。若为 Nothing 则没有。
@@ -2345,8 +2344,10 @@ public static class ModComp
         LogWrapper.Info("[Comp] 工程列表搜索原始文本：" + rawFilter);
 
         // 中文请求关键字处理
-        var isChineseSearch = RegionUtils.IsRestrictedFeatAllowed && RegexPatterns.HasChineseChar.IsMatch(rawFilter) && !string.IsNullOrEmpty(rawFilter);
-        if (isChineseSearch && (request.type == CompType.Mod || request.type == CompType.DataPack))
+        var isChineseSearch = Lang.IsChineseMainland &&
+                              RegexPatterns.HasChineseChar.IsMatch(rawFilter) &&
+                              !string.IsNullOrEmpty(rawFilter);
+        if (isChineseSearch && request.type is CompType.Mod or CompType.DataPack)
         {
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
@@ -2610,7 +2611,7 @@ public static class ModComp
             foreach (var res in realResults)
             {
                 scores.Add(res,
-                    (RegionUtils.IsRestrictedFeatAllowed && res.WikiId > 0 ? 0.2 : 0) +
+                    (Lang.IsChineseMainland && res.WikiId > 0 ? 0.2 : 0) +
                     Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
                 searchEntries.Add(new ModBase.SearchEntry<CompProject>
                 {
