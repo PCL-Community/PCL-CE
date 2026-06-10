@@ -26,12 +26,12 @@ Everyone is welcome to try it out!
 
 ## 💻 Supported Platforms
 
-| Operating System | Support Status | Requirements |
+| Operating System | Support Status |
 |---|---|---|
-| Windows 10 1809 (17763) or later | ✅ Fully supported | [.NET 8 Desktop Runtime](http://get.dot.net/8) |
-| Windows 8 to Windows 10 1809 (17763) or earlier | ⚠️ Expected to run; community support offered at discretion | [.NET 8 Desktop Runtime](http://get.dot.net/8) |
-| Windows 7 or earlier | ❌ Not supported | N/A |
-| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) | [.NET 10 SDK](http://get.dot.net/10) |
+| Windows 10 1809 (17763) or later | ✅ Fully supported |
+| Windows 8 to Windows 10 1809 (17763) or earlier | ⚠️ Expected to run; community support offered at discretion |
+| Windows 7 or earlier | ❌ Not supported |
+| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) |
 
 **✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
 

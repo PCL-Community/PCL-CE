@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -14,6 +15,7 @@ public partial class PageInstanceModBrowser
     private static string? _contextVanillaName;
     private static ModComp.CompLoaderType _contextLoader = ModComp.CompLoaderType.Any;
     private readonly ModComp.CompProjectStorage _storage = new();
+    private readonly MyLoadingStateSimulator _loadSim = new();
     private ModLoader.LoaderTask<ModComp.CompProjectRequest, int>? _loader;
     private bool _isLoading;
     private bool _hasMore = true;
@@ -22,16 +24,18 @@ public partial class PageInstanceModBrowser
     public PageInstanceModBrowser()
     {
         InitializeComponent();
+        Load.State = _loadSim;
+        Load.Click += (_, _) =>
+        {
+            if (_loadSim.LoadingState == MyLoading.MyLoadingState.Error)
+                StartSearch();
+        };
         PanSearchBox.Search += (_, _) => StartSearch();
         PanSearchBox.KeyDown += (_, e) =>
         {
             if (e.Key == System.Windows.Input.Key.Enter) StartSearch();
         };
-        Loaded += (_, _) =>
-        {
-            if (_storage.results.Count == 0 && _loader is null)
-                StartSearch();
-        };
+        PageEnter += StartSearch;
     }
 
     /// <summary>
@@ -76,6 +80,10 @@ public partial class PageInstanceModBrowser
         _storage.curseForgeTotal = -1;
         _storage.modrinthTotal = -1;
 
+        Load.Text = "正在获取模组列表...";
+        Load.TextError = "";
+        _loadSim.LoadingState = MyLoading.MyLoadingState.Run;
+
         DoLoad(0);
     }
 
@@ -90,7 +98,6 @@ public partial class PageInstanceModBrowser
 
     private void DoLoad(int page)
     {
-        // 优先使用直接传入的版本/加载器，否则从实例读取
         var vanillaName = _contextVanillaName ?? _contextInstance?.Info.VanillaName;
         var loaderType = _contextVanillaName is not null ? _contextLoader : GetLoaderType(_contextInstance);
 
@@ -99,8 +106,8 @@ public partial class PageInstanceModBrowser
             ModBase.RunInUi(() =>
             {
                 PanLoad.Visibility = Visibility.Collapsed;
-                HintError.Text = "未指定 Minecraft 版本，请先安装实例";
-                HintError.Visibility = Visibility.Visible;
+                Load.TextError = "未指定 Minecraft 版本，请先安装实例";
+                _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                 _isLoading = false;
             });
             return;
@@ -156,8 +163,11 @@ public partial class PageInstanceModBrowser
 
                     if (PanResults.Children.Count == 0)
                     {
-                        HintError.Text = "未找到匹配的模组，请尝试其他关键词";
-                        HintError.Visibility = Visibility.Visible;
+                        _hasMore = false;
+                        PanLoad.Visibility = Visibility.Visible;
+                        PanLoadMore.Visibility = Visibility.Collapsed;
+                        Load.TextError = "未找到匹配的模组，请尝试其他关键词";
+                        _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                     }
                 });
             }
@@ -166,13 +176,11 @@ public partial class PageInstanceModBrowser
                 ModBase.RunInUi(() =>
                 {
                     _isLoading = false;
-                    PanLoad.Visibility = Visibility.Collapsed;
+                    _hasMore = false;
+                    PanLoad.Visibility = Visibility.Visible;
                     PanLoadMore.Visibility = Visibility.Collapsed;
-                    if (PanResults.Children.Count == 0)
-                    {
-                        HintError.Text = $"搜索失败：{_loader.Error?.Message ?? "请检查网络连接"}";
-                        HintError.Visibility = Visibility.Visible;
-                    }
+                    Load.TextError = $"搜索失败：{_loader.Error?.Message ?? "请检查网络连接"}";
+                    _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                 });
             }
         };
@@ -184,11 +192,16 @@ public partial class PageInstanceModBrowser
     {
         if (items.Count == 0 && PanResults.Children.Count == 0) return;
         CardResults.Visibility = Visibility.Visible;
+        CardResults.Opacity = 0;
+        ModAnimation.AniStart(new[]
+        {
+            ModAnimation.AaOpacity(CardResults, 1, 200, 0)
+        }, "ModBrowserShowResults", true);
 
         foreach (var result in items)
         {
             var virtualItem = result.ToCompItem(false, false);
-            var compItem = (MyCompItem)virtualItem; // Init() 触发，返回实际元素
+            var compItem = (MyCompItem)virtualItem;
             compItem.SkipDefaultNavigation = true;
             compItem.ShowInstanceButtons = true;
             compItem.Click += (_, _) =>
@@ -196,7 +209,7 @@ public partial class PageInstanceModBrowser
                 PageInstanceModDetail.SetContext(result, _contextInstance!);
                 ModMain.frmMain.PageChange(FormMain.PageType.InstanceModDetail);
             };
-            PanResults.Children.Add(compItem); // 添加实际元素，而非虚拟包装
+            PanResults.Children.Add(compItem);
         }
     }
 
@@ -208,8 +221,9 @@ public partial class PageInstanceModBrowser
             LoadNextPage();
     }
 
-    private static ModComp.CompLoaderType GetLoaderType(McInstance instance)
+    private static ModComp.CompLoaderType GetLoaderType(McInstance? instance)
     {
+        if (instance is null) return ModComp.CompLoaderType.Any;
         if (instance.Info.HasFabric) return ModComp.CompLoaderType.Fabric;
         if (instance.Info.HasForge) return ModComp.CompLoaderType.Forge;
         if (instance.Info.HasNeoForge) return ModComp.CompLoaderType.NeoForge;

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Utils;
+using PCL.Network.Downloader;
 
 namespace PCL.Network.Loaders;
 
@@ -129,14 +130,14 @@ public class LoaderDownload : ModLoader.LoaderBase
         }
 
         file.State = PCL.Network.NetState.Connecting;
-        var enableParallelChunks = files.Count <= 1;
         for (var retry = 0; retry < 4; retry++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
-                    cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
+                var result = await PclDlService.Default.DownloadAsync(file, cancellationToken).ConfigureAwait(false);
+                if (!result.Success)
+                    throw new IOException(result.ErrorMessage ?? "下载失败：" + file.LocalPath);
                 break;
             }
             catch (OperationCanceledException)

@@ -86,7 +86,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         {
             AccessToken = options.AccessToken
         };
-        var address = $"{options.YggdrasilApiLocation}/authserver/invalidate";
+        var address = $"{options.YggdrasilApiLocation}/authserver/validate";
 
         using var response = await HttpRequest
             .CreatePost(address)

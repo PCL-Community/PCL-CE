@@ -167,7 +167,10 @@ public partial class PageInstanceInstall
         };
         BtnSelectStart.IsEnabled = false;
         if (!ModDownloadLib.McInstall(request, _installAction == InstallAction.Modify ? Lang.Text("Instance.Install.Action.ModifyLabel") : Lang.Text("Common.Action.Reset")))
+        {
+            BtnSelectStart.IsEnabled = true;
             return;
+        }
         // 删除旧的独立 API 文件
         if (selectedFabricApi is not null && _currentFabricApiPath is not null)
             File.Delete(_currentFabricApiPath);
@@ -1142,6 +1145,11 @@ public partial class PageInstanceInstall
     public void GetCurrentInfo()
     {
         ClearSelected();
+        if (PageInstanceLeft.McInstance is null)
+        {
+            BtnSelectStart.IsEnabled = false;
+            return;
+        }
         BtnSelectStart.IsEnabled = true;
         var currentInstance = PageInstanceLeft.McInstance.Info;
         _vanillaName = currentInstance.VanillaName;

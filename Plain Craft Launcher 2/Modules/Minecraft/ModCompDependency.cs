@@ -177,13 +177,21 @@ public static class ModCompDependency
 
     public static List<DownloadFile> BuildDependencyDownloads(
         ModDependencyResolutionResult result,
-        string targetModsFolder)
+        string targetModsFolder,
+        HashSet<string>? installedProjectIds = null)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         var downloads = new List<DownloadFile>();
         foreach (var install in result.ToInstall.AsEnumerable().Reverse())
         {
+            // 按 ModId 去重：已安装的跳过
+            if (installedProjectIds is not null && installedProjectIds.Contains(install.ProjectId))
+            {
+                ModBase.Log($"[CompDeps] 跳过已安装: {install.ProjectName ?? install.ProjectId}");
+                continue;
+            }
+
             if (!ModComp.compProjectCache.TryGetValue(install.ProjectId, out var depProject))
             {
                 continue;

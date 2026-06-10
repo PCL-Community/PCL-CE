@@ -59,9 +59,17 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
+          arch=${{ inputs.architecture }}
+          case "$arch" in
+            x64) rid=win-x64 ;;
+            x86) rid=win-x86 ;;
+            arm64) rid=win-arm64 ;;
+            *) rid=win-x64 ;;
+          esac
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" \
-          -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-          -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
+            -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
+            -r "$rid" --self-contained \
+            -p:DeleteExistingFiles=true -o ./artifact
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4

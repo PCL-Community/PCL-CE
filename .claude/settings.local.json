@@ -12,7 +12,23 @@
       "Bash(dotnet --list-sdks)",
       "Bash(dotnet nuget *)",
       "Bash(dotnet package *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(python3 -c ' *)",
+      "PowerShell(pip install *)",
+      "PowerShell(git log *)",
+      "PowerShell(git fetch *)",
+      "PowerShell(gh api *)",
+      "WebFetch(domain:github.com)",
+      "PowerShell(git show *)",
+      "PowerShell(git diff *)",
+      "PowerShell(curl *)",
+      "Bash(curl -s https://api.github.com/repos/MuXue1230-owo/PCL-N/contents/.github/ISSUE_TEMPLATE)",
+      "Bash(python3 -c \"import json,sys; [print\\(x['name'], x['size']\\) for x in json.load\\(sys.stdin\\)]\")",
+      "PowerShell(Invoke-RestMethod -Uri \"https://api.github.com/repos/MuXue1230-owo/PCL-N/contents/.github/ISSUE_TEMPLATE\" | ForEach-Object { \"$\\($_.name\\) \\($\\($_.size\\) bytes\\)\" })",
+      "PowerShell(git push *)",
+      "WebFetch(domain:docs.github.com)",
+      "PowerShell(dotnet build *)",
+      "PowerShell(Set-Content *)"
     ]
   }
 }

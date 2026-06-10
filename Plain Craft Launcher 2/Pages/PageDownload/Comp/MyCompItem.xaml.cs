@@ -298,7 +298,6 @@ public partial class MyCompItem
         if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
         if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
 
-        ModMain.Hint($"正在下载 {project.RawName}...", ModMain.HintType.Finish);
         ModBase.RunInNewThread(() =>
         {
             try
@@ -312,15 +311,25 @@ public partial class MyCompItem
 
                 if (best is null)
                 {
-                    ModMain.Hint($"未找到 {project.RawName} 兼容版本", ModMain.HintType.Critical);
+                    ModBase.RunInUi(() =>
+                        ModMain.Hint($"未找到 {project.RawName} 兼容版本", ModMain.HintType.Critical));
                     return;
                 }
 
                 var modsFolder = Path.Combine(instance.PathIndie, "mods");
                 Directory.CreateDirectory(modsFolder);
 
+                // 扫描已安装 Mod，按 ModId 去重
+                var installedIds = new HashSet<string>(
+                    ModCompDependency.ScanInstalledMods(modsFolder)
+                        .Where(m => !string.IsNullOrEmpty(m.SourceProjectId))
+                        .Select(m => m.SourceProjectId!),
+                    StringComparer.OrdinalIgnoreCase);
+
+                var localPath = Path.Combine(modsFolder, ModComp.CompFileNameGet(project, best));
+                var downloadFiles = new List<DownloadFile> { best.ToNetFile(localPath) };
+
                 // 解析并下载前置
-                var deps = new List<DownloadFile>();
                 if ((best.Dependencies is { Count: > 0 } || best.RawDependencies is { Count: > 0 }) && !string.IsNullOrEmpty(vanillaName))
                 {
                     try
@@ -328,35 +337,46 @@ public partial class MyCompItem
                         var request = ModCompDependency.BuildRequest(best, project, vanillaName, loaders, modsFolder);
                         var resolver = new PCL.Core.Minecraft.ResourceProject.ModDependencyResolver();
                         var result = resolver.Resolve(request);
-                        if (result.ToInstall is { Count: > 0 })
+                        if (result.Unresolved.Any() || result.ToInstall.Any())
                         {
-                            ModBase.RunInUi(() => ModMain.Hint(
-                                $"正在下载 {result.ToInstall.Count} 个前置...", ModMain.HintType.Finish));
-                            deps = ModCompDependency.BuildDependencyDownloads(result, modsFolder);
+                            var depDownloads = ModCompDependency.BuildDependencyDownloads(result, modsFolder, installedIds);
+                            downloadFiles = depDownloads.Concat(downloadFiles).ToList();
                         }
                     }
                     catch (Exception ex)
                     {
                         ModBase.Log(ex, "[QuickDownload] 前置解析失败，继续下载主文件");
+                        ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + ex.Message,
+                            "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
                     }
                 }
 
+                // 通过 LoaderDownload 接入下载界面
                 DownloadedProjectIds.Add(project.Id);
-                var localPath = Path.Combine(modsFolder, best.FileName);
-                FileDownloader.Download(best.DownloadUrls, localPath).GetAwaiter().GetResult();
-                foreach (var dl in deps)
-                    FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
-
-                // 清理同模组的旧版本（只删比新文件旧的）
-                var cleaned = CleanOldVersions(modsFolder, project.Id, best.FileName);
-                ModBase.RunInUi(() => ModMain.Hint(
-                    $"{project.RawName} 下载完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
-                    ModMain.HintType.Finish));
+                var subLoaders = new List<ModLoader.LoaderBase>
+                {
+                    new PCL.Network.Loaders.LoaderDownload("下载文件", downloadFiles)
+                    {
+                        ProgressWeight = 6,
+                        block = true
+                    }
+                };
+                var loader = new ModLoader.LoaderCombo<int>(
+                    project.TranslatedName ?? project.RawName, subLoaders);
+                loader.OnStateChanged = _ =>
+                {
+                    if (_.State == ModBase.LoadState.Finished)
+                    {
+                        CleanOldVersions(modsFolder, project.Id, best.FileName);
+                    }
+                };
+                loader.Start(1);
+                ModLoader.LoaderTaskbarAdd(loader);
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"下载 {project.RawName} 失败");
-                ModMain.Hint($"下载失败", ModMain.HintType.Critical);
+                ModBase.RunInUi(() => ModMain.Hint($"下载失败", ModMain.HintType.Critical));
             }
         });
     }

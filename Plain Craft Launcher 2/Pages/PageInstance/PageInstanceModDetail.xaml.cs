@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -174,52 +175,65 @@ public partial class PageInstanceModDetail
         if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
         if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
 
-        ModMain.Hint($"正在解析 {file.FileName} 的依赖...", ModMain.HintType.Finish);
-        ModBase.RunInNewThread(() =>
+        // 构建下载列表
+        var localPath = Path.Combine(modsFolder, ModComp.CompFileNameGet(project, file));
+        var downloadFiles = new List<DownloadFile> { file.ToNetFile(localPath) };
+
+        // 扫描已安装 Mod，按 ModId 去重
+        var installedIds = new HashSet<string>(
+            ModCompDependency.ScanInstalledMods(modsFolder)
+                .Where(m => !string.IsNullOrEmpty(m.SourceProjectId))
+                .Select(m => m.SourceProjectId!),
+            StringComparer.OrdinalIgnoreCase);
+
+        // 解析必需前置
+        if (file.Dependencies is { Count: > 0 } && !string.IsNullOrEmpty(mcVersion))
         {
             try
             {
-                // 解析依赖
-                var deps = new List<DownloadFile>();
-                ModBase.Log($"[ModDetail] 依赖检查: Deps={file.Dependencies.Count}, RawDeps={file.RawDependencies.Count}, Optional={file.OptionalDependencies.Count}");
-                if ((file.Dependencies is { Count: > 0 } || file.RawDependencies is { Count: > 0 }) && !string.IsNullOrEmpty(mcVersion))
+                var request = ModCompDependency.BuildRequest(file, project, mcVersion, loaders, modsFolder);
+                var resolver = new ModDependencyResolver();
+                var result = resolver.Resolve(request);
+
+                if (result.Unresolved.Any() || result.ToInstall.Any())
                 {
-                    var request = ModCompDependency.BuildRequest(file, project, mcVersion, loaders, modsFolder);
-                    var resolver = new ModDependencyResolver();
-                    var result = resolver.Resolve(request);
-                    ModBase.Log($"[ModDetail] 依赖解析结果: ToInstall={result.ToInstall?.Count ?? 0}, Unresolved={result.Unresolved?.Count ?? 0}");
+                    if (!ModCompDependency.ConfirmDependencyInstall(result))
+                        return;
 
-                    if (result.ToInstall is { Count: > 0 })
-                    {
-                        var depNames = string.Join(", ",
-                            result.ToInstall.Select(d => d.ProjectName ?? d.ProjectId));
-                        ModBase.RunInUi(() =>
-                            ModMain.Hint($"正在下载前置：{depNames}", ModMain.HintType.Finish));
-
-                        deps = ModCompDependency.BuildDependencyDownloads(result, modsFolder);
-                    }
+                    var depDownloads = ModCompDependency.BuildDependencyDownloads(result, modsFolder, installedIds);
+                    downloadFiles = depDownloads.Concat(downloadFiles).ToList();
                 }
-
-                // 下载主文件
-                var localPath = Path.Combine(modsFolder, file.FileName);
-                FileDownloader.Download(file.DownloadUrls, localPath).GetAwaiter().GetResult();
-                foreach (var dl in deps)
-                    FileDownloader.Download(dl.Urls, dl.LocalPath).GetAwaiter().GetResult();
-
-                MyCompItem.DownloadedProjectIds.Add(_project!.Id);
-
-                // 清理旧版
-                CleanOldVersions(modsFolder, _project!.Id, file.FileName);
-
-                ModBase.RunInUi(() =>
-                    ModMain.Hint($"下载完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}", ModMain.HintType.Finish));
             }
-            catch (Exception ex)
+            catch (Exception depEx)
             {
-                ModBase.Log(ex, "下载失败");
-                ModBase.RunInUi(() => ModMain.Hint("下载失败", ModMain.HintType.Critical));
+                ModBase.Log(depEx, "[ModDetail] 依赖解析失败，跳过前置安装");
+                ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
+                    "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
             }
-        });
+        }
+
+        // 通过 LoaderDownload 接入下载界面（支持进度显示、去重）
+        var loaderName = file.FileName ?? project.TranslatedName ?? project.RawName;
+        var subLoaders = new List<ModLoader.LoaderBase>
+        {
+            new LoaderDownload("下载文件", downloadFiles)
+            {
+                ProgressWeight = 6,
+                block = true
+            }
+        };
+
+        var loader = new ModLoader.LoaderCombo<int>(loaderName, subLoaders);
+        loader.OnStateChanged = _ =>
+        {
+            if (_.State == ModBase.LoadState.Finished)
+            {
+                MyCompItem.DownloadedProjectIds.Add(project.Id);
+                CleanOldVersions(modsFolder, project.Id, file.FileName);
+            }
+        };
+        loader.Start(1);
+        ModLoader.LoaderTaskbarAdd(loader);
     }
 
     private static void CleanOldVersions(string modsFolder, string projectId, string newFileName)
