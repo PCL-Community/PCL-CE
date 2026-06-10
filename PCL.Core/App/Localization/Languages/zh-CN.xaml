@@ -1494,17 +1494,12 @@
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">联网更新</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">请谨慎使用陌生人提供的主页，恶意代码可能会造成损害！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">刷新主页</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.GenerateDocs">生成教学文件</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial">查看教程</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.DownloadUrl">下载地址</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">主页预设</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">获取更多主页</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">前往主页市场</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">已刷新主页！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Message">当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Title">覆盖确认</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Continue">继续</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.Generated">教学文件已生成！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。&#x0a;2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。&#x0a;3. 点击 刷新主页 按钮，查看主页现在长啥样了。&#x0a;&#x0a;你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。&#x0a;直接将主页文件拖进 PCL 窗口也可以快捷加载。</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">主页自定义教程</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">你知道吗？</sys:String>
