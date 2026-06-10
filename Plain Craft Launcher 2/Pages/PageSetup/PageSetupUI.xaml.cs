@@ -653,22 +653,6 @@ public partial class PageSetupUI
     }
 
     // 主页
-    private void BtnCustomFile_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            if (File.Exists(ModBase.exePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
-                    return;
-            ModBase.WriteFile(ModBase.exePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
-            ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Docs.Generated"), ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ModBase.exePath + @"PCL\Custom.xaml");
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "生成教学文件失败", ModBase.LogLevel.Feedback);
-        }
-    }
 
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
