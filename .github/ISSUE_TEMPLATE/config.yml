@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: "提交BUG"
-    url: "https://github.com/MuXue1230-owo/PCL-N/issues/new/choose"
-    about: "本Fork版本BUG较多，如果发现了新的BUG，请及时反馈"
   - name: 主页预设反馈
     url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
