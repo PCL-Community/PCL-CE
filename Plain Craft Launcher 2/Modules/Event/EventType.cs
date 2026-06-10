@@ -1,8 +1,6 @@
 namespace PCL;
 
-/// <summary>
-///     事件动作类型（仅保留以下 7 种）。
-/// </summary>
+/// <summary>事件动作类型。</summary>
 public enum EventType
 {
     None = 0,
@@ -18,6 +16,6 @@ public enum EventType
     ShowDialog,
     /// <summary>弹出提示</summary>
     ShowHint,
-    /// <summary>调用应用内函数</summary>
+    /// <summary>调用应用内函数（C# 语法）</summary>
     InvokeFunction,
 }

@@ -4,14 +4,12 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-/// <summary>
-///     事件处理函数。每个 <see cref="EventType"/> 对应一个 private static 方法。
-/// </summary>
+/// <summary>事件分发与处理函数。</summary>
 public static partial class EventHandlers
 {
     public static void Raise(EventType type, string? data)
     {
-        if (type == EventType.None) return;
+        if (type is EventType.None) return;
         ModBase.Log($"[Event] 执行事件：{type}, {data}");
 
         try
@@ -53,14 +51,14 @@ public static partial class EventHandlers
         var a = (data ?? "").Split('|');
         var name = a.ElementAtOrDefault(0) ?? "";
 
-        if (name == "\\current")
+        if (name is "\\current")
         {
-            if (ModInstanceList.McMcInstanceSelected is null)
+            if (ModInstanceList.McMcInstanceSelected is not { } sel)
             {
                 ModMain.Hint(Lang.Text("Event.Error.NoInstanceSelected"), ModMain.HintType.Critical);
                 return;
             }
-            name = ModInstanceList.McMcInstanceSelected.Name;
+            name = sel.Name;
         }
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -93,7 +91,7 @@ public static partial class EventHandlers
     private static void ShowDialog(string? data)
     {
         var a = (data ?? "").Split('|');
-        if (a.Length < 2) throw new Exception("ShowDialog 至少需要 2 个用 | 分隔的参数：标题|内容");
+        if (a.Length < 2) throw new InvalidOperationException("ShowDialog 至少需要 2 个用 | 分隔的参数：标题|内容");
         ModMain.MyMsgBox(a[1].Replace("\\n", "\r\n"), a[0].Replace("\\n", "\r\n"),
             a.Length > 2 ? a[2] : Lang.Text("Common.Action.Confirm"));
     }
@@ -101,8 +99,8 @@ public static partial class EventHandlers
     private static void ShowHint(string? data)
     {
         var a = (data ?? "").Split('|');
-        var t = a.Length >= 2 && Enum.TryParse<ModMain.HintType>(a[1], true, out var h) ? h : ModMain.HintType.Info;
-        ModMain.Hint(a.ElementAtOrDefault(0)?.Replace("\\n", "\r\n") ?? "", t);
+        var h = a.Length >= 2 && Enum.TryParse<ModMain.HintType>(a[1], true, out var t) ? t : ModMain.HintType.Info;
+        ModMain.Hint(a.ElementAtOrDefault(0)?.Replace("\\n", "\r\n") ?? "", h);
     }
 
     private static void InvokeFunction(string? data)
@@ -112,20 +110,19 @@ public static partial class EventHandlers
         var m = InvokeRegex().Match(expr);
         if (!m.Success) { ModMain.Hint(Lang.Text("Event.Error.InvokeFunctionSyntax", expr), ModMain.HintType.Critical); return; }
 
-        var type = Type.GetType($"PCL.{m.Groups[1].Value}, Plain Craft Launcher 2", false, true)
-                ?? Type.GetType($"PCL.{m.Groups[1].Value}, PCL.Core", false, true)
-                ?? Type.GetType(m.Groups[1].Value, false, true);
-        if (type is null) { ModMain.Hint(Lang.Text("Event.Error.TypeNotFound", m.Groups[1].Value), ModMain.HintType.Critical); return; }
+        var t = Type.GetType($"PCL.{m.Groups[1].Value}, Plain Craft Launcher 2", false, true)
+             ?? Type.GetType($"PCL.{m.Groups[1].Value}, PCL.Core", false, true)
+             ?? Type.GetType(m.Groups[1].Value, false, true);
+        if (t is null) { ModMain.Hint(Lang.Text("Event.Error.TypeNotFound", m.Groups[1].Value), ModMain.HintType.Critical); return; }
 
         var args = ParseArgs(m.Groups[3].Value);
-        var method = type.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance,
-                        args.Select(a => a?.GetType() ?? typeof(object)).ToArray())
-                  ?? type.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance,
-                        [typeof(string)]);
+        var method = t.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance,
+                         args.Select(a => a?.GetType() ?? typeof(object)).ToArray())
+                  ?? t.GetMethod(m.Groups[2].Value, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance, [typeof(string)]);
         if (method is null) { ModMain.Hint(Lang.Text("Event.Error.MethodNotFound", $"{m.Groups[1].Value}.{m.Groups[2].Value}"), ModMain.HintType.Critical); return; }
-        if (method.GetParameters().Length == 1 && method.GetParameters()[0].ParameterType == typeof(string)) args = [data];
+        if (method.GetParameters() is [{ ParameterType: var p }] && p == typeof(string)) args = [data];
 
-        try { method.Invoke(method.IsStatic ? null : Activator.CreateInstance(type), args); }
+        try { method.Invoke(method.IsStatic ? null : Activator.CreateInstance(t), args); }
         catch (TargetInvocationException ex) { ModBase.Log(ex.InnerException ?? ex, $"InvokeFunction 失败：{expr}", ModBase.LogLevel.Msgbox); }
         catch (Exception ex) { ModBase.Log(ex, $"InvokeFunction 失败：{expr}", ModBase.LogLevel.Msgbox); }
     }
