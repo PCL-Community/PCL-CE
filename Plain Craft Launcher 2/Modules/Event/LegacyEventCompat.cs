@@ -19,8 +19,8 @@ public static partial class LegacyEventCompat
         ["弹出提示"] = "ShowHint"
     };
 
-    private static readonly HashSet<string> Unsupported = new()
-    {
+    private static readonly HashSet<string> Unsupported =
+    [
         "打开文件",
         "打开帮助",
         "执行命令",
@@ -37,8 +37,8 @@ public static partial class LegacyEventCompat
         "修改变量",
         "写入变量",
         "加入房间",
-        "检查更新",
-    };
+        "检查更新"
+    ];
 
     /// <summary>
     ///     将 XAML 中裸 EventType/EventData 转换为 attached property 格式。
