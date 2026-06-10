@@ -115,7 +115,7 @@ public partial class PageLaunchRight : IRefreshable
     <local:MyCard Title=""{{DynamicResource Launch.Status.Trivia}}"" Margin=""0,0,0,15"">
         <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
         <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-            EventType=""刷新主页"" EventData=""/""
+            EventType=""RefreshHome"" EventData=""/""
             SvgIcon=""lucide/refresh-cw"" />
     </local:MyCard>";
                     break;

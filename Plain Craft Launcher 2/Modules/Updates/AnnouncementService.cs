@@ -30,14 +30,12 @@ public static class AnnouncementService
                     Lang.Text("Common.Action.Close"),
                     button1Action: () =>
                     {
-                        if (Enum.TryParse<CustomEvent.EventType>(
-                                item.Btn1.Command, true, out var eventType))
+                        if (TryParseEventType(item.Btn1.Command, out var eventType))
                             CustomEvent.Raise(eventType, item.Btn1.CommandParameter);
                     },
                     button2Action: () =>
                     {
-                        if (Enum.TryParse<CustomEvent.EventType>(
-                                item.Btn2.Command, true, out var eventType))
+                        if (TryParseEventType(item.Btn2.Command, out var eventType))
                             CustomEvent.Raise(eventType, item.Btn2.CommandParameter);
                     });
             }
@@ -46,5 +44,26 @@ public static class AnnouncementService
         showedAnnounced.AddRange(showAnnounce.Select(x => x.Id));
         showedAnnounced = showedAnnounced.Distinct().ToList();
         States.Hint.ShowedAnnouncements = showedAnnounced.Join("|");
+    }
+
+    /// <summary>解析事件类型，支持中英文（中文通过 <see cref="LegacyEventCompat"/> 映射）。</summary>
+    private static bool TryParseEventType(string? command, out CustomEvent.EventType eventType)
+    {
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            eventType = CustomEvent.EventType.None;
+            return false;
+        }
+        // 先查 LegacyEventCompat 的中文映射
+        var mapped = command;
+        foreach (var name in LegacyEventCompat.NameMap)
+        {
+            if (string.Equals(name.Key, command, StringComparison.OrdinalIgnoreCase))
+            {
+                mapped = name.Value;
+                break;
+            }
+        }
+        return Enum.TryParse(mapped, true, out eventType);
     }
 }
