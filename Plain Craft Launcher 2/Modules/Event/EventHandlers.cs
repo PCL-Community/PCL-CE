@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Markup;
 
@@ -63,17 +61,7 @@ public class CustomEvent
     {
         if (Type == EventType.None) return;
         ModBase.Log($"[Event] 旧版事件：{Type}, {Data}");
-        EventHandlers.Raise(Type switch
-        {
-            EventType.OpenUrl => PCL.EventType.OpenUrl,
-            EventType.LaunchGame => PCL.EventType.LaunchGame,
-            EventType.CopyText => PCL.EventType.CopyText,
-            EventType.RefreshHome => PCL.EventType.RefreshHome,
-            EventType.ShowDialog => PCL.EventType.ShowDialog,
-            EventType.ShowHint => PCL.EventType.ShowHint,
-            EventType.InvokeFunction => PCL.EventType.InvokeFunction,
-            _ => PCL.EventType.None,
-        }, Data);
+        EventHandlers.Raise((PCL.EventType)Type, Data);
     }
 
     public static void Raise(EventType type, string? data) => new CustomEvent(type, data).Raise();
