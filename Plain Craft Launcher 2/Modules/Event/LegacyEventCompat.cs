@@ -12,16 +12,34 @@ public static partial class LegacyEventCompat
     /// <summary>支持的中文名 → 英文枚举值（供 AnnouncementService 等外部调用者使用）。</summary>
     public static readonly Dictionary<string, string> NameMap = new()
     {
-        ["打开网页"] = "OpenUrl",   ["启动游戏"] = "LaunchGame", ["复制文本"] = "CopyText",
-        ["刷新主页"] = "RefreshHome", ["刷新页面"] = "RefreshHome", ["弹出窗口"] = "ShowDialog",
-        ["弹出提示"] = "ShowHint",  ["调用函数"] = "InvokeFunction",
+        ["打开网页"] = "OpenUrl",
+        ["启动游戏"] = "LaunchGame", 
+        ["复制文本"] = "CopyText",
+        ["刷新主页"] = "RefreshHome", 
+        ["刷新页面"] = "RefreshHome",
+        ["弹出窗口"] = "ShowDialog",
+        ["弹出提示"] = "ShowHint"
     };
 
     private static readonly HashSet<string> Unsupported = new()
     {
-        "打开文件", "打开帮助", "执行命令", "刷新帮助", "今日人品", "内存优化",
-        "清理垃圾", "切换页面", "导入整合包", "安装整合包", "下载文件", "下载版本",
-        "修改设置", "写入设置", "修改变量", "写入变量", "加入房间", "检查更新",
+        "打开文件",
+        "打开帮助",
+        "执行命令",
+        "刷新帮助",
+        "今日人品",
+        "内存优化",
+        "清理垃圾",
+        "切换页面",
+        "导入整合包",
+        "安装整合包",
+        "下载文件",
+        "修改设置",
+        "写入设置",
+        "修改变量",
+        "写入变量",
+        "加入房间",
+        "检查更新",
     };
 
     /// <summary>
