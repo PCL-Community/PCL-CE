@@ -28,7 +28,9 @@
       "PowerShell(git push *)",
       "WebFetch(domain:docs.github.com)",
       "PowerShell(dotnet build *)",
-      "PowerShell(Set-Content *)"
+      "PowerShell(Set-Content *)",
+      "PowerShell(gpg *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\usr\\\\bin\\\\gpg.exe\" --version 2>&1)"
     ]
   }
 }

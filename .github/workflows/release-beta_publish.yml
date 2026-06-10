@@ -6,10 +6,11 @@ permissions:
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
-    if: ${{ github.event.release.prerelease }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     strategy:
       matrix:
         include:
@@ -30,7 +31,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ github.event.release.prerelease }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     steps:
       - name: Checkout all
         uses: actions/checkout@v4
