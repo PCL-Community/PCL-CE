@@ -3048,6 +3048,9 @@
     <sys:String x:Key="Event.Error.InvokeFunctionSyntax">Invalid function call syntax: {0}. Expected format: TypeName.MethodName(args)</sys:String>
     <sys:String x:Key="Event.Error.TypeNotFound">Type not found: {0}</sys:String>
     <sys:String x:Key="Event.Error.MethodNotFound">Method not found: {0}</sys:String>
+    <sys:String x:Key="Event.Confirm.Waring">Waring</sys:String>
+    <sys:String x:Key="Event.Confirm.InvokeFunction">The homepage wants to execute the following function call. Please confirm there are no security risks before proceeding.&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Confirm.RememberChoice">Proceed and don't ask again</sys:String>
     <sys:String x:Key="Event.Hint.OpeningUrl">Opening: {0}</sys:String>
     <sys:String x:Key="Event.Hint.Launching">Launching {0}...</sys:String>
     <sys:String x:Key="Event.Hint.Refreshed">Refreshed!</sys:String>

@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -122,6 +123,20 @@ public static partial class EventHandlers
         if (method is null) { ModMain.Hint(Lang.Text("Event.Error.MethodNotFound", $"{m.Groups[1].Value}.{m.Groups[2].Value}"), ModMain.HintType.Critical); return; }
         if (method.GetParameters() is [{ ParameterType: var p }] && p == typeof(string)) args = [data];
 
+        if (!States.Hint.HomepageCommand)
+        {
+            var result = ModMain.MyMsgBox(
+                Lang.Text("Event.Confirm.InvokeFunction", expr),
+                Lang.Text("Event.Confirm.Waring"),
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Event.Confirm.RememberChoice"),
+                Lang.Text("Common.Action.Cancel"));
+            if (result is 2)
+                States.Hint.HomepageCommand = true;
+            else if (result is not 1)
+                return;
+        }
+
         try { method.Invoke(method.IsStatic ? null : Activator.CreateInstance(t), args); }
         catch (TargetInvocationException ex) { ModBase.Log(ex.InnerException ?? ex, $"InvokeFunction 失败：{expr}", ModBase.LogLevel.Msgbox); }
         catch (Exception ex) { ModBase.Log(ex, $"InvokeFunction 失败：{expr}", ModBase.LogLevel.Msgbox); }
@@ -143,9 +158,14 @@ public static partial class EventHandlers
             }
             else
             {
-                var e = r.IndexOf(',');
-                if (e < 0) { l.Add(Parse(r.Trim())); break; }
-                l.Add(Parse(r[..e].Trim())); r = r[(e + 1)..];
+                var depth = 0; var found = false;
+                for (int i = 0; i < r.Length; i++)
+                {
+                    if (r[i] is '(') depth++;
+                    else if (r[i] is ')') depth--;
+                    else if (r[i] is ',' && depth is 0) { l.Add(Parse(r[..i].Trim())); r = r[(i + 1)..]; found = true; break; }
+                }
+                if (!found) { l.Add(Parse(r.Trim())); break; }
             }
         }
         return l.ToArray();

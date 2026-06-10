@@ -54,16 +54,7 @@ public static class AnnouncementService
             eventType = CustomEvent.EventType.None;
             return false;
         }
-        // 先查 LegacyEventCompat 的中文映射
-        var mapped = command;
-        foreach (var name in LegacyEventCompat.NameMap)
-        {
-            if (string.Equals(name.Key, command, StringComparison.OrdinalIgnoreCase))
-            {
-                mapped = name.Value;
-                break;
-            }
-        }
+        var mapped = LegacyEventCompat.NameMap.GetValueOrDefault(command, command);
         return Enum.TryParse(mapped, true, out eventType);
     }
 }
