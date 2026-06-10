@@ -1,17 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: "旧版本优化反馈、新功能请求暂不受理"
-    url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
-    about: "由于开发重心已经转移到 C# 新版本，所以目前不计划再对旧版做优化和新功能了。你可以在晚一些时候向新版本提交新功能请求。"
-  - name: "新版本新功能请求暂不受理"
-    url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
-    about: "由于 C# 新版本还不稳定，我们暂时不受理对新版本提出的新功能请求，请在晚一些时候再来"
+  - name: "提交BUG"
+    url: "https://github.com/MuXue1230-owo/PCL-N/issues/new/choose"
+    about: "本Fork版本BUG较多，如果发现了新的BUG，请及时反馈"
   - name: 主页预设反馈
     url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
-  - name: 帮助文档反馈
-    url: https://github.com/PCL-Community/PCL2CEHelp/issues
-    about: 提交与 PCL N 帮助文档（更多 → 帮助）中的具体内容相关的反馈
   - name: 提问 / 讨论
-    url: https://github.com/MUXUE1230/PCL2-N/discussions/new
+    url: https://github.com/MuXue1230-owo/PCL2-N/discussions/new
     about: 想问问或谈谈关于 PCL N Edition 的事情...
