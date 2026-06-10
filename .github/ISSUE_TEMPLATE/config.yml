@@ -9,9 +9,6 @@ contact_links:
   - name: 主页预设反馈
     url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
     about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
-  - name: 帮助文档反馈
-    url: https://github.com/PCL-Community/PCL2CEHelp/issues
-    about: 提交与 PCL CE 帮助文档（更多 → 帮助）中的具体内容相关的反馈
   - name: 提问 / 讨论
     url: https://github.com/PCL-Community/PCL2-CE/discussions/new
     about: 想问问或谈谈关于社区版的事情...

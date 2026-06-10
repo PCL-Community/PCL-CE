@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Minecraft.IdentityModel;
 
 namespace PCL.Core.Minecraft.IdentityModel.OAuth;
 
@@ -30,12 +31,12 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
         sb.Append($"?response_type=code&scope={Uri.EscapeDataString(string.Join(" ", scopes))}");
         sb.Append($"&redirect_uri={Uri.EscapeDataString(options.RedirectUri)}");
         sb.Append($"&client_id={options.ClientId}&state={state}");
-        if (extData is null) return sb.ToString(); 
-        foreach (var kvp in extData) 
+        if (extData is null) return sb.ToString();
+        foreach (var kvp in extData)
             sb.Append($"&{kvp.Key}={Uri.EscapeDataString(kvp.Value)}");
         return sb.ToString();
     }
-    
+
     /// <summary>
     /// 使用授权代码获取令牌
     /// </summary>
@@ -59,7 +60,6 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
             .WithHeaders(options.Headers ?? [])
             .SendAsync(client, cancellationToken: token)
             .ConfigureAwait(false);
-        var result  = await response.Content.ReadAsStringAsync(token);
         return await response
             .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
             .ConfigureAwait(false);
@@ -100,11 +100,11 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     /// <param name="token"></param>
     /// <param name="extData"></param>
     /// <returns></returns>
-    /// <exception cref="OperationCanceledException"></exception>
+    /// <exception cref="IdentityModelAuthenticationException">认证服务器返回设备授权错误</exception>
     public async Task<AuthorizeResult?> AuthorizeWithDeviceAsync
         (DeviceCodeData data,CancellationToken token,Dictionary<string,string>? extData = null)
     {
-        if (data.IsError) throw new OperationCanceledException(data.ErrorDescription); 
+        if (data.IsError) throw new IdentityModelAuthenticationException(data.Error, data.ErrorDescription);
         var client = options.GetClient.Invoke();
         extData ??= new Dictionary<string, string>();
         extData["client_id"] = options.ClientId;
@@ -130,12 +130,12 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     /// <param name="token"></param>
     /// <param name="extData"></param>
     /// <returns></returns>
-    /// <exception cref="OperationCanceledException"></exception>
+    /// <exception cref="IdentityModelAuthenticationException">认证服务器返回刷新授权错误</exception>
     public async Task<AuthorizeResult?> AuthorizeWithSilentAsync
         (AuthorizeResult data,CancellationToken token,Dictionary<string,string>? extData = null)
     {
         var client = options.GetClient.Invoke();
-        if (data.IsError) throw new OperationCanceledException(data.ErrorDescription);
+        if (data.IsError) throw new IdentityModelAuthenticationException(data.Error, data.ErrorDescription);
         extData ??= [];
         extData["refresh_token"] = data.RefreshToken!;
         extData["grant_type"] = "refresh_token";

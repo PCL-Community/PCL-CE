@@ -1,11 +1,11 @@
-using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
-using PCL.Network;
 using PCL.Core.Utils;
+using PCL.Core.IO.Net.Http;
+using System.Text.Json.Serialization;
 
 namespace PCL;
 
@@ -16,6 +16,7 @@ public partial class MyMsgLogin
     private string oAuthUrl = ""; // OAuth 轮询验证地址
     private string userCode; // 需要用户在网页上输入的设备代码
     private string website; // 验证网页的网址
+    private Task? workingThread;
 
     public MyMsgLogin()
     {
@@ -60,17 +61,21 @@ public partial class MyMsgLogin
         CustomEventService.SetEventData(Btn1, website);
         CustomEventService.SetEventData(Btn2, userCode);
         // 启动工作线程
-        ModBase.RunInNewThread(WorkThread, "MyMsgLogin");
+        workingThread = WorkThread();
     }
 
-    private void WorkThread()
+    private record ErrorBody(
+        [property: JsonPropertyName("error")] string Error,
+        [property: JsonPropertyName("error_description")] string Desc);
+
+    private async Task WorkThread()
     {
-        Thread.Sleep(2000);
+        await Task.Delay(2000).ConfigureAwait(false);
         if (myConverter.IsExited)
             return;
         ModBase.OpenWebsite(website);
         ModBase.ClipboardSet(userCode);
-        Thread.Sleep((data["interval"].ToObject<int>() - 1) * 1000);
+        var delayTime = (data["interval"].ToObject<int>() - 1) * 1000;
         // 轮询
         var unknownFailureCount = 0;
         while (!myConverter.IsExited)
@@ -78,26 +83,36 @@ public partial class MyMsgLogin
             try
             {
                 var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={deviceCode}&scope=XboxLive.signin%20offline_access";
-
-                var result = Requester.Fetch(
-                    "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-                    new FetchParam
+                using var result = await HttpRequest
+                    .Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
+                    .WithFormContent(bodyData)
+                    .SendAsync(enableLogging: false)
+                    .ConfigureAwait(false);
+                if (!result.IsSuccess)
+                {
+                    var error = await result.AsJsonAsync<ErrorBody>()
+                        .ConfigureAwait(false);
+                    switch(error?.Error)
                     {
-                        Method = "POST",
-                        Content = bodyData,
-                        ContentType = "application/x-www-form-urlencoded",
-                        Timeout = 5000 + unknownFailureCount * 5000, MakeLog = false
-                    });
+                        case "authorization_pending":
+                            {
+                                await Task.Delay(delayTime)
+                                    .ConfigureAwait(false);
+                                continue;
+                            }
+                        default:
+                            {
+                                throw new Exception(error?.Error ?? "Unable to get body");
+                            }
+                    }
+                }
                 // 获取结果
-                var resultJson = (JsonObject)ModBase.GetJson(result);
+                var ctx = await result.AsStringAsync().ConfigureAwait(false);
+                var resultJson = (JsonObject)ModBase.GetJson(ctx);
                 ModProfile.ProfileLog($"令牌过期时间：{resultJson["expires_in"]} 秒");
                 ModMain.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), ModMain.HintType.Finish);
                 Finished(new[] { resultJson["access_token"].ToString(), resultJson["refresh_token"].ToString() });
                 return;
-            }
-            catch (WebException ex)
-            {
-                throw new Exception("爆！");
             }
             catch (Exception ex)
             {
@@ -106,7 +121,7 @@ public partial class MyMsgLogin
                     unknownFailureCount += 1;
                     ModBase.Log(ex, $"正版验证轮询第 {unknownFailureCount} 次失败");
                     ModBase.Log(ex.Message);
-                    Thread.Sleep(2000);
+                    await Task.Delay(2000).ConfigureAwait(false);
                 }
                 else
                 {

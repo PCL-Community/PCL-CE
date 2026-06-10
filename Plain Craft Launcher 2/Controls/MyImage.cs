@@ -12,8 +12,6 @@ namespace PCL;
 
 public class MyImage : Image
 {
-    private string _ActualSource;
-
     public MyImage()
     {
         Initialized += (_, _) => Load();
@@ -25,14 +23,14 @@ public class MyImage : Image
     /// </summary>
     public string ActualSource
     {
-        get => _ActualSource;
+        get => field;
         set
         {
             if (string.IsNullOrEmpty(value))
                 value = null;
-            if ((_ActualSource ?? "") == (value ?? ""))
+            if ((field ?? "") == (value ?? ""))
                 return;
-            _ActualSource = value;
+            field = value;
             Dispatcher.BeginInvoke(new Func<Task>(async () =>
             {
                 try
@@ -192,21 +190,19 @@ public class MyImage : Image
     /// </summary>
     public new string Source // 覆写 Image 的 Source 属性
     {
-        get => _Source;
+        get => field;
         set
         {
             if (string.IsNullOrEmpty(value))
                 value = null;
-            if ((_Source ?? "") == (value ?? ""))
+            if ((field ?? "") == (value ?? ""))
                 return;
-            _Source = value;
+            field = value;
             if (!IsInitialized)
                 return; // 属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
             Load();
         }
-    }
-
-    private string _Source = "";
+    } = "";
 
     public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>

@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Hash;
 using static PCL.ModComp;
 using static PCL.ModLoader;
 
@@ -13,6 +15,9 @@ namespace PCL;
 public static class ModLocalComp
 {
     private const int localModCacheVersion = 7;
+
+    private static readonly Lazy<HashCache> _hashCache = new(() =>
+        new HashCache(ModBase.pathTemp + @"Cache\HashCache.db"));
 
     public class LocalCompFile
     {
@@ -496,12 +501,12 @@ public static class ModLocalComp
         {
             get
             {
-                if (_tags is null)
+                if (field is null)
                 {
-                    _tags = new List<string>();
+                    field = new List<string>();
                     if (IsFolder)
                     {
-                        _tags.Add("文件夹");
+                        field.Add("文件夹");
                     }
                     else
                     {
@@ -510,29 +515,27 @@ public static class ModLocalComp
                         {
                             case ".litematic":
                             {
-                                _tags.Add("原理图");
+                                field.Add("原理图");
                                 break;
                             }
                             case ".schem":
                             case ".schematic":
                             {
-                                _tags.Add("Schematic结构");
+                                field.Add("Schematic结构");
                                 break;
                             }
                             case ".nbt":
                             {
-                                _tags.Add("原版结构");
+                                field.Add("原版结构");
                                 break;
                             }
                         }
                     }
                 }
 
-                return _tags;
+                return field;
             }
         }
-
-        private List<string> _tags;
 
         /// <summary>
         ///     Mod 的版本，不保证符合版本格式规范。
@@ -598,17 +601,15 @@ public static class ModLocalComp
         {
             get
             {
-                if (_Url is null)
+                if (field is null)
                     Load();
-                return _Url;
+                return field;
             }
             set
             {
-                if (_Url is null && value is not null && value.StartsWithF("http")) _Url = value;
+                if (field is null && value is not null && value.StartsWithF("http")) field = value;
             }
         }
-
-        private string _Url;
 
         /// <summary>
         ///     Mod 的作者列表。
@@ -1682,15 +1683,13 @@ public static class ModLocalComp
         /// </summary>
         public CompProject Comp
         {
-            get => _Comp;
+            get => field;
             set
             {
-                _Comp = value;
+                field = value;
                 OnCompUpdate?.Invoke(this);
             }
         }
-
-        private CompProject _Comp;
 
         /// <summary>
         ///     本地文件对应的联网文件信息。
@@ -1702,15 +1701,13 @@ public static class ModLocalComp
         /// </summary>
         public CompFile UpdateFile
         {
-            get => _UpdateFile;
+            get => field;
             set
             {
-                _UpdateFile = value;
+                field = value;
                 OnCompUpdate?.Invoke(this);
             }
         }
-
-        private CompFile _UpdateFile;
 
         /// <summary>
         ///     该 Mod 的更新日志网址。
@@ -1769,71 +1766,11 @@ public static class ModLocalComp
             {
                 if (_CurseForgeHash is null)
                 {
-                    // 读取缓存
-                    var info = new FileInfo(path);
-                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-C")
-                        .ToString();
-                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
-                    if (!string.IsNullOrEmpty(cached) && cached.RegexCheck(@"^\d+$")) // #5062
-                    {
-                        _CurseForgeHash = uint.Parse(cached);
-                        return (uint)_CurseForgeHash;
-                    }
-
-                    // 读取文件
-                    var data = new List<byte>();
-                    foreach (var b in ModBase.ReadFileBytes(path))
-                    {
-                        if (b == 9 || b == 10 || b == 13 || b == 32)
-                            continue;
-                        data.Add(b);
-                    }
-
-                    // 计算 MurmurHash2
-                    var length = data.Count;
-                    var h = (uint)(1 ^ length); // 1 是种子
-                    int i;
-                    var loopTo = length - 4;
-                    for (i = 0; i <= loopTo; i += 4)
-                    {
-                        var k = data[i] | ((uint)data[i + 1] << 8) | ((uint)data[i + 2] << 16) |
-                                ((uint)data[i + 3] << 24);
-                        k = (uint)((k * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        k = k ^ (k >> 24);
-                        k = (uint)((k * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                        h = h ^ k;
-                    }
-
-                    switch (length - i)
-                    {
-                        case 3:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = h ^ ((uint)data[i + 2] << 16);
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                        case 2:
-                        {
-                            h = h ^ (data[i] | ((uint)data[i + 1] << 8));
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                        case 1:
-                        {
-                            h = h ^ data[i];
-                            h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                            break;
-                        }
-                    }
-
-                    h = h ^ (h >> 13);
-                    h = (uint)((h * 0x5BD1E995L) & 0xFFFFFFFFL);
-                    h = h ^ (h >> 15);
-                    _CurseForgeHash = h;
-                    // 写入缓存
-                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, h.ToString());
+                    var buf = _hashCache.Value
+                        .GetMurmurHash2Async(path)
+                        .GetAwaiter().GetResult()
+                        .HexToBytes();
+                    _CurseForgeHash = BitConverter.ToUInt32(buf);
                 }
 
                 return (uint)_CurseForgeHash;
@@ -1849,30 +1786,12 @@ public static class ModLocalComp
         {
             get
             {
-                if (_ModrinthHash is null)
-                {
-                    // 读取缓存
-                    var info = new FileInfo(path);
-                    var cacheKey = ModBase.GetHash($"{RawPath}-{info.LastWriteTime.ToLongTimeString()}-{info.Length}-M")
-                        .ToString();
-                    var cached = ModBase.ReadIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey);
-                    if (!string.IsNullOrEmpty(cached))
-                    {
-                        _ModrinthHash = cached;
-                        return _ModrinthHash;
-                    }
+                if (field is null)
+                    field = _hashCache.Value.GetSHA1Async(path).GetAwaiter().GetResult();
 
-                    // 计算 SHA1
-                    _ModrinthHash = ModBase.GetFileSHA1(path);
-                    // 写入缓存
-                    ModBase.WriteIni(ModBase.pathTemp + @"Cache\CompHash.ini", cacheKey, _ModrinthHash);
-                }
-
-                return _ModrinthHash;
+                return field;
             }
         }
-
-        private string _ModrinthHash;
 
         #endregion
 
@@ -1917,7 +1836,7 @@ public static class ModLocalComp
 
         public KeyValuePair<List<LocalCompFile>, JsonObject> detailInfo;
         public PageInstanceCompResource frm;
-        public ModMinecraft.Instance gameVersion;
+        public McInstance gameVersion;
         public List<CompLoaderType> loaders;
     }
 
@@ -2006,10 +1925,10 @@ public static class ModLocalComp
                             try
                             {
                                 if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
-                                    if (!(PageInstanceLeft.instance is not null &&
-                                          PageInstanceLeft.instance.Info.HasForge &&
-                                          PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
-                                          (PageInstanceLeft.instance.Info.VanillaName ?? "")))
+                                    if (!(PageInstanceLeft.McInstance is not null &&
+                                          PageInstanceLeft.McInstance.Info.HasForge &&
+                                          PageInstanceLeft.McInstance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
+                                          (PageInstanceLeft.McInstance.Info.VanillaName ?? "")))
                                         continue;
 
                                 if (LocalCompFile.IsCompFile(File.FullName, loader.input.compType))
@@ -2316,15 +2235,15 @@ public static class ModLocalComp
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
         var modLoaders = new List<CompLoaderType>();
-        if (PageInstanceLeft.instance.Info.HasForge)
+        if (PageInstanceLeft.McInstance.Info.HasForge)
             modLoaders.Add(CompLoaderType.Forge);
-        if (PageInstanceLeft.instance.Info.HasNeoForge)
+        if (PageInstanceLeft.McInstance.Info.HasNeoForge)
             modLoaders.Add(CompLoaderType.NeoForge);
-        if (PageInstanceLeft.instance.Info.HasFabric)
+        if (PageInstanceLeft.McInstance.Info.HasFabric)
             modLoaders.Add(CompLoaderType.Fabric);
-        if (PageInstanceLeft.instance.Info.HasQuilt)
+        if (PageInstanceLeft.McInstance.Info.HasQuilt)
             modLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
-        if (PageInstanceLeft.instance.Info.HasLiteLoader)
+        if (PageInstanceLeft.McInstance.Info.HasLiteLoader)
             modLoaders.Add(CompLoaderType.LiteLoader);
         if (!modLoaders.Any())
             modLoaders.AddRange(new[]
@@ -2375,7 +2294,7 @@ public static class ModLocalComp
     /// <returns>
     ///     如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
     /// </returns>
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string modId,
+    public static LocalCompFile GetModLocalCompByKeywords(McInstance instance, string modId,
         string mainKeyword, params string[] keywords)
     {
         if (modId is null)
@@ -2383,7 +2302,7 @@ public static class ModLocalComp
         return GetModLocalCompByKeywords(instance, new[] { modId }, mainKeyword, keywords);
     }
 
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string[] modIds,
+    public static LocalCompFile GetModLocalCompByKeywords(McInstance instance, string[] modIds,
         string mainKeyword, params string[] keywords)
     {
         if (!instance.Modable)

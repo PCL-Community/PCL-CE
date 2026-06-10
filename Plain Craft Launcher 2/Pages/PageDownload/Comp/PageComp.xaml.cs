@@ -182,21 +182,19 @@ public partial class PageComp
     /// </summary>
     public ModComp.CompType PageType
     {
-        get => _Type;
+        get => field;
         set
         {
-            if (_Type == value)
+            if (field == value)
                 return;
-            _Type = value;
+            field = value;
             BtnSearchInstallModPack.Visibility =
                 value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
             loader.name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
             PanSearchBox.HintText = ModComp.GetCompSearchName(value);
             Load.Text = ModComp.GetCompLoadingName(value);
         }
-    }
-
-    private ModComp.CompType _Type = (ModComp.CompType)(-1);
+    } = (ModComp.CompType)(-1);
 
     #endregion
 
@@ -205,7 +203,7 @@ public partial class PageComp
     /// <summary>
     ///     在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     /// </summary>
-    public static ModMinecraft.Instance targetVersion;
+    public static McInstance targetVersion;
 
     // 在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     public ModLoader.LoaderTask<ModComp.CompProjectRequest, int> loader;
@@ -271,7 +269,7 @@ public partial class PageComp
         // 将最高 Drop 加入筛选
         if (ModDownload.AllDrops is not null && ModDownload.AllDrops.Count != 0 && ModDownload.AllDrops.First() > 250)
         {
-            var highestVersion = ModMinecraft.McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
+            var highestVersion = McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
             if ((((MyComboBoxItem)TextSearchVersion.Items[1]).Content.ToString() ?? "") !=
                 (highestVersion ?? "")) // 0 是全部
                 TextSearchVersion.Items.Insert(1, new MyComboBoxItem { Content = highestVersion });

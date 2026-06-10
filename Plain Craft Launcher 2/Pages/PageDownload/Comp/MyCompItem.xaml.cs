@@ -228,11 +228,11 @@ public partial class MyCompItem
     /// </summary>
     public void RefreshFavoriteStatus()
     {
-        if (Tag is ModComp.CompProject)
-        {
-            var project = (ModComp.CompProject)Tag;
-             ShowFavoriteBtn = ModComp.CompFavorites.IsFavourite(project.Id);
-        }
+        if (Tag is not ModComp.CompProject project) return;
+
+        var isFavourite = ModComp.CompFavorites.IsFavourite(project.Id);
+        BtnDelete.SvgIcon = isFavourite ? "lucide/heart-filled" : "lucide/heart";
+        ShowFavoriteBtn = isFavourite;
     }
 
     #endregion
@@ -340,7 +340,7 @@ public partial class MyCompItem
         ModMain.frmMain.PageChange(new FormMain.PageStackData
         {
             page = FormMain.PageType.CompDetail,
-            additional = ((ModComp.CompProject)sender.Tag, new List<string>(), targetVersion, targetLoader, targetType, null, null, null)
+            additional = ((ModComp.CompProject)sender.Tag, new List<string>(), targetVersion, targetLoader, targetType, null)
         });
     }
 

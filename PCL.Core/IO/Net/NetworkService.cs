@@ -19,12 +19,9 @@ public partial class NetworkService
     private static ServiceProvider? _provider;
     private static IHttpClientFactory? _factory;
 
-    private static ICacheService? _cacheService;
-
     [LifecycleStart]
     private static void _Start()
     {
-        _cacheService = CacheServiceManager.Current;
         // 重新构建服务提供者，添加带缓存的 HTTP 客户端
         var services = new ServiceCollection();
         services.AddHttpClient("default")
@@ -54,7 +51,7 @@ public partial class NetworkService
                 ConnectCallback = Config.Network.EnableDoH
                     ? HostConnectionHandler.Instance.GetConnectionAsync
                     : null
-            }, _cacheService));
+            }, CacheServiceManager.Current));
 
         _provider?.Dispose();
         _provider = services.BuildServiceProvider();

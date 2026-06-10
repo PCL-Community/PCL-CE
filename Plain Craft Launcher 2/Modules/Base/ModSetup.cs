@@ -171,13 +171,13 @@ public class ModSetup
     public static void LaunchInstanceSelect(string value)
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + value);
-        ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", value);
+        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
     }
 
     public static void LaunchFolderSelect(string value)
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + value.Replace("$", ModBase.exePath));
-        ModMinecraft.mcFolderSelected = value.Replace("$", ModBase.exePath);
+        ModFolder.mcFolderSelected = value.Replace("$", ModBase.exePath);
     }
 
     // 游戏内存
@@ -660,11 +660,11 @@ public class ModSetup
         if (ModMain.frmInstanceSetup is null)
             return;
         // 为第三方登录清空缓存以更新描述
-        ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", "");
-        if (PageInstanceLeft.instance is null)
+        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
+        if (PageInstanceLeft.McInstance is null)
             return;
-        PageInstanceLeft.instance = new ModMinecraft.Instance(PageInstanceLeft.instance.Name).Load();
-        ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+        PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 

@@ -22,6 +22,13 @@ public static partial class RegexPatterns
     private static partial Regex _NewLine();
 
     /// <summary>
+    /// ISO 8601 当日终点时间写法 24:00(:00)(.0…)，语义等于次日零点。
+    /// </summary>
+    public static readonly Regex Iso8601EndOfDay = _Iso8601EndOfDay();
+    [GeneratedRegex(@"[Tt]24:00(?::00(?:\.0+)?)?(?=[Zz+\-]|$)")]
+    private static partial Regex _Iso8601EndOfDay();
+
+    /// <summary>
     /// Semantic Versioning (SemVer) 规范的版本号，包含可选的 v 前缀。
     /// </summary>
     public static readonly Regex SemVer = _SemVer();

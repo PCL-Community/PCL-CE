@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -43,7 +43,7 @@ public static class StringConvertExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse", 
+        var parse = targetType.GetMethod("Parse",
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
@@ -172,7 +172,7 @@ public static class StringExtension
 
     extension(string input)
     {
-          
+
         public T ParseToEnum<T>() where T : struct, Enum
         {
             if (String.IsNullOrWhiteSpace(input))
@@ -297,5 +297,11 @@ public static class StringExtension
             encode ??= Encoding.UTF8;
             return encode.GetBytes(str, destination);
         }
+    }
+
+    extension(string hex)
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] HexToBytes() => Convert.FromHexString(hex);
     }
 }
