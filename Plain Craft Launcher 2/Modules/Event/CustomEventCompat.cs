@@ -18,7 +18,7 @@ public static class CustomEventService
     public static readonly DependencyProperty EventsProperty =
         DependencyProperty.RegisterAttached("Events", typeof(CustomEventCollection), typeof(CustomEventService));
     public static readonly DependencyProperty EventTypeProperty =
-        DependencyProperty.RegisterAttached("EventType", typeof(CustomEvent.EventType), typeof(CustomEventService), new(CustomEvent.EventType.None));
+        DependencyProperty.RegisterAttached("EventType", typeof(EventType), typeof(CustomEventService), new(EventType.None));
     public static readonly DependencyProperty EventDataProperty =
         DependencyProperty.RegisterAttached("EventData", typeof(string), typeof(CustomEventService));
 
@@ -32,9 +32,9 @@ public static class CustomEventService
         return c;
     }
     [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
-    public static void SetEventType(DependencyObject d, CustomEvent.EventType v) => d.SetValue(EventTypeProperty, v);
+    public static void SetEventType(DependencyObject d, EventType v) => d.SetValue(EventTypeProperty, v);
     [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
-    public static CustomEvent.EventType GetEventType(DependencyObject d) => (CustomEvent.EventType)d.GetValue(EventTypeProperty);
+    public static EventType GetEventType(DependencyObject d) => (EventType)d.GetValue(EventTypeProperty);
     [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
     public static void SetEventData(DependencyObject d, string? v) => d.SetValue(EventDataProperty, v);
     [AttachedPropertyBrowsableForType(typeof(DependencyObject))]
@@ -44,8 +44,6 @@ public static class CustomEventService
 /// <summary>旧版事件类；通过 <see cref="LegacyEventCompat"/> 处理中文值，委托到 <see cref="EventHandlers"/>。</summary>
 public sealed class CustomEvent
 {
-    public enum EventType { None = 0, OpenUrl, LaunchGame, CopyText, RefreshHome, ShowDialog, ShowHint, InvokeFunction }
-
     public EventType Type { get; init; } = EventType.None;
     public string? Data { get; init; }
 
@@ -55,11 +53,10 @@ public sealed class CustomEvent
     public void Raise()
     {
         if (Type is EventType.None) return;
-        ModBase.Log($"[Event] 旧版事件：{Type}, {Data}");
-        EventHandlers.Raise((PCL.EventType)Type, Data);
+        EventHandlers.Raise(Type, Data);
     }
 
     public static void Raise(EventType type, string? data) => new CustomEvent(type, data).Raise();
-    public static string GetCustomVariable(string name, string defaultValue = "") =>
-        PCL.Core.App.States.CustomVariables.TryGetValue(name, out var v) ? v : defaultValue;
+    public static string GetCustomVariable(string name, string defaultValue = "") => 
+        Core.App.States.CustomVariables.TryGetValue(name, out var v) ? v : defaultValue;
 }

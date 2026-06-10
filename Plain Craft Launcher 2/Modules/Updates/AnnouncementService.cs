@@ -47,11 +47,11 @@ public static class AnnouncementService
     }
 
     /// <summary>解析事件类型，支持中英文（中文通过 <see cref="LegacyEventCompat"/> 映射）。</summary>
-    private static bool TryParseEventType(string? command, out CustomEvent.EventType eventType)
+    private static bool TryParseEventType(string? command, out EventType eventType)
     {
         if (string.IsNullOrWhiteSpace(command))
         {
-            eventType = CustomEvent.EventType.None;
+            eventType = EventType.None;
             return false;
         }
         var mapped = LegacyEventCompat.NameMap.GetValueOrDefault(command, command);
