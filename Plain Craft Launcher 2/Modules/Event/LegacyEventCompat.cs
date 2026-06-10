@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,7 +8,6 @@ namespace PCL;
 /// </summary>
 public static partial class LegacyEventCompat
 {
-    /// <summary>中文 EventType → 英文枚举值（供 AnnouncementService 等复用）。</summary>
     public static readonly Dictionary<string, string> NameMap = new()
     {
         ["打开网页"] = "OpenUrl",
@@ -42,21 +40,31 @@ public static partial class LegacyEventCompat
         "检查更新",
     };
 
+    /// <summary>
+    ///     将 XAML 中裸 EventType/EventData 转换为 attached property 格式。
+    ///     中文名映射为英文；已是英文枚举值的原样保留；其余弹 Hint 后移除。
+    /// </summary>
     public static string TransformLegacyXaml(string xaml)
     {
+        // 1. 裸 EventData → local:CustomEventService.EventData
         xaml = BareEventDataRegex().Replace(xaml, """ local:CustomEventService.EventData="$1" """);
+        // 2. 裸 EventType → 附加属性格式
         xaml = BareEventTypeRegex().Replace(xaml, match =>
         {
             var name = match.Groups[1].Value;
             if (NameMap.TryGetValue(name, out var english))
                 return $" local:CustomEventService.EventType=\"{english}\" ";
             if (Unsupported.Contains(name))
-                ModMain.Hint(Lang.Text("Event.Hint.LegacyTypeRemoved", name), ModMain.HintType.Critical);
-            return " ";
+            {
+                ModMain.Hint(Core.App.Localization.Lang.Text("Event.Hint.LegacyTypeRemoved", name),
+                    ModMain.HintType.Critical);
+                return " ";
+            }
+            // 合法的英文枚举值（OpenUrl 等）
+            return $" local:CustomEventService.EventType=\"{name}\" ";
         });
-
-        xaml = MultiSpaceRegex().Replace(xaml, " ");
-        return xaml
+        // 3. 收尾
+        return MultiSpaceRegex().Replace(xaml, " ")
             .Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"")
             .Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
     }
