@@ -132,7 +132,18 @@ public static partial class EventHandlers
                 Lang.Text("Event.Confirm.RememberChoice"),
                 Lang.Text("Common.Action.Cancel"));
             if (result is 2)
-                States.Hint.HomepageCommand = true;
+            {
+                var secondConfirm = ModMain.MyMsgBox(
+                    Lang.Text("Event.Confirm.RememberWarning"),
+                    Lang.Text("Event.Confirm.Waring"),
+                    button1: Lang.Text("Common.Action.Confirm"),
+                    button2: Lang.Text("Common.Action.Cancel"),
+                    isWarn: true);
+                if (secondConfirm is 1)
+                    States.Hint.HomepageCommand = true;
+                else
+                    return;
+            }
             else if (result is not 1)
                 return;
         }

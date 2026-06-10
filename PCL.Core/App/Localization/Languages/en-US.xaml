@@ -3051,6 +3051,7 @@
     <sys:String x:Key="Event.Confirm.Waring">Waring</sys:String>
     <sys:String x:Key="Event.Confirm.InvokeFunction">The homepage wants to execute the following function call. Please confirm there are no security risks before proceeding.&#x0a;&#x0a;{0}</sys:String>
     <sys:String x:Key="Event.Confirm.RememberChoice">Proceed and don't ask again</sys:String>
+    <sys:String x:Key="Event.Confirm.RememberWarning">This will permanently disable the safety confirmation for ALL function calls from the homepage. After disabling, any homepage can execute internal application functions without asking again. Only confirm if you fully trust this source.&#x0a;&#x0a;Are you sure you want to disable it?</sys:String>
     <sys:String x:Key="Event.Hint.OpeningUrl">Opening: {0}</sys:String>
     <sys:String x:Key="Event.Hint.Launching">Launching {0}...</sys:String>
     <sys:String x:Key="Event.Hint.Refreshed">Refreshed!</sys:String>

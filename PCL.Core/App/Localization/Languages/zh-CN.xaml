@@ -3051,6 +3051,7 @@
     <sys:String x:Key="Event.Confirm.Waring">警告</sys:String>
     <sys:String x:Key="Event.Confirm.InvokeFunction">主页希望执行以下函数调用，请确认没有安全隐患后再继续。&#x0a;&#x0a;{0}</sys:String>
     <sys:String x:Key="Event.Confirm.RememberChoice">继续且今后不再要求确认</sys:String>
+    <sys:String x:Key="Event.Confirm.RememberWarning">此操作将永久关闭所有主页函数调用的安全确认。关闭后，任何主页均可不询问直接调用启动器内部函数。请仅在完全信任该来源的情况下确认。&#x0a;&#x0a;确定要关闭吗？</sys:String>
     <sys:String x:Key="Event.Hint.OpeningUrl">正在打开网页：{0}</sys:String>
     <sys:String x:Key="Event.Hint.Launching">正在启动 {0}……</sys:String>
     <sys:String x:Key="Event.Hint.Refreshed">已刷新！</sys:String>
