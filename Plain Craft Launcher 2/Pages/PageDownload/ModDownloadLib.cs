@@ -3809,26 +3809,10 @@ public static class ModDownloadLib
                 ((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Aborted)
             {
                 // 删除实例文件夹
-                if (Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}saves\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}versions\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}mods\\") ||
-                    File.Exists($"{((ModLoader.LoaderCombo)loader).input}server.dat"))
-                {
-                    ModBase.Log(
-                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                }
-                else
-                {
-                    ModBase.Log(
-                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                    var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
-                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
-                        .InvalidateCache(instancePath);
+                ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
+                var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
+                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
                     ModBase.DeleteDirectory(instancePath);
-                }
             }
         }
         catch (Exception ex)
