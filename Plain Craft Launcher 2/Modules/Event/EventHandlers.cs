@@ -104,6 +104,13 @@ public static partial class EventHandlers
         ModMain.Hint(a.ElementAtOrDefault(0)?.Replace("\\n", "\r\n") ?? "", h);
     }
 
+    /// <summary>InvokeFunction 无需确认的白名单</summary>
+    private static readonly HashSet<string> InvokeWhitelist = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "PageToolsTest.Jrrp",
+        "PageToolsTest.RubbishClear",
+    };
+
     private static void InvokeFunction(string? data)
     {
         var expr = (data ?? "").Trim();
@@ -126,7 +133,7 @@ public static partial class EventHandlers
         }
         if (method is null) { ModMain.Hint(Lang.Text("Event.Error.MethodNotFound", $"{m.Groups[1].Value}.{m.Groups[2].Value}"), ModMain.HintType.Critical); return; }
 
-        if (!States.Hint.HomepageCommand)
+        if (!States.Hint.HomepageCommand && !InvokeWhitelist.Contains($"{m.Groups[1].Value}.{m.Groups[2].Value}"))
         {
             var result = ModMain.MyMsgBox(
                 Lang.Text("Event.Confirm.InvokeFunction", expr),
