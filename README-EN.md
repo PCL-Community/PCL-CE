@@ -15,8 +15,7 @@
 [![Bilibili](https://img.shields.io/badge/Threads-bilibili-00A4DB?style=flat&labelColor=444444&logo=bilibili)](https://space.bilibili.com/3546847192811755/dynamic) <br />
 
 [download](https://github.com/PCL-Community/PCL-CE/releases/latest) |
-[Upstream repo](https://github.com/Meloong-Git/PCL) |
-[Help Center repo](https://github.com/PCL-Community/PCL2CEHelp)
+[Upstream repo](https://github.com/Meloong-Git/PCL)
 
 [Submit issues](https://github.com/PCL-Community/PCL-CE/issues/new/choose) |
 [Contribution Guidelines](https://github.com/PCL-Community/PCL-CE/wiki/开发指南)

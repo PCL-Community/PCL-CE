@@ -10,7 +10,7 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     当前显示设置的 MC 实例。
     /// </summary>
-    public static ModMinecraft.Instance instance = null;
+    public static McInstance McInstance = null;
 
     public PageInstanceLeft()
     {
@@ -27,7 +27,7 @@ public partial class PageInstanceLeft : IRefreshable
     {
         var hide = Config.Preference.Hide;
 
-        if (instance is not null && instance.Modable)
+        if (McInstance is not null && McInstance.Modable)
         {
             ItemMod.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceMod
                 ? Visibility.Collapsed

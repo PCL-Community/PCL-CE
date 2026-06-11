@@ -221,14 +221,14 @@ public static class ModWatcher
 
         // 进度更新
         private int logProgress;
-        public ModMinecraft.Instance version;
+        public McInstance version;
 
         // 日志
         public List<string> waitingLog = new(1000);
         private nint windowHandle;
         private string windowTitle = "";
 
-        public Watcher(ModLoader.LoaderTask<Process, int> loader, ModMinecraft.Instance version, string windowTitle,
+        public Watcher(ModLoader.LoaderTask<Process, int> loader, McInstance version, string windowTitle,
             string jStackPath, bool outputRealTime = false)
         {
             this.loader = loader;

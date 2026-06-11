@@ -119,7 +119,6 @@ public static class ModBase
     public static string pathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                              (versionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
 
-    public static string pathHelpFolder = pathTemp + @"CE\Help\";
 
     #endregion
 
@@ -3585,7 +3584,7 @@ public static class ModBase
                 OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
                 Memory: {availableMb} MB / {totalMb} MB
                 DPI: {dpi} ({dpiScale * 100}%)
-                MC Folder: {ModMinecraft.mcFolderSelected ?? "Nothing"}
+                MC Folder: {ModFolder.mcFolderSelected ?? "Nothing"}
                 Executable Path: {exePath}
                 """;
 

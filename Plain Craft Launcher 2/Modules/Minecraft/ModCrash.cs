@@ -30,7 +30,7 @@ public class CrashAnalyzer
 
     // 暂存分析的实例供特殊用途
     // 龙猫味石山代码小记: CrashAnalyze 猛一顿分析不知道自己在分析啥实例
-    private ModMinecraft.Instance _version;
+    private McInstance _version;
     private KeyValuePair<string, string[]>? directFile; // 在弹窗中选择直接打开的文件
     private string logAll;
     private string logCrash;
@@ -504,7 +504,7 @@ public class CrashAnalyzer
     /// <summary>
     ///     根据 AnalyzeLogs 与可能的实例信息分析崩溃原因。
     /// </summary>
-    public void Analyze(ModMinecraft.Instance version = null)
+    public void Analyze(McInstance version = null)
     {
         _version = version;
         ModBase.Log("[Crash] 步骤 3：分析崩溃原因");
@@ -1221,7 +1221,7 @@ public class CrashAnalyzer
             case 2:
             {
                 // 弹窗选择：前往修改
-                PageInstanceLeft.instance = _version;
+                PageInstanceLeft.McInstance = _version;
                 ModBase.RunInUi(() =>
                     ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionInstall));
                 break;
@@ -1276,9 +1276,9 @@ public class CrashAnalyzer
                             if (fileEncoding is null)
                                 fileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
                             var fileContent = ModBase.ReadFile(OutputFile, fileEncoding);
-                            fileContent = ModMinecraft.FilterAccessToken(fileContent,
+                            fileContent = McLogFilter.FilterAccessToken(fileContent,
                                 fileName == "启动脚本.bat" ? 'F' : '*');
-                            fileContent = ModMinecraft.FilterUserName(fileContent, '*');
+                            fileContent = McLogFilter.FilterUserName(fileContent, '*');
                             ModBase.WriteFile(Path.Combine(tempFolder, "Report", fileName), fileContent, encoding: fileEncoding);
                             ModBase.Log($"[Crash] 导出文件：{fileName}，编码：{fileEncoding.HeaderName}");
                         }
@@ -1363,7 +1363,7 @@ public class CrashAnalyzer
                 case CrashReason.内存不足:
                 {
                     results.Add(
-                        @"Minecraft 内存不足，导致其无法继续运行。\n这很可能是因为电脑内存不足、游戏分配的内存不足，或是配置要求过高。\n\n你可以尝试在 更多 → 百宝箱 中选择 内存优化，然后再启动游戏。\n如果还是不行，请在启动设置中增加为游戏分配的内存，并删除配置要求较高的材质、Mod、光影。\n如果依然不奏效，请在开始游戏前尽量关闭其他软件，或者……换台电脑？\h");
+                        @"Minecraft 内存不足，导致其无法继续运行。\n这很可能是因为电脑内存不足、游戏分配的内存不足，或是配置要求过高。\n\n请在启动设置中增加为游戏分配的内存，并删除配置要求较高的材质、Mod、光影。\n如果依然不奏效，请在开始游戏前尽量关闭其他软件，或者……换台电脑？\h");
                     break;
                 }
                 case CrashReason.使用OpenJ9:
