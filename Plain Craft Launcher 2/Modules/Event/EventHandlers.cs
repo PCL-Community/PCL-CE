@@ -38,7 +38,8 @@ public static partial class EventHandlers
     private static void OpenUrl(string? data)
     {
         var url = (data ?? "").Replace('\\', '/');
-        if (!url.Contains("://") || url.StartsWith("file", StringComparison.OrdinalIgnoreCase))
+        if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+            !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
             ModMain.MyMsgBox(Lang.Text("Event.Error.InvalidUrl"), Lang.Text("Event.Error.Title"));
             return;
