@@ -130,7 +130,7 @@ public static partial class EventHandlers
         {
             var result = ModMain.MyMsgBox(
                 Lang.Text("Event.Confirm.InvokeFunction", expr),
-                Lang.Text("Event.Confirm.Waring"),
+                Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Event.Confirm.RememberChoice"),
                 Lang.Text("Common.Action.Cancel"));
@@ -138,7 +138,7 @@ public static partial class EventHandlers
             {
                 var secondConfirm = ModMain.MyMsgBox(
                     Lang.Text("Event.Confirm.RememberWarning"),
-                    Lang.Text("Event.Confirm.Waring"),
+                    Lang.Text("Common.Dialog.Warning"),
                     button1: Lang.Text("Common.Action.Confirm"),
                     button2: Lang.Text("Common.Action.Cancel"),
                     isWarn: true);

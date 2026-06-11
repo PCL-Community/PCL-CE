@@ -3036,14 +3036,13 @@
     <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>
     <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}，请检查事件类型填写是否正确。</sys:String>
     <sys:String x:Key="Event.Error.InvalidUrl">EventData 必须为以 http:// 或 https:// 开头的网址。如需启动本地程序，请改用 InvokeFunction 类型。</sys:String>
-    <sys:String x:Key="Event.Error.NoInstanceSelected">请先选择一个 Minecraft 版本！</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSelected">请先选择一个 Minecraft 实例！</sys:String>
     <sys:String x:Key="Event.Error.NoInstanceSpecified">未指定要启动的 Minecraft 实例。</sys:String>
     <sys:String x:Key="Event.Error.RefreshNotSupported">当前页面不支持刷新操作！</sys:String>
     <sys:String x:Key="Event.Error.InvokeFunctionEmpty">InvokeFunction 需要一个 C# 方法调用表达式。</sys:String>
     <sys:String x:Key="Event.Error.InvokeFunctionSyntax">无效的函数调用语法：{0}，期望格式：TypeName.MethodName(args)</sys:String>
     <sys:String x:Key="Event.Error.TypeNotFound">未找到类型：{0}</sys:String>
     <sys:String x:Key="Event.Error.MethodNotFound">未找到方法：{0}</sys:String>
-    <sys:String x:Key="Event.Confirm.Waring">警告</sys:String>
     <sys:String x:Key="Event.Confirm.InvokeFunction">主页希望执行以下函数调用，请确认没有安全隐患后再继续。&#x0a;&#x0a;{0}</sys:String>
     <sys:String x:Key="Event.Confirm.RememberChoice">继续且今后不再要求确认</sys:String>
     <sys:String x:Key="Event.Confirm.RememberWarning">此操作将永久关闭所有主页函数调用的安全确认。关闭后，任何主页均可不询问直接调用启动器内部函数。请仅在完全信任该来源的情况下确认。&#x0a;&#x0a;确定要关闭吗？</sys:String>

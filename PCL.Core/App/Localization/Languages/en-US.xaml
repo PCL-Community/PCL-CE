@@ -3033,21 +3033,20 @@
 
     <!-- Event -->
 
-    <sys:String x:Key="Event.Error.Title">Event Execution Failed</sys:String>
-    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}. Please check the event type.</sys:String>
-    <sys:String x:Key="Event.Error.InvalidUrl">EventData must be a valid URL starting with http:// or https://. Use InvokeFunction to launch a local program.</sys:String>
-    <sys:String x:Key="Event.Error.NoInstanceSelected">Please select a Minecraft version first!</sys:String>
+    <sys:String x:Key="Event.Error.Title">Failed to execute event</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}. Please check whether the event type is correct.</sys:String>
+    <sys:String x:Key="Event.Error.InvalidUrl">EventData must be a URL starting with http:// or https://. To launch a local program, use InvokeFunction instead.</sys:String>
+    <sys:String x:Key="Event.Error.NoInstanceSelected">Please select a Minecraft instance first!</sys:String>
     <sys:String x:Key="Event.Error.NoInstanceSpecified">No Minecraft instance specified.</sys:String>
     <sys:String x:Key="Event.Error.RefreshNotSupported">The current page does not support refresh!</sys:String>
     <sys:String x:Key="Event.Error.InvokeFunctionEmpty">InvokeFunction requires a C# method call expression.</sys:String>
     <sys:String x:Key="Event.Error.InvokeFunctionSyntax">Invalid function call syntax: {0}. Expected format: TypeName.MethodName(args)</sys:String>
     <sys:String x:Key="Event.Error.TypeNotFound">Type not found: {0}</sys:String>
     <sys:String x:Key="Event.Error.MethodNotFound">Method not found: {0}</sys:String>
-    <sys:String x:Key="Event.Confirm.Waring">Waring</sys:String>
-    <sys:String x:Key="Event.Confirm.InvokeFunction">The homepage wants to execute the following function call. Please confirm there are no security risks before proceeding.&#x0a;&#x0a;{0}</sys:String>
-    <sys:String x:Key="Event.Confirm.RememberChoice">Proceed and don't ask again</sys:String>
-    <sys:String x:Key="Event.Confirm.RememberWarning">This will permanently disable the safety confirmation for ALL function calls from the homepage. After disabling, any homepage can execute internal application functions without asking again. Only confirm if you fully trust this source.&#x0a;&#x0a;Are you sure you want to disable it?</sys:String>
-    <sys:String x:Key="Event.Hint.OpeningUrl">Opening: {0}</sys:String>
+    <sys:String x:Key="Event.Confirm.InvokeFunction">The homepage wants to execute the following function call. Please confirm that it is safe before continuing.&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Confirm.RememberChoice">Continue and don't ask again</sys:String>
+    <sys:String x:Key="Event.Confirm.RememberWarning">This will permanently disable safety confirmations for all homepage function calls. After it is disabled, any homepage can call internal launcher functions without asking. Only confirm if you fully trust this source.&#x0a;&#x0a;Are you sure you want to disable it?</sys:String>
+    <sys:String x:Key="Event.Hint.OpeningUrl">Opening webpage: {0}</sys:String>
     <sys:String x:Key="Event.Hint.Launching">Launching {0}...</sys:String>
     <sys:String x:Key="Event.Hint.Refreshed">Refreshed!</sys:String>
     <sys:String x:Key="Event.Hint.LegacyTypeRemoved">Legacy event type "{0}" is no longer supported and has been removed from the homepage.</sys:String>
