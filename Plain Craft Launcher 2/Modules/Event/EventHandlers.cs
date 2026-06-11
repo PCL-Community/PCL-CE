@@ -134,7 +134,7 @@ public static partial class EventHandlers
         }
         if (method is null) { ModMain.Hint(Lang.Text("Event.Error.MethodNotFound", $"{m.Groups[1].Value}.{m.Groups[2].Value}"), ModMain.HintType.Critical); return; }
 
-        if (!States.Hint.HomepageCommand && !InvokeWhitelist.Contains($"{m.Groups[1].Value}.{m.Groups[2].Value}"))
+        if (!States.Hint.HomepageInvokeFunction && !InvokeWhitelist.Contains($"{m.Groups[1].Value}.{m.Groups[2].Value}"))
         {
             var result = ModMain.MyMsgBox(
                 Lang.Text("Event.Confirm.InvokeFunction", expr),
@@ -151,7 +151,7 @@ public static partial class EventHandlers
                     button2: Lang.Text("Common.Action.Cancel"),
                     isWarn: true);
                 if (secondConfirm is 1)
-                    States.Hint.HomepageCommand = true;
+                    States.Hint.HomepageInvokeFunction = true;
                 else
                     return;
             }

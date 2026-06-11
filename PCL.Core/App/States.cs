@@ -69,9 +69,9 @@ public static partial class States
         [ConfigItem<bool>("HintUpdateMod", false)] public partial bool UpdateMod { get; set; }
 
         /// <summary>
-        /// 执行自定义主页内含命令提示。
+        /// 执行自定义主页函数调用提示。
         /// </summary>
-        [ConfigItem<bool>("HintCustomCommand", false)] public partial bool HomepageCommand { get; set; }
+        [ConfigItem<bool>("HintCustomInvokeFunction", false)] public partial bool HomepageInvokeFunction { get; set; }
 
         /// <summary>
         /// 非信任主页警告。
