@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
@@ -3822,7 +3824,10 @@ public static class ModDownloadLib
                 {
                     ModBase.Log(
                         $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                    ModBase.DeleteDirectory((string)((ModLoader.LoaderCombo)loader).input);
+                    var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
+                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                        .InvalidateCache(instancePath);
+                    ModBase.DeleteDirectory(instancePath);
                 }
             }
         }
@@ -3862,6 +3867,24 @@ public static class ModDownloadLib
         catch (Exception ex)
         {
             ModBase.Log(ex, "开始合并安装失败", ModBase.LogLevel.Feedback);
+            try
+            {
+                if (Directory.Exists(request.targetInstanceFolder))
+                {
+                    var files = Directory.GetFiles(request.targetInstanceFolder);
+                    var dirs = Directory.GetDirectories(request.targetInstanceFolder);
+                    if (files.Length <= 1 && dirs.Length == 0)
+                    {
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                            .InvalidateCache(request.targetInstanceFolder);
+                        ModBase.DeleteDirectory(request.targetInstanceFolder);
+                    }
+                }
+            }
+            catch (Exception innerEx)
+            {
+                ModBase.Log(innerEx, "清理未完成的实例文件夹失败");
+            }
             return false;
         }
     }
