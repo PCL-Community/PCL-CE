@@ -3050,7 +3050,7 @@ public static class ModComp
         /// <param name="localAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
         public DownloadFile ToNetFile(string localAddress)
         {
-            return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? FileName : ""),
+            return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
                 new ModBase.FileChecker(hash: Hash), true);
         }
 
@@ -3306,7 +3306,35 @@ public static class ModComp
 
         if (file.Type == CompType.Mod)
             fileName = fileName.Replace("~", "-"); // ~ 会导致 Mixin 加载失败
-        return fileName;
+        return CompFileNameSanitize(fileName);
+    }
+
+    public static string CompFileNameSanitize(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return "download";
+
+        var sanitized = new StringBuilder(fileName.Length);
+        foreach (var c in fileName)
+        {
+            sanitized.Append(c switch
+            {
+                '\\' => '＼',
+                '/' => '／',
+                ':' => '：',
+                '*' => '＊',
+                '?' => '？',
+                '"' => '＂',
+                '<' => '＜',
+                '>' => '＞',
+                '|' => '｜',
+                _ when char.IsControl(c) => '_',
+                _ => c
+            });
+        }
+
+        var result = sanitized.ToString().Trim();
+        return result is "" or "." or ".." ? "download" : result;
     }
 
     /// <summary>
