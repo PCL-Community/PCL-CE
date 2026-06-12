@@ -13,5 +13,6 @@
   <Project Path="PCL.Core.Test\PCL.Core.Test.csproj">
     <Build Project="false" />
   </Project>
+    <Project Path="PCL.Online\PCL.Online.csproj" />
     <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.csproj" />
 </Solution>

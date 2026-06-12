@@ -34,7 +34,6 @@ public static class ModMain
     public static PageSpeedLeft? frmSpeedLeft;
     public static PageSpeedRight? frmSpeedRight;
     public static PageToolsLeft? frmToolsLeft;
-    public static PageToolsHelp? frmToolsHelp;
     public static PageToolsTest? frmToolsTest;
     public static PageDownloadLeft? frmDownloadLeft;
     public static PageCommunityLeft? frmCommunityLeft;
@@ -58,6 +57,8 @@ public static class ModMain
     public static PageDownloadCompFavorites? frmDownloadCompFavorites;
     public static PageInstanceModBrowser? frmInstanceModBrowser;
     public static PageInstanceModDetail? frmInstanceModDetail;
+    public static PageOnlineLeft? frmOnlineLeft;
+    public static PageOnline? frmSetupOnline;
     public static PageSetupLeft? frmSetupLeft;
     public static PageSetupLaunch? frmSetupLaunch;
     public static PageSetupUI? frmSetupUI;

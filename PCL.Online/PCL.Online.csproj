@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- 项目属性 -->
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Online</AssemblyTitle>
+        <AssemblyName>PCL.Online</AssemblyName>
+        <Description>PCL N 在线服务模块</Description>
+        <Company>PCL N</Company>
+        <Product>PCL.Online</Product>
+        <Copyright>Copyright © MUXUE1230</Copyright>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+        <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+        <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <ProjectGuid>{B1D3309E-74FC-5D22-A56B-9F97414C7F85}</ProjectGuid>
+        <RootNamespace>PCL.Online</RootNamespace>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>14.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <OutputPath>bin\$(Configuration)-$(Platform)\</OutputPath>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+        <NoWarn>$(NoWarn);CS9113</NoWarn>
+    </PropertyGroup>
+    <!-- 构建配置 -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants Condition="'$(Configuration)' == 'Debug'">DEBUG;TRACE</DefineConstants>
+        <DefineConstants Condition="'$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">CI;TRACE</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Beta' Or '$(Configuration)' == 'Release' Or '$(Configuration)' == 'Publish'">
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+        <DefineConstants Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'Publish'">RELEASE;PUBLISH</DefineConstants>
+        <DefineConstants Condition="'$(Configuration)' == 'Beta'">BETA;PUBLISH</DefineConstants>
+    </PropertyGroup>
+    <!-- 项目引用 -->
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    </ItemGroup>
+    <!-- 手动包含文件 -->
+    <PropertyGroup>
+        <EnableDefaultItems>false</EnableDefaultItems>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+        <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+        <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+        <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**" />
+        <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
+        <Content Include="Legal\**\*.md">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+</Project>

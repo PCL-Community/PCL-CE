@@ -555,7 +555,7 @@ public partial class MyListItem : IMyRadio
                 Icon = SvgIcon,
                 Stretch = Stretch.Uniform,
                 RenderTransformOrigin = new Point(0.5d, 0.5d),
-                RenderTransform = new ScaleTransform { ScaleX = 1D, ScaleY = 1D },
+                RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale },
                 SnapsToDevicePixels = false,
                 UseLayoutRounding = false,
                 HorizontalAlignment = HorizontalAlignment.Stretch,

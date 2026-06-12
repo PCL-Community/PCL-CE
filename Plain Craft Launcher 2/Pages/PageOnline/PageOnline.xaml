@@ -1,0 +1,11 @@
+<local:MyPageRight x:Class="PCL.PageOnline"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid>
+        <TextBlock Text="PCL N 在线服务" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Opacity="0.5" />
+    </Grid>
+</local:MyPageRight>

@@ -34,11 +34,12 @@ public partial class PageSetupLeft
         isLoad = true;
         // 刷新子页面隐藏情况
         PageSetupUI.HiddenRefresh();
-        // 选择第一个未被禁用的子页面
+        // 选择第一个未被禁用的子页面（默认选中账户）
         if (isPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch) 
+        ItemOnlineAccount.SetChecked(true, false, false);
+        if (!hideCfg.SetupLaunch)
             ItemLaunch.SetChecked(true, false, false);
         else if (!hideCfg.SetupJava) 
             ItemJava.SetChecked(true, false, false);    
@@ -189,11 +190,10 @@ public partial class PageSetupLeft
     public PageSetupLeft()
     {
         InitializeComponent();
-        // 选择第一个未被禁用的子页面
+        // 默认选中账户
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch)
-            pageID = FormMain.PageSubType.SetupLaunch;
-        else if (!hideCfg.SetupJava)
+        pageID = FormMain.PageSubType.SetupOnline;
+        if (!hideCfg.SetupJava)
             pageID = FormMain.PageSubType.SetupJava;
         else if (!hideCfg.SetupGameManage)
             pageID = FormMain.PageSubType.SetupGameManage;
@@ -297,6 +297,12 @@ public partial class PageSetupLeft
                 if (ModMain.frmSetupJava is null)
                     ModMain.frmSetupJava = new PageSetupJava();
                 return ModMain.frmSetupJava;
+            }
+            case FormMain.PageSubType.SetupOnline:
+            {
+                if (ModMain.frmSetupOnline is null)
+                    ModMain.frmSetupOnline = new PageOnline();
+                return ModMain.frmSetupOnline;
             }
 
             default:

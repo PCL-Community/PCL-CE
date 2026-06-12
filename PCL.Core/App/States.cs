@@ -316,4 +316,15 @@ public static partial class States
         [ConfigItem<string>("VersionModpackSource", "")] public partial ArgConfig<string> ModpackSource { get; }
         [ConfigItem<string>("VersionModpackId", "")] public partial ArgConfig<string> ModpackId { get; }
     }
+
+    /// <summary>
+    /// 在线服务状态。
+    /// </summary>
+    [ConfigGroup("Online")] partial class OnlineStatesGroup
+    {
+        /// <summary>
+        /// 已接受的法律协议版本号。
+        /// </summary>
+        [ConfigItem<string>("LegalAcceptedVersion", "")] public partial string LegalAcceptedVersion { get; set; }
+    }
 }

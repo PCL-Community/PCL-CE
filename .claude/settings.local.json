@@ -30,7 +30,12 @@
       "PowerShell(dotnet build *)",
       "PowerShell(Set-Content *)",
       "PowerShell(gpg *)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\usr\\\\bin\\\\gpg.exe\" --version 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\usr\\\\bin\\\\gpg.exe\" --version 2>&1)",
+      "Bash(dotnet new sln *)",
+      "Bash(dotnet sln *)",
+      "PowerShell(git merge *)",
+      "PowerShell(git stash *)",
+      "PowerShell(git diff upstream/dev -- \"Plain Craft Launcher 2/Modules/ModMain.cs\" 2>&1 | Select-String \"PageToolsHelp|frmToolsHelp\")"
     ]
   }
 }

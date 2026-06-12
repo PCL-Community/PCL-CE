@@ -200,6 +200,22 @@ public partial class FormMain
         Topmost = false;
         if (ModMain.frmStart is not null)
             ModMain.frmStart.Close(new TimeSpan(0, 0, 0, 0, (int)Math.Round(400d / ModAnimation.aniSpeed)));
+        // 首次启动协议检查（延迟到窗口渲染后）
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!PCL.Online.FirstLaunchService.IsAccepted())
+            {
+                var legalText = PCL.Online.FirstLaunchService.LoadFullText();
+                if (ModMain.MyMsgBoxMarkdown(legalText, "PCL N Edition - 用户协议与隐私政策",
+                        "同意并继续", "拒绝并退出",
+                        isWarn: false, forceWait: true) != 1)
+                {
+                    Lifecycle.Shutdown(0, true);
+                    return;
+                }
+                PCL.Online.FirstLaunchService.Accept();
+            }
+        }), System.Windows.Threading.DispatcherPriority.Background);
         // 更改窗口
         // Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
         // Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
@@ -1371,6 +1387,11 @@ public partial class FormMain
         Resources = 2,
 
         /// <summary>
+        ///     在线服务。
+        /// </summary>
+        Online = 4,
+
+        /// <summary>
         ///     设置。
         /// </summary>
         Setup = 3,
@@ -1455,6 +1476,7 @@ public partial class FormMain
         SetupAbout = 4,
         SetupLog = 5,
         SetupFeedback = 6,
+        SetupOnline = 7,
         SetupUpdate = 8,
         SetupJava = 9,
         SetupLauncherMisc = 10,
@@ -1476,7 +1498,13 @@ public partial class FormMain
         VersionInstall = 10,
         VersionServer = 11,
         VersionSavesInfo = 0,
-        VersionSavesDatapack = 1
+        VersionSavesDatapack = 1,
+
+        OnlineLobby = 0,
+        OnlineCreateRoom = 1,
+        OnlineServerList = 2,
+        OnlineFriendList = 3,
+        OnlineAddFriend = 4
     }
 
     /// <summary>
@@ -1521,6 +1549,10 @@ public partial class FormMain
             case PageType.InstanceModDetail:
             {
                 return "模组详情";
+            }
+            case PageType.Online:
+            {
+                return "在线服务";
             }
 
             default:
@@ -1585,6 +1617,12 @@ public partial class FormMain
                     if (ModMain.frmCommunityLeft is null)
                         ModMain.frmCommunityLeft = new PageCommunityLeft();
                     return ModMain.frmCommunityLeft.PageID;
+                }
+                case PageType.Online:
+                {
+                    if (ModMain.frmOnlineLeft is null)
+                        ModMain.frmOnlineLeft = new PageOnlineLeft();
+                    return ModMain.frmOnlineLeft.PageID;
                 }
 
                 case PageType.InstanceSetup:
@@ -1717,6 +1755,15 @@ public partial class FormMain
                         ModMain.frmSetupLeft = new PageSetupLeft();
                     if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
                         ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
+                            stack == pageCurrent);
+                    break;
+                }
+                case PageType.Online:
+                {
+                    if (ModMain.frmOnlineLeft is null)
+                        ModMain.frmOnlineLeft = new PageOnlineLeft();
+                    if (ModMain.frmOnlineLeft.PanItem.Children[(int)subType] is MyListItem)
+                        ((MyListItem)ModMain.frmOnlineLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
                             stack == pageCurrent);
                     break;
                 }
@@ -1943,6 +1990,13 @@ public partial class FormMain
                         ModMain.frmCommunityLeft ??= new PageCommunityLeft();
                         subType = ModMain.frmCommunityLeft.PageID;
                         PageChangeAnim(ModMain.frmCommunityLeft, (FrameworkElement)ModMain.frmCommunityLeft.PageGet(subType));
+                        break;
+                    }
+                case PageType.Online: // 在线服务
+                    {
+                        ModMain.frmOnlineLeft ??= new PageOnlineLeft();
+                        subType = ModMain.frmOnlineLeft.PageID;
+                        PageChangeAnim(ModMain.frmOnlineLeft, (FrameworkElement)ModMain.frmOnlineLeft.PageGet(subType));
                         break;
                     }
                 case PageType.Setup: // 设置
