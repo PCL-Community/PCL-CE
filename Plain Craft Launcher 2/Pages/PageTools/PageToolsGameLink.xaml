@@ -82,12 +82,12 @@
                                        Text="{DynamicResource Tools.GameLink.Agreement.Description}" />
                             <local:MyListItem Title="{DynamicResource Tools.GameLink.Agreement.PrivacyPolicy}"
                                               Info="{DynamicResource Tools.GameLink.Agreement.PrivacyPolicyInfo}"
-                                              Type="Clickable" local:CustomEventService.EventType="打开网页"
+                                              Type="Clickable" local:CustomEventService.EventType="OpenUrl"
                                               local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
                                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
                             <local:MyListItem Title="{DynamicResource Tools.GameLink.Agreement.NatayarkTerms}"
                                               Info="{DynamicResource Tools.GameLink.Agreement.NatayarkTermsInfo}"
-                                              Type="Clickable" local:CustomEventService.EventType="打开网页"
+                                              Type="Clickable" local:CustomEventService.EventType="OpenUrl"
                                               local:CustomEventService.EventData="https://account.naids.com/policy"
                                               Logo="pack://application:,,,/images/Blocks/Grass.png" />
                             <TextBlock TextWrapping="Wrap" Margin="0,10,0,0"
@@ -189,15 +189,15 @@
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6"
                                     Orientation="Horizontal">
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Report}"
-                                                local:CustomEventService.EventType="打开网页"
+                                                local:CustomEventService.EventType="OpenUrl"
                                                 local:CustomEventService.EventData="https://qm.qq.com/q/zfml1KaPWS" />
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Terms}"
-                                                local:CustomEventService.EventType="打开网页"
+                                                local:CustomEventService.EventType="OpenUrl"
                                                 local:CustomEventService.EventData="https://account.naids.com/policy" />
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Privacy}"
-                                                local:CustomEventService.EventType="打开网页"
+                                                local:CustomEventService.EventType="OpenUrl"
                                                 local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html" />
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Disable}"
@@ -207,10 +207,10 @@
                                     Orientation="Horizontal">
                             <TextBlock Text="{DynamicResource Tools.GameLink.Link.Friends}" />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.EasyTier}"
-                                                local:CustomEventService.EventType="打开网页"
+                                                local:CustomEventService.EventType="OpenUrl"
                                                 local:CustomEventService.EventData="https://easytier.cn/" />
                             <TextBlock Text=" | " />
-                            <local:MyTextButton Text="Pysio's Home" local:CustomEventService.EventType="打开网页"
+                            <local:MyTextButton Text="Pysio's Home" local:CustomEventService.EventType="OpenUrl"
                                                 local:CustomEventService.EventData="https://pysio.online/" />
                         </StackPanel>
                     </StackPanel>

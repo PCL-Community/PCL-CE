@@ -85,21 +85,21 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://ifdian.net/a/LTCat"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SponsorOriginalAuthor}" />
                     <local:MyButton
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://github.com/PCL-Community"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.GitHubHome}" />
                     <local:MyButton
                         Grid.Row="2"
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SourceCode}" />
                 </Grid>
             </local:MyCard>
@@ -131,7 +131,7 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://afdian.com/a/bangbang93"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.SponsorMirror}" />
                     <local:MyListItem
                         x:Name="ItemMcmod"
@@ -148,7 +148,7 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.mcmod.cn"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.OpenMcmod}" />
                     <local:MyListItem
                         Grid.Row="2"
@@ -163,7 +163,7 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.pysio.online"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.GoBlog}" />
                     <local:MyListItem
                         Grid.Row="3"
@@ -178,7 +178,7 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://www.zyghit.cn"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.OpenWebsite}" />
                     <local:MyListItem
                         Grid.Row="4"
@@ -193,7 +193,7 @@
                         Grid.Column="2"
                         Height="35"
                         local:CustomEventService.EventData="https://easytier.cn"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.OpenWebsite}" />
                     <local:MyListItem
                         Grid.Row="5"
@@ -326,7 +326,7 @@
                                         HorizontalAlignment="Center"
                                         FontSize="14"
                                         local:CustomEventService.EventData="{Binding HtmlUrl}"
-                                        local:CustomEventService.EventType="打开网页"
+                                        local:CustomEventService.EventType="OpenUrl"
                                         Text="{Binding Login}"
                                         ToolTip="{Binding Login}" />
                                 </StackPanel>
@@ -337,7 +337,7 @@
                         Grid.Row="2"
                         HorizontalAlignment="Center"
                         local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE/graphs/contributors"
-                        local:CustomEventService.EventType="打开网页"
+                        local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.Contributors.ViewMore}" />
                 </Grid>
             </local:MyCard>
@@ -376,19 +376,19 @@
                             Margin="0,0,20,0"
                             ColorType="Highlight"
                             local:CustomEventService.EventData="https://github.com/PCL-Community/PCL2-CE"
-                            local:CustomEventService.EventType="打开网页"
+                            local:CustomEventService.EventType="OpenUrl"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.Legal.CommunitySource}" />
                         <local:MyButton
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
-                            local:CustomEventService.EventType="打开网页"
+                            local:CustomEventService.EventType="OpenUrl"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.Legal.CommunityLobbyPrivacy}" />
                         <local:MyButton
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://account.naids.com/policy"
-                            local:CustomEventService.EventType="打开网页"
+                            local:CustomEventService.EventType="OpenUrl"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.Legal.NatayarkTerms}" />
                     </StackPanel>
@@ -430,14 +430,14 @@
                             Margin="0,0,20,0"
                             ColorType="Highlight"
                             local:CustomEventService.EventData="https://shimo.im/docs/rGrd8pY8xWkt6ryW"
-                            local:CustomEventService.EventType="打开网页"
+                            local:CustomEventService.EventType="OpenUrl"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
                         <local:MyButton
                             Width="120"
                             Margin="0,0,20,0"
                             local:CustomEventService.EventData="https://github.com/Meloong-Git/PCL"
-                            local:CustomEventService.EventType="打开网页"
+                            local:CustomEventService.EventType="OpenUrl"
                             Padding="13,0"
                             Text="{DynamicResource Setup.About.UpstreamLegal.OpenSource}" />
                     </StackPanel>
@@ -481,7 +481,7 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     local:CustomEventService.EventData="{Binding WebsiteUri}"
-                                    local:CustomEventService.EventType="打开网页"
+                                    local:CustomEventService.EventType="OpenUrl"
                                     Padding="13,0"
                                     Text="{DynamicResource Setup.About.Licenses.ViewWebsite}"
                                     Visibility="{Binding WebsiteUri, Converter={StaticResource NullToVisibilityConverter}}" />
@@ -492,7 +492,7 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     local:CustomEventService.EventData="{Binding LicenseUri}"
-                                    local:CustomEventService.EventType="打开网页"
+                                    local:CustomEventService.EventType="OpenUrl"
                                     Padding="13,0"
                                     Text="{DynamicResource Setup.About.Licenses.ViewLicense}"
                                     Visibility="{Binding LicenseUri, Converter={StaticResource NullToVisibilityConverter}}" />

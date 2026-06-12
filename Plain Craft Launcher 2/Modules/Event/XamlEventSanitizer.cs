@@ -1,0 +1,141 @@
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+namespace PCL
+{
+    public static class XamlEventSanitizer
+    {
+        public class SanitizeResult
+        {
+            public string SanitizedXaml { get; set; } = "";
+            public List<string> LegacyTypesFound { get; } = new();
+            public List<string> UnrecognizedTypes { get; } = new();
+        }
+
+        private static readonly Regex EventTypeAttributeRegex = new(
+            @"(local:CustomEventService\.EventType\s*=\s*"")([^""]+)("")",
+            RegexOptions.Compiled);
+
+        private static readonly Regex EventTypePropertyElementRegex = new(
+            @"(<local:CustomEventService\.EventType\s*>\s*)([^<]+?)(\s*</local:CustomEventService\.EventType\s*>)",
+            RegexOptions.Compiled);
+
+        public static SanitizeResult Sanitize(string xaml)
+        {
+            var result = new SanitizeResult();
+            var sanitized = xaml;
+
+            sanitized = EventTypeAttributeRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[2].Value;
+                if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
+                    return match.Groups[1].Value + englishName + match.Groups[3].Value;
+
+                if (Enum.TryParse<EventType>(chineseValue, true, out _))
+                    return match.Value;
+
+                if (EventTypeMapper.IsUnSupportedType(chineseValue))
+                {
+                    result.LegacyTypesFound.Add(chineseValue);
+                    return match.Value;
+                }
+
+                result.UnrecognizedTypes.Add(chineseValue);
+                return match.Value;
+            });
+
+            sanitized = EventTypePropertyElementRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[2].Value.Trim();
+                if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
+                    return match.Groups[1].Value + englishName + match.Groups[3].Value;
+
+                if (Enum.TryParse<EventType>(chineseValue, true, out _))
+                    return match.Value;
+
+                if (EventTypeMapper.IsUnSupportedType(chineseValue))
+                {
+                    result.LegacyTypesFound.Add(chineseValue);
+                    return match.Value;
+                }
+
+                result.UnrecognizedTypes.Add(chineseValue);
+                return match.Value;
+            });
+
+            foreach (var legacyType in EventTypeMapper.UnSupportedTypes)
+                sanitized = RemoveElementsWithEventType(sanitized, legacyType, result.LegacyTypesFound);
+
+            foreach (var unknownType in result.UnrecognizedTypes)
+                sanitized = RemoveElementsWithEventType(sanitized, unknownType, result.UnrecognizedTypes);
+
+            var distinctLegacy = new List<string>(new HashSet<string>(result.LegacyTypesFound));
+            var distinctUnrecognized = new List<string>(new HashSet<string>(result.UnrecognizedTypes));
+            result.LegacyTypesFound.Clear();
+            result.LegacyTypesFound.AddRange(distinctLegacy);
+            result.UnrecognizedTypes.Clear();
+            result.UnrecognizedTypes.AddRange(distinctUnrecognized);
+
+            result.SanitizedXaml = sanitized;
+            return result;
+        }
+
+        private static string RemoveElementsWithEventType(string xaml, string eventTypeValue, List<string> trackingList)
+        {
+            var escaped = Regex.Escape(eventTypeValue);
+
+            var selfClosingPattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*/\s*>";
+            xaml = Regex.Replace(xaml, selfClosingPattern, match =>
+            {
+                trackingList.Add(eventTypeValue);
+                return "";
+            }, RegexOptions.Compiled);
+
+            var attributePattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*>";
+            xaml = Regex.Replace(xaml, attributePattern, match =>
+            {
+                var tag = match.Value;
+                var nameMatch = Regex.Match(tag, @"<(\w+)");
+                if (!nameMatch.Success) return match.Value;
+                var elementName = nameMatch.Groups[1].Value;
+
+                var remaining = xaml[(match.Index + match.Length)..];
+                var closeMatch = FindMatchingCloseTag(remaining, elementName);
+
+                if (closeMatch >= 0)
+                {
+                    trackingList.Add(eventTypeValue);
+                    return "";
+                }
+
+                return match.Value;
+            }, RegexOptions.Compiled);
+
+            var propertyElementPattern = $@"<local:CustomEventService\.EventType\s*>\s*{escaped}\s*</local:CustomEventService\.EventType\s*>";
+            xaml = Regex.Replace(xaml, propertyElementPattern, match =>
+            {
+                var beforeMatch = xaml[..match.Index];
+                var lastOpenMatch = Regex.Match(beforeMatch, @"<(\w+)[^>]*>$", RegexOptions.RightToLeft);
+                if (!lastOpenMatch.Success) return match.Value;
+                var parentElementName = lastOpenMatch.Groups[1].Value;
+
+                var afterProperty = xaml[(match.Index + match.Length)..];
+                var parentCloseMatch = Regex.Match(afterProperty, $@"</{parentElementName}\s*>");
+                if (!parentCloseMatch.Success) return match.Value;
+
+                trackingList.Add(eventTypeValue);
+                return "";
+            }, RegexOptions.Compiled);
+
+            return xaml;
+        }
+
+        private static int FindMatchingCloseTag(string text, string elementName)
+        {
+            var closePattern = $@"</{elementName}\s*>";
+            var closeMatch = Regex.Match(text, closePattern);
+            return closeMatch.Success ? closeMatch.Index + closeMatch.Length : -1;
+        }
+    }
+}
