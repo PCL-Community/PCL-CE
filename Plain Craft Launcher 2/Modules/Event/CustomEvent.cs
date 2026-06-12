@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
 namespace PCL
@@ -98,7 +93,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 ModBase.RunInThread(() =>
                 {
                     try
@@ -123,7 +118,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 if (args[0] == "\\current")
                 {
                     if (ModInstanceList.McMcInstanceSelected is null)
@@ -176,14 +171,14 @@ namespace PCL
         private sealed class ClearTrashAction : IEventAction
         {
             public void Execute(string arg, EventType type) =>
-                ModBase.RunInThread(() => PageToolsTest.RubbishClear());
+                ModBase.RunInThread(PageToolsTest.RubbishClear);
         }
 
         private sealed class ShowDialogAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
                 ModMain.MyMsgBox(
@@ -197,7 +192,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 var hintType = args.Length == 1
                     ? ModMain.HintType.Info
                     : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
@@ -209,7 +204,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 ModBase.RunInUi(() =>
                 {
                     var pageType = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
@@ -224,14 +219,14 @@ namespace PCL
         private sealed class ModpackInstallAction : IEventAction
         {
             public void Execute(string arg, EventType type) =>
-                ModBase.RunInUi(() => ModModpack.ModpackInstall());
+                ModBase.RunInUi(ModModpack.ModpackInstall);
         }
 
         private sealed class DownloadFileAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 args[0] = args[0].Replace('\\', '/');
                 if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
                 {
@@ -267,7 +262,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
                 if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
@@ -281,7 +276,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? new[] { "" };
+                var args = arg?.Split('|') ?? [""];
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "VariableName|Value"));
                 States.CustomVariables[args[0]] = args[1];
@@ -299,16 +294,16 @@ namespace PCL
         {
             relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
 
-            string location, workingDir = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL");
+            string location, workingDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
 
             if (relativeUrl.Contains(":\\"))
             {
                 location = relativeUrl;
                 ModBase.Log($"[Control] Custom event absolute path {type}: {location}");
             }
-            else if (File.Exists(System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl)))
+            else if (File.Exists(Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl)))
             {
-                location = System.IO.Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl);
+                location = Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl);
                 ModBase.Log($"[Control] Custom event relative-to-PCL path {type}: {location}");
             }
             else if (type is EventType.OpenFile or EventType.ExecuteCommand)
@@ -321,7 +316,7 @@ namespace PCL
                 throw new FileNotFoundException(Lang.Text("Event.Error.FileNotFound", relativeUrl), relativeUrl);
             }
 
-            return new[] { location, workingDir };
+            return [location, workingDir];
         }
 
         private static bool EventSafetyConfirm(string message)
