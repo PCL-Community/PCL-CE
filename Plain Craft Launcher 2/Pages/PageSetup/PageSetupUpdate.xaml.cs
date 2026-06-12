@@ -151,7 +151,7 @@ public partial class PageSetupUpdate
         // 检查 .NET 版本
         if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
                 .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
-                .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
+                .ContainsF("Microsoft.WindowsDesktop.App 10.0.", true))
         {
             ModMain.MyMsgBox(
                 Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
