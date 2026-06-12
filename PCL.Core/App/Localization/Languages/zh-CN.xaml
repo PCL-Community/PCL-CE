@@ -3050,7 +3050,6 @@
     <sys:String x:Key="Event.Variable.Written">已写入变量：{0} → {1}</sys:String>
     <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
     <sys:String x:Key="Event.Safety.ConfirmMessage">即将执行：{0}&#x0a;请在确认没有安全隐患后再继续。</sys:String>
-    <sys:String x:Key="Event.Safety.Continue">继续</sys:String>
     <sys:String x:Key="Event.Safety.ContinueAlways">继续且今后不再要求确认</sys:String>
     <sys:String x:Key="Event.Sanity.UnSupportedTypeHint">是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
     <sys:String x:Key="Event.Sanity.UnknownTypeHint">无法解析的 EventType，已从主页中移除。</sys:String>

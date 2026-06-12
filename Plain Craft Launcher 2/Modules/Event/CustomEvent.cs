@@ -21,10 +21,13 @@ namespace PCL
 
         public void Raise() => Raise(Type, Data);
 
+        /// <summary>
+        /// 静态入口：根据 EventType 分发给对应的 action 执行。
+        /// </summary>
         public static void Raise(EventType type, string arg)
         {
             if (type == EventType.None) return;
-            ModBase.Log($"[Control] Executing custom event: {type}, {arg}");
+            ModBase.Log($"[Control] 执行自定义事件: {type}, {arg}");
 
             try
             {
@@ -46,11 +49,9 @@ namespace PCL
 
         #region Action dispatch
 
-        private interface IEventAction
-        {
-            void Execute(string arg, EventType type);
-        }
-
+        /// <summary>
+        /// EventType → 执行逻辑 的字典映射，O(1) 分发。
+        /// </summary>
         private static readonly Dictionary<EventType, IEventAction> ActionMap = new()
         {
             [EventType.OpenUrl] = new OpenUrlAction(),
@@ -74,6 +75,24 @@ namespace PCL
             [EventType.WriteVariable] = new VariableAction(),
         };
 
+        private interface IEventAction
+        {
+            void Execute(string arg, EventType type);
+        }
+
+        /// <summary>
+        /// 将 arg 按 '|' 分割为参数数组，null/空串统一返回 [""]。
+        /// </summary>
+        private static string[] SplitArgs(string arg) => arg.Split('|');
+
+        /// <summary>
+        /// 将 \\n 替换为 Windows 换行符 \r\n。
+        /// </summary>
+        private static string FixNewlines(string s) => s.Replace("\\n", "\r\n");
+
+        /// <summary>
+        /// 打开网页。校验 https?:// 前缀，非 file 协议。
+        /// </summary>
         private sealed class OpenUrlAction : IEventAction
         {
             public void Execute(string arg, EventType type)
@@ -89,61 +108,72 @@ namespace PCL
             }
         }
 
+        /// <summary>
+        /// 打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后 ProcessInterop.Start 启动。
+        /// </summary>
         private sealed class OpenFileAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 ModBase.RunInThread(() =>
                 {
                     try
                     {
-                        var actualPaths = GetAbsoluteUrls(args[0], type);
-                        string location = actualPaths[0], workingDir = actualPaths[1];
-                        ModBase.Log($"[Control] Open-event actual path: {location}, working directory: {workingDir}");
-
-                        if (!EventSafetyConfirm($"即将执行：{location}{(args.Length >= 2 ? " " + args[1] : "")}"))
+                        var urls = GetAbsoluteUrls(args[0], type);
+                        if (!EventSafetyConfirm($"即将执行：{urls[0]}{(args.Length >= 2 ? " " + args[1] : "")}"))
                             return;
-                        ProcessInterop.Start(location, args.Length >= 2 ? args[1] : "");
+                        ProcessInterop.Start(urls[0], args.Length >= 2 ? args[1] : "");
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"事件执行失败（{type}, {arg}）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(ex, Lang.Text("Event.Error.ExecutionFailed", type, arg), ModBase.LogLevel.Msgbox);
                     }
                 });
             }
         }
 
+        /// <summary>
+        /// 启动游戏。支持 \current 指代当前选中实例，可选 ServerIp。
+        /// </summary>
         private sealed class LaunchGameAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 if (args[0] == "\\current")
                 {
+                    if (ModInstanceList.McMcInstanceSelected is null)
+                        throw new InvalidOperationException(Lang.Text("Event.LaunchGame.SelectVersion"));
                     args[0] = ModInstanceList.McMcInstanceSelected.Name;
                 }
                 ModBase.RunInUi(() =>
                 {
-                    var options = new ModLaunch.McLaunchOptions
+                    var launchOptions = new ModLaunch.McLaunchOptions
                     {
                         ServerIp = args.Length >= 2 ? args[1] : null,
                         instance = new McInstance(args[0])
                     };
-                    if (ModLaunch.McLaunchStart(options))
+                    if (ModLaunch.McLaunchStart(launchOptions))
                         ModMain.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
                 });
             }
         }
 
+        /// <summary>
+        /// 复制文本到剪贴板。
+        /// </summary>
         private sealed class CopyTextAction : IEventAction
         {
-            public void Execute(string arg, EventType type) => ModBase.ClipboardSet(arg);
+            public void Execute(string arg, EventType _) => ModBase.ClipboardSet(arg);
         }
 
+        /// <summary>
+        /// 刷新主页 / 刷新当前页面。要求当前 pageRight 实现 IRefreshable。
+        /// </summary>
         private sealed class RefreshAction : IEventAction
         {
-            public void Execute(string arg, EventType type)
+            public void Execute(string arg, EventType _)
             {
                 if (ModMain.frmMain?.pageRight is IRefreshable refreshable)
                 {
@@ -152,76 +182,95 @@ namespace PCL
                         ModMain.Hint(Lang.Text("Event.Refresh.Success"), ModMain.HintType.Finish);
                 }
                 else
-                {
                     ModMain.Hint(Lang.Text("Event.Refresh.NotSupported"), ModMain.HintType.Critical);
-                }
             }
         }
 
+        /// <summary>
+        /// 今日人品。直接调用 Jrrp 入口。
+        /// </summary>
         private sealed class DailyFortuneAction : IEventAction
         {
-            public void Execute(string arg, EventType type) => PageToolsTest.Jrrp();
+            public void Execute(string _, EventType __) => PageToolsTest.Jrrp();
         }
 
+        /// <summary>
+        /// 清理垃圾。异步执行 RubbishClear。
+        /// </summary>
         private sealed class ClearTrashAction : IEventAction
         {
-            public void Execute(string arg, EventType type) =>
+            public void Execute(string _, EventType __) =>
                 ModBase.RunInThread(PageToolsTest.RubbishClear);
         }
 
+        /// <summary>
+        /// 弹出消息框。参数：Title|Content[|ButtonText]。
+        /// </summary>
         private sealed class ShowDialogAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 if (args.Length == 1)
-                    throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
+                    throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
                 ModMain.MyMsgBox(
-                    args[1].Replace("\\n", "\r\n"),
-                    args[0].Replace("\\n", "\r\n"),
+                    FixNewlines(args[1]),
+                    FixNewlines(args[0]),
                     args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
             }
         }
 
+        /// <summary>
+        /// 弹出提示条。参数：Message[|HintType]（HintType = Info / Finish / Critical）。
+        /// </summary>
         private sealed class ShowHintAction : IEventAction
         {
-            public void Execute(string arg, EventType type)
+            public void Execute(string arg, EventType _)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 var hintType = args.Length == 1
                     ? ModMain.HintType.Info
                     : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
-                ModMain.Hint(args[0].Replace("\\n", "\r\n"), hintType);
+                ModMain.Hint(FixNewlines(args[0]), hintType);
             }
         }
 
+        /// <summary>
+        /// 切换页面。参数：PageType[|PageSubType]。
+        /// </summary>
         private sealed class SwitchPageAction : IEventAction
         {
-            public void Execute(string arg, EventType type)
+            public void Execute(string arg, EventType _)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 ModBase.RunInUi(() =>
                 {
-                    var pageType = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
-                    var subType = args.Length == 1
+                    var page = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
+                    var sub = args.Length == 1
                         ? FormMain.PageSubType.Default
                         : (FormMain.PageSubType)Enum.Parse(typeof(FormMain.PageSubType), args[1], true);
-                    ModMain.frmMain?.PageChange(pageType, subType);
+                    ModMain.frmMain?.PageChange(page, sub);
                 });
             }
         }
 
+        /// <summary>
+        /// 导入 / 安装整合包。触发 ModModpack.ModpackInstall()。
+        /// </summary>
         private sealed class ModpackInstallAction : IEventAction
         {
-            public void Execute(string arg, EventType type) =>
+            public void Execute(string _, EventType __) =>
                 ModBase.RunInUi(ModModpack.ModpackInstall);
         }
 
+        /// <summary>
+        /// 下载文件。参数：Url[|SavePath[|FileName]]，校验 http/https 前缀并弹安全确认。
+        /// </summary>
         private sealed class DownloadFileAction : IEventAction
         {
-            public void Execute(string arg, EventType type)
+            public void Execute(string arg, EventType _)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 args[0] = args[0].Replace('\\', '/');
                 if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
                 {
@@ -233,18 +282,9 @@ namespace PCL
 
                 try
                 {
-                    switch (args.Length)
-                    {
-                        case 1:
-                            PageToolsTest.StartCustomDownload(args[0], ModBase.GetFileNameFromPath(args[0]));
-                            break;
-                        case 2:
-                            PageToolsTest.StartCustomDownload(args[0], args[1]);
-                            break;
-                        default:
-                            PageToolsTest.StartCustomDownload(args[0], args[1], args[2]);
-                            break;
-                    }
+                    PageToolsTest.StartCustomDownload(args[0],
+                        args.Length >= 2 ? args[1] : ModBase.GetFileNameFromPath(args[0]),
+                        args.Length >= 3 ? args[2] : null);
                 }
                 catch
                 {
@@ -253,13 +293,16 @@ namespace PCL
             }
         }
 
+        /// <summary>
+        /// 修改 / 写入设置。参数：SettingName|Value。
+        /// </summary>
         private sealed class SettingAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 if (args.Length == 1)
-                    throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
+                    throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
                 if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                     item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected.PathInstance);
                 if (args.Length == 2)
@@ -267,15 +310,18 @@ namespace PCL
             }
         }
 
+        /// <summary>
+        /// 修改 / 写入自定义变量。参数：VariableName|Value。
+        /// </summary>
         private sealed class VariableAction : IEventAction
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg.Split('|');
+                var args = SplitArgs(arg);
                 if (args.Length == 1)
-                    throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "VariableName|Value"));
+                    throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "VariableName|Value"));
                 States.CustomVariables[args[0]] = args[1];
-                States.CustomVariables = States.CustomVariables;
+                States.CustomVariables = States.CustomVariables; // 触发 ConfigPropertyChanged
                 if (args.Length == 2)
                     ModMain.Hint(Lang.Text("Event.Variable.Written", args[0], args[1]), ModMain.HintType.Finish);
             }
@@ -288,32 +334,30 @@ namespace PCL
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
             relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
-
-            string location, workingDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
+            var pclDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
 
             if (relativeUrl.Contains(":\\"))
             {
-                location = relativeUrl;
-                ModBase.Log($"[Control] Custom event absolute path {type}: {location}");
+                ModBase.Log($"[Control] 自定义事件中由绝对路径 {type}: {relativeUrl}");
+                return [relativeUrl, pclDir];
             }
-            else if (File.Exists(Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl)))
+            if (File.Exists(Path.Combine(pclDir, relativeUrl)))
             {
-                location = Path.Combine(Basics.ExecutableDirectory, "PCL", relativeUrl);
-                ModBase.Log($"[Control] Custom event relative-to-PCL path {type}: {location}");
+                var fullPath = Path.Combine(pclDir, relativeUrl);
+                ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径 {type}: {fullPath}");
+                return [fullPath, pclDir];
             }
-            else if (type is EventType.OpenFile or EventType.ExecuteCommand)
+            if (type is EventType.OpenFile or EventType.ExecuteCommand)
             {
-                location = relativeUrl;
-                ModBase.Log($"[Control] Custom event direct {type}: {location}");
+                ModBase.Log($"[Control] 自定义事件中直接 {type}: {relativeUrl}");
+                return [relativeUrl, pclDir];
             }
-            else
-            {
-                throw new FileNotFoundException(Lang.Text("Event.Error.FileNotFound", relativeUrl), relativeUrl);
-            }
-
-            return [location, workingDir];
+            throw new FileNotFoundException(Lang.Text("Event.Error.FileNotFound", relativeUrl), relativeUrl);
         }
 
+        /// <summary>
+        /// 安全确认对话框。已由用户勾选"不再询问"时跳过。
+        /// </summary>
         private static bool EventSafetyConfirm(string message)
         {
             if (States.Hint.HomepageCommand)
