@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -561,6 +562,11 @@ public static class ModProfile
     /// <param name="profile">目标档案</param>
     public static void RemoveProfile(McProfile profile)
     {
+        if (!string.IsNullOrEmpty(profile.Desc) && profile.Desc.Contains("PCL N 在线服务"))
+        {
+            ModMain.Hint("此档案由在线服务自动管理，无法手动删除。请退出在线账户后重试。", ModMain.HintType.Critical);
+            return;
+        }
         profileList.Remove(profile);
         lastUsedProfile = default;
         SaveProfile();
@@ -1081,4 +1087,43 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
     }
 
     #endregion
+
+    /// <summary>
+    /// 从在线服务登录结果自动添加正版档案。
+    /// </summary>
+    static ModProfile()
+    {
+        PCL.Online.OnlineAccountService.OnLogout += RemoveOnlineProfile;
+    }
+
+    private static void RemoveOnlineProfile(string? uuid)
+    {
+        if (string.IsNullOrEmpty(uuid)) return;
+        var toRemove = profileList
+            .Where(p => p.Type == ModLaunch.McLoginType.Ms && p.Uuid == uuid)
+            .ToList();
+        foreach (var p in toRemove)
+            profileList.Remove(p);
+        if (toRemove.Count > 0)
+            SaveProfile();
+    }
+
+    public static void AddProfileFromOnline(PCL.Online.OnlineLoginResult result)
+    {
+        if (result?.AccessToken is null) return;
+        foreach (var p in profileList)
+            if (p.Type == ModLaunch.McLoginType.Ms && p.Uuid == result.Uuid)
+                return;
+
+        var profile = new McProfile();
+        profile.Type = ModLaunch.McLoginType.Ms;
+        profile.Uuid = result.Uuid;
+        profile.Username = result.UserName;
+        profile.AccessToken = EncryptHelper.SecretEncrypt(result.AccessToken);
+        profile.RefreshToken = EncryptHelper.SecretEncrypt(result.RefreshToken);
+        profile.Desc = "由 PCL N 在线服务自动添加";
+        profileList.Add(profile);
+        SaveProfile();
+        ModMain.Hint($"已自动添加正版档案：{result.UserName}", ModMain.HintType.Finish);
+    }
 }
