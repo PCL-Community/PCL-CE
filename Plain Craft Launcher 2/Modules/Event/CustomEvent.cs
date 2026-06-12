@@ -93,7 +93,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 ModBase.RunInThread(() =>
                 {
                     try
@@ -118,14 +118,9 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 if (args[0] == "\\current")
                 {
-                    if (ModInstanceList.McMcInstanceSelected is null)
-                    {
-                        ModMain.Hint(Lang.Text("Event.LaunchGame.SelectVersion"), ModMain.HintType.Critical);
-                        return;
-                    }
                     args[0] = ModInstanceList.McMcInstanceSelected.Name;
                 }
                 ModBase.RunInUi(() =>
@@ -178,7 +173,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
                 ModMain.MyMsgBox(
@@ -192,7 +187,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 var hintType = args.Length == 1
                     ? ModMain.HintType.Info
                     : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
@@ -204,7 +199,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 ModBase.RunInUi(() =>
                 {
                     var pageType = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
@@ -226,7 +221,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 args[0] = args[0].Replace('\\', '/');
                 if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
                 {
@@ -262,11 +257,11 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
                 if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
-                    item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
+                    item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected.PathInstance);
                 if (args.Length == 2)
                     ModMain.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), ModMain.HintType.Finish);
             }
@@ -276,7 +271,7 @@ namespace PCL
         {
             public void Execute(string arg, EventType type)
             {
-                var args = arg?.Split('|') ?? [""];
+                var args = arg.Split('|');
                 if (args.Length == 1)
                     throw new Exception(Lang.Text("Event.Error.MissingArgs", type.ToString(), "VariableName|Value"));
                 States.CustomVariables[args[0]] = args[1];
@@ -332,7 +327,7 @@ namespace PCL
                 Lang.Text("Common.Action.Cancel")) switch
             {
                 1 => true,
-                2 => (States.Hint.HomepageCommand = true) is true,
+                2 => States.Hint.HomepageCommand = true,
                 _ => false,
             };
         }
