@@ -318,10 +318,7 @@
                         <local:MyButton x:Name="BtnCustomRefresh" Grid.Column="0" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Refresh}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         ColorType="Highlight" Click="BtnCustomRefresh_Click" />
-                        <local:MyButton x:Name="BtnCustomFile" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.GenerateDocs}"
-                                        Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
-                                        Click="BtnCustomFile_Click" />
-                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="2" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
+                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         Click="BtnCustomTutorial_Click" />
                     </Grid>
@@ -363,18 +360,6 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
                         </local:MyComboBox>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Grid.Column="0" Margin="0,10,0,0"
-                                    HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GetMore}" />
-                        <local:MyIconTextButton x:Name="BtnGotoHomepageMarket" Grid.Column="1" Margin="10,10,0,0"
-                                                HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.GoToMarket}"
-                                                SvgIcon="lucide/external-link"
-                                                Click="BtnHomepageMarket_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -448,7 +433,6 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubTools}" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Lobby}" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange"/>
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Help}" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
                         <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubInstance}" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Edit}"
                                           x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"

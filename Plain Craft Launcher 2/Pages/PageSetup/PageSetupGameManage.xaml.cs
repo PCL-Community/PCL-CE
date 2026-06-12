@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -28,6 +29,20 @@ public partial class PageSetupGameManage
         ModAnimation.AniControlEnabled += 1;
         Reload();
         SliderLoad();
+
+        if (!Lang.IsChineseMainland)
+        {
+            TextFilenameFormat.Visibility = Visibility.Collapsed;
+            ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
+            TextModManageStyle.Visibility = Visibility.Collapsed;
+            ComboModLocalNameStyle.Visibility = Visibility.Collapsed;
+            
+            RowFilenameFormat.Height = new GridLength(0);
+            RowFilenameFormatGap.Height = new GridLength(0);
+            RowModManageStyle.Height = new GridLength(0);
+            RowModManageStyleGap.Height = new GridLength(0);
+        }
+
         ModAnimation.AniControlEnabled -= 1;
     }
 

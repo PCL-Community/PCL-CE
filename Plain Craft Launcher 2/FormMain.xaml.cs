@@ -151,7 +151,7 @@ public partial class FormMain
         if (ModBase.modeDebug)
             ModMain.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
-        ModMinecraft.mcFolderListLoader
+        ModFolder.mcFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
@@ -335,41 +335,9 @@ public partial class FormMain
             ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #endif
-
-        // 被移除的窗口设置选项
+        // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
-
-        // 移动自定义皮肤
-        if (lastVersionCode <= 161 && File.Exists(ModBase.exePath + @"PCL\CustomSkin.png") &&
-            !File.Exists(ModBase.pathAppdata + "CustomSkin.png"))
-        {
-            ModBase.CopyFile(ModBase.exePath + @"PCL\CustomSkin.png", ModBase.pathAppdata + "CustomSkin.png");
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (162)");
-        }
-
-        if (lastVersionCode <= 263 && File.Exists(Path.Combine(ModBase.pathTemp, "CustomSkin.png")) &&
-            !File.Exists(Path.Combine(ModBase.pathAppdata, "CustomSkin.png")))
-        {
-            ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CustomSkin.png"), Path.Combine(ModBase.pathAppdata, "CustomSkin.png"));
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
-        }
-
-        // 解除帮助页面的隐藏
-        if (lastVersionCode <= 205)
-        {
-            Config.Preference.Hide.SetupAbout = false;
-            ModBase.Log("[Start] 已解除帮助页面的隐藏");
-        }
-
-        // 迁移旧版用户档案
-        if (lastVersionCode <= 368) ModBase.RunInNewThread(() => ModProfile.MigrateOldProfile());
-        // Mod 命名设置迁移
-        if (!Config.Download.Comp.NameFormatV1Config.IsDefault() && Config.Download.Comp.NameFormatV2Config.IsDefault())
-        {
-            Config.Download.Comp.NameFormatV2 += 1;
-            ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");
-        }
 
         // 更新后展示社区版提示
         UpdateManager.ShowCEAnnounce();
@@ -693,8 +661,7 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
-    //“帮助”
+
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
         ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
@@ -776,7 +743,7 @@ public partial class FormMain
         if (e.Key == Key.F11 && pageCurrent == PageType.InstanceSelect)
         {
             ModMain.frmSelectRight.showHidden = !ModMain.frmSelectRight.showHidden;
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             return;
         }
@@ -871,7 +838,7 @@ public partial class FormMain
             else if (pageCurrent == PageType.InstanceSelect)
             {
                 // 实例选择自动刷新
-                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
             }
             else if (ModMain.frmMain.pageRight is PageInstanceSavesDatapack &&
@@ -1085,7 +1052,7 @@ public partial class FormMain
                 {
                     case PageSubType.VersionWorld:
                     {
-                        var destFolder = PageInstanceLeft.instance.PathIndie + @"saves\" +
+                        var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
                                          ModBase.GetFileNameWithoutExtentionFromPath(filePath);
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
@@ -1135,7 +1102,7 @@ public partial class FormMain
                     }
                     case PageSubType.VersionResourcePack:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"resourcepacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
@@ -1151,7 +1118,7 @@ public partial class FormMain
                     }
                     case PageSubType.VersionShader:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"shaderpacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
@@ -1172,7 +1139,7 @@ public partial class FormMain
                 new[] { "litematic", "nbt", "schematic", "schem" }.Contains(extension) &&
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
-                var destFile = PageInstanceLeft.instance.PathIndie + @"schematics\" +
+                var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
                                ModBase.GetFileNameFromPath(filePath);
                 if (File.Exists(destFile))
                 {
@@ -1180,7 +1147,7 @@ public partial class FormMain
                     return;
                 }
 
-                Directory.CreateDirectory(PageInstanceLeft.instance.PathIndie + @"schematics\");
+                Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
                 ModBase.CopyFile(filePath, destFile);
                 ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
                 if (ModMain.frmInstanceSchematic is not null)
@@ -1205,24 +1172,6 @@ public partial class FormMain
                 catch (Exception ex)
                 {
                     // 安装失败，继续往后尝试
-                }
-            }
-
-            if (new[] { "zip", "rar" }.Any(t => (t ?? "") == (extension ?? "")))
-            {
-                ModBase.Log("[System] 文件为压缩包，尝试作为存档分析");
-                try
-                {
-                    ModWorld.ReadWorld(filePath);
-                    return;
-                }
-                catch (ModBase.CancelledException ex)
-                {
-                    return; // 是存档，但是损坏了
-                }
-                catch (Exception ex)
-                {
-                    // 不是存档（或遇到了其他问题），继续往后尝试
                 }
             }
 
@@ -1429,11 +1378,6 @@ public partial class FormMain
         CompDetail = 8,
 
         /// <summary>
-        ///     帮助详情。这是一个副页面。
-        /// </summary>
-        HelpDetail = 9,
-
-        /// <summary>
         ///     游戏实时日志。这是一个副页面。
         /// </summary>
         GameLog = 10,
@@ -1442,11 +1386,6 @@ public partial class FormMain
         ///     存档详细管理，这是一个副页面。
         /// </summary>
         VersionSaves = 12,
-
-        /// <summary>
-        ///     主页市场，这是一个副页面。
-        /// </summary>
-        HomePageMarket = 13
     }
 
     /// <summary>
@@ -1488,7 +1427,6 @@ public partial class FormMain
         SetupLauncherLanguage = 11,
 
         ToolsGameLink = 1,
-        ToolsLauncherHelp = 2,
         ToolsTest = 3,
 
         VersionOverall = 0,
@@ -1528,23 +1466,15 @@ public partial class FormMain
             }
             case PageType.InstanceSetup:
             {
-                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.instance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.instance.Name);
+                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.McInstance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.McInstance.Name);
             }
             case PageType.CompDetail:
             {
                 return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
             }
-            case PageType.HelpDetail:
-            {
-                return stack.additional.Value.HelpEntry.Title;
-            }
             case PageType.VersionSaves:
             {
                 return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
-            }
-            case PageType.HomePageMarket:
-            {
-                return Lang.Text("Main.Title.HomePageMarket");
             }
 
             default:
@@ -1629,7 +1559,6 @@ public partial class FormMain
         /// <summary>
         /// <list type="bullet">
         ///   <item><description>CompDetail: (CompProject, ExpandedTitles, TargetVersion, TargetLoader, ResourceType)</description></item>
-        ///   <item><description>HelpDetail: (HelpEntry, HelpPage)</description></item>
         ///   <item><description>VersionSaves: SavePath</description></item>
         /// </list>
         /// </summary>
@@ -1639,8 +1568,6 @@ public partial class FormMain
             string TargetVersion,
             ModComp.CompLoaderType TargetLoader,
             ModComp.CompType ResourceType,
-            ModMain.HelpEntry HelpEntry,
-            FrameworkElement HelpPage,
             string SavePath
         )? additional;
 
@@ -1943,11 +1870,6 @@ public partial class FormMain
                         PageChangeAnim(new MyPageLeft(), ModMain.frmDownloadCompDetail);
                         break;
                     }
-                case PageType.HelpDetail: // 帮助详情
-                    {
-                        PageChangeAnim(new MyPageLeft(), stack.additional.Value.HelpPage);
-                        break;
-                    }
                 case PageType.VersionSaves: // 存档管理
                     {
                         if (ModMain.frmInstanceSavesLeft is null)
@@ -1955,12 +1877,6 @@ public partial class FormMain
                         PageInstanceSavesLeft.currentSave = stack.additional.Value.SavePath;
                         PageChangeAnim(ModMain.frmInstanceSavesLeft,
                             (FrameworkElement)ModMain.frmInstanceSavesLeft.PageGet(subType));
-                        break;
-                    }
-                case PageType.HomePageMarket: // 主页市场
-                    {
-                        ModMain.frmHomePageMarket = ModMain.frmHomePageMarket ?? new PageHomePageMarket();
-                        PageChangeAnim(new MyPageLeft(), ModMain.frmHomePageMarket);
                         break;
                     }
             }

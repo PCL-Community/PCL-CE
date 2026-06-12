@@ -35,7 +35,7 @@ public partial class PageDownloadForge
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Version in ModDownload.dlForgeListLoader.output.Value.Sort(ModMinecraft.CompareVersionGe))
+            foreach (var Version in ModDownload.dlForgeListLoader.output.Value.Sort(McVersionComparer.CompareVersionGe))
             {
                 // 增加卡片
                 var newCard = new MyCard

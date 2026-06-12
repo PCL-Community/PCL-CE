@@ -1836,7 +1836,7 @@ public static class ModLocalComp
 
         public KeyValuePair<List<LocalCompFile>, JsonObject> detailInfo;
         public PageInstanceCompResource frm;
-        public ModMinecraft.Instance gameVersion;
+        public McInstance gameVersion;
         public List<CompLoaderType> loaders;
     }
 
@@ -1925,10 +1925,10 @@ public static class ModLocalComp
                             try
                             {
                                 if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
-                                    if (!(PageInstanceLeft.instance is not null &&
-                                          PageInstanceLeft.instance.Info.HasForge &&
-                                          PageInstanceLeft.instance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
-                                          (PageInstanceLeft.instance.Info.VanillaName ?? "")))
+                                    if (!(PageInstanceLeft.McInstance is not null &&
+                                          PageInstanceLeft.McInstance.Info.HasForge &&
+                                          PageInstanceLeft.McInstance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
+                                          (PageInstanceLeft.McInstance.Info.VanillaName ?? "")))
                                         continue;
 
                                 if (LocalCompFile.IsCompFile(File.FullName, loader.input.compType))
@@ -2235,15 +2235,15 @@ public static class ModLocalComp
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
         var modLoaders = new List<CompLoaderType>();
-        if (PageInstanceLeft.instance.Info.HasForge)
+        if (PageInstanceLeft.McInstance.Info.HasForge)
             modLoaders.Add(CompLoaderType.Forge);
-        if (PageInstanceLeft.instance.Info.HasNeoForge)
+        if (PageInstanceLeft.McInstance.Info.HasNeoForge)
             modLoaders.Add(CompLoaderType.NeoForge);
-        if (PageInstanceLeft.instance.Info.HasFabric)
+        if (PageInstanceLeft.McInstance.Info.HasFabric)
             modLoaders.Add(CompLoaderType.Fabric);
-        if (PageInstanceLeft.instance.Info.HasQuilt)
+        if (PageInstanceLeft.McInstance.Info.HasQuilt)
             modLoaders.AddRange(new[] { CompLoaderType.Fabric, CompLoaderType.Quilt });
-        if (PageInstanceLeft.instance.Info.HasLiteLoader)
+        if (PageInstanceLeft.McInstance.Info.HasLiteLoader)
             modLoaders.Add(CompLoaderType.LiteLoader);
         if (!modLoaders.Any())
             modLoaders.AddRange(new[]
@@ -2294,7 +2294,7 @@ public static class ModLocalComp
     /// <returns>
     ///     如果文件名包含主关键字，以及其他关键字中的任意一个，同时 Mod ID 一致，即认为匹配，返回对应的对象，若没有匹配的文件则返回空值。
     /// </returns>
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string modId,
+    public static LocalCompFile GetModLocalCompByKeywords(McInstance instance, string modId,
         string mainKeyword, params string[] keywords)
     {
         if (modId is null)
@@ -2302,7 +2302,7 @@ public static class ModLocalComp
         return GetModLocalCompByKeywords(instance, new[] { modId }, mainKeyword, keywords);
     }
 
-    public static LocalCompFile GetModLocalCompByKeywords(ModMinecraft.Instance instance, string[] modIds,
+    public static LocalCompFile GetModLocalCompByKeywords(McInstance instance, string[] modIds,
         string mainKeyword, params string[] keywords)
     {
         if (!instance.Modable)
