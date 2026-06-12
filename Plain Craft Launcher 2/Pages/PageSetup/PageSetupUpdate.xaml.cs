@@ -158,7 +158,7 @@ public partial class PageSetupUpdate
                     SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
+                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/10"), forceWait: true);
             return;
         }
 
