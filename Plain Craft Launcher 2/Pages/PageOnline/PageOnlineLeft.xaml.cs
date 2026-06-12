@@ -30,8 +30,7 @@ public partial class PageOnlineLeft
 
     public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == id)
-            return;
+        if (pageID == id) return;
         pageID = id;
         PageChangeRun((MyPageRight)PageGet(id));
     }
