@@ -33,6 +33,32 @@ public static class ModDownloadLib
     /// </summary>
     private static readonly object vanillaSyncLock = new();
 
+    /// <summary>
+    ///     将远程元数据提供的名称作为单个目录名拼接到缓存目录下，并阻止路径穿越。
+    /// </summary>
+    private static string CombineCacheSubfolder(string parentFolder, string childFolderName)
+    {
+        if (string.IsNullOrWhiteSpace(childFolderName) || childFolderName is "." or ".." ||
+            childFolderName.IndexOfAny(new[] { '/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0' }) >= 0 ||
+            Path.IsPathRooted(childFolderName))
+            CancelUnsafeCacheSubfolder(childFolderName, "包含非法路径字符");
+
+        var parentFullPath = Path.GetFullPath(parentFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var combinedFullPath = Path.GetFullPath(Path.Combine(parentFullPath, childFolderName));
+        if (!combinedFullPath.StartsWith(parentFullPath, StringComparison.OrdinalIgnoreCase))
+            CancelUnsafeCacheSubfolder(childFolderName, "导致缓存路径越界");
+        return combinedFullPath;
+    }
+
+    private static void CancelUnsafeCacheSubfolder(string childFolderName, string reason)
+    {
+        var message = "远程版本名" + reason + "：" + childFolderName;
+        ModBase.Log("[Download] " + message);
+        ModMain.Hint(message, ModMain.HintType.Critical);
+        throw new ModBase.CancelledException();
+    }
+
     #region Minecraft 下载
 
     /// <summary>
@@ -3952,7 +3978,7 @@ public static class ModDownloadLib
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
             if (request.liteLoaderEntry is not null)
-                optiFineFolder = Path.Combine(modsTempFolder, request.minecraftName);
+                optiFineFolder = CombineCacheSubfolder(modsTempFolder, request.minecraftName);
             else
                 optiFineFolder = modsTempFolder;
         }
