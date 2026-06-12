@@ -23,6 +23,11 @@ public class McInstance
         public bool IsLoaded;
 
         /// <summary>
+        /// 是否已初始化从 JAR 中读取 version.json。
+        /// </summary>
+        private bool _jsonVersionInited;
+
+        /// <summary>
         ///     是否为收藏的实例。
         /// </summary>
         public bool IsStar;
@@ -446,8 +451,11 @@ public class McInstance
                             foreach (var SubjsonNode in field["patches"].AsArray()) { var subjson = SubjsonNode.AsObject();
                                 subjsonList.Add(subjson); }
                             subjsonList.Sort((left, right) =>
-                                ModBase.Val((left["priority"] ?? "0").ToString()) <
-                                ModBase.Val((right["priority"] ?? "0").ToString()));
+                            {
+                                var leftVal = ModBase.Val((left["priority"] ?? "0").ToString());
+                                var rightVal = ModBase.Val((right["priority"] ?? "0").ToString());
+                                return leftVal.CompareTo(rightVal);
+                            });
                             foreach (var Subjson in subjsonList)
                             {
                                 var id = (string)Subjson["id"];
@@ -542,9 +550,9 @@ public class McInstance
         {
             get
             {
-                if (!ModInstanceList._JsonVersion_jsonVersionInited)
+                if (!_jsonVersionInited)
                 {
-                    ModInstanceList._JsonVersion_jsonVersionInited = true;
+                    _jsonVersionInited = true;
                     do
                     {
                         try

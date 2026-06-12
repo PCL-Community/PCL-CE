@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
@@ -30,6 +32,32 @@ public static class ModDownloadLib
     ///     如果 OptiFine 与 Forge 同时复制原版 Jar，就会导致复制文件时冲突。
     /// </summary>
     private static readonly object vanillaSyncLock = new();
+
+    /// <summary>
+    ///     将远程元数据提供的名称作为单个目录名拼接到缓存目录下，并阻止路径穿越。
+    /// </summary>
+    private static string CombineCacheSubfolder(string parentFolder, string childFolderName)
+    {
+        if (string.IsNullOrWhiteSpace(childFolderName) || childFolderName is "." or ".." ||
+            childFolderName.IndexOfAny(new[] { '/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0' }) >= 0 ||
+            Path.IsPathRooted(childFolderName))
+            CancelUnsafeCacheSubfolder(childFolderName, "包含非法路径字符");
+
+        var parentFullPath = Path.GetFullPath(parentFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var combinedFullPath = Path.GetFullPath(Path.Combine(parentFullPath, childFolderName));
+        if (!combinedFullPath.StartsWith(parentFullPath, StringComparison.OrdinalIgnoreCase))
+            CancelUnsafeCacheSubfolder(childFolderName, "导致缓存路径越界");
+        return combinedFullPath;
+    }
+
+    private static void CancelUnsafeCacheSubfolder(string childFolderName, string reason)
+    {
+        var message = "远程版本名" + reason + "：" + childFolderName;
+        ModBase.Log("[Download] " + message);
+        ModMain.Hint(message, ModMain.HintType.Critical);
+        throw new ModBase.CancelledException();
+    }
 
     #region Minecraft 下载
 
@@ -557,7 +585,8 @@ public static class ModDownloadLib
     public static void McUpdateLogShow(JsonNode versionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(versionJson["id"].ToString());
-        ModBase.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
+        var wikiUrl = McFormatter.GetWikiBaseUrl() + wikiName;
+        ModBase.OpenWebsite(wikiUrl);
     }
 
     #endregion
@@ -3806,23 +3835,10 @@ public static class ModDownloadLib
                 ((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Aborted)
             {
                 // 删除实例文件夹
-                if (Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}saves\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}versions\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}mods\\") ||
-                    File.Exists($"{((ModLoader.LoaderCombo)loader).input}server.dat"))
-                {
-                    ModBase.Log(
-                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                }
-                else
-                {
-                    ModBase.Log(
-                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                    ModBase.DeleteDirectory((string)((ModLoader.LoaderCombo)loader).input);
-                }
+                ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
+                var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
+                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
+                    ModBase.DeleteDirectory(instancePath);
             }
         }
         catch (Exception ex)
@@ -3861,6 +3877,24 @@ public static class ModDownloadLib
         catch (Exception ex)
         {
             ModBase.Log(ex, "开始合并安装失败", ModBase.LogLevel.Feedback);
+            try
+            {
+                if (Directory.Exists(request.targetInstanceFolder))
+                {
+                    var files = Directory.GetFiles(request.targetInstanceFolder);
+                    var dirs = Directory.GetDirectories(request.targetInstanceFolder);
+                    if (files.Length <= 1 && dirs.Length == 0)
+                    {
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                            .InvalidateCache(request.targetInstanceFolder);
+                        ModBase.DeleteDirectory(request.targetInstanceFolder);
+                    }
+                }
+            }
+            catch (Exception innerEx)
+            {
+                ModBase.Log(innerEx, "清理未完成的实例文件夹失败");
+            }
             return false;
         }
     }
@@ -3944,7 +3978,7 @@ public static class ModDownloadLib
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
             if (request.liteLoaderEntry is not null)
-                optiFineFolder = Path.Combine(modsTempFolder, request.minecraftName);
+                optiFineFolder = CombineCacheSubfolder(modsTempFolder, request.minecraftName);
             else
                 optiFineFolder = modsTempFolder;
         }

@@ -418,7 +418,7 @@ public class ModSetup
                     "从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。\r\n如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！";
                 CustomEventService.SetEventType(ModMain.frmSetupUI.HintCustom, CustomEvent.EventType.打开网页);
                 CustomEventService.SetEventData(ModMain.frmSetupUI.HintCustom,
-                    "https://github.com/Meloong-Git/PCL/discussions/2528");
+                    "https://github.com/PCL-Community/PCL-CE/discussions");
                 break;
             }
             case 3: // 预设

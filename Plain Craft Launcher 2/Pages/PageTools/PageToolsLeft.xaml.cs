@@ -23,7 +23,6 @@ public partial class PageToolsLeft
         var hide = Config.Preference.Hide;
 
         if (ItemTest.Checked && hide.ToolsTest) isHiddenPage = true;
-        if (ItemLauncherHelp.Checked && hide.ToolsHelp) isHiddenPage = true;
         if (PageSetupUI.HiddenForceShow)
             isHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
@@ -38,8 +37,6 @@ public partial class PageToolsLeft
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.ToolsTest)
             ItemTest.SetChecked(true, false, false);
-        else if (!hideCfg.ToolsHelp)
-            ItemLauncherHelp.SetChecked(true, false, false);
         else
             ItemTest.SetChecked(true, false, false);
     }
@@ -66,12 +63,6 @@ public partial class PageToolsLeft
                 break;
             }
         }
-    }
-
-    public static void RefreshHelp()
-    {
-        ModMain.frmToolsHelp.PageLoaderRestart();
-        ModMain.frmToolsHelp.SearchBox.Text = "";
     }
 
     #region 页面切换
@@ -104,13 +95,6 @@ public partial class PageToolsLeft
                     ModMain.frmToolsTest = new PageToolsTest();
                 return ModMain.frmToolsTest;
             }
-            case FormMain.PageSubType.ToolsLauncherHelp:
-            {
-                if (ModMain.frmToolsHelp is null)
-                    ModMain.frmToolsHelp = new PageToolsHelp();
-                return ModMain.frmToolsHelp;
-            }
-
             default:
             {
                 throw new Exception("未知的更多子页面种类：" + (int)id);

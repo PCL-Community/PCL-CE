@@ -31,6 +31,13 @@ public partial class PageSetupAbout
         ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", Basics.VersionName)
             .Replace("%VERSIONCODE%", Basics.VersionCode.ToString()).Replace("%BRANCH%", Basics.VersionBranch)
             .Replace("%COMMIT_HASH%", Secrets.CommitHash);
+
+        if (!Lang.IsChineseMainland)
+        {
+            ItemMcmod.Visibility = Visibility.Collapsed;
+            BtnMcmod.Visibility = Visibility.Collapsed;
+            ImgMcmod.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void ImgPCLCommunity_Click(object sender, MouseButtonEventArgs e)

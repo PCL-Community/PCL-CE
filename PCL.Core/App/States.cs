@@ -140,47 +140,6 @@ public static partial class States
         [ConfigItem<int>("CacheJavaListVersion", 0)] public partial int JavaListVersion { get; set; }
 
         /// <summary>
-        /// PCL 原版游戏账户系统相关字段
-        /// </summary>
-        [ConfigGroup("LegacyProfile")] partial class LegacyProfileConfigGroup
-            {
-            /// <summary>
-            /// 原版第三方认证 UUID。
-            /// </summary>
-            [ConfigItem<string>("CacheAuthUuid", "", ConfigSource.SharedEncrypt)] public partial string AuthUuid { get; set; }
-
-            /// <summary>
-            /// 原版第三方认证用户名。
-            /// </summary>
-            [ConfigItem<string>("CacheAuthName", "", ConfigSource.SharedEncrypt)] public partial string AuthUserName { get; set; }
-
-            /// <summary>
-            /// 原版第三方认证档案名。
-            /// </summary>
-            [ConfigItem<string>("CacheAuthUsername", "", ConfigSource.SharedEncrypt)] public partial string AuthThirdPartyUserName { get; set; }
-
-            /// <summary>
-            /// 原版第三方认证用户密码。
-            /// </summary>
-            [ConfigItem<string>("CacheAuthPass", "", ConfigSource.SharedEncrypt)] public partial string AuthPassword { get; set; }
-
-            /// <summary>
-            /// 原版第三方认证服务器。
-            /// </summary>
-            [ConfigItem<string>("CacheAuthServerServer", "", ConfigSource.SharedEncrypt)] public partial string AuthServerAddress { get; set; }
-            
-            /// <summary>
-            /// 原版离线档案名。
-            /// </summary>
-            [ConfigItem<string>("LoginLegacyName", "", ConfigSource.SharedEncrypt)] public partial string LoginLegacyName { get; set; }
-
-            /// <summary>
-            /// 原版微软登录 JSON。
-            /// </summary>
-            [ConfigItem<string>("LoginMsJson", "{}", ConfigSource.SharedEncrypt)] public partial string LoginMsJson { get; set; }
-        }
-
-        /// <summary>
         /// MC 版本 Drops。
         /// </summary>
         [ConfigItem<string>("CacheDrops", "")] public partial string Drops { get; set; }

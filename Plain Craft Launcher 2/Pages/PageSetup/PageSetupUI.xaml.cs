@@ -270,6 +270,7 @@ public partial class PageSetupUI
             case "UiBlurType": Config.Preference.Blur.KernelType = (int)value; break;
             case "UiBackgroundSuit": Config.Preference.Background.WallpaperSuitMode = (int)value; break;
             case "UiCustomPreset": Config.Preference.Homepage.SelectedPreset = (int)value; break;
+            case "UiCustomNet": Config.Preference.Homepage.CustomUrl = (string)value; break;
             case "UiLogoType": Config.Preference.WindowTitleType = (LauncherTitleType)(int)value; break;
             case "UiLogoText": Config.Preference.WindowTitleCustomText = (string)value; break;
             case "UiCustomType": Config.Preference.Homepage.Type = (int)value; break;
@@ -671,22 +672,6 @@ public partial class PageSetupUI
     }
 
     // 主页
-    private void BtnCustomFile_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            if (File.Exists(ModBase.exePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
-                    return;
-            ModBase.WriteFile(ModBase.exePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
-            ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Docs.Generated"), ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ModBase.exePath + @"PCL\Custom.xaml");
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "生成教学文件失败", ModBase.LogLevel.Feedback);
-        }
-    }
 
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
@@ -728,11 +713,6 @@ public partial class PageSetupUI
         SliderBackgroundBlur.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
         SliderBlurValue.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
         SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
-    }
-
-    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
-    {
-        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.HomePageMarket });
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)

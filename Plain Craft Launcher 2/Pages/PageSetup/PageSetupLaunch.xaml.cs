@@ -54,7 +54,7 @@ public partial class PageSetupLaunch
             TextArgumentInfo.Text = Config.Launch.TypeInfo;
             ComboArgumentIndieV2.SelectedIndex = Config.Launch.IndieSolutionV2;
             ComboArgumentVisibie.SelectedIndex = (int)Config.Launch.LauncherVisibility;
-            ComboArgumentPriority.SelectedIndex = (int)Config.Launch.ProcessPriority;
+            ComboArgumentPriority.SelectedValue = ((int)Config.Launch.ProcessPriority).ToString();
             ComboArgumentWindowType.SelectedIndex = (int)Config.Launch.GameWindowMode;
             TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
@@ -149,7 +149,11 @@ public partial class PageSetupLaunch
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        {
+            var senderTag = sender.Tag?.ToString();
+            SetLaunchByTag(senderTag,
+                senderTag == "LaunchArgumentPriority" ? Convert.ToInt32(sender.SelectedValue) : sender.SelectedIndex);
+        }
     }
 
     private void CheckBoxChange(object senderRaw, bool user)

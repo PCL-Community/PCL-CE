@@ -325,8 +325,7 @@ public partial class FormMain
             ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #endif
-
-        // 被移除的窗口设置选项
+        // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
 
@@ -680,8 +679,7 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
-    //“帮助”
+
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
         ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
@@ -1398,11 +1396,6 @@ public partial class FormMain
         CompDetail = 8,
 
         /// <summary>
-        ///     帮助详情。这是一个副页面。
-        /// </summary>
-        HelpDetail = 9,
-
-        /// <summary>
         ///     游戏实时日志。这是一个副页面。
         /// </summary>
         GameLog = 10,
@@ -1513,10 +1506,6 @@ public partial class FormMain
             {
                 return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
             }
-            case PageType.HelpDetail:
-            {
-                return stack.additional.Value.HelpEntry.Title;
-            }
             case PageType.VersionSaves:
             {
                 return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
@@ -1623,7 +1612,6 @@ public partial class FormMain
         /// <summary>
         /// <list type="bullet">
         ///   <item><description>CompDetail: (CompProject, ExpandedTitles, TargetVersion, TargetLoader, ResourceType)</description></item>
-        ///   <item><description>HelpDetail: (HelpEntry, HelpPage)</description></item>
         ///   <item><description>VersionSaves: SavePath</description></item>
         /// </list>
         /// </summary>
@@ -1633,8 +1621,6 @@ public partial class FormMain
             string TargetVersion,
             ModComp.CompLoaderType TargetLoader,
             ModComp.CompType ResourceType,
-            ModMain.HelpEntry HelpEntry,
-            FrameworkElement HelpPage,
             string SavePath
         )? additional;
 
@@ -2031,12 +2017,6 @@ public partial class FormMain
                         PageInstanceSavesLeft.currentSave = stack.additional.Value.SavePath;
                         PageChangeAnim(ModMain.frmInstanceSavesLeft,
                             (FrameworkElement)ModMain.frmInstanceSavesLeft.PageGet(subType));
-                        break;
-                    }
-                case PageType.HomePageMarket: // 主页市场
-                    {
-                        ModMain.frmHomePageMarket = ModMain.frmHomePageMarket ?? new PageHomePageMarket();
-                        PageChangeAnim(new MyPageLeft(), ModMain.frmHomePageMarket);
                         break;
                     }
             }

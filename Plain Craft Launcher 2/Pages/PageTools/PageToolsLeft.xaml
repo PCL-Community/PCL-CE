@@ -12,23 +12,5 @@
         <local:MyListItem x:Name="ItemTest" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="3" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="百宝箱" Check="PageCheck"
                           LogoScale="0.9" Logo="M511 995a128 128 0 0 1-57-13L70 791a126 126 0 0 1-70-113V311a126 126 0 0 1 15-60V248c1-2 3-5 5-8a127 127 0 0 1 49-42L454 13a128 128 0 0 1 112 0l383 190a126 126 0 0 1 72 113v360a126 126 0 0 1-70 115L568 984c-17 7-37 11-57 11z m42-470v370l360-178c14-7 23-21 23-38v-335L554 524zM85 330v347a42 42 0 0 0 23 38l360 178V523L85 330zM135 260l375 189 137-65L286 188 135 260z m245-118l363 197 150-71-365-180a42 42 0 0 0-37 0l-111 53z" />
 
-        <local:MyListItem x:Name="ItemLauncherHelp" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="2"
-                          MinPaddingRight="35" Height="36" VerticalAlignment="Top"
-                          Title="{DynamicResource Tools.Left.Help}" Check="PageCheck"
-                          LogoScale="0.97" SvgIcon="lucide/circle-help">
-            <local:MyListItem.Buttons>
-                <x:Array Type="{x:Type local:MyIconButton}">
-                    <local:MyIconButton Tag="2"
-                                        ToolTip="{DynamicResource Common.Action.Refresh}"
-                                        ToolTipService.Placement="Right"
-                                        ToolTipService.InitialShowDelay="200"
-                                        ToolTipService.VerticalOffset="-1"
-                                        Click="Refresh"
-                                        LogoScale="0.85"
-                                        SvgIcon="lucide/refresh-cw" />
-                </x:Array>
-            </local:MyListItem.Buttons>
-        </local:MyListItem>
-
     </StackPanel>
 </local:MyPageLeft>

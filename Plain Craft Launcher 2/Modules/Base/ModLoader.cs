@@ -769,16 +769,17 @@ public static class ModLoader
         {
             lock (lockState)
             {
-                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
-                    State = ModBase.LoadState.Aborted;
-                else
+                if (State != ModBase.LoadState.Loading && State != ModBase.LoadState.Waiting)
                     return;
             }
 
-            ModBase.RunInThread(() =>
+            foreach (var Loader in loaders) Loader.Abort();
+
+            lock (lockState)
             {
-                foreach (var Loader in loaders) Loader.Abort();
-            });
+                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
+                    State = ModBase.LoadState.Aborted;
+            }
         }
 
         /// <summary>

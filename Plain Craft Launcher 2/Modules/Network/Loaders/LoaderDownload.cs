@@ -115,6 +115,8 @@ public class LoaderDownload : ModLoader.LoaderBase
         if (!file.Loaders.Contains(this))
             file.Loaders.Add(this);
 
+        if (State >= ModBase.LoadState.Finished)
+            return;
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
         if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
         {
