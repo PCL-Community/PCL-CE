@@ -3052,7 +3052,7 @@
     <sys:String x:Key="Event.Safety.ConfirmMessage">About to execute: {0}&#x0a;Please confirm there are no security risks before continuing.</sys:String>
     <sys:String x:Key="Event.Safety.Continue">Continue</sys:String>
     <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
-    <sys:String x:Key="Event.Sanity.UnSupportedTypeHint">Unsupported legacy official PCL EventType, removed from homepage.</sys:String>
+    <sys:String x:Key="Event.Sanity.UnSupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
     <sys:String x:Key="Event.Sanity.UnknownTypeHint">Unrecognized EventType, removed from homepage.</sys:String>
 
 </ResourceDictionary>

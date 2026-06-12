@@ -9,7 +9,7 @@ namespace PCL
         public class SanitizeResult
         {
             public string SanitizedXaml { get; set; } = "";
-            public List<string> LegacyTypesFound { get; } = new();
+            public List<string> UnsupportedTypesFound { get; } = new();
             public List<string> UnrecognizedTypes { get; } = new();
         }
 
@@ -37,7 +37,7 @@ namespace PCL
 
                 if (EventTypeMapper.IsUnSupportedType(chineseValue))
                 {
-                    result.LegacyTypesFound.Add(chineseValue);
+                    result.UnsupportedTypesFound.Add(chineseValue);
                     return match.Value;
                 }
 
@@ -56,7 +56,7 @@ namespace PCL
 
                 if (EventTypeMapper.IsUnSupportedType(chineseValue))
                 {
-                    result.LegacyTypesFound.Add(chineseValue);
+                    result.UnsupportedTypesFound.Add(chineseValue);
                     return match.Value;
                 }
 
@@ -64,16 +64,16 @@ namespace PCL
                 return match.Value;
             });
 
-            foreach (var legacyType in EventTypeMapper.UnSupportedTypes)
-                sanitized = RemoveElementsWithEventType(sanitized, legacyType, result.LegacyTypesFound);
+            foreach (var UnsupportedType in EventTypeMapper.UnSupportedTypes)
+                sanitized = RemoveElementsWithEventType(sanitized, UnsupportedType, result.UnsupportedTypesFound);
 
             foreach (var unknownType in result.UnrecognizedTypes)
                 sanitized = RemoveElementsWithEventType(sanitized, unknownType, result.UnrecognizedTypes);
 
-            var distinctLegacy = new List<string>(new HashSet<string>(result.LegacyTypesFound));
+            var distinctUnsupported = new List<string>(new HashSet<string>(result.UnsupportedTypesFound));
             var distinctUnrecognized = new List<string>(new HashSet<string>(result.UnrecognizedTypes));
-            result.LegacyTypesFound.Clear();
-            result.LegacyTypesFound.AddRange(distinctLegacy);
+            result.UnsupportedTypesFound.Clear();
+            result.UnsupportedTypesFound.AddRange(distinctUnsupported);
             result.UnrecognizedTypes.Clear();
             result.UnrecognizedTypes.AddRange(distinctUnrecognized);
 

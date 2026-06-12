@@ -489,13 +489,12 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints()
     {
         var result = ModBase.LastSanitizeResult;
-        if (result == null) return;
 
-        foreach (var legacy in result.LegacyTypesFound.Distinct())
-            ModMain.Hint(Lang.Text("Event.Sanity.UnSupportedTypeHint") + $" ({legacy})");
+        foreach (var unsupported in result.UnsupportedTypesFound.Distinct())
+            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnSupportedTypeHint"));
 
         foreach (var unknown in result.UnrecognizedTypes.Distinct())
-            ModMain.Hint(Lang.Text("Event.Sanity.UnknownTypeHint") + $" ({unknown})");
+            ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanity.UnknownTypeHint"));
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";
