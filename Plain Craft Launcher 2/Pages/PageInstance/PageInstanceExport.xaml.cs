@@ -60,6 +60,7 @@ public partial class PageInstanceExport : IRefreshable
         BtnAdvancedExport.Click += ExportConfig;
         BtnAdvancedImport.Click += ImportConfig;
         BtnExport.Click += StartExport;
+        BtnRefresh.Click += BtnRefresh_Click;
         TextExportName.GotFocus += TextExportName_GotFocus;
         CheckAdvancedModrinth.Change += CheckAdvancedModrinth_Change;
         CheckAdvancedInclude.Change += CheckAdvancedInclude_Change;
@@ -68,6 +69,12 @@ public partial class PageInstanceExport : IRefreshable
     void IRefreshable.Refresh()
     {
         RefreshAll();
+    }
+
+    private void BtnRefresh_Click(object sender, ModBase.RouteEventArgs e)
+    {
+        RefreshAll();
+        ModMain.Hint("已同步实例最新数据", ModMain.HintType.Finish);
     }
 
     private void PageInstanceExport_Loaded()
