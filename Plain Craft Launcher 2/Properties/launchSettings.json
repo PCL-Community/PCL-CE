@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Plain Craft Launcher 2": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "PCL_MS_CLIENT_ID": "4dedc3cc-00cd-4993-b913-5a9ec1554fd4"
+      }
+    }
+  }
+}
