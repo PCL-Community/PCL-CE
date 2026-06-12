@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher N Edition",
   "version": {
-    "base": "1.0.72",
+    "base": "1.0.73",
     "upstream": "2.15.0",
     "suffix": "beta",
-    "code": 72
+    "code": 73
   },
   "licenses": [
     {
