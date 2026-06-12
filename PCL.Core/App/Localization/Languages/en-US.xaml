@@ -1822,8 +1822,8 @@
     <sys:String x:Key="Setup.Update.Changelog.Unavailable">No changelog available...</sys:String>
     <sys:String x:Key="Setup.Update.Changelog.Placeholder">PCL CE 2.14.0 brings a refreshing new design, several Pigeon smart features, and a delightful cross-instance workflow to boost your productivity.</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">Launcher update - missing runtime</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.Message">A launcher update (version {0}) was found, but the new version requires .NET 8 to be installed on your computer.&#x0a;You need to install .NET 8 before continuing the update.&#x0a;&#x0a;Click the button below to open the webpage, then select {1} under &quot;.NET Desktop Runtime&quot; to download.</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 8 Runtime</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.Message">A launcher update (version {0}) was found, but the new version requires .NET 10 to be installed on your computer.&#x0a;You need to install .NET 10 before continuing the update.&#x0a;&#x0a;Click the button below to open the webpage, then select {1} under &quot;.NET Desktop Runtime&quot; to download.</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 10 Runtime</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Title">Other update options - upgrade to AquaCL</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Placeholder">AquaCL 3 is the first major update of PCL CE. It brings a refreshing new design, uses the latest development technologies, completely rebuilds the core experience, and adds support for macOS, Linux, and other platforms.</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version information. Please check your network connection.</sys:String>

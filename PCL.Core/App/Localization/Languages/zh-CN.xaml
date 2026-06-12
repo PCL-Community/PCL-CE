@@ -1822,8 +1822,8 @@
     <sys:String x:Key="Setup.Update.Changelog.Unavailable">没有可用的更新日志...</sys:String>
     <sys:String x:Key="Setup.Update.Changelog.Placeholder">PCL CE 2.14.0 带来了让人眼前一亮的新设计和 Pigeon 智能的多项功能，同时还带来了令人愉快的跨实例工作方式，助你提高工作效率。</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">启动器更新 - 缺少运行环境</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.Message">发现了启动器更新（版本 {0}），但是新版本要求你的电脑安装 .NET 8 才可以运行。&#x0a;你需要先安装 .NET 8 才可以继续更新。&#x0a;&#x0a;点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {1} 选项下载。</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下载 .NET 8 运行时</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.Message">发现了启动器更新（版本 {0}），但是新版本要求你的电脑安装 .NET 10 才可以运行。&#x0a;你需要先安装 .NET 10 才可以继续更新。&#x0a;&#x0a;点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {1} 选项下载。</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下载 .NET 10 运行时</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Title">其他更新选项 - 升级到 AquaCL</sys:String>
     <sys:String x:Key="Setup.Update.OtherOptions.Placeholder">AquaCL 3 是 PCL CE 的第一个主要更新，带来了让人眼前一亮的新设计，使用了最新开发技术，完全重构了基础体验，并更支持 macOS、Linux 等其他平台。</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">无法获取最新版本信息，请检查网络连接</sys:String>

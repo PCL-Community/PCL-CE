@@ -3434,7 +3434,7 @@ public static class ModBase
             return;
 
         if (ex.GetType() == typeof(Win32Exception))
-            exFull += "\r\n" + "与系统底层交互失败，请尝试重新安装 .NET 8 解决此问题";
+            exFull += "\r\n" + "与系统底层交互失败，请尝试重新安装 .NET 10 解决此问题";
 
         // 输出提示
         switch (level)
