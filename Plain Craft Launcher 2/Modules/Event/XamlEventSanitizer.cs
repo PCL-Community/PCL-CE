@@ -62,11 +62,13 @@ namespace PCL
                 return match.Value;
             });
 
-            foreach (var UnsupportedType in EventTypeMapper.UnSupportedTypes)
-                sanitized = RemoveElementsWithEventType(sanitized, UnsupportedType, result.UnsupportedTypesFound);
+            var unsupportedSnapshot = result.UnsupportedTypesFound.ToList();
+            foreach (var type in unsupportedSnapshot)
+                sanitized = RemoveElementsWithEventType(sanitized, type, result.UnsupportedTypesFound);
 
-            foreach (var unknownType in result.UnrecognizedTypes)
-                sanitized = RemoveElementsWithEventType(sanitized, unknownType, result.UnrecognizedTypes);
+            var unrecognizedSnapshot = result.UnrecognizedTypes.ToList();
+            foreach (var type in unrecognizedSnapshot)
+                sanitized = RemoveElementsWithEventType(sanitized, type, result.UnrecognizedTypes);
 
             var distinctUnsupported = new List<string>(new HashSet<string>(result.UnsupportedTypesFound));
             var distinctUnrecognized = new List<string>(new HashSet<string>(result.UnrecognizedTypes));
@@ -90,24 +92,16 @@ namespace PCL
                 return "";
             }, RegexOptions.Compiled);
 
-            var attributePattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*>";
-            xaml = Regex.Replace(xaml, attributePattern, match =>
+            var openTagPattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*>";
+            xaml = Regex.Replace(xaml, openTagPattern, match =>
             {
-                var tag = match.Value;
-                var nameMatch = Regex.Match(tag, @"<(\w+)");
-                if (!nameMatch.Success) return match.Value;
-                var elementName = nameMatch.Groups[1].Value;
+                var elementName = Regex.Match(match.Value, @"<(\w+)").Groups[1].Value;
+                var afterTag = xaml[(match.Index + match.Length)..];
+                var closeLen = FindMatchingCloseTag(afterTag, elementName);
+                if (closeLen < 0) return match.Value;
 
-                var remaining = xaml[(match.Index + match.Length)..];
-                var closeMatch = FindMatchingCloseTag(remaining, elementName);
-
-                if (closeMatch >= 0)
-                {
-                    trackingList.Add(eventTypeValue);
-                    return "";
-                }
-
-                return match.Value;
+                trackingList.Add(eventTypeValue);
+                return "";
             }, RegexOptions.Compiled);
 
             var propertyElementPattern = $@"<local:CustomEventService\.EventType\s*>\s*{escaped}\s*</local:CustomEventService\.EventType\s*>";
