@@ -37,11 +37,6 @@
                     </Grid>
                 </local:MyCard>
                 <local:MyCard Margin="0,0,0,15" x:Name="CardOptions" MinHeight="39">
-                    <local:MyIconTextButton x:Name="BtnRefresh" Height="24" HorizontalAlignment="Right"
-                                            VerticalAlignment="Center" Margin="0,0,5,0"
-                                            Text="同步实例数据"
-                                            SvgIcon="lucide/refresh-cw"
-                                            LogoScale="0.9" />
                     <local:MyIconTextButton x:Name="BtnOverrideCancel" Height="24" HorizontalAlignment="Right"
                                             VerticalAlignment="Center" Margin="0,0,5,0"
                                             IsHitTestVisible="False" Opacity="0.5"
