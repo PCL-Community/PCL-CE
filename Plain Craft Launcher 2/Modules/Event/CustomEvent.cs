@@ -83,7 +83,7 @@ namespace PCL
         /// <summary>
         /// 将 arg 按 '|' 分割为参数数组，null/空串统一返回 [""]。
         /// </summary>
-        private static string[] SplitArgs(string arg) => arg.Split('|');
+        private static string[] SplitArgs(string arg) => arg?.Split('|') ?? [""];
 
         /// <summary>
         /// 将 \\n 替换为 Windows 换行符 \r\n。
