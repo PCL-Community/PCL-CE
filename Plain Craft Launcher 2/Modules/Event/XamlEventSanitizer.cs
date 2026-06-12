@@ -19,6 +19,10 @@ namespace PCL
             @"(<local:CustomEventService\.EventType\s*>\s*)([^<]+?)(\s*</local:CustomEventService\.EventType\s*>)",
             RegexOptions.Compiled);
 
+        private static readonly Regex LocalCustomEventTypeAttributeRegex = new(
+            @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
+            RegexOptions.Compiled);
+
         public static SanitizeResult Sanitize(string xaml)
         {
             var result = new SanitizeResult();
@@ -27,39 +31,19 @@ namespace PCL
             sanitized = EventTypeAttributeRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value;
-                if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
-                    return match.Groups[1].Value + englishName + match.Groups[3].Value;
-
-                if (Enum.TryParse<EventType>(chineseValue, true, out _))
-                    return match.Value;
-
-                if (EventTypeMapper.IsUnSupportedType(chineseValue))
-                {
-                    result.UnsupportedTypesFound.Add(chineseValue);
-                    return match.Value;
-                }
-
-                result.UnrecognizedTypes.Add(chineseValue);
-                return match.Value;
+                return ReplaceEventType(match, chineseValue, result);
             });
 
             sanitized = EventTypePropertyElementRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value.Trim();
-                if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
-                    return match.Groups[1].Value + englishName + match.Groups[3].Value;
+                return ReplaceEventType(match, chineseValue, result);
+            });
 
-                if (Enum.TryParse<EventType>(chineseValue, true, out _))
-                    return match.Value;
-
-                if (EventTypeMapper.IsUnSupportedType(chineseValue))
-                {
-                    result.UnsupportedTypesFound.Add(chineseValue);
-                    return match.Value;
-                }
-
-                result.UnrecognizedTypes.Add(chineseValue);
-                return match.Value;
+            sanitized = LocalCustomEventTypeAttributeRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[2].Value;
+                return ReplaceEventType(match, chineseValue, result);
             });
 
             var unsupportedSnapshot = result.UnsupportedTypesFound.ToList();
@@ -79,6 +63,24 @@ namespace PCL
 
             result.SanitizedXaml = sanitized;
             return result;
+        }
+
+        private static string ReplaceEventType(Match match, string chineseValue, SanitizeResult result)
+        {
+            if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
+                return match.Groups[1].Value + englishName + match.Groups[3].Value;
+
+            if (Enum.TryParse<EventType>(chineseValue, true, out _))
+                return match.Value;
+
+            if (EventTypeMapper.IsUnSupportedType(chineseValue))
+            {
+                result.UnsupportedTypesFound.Add(chineseValue);
+                return match.Value;
+            }
+
+            result.UnrecognizedTypes.Add(chineseValue);
+            return match.Value;
         }
 
         private static string RemoveElementsWithEventType(string xaml, string eventTypeValue, List<string> trackingList)
