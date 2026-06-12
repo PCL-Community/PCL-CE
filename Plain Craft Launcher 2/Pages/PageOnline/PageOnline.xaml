@@ -4,8 +4,44 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid>
-        <TextBlock Text="PCL N 在线服务" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Opacity="0.5" />
-    </Grid>
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          x:Name="PanBack">
+        <StackPanel Margin="25,15,25,25">
+            <local:MyCard x:Name="CardAccount" Margin="0,0,0,15">
+                <Grid Margin="22,20,25,20" x:Name="PanAccount">
+                    <StackPanel x:Name="PanNotLoggedIn" HorizontalAlignment="Center">
+                        <local:MyIconTextButton x:Name="BtnLogin" Height="36" MinWidth="160"
+                                                Text="Microsoft 账户登录" SvgIcon="lucide/log-in"
+                                                LogoScale="0.9" Click="BtnLogin_Click" />
+                    </StackPanel>
+                    <Grid x:Name="PanLoggedIn" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                Background="{DynamicResource ColorBrush1}">
+                            <Image x:Name="ImgAvatar" Width="40" Height="40" Stretch="UniformToFill">
+                                <Image.Clip>
+                                    <EllipseGeometry RadiusX="20" RadiusY="20" Center="20,20" />
+                                </Image.Clip>
+                            </Image>
+                        </Border>
+                        <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="15,0,0,0">
+                            <TextBlock x:Name="LabUserName" FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource ColorBrush1}" />
+                            <TextBlock x:Name="LabAccountType" FontSize="12"
+                                       Foreground="{DynamicResource ColorBrush2}" />
+                        </StackPanel>
+                        <local:MyIconTextButton Grid.Column="2" x:Name="BtnLogout" Height="32"
+                                                Text="退出登录" SvgIcon="lucide/log-out"
+                                                LogoScale="0.85" Click="BtnLogout_Click" />
+                    </Grid>
+                </Grid>
+            </local:MyCard>
+            <TextBlock Text="更多在线服务即将推出..." FontSize="14" Opacity="0.4"
+                       HorizontalAlignment="Center" Margin="0,30,0,0" />
+        </StackPanel>
+    </local:MyScrollViewer>
 </local:MyPageRight>

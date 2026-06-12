@@ -57,7 +57,8 @@ public partial class MyMsgLogin
         }
 
         // 设置 UI
-        LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
+        LabTitle.Text = data["login_title"]?.ToString()
+                        ?? Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
         CustomEventService.SetEventData(Btn1, website);
         CustomEventService.SetEventData(Btn2, userCode);
         // 启动工作线程
@@ -82,7 +83,10 @@ public partial class MyMsgLogin
         {
             try
             {
-                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={deviceCode}&scope=XboxLive.signin%20offline_access";
+                var scope = data["scope"]?.ToString() ?? "XboxLive.signin offline_access";
+                var encodedScope = Uri.EscapeDataString(scope);
+                ModBase.Log($"[MsLogin] 轮询 scope: {scope} → 编码: {encodedScope}");
+                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={deviceCode}&scope={encodedScope}";
                 using var result = await HttpRequest
                     .Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
                     .WithFormContent(bodyData)
@@ -90,6 +94,8 @@ public partial class MyMsgLogin
                     .ConfigureAwait(false);
                 if (!result.IsSuccess)
                 {
+                    var rawBody = await result.AsStringAsync().ConfigureAwait(false);
+                    ModBase.Log($"[MsLogin] 轮询失败, 状态码: {(int)result.StatusCode}, 响应: {rawBody}");
                     var error = await result.AsJsonAsync<ErrorBody>()
                         .ConfigureAwait(false);
                     switch(error?.Error)

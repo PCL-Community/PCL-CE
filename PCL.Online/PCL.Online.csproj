@@ -57,6 +57,9 @@
         <EnableDefaultPageItems>false</EnableDefaultPageItems>
     </PropertyGroup>
     <ItemGroup>
+        <Using Include="System.Text.Json.Nodes" />
+    </ItemGroup>
+    <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**" />
         <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
         <Content Include="Legal\**\*.md">

@@ -211,7 +211,7 @@
     <sys:String x:Key="Launch.Account.LoginDialog.Title">Test title text</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">Copy code</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Log in to Minecraft</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Log in to PCL N Edition</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">The login page will open automatically. Enter the authorization code {0} (it will be copied automatically).&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be filled in automatically.&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;If the code is not filled in automatically, paste this authorization code {0} manually (it will be copied automatically).&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in from the webpage!</sys:String>

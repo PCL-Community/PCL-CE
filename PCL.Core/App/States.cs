@@ -326,5 +326,32 @@ public static partial class States
         /// 已接受的法律协议版本号。
         /// </summary>
         [ConfigItem<string>("LegalAcceptedVersion", "")] public partial string LegalAcceptedVersion { get; set; }
+
+        /// <summary>Minecraft 访问令牌</summary>
+        [ConfigItem<string>("MsAccessToken", "", ConfigSource.SharedEncrypt)] public partial string MsAccessToken { get; set; }
+
+        /// <summary>微软 OAuth 刷新令牌</summary>
+        [ConfigItem<string>("MsOAuthRefreshToken", "", ConfigSource.SharedEncrypt)] public partial string MsOAuthRefreshToken { get; set; }
+
+        /// <summary>Microsoft Graph 访问令牌</summary>
+        [ConfigItem<string>("MsGraphAccessToken", "", ConfigSource.SharedEncrypt)] public partial string MsGraphAccessToken { get; set; }
+
+        /// <summary>Microsoft Graph 刷新令牌</summary>
+        [ConfigItem<string>("MsGraphRefreshToken", "", ConfigSource.SharedEncrypt)] public partial string MsGraphRefreshToken { get; set; }
+
+        /// <summary>登录用户名</summary>
+        [ConfigItem<string>("MsUserName", "")] public partial string MsUserName { get; set; }
+
+        /// <summary>玩家 UUID</summary>
+        [ConfigItem<string>("MsUuid", "")] public partial string MsUuid { get; set; }
+
+        /// <summary>头像 URL</summary>
+        [ConfigItem<string>("MsAvatarUrl", "")] public partial string MsAvatarUrl { get; set; }
+
+        /// <summary>是否拥有 Minecraft 正版</summary>
+        [ConfigItem<bool>("MsOwnsMinecraft", false)] public partial bool MsOwnsMinecraft { get; set; }
+
+        /// <summary>上次 token 刷新时间</summary>
+        [ConfigItem<string>("MsLastTokenRefresh", "")] public partial string MsLastTokenRefresh { get; set; }
     }
 }
