@@ -172,9 +172,9 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                ModBase.OpenWebsite("https://get.dot.net/8");
+                ModBase.OpenWebsite("https://get.dot.net/10");
                 LogWrapper.Error(e.Exception,
-                    "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
+                    "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 10!");
             }
             else
             {
