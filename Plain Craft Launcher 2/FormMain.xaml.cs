@@ -367,8 +367,6 @@ public partial class FormMain
             ModBase.Log("[Start] 已解除帮助页面的隐藏");
         }
 
-        // 迁移旧版用户档案
-        if (lastVersionCode <= 368) ModBase.RunInNewThread(() => ModProfile.MigrateOldProfile());
         // Mod 命名设置迁移
         if (!Config.Download.Comp.NameFormatV1Config.IsDefault() && Config.Download.Comp.NameFormatV2Config.IsDefault())
         {
@@ -2057,11 +2055,6 @@ public partial class FormMain
                     {
                         ModMain.frmInstanceModDetail = new PageInstanceModDetail();
                         PageChangeAnim(new MyPageLeft(), ModMain.frmInstanceModDetail);
-                        break;
-                    }
-                case PageType.HelpDetail: // 帮助详情
-                    {
-                        PageChangeAnim(new MyPageLeft(), stack.additional.Value.HelpPage);
                         break;
                     }
                 case PageType.VersionSaves: // 存档管理

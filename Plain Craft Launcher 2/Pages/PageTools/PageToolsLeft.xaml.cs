@@ -52,17 +52,6 @@ public partial class PageToolsLeft
         if (button.Tag is null)
             return;
         double id = ModBase.Val(button.Tag);
-        switch (id)
-        {
-            case (double)FormMain.PageSubType.ToolsLauncherHelp:
-            {
-                if (ModMain.frmToolsHelp is null)
-                    ModMain.frmToolsHelp = new PageToolsHelp();
-                ModMain.frmToolsHelp.Refresh();
-                ItemLauncherHelp.Checked = true;
-                break;
-            }
-        }
     }
 
     #region 页面切换

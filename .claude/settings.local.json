@@ -1,41 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(dotnet build *)",
-      "PowerShell(Stop-Process *)",
-      "Bash(python *)",
-      "PowerShell(Get-Process *)",
-      "Bash(dotnet clean *)",
-      "WebSearch",
-      "Bash(dotnet --version)",
-      "Bash(dotnet --list-sdks)",
-      "Bash(dotnet nuget *)",
-      "Bash(dotnet package *)",
-      "Bash(xargs grep *)",
-      "Bash(python3 -c ' *)",
-      "PowerShell(pip install *)",
-      "PowerShell(git log *)",
-      "PowerShell(git fetch *)",
-      "PowerShell(gh api *)",
-      "WebFetch(domain:github.com)",
-      "PowerShell(git show *)",
-      "PowerShell(git diff *)",
-      "PowerShell(curl *)",
-      "Bash(curl -s https://api.github.com/repos/MuXue1230-owo/PCL-N/contents/.github/ISSUE_TEMPLATE)",
-      "Bash(python3 -c \"import json,sys; [print\\(x['name'], x['size']\\) for x in json.load\\(sys.stdin\\)]\")",
-      "PowerShell(Invoke-RestMethod -Uri \"https://api.github.com/repos/MuXue1230-owo/PCL-N/contents/.github/ISSUE_TEMPLATE\" | ForEach-Object { \"$\\($_.name\\) \\($\\($_.size\\) bytes\\)\" })",
-      "PowerShell(git push *)",
-      "WebFetch(domain:docs.github.com)",
-      "PowerShell(dotnet build *)",
-      "PowerShell(Set-Content *)",
-      "PowerShell(gpg *)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\usr\\\\bin\\\\gpg.exe\" --version 2>&1)",
-      "Bash(dotnet new sln *)",
-      "Bash(dotnet sln *)",
-      "PowerShell(git merge *)",
-      "PowerShell(git stash *)",
-      "PowerShell(git diff upstream/dev -- \"Plain Craft Launcher 2/Modules/ModMain.cs\" 2>&1 | Select-String \"PageToolsHelp|frmToolsHelp\")"
+      "*",
+      "PowerShell(git *)"
     ]
   }
 }
