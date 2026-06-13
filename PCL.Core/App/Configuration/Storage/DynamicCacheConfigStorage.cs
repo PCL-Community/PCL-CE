@@ -41,6 +41,12 @@ public class DynamicCacheConfigStorage : ConfigStorage
         _cache.Clear();
     }
 
+    protected override void OnFlush()
+    {
+        foreach (var item in _cache.Values) item.Flush();
+        _nullContextCache?.Flush();
+    }
+
     public bool InvalidateCache(object context)
     {
         var result = _cache.TryGetValue(context, out var center);

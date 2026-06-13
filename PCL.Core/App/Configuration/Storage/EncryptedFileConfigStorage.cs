@@ -61,4 +61,9 @@ public class EncryptedFileConfigStorage(ConfigStorage source) : ConfigStorage
             return false;
         }
     }
+
+    protected override void OnFlush()
+    {
+        Source.Flush();
+    }
 }

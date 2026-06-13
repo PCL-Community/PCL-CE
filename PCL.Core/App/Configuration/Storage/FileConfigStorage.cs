@@ -23,6 +23,9 @@ public class FileConfigStorage : ConfigStorage
     private readonly Channel<(string, Action)> _writeActionChannel;
     private readonly CancellationTokenSource _writeActionCts;
     private readonly ManualResetEventSlim _writeStopEvent = new(true);
+    private readonly object _writeSyncLock = new();
+    private readonly Dictionary<string, Action> _pendingWriteActions = [];
+    private long _lastSyncTick;
 
     public FileConfigStorage(IKeyValueFileProvider file)
     {
@@ -33,9 +36,7 @@ public class FileConfigStorage : ConfigStorage
         {
             _writeStopEvent.Reset();
             const long syncInterval = 10000; // ms
-            var lastSyncTick = 0L;
             var cancelToken = _writeActionCts.Token;
-            var writeActionMap = new Dictionary<string, Action>();
             var reader = _writeActionChannel.Reader;
             try
             {
@@ -43,38 +44,22 @@ public class FileConfigStorage : ConfigStorage
                 {
                     // 读入并合并暂存操作
                     var (key, action) = await reader.ReadAsync(cancelToken);
-                    writeActionMap[key] = action;
-                    if (Environment.TickCount64 - lastSyncTick < syncInterval || cancelToken.IsCancellationRequested) continue;
+                    lock (_writeSyncLock)
+                    {
+                        _pendingWriteActions[key] = action;
+                    }
+                    if (Environment.TickCount64 - _lastSyncTick < syncInterval || cancelToken.IsCancellationRequested) continue;
                     // 同步文件
-                    Sync();
-                    lastSyncTick = Environment.TickCount64;
-                    writeActionMap.Clear();
+                    SyncPendingWrites();
                 }
             }
             catch (OperationCanceledException) { /* ignoring*/ }
             finally
             {
                 // 结束时执行一次同步
-                Sync();
+                SyncPendingWrites();
             }
             _writeStopEvent.Set();
-            return;
-            void Sync()
-            {
-                try
-                {
-                    LogWrapper.Trace("Config", $"正在保存 {File.FilePath}");
-                    foreach (var action in writeActionMap.Values) action();
-                    File.Sync();
-                }
-                catch (Exception ex)
-                {
-                    LogWrapper.Error(ex, "Config", "配置文件保存失败");
-                    var hint = $"保存配置文件时出现问题，若该问题能够稳定复现，请尽快提交反馈。" +
-                               $"\n\n错误信息:\n{ex.GetType().FullName}: {ex.Message}";
-                    MsgBoxWrapper.Show(hint, "配置文件保存失败", MsgBoxTheme.Error);
-                }
-            }
         });
     }
 
@@ -83,6 +68,11 @@ public class FileConfigStorage : ConfigStorage
         _writeActionCts.Cancel();
         _writeStopEvent.Wait();
         _writeStopEvent.Dispose();
+    }
+
+    protected override void OnFlush()
+    {
+        SyncPendingWrites();
     }
 
     protected override bool OnAccess<TKey, TValue>(
@@ -114,6 +104,32 @@ public class FileConfigStorage : ConfigStorage
             default: throw new InvalidOperationException($"Invalid storage action: {action}");
         }
 #pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
+    }
+
+    private void SyncPendingWrites()
+    {
+        Dictionary<string, Action> actions;
+        lock (_writeSyncLock)
+        {
+            if (_pendingWriteActions.Count == 0) return;
+            actions = new Dictionary<string, Action>(_pendingWriteActions);
+            _pendingWriteActions.Clear();
+            _lastSyncTick = Environment.TickCount64;
+        }
+
+        try
+        {
+            LogWrapper.Trace("Config", $"正在保存 {File.FilePath}");
+            foreach (var action in actions.Values) action();
+            File.Sync();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, "Config", "配置文件保存失败");
+            var hint = $"保存配置文件时出现问题，若该问题能够稳定复现，请尽快提交反馈。" +
+                       $"\n\n错误信息:\n{ex.GetType().FullName}: {ex.Message}";
+            MsgBoxWrapper.Show(hint, "配置文件保存失败", MsgBoxTheme.Error);
+        }
     }
 
     public override string ToString() => $"{base.ToString()} ({File.FilePath})";

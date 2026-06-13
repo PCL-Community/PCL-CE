@@ -31,10 +31,17 @@ public abstract class ConfigStorage : IConfigProvider
 
     protected virtual void OnStop() { }
 
+    protected virtual void OnFlush() { }
+
     /// <summary>
     /// 停止存取工作，保存并释放资源。
     /// </summary>
     public void Stop() => OnStop();
+
+    /// <summary>
+    /// 立即刷新已排队的写入操作。
+    /// </summary>
+    public void Flush() => OnFlush();
 
 #if DEBUG
     private static readonly bool _EnableTrace = Basics.CommandLineArguments.Contains("--trace-traffic");

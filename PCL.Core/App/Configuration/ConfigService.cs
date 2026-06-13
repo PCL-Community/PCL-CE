@@ -135,6 +135,18 @@ public sealed partial class ConfigService
         };
     }
 
+    /// <summary>
+    /// 立即将当前已排队的配置写入磁盘。
+    /// </summary>
+    public static void FlushAll()
+    {
+        if (!_isProvidersInitialized) return;
+        _sharedConfigProvider?.Flush();
+        _sharedEncryptedConfigProvider?.Flush();
+        _localConfigProvider?.Flush();
+        _instanceConfigProvider?.Flush();
+    }
+
     private static void _InitializeProviders()
     {
         Action[] inits = [
