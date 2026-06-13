@@ -23,6 +23,10 @@ namespace PCL
             @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
 
+        private static readonly Regex LocalCustomEventElementRegex = new(
+            @"<local:CustomEvent\s+[^>]*\bType\s*=\s*""([^""]+)""[^>]*/\s*>",
+            RegexOptions.Compiled);
+
         private static readonly Regex SetterEventTypeValueRegex = new(
             @"(Property\s*=\s*""local:CustomEventService\.EventType""\s+Value\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
@@ -52,6 +56,23 @@ namespace PCL
             {
                 var chineseValue = match.Groups[2].Value;
                 return ReplaceEventType(match, chineseValue, result);
+            });
+
+            sanitized = LocalCustomEventElementRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[1].Value;
+                if (EventTypeMapper.IsUnsupportedType(chineseValue))
+                {
+                    result.UnsupportedTypesFound.Add(chineseValue);
+                    return "";
+                }
+                if (!Enum.TryParse<EventType>(chineseValue, true, out _)
+                    && !EventTypeMapper.TryToEnglish(chineseValue, out _))
+                {
+                    result.UnrecognizedTypes.Add(chineseValue);
+                    return "";
+                }
+                return match.Value;
             });
 
             sanitized = SetterEventTypeValueRegex.Replace(sanitized, match =>
